@@ -4,7 +4,7 @@
 
 **Core Value:** Anyone can see when and where bikes are available, discover usage patterns, and understand how the Bizi system serves different neighborhoods at different times.
 
-**Current Focus:** Phase 1 — Foundation & Data Architecture
+**Current Focus:** Phase 2 — Data Collection & Validation
 
 **MVP Deadline:** 2 weeks of data collection + basic dashboard
 
@@ -15,15 +15,15 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase** | 1 of 5 — Foundation & Data Architecture |
-| **Plan** | 3 of 4 complete |
-| **Status** | 🟡 In Progress |
-| **Last activity** | 2026-02-03 — Completed 01-03-PLAN.md |
+| **Plan** | 4 of 4 complete |
+| **Status** | 🟢 Phase Complete |
+| **Last activity** | 2026-02-03 — Completed 01-04-PLAN.md |
 | **Blockers** | None |
 
 ### Phase 1 Progress
 
 ```
-[███████████████░░░░░] 75%
+[████████████████████] 100%
 ```
 
 **Requirements (3 total):**
@@ -35,8 +35,8 @@
 1. [x] Database schema supports time-series station data with proper indexes
 2. [x] All timestamps stored in UTC with Europe/Madrid display conversion
 3. [x] DST transitions handled correctly (no missing/duplicate hours)
-4. [ ] Data retention ladder defined (raw: 30 days, hourly: 1 year, daily: forever)
-5. [ ] Prisma migrations run successfully in CI/CD
+4. [x] Data retention ladder defined (raw: 30 days, hourly: 1 year, daily: forever)
+5. [x] Prisma migrations run successfully in CI/CD
 
 ---
 
@@ -44,9 +44,9 @@
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| **Phases Complete** | 0/5 | Roadmap just created |
+| **Phases Complete** | 1/5 | Phase 1 complete |
 | **Requirements Complete** | 3/28 | In progress |
-| **Success Criteria Met** | 3/35 | In progress |
+| **Success Criteria Met** | 5/35 | In progress |
 | **Open Blockers** | 0 | Clear for Phase 1 |
 | **Research Flags** | 1 | Phase 2 needs `/gsd-research-phase` |
 
@@ -54,7 +54,7 @@
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| 1 - Foundation | 🟡 In Progress | 75% |
+| 1 - Foundation | 🟢 Complete | 100% |
 | 2 - Data Collection | 🔴 Not Started | 0% |
 | 3 - Analytics Engine | 🔴 Not Started | 0% |
 | 4 - API Layer | 🔴 Not Started | 0% |
@@ -78,6 +78,8 @@
 | Vitest for DST/unit tests | Fast Node-based test runner | Phase 1 |
 | Normalize missing spring hour to 03:00 local | Avoid invalid timestamps | Phase 1 |
 | Resolve ambiguous fall-back hour to first occurrence | Consistent storage choice | Phase 1 |
+| CI validation uses sqlite DATABASE_URL | Avoids secrets on PR validation/generation | Phase 1 |
+| Health check reads _prisma_migrations | Confirms schema reachability post-deploy | Phase 1 |
 
 ### Critical Pitfalls (From Research)
 
@@ -95,7 +97,7 @@
 
 ### Technical Debt Watchlist
 
-- [ ] Migration path from SQLite to TimescaleDB documented
+- [x] Migration path from SQLite to TimescaleDB documented
 - [ ] Data retention policies tested before data volume grows
 - [ ] API rate limiting validated against actual Bizi limits
 - [x] DST transitions tested with historical edge cases
@@ -105,13 +107,13 @@
 ## Session Continuity
 
 ### Last Action
-Phase 1 Plan 03 execution — 2026-02-03
+Phase 1 Plan 04 execution — 2026-02-03
 
 ### Next Action
-`/gsd-execute-phase 1` — Execute 01-04-PLAN.md (Data Retention & CI/CD Setup)
+`/gsd-research-phase 2` — Verify Bizi API structure, GBFS version, and rate limits
 
-Last session: 2026-02-03 21:33 UTC
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-02-03 21:40 UTC
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
 
 ### Context Recovery
@@ -142,4 +144,4 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-03 after 01-03 execution*
+*Last updated: 2026-02-03 after 01-04 execution*
