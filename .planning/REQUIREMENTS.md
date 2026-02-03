@@ -131,8 +131,15 @@
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28 ✓
+- Unmapped: 0 ✓
+
+**Phase Distribution:**
+- Phase 1 (Foundation): 3 requirements
+- Phase 2 (Data Collection): 6 requirements
+- Phase 3 (Analytics Engine): 8 requirements
+- Phase 4 (API Layer): 6 requirements
+- Phase 5 (Dashboard): 9 requirements
 
 ---
 *Requirements defined: 2026-02-03*
