@@ -9,3 +9,33 @@ generator client {
 datasource db {
   provider = "sqlite"
 }
+
+model Station {
+  id        String   @id
+  name      String
+  lat       Float
+  lon       Float
+  capacity  Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statuses StationStatus[]
+
+  @@index([isActive])
+  @@index([lat, lon])
+}
+
+model StationStatus {
+  id              Int      @id @default(autoincrement())
+  stationId       String
+  bikesAvailable  Int
+  anchorsFree     Int
+  recordedAt      DateTime // UTC timestamp from Bizi API
+  createdAt       DateTime @default(now()) // When we recorded it
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@index([stationId, recordedAt]) // Critical for time-series queries
+  @@index([recordedAt]) // For range queries across all stations
+}
