@@ -37,6 +37,14 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - #1 (Unbounded storage) — retention ladder defined upfront
 - #4 (Timezone/DST errors) — UTC storage with IANA timezone names
 
+**Plans:** 4 plans in 4 waves (all autonomous)
+
+**Plan List:**
+- [ ] 01-01-PLAN.md — Project Foundation & Prisma Setup
+- [ ] 01-02-PLAN.md — Database Schema & Time-Series Structure
+- [ ] 01-03-PLAN.md — Timezone Handling & DST Support
+- [ ] 01-04-PLAN.md — Data Retention & CI/CD Setup
+
 ---
 
 ### Phase 2: Data Collection & Validation
