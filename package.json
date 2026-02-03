@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:health": "tsx scripts/db-health-check.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
