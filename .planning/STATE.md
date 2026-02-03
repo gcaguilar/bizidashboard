@@ -15,26 +15,26 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase** | 1 of 5 — Foundation & Data Architecture |
-| **Plan** | 2 of 4 complete |
+| **Plan** | 3 of 4 complete |
 | **Status** | 🟡 In Progress |
-| **Last activity** | 2026-02-03 — Completed 01-02-PLAN.md |
+| **Last activity** | 2026-02-03 — Completed 01-03-PLAN.md |
 | **Blockers** | None |
 
 ### Phase 1 Progress
 
 ```
-[██████████░░░░░░░░░░] 50%
+[███████████████░░░░░] 75%
 ```
 
 **Requirements (3 total):**
 - [x] INFRA-01: Database schema with proper time-series structure
-- [ ] INFRA-02: Timezone handling (UTC storage, Europe/Madrid display)
-- [ ] INFRA-03: DST handling (March/October transitions)
+- [x] INFRA-02: Timezone handling (UTC storage, Europe/Madrid display)
+- [x] INFRA-03: DST handling (March/October transitions)
 
 **Success Criteria (5 total):**
 1. [x] Database schema supports time-series station data with proper indexes
-2. [ ] All timestamps stored in UTC with Europe/Madrid display conversion
-3. [ ] DST transitions handled correctly (no missing/duplicate hours)
+2. [x] All timestamps stored in UTC with Europe/Madrid display conversion
+3. [x] DST transitions handled correctly (no missing/duplicate hours)
 4. [ ] Data retention ladder defined (raw: 30 days, hourly: 1 year, daily: forever)
 5. [ ] Prisma migrations run successfully in CI/CD
 
@@ -45,8 +45,8 @@
 | Metric | Value | Notes |
 |--------|-------|-------|
 | **Phases Complete** | 0/5 | Roadmap just created |
-| **Requirements Complete** | 1/28 | In progress |
-| **Success Criteria Met** | 1/35 | In progress |
+| **Requirements Complete** | 3/28 | In progress |
+| **Success Criteria Met** | 3/35 | In progress |
 | **Open Blockers** | 0 | Clear for Phase 1 |
 | **Research Flags** | 1 | Phase 2 needs `/gsd-research-phase` |
 
@@ -54,7 +54,7 @@
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| 1 - Foundation | 🟡 In Progress | 50% |
+| 1 - Foundation | 🟡 In Progress | 75% |
 | 2 - Data Collection | 🔴 Not Started | 0% |
 | 3 - Analytics Engine | 🔴 Not Started | 0% |
 | 4 - API Layer | 🔴 Not Started | 0% |
@@ -74,7 +74,10 @@
 | DATABASE_URL configured via prisma.config.ts | Prisma 7 disallows datasource URLs in schema files | Phase 1 |
 | Spanish UI | Target users in Zaragoza | Pending Phase 5 |
 | 2-week data for MVP | Sufficient to demonstrate patterns | Pending Phase 3 |
-| UTC storage | Prevent DST errors | Pending Phase 1 |
+| UTC storage | Prevent DST errors | Phase 1 |
+| Vitest for DST/unit tests | Fast Node-based test runner | Phase 1 |
+| Normalize missing spring hour to 03:00 local | Avoid invalid timestamps | Phase 1 |
+| Resolve ambiguous fall-back hour to first occurrence | Consistent storage choice | Phase 1 |
 
 ### Critical Pitfalls (From Research)
 
@@ -95,20 +98,20 @@
 - [ ] Migration path from SQLite to TimescaleDB documented
 - [ ] Data retention policies tested before data volume grows
 - [ ] API rate limiting validated against actual Bizi limits
-- [ ] DST transitions tested with historical edge cases
+- [x] DST transitions tested with historical edge cases
 
 ---
 
 ## Session Continuity
 
 ### Last Action
-Phase 1 Plan 02 execution — 2026-02-03
+Phase 1 Plan 03 execution — 2026-02-03
 
 ### Next Action
-`/gsd-execute-phase 1` — Execute 01-03-PLAN.md (Timezone Handling & DST Support)
+`/gsd-execute-phase 1` — Execute 01-04-PLAN.md (Data Retention & CI/CD Setup)
 
-Last session: 2026-02-03 21:22 UTC
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-02-03 21:33 UTC
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
 
 ### Context Recovery
@@ -139,4 +142,4 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-03 after 01-02 execution*
+*Last updated: 2026-02-03 after 01-03 execution*

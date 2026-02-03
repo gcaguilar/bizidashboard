@@ -37,12 +37,12 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - #1 (Unbounded storage) — retention ladder defined upfront
 - #4 (Timezone/DST errors) — UTC storage with IANA timezone names
 
-**Plans:** 4 plans in 4 waves (2/4 complete)
+**Plans:** 4 plans in 4 waves (3/4 complete)
 
 **Plan List:**
 - [x] 01-01-PLAN.md — Project Foundation & Prisma Setup
 - [x] 01-02-PLAN.md — Database Schema & Time-Series Structure
-- [ ] 01-03-PLAN.md — Timezone Handling & DST Support
+- [x] 01-03-PLAN.md — Timezone Handling & DST Support
 - [ ] 01-04-PLAN.md — Data Retention & CI/CD Setup
 
 ---
@@ -198,13 +198,13 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 
 | Phase | Status | Requirements | Success Criteria Met |
 |-------|--------|--------------|---------------------|
-| 1 - Foundation | 🟡 In Progress | 2/3 pending | 1/5 |
+| 1 - Foundation | 🟡 In Progress | 0/3 pending | 3/5 |
 | 2 - Data Collection | 🔴 Not Started | 6/6 pending | 0/6 |
 | 3 - Analytics Engine | 🔴 Not Started | 8/8 pending | 0/8 |
 | 4 - API Layer | 🔴 Not Started | 6/6 pending | 0/6 |
 | 5 - Dashboard | 🔴 Not Started | 9/9 pending | 0/10 |
 
-**Overall Progress:** 1/28 requirements complete (4%)
+**Overall Progress:** 3/28 requirements complete (11%)
 
 ---
 
@@ -240,8 +240,8 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | DASH-07 | Phase 5 | Pending |
 | DASH-08 | Phase 5 | Pending |
 | INFRA-01 | Phase 1 | Complete |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 2 | Pending |
 | INFRA-05 | Phase 5 | Pending |
 
