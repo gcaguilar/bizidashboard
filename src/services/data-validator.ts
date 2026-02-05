@@ -6,6 +6,7 @@ import {
   ValidationInput,
   DataObservabilityMetrics 
 } from '@/lib/observability'
+import { incrementValidationErrors } from '@/lib/metrics'
 
 /**
  * Raw GBFS status response structure
@@ -124,6 +125,11 @@ export async function validateAndStore(
     // Copy warnings and errors to result
     result.warnings = [...metrics.warnings]
     result.errors = [...metrics.errors]
+
+    // Track validation errors for observability dashboard
+    if (metrics.errors.length > 0) {
+      incrementValidationErrors(metrics.errors.length)
+    }
 
     // Step 4: Determine if we should store
     const shouldStore = shouldStoreData(metrics)
