@@ -4,7 +4,7 @@
 
 **Core Value:** Anyone can see when and where bikes are available, discover usage patterns, and understand how the Bizi system serves different neighborhoods at different times.
 
-**Current Focus:** Phase 2 — Data Collection & Validation
+**Current Focus:** Phase 2 — Data Collection & Validation (Planning Complete)
 
 **MVP Deadline:** 2 weeks of data collection + basic dashboard
 
@@ -14,29 +14,23 @@
 
 | Attribute | Value |
 |-----------|-------|
-| **Phase** | 1 of 5 — Foundation & Data Architecture |
-| **Plan** | 4 of 4 complete |
-| **Status** | 🟢 Phase Complete |
-| **Last activity** | 2026-02-03 — Completed 01-04-PLAN.md |
+| **Phase** | 2 of 5 — Data Collection & Validation |
+| **Plan** | 1 of 4 in current phase |
+| **Status** | 🟡 In Progress |
+| **Last activity** | 2026-02-05 — Completed 02-01-PLAN.md |
 | **Blockers** | None |
 
-### Phase 1 Progress
+### Phase 2 Progress
 
 ```
-[████████████████████] 100%
+[████░░░░░░░░░░░░░░░░] 25%
 ```
 
-**Requirements (3 total):**
-- [x] INFRA-01: Database schema with proper time-series structure
-- [x] INFRA-02: Timezone handling (UTC storage, Europe/Madrid display)
-- [x] INFRA-03: DST handling (March/October transitions)
-
-**Success Criteria (5 total):**
-1. [x] Database schema supports time-series station data with proper indexes
-2. [x] All timestamps stored in UTC with Europe/Madrid display conversion
-3. [x] DST transitions handled correctly (no missing/duplicate hours)
-4. [x] Data retention ladder defined (raw: 30 days, hourly: 1 year, daily: forever)
-5. [x] Prisma migrations run successfully in CI/CD
+**Plans in Phase:**
+- [x] 02-01: GBFS API Client Infrastructure
+- [ ] 02-02: Data Fetcher & Scheduler
+- [ ] 02-03: Data Storage Layer
+- [ ] 02-04: Pipeline Observability
 
 ---
 
@@ -44,18 +38,18 @@
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| **Phases Complete** | 1/5 | Phase 1 complete |
+| **Phases Complete** | 2/5 in progress | Phase 1 complete, Phase 2 in progress |
 | **Requirements Complete** | 3/28 | In progress |
 | **Success Criteria Met** | 5/35 | In progress |
-| **Open Blockers** | 0 | Clear for Phase 1 |
-| **Research Flags** | 1 | Phase 2 needs `/gsd-research-phase` |
+| **Open Blockers** | 0 | Clear for Phase 2 |
+| **Research Flags** | 0 | Phase 2 research completed |
 
 ### Phase Status Overview
 
 | Phase | Status | Progress |
 |-------|--------|----------|
 | 1 - Foundation | 🟢 Complete | 100% |
-| 2 - Data Collection | 🔴 Not Started | 0% |
+| 2 - Data Collection | 🟡 In Progress | 25% |
 | 3 - Analytics Engine | 🔴 Not Started | 0% |
 | 4 - API Layer | 🔴 Not Started | 0% |
 | 5 - Dashboard | 🔴 Not Started | 0% |
@@ -80,6 +74,10 @@
 | Resolve ambiguous fall-back hour to first occurrence | Consistent storage choice | Phase 1 |
 | CI validation uses sqlite DATABASE_URL | Avoids secrets on PR validation/generation | Phase 1 |
 | Health check reads _prisma_migrations | Confirms schema reachability post-deploy | Phase 1 |
+| Native fetch over axios | Smaller bundle size, Node 18+ built-in | Phase 2 |
+| Custom retry with exponential backoff + jitter | More control than retry-axios | Phase 2 |
+| Zod with .passthrough() for GBFS | Version-agnostic parsing for forward compatibility | Phase 2 |
+| 10-second API request timeout | Balance reliability and responsiveness | Phase 2 |
 
 ### Critical Pitfalls (From Research)
 
@@ -107,13 +105,13 @@
 ## Session Continuity
 
 ### Last Action
-Phase 1 Plan 04 execution — 2026-02-03
+Phase 2 Plan 01 execution — 2026-02-05
 
 ### Next Action
-`/gsd-research-phase 2` — Verify Bizi API structure, GBFS version, and rate limits
+Execute 02-02-PLAN.md (Data Fetcher & Scheduler)
 
-Last session: 2026-02-03 21:40 UTC
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-02-05 21:03 UTC
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
 
 ### Context Recovery
