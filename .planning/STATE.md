@@ -134,12 +134,14 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 
 ## Notes
 
-- Research complete — high confidence in stack and architecture
-- One research flag pending: Phase 2 data collection needs verification of Bizi API specifics
-- No blockers for Phase 1 start
+- Phase 1 complete — Foundation & Data Architecture ready
+- Phase 2 in progress — Data Collection & Validation
+  - 02-01 complete: GBFS API client with retry and validation
+  - Wave 1 plans (02-01, 02-02) ready for execution
+- No blockers for Phase 2 execution
 - All 28 v1 requirements mapped to 5 phases with clear success criteria
 
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-03 after 01-04 execution*
+*Last updated: 2026-02-05 after 02-01 execution*
