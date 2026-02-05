@@ -73,7 +73,13 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - #3 (Silent failures) — Five Pillars of Data Observability implemented
 - #6 (Rate limiting) — exponential backoff with User-Agent headers
 
-**Research Flag:** `/gsd-research-phase 2` — Verify Bizi API structure, GBFS version, exact rate limits before implementation.
+**Plans:** 4 plans in 2 waves (0/4 complete)
+
+**Plan List:**
+- [ ] 02-01-PLAN.md — GBFS Client & Schema Validation
+- [ ] 02-02-PLAN.md — Data Storage & Five Pillars Observability
+- [ ] 02-03-PLAN.md — Scheduled Collection Job & API
+- [ ] 02-04-PLAN.md — Observability Dashboard & Metrics
 
 ---
 
