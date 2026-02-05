@@ -126,8 +126,9 @@ export async function runCollection(): Promise<CollectionResult> {
     jobState.consecutiveFailures++;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     result.error = errorMessage;
+    result.success = false;
     console.error(`[Collection] Failed: ${errorMessage}`);
-    
+
     // Re-throw for upstream handling while still updating state
     throw error;
   } finally {
@@ -182,7 +183,7 @@ export function startCollectionJob(): void {
   );
 
   isScheduled = true;
-  console.log('[Cron] Bizi collection scheduled every 30 minutes (Europe/Madrid)');
+  console.log('[Cron] Bizi collection scheduled every 30 minutes');
 }
 
 /**
