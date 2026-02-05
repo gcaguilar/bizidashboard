@@ -80,6 +80,10 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - [ ] 02-02-PLAN.md — Data Storage & Five Pillars Observability
 - [ ] 02-03-PLAN.md — Scheduled Collection Job & API
 - [ ] 02-04-PLAN.md — Observability Dashboard & Metrics
+- [ ] 02-01-PLAN.md — GBFS Client & Schema Validation
+- [ ] 02-02-PLAN.md — Data Storage & Five Pillars Observability
+- [ ] 02-03-PLAN.md — Scheduled Collection Job & API
+- [ ] 02-04-PLAN.md — Observability Dashboard & Metrics
 
 ---
 
