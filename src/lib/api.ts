@@ -1,7 +1,15 @@
 import 'server-only';
 
-import { headers } from 'next/headers';
 import { AlertType, DayType } from '@/analytics/types';
+import {
+  getActiveAlerts,
+  getHeatmap,
+  getStationPatterns,
+  getStationRankings,
+  getStationsWithLatestStatus,
+} from '@/analytics/queries/read';
+import { withCache } from '@/lib/cache/cache';
+import { getStatus } from '@/lib/metrics';
 
 export type StationSnapshot = {
   id: string;
@@ -108,47 +116,7 @@ export type StatusResponse = {
   timestamp: string;
 };
 
-async function getBaseUrl(): Promise<string> {
-  const headerList = await headers();
-  const host = headerList.get('x-forwarded-host') ?? headerList.get('host');
-  const forwardedProto = headerList.get('x-forwarded-proto');
-  const proto = forwardedProto?.split(',')[0]?.trim() || 'http';
-
-  if (host) {
-    return `${proto}://${host}`;
-  }
-
-  const configuredBaseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    process.env.APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-
-  if (configuredBaseUrl) {
-    return configuredBaseUrl;
-  }
-
-  throw new Error(
-    'No se pudo resolver la URL base. Define APP_URL o NEXT_PUBLIC_APP_URL para habilitar el fetch interno.'
-  );
-}
-
-async function fetchJson<T>(path: string): Promise<T> {
-  const baseUrl = await getBaseUrl();
-  const response = await fetch(new URL(path, baseUrl), {
-    cache: 'no-store',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const details = await response.text().catch(() => '');
-    const suffix = details ? ` Detalle: ${details}` : '';
-    throw new Error(`Error al consultar ${path} (${response.status}).${suffix}`);
-  }
-
-  return (await response.json()) as T;
-}
+const CACHE_TTL_SECONDS = 300;
 
 function assertArray(value: unknown, label: string): asserts value is unknown[] {
   if (!Array.isArray(value)) {
@@ -157,9 +125,16 @@ function assertArray(value: unknown, label: string): asserts value is unknown[] 
 }
 
 export async function fetchStations(): Promise<StationsResponse> {
-  const data = await fetchJson<StationsResponse>('/api/stations');
-  assertArray(data.stations, 'stations');
-  return data;
+  const payload = await withCache('stations:current', CACHE_TTL_SECONDS, async () => {
+    const stations = await getStationsWithLatestStatus();
+    return {
+      stations,
+      generatedAt: new Date().toISOString(),
+    };
+  });
+
+  assertArray(payload.stations, 'stations');
+  return payload;
 }
 
 export async function fetchRankings(
@@ -174,13 +149,19 @@ export async function fetchRankings(
     throw new Error('El limite del ranking debe ser un entero positivo.');
   }
 
-  const searchParams = new URLSearchParams({
-    type,
-    limit: String(limit),
+  const cacheKey = `rankings:type=${type}:limit=${limit}`;
+  const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
+    const rankings = await getStationRankings(type, limit);
+    return {
+      type,
+      limit,
+      rankings,
+      generatedAt: new Date().toISOString(),
+    };
   });
-  const data = await fetchJson<RankingsResponse>(`/api/rankings?${searchParams}`);
-  assertArray(data.rankings, 'rankings');
-  return data;
+
+  assertArray(payload.rankings, 'rankings');
+  return payload;
 }
 
 export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
@@ -188,14 +169,24 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
     throw new Error('El limite de alertas debe ser un entero positivo.');
   }
 
-  const searchParams = new URLSearchParams({ limit: String(limit) });
-  const data = await fetchJson<AlertsResponse>(`/api/alerts?${searchParams}`);
-  assertArray(data.alerts, 'alerts');
-  return data;
+  const cacheKey = `alerts:limit=${limit}`;
+  const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
+    const alerts = await getActiveAlerts(limit);
+    return {
+      limit,
+      alerts,
+      generatedAt: new Date().toISOString(),
+    };
+  });
+
+  assertArray(payload.alerts, 'alerts');
+  return payload;
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const data = await fetchJson<StatusResponse>('/api/status');
+  const rawStatus = await getStatus();
+  const data = JSON.parse(JSON.stringify(rawStatus)) as StatusResponse;
+
   if (!data || typeof data !== 'object') {
     throw new Error('Respuesta invalida al consultar el estado del sistema.');
   }
@@ -210,10 +201,12 @@ export async function fetchPatterns(
     throw new Error('stationId es obligatorio para patrones.');
   }
 
-  const searchParams = new URLSearchParams({ stationId });
-  const data = await fetchJson<StationPatternRow[]>(
-    `/api/patterns?${searchParams}`
+  const data = await withCache(
+    `patterns:stationId=${stationId}`,
+    CACHE_TTL_SECONDS,
+    () => getStationPatterns(stationId)
   );
+
   assertArray(data, 'patterns');
   return data;
 }
@@ -223,8 +216,12 @@ export async function fetchHeatmap(stationId: string): Promise<HeatmapCell[]> {
     throw new Error('stationId es obligatorio para el heatmap.');
   }
 
-  const searchParams = new URLSearchParams({ stationId });
-  const data = await fetchJson<HeatmapCell[]>(`/api/heatmap?${searchParams}`);
+  const data = await withCache(
+    `heatmap:stationId=${stationId}`,
+    CACHE_TTL_SECONDS,
+    () => getHeatmap(stationId)
+  );
+
   assertArray(data, 'heatmap');
   return data;
 }
