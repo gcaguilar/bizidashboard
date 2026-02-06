@@ -113,11 +113,11 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - #5 (Query timeouts) — pre-computed aggregates, no raw data queries
 - #7 (Missing data) — interpolation strategy for gaps
 
-**Plans:** 3 plans in 3 waves (1/3 complete)
+**Plans:** 3 plans in 3 waves (2/3 complete)
 
 **Plan List:**
 - [x] 03-01-PLAN.md — Analytics schema & shared constants
-- [ ] 03-02-PLAN.md — Hourly/daily rollups, retention, and cron job
+- [x] 03-02-PLAN.md — Hourly/daily rollups, retention, and cron job
 - [ ] 03-03-PLAN.md — Derived analytics rollups and read helpers
 
 ---
@@ -213,7 +213,7 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 |-------|--------|--------------|---------------------|
 | 1 - Foundation | 🟢 Complete | 3/3 | 5/5 |
 | 2 - Data Collection | 🟢 Complete | 6/6 | 6/6 |
-| 3 - Analytics Engine | 🔴 Not Started | 8/8 pending | 0/8 |
+| 3 - Analytics Engine | 🟡 In Progress | 8/8 pending | 0/8 |
 | 4 - API Layer | 🔴 Not Started | 6/6 pending | 0/6 |
 | 5 - Dashboard | 🔴 Not Started | 9/9 pending | 0/10 |
 
