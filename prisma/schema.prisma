@@ -19,7 +19,13 @@ model Station {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  statuses StationStatus[]
+  statuses         StationStatus[]
+  hourlyStats      HourlyStationStat[]
+  dailyStats       DailyStationStat[]
+  rankings         StationRanking[]
+  patterns         StationPattern[]
+  heatmapCells     StationHeatmapCell[]
+  alerts           StationAlert[]
 
   @@index([isActive])
   @@index([lat, lon])
@@ -37,4 +43,126 @@ model StationStatus {
 
   @@index([stationId, recordedAt]) // Critical for time-series queries
   @@index([recordedAt]) // For range queries across all stations
+}
+
+enum DayType {
+  WEEKDAY
+  WEEKEND
+}
+
+enum AlertType {
+  LOW_BIKES
+  LOW_ANCHORS
+}
+
+model HourlyStationStat {
+  stationId      String
+  bucketStart    DateTime
+  bikesMin       Int
+  bikesMax       Int
+  bikesAvg       Float
+  anchorsMin     Int
+  anchorsMax     Int
+  anchorsAvg     Float
+  occupancyAvg   Float
+  sampleCount    Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@id([stationId, bucketStart])
+  @@index([bucketStart])
+}
+
+model DailyStationStat {
+  stationId      String
+  bucketDate     DateTime
+  bikesMin       Int
+  bikesMax       Int
+  bikesAvg       Float
+  anchorsMin     Int
+  anchorsMax     Int
+  anchorsAvg     Float
+  occupancyAvg   Float
+  sampleCount    Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@id([stationId, bucketDate])
+  @@index([bucketDate])
+}
+
+model StationRanking {
+  id            Int      @id @default(autoincrement())
+  stationId     String
+  turnoverScore Float
+  emptyHours    Int
+  fullHours     Int
+  totalHours    Int
+  windowStart   DateTime
+  windowEnd     DateTime
+  updatedAt     DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@index([stationId])
+}
+
+model StationPattern {
+  stationId    String
+  dayType      DayType
+  hour         Int
+  bikesAvg     Float
+  anchorsAvg   Float
+  occupancyAvg Float
+  sampleCount  Int
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@id([stationId, dayType, hour])
+}
+
+model StationHeatmapCell {
+  stationId    String
+  dayOfWeek    Int
+  hour         Int
+  bikesAvg     Float
+  anchorsAvg   Float
+  occupancyAvg Float
+  sampleCount  Int
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@id([stationId, dayOfWeek, hour])
+}
+
+model StationAlert {
+  id           Int       @id @default(autoincrement())
+  stationId    String
+  alertType    AlertType
+  severity     Int
+  metricValue  Float
+  windowHours  Int
+  generatedAt  DateTime  @default(now())
+  isActive     Boolean   @default(true)
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@index([generatedAt])
+}
+
+model AnalyticsWatermark {
+  name             String   @id
+  lastAggregatedAt DateTime?
+  updatedAt        DateTime @updatedAt
+}
+
+model JobLock {
+  name          String   @id
+  lockedAt      DateTime?
+  lockExpiresAt DateTime?
+  lockedBy      String?
 }
