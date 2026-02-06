@@ -148,12 +148,12 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 **Pitfalls Prevented:**
 - #5 (Query timeouts) — thin API pattern, no computation at request time
 
-**Plans:** 3 plans in 2 waves (1/3 complete)
+**Plans:** 3 plans in 2 waves (2/3 complete)
 
 **Plan List:**
 - [x] 04-01-PLAN.md — Redis cache layer
 - [ ] 04-02-PLAN.md — Stations, rankings, and alerts endpoints
-- [ ] 04-03-PLAN.md — Patterns, heatmap, and API docs
+- [x] 04-03-PLAN.md — Patterns, heatmap, and API docs
 
 ---
 
