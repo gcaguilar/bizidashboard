@@ -6,27 +6,27 @@ import type { StationSnapshot } from '@/lib/api';
 
 type MapPanelProps = {
   stations: StationSnapshot[];
-  selectedStationId: string;
-  onSelect: (stationId: string) => void;
+  selectedStationId?: string;
+  onSelectStation?: (stationId: string) => void;
 };
 
 function getMarkerColor(station: StationSnapshot): string {
   if (station.capacity <= 0) return '#6b6f76';
   const ratio = station.bikesAvailable / station.capacity;
-  if (ratio >= 0.6) return '#1f7a8c';
-  if (ratio >= 0.3) return '#e07a3f';
-  return '#c85c2d';
+  if (ratio > 0.5) return '#2f9e44';
+  if (ratio > 0.2) return '#e5b93b';
+  return '#d6453d';
 }
 
-export function MapPanel({ stations, selectedStationId, onSelect }: MapPanelProps) {
-  const fallbackCenter = {
-    latitude: 41.6561,
-    longitude: -0.8773,
+export function MapPanel({
+  stations,
+  selectedStationId,
+  onSelectStation,
+}: MapPanelProps) {
+  const center = {
+    latitude: 41.65,
+    longitude: -0.88,
   };
-  const primaryStation = stations[0];
-  const center = primaryStation
-    ? { latitude: primaryStation.lat, longitude: primaryStation.lon }
-    : fallbackCenter;
 
   return (
     <section className="flex h-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
@@ -60,7 +60,9 @@ export function MapPanel({ stations, selectedStationId, onSelect }: MapPanelProp
             mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
           >
             {stations.map((station) => {
-              const isSelected = station.id === selectedStationId;
+              const isSelected = Boolean(
+                selectedStationId && station.id === selectedStationId
+              );
               return (
                 <Marker
                   key={station.id}
@@ -68,15 +70,22 @@ export function MapPanel({ stations, selectedStationId, onSelect }: MapPanelProp
                   latitude={station.lat}
                   anchor="bottom"
                 >
-                  <button
-                    type="button"
-                    onClick={() => onSelect(station.id)}
-                    className={`h-3 w-3 rounded-full border border-white shadow-sm transition-transform ${
-                      isSelected ? 'scale-150' : 'scale-100'
-                    }`}
-                    style={{ backgroundColor: getMarkerColor(station) }}
-                    aria-label={`Estacion ${station.name}`}
-                  />
+                  <div className="group relative flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => onSelectStation?.(station.id)}
+                      disabled={!onSelectStation}
+                      className={`h-3 w-3 rounded-full border border-white shadow-sm transition-transform ${
+                        isSelected ? 'scale-150' : 'scale-100'
+                      } ${onSelectStation ? 'cursor-pointer' : 'cursor-default'}`}
+                      style={{ backgroundColor: getMarkerColor(station) }}
+                      aria-label={`Estacion ${station.name}`}
+                    />
+                    <div className="pointer-events-none absolute -top-10 whitespace-nowrap rounded-full bg-[var(--foreground)] px-3 py-1 text-[10px] text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                      {station.name} · {station.bikesAvailable} bicis ·{' '}
+                      {station.anchorsFree} anclajes libres
+                    </div>
+                  </div>
                 </Marker>
               );
             })}
@@ -86,15 +95,15 @@ export function MapPanel({ stations, selectedStationId, onSelect }: MapPanelProp
 
       <div className="grid grid-cols-2 gap-4 text-xs text-[var(--muted)] sm:grid-cols-4">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#1f7a8c' }} />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#2f9e44' }} />
           <span>Alta disponibilidad</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#e07a3f' }} />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#e5b93b' }} />
           <span>Media disponibilidad</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#c85c2d' }} />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: '#d6453d' }} />
           <span>Baja disponibilidad</span>
         </div>
         <div className="flex items-center gap-2">

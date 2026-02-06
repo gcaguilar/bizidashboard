@@ -69,7 +69,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           <MapPanel
             stations={initialData.stations.stations}
             selectedStationId={selectedStationId}
-            onSelect={setSelectedStationId}
+            onSelectStation={setSelectedStationId}
           />
         </div>
         <div className="lg:col-span-4 flex flex-col gap-6">
