@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 
 type StationPickerProps = {
@@ -19,10 +19,6 @@ export function StationPicker({
   }, [selectedStationId, stations]);
 
   const [query, setQuery] = useState(selectedStation?.name ?? '');
-
-  useEffect(() => {
-    setQuery(selectedStation?.name ?? '');
-  }, [selectedStation]);
 
   const filteredStations = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -79,7 +75,7 @@ export function StationPicker({
             <option value="">Sin estaciones disponibles</option>
           ) : filteredStations.length === 0 ? (
             <option value={selectedStationId}>
-              Sin resultados con "{query.trim()}"
+              Sin resultados con &quot;{query.trim()}&quot;
             </option>
           ) : (
             filteredStations.map((station) => (
