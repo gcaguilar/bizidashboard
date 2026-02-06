@@ -18,6 +18,7 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV DATABASE_URL=file:/data/dev.db
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data
 COPY --from=builder /app/.pnpm-store ./.pnpm-store
 COPY --from=builder /app/public ./public
