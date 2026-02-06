@@ -41,3 +41,13 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# local databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# local tooling/runtime artifacts
+/.turbo
+/.tmp
