@@ -403,25 +403,22 @@ export function getSystemMetrics(): SystemMetrics {
  * Get complete status for the API endpoint
  */
 export async function getStatus(): Promise<StatusResponse> {
-  const [pipeline, system, freshness, stationCount, avgStations] = await Promise.all([
+  const [pipeline, system] = await Promise.all([
     getMetrics(),
-    Promise.resolve(getSystemMetrics()),
-    isDataFresh(),
-    getLastStationCount(),
-    getAverageStationsPerPoll()
+    Promise.resolve(getSystemMetrics())
   ])
   
   return {
     pipeline,
     quality: {
       freshness: {
-        isFresh: freshness.isFresh,
-        lastUpdated: freshness.lastUpdated,
+        isFresh: pipeline.lastDataFreshness,
+        lastUpdated: pipeline.lastSuccessfulPoll,
         maxAgeSeconds: 300 // 5 minutes
       },
       volume: {
-        recentStationCount: stationCount,
-        averageStationsPerPoll: avgStations,
+        recentStationCount: pipeline.lastStationCount,
+        averageStationsPerPoll: pipeline.averageStationsPerPoll,
         expectedRange: { min: 200, max: 500 }
       },
       lastCheck: pipeline.lastSuccessfulPoll
