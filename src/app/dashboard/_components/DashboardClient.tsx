@@ -79,7 +79,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           <StationPicker
             stations={initialData.stations.stations}
             selectedStationId={selectedStationId}
-            onChange={setSelectedStationId}
+            onSelectStation={setSelectedStationId}
           />
           <AlertsPanel
             alerts={initialData.alerts}
