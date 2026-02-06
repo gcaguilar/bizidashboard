@@ -1,0 +1,5 @@
+node_modules
+.next
+dev.db
+.env
+tests
