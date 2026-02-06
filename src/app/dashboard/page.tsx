@@ -8,6 +8,8 @@ import {
 } from '@/lib/api';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const stationsPromise = fetchStations();
   const statusPromise = fetchStatus();
