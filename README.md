@@ -31,6 +31,32 @@ This project provides a full prototype pipeline:
 
 ## Local Development
 
+Create a local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Suggested `.env.example` values:
+
+```env
+# App
+NODE_ENV=development
+APP_URL=http://localhost:3000
+
+# Database (local)
+DATABASE_URL=file:./dev.db
+
+# Redis (optional for local)
+REDIS_URL=redis://localhost:6379
+
+# GBFS source and request tuning
+GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
+GBFS_REQUEST_TIMEOUT_MS=20000
+GBFS_MAX_RETRIES=5
+GBFS_RETRY_BASE_DELAY_MS=1000
+```
+
 Install dependencies:
 
 ```bash
@@ -66,6 +92,24 @@ It also includes:
 - Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
 
 Run in production mode:
+
+Example production `.env` values:
+
+```env
+NODE_ENV=production
+APP_URL=https://your-domain.example
+
+# In compose this is overridden to file:/data/dev.db
+DATABASE_URL=file:/data/dev.db
+
+# Redis service from docker-compose
+REDIS_URL=redis://redis:6379
+
+GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
+GBFS_REQUEST_TIMEOUT_MS=20000
+GBFS_MAX_RETRIES=5
+GBFS_RETRY_BASE_DELAY_MS=1000
+```
 
 ```bash
 docker compose pull
