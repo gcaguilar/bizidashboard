@@ -113,12 +113,12 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 - #5 (Query timeouts) — pre-computed aggregates, no raw data queries
 - #7 (Missing data) — interpolation strategy for gaps
 
-**Plans:** 3 plans in 3 waves (2/3 complete)
+**Plans:** 3 plans in 3 waves (3/3 complete)
 
 **Plan List:**
 - [x] 03-01-PLAN.md — Analytics schema & shared constants
 - [x] 03-02-PLAN.md — Hourly/daily rollups, retention, and cron job
-- [ ] 03-03-PLAN.md — Derived analytics rollups and read helpers
+- [x] 03-03-PLAN.md — Derived analytics rollups and read helpers
 
 ---
 
@@ -213,11 +213,11 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 |-------|--------|--------------|---------------------|
 | 1 - Foundation | 🟢 Complete | 3/3 | 5/5 |
 | 2 - Data Collection | 🟢 Complete | 6/6 | 6/6 |
-| 3 - Analytics Engine | 🟡 In Progress | 8/8 pending | 0/8 |
+| 3 - Analytics Engine | 🟢 Complete | 8/8 | 8/8 |
 | 4 - API Layer | 🔴 Not Started | 6/6 pending | 0/6 |
 | 5 - Dashboard | 🔴 Not Started | 9/9 pending | 0/10 |
 
-**Overall Progress:** 3/28 requirements complete (11%)
+**Overall Progress:** 17/28 requirements complete (61%)
 
 ---
 
@@ -230,14 +230,14 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | DATA-03 | Phase 2 | Pending |
 | DATA-04 | Phase 2 | Pending |
 | DATA-05 | Phase 2 | Pending |
-| DATA-06 | Phase 3 | Pending |
-| ANAL-01 | Phase 3 | Pending |
-| ANAL-02 | Phase 3 | Pending |
-| ANAL-03 | Phase 3 | Pending |
-| ANAL-04 | Phase 3 | Pending |
-| ANAL-05 | Phase 3 | Pending |
-| ANAL-06 | Phase 3 | Pending |
-| ANAL-07 | Phase 3 | Pending |
+| DATA-06 | Phase 3 | Complete |
+| ANAL-01 | Phase 3 | Complete |
+| ANAL-02 | Phase 3 | Complete |
+| ANAL-03 | Phase 3 | Complete |
+| ANAL-04 | Phase 3 | Complete |
+| ANAL-05 | Phase 3 | Complete |
+| ANAL-06 | Phase 3 | Complete |
+| ANAL-07 | Phase 3 | Complete |
 | API-01 | Phase 4 | Pending |
 | API-02 | Phase 4 | Pending |
 | API-03 | Phase 4 | Pending |
