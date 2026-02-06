@@ -8,8 +8,12 @@ import { schedule, ScheduledTask } from 'node-cron';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { acquireJobLock } from '@/analytics/job-lock';
 import { getWatermark } from '@/analytics/watermarks';
+import { runAlertRollup, deactivateActiveAlerts } from '@/analytics/queries/alerts';
 import { runDailyRollup } from '@/analytics/queries/daily';
+import { runHeatmapRollup } from '@/analytics/queries/heatmap';
 import { runHourlyRollup } from '@/analytics/queries/hourly';
+import { runPatternRollup } from '@/analytics/queries/patterns';
+import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 
 // Type augmentation for node-cron 4.x options
@@ -77,6 +81,45 @@ async function runAnalyticsAggregation(): Promise<void> {
     console.log(
       `[Analytics] Hourly rollup processed ${hourlyResult.processedCount} rows into ${hourlyResult.upsertedCount} buckets in ${hourlyDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
     );
+
+    if (hourlyResult.processedCount > 0) {
+      await lock.refresh();
+      const rankingStart = Date.now();
+      const rankingResult = await runRankingRollup(hourlyCutoff);
+      const rankingDuration = Date.now() - rankingStart;
+
+      console.log(
+        `[Analytics] Ranking rollup upserted ${rankingResult.upsertedCount} stations in ${rankingDuration}ms (window end ${hourlyCutoff.toISOString()})`
+      );
+
+      await lock.refresh();
+      const patternStart = Date.now();
+      const patternResult = await runPatternRollup(hourlyCutoff);
+      const patternDuration = Date.now() - patternStart;
+
+      console.log(
+        `[Analytics] Pattern rollup upserted ${patternResult.upsertedCount} buckets in ${patternDuration}ms (window end ${hourlyCutoff.toISOString()})`
+      );
+
+      await lock.refresh();
+      const heatmapStart = Date.now();
+      const heatmapResult = await runHeatmapRollup(hourlyCutoff);
+      const heatmapDuration = Date.now() - heatmapStart;
+
+      console.log(
+        `[Analytics] Heatmap rollup upserted ${heatmapResult.upsertedCount} cells in ${heatmapDuration}ms (window end ${hourlyCutoff.toISOString()})`
+      );
+
+      await lock.refresh();
+      await deactivateActiveAlerts();
+      const alertStart = Date.now();
+      const alertResult = await runAlertRollup(hourlyCutoff);
+      const alertDuration = Date.now() - alertStart;
+
+      console.log(
+        `[Analytics] Alert rollup upserted ${alertResult.upsertedCount} alerts in ${alertDuration}ms (window end ${hourlyCutoff.toISOString()})`
+      );
+    }
 
     await lock.refresh();
     const dailyCutoff = getDailyCutoff(now);
