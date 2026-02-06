@@ -55,6 +55,36 @@ export async function getStationRankings(
   `;
 }
 
+export async function getStationsWithLatestStatus(): Promise<
+  {
+    id: string;
+    name: string;
+    lat: number;
+    lon: number;
+    capacity: number;
+    bikesAvailable: number;
+    anchorsFree: number;
+    recordedAt: string;
+  }[]
+> {
+  return prisma.$queryRaw`
+    WITH latest AS (
+      SELECT stationId, MAX(recordedAt) AS recordedAt
+      FROM StationStatus
+      GROUP BY stationId
+    )
+    SELECT Station.id, Station.name, Station.lat, Station.lon, Station.capacity,
+      StationStatus.bikesAvailable, StationStatus.anchorsFree, StationStatus.recordedAt
+    FROM Station
+    INNER JOIN latest ON latest.stationId = Station.id
+    INNER JOIN StationStatus
+      ON StationStatus.stationId = latest.stationId
+      AND StationStatus.recordedAt = latest.recordedAt
+    WHERE Station.isActive = true
+    ORDER BY Station.name ASC;
+  `;
+}
+
 export async function getStationPatterns(stationId: string): Promise<
   {
     stationId: string;
