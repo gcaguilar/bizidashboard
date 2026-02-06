@@ -88,7 +88,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
 
         <div className="lg:col-span-6">
-          <RankingsTable rankings={initialData.rankings} />
+          <RankingsTable
+            rankings={initialData.rankings}
+            stations={initialData.stations.stations}
+          />
         </div>
         <div className="lg:col-span-6">
           <HourlyCharts
