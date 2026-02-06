@@ -148,6 +148,13 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 **Pitfalls Prevented:**
 - #5 (Query timeouts) — thin API pattern, no computation at request time
 
+**Plans:** 3 plans in 2 waves (1/3 complete)
+
+**Plan List:**
+- [x] 04-01-PLAN.md — Redis cache layer
+- [ ] 04-02-PLAN.md — Stations, rankings, and alerts endpoints
+- [ ] 04-03-PLAN.md — Patterns, heatmap, and API docs
+
 ---
 
 ### Phase 5: Dashboard Frontend
@@ -214,7 +221,7 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | 1 - Foundation | 🟢 Complete | 3/3 | 5/5 |
 | 2 - Data Collection | 🟢 Complete | 6/6 | 6/6 |
 | 3 - Analytics Engine | 🟢 Complete | 8/8 | 8/8 |
-| 4 - API Layer | 🔴 Not Started | 6/6 pending | 0/6 |
+| 4 - API Layer | 🟡 In progress | 6/6 pending | 0/6 |
 | 5 - Dashboard | 🔴 Not Started | 9/9 pending | 0/10 |
 
 **Overall Progress:** 17/28 requirements complete (61%)
@@ -225,11 +232,11 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
+| DATA-05 | Phase 2 | Complete |
 | DATA-06 | Phase 3 | Complete |
 | ANAL-01 | Phase 3 | Complete |
 | ANAL-02 | Phase 3 | Complete |
@@ -255,7 +262,7 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
-| INFRA-04 | Phase 2 | Pending |
+| INFRA-04 | Phase 2 | Complete |
 | INFRA-05 | Phase 5 | Pending |
 
 **Coverage:** 28/28 v1 requirements mapped ✓
