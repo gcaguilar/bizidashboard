@@ -4,7 +4,7 @@
 
 **Core Value:** Anyone can see when and where bikes are available, discover usage patterns, and understand how the Bizi system serves different neighborhoods at different times.
 
-**Current Focus:** Phase 4 — API Layer (Not Started)
+**Current Focus:** Phase 5 — Dashboard (In progress)
 
 **MVP Deadline:** 2 weeks of data collection + basic dashboard
 
@@ -14,22 +14,29 @@
 
 | Attribute | Value |
 |-----------|-------|
-| **Phase** | 4 of 5 — API Layer |
-| **Plan** | 2 of 3 in current phase |
+| **Phase** | 5 of 5 — Dashboard Frontend |
+| **Plan** | 1 of 5 in current phase |
 | **Status** | 🟡 In progress |
-| **Last activity** | 2026-02-06 — Completed 04-02-PLAN.md |
+| **Last activity** | 2026-02-06 — Completed 05-01-PLAN.md |
 | **Blockers** | None |
 
-### Phase 4 Progress
+Progress:
+```
+[████████████████░░░░] 79%
+```
+
+### Phase 5 Progress
 
 ```
-[██████████████░░░░░░░] 66%
+[████░░░░░░░░░░░░░░░░] 20%
 ```
 
 **Plans in Phase:**
-- [x] 04-01: Redis cache layer
-- [x] 04-02: Stations, rankings, and alerts endpoints
-- [ ] 04-03: Patterns, heatmap, and API docs
+- [x] 05-01: Dashboard scaffolding and data wiring
+- [ ] 05-02: Map, status, and alerts panels
+- [ ] 05-03: Rankings table and station picker
+- [ ] 05-04: Hourly charts, heatmap, and responsive layout
+- [ ] 05-05: Public deployment (Coolify)
 
 ---
 
@@ -37,11 +44,11 @@
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| **Phases Complete** | 3/5 in progress | Phase 1-3 complete |
-| **Requirements Complete** | 17/28 | In progress |
-| **Success Criteria Met** | 19/35 | In progress |
-| **Open Blockers** | 0 | Clear for Phase 3 |
-| **Research Flags** | 0 | Phase 3 research completed |
+| **Phases Complete** | 4/5 in progress | Phase 1-4 complete |
+| **Requirements Complete** | 23/28 | In progress |
+| **Success Criteria Met** | 27/35 | In progress |
+| **Open Blockers** | 0 | Clear for Phase 4 |
+| **Research Flags** | 0 | Phase 5 research completed |
 
 ### Phase Status Overview
 
@@ -50,8 +57,8 @@
 | 1 - Foundation | 🟢 Complete | 100% |
 | 2 - Data Collection | 🟢 Complete | 100% |
 | 3 - Analytics Engine | 🟢 Complete | 100% |
-| 4 - API Layer | 🟡 In progress | 67% |
-| 5 - Dashboard | 🔴 Not Started | 0% |
+| 4 - API Layer | 🟢 Complete | 100% |
+| 5 - Dashboard | 🟡 In progress | 20% |
 
 ---
 
@@ -104,13 +111,13 @@
 ## Session Continuity
 
 ### Last Action
-Phase 4 Plan 02 completion — 2026-02-06
+Phase 5 Plan 01 completion — 2026-02-06
 
 ### Next Action
-Execute Phase 4 Plan 03 (patterns, heatmap, API docs)
+Continue Phase 5 Plan 02 (Map, status, and alerts panels)
 
-Last session: 2026-02-06 10:34 UTC
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-02-06 11:18 UTC
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 ### Context Recovery
@@ -136,9 +143,11 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 - Phase 1 complete — Foundation & Data Architecture ready
 - Phase 2 complete — Data Collection & Validation
 - Phase 3 complete — Analytics Engine & Aggregation
+- Phase 4 complete — API Layer
+- Phase 5 in progress — Dashboard Frontend
 - All 28 v1 requirements mapped to 5 phases with clear success criteria
 
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-06 after 04-02 execution*
+*Last updated: 2026-02-06 after 05-01 execution*
