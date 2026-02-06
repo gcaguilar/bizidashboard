@@ -1,4 +1,8 @@
 import { startCollectionJob, stopCollectionJob } from '@/jobs/bizi-collection';
+import {
+  startAnalyticsAggregationJob,
+  stopAnalyticsAggregationJob,
+} from '@/jobs/analytics-aggregation';
 
 /**
  * Initialize background jobs on application startup.
@@ -12,6 +16,7 @@ export function initJobs(): void {
 
   console.log('[Jobs] Initializing background jobs...');
   startCollectionJob();
+  startAnalyticsAggregationJob();
   console.log('[Jobs] Collection job started');
 }
 
@@ -21,4 +26,5 @@ export function initJobs(): void {
 export function shutdownJobs(): void {
   console.log('[Jobs] Shutting down background jobs...');
   stopCollectionJob();
+  stopAnalyticsAggregationJob();
 }

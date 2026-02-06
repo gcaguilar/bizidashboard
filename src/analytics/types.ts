@@ -16,9 +16,6 @@ export const ALERT_THRESHOLDS = {
 export const ANALYTICS_WINDOWS = {
   rankingDays: 14,
   alertWindowHours: 3,
-} as const;
-
-export const ROLLUP_CUTOFFS = {
-  hourlyDelayMinutes: 10,
-  dailyDelayMinutes: 90,
+  rollupHourlyDelayMinutes: 10,
+  rollupDailyDelayMinutes: 90,
 } as const;
