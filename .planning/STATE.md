@@ -15,20 +15,20 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase** | 5 of 5 — Dashboard Frontend |
-| **Plan** | 4 of 6 in current phase |
+| **Plan** | 5 of 6 in current phase |
 | **Status** | 🟡 In progress |
-| **Last activity** | 2026-02-06 — Completed 05-04-PLAN.md |
-| **Blockers** | npm no disponible para `npm run lint` |
+| **Last activity** | 2026-02-06 — Completed 05-05-PLAN.md |
+| **Blockers** | npm no disponible para `npm run lint` (usando pnpm) |
 
 Progress:
 ```
-[██████████████████░░] 90%
+[███████████████████░] 95%
 ```
 
 ### Phase 5 Progress
 
 ```
-[█████████████░░░░░░░] 67%
+[█████████████████░░░] 83%
 ```
 
 **Plans in Phase:**
@@ -36,7 +36,7 @@ Progress:
 - [x] 05-02: Map, status, and alerts panels
 - [x] 05-03: Rankings table and station picker
 - [x] 05-04: Hourly charts, heatmap, and responsive layout
-- [ ] 05-05: Public deployment (Coolify)
+- [x] 05-05: Public deployment (Coolify)
 - [ ] 05-06: Post-deploy monitoring checklist
 
 ---
@@ -112,13 +112,13 @@ Progress:
 ## Session Continuity
 
 ### Last Action
-Phase 5 Plan 04 completion — 2026-02-06
+Phase 5 Plan 05 completion — 2026-02-06
 
 ### Next Action
-Continue Phase 5 Plan 05 (Public deployment on Coolify)
+Continue Phase 5 Plan 06 (Post-deploy monitoring checklist)
 
-Last session: 2026-02-06 11:59 UTC
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-02-06 12:23 UTC
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
 
 ### Context Recovery
@@ -151,4 +151,4 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-06 after 05-03 execution*
+*Last updated: 2026-02-06 after 05-05 execution*
