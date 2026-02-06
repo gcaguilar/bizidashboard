@@ -11,6 +11,14 @@ export type GBFSStationStatus = {
   last_reported: number // Unix timestamp
 }
 
+export type GBFSStationInformation = {
+  station_id: string
+  name: string
+  lat: number
+  lon: number
+  capacity?: number
+}
+
 /**
  * Result of storing station statuses
  */
@@ -106,6 +114,38 @@ export async function storeStationStatuses(
   }
 
   return result
+}
+
+export async function upsertStations(
+  stations: GBFSStationInformation[]
+): Promise<{ createdOrUpdated: number }> {
+  let createdOrUpdated = 0
+
+  await prisma.$transaction(async (tx) => {
+    for (const station of stations) {
+      await tx.station.upsert({
+        where: { id: station.station_id },
+        create: {
+          id: station.station_id,
+          name: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          capacity: station.capacity ?? 0,
+          isActive: true,
+        },
+        update: {
+          name: station.name,
+          lat: station.lat,
+          lon: station.lon,
+          capacity: station.capacity ?? 0,
+          isActive: true,
+        },
+      })
+      createdOrUpdated++
+    }
+  })
+
+  return { createdOrUpdated }
 }
 
 /**

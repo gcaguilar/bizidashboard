@@ -22,7 +22,8 @@
     "react-is": "^19.2.4",
     "react-map-gl": "^8.1.0",
     "recharts": "^3.7.0",
-    "redis": "^5.10.0"
+    "redis": "^5.10.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

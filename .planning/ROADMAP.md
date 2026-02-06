@@ -148,12 +148,12 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 **Pitfalls Prevented:**
 - #5 (Query timeouts) — thin API pattern, no computation at request time
 
-**Plans:** 3 plans in 2 waves (2/3 complete)
+**Plans:** 3 plans in 2 waves (3/3 complete)
 
 **Plan List:**
 - [x] 04-01-PLAN.md — Redis cache layer
 - [x] 04-02-PLAN.md — Stations, rankings, and alerts endpoints
-- [ ] 04-03-PLAN.md — Patterns, heatmap, and API docs
+- [x] 04-03-PLAN.md — Patterns, heatmap, and API docs
 
 ---
 
@@ -184,6 +184,15 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 8. All UI text in Spanish (Español) for Zaragoza audience
 9. Layout adapts to mobile and desktop screens
 10. Dashboard loads initial data server-side (no loading states)
+
+**Plans:** 5 plans in 3 waves (0/5 complete)
+
+**Plan List:**
+- [ ] 05-01-PLAN.md — Dashboard scaffolding and data wiring
+- [ ] 05-02-PLAN.md — Map, status, and alerts panels
+- [ ] 05-03-PLAN.md — Rankings table and station picker
+- [ ] 05-04-PLAN.md — Hourly charts, heatmap, and responsive layout
+- [ ] 05-05-PLAN.md — Public deployment (Coolify)
 
 ---
 
@@ -221,10 +230,10 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | 1 - Foundation | 🟢 Complete | 3/3 | 5/5 |
 | 2 - Data Collection | 🟢 Complete | 6/6 | 6/6 |
 | 3 - Analytics Engine | 🟢 Complete | 8/8 | 8/8 |
-| 4 - API Layer | 🟡 In progress | 6/6 pending | 0/6 |
+| 4 - API Layer | 🟢 Complete | 6/6 | 6/6 |
 | 5 - Dashboard | 🔴 Not Started | 9/9 pending | 0/10 |
 
-**Overall Progress:** 17/28 requirements complete (61%)
+**Overall Progress:** 23/28 requirements complete (82%)
 
 ---
 
@@ -245,12 +254,12 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 | ANAL-05 | Phase 3 | Complete |
 | ANAL-06 | Phase 3 | Complete |
 | ANAL-07 | Phase 3 | Complete |
-| API-01 | Phase 4 | Pending |
-| API-02 | Phase 4 | Pending |
-| API-03 | Phase 4 | Pending |
-| API-04 | Phase 4 | Pending |
-| API-05 | Phase 4 | Pending |
-| API-06 | Phase 4 | Pending |
+| API-01 | Phase 4 | Complete |
+| API-02 | Phase 4 | Complete |
+| API-03 | Phase 4 | Complete |
+| API-04 | Phase 4 | Complete |
+| API-05 | Phase 4 | Complete |
+| API-06 | Phase 4 | Complete |
 | DASH-01 | Phase 5 | Pending |
 | DASH-02 | Phase 5 | Pending |
 | DASH-03 | Phase 5 | Pending |

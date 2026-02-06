@@ -9,16 +9,25 @@ import { withRetry } from '@/lib/retry';
 import {
   GBFSDiscovery,
   GBFSResponse,
+  StationInformation,
+  extractFeedUrl,
   validateDiscovery,
   validateStationData,
+  validateStationInformation,
   extractStationStatusUrl,
 } from '@/schemas/gbfs';
 
 /** Bizi GBFS discovery URL */
-const DISCOVERY_URL = 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
+const DISCOVERY_URL =
+  process.env.GBFS_DISCOVERY_URL ??
+  'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
 
 /** Request timeout in milliseconds */
-const REQUEST_TIMEOUT = 10000;
+const REQUEST_TIMEOUT = Number(process.env.GBFS_REQUEST_TIMEOUT_MS ?? 20000);
+
+/** Retry configuration */
+const MAX_RETRIES = Number(process.env.GBFS_MAX_RETRIES ?? 5);
+const BASE_DELAY = Number(process.env.GBFS_RETRY_BASE_DELAY_MS ?? 1000);
 
 /** User-Agent header for API requests */
 const USER_AGENT = 'BiziDashboard/1.0';
@@ -35,11 +44,31 @@ async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    return response;
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      return response;
+    } catch (error) {
+      const cause = error as NodeJS.ErrnoException & {
+        address?: string;
+        port?: number;
+      };
+      const details = [
+        `name=${cause?.name ?? 'unknown'}`,
+        `message=${cause?.message ?? 'unknown error'}`,
+        cause?.code ? `code=${cause.code}` : null,
+        cause?.errno ? `errno=${cause.errno}` : null,
+        cause?.syscall ? `syscall=${cause.syscall}` : null,
+        cause?.address ? `address=${cause.address}` : null,
+        cause?.port ? `port=${String(cause.port)}` : null,
+      ]
+        .filter(Boolean)
+        .join(', ');
+
+      throw new Error(`Network error fetching ${url}: ${details}`);
+    }
   } finally {
     clearTimeout(timeoutId);
   }
@@ -66,7 +95,7 @@ export async function fetchDiscovery(): Promise<GBFSDiscovery> {
         },
         REQUEST_TIMEOUT
       ),
-    { maxRetries: 5, baseDelay: 1000 }
+    { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
   );
   
   if (!response.ok) {
@@ -85,8 +114,11 @@ export async function fetchDiscovery(): Promise<GBFSDiscovery> {
   }
   
   const discovery = validateDiscovery(data);
+  const feedCount = Object.values(discovery.data).reduce((acc, locale) => {
+    return acc + locale.feeds.length;
+  }, 0);
   console.log(
-    `[gbfs] Discovery fetched successfully (version: ${discovery.version}, feeds: ${discovery.data.en.feeds.length})`
+    `[gbfs] Discovery fetched successfully (version: ${discovery.version}, feeds: ${feedCount})`
   );
   
   return discovery;
@@ -108,9 +140,13 @@ export async function fetchStationStatus(
   // Extract station_status URL
   const stationStatusUrl = extractStationStatusUrl(disc);
   if (!stationStatusUrl) {
+    const availableFeeds = Object.values(disc.data)
+      .flatMap((locale) => locale.feeds.map((feed) => feed.name))
+      .filter((name, index, list) => list.indexOf(name) === index)
+      .join(', ');
     throw new Error(
       'Station status feed not found in GBFS discovery. Available feeds: ' +
-        disc.data.en.feeds.map(f => f.name).join(', ')
+        availableFeeds
     );
   }
   
@@ -128,7 +164,7 @@ export async function fetchStationStatus(
         },
         REQUEST_TIMEOUT
       ),
-    { maxRetries: 5, baseDelay: 1000 }
+    { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
   );
   
   if (!response.ok) {
@@ -151,6 +187,53 @@ export async function fetchStationStatus(
   
   // Return full response structure
   return data as GBFSResponse;
+}
+
+export async function fetchStationInformation(
+  discovery?: GBFSDiscovery
+): Promise<StationInformation[]> {
+  const disc = discovery ?? (await fetchDiscovery());
+  const stationInformationUrl = extractFeedUrl(disc, 'station_information');
+
+  if (!stationInformationUrl) {
+    throw new Error('Station information feed not found in GBFS discovery.');
+  }
+
+  console.log(`[gbfs] Fetching station information from: ${stationInformationUrl}`);
+
+  const response = await withRetry(
+    () =>
+      fetchWithTimeout(
+        stationInformationUrl,
+        {
+          headers: {
+            'User-Agent': USER_AGENT,
+            Accept: 'application/json',
+          },
+        },
+        REQUEST_TIMEOUT
+      ),
+    { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch station information: ${response.status} ${response.statusText} (${stationInformationUrl})`
+    );
+  }
+
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error(
+      `Failed to parse station information JSON: ${error instanceof Error ? error.message : 'Unknown error'} (${stationInformationUrl})`
+    );
+  }
+
+  const stations = validateStationInformation(data);
+  console.log(`[gbfs] Station information fetched successfully (${stations.length} stations)`);
+  return stations;
 }
 
 // Re-export helper for convenience

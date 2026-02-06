@@ -7,8 +7,9 @@
  */
 
 import { schedule, ScheduledTask } from 'node-cron';
-import { fetchStationStatus } from '@/services/gbfs-client';
+import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
+import { upsertStations } from '@/services/data-storage';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 
@@ -89,10 +90,19 @@ export async function runCollection(): Promise<CollectionResult> {
   };
 
   try {
-    // Step 1: Fetch station status from GBFS API
-    const stationStatusResponse = await fetchStationStatus();
+    // Step 1: Fetch discovery once and reuse for all feed requests
+    const discovery = await fetchDiscovery();
+
+    // Step 2: Fetch station metadata + live status
+    const [stationStatusResponse, stationInformation] = await Promise.all([
+      fetchStationStatus(discovery),
+      fetchStationInformation(discovery),
+    ]);
+
+    // Step 3: Ensure station table is up to date before inserting statuses
+    await upsertStations(stationInformation);
     
-    // Step 2: Validate and store data
+    // Step 4: Validate and store data
     const validationResult = await validateAndStore(
       stationStatusResponse as GBFSStatusResponse,
       {

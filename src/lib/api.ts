@@ -110,14 +110,26 @@ export type StatusResponse = {
 
 async function getBaseUrl(): Promise<string> {
   const headerList = await headers();
-  const host = headerList.get('host');
-  const proto = headerList.get('x-forwarded-proto') ?? 'http';
+  const host = headerList.get('x-forwarded-host') ?? headerList.get('host');
+  const forwardedProto = headerList.get('x-forwarded-proto');
+  const proto = forwardedProto?.split(',')[0]?.trim() || 'http';
 
-  if (!host) {
-    throw new Error('No se encontro el host para construir la URL del dashboard.');
+  if (host) {
+    return `${proto}://${host}`;
   }
 
-  return `${proto}://${host}`;
+  const configuredBaseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  throw new Error(
+    'No se pudo resolver la URL base. Define APP_URL o NEXT_PUBLIC_APP_URL para habilitar el fetch interno.'
+  );
 }
 
 async function fetchJson<T>(path: string): Promise<T> {

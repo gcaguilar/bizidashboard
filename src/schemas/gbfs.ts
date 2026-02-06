@@ -45,6 +45,23 @@ const FeedSchema = z.object({
   url: z.string().url(),
 }).passthrough();
 
+const StationInformationSchema = z.object({
+  station_id: z.string(),
+  name: z.string(),
+  lat: z.number(),
+  lon: z.number(),
+  capacity: z.number().int().nonnegative().optional(),
+}).passthrough();
+
+const GBFSStationInformationResponseSchema = z.object({
+  last_updated: z.number().int(),
+  ttl: z.number().int(),
+  version: z.string(),
+  data: z.object({
+    stations: z.array(StationInformationSchema),
+  }).passthrough(),
+}).passthrough();
+
 /**
  * Schema for GBFS discovery file
  * 
@@ -54,11 +71,12 @@ export const GBFSDiscoverySchema = z.object({
   last_updated: z.number().int(),
   ttl: z.number().int(),
   version: z.string(),
-  data: z.object({
-    en: z.object({
+  data: z.record(
+    z.string(),
+    z.object({
       feeds: z.array(FeedSchema),
-    }).passthrough(),
-  }).passthrough(),
+    }).passthrough()
+  ),
 }).passthrough();
 
 /**
@@ -67,6 +85,7 @@ export const GBFSDiscoverySchema = z.object({
 export type StationStatus = z.infer<typeof StationStatusSchema>;
 export type GBFSResponse = z.infer<typeof GBFSResponseSchema>;
 export type GBFSDiscovery = z.infer<typeof GBFSDiscoverySchema>;
+export type StationInformation = z.infer<typeof StationInformationSchema>;
 
 /**
  * Validates station data and throws on error with detailed message
@@ -108,6 +127,20 @@ export function validateDiscovery(data: unknown): GBFSDiscovery {
   return result.data;
 }
 
+export function validateStationInformation(data: unknown): StationInformation[] {
+  const result = GBFSStationInformationResponseSchema.safeParse(data);
+
+  if (!result.success) {
+    console.error(
+      '[validation] GBFS station_information validation failed:',
+      result.error.issues
+    );
+    throw new Error(`GBFS station_information validation failed: ${result.error.message}`);
+  }
+
+  return result.data.data.stations;
+}
+
 /**
  * Extracts station_status URL from discovery feeds
  * 
@@ -115,6 +148,22 @@ export function validateDiscovery(data: unknown): GBFSDiscovery {
  * @returns URL string for station_status feed, or null if not found
  */
 export function extractStationStatusUrl(discovery: GBFSDiscovery): string | null {
-  const feed = discovery.data.en.feeds.find(f => f.name === 'station_status');
+  const primaryFeeds =
+    discovery.data.es?.feeds ?? discovery.data.en?.feeds ?? discovery.data.fr?.feeds ?? [];
+  const feed = primaryFeeds.find((f) => f.name === 'station_status');
   return feed?.url ?? null;
+}
+
+export function extractFeedUrl(discovery: GBFSDiscovery, feedName: string): string | null {
+  const locales = ['es', 'en', 'fr'] as const;
+
+  for (const locale of locales) {
+    const feeds = discovery.data[locale]?.feeds;
+    const feed = feeds?.find((item) => item.name === feedName);
+    if (feed?.url) {
+      return feed.url;
+    }
+  }
+
+  return null;
 }

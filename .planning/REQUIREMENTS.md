@@ -7,31 +7,31 @@
 
 ### Data Collection (DATA)
 
-- [ ] **DATA-01**: Automated polling of Bizi API every 30 minutes
-- [ ] **DATA-02**: Store station status (station ID, available bikes, free anchors, timestamp)
-- [ ] **DATA-03**: Implement data validation (freshness, volume, schema checks)
-- [ ] **DATA-04**: Handle GBFS API changes gracefully (version-agnostic parsing)
-- [ ] **DATA-05**: Error handling with exponential backoff for rate limiting
-- [ ] **DATA-06**: Data retention ladder (raw: 30 days, hourly: 1 year, daily: forever)
+- [x] **DATA-01**: Automated polling of Bizi API every 30 minutes
+- [x] **DATA-02**: Store station status (station ID, available bikes, free anchors, timestamp)
+- [x] **DATA-03**: Implement data validation (freshness, volume, schema checks)
+- [x] **DATA-04**: Handle GBFS API changes gracefully (version-agnostic parsing)
+- [x] **DATA-05**: Error handling with exponential backoff for rate limiting
+- [x] **DATA-06**: Data retention ladder (raw: 30 days, hourly: 1 year, daily: forever)
 
 ### Analytics Engine (ANAL)
 
-- [ ] **ANAL-01**: Continuous aggregates for hourly statistics
-- [ ] **ANAL-02**: Continuous aggregates for daily statistics
-- [ ] **ANAL-03**: Station rankings by turnover rate (most used)
-- [ ] **ANAL-04**: Station rankings by availability issues (often empty/full)
-- [ ] **ANAL-05**: Hour-of-day pattern analysis (weekday vs weekend)
-- [ ] **ANAL-06**: Heatmap data (occupancy by hour × day of week)
-- [ ] **ANAL-07**: Basic prediction alerts (threshold-based availability warnings)
+- [x] **ANAL-01**: Continuous aggregates for hourly statistics
+- [x] **ANAL-02**: Continuous aggregates for daily statistics
+- [x] **ANAL-03**: Station rankings by turnover rate (most used)
+- [x] **ANAL-04**: Station rankings by availability issues (often empty/full)
+- [x] **ANAL-05**: Hour-of-day pattern analysis (weekday vs weekend)
+- [x] **ANAL-06**: Heatmap data (occupancy by hour × day of week)
+- [x] **ANAL-07**: Basic prediction alerts (threshold-based availability warnings)
 
 ### API Layer (API)
 
-- [ ] **API-01**: REST endpoint for station list with current status
-- [ ] **API-02**: REST endpoint for station rankings
-- [ ] **API-03**: REST endpoint for hour-of-day patterns
-- [ ] **API-04**: REST endpoint for heatmap data
-- [ ] **API-05**: REST endpoint for prediction/alerts
-- [ ] **API-06**: Redis caching layer (5-min TTL for hot queries)
+- [x] **API-01**: REST endpoint for station list with current status
+- [x] **API-02**: REST endpoint for station rankings
+- [x] **API-03**: REST endpoint for hour-of-day patterns
+- [x] **API-04**: REST endpoint for heatmap data
+- [x] **API-05**: REST endpoint for prediction/alerts
+- [x] **API-06**: Redis caching layer (5-min TTL for hot queries)
 
 ### Dashboard Frontend (DASH)
 
@@ -46,10 +46,10 @@
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Database schema with proper time-series structure
-- [ ] **INFRA-02**: Timezone handling (UTC storage, Europe/Madrid display)
-- [ ] **INFRA-03**: DST handling (March/October transitions)
-- [ ] **INFRA-04**: Data observability (freshness alerts, volume checks)
+- [x] **INFRA-01**: Database schema with proper time-series structure
+- [x] **INFRA-02**: Timezone handling (UTC storage, Europe/Madrid display)
+- [x] **INFRA-03**: DST handling (March/October transitions)
+- [x] **INFRA-04**: Data observability (freshness alerts, volume checks)
 - [ ] **INFRA-05**: Public deployment (accessible URL)
 
 ## v2 Requirements
@@ -96,25 +96,25 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 2 | Pending |
-| DATA-06 | Phase 3 | Pending |
-| ANAL-01 | Phase 3 | Pending |
-| ANAL-02 | Phase 3 | Pending |
-| ANAL-03 | Phase 3 | Pending |
-| ANAL-04 | Phase 3 | Pending |
-| ANAL-05 | Phase 3 | Pending |
-| ANAL-06 | Phase 3 | Pending |
-| ANAL-07 | Phase 3 | Pending |
-| API-01 | Phase 4 | Pending |
-| API-02 | Phase 4 | Pending |
-| API-03 | Phase 4 | Pending |
-| API-04 | Phase 4 | Pending |
-| API-05 | Phase 4 | Pending |
-| API-06 | Phase 4 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
+| DATA-05 | Phase 2 | Complete |
+| DATA-06 | Phase 3 | Complete |
+| ANAL-01 | Phase 3 | Complete |
+| ANAL-02 | Phase 3 | Complete |
+| ANAL-03 | Phase 3 | Complete |
+| ANAL-04 | Phase 3 | Complete |
+| ANAL-05 | Phase 3 | Complete |
+| ANAL-06 | Phase 3 | Complete |
+| ANAL-07 | Phase 3 | Complete |
+| API-01 | Phase 4 | Complete |
+| API-02 | Phase 4 | Complete |
+| API-03 | Phase 4 | Complete |
+| API-04 | Phase 4 | Complete |
+| API-05 | Phase 4 | Complete |
+| API-06 | Phase 4 | Complete |
 | DASH-01 | Phase 5 | Pending |
 | DASH-02 | Phase 5 | Pending |
 | DASH-03 | Phase 5 | Pending |
@@ -123,10 +123,10 @@
 | DASH-06 | Phase 5 | Pending |
 | DASH-07 | Phase 5 | Pending |
 | DASH-08 | Phase 5 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 2 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 2 | Complete |
 | INFRA-05 | Phase 5 | Pending |
 
 **Coverage:**
@@ -143,4 +143,4 @@
 
 ---
 *Requirements defined: 2026-02-03*
-*Last updated: 2026-02-03 after initialization*
+*Last updated: 2026-02-06 after Phase 4 completion*

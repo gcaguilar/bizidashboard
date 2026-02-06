@@ -1,12 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
-const databaseUrl = process.env.DATABASE_URL
-
-if (!databaseUrl) {
-  console.error('DATABASE_URL is not set')
-  process.exit(1)
-}
+const databaseUrl = process.env.DATABASE_URL ?? 'file:./prisma/dev.db'
 
 const adapter = new PrismaLibSql({ url: databaseUrl })
 const prisma = new PrismaClient({ adapter })
@@ -19,12 +14,25 @@ type MigrationRow = {
 async function main() {
   await prisma.$queryRaw`SELECT 1`
 
-  const rows = await prisma.$queryRaw<MigrationRow[]>`
-    SELECT migration_name, finished_at
-    FROM _prisma_migrations
-    ORDER BY finished_at DESC
-    LIMIT 1
-  `
+  let rows: MigrationRow[] = []
+
+  try {
+    rows = await prisma.$queryRaw<MigrationRow[]>`
+      SELECT migration_name, finished_at
+      FROM _prisma_migrations
+      ORDER BY finished_at DESC
+      LIMIT 1
+    `
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (message.includes('no such table: _prisma_migrations')) {
+      console.warn(
+        'Database reachable. _prisma_migrations table not found (likely db push/libsql workflow).'
+      )
+      return
+    }
+    throw error
+  }
 
   if (rows.length === 0) {
     console.warn('Database reachable, but no migrations recorded yet.')
