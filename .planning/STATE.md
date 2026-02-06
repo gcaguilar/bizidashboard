@@ -15,28 +15,29 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase** | 5 of 5 — Dashboard Frontend |
-| **Plan** | 3 of 5 in current phase |
+| **Plan** | 4 of 6 in current phase |
 | **Status** | 🟡 In progress |
-| **Last activity** | 2026-02-06 — Completed 05-03-PLAN.md |
+| **Last activity** | 2026-02-06 — Completed 05-04-PLAN.md |
 | **Blockers** | npm no disponible para `npm run lint` |
 
 Progress:
 ```
-[██████████████████░░] 89%
+[██████████████████░░] 90%
 ```
 
 ### Phase 5 Progress
 
 ```
-[████████████░░░░░░░░] 60%
+[█████████████░░░░░░░] 67%
 ```
 
 **Plans in Phase:**
 - [x] 05-01: Dashboard scaffolding and data wiring
 - [x] 05-02: Map, status, and alerts panels
 - [x] 05-03: Rankings table and station picker
-- [ ] 05-04: Hourly charts, heatmap, and responsive layout
+- [x] 05-04: Hourly charts, heatmap, and responsive layout
 - [ ] 05-05: Public deployment (Coolify)
+- [ ] 05-06: Post-deploy monitoring checklist
 
 ---
 
@@ -58,7 +59,7 @@ Progress:
 | 2 - Data Collection | 🟢 Complete | 100% |
 | 3 - Analytics Engine | 🟢 Complete | 100% |
 | 4 - API Layer | 🟢 Complete | 100% |
-| 5 - Dashboard | 🟡 In progress | 60% |
+| 5 - Dashboard | 🟡 In progress | 67% |
 
 ---
 
@@ -111,13 +112,13 @@ Progress:
 ## Session Continuity
 
 ### Last Action
-Phase 5 Plan 03 completion — 2026-02-06
+Phase 5 Plan 04 completion — 2026-02-06
 
 ### Next Action
-Continue Phase 5 Plan 04 (Hourly charts, heatmap, and responsive layout)
+Continue Phase 5 Plan 05 (Public deployment on Coolify)
 
-Last session: 2026-02-06 11:45 UTC
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-02-06 11:59 UTC
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
 
 ### Context Recovery
