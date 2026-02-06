@@ -152,8 +152,8 @@ This roadmap delivers BiziDashboard in **5 phases** following data dependencies:
 
 **Plan List:**
 - [x] 04-01-PLAN.md — Redis cache layer
-- [ ] 04-02-PLAN.md — Stations, rankings, and alerts endpoints
-- [x] 04-03-PLAN.md — Patterns, heatmap, and API docs
+- [x] 04-02-PLAN.md — Stations, rankings, and alerts endpoints
+- [ ] 04-03-PLAN.md — Patterns, heatmap, and API docs
 
 ---
 
