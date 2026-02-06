@@ -15,26 +15,26 @@
 | Attribute | Value |
 |-----------|-------|
 | **Phase** | 5 of 5 — Dashboard Frontend |
-| **Plan** | 2 of 5 in current phase |
+| **Plan** | 3 of 5 in current phase |
 | **Status** | 🟡 In progress |
-| **Last activity** | 2026-02-06 — Completed 05-02-PLAN.md |
-| **Blockers** | None |
+| **Last activity** | 2026-02-06 — Completed 05-03-PLAN.md |
+| **Blockers** | npm no disponible para `npm run lint` |
 
 Progress:
 ```
-[█████████████████░░░] 84%
+[██████████████████░░] 89%
 ```
 
 ### Phase 5 Progress
 
 ```
-[████████░░░░░░░░░░░░] 40%
+[████████████░░░░░░░░] 60%
 ```
 
 **Plans in Phase:**
 - [x] 05-01: Dashboard scaffolding and data wiring
 - [x] 05-02: Map, status, and alerts panels
-- [ ] 05-03: Rankings table and station picker
+- [x] 05-03: Rankings table and station picker
 - [ ] 05-04: Hourly charts, heatmap, and responsive layout
 - [ ] 05-05: Public deployment (Coolify)
 
@@ -47,7 +47,7 @@ Progress:
 | **Phases Complete** | 4/5 in progress | Phase 1-4 complete |
 | **Requirements Complete** | 23/28 | In progress |
 | **Success Criteria Met** | 27/35 | In progress |
-| **Open Blockers** | 0 | Clear for Phase 4 |
+| **Open Blockers** | 1 | npm no disponible para lint |
 | **Research Flags** | 0 | Phase 5 research completed |
 
 ### Phase Status Overview
@@ -58,7 +58,7 @@ Progress:
 | 2 - Data Collection | 🟢 Complete | 100% |
 | 3 - Analytics Engine | 🟢 Complete | 100% |
 | 4 - API Layer | 🟢 Complete | 100% |
-| 5 - Dashboard | 🟡 In progress | 20% |
+| 5 - Dashboard | 🟡 In progress | 60% |
 
 ---
 
@@ -111,13 +111,13 @@ Progress:
 ## Session Continuity
 
 ### Last Action
-Phase 5 Plan 01 completion — 2026-02-06
+Phase 5 Plan 03 completion — 2026-02-06
 
 ### Next Action
-Continue Phase 5 Plan 03 (Rankings table and station picker)
+Continue Phase 5 Plan 04 (Hourly charts, heatmap, and responsive layout)
 
-Last session: 2026-02-06 11:33 UTC
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-02-06 11:45 UTC
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ### Context Recovery
@@ -150,4 +150,4 @@ cat .planning/ROADMAP.md | grep -A 10 "Progress"
 ---
 
 *State file created: 2026-02-03*
-*Last updated: 2026-02-06 after 05-01 execution*
+*Last updated: 2026-02-06 after 05-03 execution*
