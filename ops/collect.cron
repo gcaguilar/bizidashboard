@@ -1,0 +1,1 @@
+*/30 * * * * /usr/bin/curl -fsS -X POST http://app:3000/api/collect -H "Content-Type: application/json" >/proc/1/fd/1 2>/proc/1/fd/2

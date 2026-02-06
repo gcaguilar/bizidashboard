@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: gcaguilar/bizidashboard:latest
     ports:
       - "3000:3000"
     env_file:
@@ -10,16 +8,45 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
+      DATABASE_URL: file:/data/dev.db
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
-      - ./dev.db:/app/dev.db
+      - app-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/status').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  collect-cron:
+    image: alpine:3.21
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./ops/collect.cron:/etc/crontabs/root:ro
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "apk add --no-cache curl >/dev/null && crond -f -l 2",
+      ]
+
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
+  app-data:
   redis-data:

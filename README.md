@@ -52,6 +52,26 @@ pnpm build
 pnpm db:health
 ```
 
+## Production Deployment (Docker Compose)
+
+The provided `docker-compose.yml` is production-oriented and uses the published image:
+
+- `gcaguilar/bizidashboard:latest`
+
+It also includes:
+
+- A Redis service with health checks.
+- An app health check against `/api/status`.
+- An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes.
+- Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
+
+Run in production mode:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ## Project Status
 
 This repository is a prototype-oriented codebase. While functional, interfaces and internal implementation details may change as experimentation continues.

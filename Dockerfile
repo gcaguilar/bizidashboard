@@ -17,9 +17,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV DATABASE_URL=file:/data/dev.db
+RUN mkdir -p /data
 COPY --from=builder /app/.pnpm-store ./.pnpm-store
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+VOLUME ["/data"]
 EXPOSE 3000
 CMD ["node", "server.js"]
