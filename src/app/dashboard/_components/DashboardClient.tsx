@@ -62,7 +62,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         </p>
       </header>
 
-      <StatusBanner status={initialData.status} />
+      <StatusBanner
+        status={initialData.status}
+        stationsGeneratedAt={initialData.stations.generatedAt}
+      />
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
@@ -78,7 +81,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             selectedStationId={selectedStationId}
             onChange={setSelectedStationId}
           />
-          <AlertsPanel alerts={initialData.alerts} />
+          <AlertsPanel
+            alerts={initialData.alerts}
+            stations={initialData.stations.stations}
+          />
         </div>
 
         <div className="lg:col-span-6">
