@@ -109,6 +109,7 @@ model StationRanking {
   station Station @relation(fields: [stationId], references: [id])
 
   @@index([stationId])
+  @@unique([stationId, windowStart, windowEnd])
 }
 
 model StationPattern {
@@ -152,6 +153,7 @@ model StationAlert {
   station Station @relation(fields: [stationId], references: [id])
 
   @@index([generatedAt])
+  @@unique([stationId, alertType, windowHours, generatedAt])
 }
 
 model AnalyticsWatermark {
