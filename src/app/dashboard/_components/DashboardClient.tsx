@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   AlertsResponse,
   HeatmapCell,
@@ -37,6 +37,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [selectedStationId, setSelectedStationId] = useState(
     initialData.stations.stations[0]?.id ?? ''
   );
+  const [patterns, setPatterns] = useState(initialData.patterns);
+  const [heatmap, setHeatmap] = useState(initialData.heatmap);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const selectedStation = useMemo(() => {
     return (
@@ -45,6 +48,70 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       ) ?? initialData.stations.stations[0]
     );
   }, [initialData.stations.stations, selectedStationId]);
+
+  useEffect(() => {
+    if (!selectedStationId) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let isActive = true;
+
+    const refresh = async () => {
+      try {
+        setIsRefreshing(true);
+        const searchParams = new URLSearchParams({
+          stationId: selectedStationId,
+        });
+
+        const [patternsResponse, heatmapResponse] = await Promise.all([
+          fetch(`/api/patterns?${searchParams}`, {
+            signal: controller.signal,
+          }),
+          fetch(`/api/heatmap?${searchParams}`, {
+            signal: controller.signal,
+          }),
+        ]);
+
+        if (!patternsResponse.ok || !heatmapResponse.ok) {
+          throw new Error('No se pudieron refrescar los datos de patrones.');
+        }
+
+        const [nextPatterns, nextHeatmap] = await Promise.all([
+          patternsResponse.json(),
+          heatmapResponse.json(),
+        ]);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (Array.isArray(nextPatterns)) {
+          setPatterns(nextPatterns);
+        }
+
+        if (Array.isArray(nextHeatmap)) {
+          setHeatmap(nextHeatmap);
+        }
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          return;
+        }
+        console.error('Error al refrescar patrones y heatmap.', error);
+      } finally {
+        if (isActive) {
+          setIsRefreshing(false);
+        }
+      }
+    };
+
+    void refresh();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [selectedStationId]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -67,16 +134,17 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         stationsGeneratedAt={initialData.stations.generatedAt}
       />
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-8">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="md:col-span-2 xl:col-span-2">
           <MapPanel
             stations={initialData.stations.stations}
             selectedStationId={selectedStationId}
             onSelectStation={setSelectedStationId}
           />
         </div>
-        <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           <StationPicker
+            key={selectedStationId}
             stations={initialData.stations.stations}
             selectedStationId={selectedStationId}
             onSelectStation={setSelectedStationId}
@@ -87,24 +155,26 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           />
         </div>
 
-        <div className="lg:col-span-6">
+        <div>
           <RankingsTable
             rankings={initialData.rankings}
             stations={initialData.stations.stations}
           />
         </div>
-        <div className="lg:col-span-6">
+        <div>
           <HourlyCharts
             stationId={selectedStation?.id ?? ''}
             stationName={selectedStation?.name ?? 'Estacion desconocida'}
-            patterns={initialData.patterns}
+            patterns={patterns}
+            isRefreshing={isRefreshing}
           />
         </div>
-        <div className="lg:col-span-12">
+        <div className="md:col-span-2 xl:col-span-3">
           <Heatmap
             stationId={selectedStation?.id ?? ''}
             stationName={selectedStation?.name ?? 'Estacion desconocida'}
-            heatmap={initialData.heatmap}
+            heatmap={heatmap}
+            isRefreshing={isRefreshing}
           />
         </div>
       </div>
