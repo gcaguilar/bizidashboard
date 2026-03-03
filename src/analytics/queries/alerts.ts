@@ -55,7 +55,7 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
       anchorsAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bikesAvg, anchorsAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
+  >`SELECT stationId, bikesAvg, anchorsAvg, sampleCount FROM HourlyStationStat WHERE datetime(bucketStart) > datetime(${windowStart}) AND datetime(bucketStart) <= datetime(${windowEnd});`;
 
   const aggregates = new Map<string, AlertMetricAccumulator>();
 

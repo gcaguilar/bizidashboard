@@ -84,6 +84,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
         sampleCount,
         CURRENT_TIMESTAMP
       FROM rollup
+      WHERE true
       ON CONFLICT(stationId, bucketStart) DO UPDATE SET
         bikesMin = excluded.bikesMin,
         bikesMax = excluded.bikesMax,

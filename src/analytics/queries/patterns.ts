@@ -23,6 +23,18 @@ interface PatternAccumulator {
 
 const PATTERN_WATERMARK = 'pattern_rollup';
 
+function parseBucketStart(value: string | Date): Date {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (value.includes('T')) {
+    return new Date(value);
+  }
+
+  return new Date(value.replace(' ', 'T') + 'Z');
+}
+
 export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
   const windowEnd = cutoff;
   const windowStart = new Date(
@@ -42,18 +54,18 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
   const hourlyStats = await prisma.$queryRaw<
     {
       stationId: string;
-      bucketStart: string;
+      bucketStart: string | Date;
       bikesAvg: number;
       anchorsAvg: number;
       occupancyAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
+  >`SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount FROM HourlyStationStat WHERE datetime(bucketStart) > datetime(${windowStart}) AND datetime(bucketStart) <= datetime(${windowEnd});`;
 
   const aggregates = new Map<string, PatternAccumulator>();
 
   for (const stat of hourlyStats) {
-    const bucketStart = new Date(stat.bucketStart.replace(' ', 'T') + 'Z');
+    const bucketStart = parseBucketStart(stat.bucketStart);
     const { hour, dayType } = getLocalBucket(bucketStart);
     const key = `${stat.stationId}-${dayType}-${hour}`;
     const existing = aggregates.get(key);
