@@ -84,6 +84,7 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
         sampleCount,
         CURRENT_TIMESTAMP
       FROM rollup
+      WHERE true
       ON CONFLICT(stationId, bucketDate) DO UPDATE SET
         bikesMin = excluded.bikesMin,
         bikesMax = excluded.bikesMax,
