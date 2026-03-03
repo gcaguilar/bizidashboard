@@ -80,9 +80,9 @@ pnpm db:health
 
 ## Production Deployment (Docker Compose)
 
-The provided `docker-compose.yml` is production-oriented and uses the published image:
+The provided `docker-compose.yml` is production-oriented and builds the app image from the local `Dockerfile` by default.
 
-- `gcaguilar/bizidashboard:latest`
+To use a published image instead, set `BIZIDASHBOARD_IMAGE` before running Compose (for example: `BIZIDASHBOARD_IMAGE=gcaguilar/bizidashboard:latest`).
 
 It also includes:
 
@@ -112,7 +112,6 @@ GBFS_RETRY_BASE_DELAY_MS=1000
 ```
 
 ```bash
-docker compose pull
 docker compose up -d
 ```
 
