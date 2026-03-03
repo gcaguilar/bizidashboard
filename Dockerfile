@@ -24,10 +24,13 @@ ENV DATABASE_URL=file:/data/dev.db
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN apt-get update && apt-get install -y --no-install-recommends curl openssl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data
-COPY --from=builder /app/bootstrap.db /data/dev.db
+COPY --from=builder /app/bootstrap.db /app/bootstrap.db
+RUN cp /app/bootstrap.db /data/dev.db
+COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 VOLUME ["/data"]
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["/app/docker-entrypoint.sh"]
