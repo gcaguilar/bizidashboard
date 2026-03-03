@@ -92,6 +92,8 @@ It also includes:
 - An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes.
 - Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
 
+The container entrypoint also bootstraps SQLite on startup: if `DATABASE_URL` is missing or points to a relative SQLite path, it falls back to `file:/data/dev.db` and initializes it from `/app/bootstrap.db` when the file is empty or missing.
+
 Run in production mode:
 
 Example production `.env` values:
