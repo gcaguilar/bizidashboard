@@ -87,6 +87,7 @@ To use a published image instead, set `BIZIDASHBOARD_IMAGE` before running Compo
 It also includes:
 
 - A Redis service with health checks.
+- A one-shot migration service (`migrate`) that runs `prisma migrate deploy` on `/data/dev.db` before app startup.
 - An app health check against `/api/status`.
 - An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes.
 - Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
