@@ -127,6 +127,36 @@ BIZIDASHBOARD_MCP_HTTP_HOST=0.0.0.0
 BIZIDASHBOARD_MCP_HTTP_PORT=3333
 ```
 
+### Deploying MCP in Coolify (Dockerfile)
+
+When the project is deployed as Docker images (without Compose), run MCP as a
+separate application so the reverse proxy can route `/mcp` to MCP and `/` to the
+Next.js app.
+
+1. Create a second Coolify application from the same repository.
+2. Use `Dockerfile.mcp` as Dockerfile path.
+3. Expose internal port `3333`.
+4. Add a path-based domain for MCP, for example:
+   - `https://bizi.gcaguilar.cc/mcp`
+5. Set MCP healthcheck path to `/health`.
+
+Recommended environment variables for the MCP application:
+
+```env
+# Required so MCP can call the deployed Next.js API
+BIZIDASHBOARD_API_BASE_URL=https://bizi.gcaguilar.cc
+
+# Optional but recommended
+OPENAPI_URL=https://bizi.gcaguilar.cc/api/openapi.json
+BIZIDASHBOARD_MCP_OPENAPI_ENABLED=true
+BIZIDASHBOARD_API_TIMEOUT_MS=20000
+BIZIDASHBOARD_MCP_HTTP_HOST=0.0.0.0
+BIZIDASHBOARD_MCP_HTTP_PORT=3333
+```
+
+Note: A plain browser GET to `/mcp` can return `400` if no MCP session is
+initialized yet. That is expected behavior.
+
 Main MCP tools:
 
 - `build_dashboard_spec`: creates a dashboard JSON spec from a natural-language request.
