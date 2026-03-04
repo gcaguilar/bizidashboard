@@ -193,6 +193,19 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           />
         </div>
       </div>
+
+      <footer className="text-center text-[11px] text-[var(--muted)]">
+        Proyecto{' '}
+        <a
+          href="https://github.com/gcaguilar/bizidashboard"
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-[var(--border)] underline-offset-3 hover:text-[var(--foreground)]"
+        >
+          open source
+        </a>
+        .
+      </footer>
     </div>
   );
 }
