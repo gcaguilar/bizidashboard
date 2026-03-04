@@ -51,3 +51,12 @@ next-env.d.ts
 # local tooling/runtime artifacts
 /.turbo
 /.tmp
+
+# editor settings
+.idea/
+.vscode/
+
+# local profiling and traces
+*.heapsnapshot
+trace.json
+trace.json.gz
