@@ -26,6 +26,7 @@ BIZIDASHBOARD_API_TIMEOUT_MS=20000
   - Creates a JSON dashboard specification from a natural-language request.
 - `generate_dashboard`
   - Builds the specification and resolves live data for each widget.
+  - Accepts optional `customWidgets` to build ad-hoc panels from existing endpoints.
 - `get_status`
   - Fetches pipeline health and quality metrics.
 - `get_stations`
@@ -46,3 +47,30 @@ BIZIDASHBOARD_API_TIMEOUT_MS=20000
 "Quiero un dashboard con top 10 estaciones por rotacion, alertas, y heatmap para station 123"
 
 Use this prompt with `generate_dashboard`.
+
+## Ad-hoc Custom Widget
+
+You can ask the model to call `generate_dashboard` with `customWidgets`.
+
+Example custom widget payload:
+
+```json
+[
+  {
+    "id": "rows_total",
+    "title": "Filas totales del pipeline",
+    "sourceEndpoint": "status",
+    "mode": "kpi",
+    "valuePath": "pipeline.totalRowsCollected"
+  },
+  {
+    "id": "ocupacion_horaria",
+    "title": "Ocupacion media por hora",
+    "sourceEndpoint": "patterns",
+    "sourceParams": { "stationId": "130" },
+    "mode": "timeseries",
+    "xKey": "hour",
+    "yKey": "occupancyAvg"
+  }
+]
+```
