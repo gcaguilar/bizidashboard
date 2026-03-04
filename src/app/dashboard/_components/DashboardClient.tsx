@@ -13,6 +13,9 @@ import { AlertsPanel } from './AlertsPanel';
 import { Heatmap } from './Heatmap';
 import { HourlyCharts } from './HourlyCharts';
 import { MapPanel } from './MapPanel';
+import { MethodologyPanel } from './MethodologyPanel';
+import { MobilityInsights } from './MobilityInsights';
+import { NeighborhoodMiniMap } from './NeighborhoodMiniMap';
 import { RankingsTable } from './RankingsTable';
 import { StationPicker } from './StationPicker';
 import { StatusBanner } from './StatusBanner';
@@ -134,6 +137,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         stationsGeneratedAt={initialData.stations.generatedAt}
       />
 
+      <div className="md:sticky md:top-3 md:z-20">
+        <StationPicker
+          stations={initialData.stations.stations}
+          selectedStationId={selectedStationId}
+          onSelectStation={setSelectedStationId}
+        />
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         <div className="md:col-span-2 xl:col-span-2">
           <MapPanel
@@ -143,16 +154,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           />
         </div>
         <div className="flex flex-col gap-6">
-          <StationPicker
-            key={selectedStationId}
-            stations={initialData.stations.stations}
-            selectedStationId={selectedStationId}
-            onSelectStation={setSelectedStationId}
-          />
           <AlertsPanel
             alerts={initialData.alerts}
             stations={initialData.stations.stations}
           />
+          <MethodologyPanel />
         </div>
 
         <div>
@@ -168,6 +174,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             patterns={patterns}
             isRefreshing={isRefreshing}
           />
+        </div>
+        <div>
+          <NeighborhoodMiniMap
+            stations={initialData.stations.stations}
+            selectedStationId={selectedStation?.id ?? ''}
+          />
+        </div>
+        <div className="md:col-span-2 xl:col-span-3">
+          <MobilityInsights stations={initialData.stations.stations} />
         </div>
         <div className="md:col-span-2 xl:col-span-3">
           <Heatmap
