@@ -2,6 +2,20 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import { mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+const DEFAULT_DATABASE_URL = "file:./data/dev.db";
+const databaseUrl = process.env["DATABASE_URL"] ?? DEFAULT_DATABASE_URL;
+
+if (databaseUrl.startsWith("file:")) {
+  const rawPath = databaseUrl.slice("file:".length).split("?")[0]?.split("#")[0] ?? "";
+
+  if (rawPath && rawPath !== ":memory:") {
+    const absolutePath = rawPath.startsWith("/") ? rawPath : resolve(process.cwd(), rawPath);
+    mkdirSync(dirname(absolutePath), { recursive: true });
+  }
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -9,6 +23,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] ?? "file:./prisma/dev.db",
+    url: databaseUrl,
   },
 });
