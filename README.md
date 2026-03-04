@@ -84,11 +84,28 @@ pnpm db:health
 
 This repository includes an MCP server that wraps the existing REST API so an LLM client can request dashboards in natural language and fetch data on demand.
 
-Start the MCP server over stdio:
+Start the MCP server over stdio (local MCP clients like Cursor):
+
+```bash
+pnpm mcp
+```
+
+Legacy alias (still supported):
 
 ```bash
 pnpm mcp:dashboard
 ```
+
+Start the MCP server over HTTP/SSE (remote agents):
+
+```bash
+pnpm mcp:http
+```
+
+Default HTTP endpoints:
+
+- `http://localhost:3333/mcp`
+- `http://localhost:3333/health`
 
 Optional environment variables:
 
@@ -98,6 +115,16 @@ BIZIDASHBOARD_API_BASE_URL=http://localhost:3000
 
 # HTTP timeout for MCP -> API calls
 BIZIDASHBOARD_API_TIMEOUT_MS=20000
+
+# OpenAPI source for dynamic MCP tools
+OPENAPI_URL=http://localhost:3000/api/openapi.json
+
+# Set to false to disable OpenAPI-generated tools
+BIZIDASHBOARD_MCP_OPENAPI_ENABLED=true
+
+# HTTP MCP host/port
+BIZIDASHBOARD_MCP_HTTP_HOST=0.0.0.0
+BIZIDASHBOARD_MCP_HTTP_PORT=3333
 ```
 
 Main MCP tools:
@@ -106,6 +133,33 @@ Main MCP tools:
 - `generate_dashboard`: creates the spec and fetches live data for each widget.
   - Supports optional `customWidgets` so the model can generate ad-hoc KPI/table/timeseries panels from existing endpoints.
 - `get_status`, `get_stations`, `get_rankings`, `get_alerts`, `get_patterns`, `get_heatmap`, `get_mobility`: direct API wrappers.
+
+### Using the MCP server remotely
+
+Use the HTTP transport when connecting remote agent frameworks (OpenAI Agents, LangChain, etc.).
+
+Example OpenAI Agents configuration:
+
+```ts
+tools: [
+  {
+    type: "mcp",
+    server_url: "http://localhost:3333/mcp"
+  }
+]
+```
+
+### Automatic MCP tool generation from OpenAPI
+
+The MCP server can load tools dynamically from the OpenAPI document at
+`/api/openapi.json`.
+
+- Manual tools are still loaded first (backward compatibility).
+- OpenAPI-generated tools are then added.
+- Name conflicts are skipped automatically so existing manual tools keep priority.
+
+This means that when you add a new API endpoint to the OpenAPI spec, it can become
+available as an MCP tool without writing a manual MCP tool definition.
 
 MCP usage examples:
 
