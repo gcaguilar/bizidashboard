@@ -43,6 +43,7 @@ Suggested `.env.example` values:
 # App
 NODE_ENV=development
 APP_URL=http://localhost:3000
+GOOGLE_SITE_VERIFICATION=
 
 # Database (local)
 DATABASE_URL=file:./dev.db
@@ -101,6 +102,7 @@ Example production `.env` values:
 ```env
 NODE_ENV=production
 APP_URL=https://your-domain.example
+GOOGLE_SITE_VERIFICATION=
 
 # In compose this is overridden to file:/data/dev.db
 DATABASE_URL=file:/data/dev.db
@@ -113,6 +115,9 @@ GBFS_REQUEST_TIMEOUT_MS=20000
 GBFS_MAX_RETRIES=5
 GBFS_RETRY_BASE_DELAY_MS=1000
 ```
+
+`GOOGLE_SITE_VERIFICATION` is optional. Set it to your own token (with or without the
+`.html` suffix) so forks can verify their own domain without code changes.
 
 ```bash
 docker compose up -d
