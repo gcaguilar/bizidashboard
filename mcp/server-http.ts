@@ -146,8 +146,12 @@ async function main() {
       request.url ?? '/',
       `http://${request.headers.host ?? 'localhost'}`
     )
+    const requestPathname = requestUrl.pathname
 
-    if (requestUrl.pathname === '/health' && request.method === 'GET') {
+    if (
+      (requestPathname === '/health' || requestPathname === '/mcp/health') &&
+      request.method === 'GET'
+    ) {
       writeJson(response, 200, {
         status: 'ok',
         transport: 'http-sse',
@@ -157,7 +161,12 @@ async function main() {
       return
     }
 
-    if (requestUrl.pathname !== '/mcp') {
+    const isMcpEndpoint =
+      requestPathname === '/' ||
+      requestPathname === '/mcp' ||
+      requestPathname === '/mcp/'
+
+    if (!isMcpEndpoint) {
       writeJson(response, 404, {
         error: 'Not found'
       })
