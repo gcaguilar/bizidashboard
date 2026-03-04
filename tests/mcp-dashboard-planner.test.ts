@@ -62,4 +62,38 @@ describe('dashboard planner', () => {
       spec.notes.some((note) => note.includes('dashboard operativo por defecto'))
     ).toBe(true)
   })
+
+  it('appends ad-hoc custom widgets from options', () => {
+    const spec = buildDashboardSpec('solo widget custom', {
+      customWidgets: [
+        {
+          id: 'rows_total',
+          title: 'Filas totales',
+          sourceEndpoint: 'status',
+          mode: 'kpi',
+          valuePath: 'pipeline.totalRowsCollected'
+        },
+        {
+          id: 'ranking_short',
+          title: 'Top ranking corto',
+          sourceEndpoint: 'rankings',
+          sourceParams: {
+            type: 'availability',
+            limit: 5
+          },
+          mode: 'table',
+          collectionPath: 'rankings',
+          limit: 5
+        }
+      ]
+    })
+
+    const customWidgets = spec.widgets.filter((widget) => widget.endpoint === 'custom')
+
+    expect(customWidgets.length).toBe(2)
+    expect(customWidgets[0]?.id).toBe('custom_rows_total')
+    expect(customWidgets[0]?.custom?.mode).toBe('kpi')
+    expect(customWidgets[1]?.id).toBe('custom_ranking_short')
+    expect(spec.notes.some((note) => note.includes('widgets ad hoc'))).toBe(true)
+  })
 })
