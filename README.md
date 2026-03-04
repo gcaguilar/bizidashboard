@@ -104,7 +104,74 @@ Main MCP tools:
 
 - `build_dashboard_spec`: creates a dashboard JSON spec from a natural-language request.
 - `generate_dashboard`: creates the spec and fetches live data for each widget.
+  - Supports optional `customWidgets` so the model can generate ad-hoc KPI/table/timeseries panels from existing endpoints.
 - `get_status`, `get_stations`, `get_rankings`, `get_alerts`, `get_patterns`, `get_heatmap`, `get_mobility`: direct API wrappers.
+
+MCP usage examples:
+
+1) Natural-language dashboard:
+
+```text
+Quiero un dashboard con estado del pipeline, top 10 por rotacion, alertas y heatmap para station 130
+```
+
+2) `generate_dashboard` with ad-hoc `customWidgets`:
+
+```json
+{
+  "request": "Dashboard de operaciones con paneles personalizados",
+  "customWidgets": [
+    {
+      "id": "rows_total",
+      "title": "Filas totales del pipeline",
+      "sourceEndpoint": "status",
+      "mode": "kpi",
+      "valuePath": "pipeline.totalRowsCollected"
+    },
+    {
+      "id": "ocupacion_hora",
+      "title": "Ocupacion media por hora",
+      "sourceEndpoint": "patterns",
+      "sourceParams": { "stationId": "130" },
+      "mode": "timeseries",
+      "xKey": "hour",
+      "yKey": "occupancyAvg"
+    },
+    {
+      "id": "alertas_tabla",
+      "title": "Tabla de alertas",
+      "sourceEndpoint": "alerts",
+      "sourceParams": { "limit": 20 },
+      "mode": "table",
+      "collectionPath": "alerts",
+      "limit": 20
+    }
+  ]
+}
+```
+
+3) HTTP test for the live dashboard API:
+
+```bash
+curl -X POST "http://localhost:3000/api/dashboard/live" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request": "Panel ad hoc",
+    "customWidgets": [
+      {
+        "id": "rows_total",
+        "title": "Filas pipeline",
+        "sourceEndpoint": "status",
+        "mode": "kpi",
+        "valuePath": "pipeline.totalRowsCollected"
+      }
+    ]
+  }'
+```
+
+Web UI tip:
+
+- Open `http://localhost:3000/dashboard/live` and use "Widgets ad hoc (JSON opcional)" to paste `customWidgets` directly.
 
 ## Production Deployment (Docker Compose)
 
