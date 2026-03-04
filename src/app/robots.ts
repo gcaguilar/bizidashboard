@@ -1,18 +1,17 @@
 import type { MetadataRoute } from 'next';
-import { getSiteUrl } from '@/lib/site';
+import { getRobotsBaseUrl, getRobotsSitemapUrl } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = getSiteUrl();
+  const host = getRobotsBaseUrl();
 
   return {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/dashboard'],
-        disallow: ['/api/', '/_next/'],
+        allow: '/',
       },
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    sitemap: getRobotsSitemapUrl(),
+    host,
   };
 }
