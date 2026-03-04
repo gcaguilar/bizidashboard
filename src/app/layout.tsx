@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope } from "next/font/google";
-import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site";
+import {
+  getGoogleSiteVerificationToken,
+  getSiteUrl,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+} from "@/lib/site";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -15,6 +21,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 const siteUrl = getSiteUrl();
+const googleSiteVerificationToken = getGoogleSiteVerificationToken();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -59,6 +66,11 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
+  verification: googleSiteVerificationToken
+    ? {
+        google: googleSiteVerificationToken,
+      }
+    : undefined,
 };
 
 export default function RootLayout({

@@ -22,3 +22,18 @@ export function getSiteUrl(): string {
     return FALLBACK_SITE_URL;
   }
 }
+
+export function getGoogleSiteVerificationToken(): string | undefined {
+  const rawToken = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+
+  if (!rawToken) {
+    return undefined;
+  }
+
+  const normalizedToken = rawToken
+    .replace(/^google-site-verification:\s*/i, '')
+    .replace(/\.html$/i, '')
+    .trim();
+
+  return normalizedToken || undefined;
+}
