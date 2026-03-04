@@ -5,22 +5,40 @@ export const SITE_DESCRIPTION =
 
 const FALLBACK_SITE_URL = 'http://localhost:3000';
 
+function normalizeHttpOrigin(candidate: string, fallback: string): string {
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return fallback;
+    }
+
+    return parsed.origin;
+  } catch {
+    return fallback;
+  }
+}
+
 export function getSiteUrl(): string {
   const candidate =
     process.env.APP_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     FALLBACK_SITE_URL;
 
-  try {
-    const parsed = new URL(candidate);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return FALLBACK_SITE_URL;
-    }
+  return normalizeHttpOrigin(candidate, FALLBACK_SITE_URL);
+}
 
-    return parsed.origin;
-  } catch {
-    return FALLBACK_SITE_URL;
+export function getRobotsBaseUrl(): string {
+  const candidate = process.env.ROBOTS_BASE_URL?.trim();
+
+  if (!candidate) {
+    return getSiteUrl();
   }
+
+  return normalizeHttpOrigin(candidate, getSiteUrl());
+}
+
+export function getRobotsSitemapUrl(): string {
+  return `${getRobotsBaseUrl()}/sitemap.xml`;
 }
 
 export function getGoogleSiteVerificationToken(): string | undefined {
