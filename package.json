@@ -9,10 +9,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "db:health": "tsx scripts/db-health-check.ts"
+    "db:health": "tsx scripts/db-health-check.ts",
+    "mcp:dashboard": "tsx scripts/mcp-dashboard-server.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@prisma/adapter-libsql": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "maplibre-gl": "^5.19.0",
