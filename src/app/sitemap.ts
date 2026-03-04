@@ -18,5 +18,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'hourly',
       priority: 0.9,
     },
+    {
+      url: `${siteUrl}/dashboard/live`,
+      lastModified,
+      changeFrequency: 'hourly',
+      priority: 0.8,
+    },
   ];
 }
