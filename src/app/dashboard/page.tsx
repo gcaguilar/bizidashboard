@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   fetchAlerts,
   fetchHeatmap,
@@ -10,9 +11,23 @@ import {
   type StationsResponse,
   type StatusResponse,
 } from '@/lib/api';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Dashboard en tiempo real',
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: '/dashboard',
+  },
+  openGraph: {
+    title: `${SITE_TITLE} - Dashboard`,
+    description: SITE_DESCRIPTION,
+    url: '/dashboard',
+  },
+};
 
 type ErrorWithMeta = {
   cause?: unknown;
