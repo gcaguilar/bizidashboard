@@ -5,6 +5,7 @@ import { DashboardApiClient } from '../src/mcp/dashboard-api-client'
 import { generateDashboard } from '../src/mcp/dashboard-generator'
 import {
   buildDashboardSpec,
+  type CustomWidgetDefinition,
   type DashboardPlannerOptions,
   type RankingType
 } from '../src/mcp/dashboard-planner'
@@ -29,6 +30,53 @@ function parseTimeoutMs(rawValue: string | undefined): number {
 }
 
 const API_TIMEOUT_MS = parseTimeoutMs(process.env.BIZIDASHBOARD_API_TIMEOUT_MS)
+
+const customWidgetSchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .max(40)
+    .describe('Custom widget identifier. Prefer lowercase and underscore.'),
+  title: z.string().min(1).max(100).describe('Widget title shown on dashboard.'),
+  description: z
+    .string()
+    .max(220)
+    .optional()
+    .describe('Optional widget description.'),
+  sourceEndpoint: z
+    .enum(['status', 'stations', 'rankings', 'alerts', 'patterns', 'heatmap', 'mobility'])
+    .describe('Endpoint that provides source data for this custom widget.'),
+  sourceParams: z
+    .record(z.string(), z.union([z.string(), z.number().int()]))
+    .optional()
+    .describe('Optional query params used when fetching source endpoint data.'),
+  mode: z
+    .enum(['kpi', 'table', 'timeseries'])
+    .describe('Renderer mode for this widget.'),
+  valuePath: z
+    .string()
+    .optional()
+    .describe('For kpi mode: JSON path to scalar value (example: pipeline.totalRowsCollected).'),
+  collectionPath: z
+    .string()
+    .optional()
+    .describe('For table/timeseries mode: JSON path to rows array.'),
+  xKey: z
+    .string()
+    .optional()
+    .describe('For timeseries mode: x-axis field name.'),
+  yKey: z
+    .string()
+    .optional()
+    .describe('For timeseries mode: y-axis numeric field name.'),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(200)
+    .optional()
+    .describe('For table mode: maximum number of rows to display.')
+})
 
 function createApiClient(apiBaseUrl?: string): DashboardApiClient {
   return new DashboardApiClient({
@@ -77,13 +125,15 @@ function plannerOptionsFromInput(input: {
   alertLimit?: number
   mobilityDays?: number
   demandDays?: number
+  customWidgets?: CustomWidgetDefinition[]
 }): DashboardPlannerOptions {
   return {
     stationId: input.stationId,
     rankLimit: input.rankLimit,
     alertLimit: input.alertLimit,
     mobilityDays: input.mobilityDays,
-    demandDays: input.demandDays
+    demandDays: input.demandDays,
+    customWidgets: input.customWidgets
   }
 }
 
@@ -288,7 +338,12 @@ server.registerTool(
         .min(1)
         .max(120)
         .optional()
-        .describe('Optional lookback days override for demand curve.')
+        .describe('Optional lookback days override for demand curve.'),
+      customWidgets: z
+        .array(customWidgetSchema)
+        .max(8)
+        .optional()
+        .describe('Optional ad-hoc widget definitions built from existing endpoint data.')
     }
   },
   async ({
@@ -297,7 +352,8 @@ server.registerTool(
     rankLimit,
     alertLimit,
     mobilityDays,
-    demandDays
+    demandDays,
+    customWidgets
   }) =>
     executeTool(async () =>
       buildDashboardSpec(
@@ -307,7 +363,8 @@ server.registerTool(
           rankLimit,
           alertLimit,
           mobilityDays,
-          demandDays
+          demandDays,
+          customWidgets
         })
       )
     )
@@ -355,6 +412,11 @@ server.registerTool(
         .max(120)
         .optional()
         .describe('Optional lookback days override for demand curve.'),
+      customWidgets: z
+        .array(customWidgetSchema)
+        .max(8)
+        .optional()
+        .describe('Optional ad-hoc widget definitions built from existing endpoint data.'),
       apiBaseUrl: z
         .string()
         .url()
@@ -369,6 +431,7 @@ server.registerTool(
     alertLimit,
     mobilityDays,
     demandDays,
+    customWidgets,
     apiBaseUrl
   }) =>
     executeTool(() =>
@@ -377,7 +440,8 @@ server.registerTool(
         rankLimit,
         alertLimit,
         mobilityDays,
-        demandDays
+        demandDays,
+        customWidgets
       })
     )
 )

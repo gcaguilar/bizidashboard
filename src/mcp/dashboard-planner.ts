@@ -8,6 +8,7 @@ export type DashboardEndpoint =
   | 'patterns'
   | 'heatmap'
   | 'mobility'
+  | 'custom'
 
 export type DashboardVisualization =
   | 'kpi'
@@ -17,6 +18,24 @@ export type DashboardVisualization =
   | 'heatmap'
   | 'bar'
 
+export type CustomWidgetSourceEndpoint = Exclude<DashboardEndpoint, 'custom'>
+
+export type CustomWidgetMode = 'kpi' | 'table' | 'timeseries'
+
+export type CustomWidgetDefinition = {
+  id: string
+  title: string
+  description?: string
+  sourceEndpoint: CustomWidgetSourceEndpoint
+  sourceParams?: Record<string, string | number>
+  mode: CustomWidgetMode
+  valuePath?: string
+  collectionPath?: string
+  xKey?: string
+  yKey?: string
+  limit?: number
+}
+
 export type DashboardWidgetSpec = {
   id: string
   title: string
@@ -24,6 +43,7 @@ export type DashboardWidgetSpec = {
   visualization: DashboardVisualization
   endpoint: DashboardEndpoint
   params?: Record<string, string | number>
+  custom?: CustomWidgetDefinition
 }
 
 export type DashboardPlannerOptions = {
@@ -32,6 +52,7 @@ export type DashboardPlannerOptions = {
   alertLimit?: number
   mobilityDays?: number
   demandDays?: number
+  customWidgets?: CustomWidgetDefinition[]
 }
 
 export type DashboardSpec = {
@@ -47,6 +68,19 @@ const DEFAULT_RANK_LIMIT = 20
 const DEFAULT_ALERT_LIMIT = 50
 const DEFAULT_MOBILITY_DAYS = 14
 const DEFAULT_DEMAND_DAYS = 30
+const MAX_CUSTOM_WIDGETS = 8
+
+const CUSTOM_WIDGET_SOURCE_ENDPOINTS: CustomWidgetSourceEndpoint[] = [
+  'status',
+  'stations',
+  'rankings',
+  'alerts',
+  'patterns',
+  'heatmap',
+  'mobility'
+]
+
+const CUSTOM_WIDGET_MODES: CustomWidgetMode[] = ['kpi', 'table', 'timeseries']
 
 function normalizeText(input: string): string {
   return input
@@ -125,6 +159,126 @@ function formatTitle(request: string): string {
   return `Dashboard: ${sanitized.slice(0, 72)}`
 }
 
+function isCustomWidgetSourceEndpoint(
+  value: string
+): value is CustomWidgetSourceEndpoint {
+  return CUSTOM_WIDGET_SOURCE_ENDPOINTS.includes(
+    value as CustomWidgetSourceEndpoint
+  )
+}
+
+function isCustomWidgetMode(value: string): value is CustomWidgetMode {
+  return CUSTOM_WIDGET_MODES.includes(value as CustomWidgetMode)
+}
+
+function sanitizeWidgetId(value: string, index: number): string {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 40)
+
+  if (normalized) {
+    return normalized
+  }
+
+  return `widget_${index + 1}`
+}
+
+function sanitizeFieldPath(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined
+  }
+
+  const normalized = value.trim().replace(/\s+/g, '')
+
+  if (!normalized) {
+    return undefined
+  }
+
+  return normalized.slice(0, 100)
+}
+
+function sanitizeCustomWidgets(
+  customWidgets: CustomWidgetDefinition[] | undefined
+): CustomWidgetDefinition[] {
+  if (!Array.isArray(customWidgets) || customWidgets.length === 0) {
+    return []
+  }
+
+  const sanitized: CustomWidgetDefinition[] = []
+
+  for (const [index, rawWidget] of customWidgets.entries()) {
+    if (!rawWidget || typeof rawWidget !== 'object') {
+      continue
+    }
+
+    const sourceEndpoint = String(rawWidget.sourceEndpoint)
+    const mode = String(rawWidget.mode)
+    const title = String(rawWidget.title ?? '').trim().slice(0, 100)
+
+    if (!isCustomWidgetSourceEndpoint(sourceEndpoint)) {
+      continue
+    }
+
+    if (!isCustomWidgetMode(mode)) {
+      continue
+    }
+
+    if (!title) {
+      continue
+    }
+
+    const id = sanitizeWidgetId(String(rawWidget.id ?? ''), index)
+    const description =
+      typeof rawWidget.description === 'string' && rawWidget.description.trim()
+        ? rawWidget.description.trim().slice(0, 220)
+        : undefined
+
+    const sourceParams =
+      rawWidget.sourceParams && typeof rawWidget.sourceParams === 'object'
+        ? rawWidget.sourceParams
+        : undefined
+
+    const limit =
+      typeof rawWidget.limit === 'number' && Number.isInteger(rawWidget.limit)
+        ? clampInteger(rawWidget.limit, 1, 200)
+        : undefined
+
+    sanitized.push({
+      id,
+      title,
+      description,
+      sourceEndpoint,
+      sourceParams,
+      mode,
+      valuePath: sanitizeFieldPath(rawWidget.valuePath),
+      collectionPath: sanitizeFieldPath(rawWidget.collectionPath),
+      xKey: sanitizeFieldPath(rawWidget.xKey),
+      yKey: sanitizeFieldPath(rawWidget.yKey),
+      limit
+    })
+
+    if (sanitized.length >= MAX_CUSTOM_WIDGETS) {
+      break
+    }
+  }
+
+  return sanitized
+}
+
+function getVisualizationForCustomMode(mode: CustomWidgetMode): DashboardVisualization {
+  if (mode === 'kpi') {
+    return 'kpi'
+  }
+
+  if (mode === 'table') {
+    return 'table'
+  }
+
+  return 'line'
+}
+
 function addWidget(
   widgets: DashboardWidgetSpec[],
   knownIds: Set<string>,
@@ -176,6 +330,8 @@ export function buildDashboardSpec(
     1,
     120
   )
+
+  const customWidgets = sanitizeCustomWidgets(options.customWidgets)
 
   const wantsStatus = containsAny(normalizedRequest, [
     'status',
@@ -377,6 +533,24 @@ export function buildDashboardSpec(
     })
   }
 
+  for (const customWidget of customWidgets) {
+    addWidget(widgets, knownIds, {
+      id: `custom_${customWidget.id}`,
+      title: customWidget.title,
+      description:
+        customWidget.description ??
+        `Widget ad hoc desde ${customWidget.sourceEndpoint}.`,
+      visualization: getVisualizationForCustomMode(customWidget.mode),
+      endpoint: 'custom',
+      params: {
+        mode: customWidget.mode,
+        sourceEndpoint: customWidget.sourceEndpoint,
+        ...(customWidget.sourceParams ?? {})
+      },
+      custom: customWidget
+    })
+  }
+
   const notes: string[] = []
 
   if (widgets.length === 0) {
@@ -433,6 +607,12 @@ export function buildDashboardSpec(
   if (requiresStationSelection) {
     notes.push(
       'No se indico stationId para widgets de patrones/heatmap. El generador puede resolverlo automaticamente con la primera estacion disponible.'
+    )
+  }
+
+  if (customWidgets.length > 0) {
+    notes.push(
+      `Se anadieron ${customWidgets.length} widgets ad hoc definidos por customWidgets.`
     )
   }
 

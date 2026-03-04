@@ -11,7 +11,35 @@ const requestSchema = z.object({
   rankLimit: z.number().int().min(1).max(100).optional(),
   alertLimit: z.number().int().min(1).max(200).optional(),
   mobilityDays: z.number().int().min(1).max(90).optional(),
-  demandDays: z.number().int().min(1).max(120).optional()
+  demandDays: z.number().int().min(1).max(120).optional(),
+  customWidgets: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        title: z.string().min(1).max(100),
+        description: z.string().max(220).optional(),
+        sourceEndpoint: z.enum([
+          'status',
+          'stations',
+          'rankings',
+          'alerts',
+          'patterns',
+          'heatmap',
+          'mobility'
+        ]),
+        sourceParams: z
+          .record(z.string(), z.union([z.string(), z.number().int()]))
+          .optional(),
+        mode: z.enum(['kpi', 'table', 'timeseries']),
+        valuePath: z.string().optional(),
+        collectionPath: z.string().optional(),
+        xKey: z.string().optional(),
+        yKey: z.string().optional(),
+        limit: z.number().int().min(1).max(200).optional()
+      })
+    )
+    .max(8)
+    .optional()
 })
 
 function parseTimeoutMs(rawValue: string | undefined): number {
@@ -73,7 +101,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       rankLimit: payload.rankLimit,
       alertLimit: payload.alertLimit,
       mobilityDays: payload.mobilityDays,
-      demandDays: payload.demandDays
+      demandDays: payload.demandDays,
+      customWidgets: payload.customWidgets
     })
 
     return NextResponse.json(dashboard, {
