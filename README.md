@@ -79,6 +79,32 @@ pnpm build
 pnpm db:health
 ```
 
+## MCP Server (Dynamic Dashboard)
+
+This repository includes an MCP server that wraps the existing REST API so an LLM client can request dashboards in natural language and fetch data on demand.
+
+Start the MCP server over stdio:
+
+```bash
+pnpm mcp:dashboard
+```
+
+Optional environment variables:
+
+```env
+# Base URL for the running Next.js app that serves /api/*
+BIZIDASHBOARD_API_BASE_URL=http://localhost:3000
+
+# HTTP timeout for MCP -> API calls
+BIZIDASHBOARD_API_TIMEOUT_MS=20000
+```
+
+Main MCP tools:
+
+- `build_dashboard_spec`: creates a dashboard JSON spec from a natural-language request.
+- `generate_dashboard`: creates the spec and fetches live data for each widget.
+- `get_status`, `get_stations`, `get_rankings`, `get_alerts`, `get_patterns`, `get_heatmap`, `get_mobility`: direct API wrappers.
+
 ## Production Deployment (Docker Compose)
 
 The provided `docker-compose.yml` is production-oriented and builds the app image from the local `Dockerfile` by default.
