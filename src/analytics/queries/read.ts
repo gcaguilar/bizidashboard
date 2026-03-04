@@ -3,18 +3,6 @@ import { AlertType } from '@/analytics/types';
 
 export type RankingType = 'turnover' | 'availability';
 
-async function getLatestRankingWindowEnd(): Promise<Date | null> {
-  const [{ windowEnd = null } = {}] = await prisma.$queryRaw<
-    { windowEnd: string | null }[]
-  >`SELECT MAX(windowEnd) as windowEnd FROM StationRanking;`;
-
-  if (!windowEnd) {
-    return null;
-  }
-
-  return new Date(windowEnd.replace(' ', 'T') + 'Z');
-}
-
 export async function getStationRankings(
   type: RankingType,
   limit = 20
@@ -30,17 +18,11 @@ export async function getStationRankings(
     windowEnd: string;
   }[]
 > {
-  const windowEnd = await getLatestRankingWindowEnd();
-
-  if (!windowEnd) {
-    return [];
-  }
-
   if (type === 'availability') {
     return prisma.$queryRaw`
       SELECT id, stationId, turnoverScore, emptyHours, fullHours, totalHours, windowStart, windowEnd
       FROM StationRanking
-      WHERE windowEnd = ${windowEnd}
+      WHERE windowEnd = (SELECT MAX(windowEnd) FROM StationRanking)
       ORDER BY (emptyHours + fullHours) DESC
       LIMIT ${limit};
     `;
@@ -49,7 +31,7 @@ export async function getStationRankings(
   return prisma.$queryRaw`
     SELECT id, stationId, turnoverScore, emptyHours, fullHours, totalHours, windowStart, windowEnd
     FROM StationRanking
-    WHERE windowEnd = ${windowEnd}
+    WHERE windowEnd = (SELECT MAX(windowEnd) FROM StationRanking)
     ORDER BY turnoverScore DESC
     LIMIT ${limit};
   `;
