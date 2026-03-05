@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   AlertsResponse,
@@ -17,6 +18,7 @@ import { MethodologyPanel } from './MethodologyPanel';
 import { MobilityInsights } from './MobilityInsights';
 import { NeighborhoodMiniMap } from './NeighborhoodMiniMap';
 import { RankingsTable } from './RankingsTable';
+import { StationDetailPanel } from './StationDetailPanel';
 import { StationPicker } from './StationPicker';
 import { StatusBanner } from './StatusBanner';
 
@@ -36,6 +38,27 @@ type DashboardClientProps = {
   initialData: DashboardInitialData;
 };
 
+type TimeWindow = {
+  id: string;
+  label: string;
+  mobilityDays: number;
+  demandDays: number;
+};
+
+const TIME_WINDOWS: TimeWindow[] = [
+  { id: '24h', label: 'Ultimas 24h', mobilityDays: 1, demandDays: 7 },
+  { id: '7d', label: '7 dias', mobilityDays: 7, demandDays: 14 },
+  { id: '30d', label: '30 dias', mobilityDays: 30, demandDays: 30 },
+];
+
+function normalizeText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const [selectedStationId, setSelectedStationId] = useState(
     initialData.stations.stations[0]?.id ?? ''
@@ -43,14 +66,37 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [patterns, setPatterns] = useState(initialData.patterns);
   const [heatmap, setHeatmap] = useState(initialData.heatmap);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeWindowId, setActiveWindowId] = useState(TIME_WINDOWS[1]?.id ?? '7d');
+
+  const activeWindow =
+    TIME_WINDOWS.find((window) => window.id === activeWindowId) ?? TIME_WINDOWS[1];
 
   const selectedStation = useMemo(() => {
     return (
-      initialData.stations.stations.find(
-        (station) => station.id === selectedStationId
-      ) ?? initialData.stations.stations[0]
+      initialData.stations.stations.find((station) => station.id === selectedStationId) ??
+      initialData.stations.stations[0] ??
+      null
     );
   }, [initialData.stations.stations, selectedStationId]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      return;
+    }
+
+    const query = normalizeText(searchQuery);
+    const bestMatch = initialData.stations.stations.find((station) => {
+      const normalizedName = normalizeText(station.name);
+      const normalizedId = normalizeText(station.id);
+
+      return normalizedName.includes(query) || normalizedId.includes(query);
+    });
+
+    if (bestMatch && bestMatch.id !== selectedStationId) {
+      setSelectedStationId(bestMatch.id);
+    }
+  }, [initialData.stations.stations, searchQuery, selectedStationId]);
 
   useEffect(() => {
     if (!selectedStationId) {
@@ -63,15 +109,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const refresh = async () => {
       try {
         setIsRefreshing(true);
-        const searchParams = new URLSearchParams({
-          stationId: selectedStationId,
-        });
+        const searchParams = new URLSearchParams({ stationId: selectedStationId });
 
         const [patternsResponse, heatmapResponse] = await Promise.all([
-          fetch(`/api/patterns?${searchParams}`, {
+          fetch(`/api/patterns?${searchParams.toString()}`, {
             signal: controller.signal,
           }),
-          fetch(`/api/heatmap?${searchParams}`, {
+          fetch(`/api/heatmap?${searchParams.toString()}`, {
             signal: controller.signal,
           }),
         ]);
@@ -100,6 +144,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         if ((error as Error).name === 'AbortError') {
           return;
         }
+
         console.error('Error al refrescar patrones y heatmap.', error);
       } finally {
         if (isActive) {
@@ -117,19 +162,86 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [selectedStationId]);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <header className="flex flex-col gap-2 rounded-3xl border border-[var(--border)] bg-[var(--surface)] px-6 py-5 shadow-[var(--shadow)]">
-        <span className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
-          Bizi Zaragoza
-        </span>
-        <h1 className="text-2xl font-semibold text-[var(--foreground)]">
-          Panel de actividad y disponibilidad
-        </h1>
-        <p className="text-sm text-[var(--muted)]">
-          Estaciones monitoreadas: {initialData.stations.stations.length} ·
-          Alertas activas: {initialData.alerts.alerts.length} · Ultima consulta:{' '}
-          {initialData.status.timestamp ?? 'Sin datos'}
-        </p>
+    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 overflow-x-hidden">
+      <header className="sticky top-0 z-40 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-black text-white">
+                B
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Bizi Zaragoza</p>
+                <h1 className="text-lg font-bold text-[var(--foreground)]">Panel de movilidad urbana</h1>
+              </div>
+            </div>
+
+            <nav className="hidden items-center gap-5 lg:flex">
+              <span className="border-b-2 border-[var(--accent)] pb-1 text-sm font-bold text-[var(--foreground)]">
+                Inicio
+              </span>
+              <Link href="/dashboard/flujo" className="text-sm font-medium text-[var(--muted)]">
+                Flujo
+              </Link>
+              <Link href="/dashboard/estaciones" className="text-sm font-medium text-[var(--muted)]">
+                Estaciones
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:flex-none">
+            <label className="hidden w-full max-w-sm items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:flex">
+              <input
+                type="text"
+                className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                placeholder="Buscar estacion o barrio..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
+            </label>
+
+            <button type="button" className="icon-button" aria-label="Notificaciones">
+              N
+            </button>
+            <Link href="/dashboard/ayuda" className="icon-button" aria-label="Centro de ayuda">
+              FAQ
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-3">
+          <label className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
+            <input
+              type="text"
+              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+              placeholder="Buscar estacion o barrio..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+          </label>
+
+          <p className="text-xs text-[var(--muted)]">
+            Estaciones: {initialData.stations.stations.length} · Alertas activas:{' '}
+            {initialData.alerts.alerts.length} · Ultima consulta: {initialData.status.timestamp}
+          </p>
+
+          <div className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-1">
+            {TIME_WINDOWS.map((window) => (
+              <button
+                key={window.id}
+                type="button"
+                onClick={() => setActiveWindowId(window.id)}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+                  activeWindowId === window.id
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                }`}
+              >
+                {window.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <StatusBanner
@@ -137,37 +249,36 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         stationsGeneratedAt={initialData.stations.generatedAt}
       />
 
-      <div className="md:sticky md:top-3 md:z-20">
-        <StationPicker
-          stations={initialData.stations.stations}
-          selectedStationId={selectedStationId}
-          onSelectStation={setSelectedStationId}
-        />
-      </div>
+      <StationPicker
+        stations={initialData.stations.stations}
+        selectedStationId={selectedStationId}
+        onSelectStation={setSelectedStationId}
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="md:col-span-2 xl:col-span-2">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-8">
           <MapPanel
             stations={initialData.stations.stations}
             selectedStationId={selectedStationId}
             onSelectStation={setSelectedStationId}
           />
         </div>
-        <div className="flex flex-col gap-6">
+
+        <div className="min-w-0 xl:col-span-4">
           <AlertsPanel
             alerts={initialData.alerts}
             stations={initialData.stations.stations}
           />
-          <MethodologyPanel />
         </div>
 
-        <div>
+        <div className="min-w-0 xl:col-span-4">
           <RankingsTable
             rankings={initialData.rankings}
             stations={initialData.stations.stations}
           />
         </div>
-        <div>
+
+        <div className="min-w-0 xl:col-span-4">
           <HourlyCharts
             stationId={selectedStation?.id ?? ''}
             stationName={selectedStation?.name ?? 'Estacion desconocida'}
@@ -175,16 +286,32 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             isRefreshing={isRefreshing}
           />
         </div>
-        <div>
+
+        <div className="min-w-0 xl:col-span-4">
           <NeighborhoodMiniMap
             stations={initialData.stations.stations}
             selectedStationId={selectedStation?.id ?? ''}
           />
         </div>
-        <div className="md:col-span-2 xl:col-span-3">
-          <MobilityInsights stations={initialData.stations.stations} />
+
+        <div className="min-w-0 xl:col-span-8">
+          <StationDetailPanel
+            station={selectedStation}
+            stations={initialData.stations.stations}
+            rankings={initialData.rankings}
+            alerts={initialData.alerts}
+            patterns={patterns}
+            heatmap={heatmap}
+            mobilityDays={activeWindow.mobilityDays}
+            demandDays={activeWindow.demandDays}
+          />
         </div>
-        <div className="md:col-span-2 xl:col-span-3">
+
+        <div className="min-w-0 xl:col-span-4">
+          <MethodologyPanel />
+        </div>
+
+        <div className="min-w-0 xl:col-span-12">
           <Heatmap
             stationId={selectedStation?.id ?? ''}
             stationName={selectedStation?.name ?? 'Estacion desconocida'}
@@ -192,9 +319,18 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             isRefreshing={isRefreshing}
           />
         </div>
+
+        <div className="min-w-0 xl:col-span-12">
+          <MobilityInsights
+            stations={initialData.stations.stations}
+            selectedStationId={selectedStation?.id ?? ''}
+            mobilityDays={activeWindow.mobilityDays}
+            demandDays={activeWindow.demandDays}
+          />
+        </div>
       </div>
 
-      <footer className="text-center text-[11px] text-[var(--muted)]">
+      <footer className="pb-4 text-center text-[11px] text-[var(--muted)]">
         Proyecto{' '}
         <a
           href="https://github.com/gcaguilar/bizidashboard"

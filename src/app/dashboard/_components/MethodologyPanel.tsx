@@ -1,51 +1,51 @@
+import Link from 'next/link';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
+
+const QUICK_FAQ = [
+  {
+    question: 'Como se detecta una alerta activa?',
+    answer: `Se analiza una ventana movil de ${ANALYTICS_WINDOWS.alertWindowHours} horas. Si bicis medias < ${ALERT_THRESHOLDS.lowBikes} o anclajes libres < ${ALERT_THRESHOLDS.lowAnchors}, se genera alerta.`,
+  },
+  {
+    question: 'Que significa horas problema?',
+    answer:
+      'Es la suma de horas con disponibilidad muy baja de bicis o de anclajes, dentro de la ventana de ranking.',
+  },
+  {
+    question: 'Como se estima la matriz O-D?',
+    answer:
+      'Se infiere desde variaciones netas horarias por estacion y se agrega por distrito. No representa viajes individuales observados.',
+  },
+];
 
 export function MethodologyPanel() {
   return (
-    <section className="flex h-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
-      <header>
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Como se calcula</h2>
-        <p className="text-xs text-[var(--muted)]">
-          Reglas resumidas para interpretar alertas, rankings y ocupacion.
-        </p>
+    <section className="dashboard-card">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Centro de ayuda rapido</h2>
+          <p className="text-xs text-[var(--muted)]">
+            Metodologia, interpretacion de metricas y preguntas frecuentes.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/ayuda"
+          className="inline-flex items-center rounded-full border border-[var(--accent-soft)] bg-[var(--surface-soft)] px-4 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-white hover:bg-[var(--accent)]"
+        >
+          Ir al FAQ completo
+        </Link>
       </header>
 
-      <div className="flex flex-col gap-3 text-xs text-[var(--muted)]">
-        <article className="rounded-2xl border border-[var(--border)] bg-[#f9f6f1] px-4 py-3">
-          <p className="font-semibold uppercase tracking-[0.14em] text-[var(--foreground)]">
-            Alertas activas
-          </p>
-          <p className="mt-1">
-            Se evalua una ventana movil de {ANALYTICS_WINDOWS.alertWindowHours} horas.
-            <span className="text-[var(--foreground)]"> LOW_BIKES</span> salta si la media de
-            bicis disponibles baja de {ALERT_THRESHOLDS.lowBikes};
-            <span className="text-[var(--foreground)]"> LOW_ANCHORS</span> si la media de
-            anclajes libres baja de {ALERT_THRESHOLDS.lowAnchors}. Severidad 2 cuando la media
-            cae por debajo de 2.
-          </p>
-        </article>
-
-        <article className="rounded-2xl border border-[var(--border)] bg-[#f9f6f1] px-4 py-3">
-          <p className="font-semibold uppercase tracking-[0.14em] text-[var(--foreground)]">
-            Mas problematicas
-          </p>
-          <p className="mt-1">
-            El ranking usa las ultimas {ANALYTICS_WINDOWS.rankingDays} jornadas. Horas problema =
-            horas con bicis medias {'<='} 1 + horas con anclajes medios {'<='} 1. El porcentaje de
-            problemas es horas problema / total de horas en la ventana.
-          </p>
-        </article>
-
-        <article className="rounded-2xl border border-[var(--border)] bg-[#f9f6f1] px-4 py-3">
-          <p className="font-semibold uppercase tracking-[0.14em] text-[var(--foreground)]">
-            Ocupacion por hora
-          </p>
-          <p className="mt-1">
-            Cada muestra calcula ocupacion como bicisDisponibles / capacidad. Luego se promedia por
-            franja horaria con ponderacion por muestras para construir curvas (laborable/fin de
-            semana) y heatmap (dia/hora).
-          </p>
-        </article>
+      <div className="grid gap-3">
+        {QUICK_FAQ.map((item) => (
+          <article
+            key={item.question}
+            className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">{item.answer}</p>
+          </article>
+        ))}
       </div>
     </section>
   );

@@ -17,13 +17,13 @@ import { DashboardClient, type DashboardInitialData } from './_components/Dashbo
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Dashboard en tiempo real',
+  title: 'Dashboard clasico',
   description: SITE_DESCRIPTION,
   alternates: {
     canonical: '/dashboard',
   },
   openGraph: {
-    title: `${SITE_TITLE} - Dashboard`,
+    title: `${SITE_TITLE} - Dashboard clasico`,
     description: SITE_DESCRIPTION,
     url: '/dashboard',
   },
@@ -118,13 +118,13 @@ export default async function DashboardPage() {
   };
   const fallbackTurnover: RankingsResponse = {
     type: 'turnover',
-    limit: 10,
+    limit: 50,
     rankings: [],
     generatedAt: nowIso,
   };
   const fallbackAvailability: RankingsResponse = {
     type: 'availability',
-    limit: 10,
+    limit: 50,
     rankings: [],
     generatedAt: nowIso,
   };
@@ -151,15 +151,25 @@ export default async function DashboardPage() {
     }
   };
 
-  const [stations, status, alerts, turnover, availability] = await Promise.all([
-    withFallback('estaciones', fetchStations, fallbackStations),
+  const stations = await withFallback('estaciones', fetchStations, fallbackStations);
+
+  const rankingLimit = Math.max(
+    50,
+    Math.min(200, stations.stations.length > 0 ? stations.stations.length : 50)
+  );
+
+  const [status, alerts, turnover, availability] = await Promise.all([
     withFallback('estado del sistema', fetchStatus, fallbackStatus),
     withFallback('alertas', () => fetchAlerts(20), fallbackAlerts),
-    withFallback('ranking de uso', () => fetchRankings('turnover', 10), fallbackTurnover),
+    withFallback(
+      'ranking de uso',
+      () => fetchRankings('turnover', rankingLimit),
+      { ...fallbackTurnover, limit: rankingLimit }
+    ),
     withFallback(
       'ranking de disponibilidad',
-      () => fetchRankings('availability', 10),
-      fallbackAvailability
+      () => fetchRankings('availability', rankingLimit),
+      { ...fallbackAvailability, limit: rankingLimit }
     ),
   ]);
 
@@ -186,13 +196,13 @@ export default async function DashboardPage() {
   const isSchemaMissing = schemaMissingFlags.length > 0;
 
   return (
-    <main className="min-h-screen px-6 py-8">
+    <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
       {loadErrors.length > 0 ? (
-        <section className="mx-auto mb-6 w-full max-w-6xl rounded-3xl border border-[#f2d08f] bg-[#fff5d7] px-6 py-4 text-sm text-[#8a5b00] shadow-[var(--shadow)]">
+        <section className="mx-auto mb-6 w-full max-w-[1280px] rounded-2xl border border-amber-500/40 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
           <p className="font-semibold">
             No se pudieron cargar algunos paneles: {loadErrors.join(', ')}.
           </p>
-          <p className="mt-1 text-xs">
+          <p className="mt-1 text-xs text-amber-200/80">
             {isSchemaMissing
               ? 'La base de datos parece no estar inicializada. Ejecuta `pnpm prisma migrate deploy` con la misma DATABASE_URL del servidor.'
               : 'Revisa los logs del servidor para mas detalles.'}
