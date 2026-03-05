@@ -11,12 +11,16 @@ import {
   YAxis,
 } from 'recharts';
 import type { StationSnapshot } from '@/lib/api';
+import {
+  buildStationDistrictMap,
+  DISTRICTS_GEOJSON_URL,
+  type DistrictCollection,
+  isDistrictCollection,
+} from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 
-const DISTRICTS_GEOJSON_URL =
-  'https://raw.githubusercontent.com/bislai/bislai/master/mapas/distritos-ciudadanos-zaragoza.geojson';
-
-const PERIODS = [
+  const PERIODS = [
+  { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
   { key: 'morning', label: 'Manana', from: 6, to: 11 },
   { key: 'midday', label: 'Mediodia', from: 12, to: 16 },
   { key: 'evening', label: 'Tarde', from: 17, to: 21 },
@@ -49,32 +53,6 @@ type MobilityResponse = {
   generatedAt: string;
 };
 
-type Coordinate = number[];
-
-type DistrictGeometry =
-  | {
-      type: 'Polygon';
-      coordinates: Coordinate[][];
-    }
-  | {
-      type: 'MultiPolygon';
-      coordinates: Coordinate[][][];
-    };
-
-type DistrictFeature = {
-  type: 'Feature';
-  geometry: DistrictGeometry;
-  properties?: {
-    distrito?: string;
-    [key: string]: unknown;
-  };
-};
-
-type DistrictCollection = {
-  type: 'FeatureCollection';
-  features: DistrictFeature[];
-};
-
 type DistrictTotals = {
   district: string;
   outbound: number;
@@ -94,118 +72,10 @@ type PeriodInsights = {
 
 type MobilityInsightsProps = {
   stations: StationSnapshot[];
+  selectedStationId?: string;
+  mobilityDays?: number;
+  demandDays?: number;
 };
-
-function toLngLatPair(coordinate: Coordinate | undefined): [number, number] | null {
-  if (!coordinate || coordinate.length < 2) {
-    return null;
-  }
-
-  const lng = coordinate[0];
-  const lat = coordinate[1];
-
-  if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
-    return null;
-  }
-
-  return [lng, lat];
-}
-
-function isDistrictCollection(value: unknown): value is DistrictCollection {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const maybeCollection = value as {
-    type?: unknown;
-    features?: unknown;
-  };
-
-  if (maybeCollection.type !== 'FeatureCollection') {
-    return false;
-  }
-
-  if (!Array.isArray(maybeCollection.features)) {
-    return false;
-  }
-
-  return maybeCollection.features.every((feature: unknown) => {
-    if (!feature || typeof feature !== 'object') {
-      return false;
-    }
-
-    const maybeFeature = feature as {
-      type?: unknown;
-      geometry?: { type?: unknown };
-    };
-
-    if (maybeFeature.type !== 'Feature') {
-      return false;
-    }
-
-    const geometryType = maybeFeature.geometry?.type;
-    return geometryType === 'Polygon' || geometryType === 'MultiPolygon';
-  });
-}
-
-function isPointInRing(point: [number, number], ring: Coordinate[]): boolean {
-  if (ring.length < 3) {
-    return false;
-  }
-
-  const [lng, lat] = point;
-  let inside = false;
-
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
-    const current = toLngLatPair(ring[i]);
-    const previous = toLngLatPair(ring[j]);
-
-    if (!current || !previous) {
-      continue;
-    }
-
-    const [xi, yi] = current;
-    const [xj, yj] = previous;
-
-    const intersects =
-      (yi > lat) !== (yj > lat) &&
-      lng < ((xj - xi) * (lat - yi)) / ((yj - yi) || Number.EPSILON) + xi;
-
-    if (intersects) {
-      inside = !inside;
-    }
-  }
-
-  return inside;
-}
-
-function isPointInPolygon(point: [number, number], polygon: Coordinate[][]): boolean {
-  if (polygon.length === 0) {
-    return false;
-  }
-
-  if (!isPointInRing(point, polygon[0] ?? [])) {
-    return false;
-  }
-
-  for (let i = 1; i < polygon.length; i += 1) {
-    if (isPointInRing(point, polygon[i] ?? [])) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function isPointInDistrict(point: [number, number], district: DistrictFeature): boolean {
-  if (district.geometry.type === 'Polygon') {
-    return isPointInPolygon(point, district.geometry.coordinates);
-  }
-
-  return district.geometry.coordinates.some((polygon: Coordinate[][]) =>
-    isPointInPolygon(point, polygon)
-  );
-}
 
 function getPeriodByHour(hour: number): PeriodKey {
   if (hour >= 6 && hour <= 11) {
@@ -223,15 +93,6 @@ function getPeriodByHour(hour: number): PeriodKey {
   return 'night';
 }
 
-function getMatrixCellColor(value: number, maxValue: number): string {
-  if (!Number.isFinite(value) || value <= 0 || maxValue <= 0) {
-    return 'rgba(227, 219, 208, 0.35)';
-  }
-
-  const ratio = Math.min(1, Math.max(0, value / maxValue));
-  return `rgba(31, 122, 140, ${0.18 + ratio * 0.74})`;
-}
-
 function getDayLabel(day: string): string {
   if (typeof day !== 'string' || day.length < 10) {
     return day;
@@ -242,12 +103,26 @@ function getDayLabel(day: string): string {
   return `${date}/${month}`;
 }
 
-export function MobilityInsights({ stations }: MobilityInsightsProps) {
+function getMatrixCellColor(value: number, maxValue: number): string {
+  if (!Number.isFinite(value) || value <= 0 || maxValue <= 0) {
+    return 'rgba(176, 129, 135, 0.16)';
+  }
+
+  const ratio = Math.min(1, Math.max(0, value / maxValue));
+  return `rgba(234, 6, 21, ${0.2 + ratio * 0.72})`;
+}
+
+export function MobilityInsights({
+  stations,
+  selectedStationId,
+  mobilityDays = 14,
+  demandDays = 30,
+}: MobilityInsightsProps) {
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activePeriod, setActivePeriod] = useState<PeriodKey>('morning');
+  const [activePeriod, setActivePeriod] = useState<PeriodKey>('all');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -258,8 +133,13 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
         setIsLoading(true);
         setErrorMessage(null);
 
+        const searchParams = new URLSearchParams({
+          mobilityDays: String(mobilityDays),
+          demandDays: String(demandDays),
+        });
+
         const [mobilityResponse, districtsResponse] = await Promise.all([
-          fetch('/api/mobility', {
+          fetch(`/api/mobility?${searchParams.toString()}`, {
             signal: controller.signal,
           }),
           fetch(DISTRICTS_GEOJSON_URL, {
@@ -301,7 +181,7 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
           return;
         }
 
-        console.error('[Dashboard] Error cargando insights de movilidad', error);
+        console.error('[Dashboard] Error cargando movilidad', error);
         if (isActive) {
           setErrorMessage('No se pudieron cargar los insights de movilidad.');
         }
@@ -318,33 +198,14 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
       isActive = false;
       controller.abort();
     };
-  }, []);
+  }, [demandDays, mobilityDays]);
 
   const stationDistrictMap = useMemo(() => {
-    const map = new Map<string, string>();
-
     if (!districts) {
-      return map;
+      return new Map<string, string>();
     }
 
-    for (const station of stations) {
-      if (!Number.isFinite(station.lon) || !Number.isFinite(station.lat)) {
-        continue;
-      }
-
-      const point: [number, number] = [station.lon, station.lat];
-
-      for (const district of districts.features) {
-        if (!isPointInDistrict(point, district)) {
-          continue;
-        }
-
-        map.set(station.id, district.properties?.distrito ?? 'Distrito desconocido');
-        break;
-      }
-    }
-
-    return map;
+    return buildStationDistrictMap(stations, districts);
   }, [districts, stations]);
 
   const periodInsights = useMemo<PeriodInsights[]>(() => {
@@ -365,17 +226,25 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
         continue;
       }
 
-      const periodKey = getPeriodByHour(Number(row.hour));
-      const districtMap = periodMaps.get(periodKey);
+      const hour = Number(row.hour);
+      const periodsToUpdate: PeriodKey[] = ['all'];
 
-      if (!districtMap) {
-        continue;
+      if (Number.isFinite(hour)) {
+        periodsToUpdate.push(getPeriodByHour(hour));
       }
 
-      const current = districtMap.get(district) ?? { outbound: 0, inbound: 0 };
-      current.outbound += Math.max(0, Number(row.departures));
-      current.inbound += Math.max(0, Number(row.arrivals));
-      districtMap.set(district, current);
+      for (const periodKey of periodsToUpdate) {
+        const districtMap = periodMaps.get(periodKey);
+
+        if (!districtMap) {
+          continue;
+        }
+
+        const current = districtMap.get(district) ?? { outbound: 0, inbound: 0 };
+        current.outbound += Math.max(0, Number(row.departures));
+        current.inbound += Math.max(0, Number(row.arrivals));
+        districtMap.set(district, current);
+      }
     }
 
     return PERIODS.map((period) => {
@@ -389,8 +258,8 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
           net: values.inbound - values.outbound,
         }))
         .filter((row) => row.volume > 0)
-        .sort((a, b) => b.volume - a.volume)
-        .slice(0, 8);
+        .sort((left, right) => right.volume - left.volume)
+        .slice(0, 10);
 
       const totalInbound = districtRows.reduce((sum, row) => sum + row.inbound, 0);
       const matrix = districtRows.map((origin) =>
@@ -453,7 +322,35 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
       });
     });
 
-    return candidates.sort((a, b) => b.flow - a.flow).slice(0, 5);
+    return candidates.sort((left, right) => right.flow - left.flow).slice(0, 6);
+  }, [activeInsights]);
+
+  const selectedDistrict = selectedStationId
+    ? stationDistrictMap.get(selectedStationId) ?? null
+    : null;
+
+  const selectedDistrictFlow = activeInsights?.districts.find(
+    (district) => district.district === selectedDistrict
+  );
+
+  const topExporter = useMemo(() => {
+    if (!activeInsights) {
+      return null;
+    }
+
+    return [...activeInsights.districts].sort(
+      (left, right) => right.outbound - right.inbound - (left.outbound - left.inbound)
+    )[0] ?? null;
+  }, [activeInsights]);
+
+  const topImporter = useMemo(() => {
+    if (!activeInsights) {
+      return null;
+    }
+
+    return [...activeInsights.districts].sort(
+      (left, right) => right.inbound - right.outbound - (left.inbound - left.outbound)
+    )[0] ?? null;
   }, [activeInsights]);
 
   const dailyCurveData = useMemo(() => {
@@ -462,8 +359,7 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
         day: string;
         label: string;
         demandScore: number;
-        avgOccupancyPercent: number;
-        sampleCount: number;
+        avgOccupancyRatio: number;
       }>;
     }
 
@@ -471,186 +367,368 @@ export function MobilityInsights({ stations }: MobilityInsightsProps) {
       day: row.day,
       label: getDayLabel(row.day),
       demandScore: Number(row.demandScore),
-      avgOccupancyPercent: Number(row.avgOccupancy) * 100,
-      sampleCount: Number(row.sampleCount),
+      avgOccupancyRatio: Number(row.avgOccupancy),
     }));
   }, [mobilityData]);
 
+  const chordNodes = useMemo(() => {
+    if (!activeInsights || activeInsights.districts.length === 0) {
+      return [] as Array<{ district: string; x: number; y: number }>;
+    }
+
+    const nodes = activeInsights.districts.slice(0, 6);
+    const radius = 115;
+    const center = 140;
+
+    return nodes.map((node, index) => {
+      const angle = (Math.PI * 2 * index) / nodes.length - Math.PI / 2;
+      return {
+        district: node.district,
+        x: center + radius * Math.cos(angle),
+        y: center + radius * Math.sin(angle),
+      };
+    });
+  }, [activeInsights]);
+
+  const chordLinks = useMemo(() => {
+    if (!activeInsights || chordNodes.length === 0) {
+      return [] as Array<{ origin: string; destination: string; flow: number }>;
+    }
+
+    const nodeNames = new Set(chordNodes.map((node) => node.district));
+
+    return topRoutes
+      .filter((route) => nodeNames.has(route.origin) && nodeNames.has(route.destination))
+      .slice(0, 8);
+  }, [activeInsights, chordNodes, topRoutes]);
+
   return (
-    <section className="flex h-full flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
-      <header className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Matriz Origen-Destino y demanda diaria
-        </h2>
-        <p className="text-xs text-[var(--muted)]">
-          Flujos estimados por barrio segun variaciones netas horarias de bicis.
-        </p>
+    <section className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black leading-tight tracking-tight text-[var(--foreground)]">
+            Analisis de flujo por barrios
+          </h2>
+          <p className="text-sm text-[var(--muted)]">
+            Distribucion interdistrital de trayectos y metricas de balance neto.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)]/80 p-1">
+          {PERIODS.map((period) => (
+            <button
+              key={period.key}
+              type="button"
+              className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
+                activePeriod === period.key
+                  ? 'bg-[var(--accent)] text-white shadow-sm'
+                  : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => setActivePeriod(period.key)}
+            >
+              {period.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       {isLoading ? (
-        <p className="text-sm text-[var(--muted)]">Cargando insights de movilidad...</p>
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          Cargando insights de movilidad...
+        </p>
       ) : errorMessage ? (
-        <p className="text-sm text-[var(--muted)]">{errorMessage}</p>
-      ) : !mobilityData ? (
-        <p className="text-sm text-[var(--muted)]">Sin datos de movilidad disponibles.</p>
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          {errorMessage}
+        </p>
+      ) : !mobilityData || !activeInsights ? (
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          Sin datos de movilidad disponibles.
+        </p>
       ) : (
-        <>
-          <div className="flex flex-wrap gap-2">
-            {periodInsights.map((period) => (
-              <button
-                key={period.key}
-                type="button"
-                className={`rounded-full border px-4 py-1 text-xs font-semibold transition ${
-                  activePeriod === period.key
-                    ? 'border-transparent bg-[var(--foreground)] text-[var(--surface)]'
-                    : 'border-[var(--border)] text-[var(--muted)]'
-                }`}
-                onClick={() => setActivePeriod(period.key)}
-              >
-                {period.label}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
+              <span className="text-xs text-[var(--muted)]">Top {chordNodes.length} barrios</span>
+            </div>
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-4">
-              <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                <span className="uppercase tracking-[0.16em]">Matriz O-D estimada</span>
-                <span>Flujo total: {activeInsights?.totalFlow.toFixed(1) ?? '0.0'}</span>
-              </div>
+            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-soft)] py-4">
+              <svg viewBox="0 0 280 280" className="h-[260px] w-[260px]">
+                <circle cx="140" cy="140" r="116" fill="none" stroke="rgba(234,6,21,0.22)" />
+                {chordLinks.map((link, index) => {
+                  const from = chordNodes.find((node) => node.district === link.origin);
+                  const to = chordNodes.find((node) => node.district === link.destination);
 
-              {!activeInsights || activeInsights.districts.length === 0 ? (
-                <p className="text-sm text-[var(--muted)]">
-                  Sin volumen suficiente para construir matriz.
-                </p>
-              ) : (
-                <div className="overflow-auto">
-                  <table className="min-w-full border-collapse text-[11px]">
-                    <thead>
-                      <tr>
-                        <th className="sticky left-0 z-10 bg-white px-2 py-2 text-left font-semibold text-[var(--muted)]">
-                          Origen \ Destino
-                        </th>
-                        {activeInsights.districts.map((district) => (
-                          <th
-                            key={`dest-${district.district}`}
-                            className="px-2 py-2 text-left font-semibold text-[var(--muted)]"
-                          >
-                            {district.district}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeInsights.districts.map((origin, originIndex) => (
-                        <tr key={`origin-${origin.district}`}>
-                          <td className="sticky left-0 bg-white px-2 py-2 font-semibold text-[var(--foreground)]">
-                            {origin.district}
-                          </td>
-                          {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => {
-                            const ratio =
-                              activeInsights.maxFlow > 0
-                                ? value / activeInsights.maxFlow
-                                : 0;
+                  if (!from || !to) {
+                    return null;
+                  }
 
-                            return (
-                              <td
-                                key={`${originIndex}-${destinationIndex}`}
-                                className="border border-[#f1ece4] px-2 py-2 text-right"
-                                style={{
-                                  backgroundColor: getMatrixCellColor(
-                                    value,
-                                    activeInsights.maxFlow
-                                  ),
-                                  color: ratio > 0.55 ? '#ffffff' : 'var(--foreground)',
-                                }}
-                              >
-                                {value.toFixed(1)}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                  const controlX = 140;
+                  const controlY = 140;
+                  const opacity = 0.25 + Math.min(0.65, link.flow / (activeInsights.maxFlow || 1));
 
-              <div className="space-y-1 text-xs text-[var(--muted)]">
-                <p className="uppercase tracking-[0.14em]">Rutas estimadas mas intensas</p>
-                {topRoutes.length === 0 ? (
-                  <p>Sin rutas destacadas para este periodo.</p>
+                  return (
+                    <path
+                      key={`${link.origin}-${link.destination}-${index}`}
+                      d={`M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`}
+                      fill="none"
+                      stroke={`rgba(234, 6, 21, ${opacity})`}
+                      strokeWidth={1.2 + (link.flow / (activeInsights.maxFlow || 1)) * 3}
+                    />
+                  );
+                })}
+                {chordNodes.map((node) => (
+                  <g key={node.district}>
+                    <circle cx={node.x} cy={node.y} r="5" fill="#ea0615" />
+                    <text
+                      x={node.x}
+                      y={node.y - 10}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fill="var(--foreground)"
+                    >
+                      {node.district.slice(0, 10)}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--muted)]">
+              <span className="legend-item">
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Alto volumen
+              </span>
+              <span className="legend-item">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" /> Prioridad de salida
+              </span>
+            </div>
+          </article>
+
+          <div className="space-y-6 xl:col-span-4">
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Rutas de mayor flujo</h3>
+              <div className="mt-4 space-y-4">
+                {topRoutes.slice(0, 4).length === 0 ? (
+                  <p className="text-sm text-[var(--muted)]">Sin rutas destacadas para este periodo.</p>
                 ) : (
-                  topRoutes.map((route) => (
-                    <p key={`${route.origin}-${route.destination}`}>
-                      {route.origin} → {route.destination}: {route.flow.toFixed(1)}
-                    </p>
-                  ))
+                  topRoutes.slice(0, 4).map((route) => {
+                    const width = Math.max(
+                      12,
+                      Math.round((route.flow / (activeInsights.maxFlow || 1)) * 100)
+                    );
+
+                    return (
+                      <div key={`${route.origin}-${route.destination}`} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="font-semibold text-[var(--foreground)]">
+                            {route.origin} → {route.destination}
+                          </span>
+                          <span className="font-bold text-[var(--muted)]">{route.flow.toFixed(0)}</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/20">
+                          <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${width}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
-            </div>
+            </article>
 
-            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-4">
-              <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                <span className="uppercase tracking-[0.16em]">Curva de Demanda Diaria</span>
-                <span>{mobilityData.demandDays} dias</span>
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Resumen de balance neto</h3>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">Mayor emisor</p>
+                  <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
+                    {topExporter?.district ?? 'N/D'}
+                  </p>
+                  <p className="text-xl font-black text-rose-500">
+                    {topExporter
+                      ? `-${Math.max(0, topExporter.outbound - topExporter.inbound).toFixed(0)}`
+                      : '0'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-500">
+                    Mayor receptor
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
+                    {topImporter?.district ?? 'N/D'}
+                  </p>
+                  <p className="text-xl font-black text-emerald-500">
+                    {topImporter
+                      ? `+${Math.max(0, topImporter.inbound - topImporter.outbound).toFixed(0)}`
+                      : '0'}
+                  </p>
+                </div>
               </div>
-
-              {dailyCurveData.length === 0 ? (
-                <p className="text-sm text-[var(--muted)]">
-                  Sin datos para construir curva diaria.
-                </p>
-              ) : (
-                <ResponsiveContainer width="100%" height={260}>
-                  <AreaChart data={dailyCurveData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ece3d6" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={16} />
-                    <YAxis tick={{ fontSize: 11 }} width={44} />
-                    <Tooltip
-                      formatter={(
-                        value: number | string | Array<number | string> | undefined,
-                        name: string | undefined
-                      ) => {
-                        const numericValue = Array.isArray(value)
-                          ? Number(value[0])
-                          : Number(value);
-
-                        if (name === 'Demanda') {
-                          return [numericValue.toFixed(1), 'Demanda'];
-                        }
-
-                        return [formatPercent(numericValue), 'Ocupacion media'];
-                      }}
-                      labelFormatter={(label) => `Dia ${label}`}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="demandScore"
-                      name="Demanda"
-                      stroke="#c85c2d"
-                      fill="#e07a3f55"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
-
-              <div className="flex flex-wrap gap-3 text-xs text-[var(--muted)]">
-                <span>
-                  Ultima fecha: {dailyCurveData[dailyCurveData.length - 1]?.day ?? 'sin datos'}
-                </span>
-                <span>
-                  Ocupacion media actual:{' '}
-                  {formatPercent(
-                    dailyCurveData[dailyCurveData.length - 1]?.avgOccupancyPercent ?? 0
-                  )}
-                </span>
-              </div>
-            </div>
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                Distrito seleccionado: {selectedDistrictFlow ? selectedDistrict : 'sin seleccion'}
+              </p>
+            </article>
           </div>
 
-          <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>
-        </>
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Balance neto por barrio</h3>
+            <div className="mt-4 space-y-5">
+              {activeInsights.districts.slice(0, 5).map((district) => {
+                const net = district.net;
+                const maxMagnitude = Math.max(1, district.volume);
+                const width = Math.min(50, (Math.abs(net) / maxMagnitude) * 100);
+                const isImporter = net >= 0;
+
+                return (
+                  <div key={district.district}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-bold text-[var(--foreground)]">{district.district}</span>
+                      <span className={`font-black ${isImporter ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {net >= 0 ? '+' : ''}
+                        {net.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="relative h-3 w-full rounded-full bg-black/20">
+                      {isImporter ? (
+                        <div
+                          className="absolute left-1/2 h-full rounded-r-full bg-emerald-500"
+                          style={{ width: `${width}%` }}
+                        />
+                      ) : (
+                        <div
+                          className="absolute right-1/2 h-full rounded-l-full bg-rose-500"
+                          style={{ width: `${width}%` }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+              <span>Emisor neto</span>
+              <span>Neutro</span>
+              <span>Receptor neto</span>
+            </div>
+          </article>
+
+          <article className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Matriz origen-destino</h3>
+              <span className="text-[10px] text-[var(--muted)]">Datos en vivo</span>
+            </div>
+
+            {activeInsights.districts.length === 0 ? (
+              <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
+            ) : (
+              <div className="mt-3 overflow-auto">
+                <table className="min-w-full border-collapse text-[11px]">
+                  <thead>
+                    <tr>
+                      <th className="sticky left-0 z-10 bg-[var(--surface)] px-2 py-2 text-left font-semibold text-[var(--muted)]">
+                        O \ D
+                      </th>
+                      {activeInsights.districts.map((district) => (
+                        <th
+                          key={`dest-${district.district}`}
+                          className="px-2 py-2 text-left font-semibold text-[var(--muted)]"
+                        >
+                          {district.district}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeInsights.districts.map((origin, originIndex) => (
+                      <tr key={`origin-${origin.district}`}>
+                        <td className="sticky left-0 bg-[var(--surface)] px-2 py-2 font-semibold text-[var(--foreground)]">
+                          {origin.district}
+                        </td>
+                        {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
+                          <td
+                            key={`${originIndex}-${destinationIndex}`}
+                            className="border border-[var(--border)] px-2 py-2 text-right"
+                            style={{
+                              backgroundColor: getMatrixCellColor(value, activeInsights.maxFlow),
+                              color:
+                                value / (activeInsights.maxFlow || 1) > 0.5
+                                  ? '#ffffff'
+                                  : 'var(--foreground)',
+                            }}
+                          >
+                            {value.toFixed(1)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </article>
+
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
+              <span className="text-xs text-[var(--muted)]">{mobilityData.demandDays} dias</span>
+            </div>
+            {dailyCurveData.length === 0 ? (
+              <p className="mt-4 text-sm text-[var(--muted)]">Sin datos de demanda diaria.</p>
+            ) : (
+              <>
+                <div className="mt-3 h-[260px]">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <AreaChart data={dailyCurveData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(234, 6, 21, 0.22)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={14} />
+                      <YAxis yAxisId="score" tick={{ fontSize: 11 }} width={42} />
+                      <YAxis
+                        yAxisId="occ"
+                        orientation="right"
+                        tick={{ fontSize: 11 }}
+                        width={38}
+                        tickFormatter={(value) => formatPercent(value as number)}
+                      />
+                      <Tooltip
+                        formatter={(
+                          value: number | string | Array<number | string> | undefined,
+                          name: string | undefined
+                        ) => {
+                          const numericValue = Array.isArray(value)
+                            ? Number(value[0])
+                            : Number(value);
+
+                          if (name === 'Demanda') {
+                            return [numericValue.toFixed(1), 'Demanda'];
+                          }
+
+                          return [formatPercent(numericValue), 'Ocupacion media'];
+                        }}
+                      />
+                      <Area
+                        yAxisId="score"
+                        type="monotone"
+                        dataKey="demandScore"
+                        name="Demanda"
+                        stroke="#ea0615"
+                        fill="rgba(234, 6, 21, 0.26)"
+                        strokeWidth={2}
+                      />
+                      <Area
+                        yAxisId="occ"
+                        type="monotone"
+                        dataKey="avgOccupancyRatio"
+                        name="Ocupacion"
+                        stroke="#14b8a6"
+                        fill="rgba(20, 184, 166, 0.2)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>
+              </>
+            )}
+          </article>
+        </div>
       )}
     </section>
   );

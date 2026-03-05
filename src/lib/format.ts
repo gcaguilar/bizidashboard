@@ -46,7 +46,8 @@ export function formatPercent(value?: number | null): string {
     return '0%';
   }
 
-  const clamped = Math.min(100, Math.max(0, value));
+  const normalized = Math.abs(value) <= 1 ? value * 100 : value;
+  const clamped = Math.min(100, Math.max(0, normalized));
   const rounded = Math.round(clamped);
   return `${rounded}%`;
 }

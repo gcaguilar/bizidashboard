@@ -1,37 +1,168 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #f7f3ec;
-  --foreground: #1b1c1f;
-  --surface: #ffffff;
-  --muted: #6b6f76;
-  --accent: #e07a3f;
-  --accent-strong: #c85c2d;
-  --teal: #1f7a8c;
-  --border: #e3dbd0;
-  --shadow: 0 18px 45px rgba(27, 28, 31, 0.12);
+  --background: #f8f5f6;
+  --background-2: #efe8eb;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-soft: rgba(241, 236, 239, 0.84);
+  --accent: #ea0615;
+  --accent-soft: #fb7185;
+  --border: rgba(234, 6, 21, 0.18);
+  --shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  --background: #230f11;
+  --background-2: #18090a;
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+  --surface: rgba(35, 15, 17, 0.84);
+  --surface-soft: rgba(255, 255, 255, 0.05);
+  --accent: #ea0615;
+  --accent-soft: #fb7185;
+  --border: rgba(234, 6, 21, 0.24);
+  --shadow: 0 24px 54px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-ibm-plex-mono);
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: radial-gradient(
-      circle at top left,
-      rgba(224, 122, 63, 0.16),
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at top right,
-      rgba(31, 122, 140, 0.12),
-      transparent 50%
-    ),
-    var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), "Segoe UI", sans-serif;
+  margin: 0;
   min-height: 100vh;
+  color: var(--foreground);
+  font-family: var(--font-sans), 'Inter', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(circle at 10% -4%, rgba(234, 6, 21, 0.22), transparent 42%),
+    radial-gradient(circle at 86% 0%, rgba(234, 6, 21, 0.08), transparent 38%),
+    linear-gradient(135deg, var(--background), var(--background-2) 72%, var(--background-2));
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+}
+
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  min-width: 0;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(145deg, rgba(234, 6, 21, 0.12), rgba(234, 6, 21, 0.02)),
+    var(--surface);
+  box-shadow: var(--shadow);
+  padding: 1.2rem;
+  backdrop-filter: blur(10px);
+}
+
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  border-radius: 0.9rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1.05rem;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(9px);
+}
+
+.stat-card {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-soft);
+  padding: 0.78rem;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.stat-value {
+  margin-top: 0.2rem;
+  color: var(--foreground);
+  font-size: 1.2rem;
+  line-height: 1.55rem;
+  font-weight: 700;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-soft);
+  padding: 0.36rem 0.62rem;
+}
+
+.kpi-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.55rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  padding: 0.42rem 0.65rem;
+  text-transform: uppercase;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.54rem 0.82rem;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.icon-button:hover {
+  border-color: var(--accent-soft);
+  background: rgba(234, 6, 21, 0.22);
+  color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .hero-card {
+    padding: 1.35rem;
+    border-radius: 1.1rem;
+  }
+
+  .dashboard-card {
+    padding: 1.15rem;
+  }
 }

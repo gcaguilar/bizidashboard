@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 
@@ -82,53 +83,51 @@ function scoreCandidate(query: string, target: string): number {
   }
 
   if (target.startsWith(query)) {
-    return 350 - (target.length - query.length) * 0.2;
+    return 360 - (target.length - query.length) * 0.2;
   }
 
   const includeIndex = target.indexOf(query);
   if (includeIndex >= 0) {
-    return 280 - includeIndex * 0.5;
+    return 290 - includeIndex * 0.5;
   }
 
   if (isSubsequence(query, target)) {
-    return 220 - (target.length - query.length) * 0.4;
+    return 220 - (target.length - query.length) * 0.35;
   }
 
   const distance = levenshteinDistance(query, target);
   return 160 - distance * 8;
 }
 
-function findBestStationMatch(
-  stations: StationSnapshot[],
-  rawQuery: string
-): StationSnapshot | null {
+type ScoredStation = {
+  station: StationSnapshot;
+  score: number;
+};
+
+function scoreStations(stations: StationSnapshot[], rawQuery: string): ScoredStation[] {
   const query = normalizeText(rawQuery);
 
   if (!query) {
-    return null;
+    return stations.slice(0, 8).map((station) => ({ station, score: 0 }));
   }
 
   const isNumericQuery = /^\d+$/.test(query);
-  let bestStation: StationSnapshot | null = null;
-  let bestScore = Number.NEGATIVE_INFINITY;
 
-  for (const station of stations) {
-    const normalizedName = normalizeText(station.name);
-    const normalizedId = normalizeText(station.id);
+  return stations
+    .map((station) => {
+      const normalizedName = normalizeText(station.name);
+      const normalizedId = normalizeText(station.id);
+      const nameScore = scoreCandidate(query, normalizedName);
+      const idScore = scoreCandidate(query, normalizedId);
+      const numericBonus = isNumericQuery && normalizedId.includes(query) ? 80 : 0;
 
-    const nameScore = scoreCandidate(query, normalizedName);
-    const idScore = scoreCandidate(query, normalizedId);
-    const numericBonus =
-      isNumericQuery && normalizedId.includes(query) ? 80 : 0;
-    const score = Math.max(nameScore, idScore) + numericBonus;
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestStation = station;
-    }
-  }
-
-  return bestStation;
+      return {
+        station,
+        score: Math.max(nameScore, idScore) + numericBonus,
+      };
+    })
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 8);
 }
 
 export function StationPicker({
@@ -139,65 +138,56 @@ export function StationPicker({
   const [query, setQuery] = useState('');
 
   const selectedStation = useMemo(() => {
-    return stations.find((station) => station.id === selectedStationId);
+    return stations.find((station) => station.id === selectedStationId) ?? null;
   }, [selectedStationId, stations]);
 
-  const suggestedStation = useMemo(
-    () => findBestStationMatch(stations, query),
-    [query, stations]
-  );
+  const stationSuggestions = useMemo(() => {
+    return scoreStations(stations, query);
+  }, [query, stations]);
 
-  const handleQueryChange = (value: string) => {
-    setQuery(value);
-
-    const bestMatch = findBestStationMatch(stations, value);
-    if (bestMatch && bestMatch.id !== selectedStationId) {
-      onSelectStation(bestMatch.id);
-    }
-  };
+  const bestMatch = stationSuggestions[0]?.station ?? null;
+  const stationDetailUrl = selectedStation
+    ? `/dashboard/estaciones/${encodeURIComponent(selectedStation.id)}`
+    : null;
 
   return (
-    <section className="flex flex-col gap-3 rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
-      <div>
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Estacion seleccionada
-        </h2>
-        <p className="text-xs text-[var(--muted)]">
-          Elige una estacion para centrar el mapa, aplicar zoom y refrescar paneles.
-        </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="station-search"
-          className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]"
-        >
-          Buscar por nombre o numero
-        </label>
-        <input
-          id="station-search"
-          className="rounded-2xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)]"
-          placeholder="Ejemplo: 2198 o Plaza Espana"
-          value={query}
-          onChange={(event) => handleQueryChange(event.target.value)}
-          autoComplete="off"
-        />
-        {query.trim() ? (
-          <p className="text-[11px] text-[var(--muted)]">
-            Coincidencia mas cercana:{' '}
-            <span className="font-semibold text-[var(--foreground)]">
-              {suggestedStation?.name ?? 'Sin coincidencias'}
-            </span>
+    <section className="dashboard-card overflow-x-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
+            Selector de estacion
+          </h2>
+          <p className="text-xs text-[var(--muted)]">
+            Cambia estacion para sincronizar mapa, patrones y heatmap.
           </p>
-        ) : null}
-        <label
-          htmlFor="station-picker"
-          className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]"
-        >
-          Estaciones disponibles
+        </div>
+        <span className="kpi-chip">{stations.length} estaciones</span>
+      </div>
+
+      <div className="grid min-w-0 gap-3 lg:grid-cols-[1.4fr_1fr]">
+        <label className="flex min-w-0 items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
+          <input
+            id="station-search"
+            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            placeholder="Buscar por nombre o ID"
+            value={query}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setQuery(nextValue);
+
+              const nextMatch = scoreStations(stations, nextValue)[0]?.station;
+
+              if (nextMatch && nextMatch.id !== selectedStationId) {
+                onSelectStation(nextMatch.id);
+              }
+            }}
+            autoComplete="off"
+          />
         </label>
+
         <select
           id="station-picker"
-          className="rounded-2xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)]"
+          className="w-full min-w-0 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           value={selectedStationId}
           onChange={(event) => onSelectStation(event.target.value)}
           disabled={stations.length === 0}
@@ -213,10 +203,47 @@ export function StationPicker({
           )}
         </select>
       </div>
-      <p className="text-xs text-[var(--muted)]">
-        Total estaciones: {stations.length}
-        {selectedStation ? ` · Seleccionada: ${selectedStation.name}` : ''}
-      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {stationSuggestions.slice(0, 5).map(({ station }) => (
+          <button
+            key={station.id}
+            type="button"
+            className={`max-w-full truncate rounded-full border px-3 py-1 text-xs transition ${
+              station.id === selectedStationId
+                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent-soft)] hover:text-[var(--foreground)]'
+            }`}
+            onClick={() => onSelectStation(station.id)}
+          >
+            {station.name}
+          </button>
+        ))}
+      </div>
+
+      {query.trim() ? (
+        <p className="text-[11px] text-[var(--muted)]">
+          Mejor coincidencia:{' '}
+          <span className="font-semibold text-[var(--foreground)]">
+            {bestMatch?.name ?? 'Sin coincidencias'}
+          </span>
+        </p>
+      ) : (
+        <p className="text-[11px] text-[var(--muted)]">
+          {selectedStation ? `Seleccionada: ${selectedStation.name}` : 'Sin seleccion'}
+        </p>
+      )}
+
+      {stationDetailUrl ? (
+        <div className="flex justify-end">
+          <Link
+            href={stationDetailUrl}
+            className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/15 px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+          >
+            Abrir detalle completo
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }

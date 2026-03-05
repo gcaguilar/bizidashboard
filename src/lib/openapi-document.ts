@@ -4,7 +4,7 @@ export const openApiDocument = {
     title: 'Bizi Dashboard API',
     version: '0.5.0',
     description:
-      'API endpoints for station status, rankings, alerts, patterns, heatmaps, mobility, and dashboard generation.'
+      'API endpoints for station status, rankings, alerts, patterns, heatmaps, and mobility.'
   },
   paths: {
     '/api/status': {
@@ -170,6 +170,17 @@ export const openApiDocument = {
         }
       }
     },
+    '/api/history': {
+      get: {
+        operationId: 'get_history',
+        summary: 'Get full historical demand data since first record',
+        responses: {
+          200: {
+            description: 'Historical coverage metadata and daily history'
+          }
+        }
+      }
+    },
     '/api/collect': {
       get: {
         operationId: 'get_collect',
@@ -186,97 +197,6 @@ export const openApiDocument = {
         responses: {
           200: {
             description: 'Collection execution payload'
-          }
-        }
-      }
-    },
-    '/api/dashboard/live': {
-      post: {
-        operationId: 'post_dashboard_live',
-        summary: 'Generate dashboard payload from natural-language request',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['request'],
-                properties: {
-                  request: {
-                    type: 'string'
-                  },
-                  stationId: {
-                    type: 'string'
-                  },
-                  rankLimit: {
-                    type: 'integer',
-                    minimum: 1,
-                    maximum: 100
-                  },
-                  alertLimit: {
-                    type: 'integer',
-                    minimum: 1,
-                    maximum: 200
-                  },
-                  mobilityDays: {
-                    type: 'integer',
-                    minimum: 1,
-                    maximum: 90
-                  },
-                  demandDays: {
-                    type: 'integer',
-                    minimum: 1,
-                    maximum: 120
-                  },
-                  customWidgets: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      required: ['id', 'title', 'sourceEndpoint', 'mode'],
-                      properties: {
-                        id: { type: 'string' },
-                        title: { type: 'string' },
-                        description: { type: 'string' },
-                        sourceEndpoint: {
-                          type: 'string',
-                          enum: [
-                            'status',
-                            'stations',
-                            'rankings',
-                            'alerts',
-                            'patterns',
-                            'heatmap',
-                            'mobility'
-                          ]
-                        },
-                        sourceParams: {
-                          type: 'object',
-                          additionalProperties: true
-                        },
-                        mode: {
-                          type: 'string',
-                          enum: ['kpi', 'table', 'timeseries']
-                        },
-                        valuePath: { type: 'string' },
-                        collectionPath: { type: 'string' },
-                        xKey: { type: 'string' },
-                        yKey: { type: 'string' },
-                        limit: {
-                          type: 'integer',
-                          minimum: 1,
-                          maximum: 200
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        responses: {
-          200: {
-            description: 'Generated dashboard payload'
           }
         }
       }
