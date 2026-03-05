@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import {
   fetchAlerts,
-  fetchHeatmap,
-  fetchPatterns,
   fetchRankings,
   fetchStations,
   fetchStatus,
@@ -17,13 +15,13 @@ import { DashboardClient, type DashboardInitialData } from './_components/Dashbo
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Dashboard clasico',
+  title: 'Panel clasico',
   description: SITE_DESCRIPTION,
   alternates: {
     canonical: '/dashboard',
   },
   openGraph: {
-    title: `${SITE_TITLE} - Dashboard clasico`,
+    title: `${SITE_TITLE} - Panel clasico`,
     description: SITE_DESCRIPTION,
     url: '/dashboard',
   },
@@ -128,8 +126,6 @@ export default async function DashboardPage() {
     rankings: [],
     generatedAt: nowIso,
   };
-  const fallbackPatterns: DashboardInitialData['patterns'] = [];
-  const fallbackHeatmap: DashboardInitialData['heatmap'] = [];
 
   const loadErrors: string[] = [];
   const schemaMissingFlags: boolean[] = [];
@@ -173,14 +169,6 @@ export default async function DashboardPage() {
     ),
   ]);
 
-  const defaultStationId = stations.stations[0]?.id ?? '';
-  const [patterns, heatmap] = defaultStationId
-    ? await Promise.all([
-        withFallback('patrones', () => fetchPatterns(defaultStationId), fallbackPatterns),
-        withFallback('heatmap', () => fetchHeatmap(defaultStationId), fallbackHeatmap),
-      ])
-    : [fallbackPatterns, fallbackHeatmap];
-
   const initialData: DashboardInitialData = {
     stations,
     status,
@@ -189,8 +177,6 @@ export default async function DashboardPage() {
       turnover,
       availability,
     },
-    patterns,
-    heatmap,
   };
 
   const isSchemaMissing = schemaMissingFlags.length > 0;

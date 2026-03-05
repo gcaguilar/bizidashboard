@@ -5,6 +5,8 @@ import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 
+const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
+
 type StationsDirectoryClientProps = {
   stations: StationSnapshot[];
 };
@@ -35,15 +37,26 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
-      <header className="sticky top-0 z-40 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <header className="sticky top-0 z-40 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estaciones</p>
             <h1 className="text-xl font-bold text-[var(--foreground)]">Directorio de estaciones</h1>
           </div>
-          <Link href="/dashboard" className="icon-button">
-            Volver al dashboard
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard" className="icon-button">
+              Volver al inicio
+            </Link>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="icon-button"
+              aria-label="Repositorio de la aplicacion"
+            >
+              Repositorio
+            </a>
+          </div>
         </div>
         <label className="mt-3 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
           <input
@@ -63,7 +76,7 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
           return (
             <article
               key={station.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]"
             >
               <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">ID {station.id}</p>
               <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">{station.name}</h2>

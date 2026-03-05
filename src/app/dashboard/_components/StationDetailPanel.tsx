@@ -346,158 +346,197 @@ export function StationDetailPanel({
   const currentOccupancy = toOccupancy(station);
   const isCritical =
     station.bikesAvailable === 0 || station.anchorsFree === 0 || stationAlerts.length > 0;
-  const statusLabel = isCritical ? 'Critica - accion requerida' : 'Estable';
+  const statusLabel = isCritical
+    ? station.bikesAvailable === 0
+      ? 'Critica - vacia'
+      : station.anchorsFree === 0
+        ? 'Critica - llena'
+        : 'Critica - accion requerida'
+    : 'Operativa';
   const problemHours =
     (availabilityRow?.emptyHours ?? turnoverRow?.emptyHours ?? 0) +
     (availabilityRow?.fullHours ?? turnoverRow?.fullHours ?? 0);
+  const totalDestinationFlow = estimatedDestinations.reduce(
+    (sum, destination) => sum + destination.flow,
+    0
+  );
 
   return (
-    <section className="dashboard-card gap-5">
-      <header className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-lg border border-[var(--accent)]/35 bg-gradient-to-br from-[var(--accent)]/30 to-[var(--surface-soft)]" />
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">Analitica de estacion</p>
-              <h2 className="text-2xl font-bold text-[var(--foreground)]">{station.name}</h2>
-              <p className="text-xs text-[var(--muted)]">
-                ID #{station.id}
+    <section className="space-y-6">
+      <header className="rounded-xl border border-[var(--border)] bg-[var(--accent)]/8 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/35 to-[var(--surface-soft)] text-xs font-black uppercase tracking-[0.14em] text-[var(--foreground)]">
+              #{station.id}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{station.name}</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                ID: #{station.id}
                 {selectedDistrict ? ` · ${selectedDistrict}` : ''}
               </p>
-              <span
-                className={`mt-2 inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${
+              <div
+                className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${
                   isCritical
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[#ffb9be]'
-                    : 'border-emerald-400/40 bg-emerald-400/15 text-emerald-200'
+                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
+                    : 'border-emerald-500/35 bg-emerald-500/10 text-emerald-500'
                 }`}
               >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
+                </span>
                 {statusLabel}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-2 sm:items-end">
-            <p className="text-xs text-[var(--muted)]">
-              Actualizado {new Date(station.recordedAt).toLocaleString('es-ES')}
-            </p>
-            <div className="flex items-center gap-2">
-              <button type="button" className="icon-button" aria-label="Compartir estacion">
-                Compartir
-              </button>
-              <button type="button" className="icon-button" aria-label="Marcar favorita">
-                Favorita
-              </button>
+          <div className="flex flex-col items-start gap-2 md:items-end">
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--muted)]">
+                Ultima actualizacion
+              </p>
+              <p className="text-sm font-medium text-[var(--foreground)]">
+                {new Date(station.recordedAt).toLocaleString('es-ES')}
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
+            >
+              Forzar refresco de datos
+            </button>
           </div>
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="stat-card border-[var(--accent)]/35 bg-[var(--accent)]/12">
-          <p className="stat-label">Bicis disponibles</p>
-          <p className="stat-value">{station.bikesAvailable}</p>
-          <p className="text-[10px] text-[var(--muted)]">
-            Avg distrito: {districtSnapshot ? districtSnapshot.bikesAvg.toFixed(1) : 'N/A'}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/12 p-5">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Bicis disponibles</p>
+          <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{station.bikesAvailable}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Media distrito: {districtSnapshot ? districtSnapshot.bikesAvg.toFixed(1) : 'N/D'}
           </p>
         </article>
-        <article className="stat-card">
-          <p className="stat-label">Anclajes libres</p>
-          <p className="stat-value">{station.anchorsFree}</p>
-          <p className="text-[10px] text-[var(--muted)]">
-            Avg distrito: {districtSnapshot ? districtSnapshot.anchorsAvg.toFixed(1) : 'N/A'}
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Anclajes libres</p>
+          <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{station.anchorsFree}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Media distrito: {districtSnapshot ? districtSnapshot.anchorsAvg.toFixed(1) : 'N/D'}
           </p>
         </article>
-        <article className="stat-card">
-          <p className="stat-label">Rotacion 14d</p>
-          <p className="stat-value">
-            {turnoverRow ? turnoverRow.turnoverScore.toFixed(1) : 'Sin datos'}
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Rotacion 14d</p>
+          <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">
+            {turnoverRow ? turnoverRow.turnoverScore.toFixed(1) : '0.0'}
           </p>
-          <p className="text-[10px] text-[var(--muted)]">Metrica real de ranking operativo</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Puntuacion del ranking operativo.</p>
         </article>
-        <article className="stat-card">
-          <p className="stat-label">Horas problema 14d</p>
-          <p className="stat-value">{problemHours}</p>
-          <p className="text-[10px] text-[var(--muted)]">Alertas activas: {stationAlerts.length}</p>
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Horas problema 14d</p>
+          <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{problemHours}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Alertas activas: {stationAlerts.length}</p>
         </article>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Benchmark de barrio
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Estacion</p>
-              <p className="text-lg font-semibold text-[var(--foreground)]">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5 lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-[var(--foreground)]">Benchmark de barrio</h3>
+            {selectedDistrict ? (
+              <span className="rounded bg-[var(--accent)]/10 px-2 py-1 text-[10px] font-bold uppercase text-[var(--accent)]">
+                {selectedDistrict}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <div className="grid grid-cols-3 border-b border-[var(--border)] pb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+              <span>Metrica</span>
+              <span className="text-center">Estacion</span>
+              <span className="text-right">Distrito/Ciudad</span>
+            </div>
+            <div className="grid grid-cols-3 py-1 text-sm">
+              <span className="text-[var(--muted)]">Ocupacion media</span>
+              <span className="text-center font-semibold text-[var(--foreground)]">
                 {formatPercent(currentOccupancy)}
-              </p>
+              </span>
+              <span className="text-right text-[var(--muted)]">
+                {districtAverage === null ? formatPercent(cityAverage) : formatPercent(districtAverage)}
+              </span>
             </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Distrito</p>
-              <p className="text-lg font-semibold text-[var(--foreground)]">
-                {districtAverage === null ? 'Sin datos' : formatPercent(districtAverage)}
-              </p>
+            <div className="grid grid-cols-3 py-1 text-sm">
+              <span className="text-[var(--muted)]">Horas problema</span>
+              <span className="text-center font-semibold text-[var(--foreground)]">{problemHours}</span>
+              <span className="text-right text-[var(--muted)]">
+                {availabilityRow ? `${availabilityRow.totalHours}h muestra` : 'N/D'}
+              </span>
             </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Ciudad</p>
-              <p className="text-lg font-semibold text-[var(--foreground)]">{formatPercent(cityAverage)}</p>
+            <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-xs text-[var(--muted)]">
+              <span className="font-bold text-[var(--accent)]">Conclusión:</span>{' '}
+              {districtAverage === null
+                ? 'Sin datos de distrito para comparar.'
+                : `Esta estacion esta ${
+                    currentOccupancy >= districtAverage ? 'por encima' : 'por debajo'
+                  } de la media distrital en ${formatPercent(
+                    Math.abs(currentOccupancy - districtAverage)
+                  )}.`}
             </div>
           </div>
-          <p className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[11px] text-[var(--muted)]">
-            Insight:{' '}
-            {districtAverage === null
-              ? 'sin datos de distrito para comparar.'
-              : `esta estacion esta ${
-                  currentOccupancy >= districtAverage ? 'por encima' : 'por debajo'
-                } de la media distrital en ${formatPercent(
-                  Math.abs(currentOccupancy - districtAverage)
-                )}.`}
-          </p>
         </article>
 
-        <article className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] p-4 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/75">
-            Prediccion (estimado)
-          </p>
-          <div className="mt-3 space-y-2">
+        <article className="rounded-xl border-2 border-[var(--accent)] bg-[var(--accent)] p-5 text-white">
+          <h3 className="text-lg font-bold">Prediccion de disponibilidad</h3>
+          <p className="mt-1 text-sm text-white/80">Estimacion de disponibilidad para 120 minutos.</p>
+          <div className="mt-4 space-y-3">
             <div className="rounded-lg border border-white/25 bg-white/10 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/75">En 30 min</p>
-              <p className="text-lg font-semibold">{formatPercent(projection.next30)}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/70">En 30 min</p>
+              <p className="text-base font-bold">{formatPercent(projection.next30)}</p>
             </div>
             <div className="rounded-lg border border-white/25 bg-white/10 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-white/75">En 60 min</p>
-              <p className="text-lg font-semibold">{formatPercent(projection.next60)}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/70">En 60 min</p>
+              <p className="text-base font-bold">{formatPercent(projection.next60)}</p>
             </div>
-            <p className="text-xs text-white/80">Confianza estimada: {Math.round(projection.confidence)}%</p>
+            <div className="pt-1 text-[11px] text-white/80">
+              Confianza: {Math.round(projection.confidence)}%
+            </div>
           </div>
         </article>
       </div>
 
-      <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Destinos principales (estimado)
-          </p>
-          <span className="kpi-chip">Balance neto {selectedDistrictNet?.toFixed(1) ?? 'N/A'}</span>
+      <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-lg font-bold text-[var(--foreground)]">Destinos principales</h3>
+          <span className="kpi-chip">Balance neto {selectedDistrictNet?.toFixed(1) ?? 'N/D'}</span>
         </div>
         {estimatedDestinations.length === 0 ? (
           <p className="mt-3 text-sm text-[var(--muted)]">
             Sin datos suficientes para estimar destinos desde el distrito actual.
           </p>
         ) : (
-          <div className="mt-3 space-y-2">
-            {estimatedDestinations.map((destination, index) => (
-              <div
-                key={destination.district}
-                className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2"
-              >
-                <p className="text-sm font-semibold text-[var(--foreground)]">
-                  {index + 1}. {destination.district}
-                </p>
-                <p className="text-xs font-semibold text-[var(--muted)]">{destination.flow.toFixed(1)}</p>
-              </div>
-            ))}
+          <div className="mt-4 space-y-3">
+            {estimatedDestinations.map((destination, index) => {
+              const share =
+                totalDestinationFlow > 0
+                  ? Math.round((destination.flow / totalDestinationFlow) * 100)
+                  : 0;
+
+              return (
+                <div
+                  key={destination.district}
+                  className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-sm font-bold text-[var(--accent)]">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{destination.district}</p>
+                  </div>
+                  <p className="text-xs font-bold text-[var(--muted)]">{share}% flujo</p>
+                </div>
+              );
+            })}
           </div>
         )}
       </article>

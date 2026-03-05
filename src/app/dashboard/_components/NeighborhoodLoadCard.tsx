@@ -1,0 +1,186 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import type { StationSnapshot } from '@/lib/api';
+import {
+  buildStationDistrictMap,
+  DISTRICTS_GEOJSON_URL,
+  type DistrictCollection,
+  isDistrictCollection,
+} from '@/lib/districts';
+
+type NeighborhoodLoadCardProps = {
+  stations: StationSnapshot[];
+};
+
+type DistrictSlice = {
+  district: string;
+  stationCount: number;
+};
+
+const SLICE_COLORS = ['#ea0615', 'rgba(234, 6, 21, 0.65)', 'rgba(234, 6, 21, 0.35)'];
+
+function getOccupancy(station: StationSnapshot): number {
+  if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(1, station.bikesAvailable / station.capacity));
+}
+
+export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
+  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let isActive = true;
+
+    const loadDistricts = async () => {
+      try {
+        const response = await fetch(DISTRICTS_GEOJSON_URL, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = (await response.json()) as unknown;
+
+        if (!isDistrictCollection(payload) || !isActive) {
+          return;
+        }
+
+        setDistricts(payload);
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          return;
+        }
+
+        console.error('[Dashboard] No se pudo cargar distritos para el donut.', error);
+      }
+    };
+
+    void loadDistricts();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, []);
+
+  const stationDistrictMap = useMemo(() => {
+    if (!districts) {
+      return new Map<string, string>();
+    }
+
+    return buildStationDistrictMap(stations, districts);
+  }, [districts, stations]);
+
+  const slices = useMemo<DistrictSlice[]>(() => {
+    const counter = new Map<string, number>();
+
+    for (const station of stations) {
+      const district = stationDistrictMap.get(station.id) ?? 'Sin distrito';
+      counter.set(district, (counter.get(district) ?? 0) + 1);
+    }
+
+    return Array.from(counter.entries())
+      .map(([district, stationCount]) => ({ district, stationCount }))
+      .sort((left, right) => right.stationCount - left.stationCount)
+      .slice(0, 3);
+  }, [stationDistrictMap, stations]);
+
+  const totalStations = stations.length;
+
+  const donutSlices = useMemo(() => {
+    if (totalStations <= 0 || slices.length === 0) {
+      return [] as Array<{ color: string; size: number; offset: number }>;
+    }
+
+    let currentOffset = 0;
+
+    return slices.map((slice, index) => {
+      const size = (slice.stationCount / totalStations) * 100;
+      const arc = {
+        color: SLICE_COLORS[index] ?? 'rgba(234, 6, 21, 0.2)',
+        size,
+        offset: currentOffset,
+      };
+      currentOffset += size;
+      return arc;
+    });
+  }, [slices, totalStations]);
+
+  const avgOccupancy = useMemo(() => {
+    if (stations.length === 0) {
+      return 0;
+    }
+
+    return stations.reduce((sum, station) => sum + getOccupancy(station), 0) / stations.length;
+  }, [stations]);
+
+  return (
+    <section className="dashboard-card h-full">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
+          Carga por barrio
+        </h3>
+        <span className="text-xs text-[var(--muted)]">Distribucion</span>
+      </div>
+
+      <div className="flex items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+        <div className="relative h-28 w-28 shrink-0">
+          <svg viewBox="0 0 36 36" className="h-full w-full">
+            <path
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="rgba(234, 6, 21, 0.12)"
+              strokeWidth="4"
+            />
+            {donutSlices.map((slice, index) => (
+              <path
+                key={index}
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke={slice.color}
+                strokeDasharray={`${slice.size}, 100`}
+                strokeDashoffset={`${-slice.offset}`}
+                strokeLinecap="round"
+                strokeWidth="4"
+              />
+            ))}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-lg font-bold text-[var(--foreground)]">{totalStations}</span>
+            <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+              Estaciones
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2 text-[11px]">
+          {slices.length === 0 ? (
+            <p className="text-[var(--muted)]">Sin datos de distritos.</p>
+          ) : (
+            slices.map((slice, index) => (
+              <div key={slice.district} className="flex items-center gap-2 text-[var(--foreground)]">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: SLICE_COLORS[index] ?? 'rgba(234, 6, 21, 0.2)' }}
+                />
+                <span className="font-semibold">{slice.district}</span>
+                <span className="text-[var(--muted)]">
+                  ({Math.round((slice.stationCount / totalStations) * 100)}%)
+                </span>
+              </div>
+            ))
+          )}
+          <p className="pt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+            Ocupacion media ciudad: {Math.round(avgOccupancy * 100)}%
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}

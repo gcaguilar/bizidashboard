@@ -18,6 +18,8 @@ import { MethodologyPanel } from '../../_components/MethodologyPanel';
 import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
 
+const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
+
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
@@ -101,20 +103,37 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
   ]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
-      <header className="sticky top-0 z-40 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+    <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Detalle de estacion</p>
-            <h1 className="text-xl font-bold text-[var(--foreground)]">{selectedStation.name}</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-lg font-black text-[var(--accent)]">
+              B
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Analitica de estacion</p>
+              <h1 className="text-lg font-bold text-[var(--foreground)]">{selectedStation.name}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/dashboard" className="icon-button">
-              Volver al dashboard
+              Inicio
+            </Link>
+            <Link href="/dashboard/estaciones" className="icon-button">
+              Estaciones
             </Link>
             <Link href="/dashboard/ayuda" className="icon-button">
-              FAQ
+              Ayuda
             </Link>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="icon-button"
+              aria-label="Repositorio de la aplicacion"
+            >
+              Repositorio
+            </a>
           </div>
         </div>
       </header>
@@ -129,12 +148,15 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
       />
 
       <div className="grid gap-6 xl:grid-cols-12">
-        <div className="min-w-0 xl:col-span-6">
+        <div className="min-w-0 xl:col-span-8">
           <HourlyCharts
             stationId={selectedStation.id}
             stationName={selectedStation.name}
             patterns={patterns}
           />
+        </div>
+        <div className="min-w-0 xl:col-span-4">
+          <NeighborhoodMiniMap stations={stations.stations} selectedStationId={selectedStation.id} />
         </div>
         <div className="min-w-0 xl:col-span-6">
           <Heatmap
@@ -143,10 +165,7 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
             heatmap={heatmap}
           />
         </div>
-        <div className="min-w-0 xl:col-span-5">
-          <NeighborhoodMiniMap stations={stations.stations} selectedStationId={selectedStation.id} />
-        </div>
-        <div className="min-w-0 xl:col-span-7">
+        <div className="min-w-0 xl:col-span-6">
           <MethodologyPanel />
         </div>
       </div>

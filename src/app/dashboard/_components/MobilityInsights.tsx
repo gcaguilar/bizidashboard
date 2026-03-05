@@ -19,7 +19,7 @@ import {
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 
-const PERIODS = [
+  const PERIODS = [
   { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
   { key: 'morning', label: 'Manana', from: 6, to: 11 },
   { key: 'midday', label: 'Mediodia', from: 12, to: 16 },
@@ -403,215 +403,271 @@ export function MobilityInsights({
   }, [activeInsights, chordNodes, topRoutes]);
 
   return (
-    <section className="dashboard-card gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <section className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            Flow analysis y demanda diaria
+          <h2 className="text-3xl font-black leading-tight tracking-tight text-[var(--foreground)]">
+            Analisis de flujo por barrios
           </h2>
-          <p className="text-xs text-[var(--muted)]">
-            Flujos por distrito inferidos desde variaciones horarias de ocupacion.
+          <p className="text-sm text-[var(--muted)]">
+            Distribucion interdistrital de trayectos y metricas de balance neto.
           </p>
         </div>
-        {mobilityData ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="kpi-chip">Movilidad: {mobilityData.mobilityDays} dias</span>
-            <span className="kpi-chip">Demanda: {mobilityData.demandDays} dias</span>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)]/80 p-1">
+          {PERIODS.map((period) => (
+            <button
+              key={period.key}
+              type="button"
+              className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
+                activePeriod === period.key
+                  ? 'bg-[var(--accent)] text-white shadow-sm'
+                  : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => setActivePeriod(period.key)}
+            >
+              {period.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       {isLoading ? (
-        <p className="text-sm text-[var(--muted)]">Cargando insights de movilidad...</p>
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          Cargando insights de movilidad...
+        </p>
       ) : errorMessage ? (
-        <p className="text-sm text-[var(--muted)]">{errorMessage}</p>
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          {errorMessage}
+        </p>
       ) : !mobilityData || !activeInsights ? (
-        <p className="text-sm text-[var(--muted)]">Sin datos de movilidad disponibles.</p>
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+          Sin datos de movilidad disponibles.
+        </p>
       ) : (
-        <>
-          <div className="flex flex-wrap gap-2">
-            {PERIODS.map((period) => (
-              <button
-                key={period.key}
-                type="button"
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                  activePeriod === period.key
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                    : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent-soft)]'
-                }`}
-                onClick={() => setActivePeriod(period.key)}
-              >
-                {period.label}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
+              <span className="text-xs text-[var(--muted)]">Top {chordNodes.length} barrios</span>
+            </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article className="stat-card">
-              <p className="stat-label">Flujo total</p>
-              <p className="stat-value">{activeInsights.totalFlow.toFixed(0)}</p>
-            </article>
-            <article className="stat-card">
-              <p className="stat-label">Mayor exportador</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">
-                {topExporter?.district ?? 'Sin datos'}
-              </p>
-              <p className="text-[11px] text-[var(--muted)]">
-                {topExporter
-                  ? `${(topExporter.outbound - topExporter.inbound).toFixed(1)} neto`
-                  : 'Sin datos'}
-              </p>
-            </article>
-            <article className="stat-card">
-              <p className="stat-label">Mayor importador</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">
-                {topImporter?.district ?? 'Sin datos'}
-              </p>
-              <p className="text-[11px] text-[var(--muted)]">
-                {topImporter
-                  ? `${(topImporter.inbound - topImporter.outbound).toFixed(1)} neto`
-                  : 'Sin datos'}
-              </p>
-            </article>
-            <article className="stat-card">
-              <p className="stat-label">Distrito seleccionado</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">
-                {selectedDistrict ?? 'Sin seleccion'}
-              </p>
-              <p className="text-[11px] text-[var(--muted)]">
-                {selectedDistrictFlow
-                  ? `${selectedDistrictFlow.outbound.toFixed(1)} salida / ${selectedDistrictFlow.inbound.toFixed(1)} entrada`
-                  : 'Selecciona una estacion en el mapa'}
-              </p>
-            </article>
-          </div>
+            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-soft)] py-4">
+              <svg viewBox="0 0 280 280" className="h-[260px] w-[260px]">
+                <circle cx="140" cy="140" r="116" fill="none" stroke="rgba(234,6,21,0.22)" />
+                {chordLinks.map((link, index) => {
+                  const from = chordNodes.find((node) => node.district === link.origin);
+                  const to = chordNodes.find((node) => node.district === link.destination);
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                  Matriz O-D estimada
-                </p>
-                <span className="text-xs text-[var(--muted)]">Top {activeInsights.districts.length}</span>
-              </div>
+                  if (!from || !to) {
+                    return null;
+                  }
 
-              {activeInsights.districts.length === 0 ? (
-                <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
-              ) : (
-                <div className="mt-3 overflow-auto">
-                  <table className="min-w-full border-collapse text-[11px]">
-                    <thead>
-                      <tr>
-                        <th className="sticky left-0 z-10 bg-[var(--surface-soft)] px-2 py-2 text-left font-semibold text-[var(--muted)]">
-                          Origen \\ Destino
-                        </th>
-                        {activeInsights.districts.map((district) => (
-                          <th
-                            key={`dest-${district.district}`}
-                            className="px-2 py-2 text-left font-semibold text-[var(--muted)]"
-                          >
-                            {district.district}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeInsights.districts.map((origin, originIndex) => (
-                        <tr key={`origin-${origin.district}`}>
-                          <td className="sticky left-0 bg-[var(--surface-soft)] px-2 py-2 font-semibold text-[var(--foreground)]">
-                            {origin.district}
-                          </td>
-                          {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
-                            <td
-                              key={`${originIndex}-${destinationIndex}`}
-                              className="border border-[var(--border)] px-2 py-2 text-right"
-                              style={{
-                                backgroundColor: getMatrixCellColor(value, activeInsights.maxFlow),
-                                color: value / (activeInsights.maxFlow || 1) > 0.5 ? '#ffffff' : 'var(--foreground)',
-                              }}
-                            >
-                              {value.toFixed(1)}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </article>
+                  const controlX = 140;
+                  const controlY = 140;
+                  const opacity = 0.25 + Math.min(0.65, link.flow / (activeInsights.maxFlow || 1));
 
-            <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                  Chord simplificado
-                </p>
-                <span className="text-xs text-[var(--muted)]">Rutas destacadas</span>
-              </div>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <svg viewBox="0 0 280 280" className="mx-auto h-[240px] w-[240px]">
-                  <circle cx="140" cy="140" r="116" fill="none" stroke="rgba(255,255,255,0.08)" />
-                  {chordLinks.map((link, index) => {
-                    const from = chordNodes.find((node) => node.district === link.origin);
-                    const to = chordNodes.find((node) => node.district === link.destination);
+                  return (
+                    <path
+                      key={`${link.origin}-${link.destination}-${index}`}
+                      d={`M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`}
+                      fill="none"
+                      stroke={`rgba(234, 6, 21, ${opacity})`}
+                      strokeWidth={1.2 + (link.flow / (activeInsights.maxFlow || 1)) * 3}
+                    />
+                  );
+                })}
+                {chordNodes.map((node) => (
+                  <g key={node.district}>
+                    <circle cx={node.x} cy={node.y} r="5" fill="#ea0615" />
+                    <text
+                      x={node.x}
+                      y={node.y - 10}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fill="var(--foreground)"
+                    >
+                      {node.district.slice(0, 10)}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
 
-                    if (!from || !to) {
-                      return null;
-                    }
+            <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--muted)]">
+              <span className="legend-item">
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Alto volumen
+              </span>
+              <span className="legend-item">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" /> Prioridad de salida
+              </span>
+            </div>
+          </article>
 
-                    const controlX = 140;
-                    const controlY = 140;
-                    const opacity = 0.25 + Math.min(0.65, link.flow / (activeInsights.maxFlow || 1));
+          <div className="space-y-6 xl:col-span-4">
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Rutas de mayor flujo</h3>
+              <div className="mt-4 space-y-4">
+                {topRoutes.slice(0, 4).length === 0 ? (
+                  <p className="text-sm text-[var(--muted)]">Sin rutas destacadas para este periodo.</p>
+                ) : (
+                  topRoutes.slice(0, 4).map((route) => {
+                    const width = Math.max(
+                      12,
+                      Math.round((route.flow / (activeInsights.maxFlow || 1)) * 100)
+                    );
 
                     return (
-                      <path
-                        key={`${link.origin}-${link.destination}-${index}`}
-                        d={`M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`}
-                        fill="none"
-                        stroke={`rgba(234, 6, 21, ${opacity})`}
-                        strokeWidth={1.2 + (link.flow / (activeInsights.maxFlow || 1)) * 3}
-                      />
+                      <div key={`${route.origin}-${route.destination}`} className="space-y-1">
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="font-semibold text-[var(--foreground)]">
+                            {route.origin} → {route.destination}
+                          </span>
+                          <span className="font-bold text-[var(--muted)]">{route.flow.toFixed(0)}</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/20">
+                          <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${width}%` }} />
+                        </div>
+                      </div>
                     );
-                  })}
-                  {chordNodes.map((node) => (
-                    <g key={node.district}>
-                      <circle cx={node.x} cy={node.y} r="5" fill="#ef4444" />
-                      <text
-                        x={node.x}
-                        y={node.y - 10}
-                        textAnchor="middle"
-                        fontSize="9"
-                        fill="#f4d4d2"
-                      >
-                        {node.district.slice(0, 10)}
-                      </text>
-                    </g>
-                  ))}
-                </svg>
+                  })
+                )}
+              </div>
+            </article>
 
-                <div className="flex-1 space-y-1 text-xs text-[var(--muted)]">
-                  <p className="font-semibold uppercase tracking-[0.14em] text-[var(--foreground)]">
-                    Top rutas estimadas
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Resumen de balance neto</h3>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">Mayor emisor</p>
+                  <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
+                    {topExporter?.district ?? 'N/D'}
                   </p>
-                  {topRoutes.length === 0 ? (
-                    <p>Sin rutas destacadas para este periodo.</p>
-                  ) : (
-                    topRoutes.slice(0, 5).map((route) => (
-                      <p key={`${route.origin}-${route.destination}`}>
-                        {`${route.origin} a ${route.destination}: ${route.flow.toFixed(1)}`}
-                      </p>
-                    ))
-                  )}
+                  <p className="text-xl font-black text-rose-500">
+                    {topExporter
+                      ? `-${Math.max(0, topExporter.outbound - topExporter.inbound).toFixed(0)}`
+                      : '0'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-500">
+                    Mayor receptor
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
+                    {topImporter?.district ?? 'N/D'}
+                  </p>
+                  <p className="text-xl font-black text-emerald-500">
+                    {topImporter
+                      ? `+${Math.max(0, topImporter.inbound - topImporter.outbound).toFixed(0)}`
+                      : '0'}
+                  </p>
                 </div>
               </div>
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                Distrito seleccionado: {selectedDistrictFlow ? selectedDistrict : 'sin seleccion'}
+              </p>
             </article>
           </div>
 
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Balance neto por barrio</h3>
+            <div className="mt-4 space-y-5">
+              {activeInsights.districts.slice(0, 5).map((district) => {
+                const net = district.net;
+                const maxMagnitude = Math.max(1, district.volume);
+                const width = Math.min(50, (Math.abs(net) / maxMagnitude) * 100);
+                const isImporter = net >= 0;
+
+                return (
+                  <div key={district.district}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-bold text-[var(--foreground)]">{district.district}</span>
+                      <span className={`font-black ${isImporter ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {net >= 0 ? '+' : ''}
+                        {net.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="relative h-3 w-full rounded-full bg-black/20">
+                      {isImporter ? (
+                        <div
+                          className="absolute left-1/2 h-full rounded-r-full bg-emerald-500"
+                          style={{ width: `${width}%` }}
+                        />
+                      ) : (
+                        <div
+                          className="absolute right-1/2 h-full rounded-l-full bg-rose-500"
+                          style={{ width: `${width}%` }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex justify-between text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+              <span>Emisor neto</span>
+              <span>Neutro</span>
+              <span>Receptor neto</span>
+            </div>
+          </article>
+
+          <article className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                Curva diaria de demanda
-              </p>
+              <h3 className="text-base font-bold text-[var(--foreground)]">Matriz origen-destino</h3>
+              <span className="text-[10px] text-[var(--muted)]">Datos en vivo</span>
+            </div>
+
+            {activeInsights.districts.length === 0 ? (
+              <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
+            ) : (
+              <div className="mt-3 overflow-auto">
+                <table className="min-w-full border-collapse text-[11px]">
+                  <thead>
+                    <tr>
+                      <th className="sticky left-0 z-10 bg-[var(--surface)] px-2 py-2 text-left font-semibold text-[var(--muted)]">
+                        O \ D
+                      </th>
+                      {activeInsights.districts.map((district) => (
+                        <th
+                          key={`dest-${district.district}`}
+                          className="px-2 py-2 text-left font-semibold text-[var(--muted)]"
+                        >
+                          {district.district}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeInsights.districts.map((origin, originIndex) => (
+                      <tr key={`origin-${origin.district}`}>
+                        <td className="sticky left-0 bg-[var(--surface)] px-2 py-2 font-semibold text-[var(--foreground)]">
+                          {origin.district}
+                        </td>
+                        {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
+                          <td
+                            key={`${originIndex}-${destinationIndex}`}
+                            className="border border-[var(--border)] px-2 py-2 text-right"
+                            style={{
+                              backgroundColor: getMatrixCellColor(value, activeInsights.maxFlow),
+                              color:
+                                value / (activeInsights.maxFlow || 1) > 0.5
+                                  ? '#ffffff'
+                                  : 'var(--foreground)',
+                            }}
+                          >
+                            {value.toFixed(1)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </article>
+
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
               <span className="text-xs text-[var(--muted)]">{mobilityData.demandDays} dias</span>
             </div>
             {dailyCurveData.length === 0 ? (
@@ -621,7 +677,7 @@ export function MobilityInsights({
                 <div className="mt-3 h-[260px]">
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
                     <AreaChart data={dailyCurveData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(240, 213, 211, 0.24)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(234, 6, 21, 0.22)" />
                       <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={14} />
                       <YAxis yAxisId="score" tick={{ fontSize: 11 }} width={42} />
                       <YAxis
@@ -652,8 +708,8 @@ export function MobilityInsights({
                         type="monotone"
                         dataKey="demandScore"
                         name="Demanda"
-                        stroke="#ef4444"
-                        fill="rgba(239, 68, 68, 0.3)"
+                        stroke="#ea0615"
+                        fill="rgba(234, 6, 21, 0.26)"
                         strokeWidth={2}
                       />
                       <Area
@@ -672,7 +728,7 @@ export function MobilityInsights({
               </>
             )}
           </article>
-        </>
+        </div>
       )}
     </section>
   );

@@ -32,7 +32,7 @@ export function MethodologyPanel() {
           href="/dashboard/ayuda"
           className="inline-flex items-center rounded-full border border-[var(--accent-soft)] bg-[var(--surface-soft)] px-4 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-white hover:bg-[var(--accent)]"
         >
-          Ir al FAQ completo
+          Ir a la ayuda completa
         </Link>
       </header>
 

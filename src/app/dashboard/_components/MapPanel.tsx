@@ -23,9 +23,7 @@ const DEFAULT_VIEW_STATE = {
 };
 
 const FOCUS_ZOOM = 14.8;
-const MIN_MAP_HEIGHT = 300;
-const MAX_MAP_HEIGHT = 620;
-const DEFAULT_MAP_HEIGHT = 420;
+const MAP_HEIGHT = 560;
 
 function getMarkerColor(station: StationSnapshot): string {
   if (station.capacity <= 0) {
@@ -52,7 +50,6 @@ export function MapPanel({
 }: MapPanelProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [mapHeight, setMapHeight] = useState(DEFAULT_MAP_HEIGHT);
 
   const selectedStation = useMemo(() => {
     if (!selectedStationId) {
@@ -79,59 +76,45 @@ export function MapPanel({
     });
   }, [isMapReady, selectedStation]);
 
-  useEffect(() => {
-    if (!isMapReady) {
-      return;
-    }
-
-    mapRef.current?.resize();
-  }, [isMapReady, mapHeight]);
-
-  const increaseMapHeight = () => {
-    setMapHeight((currentHeight) => Math.min(MAX_MAP_HEIGHT, currentHeight + 40));
-  };
-
-  const decreaseMapHeight = () => {
-    setMapHeight((currentHeight) => Math.max(MIN_MAP_HEIGHT, currentHeight - 40));
-  };
-
   return (
-    <section className="dashboard-card">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Mapa operativo de estaciones</h2>
-          <p className="text-xs text-[var(--muted)]">
-            Haz click en un punto para actualizar todo el analisis de la estacion.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="kpi-chip">{stations.length} estaciones</span>
-          <div className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1 text-xs">
-            <button
-              type="button"
-              onClick={decreaseMapHeight}
-              className="h-6 w-6 rounded-full border border-[var(--border)] text-sm leading-none text-[var(--foreground)] transition hover:border-[var(--accent-soft)]"
-              aria-label="Reducir alto del mapa"
-            >
-              -
-            </button>
-            <span className="min-w-[52px] text-center">{mapHeight}px</span>
-            <button
-              type="button"
-              onClick={increaseMapHeight}
-              className="h-6 w-6 rounded-full border border-[var(--border)] text-sm leading-none text-[var(--foreground)] transition hover:border-[var(--accent-soft)]"
-              aria-label="Aumentar alto del mapa"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </header>
+    <section
+      className="relative w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]"
+      style={{ height: `${MAP_HEIGHT}px` }}
+    >
+      <div className="absolute left-4 top-4 z-20 rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 text-xs font-semibold text-[var(--foreground)] backdrop-blur">
+        Mapa operativo · {stations.length} estaciones
+      </div>
 
-      <div
-        className="relative w-full overflow-hidden rounded-2xl border border-[var(--border)]"
-        style={{ height: `${mapHeight}px`, minHeight: `${MIN_MAP_HEIGHT}px` }}
-      >
+      <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          aria-label="Acercar"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          aria-label="Alejar"
+        >
+          -
+        </button>
+      </div>
+
+      <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 text-[11px] backdrop-blur">
+        <span className="legend-item">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#0ea5a2]" /> Disponible
+        </span>
+        <span className="legend-item">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Bajo stock
+        </span>
+        <span className="legend-item">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Critica
+        </span>
+      </div>
+
+      <div className="h-full w-full">
         {stations.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
             No hay estaciones disponibles.
@@ -148,7 +131,7 @@ export function MapPanel({
             style={{ width: '100%', height: '100%' }}
             mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
           >
-            <NavigationControl position="top-right" showCompass={false} />
+            <NavigationControl position="bottom-right" showCompass={false} />
             {stations.map((station) => {
               const isSelected = Boolean(selectedStationId && station.id === selectedStationId);
 
@@ -181,37 +164,6 @@ export function MapPanel({
             })}
           </Map>
         )}
-      </div>
-
-      <div className="space-y-1">
-        <input
-          type="range"
-          min={MIN_MAP_HEIGHT}
-          max={MAX_MAP_HEIGHT}
-          step={20}
-          value={mapHeight}
-          onChange={(event) => setMapHeight(Number(event.target.value))}
-          className="w-full accent-[var(--accent)]"
-          aria-label="Control de tamano del mapa"
-        />
-        <p className="text-[11px] text-[var(--muted)]">
-          Ajusta el alto para priorizar detalle cartografico o analitica en movil.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-xs text-[var(--muted)] sm:grid-cols-4">
-        <div className="legend-item">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#0ea5a2]" /> Alta disponibilidad
-        </div>
-        <div className="legend-item">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Nivel medio
-        </div>
-        <div className="legend-item">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Critica
-        </div>
-        <div className="legend-item">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#7f8595]" /> Sin datos
-        </div>
       </div>
     </section>
   );
