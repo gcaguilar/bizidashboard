@@ -170,6 +170,17 @@ export const openApiDocument = {
         }
       }
     },
+    '/api/history': {
+      get: {
+        operationId: 'get_history',
+        summary: 'Get full historical demand data since first record',
+        responses: {
+          200: {
+            description: 'Historical coverage metadata and daily history'
+          }
+        }
+      }
+    },
     '/api/collect': {
       get: {
         operationId: 'get_collect',
