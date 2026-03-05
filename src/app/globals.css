@@ -1,15 +1,29 @@
 @import 'tailwindcss';
 
 :root {
+  --background: #f8f5f6;
+  --background-2: #efe8eb;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-soft: rgba(241, 236, 239, 0.84);
+  --accent: #ea0615;
+  --accent-soft: #fb7185;
+  --border: rgba(234, 6, 21, 0.18);
+  --shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
   --background: #230f11;
   --background-2: #18090a;
-  --foreground: #f5f2f3;
-  --muted: #ccb5bc;
-  --surface: rgba(35, 15, 17, 0.86);
-  --surface-soft: rgba(60, 26, 31, 0.56);
+  --foreground: #f8fafc;
+  --muted: #94a3b8;
+  --surface: rgba(35, 15, 17, 0.84);
+  --surface-soft: rgba(255, 255, 255, 0.05);
   --accent: #ea0615;
-  --accent-soft: #be2231;
-  --border: rgba(240, 213, 211, 0.24);
+  --accent-soft: #fb7185;
+  --border: rgba(234, 6, 21, 0.24);
   --shadow: 0 24px 54px rgba(0, 0, 0, 0.35);
   --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
 }
@@ -17,7 +31,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-ibm-plex-mono);
 }
 
@@ -29,11 +43,11 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--foreground);
-  font-family: var(--font-sans), 'Segoe UI', sans-serif;
+  font-family: var(--font-sans), 'Inter', 'Segoe UI', sans-serif;
   background:
-    radial-gradient(circle at 12% -6%, rgba(234, 6, 21, 0.3), transparent 46%),
-    radial-gradient(circle at 82% 2%, rgba(14, 165, 163, 0.18), transparent 42%),
-    linear-gradient(135deg, var(--background), var(--background-2) 58%, #12090e);
+    radial-gradient(circle at 10% -4%, rgba(234, 6, 21, 0.22), transparent 42%),
+    radial-gradient(circle at 86% 0%, rgba(234, 6, 21, 0.08), transparent 38%),
+    linear-gradient(135deg, var(--background), var(--background-2) 72%, var(--background-2));
   background-attachment: fixed;
 }
 
@@ -44,15 +58,16 @@ a {
 .hero-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
   min-width: 0;
-  border-radius: 1.4rem;
+  border-radius: 1rem;
   border: 1px solid var(--border);
   background:
-    linear-gradient(145deg, rgba(234, 6, 21, 0.16), rgba(77, 31, 38, 0.22)),
-    rgba(35, 15, 17, 0.9);
+    linear-gradient(145deg, rgba(234, 6, 21, 0.12), rgba(234, 6, 21, 0.02)),
+    var(--surface);
   box-shadow: var(--shadow);
-  padding: 1.1rem;
+  padding: 1.2rem;
+  backdrop-filter: blur(10px);
 }
 
 .dashboard-card {
@@ -60,19 +75,19 @@ a {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
-  border-radius: 1.2rem;
+  border-radius: 0.9rem;
   border: 1px solid var(--border);
   background: var(--surface);
-  padding: 1rem;
+  padding: 1.05rem;
   box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(9px);
 }
 
 .stat-card {
   border: 1px solid var(--border);
-  border-radius: 0.9rem;
+  border-radius: 0.75rem;
   background: var(--surface-soft);
-  padding: 0.72rem;
+  padding: 0.78rem;
 }
 
 .stat-label {
@@ -97,7 +112,7 @@ a {
   align-items: center;
   gap: 0.42rem;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0.75rem;
   background: var(--surface-soft);
   padding: 0.36rem 0.62rem;
 }
@@ -105,7 +120,7 @@ a {
 .kpi-chip {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: 0.55rem;
   border: 1px solid var(--border);
   background: var(--surface-soft);
   color: var(--muted);
@@ -121,14 +136,14 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 0.65rem;
   border: 1px solid var(--border);
   background: var(--surface-soft);
   color: var(--foreground);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1;
-  padding: 0.52rem 0.8rem;
+  padding: 0.54rem 0.82rem;
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
@@ -137,17 +152,17 @@ a {
 
 .icon-button:hover {
   border-color: var(--accent-soft);
-  background: rgba(234, 6, 21, 0.28);
+  background: rgba(234, 6, 21, 0.22);
   color: #ffffff;
 }
 
 @media (min-width: 768px) {
   .hero-card {
     padding: 1.35rem;
-    border-radius: 1.6rem;
+    border-radius: 1.1rem;
   }
 
   .dashboard-card {
-    padding: 1.2rem;
+    padding: 1.15rem;
   }
 }

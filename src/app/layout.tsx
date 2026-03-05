@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Manrope } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
 import {
   getGoogleSiteVerificationToken,
   getSiteUrl,
@@ -9,8 +9,8 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -105,9 +105,9 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="es">
+    <html lang="es" className="dark">
       <body
-        className={`${manrope.variable} ${ibmPlexMono.variable} antialiased`}
+        className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
       >
         {children}
         <script

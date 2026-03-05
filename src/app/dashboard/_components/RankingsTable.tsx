@@ -66,9 +66,9 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
       <header className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Rankings operativos
+            Cuellos de botella
           </h2>
-          <p className="text-xs text-[var(--muted)]">Layout compacto tipo bottlenecks del diseno.</p>
+          <p className="text-xs text-[var(--muted)]">Estaciones con mayor friccion operativa recurrente.</p>
         </div>
         <span className="kpi-chip">{rows.length} resultados</span>
       </header>
@@ -129,7 +129,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
             return (
               <li
                 key={`${row.id}-${activeTab}`}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2"
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2"
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <div>
