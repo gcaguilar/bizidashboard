@@ -80,182 +80,19 @@ pnpm build
 pnpm db:health
 ```
 
-## MCP Server (Dynamic Dashboard)
+## Dashboard Web
 
-This repository includes an MCP server that wraps the existing REST API so an LLM client can request dashboards in natural language and fetch data on demand.
+The application currently ships the classic dashboard at:
 
-Start the MCP server over stdio (local MCP clients like Cursor):
+- `http://localhost:3000/dashboard`
 
-```bash
-pnpm mcp
-```
+The dashboard includes:
 
-Legacy alias (still supported):
-
-```bash
-pnpm mcp:dashboard
-```
-
-Start the MCP server over HTTP/SSE (remote agents):
-
-```bash
-pnpm mcp:http
-```
-
-Default HTTP endpoints:
-
-- `http://localhost:3333/mcp`
-- `http://localhost:3333/health`
-
-Optional environment variables:
-
-```env
-# Base URL for the running Next.js app that serves /api/*
-BIZIDASHBOARD_API_BASE_URL=http://localhost:3000
-
-# HTTP timeout for MCP -> API calls
-BIZIDASHBOARD_API_TIMEOUT_MS=20000
-
-# OpenAPI source for dynamic MCP tools
-OPENAPI_URL=http://localhost:3000/api/openapi.json
-
-# Set to false to disable OpenAPI-generated tools
-BIZIDASHBOARD_MCP_OPENAPI_ENABLED=true
-
-# HTTP MCP host/port
-BIZIDASHBOARD_MCP_HTTP_HOST=0.0.0.0
-BIZIDASHBOARD_MCP_HTTP_PORT=3333
-```
-
-### Deploying MCP in Coolify (Dockerfile)
-
-When the project is deployed as Docker images (without Compose), run MCP as a
-separate application so the reverse proxy can route `/mcp` to MCP and `/` to the
-Next.js app.
-
-1. Create a second Coolify application from the same repository.
-2. Use `Dockerfile.mcp` as Dockerfile path.
-3. Expose internal port `3333`.
-4. Add a path-based domain for MCP, for example:
-   - `https://bizi.gcaguilar.cc/mcp`
-5. Set MCP healthcheck path to `/health`.
-
-Recommended environment variables for the MCP application:
-
-```env
-# Required so MCP can call the deployed Next.js API
-BIZIDASHBOARD_API_BASE_URL=https://bizi.gcaguilar.cc
-
-# Optional but recommended
-OPENAPI_URL=https://bizi.gcaguilar.cc/api/openapi.json
-BIZIDASHBOARD_MCP_OPENAPI_ENABLED=true
-BIZIDASHBOARD_API_TIMEOUT_MS=20000
-BIZIDASHBOARD_MCP_HTTP_HOST=0.0.0.0
-BIZIDASHBOARD_MCP_HTTP_PORT=3333
-```
-
-Note: A plain browser GET to `/mcp` can return `400` if no MCP session is
-initialized yet. That is expected behavior.
-
-Main MCP tools:
-
-- `build_dashboard_spec`: creates a dashboard JSON spec from a natural-language request.
-- `generate_dashboard`: creates the spec and fetches live data for each widget.
-  - Supports optional `customWidgets` so the model can generate ad-hoc KPI/table/timeseries panels from existing endpoints.
-- `get_status`, `get_stations`, `get_rankings`, `get_alerts`, `get_patterns`, `get_heatmap`, `get_mobility`: direct API wrappers.
-
-### Using the MCP server remotely
-
-Use the HTTP transport when connecting remote agent frameworks (OpenAI Agents, LangChain, etc.).
-
-Example OpenAI Agents configuration:
-
-```ts
-tools: [
-  {
-    type: "mcp",
-    server_url: "http://localhost:3333/mcp"
-  }
-]
-```
-
-### Automatic MCP tool generation from OpenAPI
-
-The MCP server can load tools dynamically from the OpenAPI document at
-`/api/openapi.json`.
-
-- Manual tools are still loaded first (backward compatibility).
-- OpenAPI-generated tools are then added.
-- Name conflicts are skipped automatically so existing manual tools keep priority.
-
-This means that when you add a new API endpoint to the OpenAPI spec, it can become
-available as an MCP tool without writing a manual MCP tool definition.
-
-MCP usage examples:
-
-1) Natural-language dashboard:
-
-```text
-Quiero un dashboard con estado del pipeline, top 10 por rotacion, alertas y heatmap para station 130
-```
-
-2) `generate_dashboard` with ad-hoc `customWidgets`:
-
-```json
-{
-  "request": "Dashboard de operaciones con paneles personalizados",
-  "customWidgets": [
-    {
-      "id": "rows_total",
-      "title": "Filas totales del pipeline",
-      "sourceEndpoint": "status",
-      "mode": "kpi",
-      "valuePath": "pipeline.totalRowsCollected"
-    },
-    {
-      "id": "ocupacion_hora",
-      "title": "Ocupacion media por hora",
-      "sourceEndpoint": "patterns",
-      "sourceParams": { "stationId": "130" },
-      "mode": "timeseries",
-      "xKey": "hour",
-      "yKey": "occupancyAvg"
-    },
-    {
-      "id": "alertas_tabla",
-      "title": "Tabla de alertas",
-      "sourceEndpoint": "alerts",
-      "sourceParams": { "limit": 20 },
-      "mode": "table",
-      "collectionPath": "alerts",
-      "limit": 20
-    }
-  ]
-}
-```
-
-3) HTTP test for the live dashboard API:
-
-```bash
-curl -X POST "http://localhost:3000/api/dashboard/live" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "request": "Panel ad hoc",
-    "customWidgets": [
-      {
-        "id": "rows_total",
-        "title": "Filas pipeline",
-        "sourceEndpoint": "status",
-        "mode": "kpi",
-        "valuePath": "pipeline.totalRowsCollected"
-      }
-    ]
-  }'
-```
-
-Web UI tip:
-
-- Open `http://localhost:3000/dashboard/live` and use "Widgets ad hoc (JSON opcional)" to paste `customWidgets` directly.
+- System health and ingestion status.
+- Station map with live availability.
+- Active alerts and bottleneck rankings.
+- Hourly patterns and occupancy heatmap by station.
+- Mobility flow analysis and daily demand curve.
 
 ## Production Deployment (Docker Compose)
 
