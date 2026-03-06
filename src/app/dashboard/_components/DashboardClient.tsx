@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   AlertsResponse,
@@ -61,6 +62,7 @@ const TIME_WINDOWS: TimeWindow[] = [
   { id: '24h', label: 'Ultimas 24h', mobilityDays: 1, demandDays: 7 },
   { id: '7d', label: '7 dias', mobilityDays: 7, demandDays: 14 },
   { id: '30d', label: 'Mes', mobilityDays: 30, demandDays: 30 },
+  { id: '365d', label: 'Anual', mobilityDays: 365, demandDays: 365 },
 ];
 
 const EMPTY_MOBILITY_PREVIEW: MobilityPreviewData = {
@@ -78,14 +80,38 @@ function normalizeText(value: string): string {
     .trim();
 }
 
+function resolveTimeWindowId(value: string | null): string {
+  if (!value) {
+    return TIME_WINDOWS[1]?.id ?? '7d';
+  }
+
+  return TIME_WINDOWS.some((window) => window.id === value)
+    ? value
+    : (TIME_WINDOWS[1]?.id ?? '7d');
+}
+
+function resolveStationId(stations: StationsResponse['stations'], value: string | null): string {
+  if (value && stations.some((station) => station.id === value)) {
+    return value;
+  }
+
+  return stations[0]?.id ?? '';
+}
+
 export function DashboardClient({ initialData }: DashboardClientProps) {
-  const [selectedStationId, setSelectedStationId] = useState(
-    initialData.stations.stations[0]?.id ?? ''
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [selectedStationId, setSelectedStationId] = useState(() =>
+    resolveStationId(initialData.stations.stations, searchParams.get('stationId'))
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeWindowId, setActiveWindowId] = useState(TIME_WINDOWS[1]?.id ?? '7d');
+  const [activeWindowId, setActiveWindowId] = useState(() =>
+    resolveTimeWindowId(searchParams.get('timeWindow'))
+  );
   const [mobilityPreview, setMobilityPreview] =
     useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
+  const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
 
   const activeWindow =
     TIME_WINDOWS.find((window) => window.id === activeWindowId) ?? TIME_WINDOWS[1];
@@ -97,6 +123,47 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       null
     );
   }, [initialData.stations.stations, selectedStationId]);
+
+  useEffect(() => {
+    const stationIdFromUrl = resolveStationId(initialData.stations.stations, searchParams.get('stationId'));
+    const windowIdFromUrl = resolveTimeWindowId(searchParams.get('timeWindow'));
+
+    setSelectedStationId((current) =>
+      current === stationIdFromUrl ? current : stationIdFromUrl
+    );
+
+    setActiveWindowId((current) =>
+      current === windowIdFromUrl ? current : windowIdFromUrl
+    );
+  }, [initialData.stations.stations, searchParams]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    let hasChanges = false;
+
+    if (nextParams.get('timeWindow') !== activeWindowId) {
+      nextParams.set('timeWindow', activeWindowId);
+      hasChanges = true;
+    }
+
+    if (selectedStationId) {
+      if (nextParams.get('stationId') !== selectedStationId) {
+        nextParams.set('stationId', selectedStationId);
+        hasChanges = true;
+      }
+    } else if (nextParams.has('stationId')) {
+      nextParams.delete('stationId');
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      return;
+    }
+
+    const nextQuery = nextParams.toString();
+    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    window.history.replaceState(window.history.state, '', nextUrl);
+  }, [activeWindowId, pathname, searchParams, selectedStationId]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -121,6 +188,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     let isActive = true;
 
     const refreshMobilityPreview = async () => {
+      if (isActive) {
+        setIsMobilityPreviewLoading(true);
+      }
+
       try {
         const searchParams = new URLSearchParams({
           mobilityDays: String(activeWindow.mobilityDays),
@@ -155,6 +226,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         if (isActive) {
           setMobilityPreview(EMPTY_MOBILITY_PREVIEW);
         }
+      } finally {
+        if (isActive) {
+          setIsMobilityPreviewLoading(false);
+        }
       }
     };
 
@@ -188,6 +263,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                   key={window.id}
                   type="button"
                   onClick={() => setActiveWindowId(window.id)}
+                  aria-pressed={activeWindowId === window.id}
                   className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${
                     activeWindowId === window.id
                       ? 'bg-[var(--accent)] text-white shadow-sm'
@@ -214,6 +290,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             <button type="button" className="icon-button" aria-label="Notificaciones">
               N
             </button>
+            <Link
+              href="/dashboard/conclusiones"
+              className="icon-button"
+              aria-label="Conclusiones de movilidad"
+            >
+              Conclusiones
+            </Link>
             <Link href="/dashboard/ayuda" className="icon-button" aria-label="Centro de ayuda">
               Ayuda
             </Link>
@@ -245,7 +328,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
           <p className="text-xs text-[var(--muted)]">
             Estaciones: {initialData.stations.stations.length} · Alertas activas:{' '}
-            {initialData.alerts.alerts.length} · Ultima consulta: {initialData.status.timestamp}
+            {initialData.alerts.alerts.length} · Ultima consulta: {initialData.status.timestamp} · Ventana:{' '}
+            {activeWindow.label}
+            {isMobilityPreviewLoading ? ' (actualizando...)' : ''}
           </p>
 
           <div className="flex items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
@@ -254,6 +339,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 key={window.id}
                 type="button"
                 onClick={() => setActiveWindowId(window.id)}
+                aria-pressed={activeWindowId === window.id}
                 className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
                   activeWindowId === window.id
                     ? 'bg-[var(--accent)] text-white'
@@ -281,7 +367,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <DemandFlowCard dailyDemand={mobilityPreview.dailyDemand} />
+        <DemandFlowCard
+          dailyDemand={mobilityPreview.dailyDemand}
+          windowLabel={activeWindow.label}
+          requestedDays={activeWindow.demandDays}
+        />
         <RankingsTable rankings={initialData.rankings} stations={initialData.stations.stations} />
         <NeighborhoodLoadCard stations={initialData.stations.stations} />
       </div>
@@ -315,7 +405,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         onSelectStation={setSelectedStationId}
       />
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="dashboard-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
             Detalle de estacion
@@ -343,6 +433,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Ir a analisis de flujo
+          </Link>
+        </article>
+
+        <article className="dashboard-card">
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
+            Conclusiones diarias
+          </h3>
+          <p className="text-sm text-[var(--muted)]">
+            Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
+          </p>
+          <Link
+            href="/dashboard/conclusiones"
+            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+          >
+            Ver conclusiones
           </Link>
         </article>
 

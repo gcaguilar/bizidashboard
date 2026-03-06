@@ -144,7 +144,7 @@ export async function getActiveAlerts(limit = 50): Promise<
 export async function getHourlyMobilitySignals(
   days = 14
 ): Promise<HourlyMobilitySignalRow[]> {
-  const safeDays = Math.max(1, Math.min(90, Math.floor(days)));
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
   const daysModifier = `-${safeDays} days`;
 
   return prisma.$queryRaw<HourlyMobilitySignalRow[]>`
@@ -177,18 +177,35 @@ export async function getHourlyMobilitySignals(
 }
 
 export async function getDailyDemandCurve(days = 30): Promise<DailyDemandRow[]> {
-  const safeDays = Math.max(1, Math.min(120, Math.floor(days)));
-  const daysModifier = `-${safeDays} days`;
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+  const startOffsetDays = Math.max(0, safeDays - 1);
+  const daysModifier = `-${startOffsetDays} days`;
 
   return prisma.$queryRaw<DailyDemandRow[]>`
+    WITH RECURSIVE date_series(day) AS (
+      SELECT date('now', ${daysModifier})
+      UNION ALL
+      SELECT date(day, '+1 day')
+      FROM date_series
+      WHERE day < date('now')
+    ),
+    daily AS (
+      SELECT
+        date(bucketStart) AS day,
+        SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
+        AVG(occupancyAvg) AS avgOccupancy,
+        SUM(sampleCount) AS sampleCount
+      FROM HourlyStationStat
+      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
+      GROUP BY date(bucketStart)
+    )
     SELECT
-      date(bucketStart) AS day,
-      SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
-      AVG(occupancyAvg) AS avgOccupancy,
-      SUM(sampleCount) AS sampleCount
-    FROM HourlyStationStat
-    WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
-    GROUP BY date(bucketStart)
-    ORDER BY day ASC;
+      date_series.day AS day,
+      COALESCE(daily.demandScore, 0) AS demandScore,
+      COALESCE(daily.avgOccupancy, 0) AS avgOccupancy,
+      COALESCE(daily.sampleCount, 0) AS sampleCount
+    FROM date_series
+    LEFT JOIN daily ON daily.day = date_series.day
+    ORDER BY date_series.day ASC;
   `;
 }
