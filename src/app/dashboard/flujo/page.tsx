@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchStations } from '@/lib/api';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MobilityInsights } from '../_components/MobilityInsights';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
@@ -40,22 +40,26 @@ export default async function DashboardFlowPage() {
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h1>
             </div>
-            <nav className="hidden items-center gap-5 md:flex">
-              <Link href="/dashboard" className="text-sm font-medium text-[var(--muted)]">
-                Inicio
-              </Link>
-              <span className="border-b-2 border-[var(--accent)] pb-1 text-sm font-bold text-[var(--foreground)]">
-                Analisis de flujo
-              </span>
-              <Link href="/dashboard/estaciones" className="text-sm font-medium text-[var(--muted)]">
-                Estaciones
-              </Link>
-            </nav>
+            <DashboardRouteLinks
+              activeRoute="flow"
+              routes={['dashboard', 'stations', 'flow', 'conclusions']}
+              variant="inline"
+              className="hidden items-center gap-5 md:flex"
+            />
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard/ayuda" className="icon-button">
-              Ayuda
-            </Link>
+            <DashboardRouteLinks
+              activeRoute="flow"
+              routes={['dashboard', 'stations', 'conclusions', 'help']}
+              variant="chips"
+              className="flex items-center gap-2 md:hidden"
+            />
+            <DashboardRouteLinks
+              activeRoute="flow"
+              routes={['help']}
+              variant="chips"
+              className="hidden items-center gap-2 md:flex"
+            />
             <a
               href={REPO_URL}
               target="_blank"
