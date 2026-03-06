@@ -162,6 +162,16 @@ model AnalyticsWatermark {
   updatedAt        DateTime @updatedAt
 }
 
+model MobilityBriefingCache {
+  dateKey       String   @id
+  payload       String
+  sourceLastDay DateTime?
+  generatedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([generatedAt])
+}
+
 model JobLock {
   name          String   @id
   lockedAt      DateTime?
