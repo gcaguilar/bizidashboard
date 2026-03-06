@@ -7,7 +7,11 @@ type DailyDemandRow = {
 
 type DemandFlowCardProps = {
   dailyDemand: DailyDemandRow[];
+  windowLabel: string;
+  requestedDays: number;
 };
+
+const MAX_VISIBLE_BARS = 12;
 
 function formatDayLabel(day: string): string {
   if (typeof day !== 'string' || day.length < 10) {
@@ -17,17 +21,45 @@ function formatDayLabel(day: string): string {
   return `${day.slice(8, 10)}/${day.slice(5, 7)}`;
 }
 
-export function DemandFlowCard({ dailyDemand }: DemandFlowCardProps) {
-  const rows = dailyDemand.slice(-12);
+export function DemandFlowCard({
+  dailyDemand,
+  windowLabel,
+  requestedDays,
+}: DemandFlowCardProps) {
+  const rows = (() => {
+    if (dailyDemand.length <= MAX_VISIBLE_BARS) {
+      return dailyDemand;
+    }
+
+    const sampledRows: DailyDemandRow[] = [];
+    let previousIndex = -1;
+
+    for (let i = 0; i < MAX_VISIBLE_BARS; i += 1) {
+      const index = Math.round((i * (dailyDemand.length - 1)) / (MAX_VISIBLE_BARS - 1));
+
+      if (index === previousIndex) {
+        continue;
+      }
+
+      sampledRows.push(dailyDemand[index] as DailyDemandRow);
+      previousIndex = index;
+    }
+
+    return sampledRows;
+  })();
+
   const maxDemand = Math.max(1, ...rows.map((row) => Number(row.demandScore) || 0));
+  const daysWithSamples = dailyDemand.filter((row) => Number(row.sampleCount) > 0).length;
 
   return (
     <section className="dashboard-card h-full">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
           Flujo diario de demanda
         </h3>
-        <span className="text-xs text-[var(--muted)]">Indice de demanda</span>
+        <span className="text-right text-xs text-[var(--muted)]">
+          {windowLabel} · {dailyDemand.length}/{requestedDays} dias
+        </span>
       </div>
 
       {rows.length === 0 ? (
@@ -61,6 +93,11 @@ export function DemandFlowCard({ dailyDemand }: DemandFlowCardProps) {
             <span>{formatDayLabel(rows[Math.floor(rows.length / 2)]?.day ?? '')}</span>
             <span>{formatDayLabel(rows[rows.length - 1]?.day ?? '')}</span>
           </div>
+          {daysWithSamples < requestedDays ? (
+            <p className="mt-2 text-[11px] text-[var(--muted)]">
+              Datos reales en {daysWithSamples}/{requestedDays} dias; el resto se completa como 0 por falta de historico.
+            </p>
+          ) : null}
         </>
       )}
     </section>

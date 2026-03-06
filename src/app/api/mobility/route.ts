@@ -37,20 +37,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     searchParams.get('mobilityDays'),
     DEFAULT_MOBILITY_DAYS,
     1,
-    90
+    365
   );
   const demandDays = parseDays(
     searchParams.get('demandDays'),
     DEFAULT_DEMAND_DAYS,
     1,
-    120
+    365
   );
 
   if (mobilityDays === null || demandDays === null) {
     return NextResponse.json(
       {
         error:
-          'Invalid days parameters. mobilityDays must be 1..90 and demandDays 1..120.',
+          'Invalid days parameters. mobilityDays and demandDays must be 1..365.',
       },
       { status: 400 }
     );

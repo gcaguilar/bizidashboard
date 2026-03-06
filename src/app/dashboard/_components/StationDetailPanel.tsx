@@ -391,7 +391,7 @@ export function StationDetailPanel({
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-2 md:items-end">
+          <div className="flex flex-col items-start md:items-end">
             <div className="text-right">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--muted)]">
                 Ultima actualizacion
@@ -400,13 +400,6 @@ export function StationDetailPanel({
                 {new Date(station.recordedAt).toLocaleString('es-ES')}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
-            >
-              Forzar refresco de datos
-            </button>
           </div>
         </div>
       </header>
