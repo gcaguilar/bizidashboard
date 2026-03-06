@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
+import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -310,17 +311,12 @@ export function HelpCenterClient() {
               </div>
               <h2 className="text-lg font-bold text-[var(--foreground)]">Bizi Analitica</h2>
             </div>
-            <nav className="hidden items-center gap-6 md:flex">
-              <Link href="/dashboard" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--accent)]">
-                Inicio
-              </Link>
-              <Link href="/dashboard/estaciones" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--accent)]">
-                Estaciones
-              </Link>
-              <span className="border-b-2 border-[var(--accent)] pb-1 text-sm font-bold text-[var(--accent)]">
-                Ayuda
-              </span>
-            </nav>
+            <DashboardRouteLinks
+              activeRoute="help"
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              variant="inline"
+              className="hidden items-center gap-6 md:flex"
+            />
           </div>
 
           <div className="flex items-center gap-3">
@@ -333,18 +329,12 @@ export function HelpCenterClient() {
                 placeholder="Buscar ayuda..."
               />
             </label>
-            <Link href="/dashboard" className="icon-button" aria-label="Volver">
+            <Link href="/dashboard" className="icon-button md:hidden" aria-label="Volver">
               Inicio
             </Link>
-            <a
-              href="/api/history"
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Historico completo"
-            >
+            <Link href="/api/history" className="icon-button" aria-label="Historico completo">
               Historico
-            </a>
+            </Link>
             <a
               href={REPO_URL}
               target="_blank"
@@ -399,22 +389,18 @@ export function HelpCenterClient() {
             </a>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <a
+              <Link
                 href="/api/history"
-                target="_blank"
-                rel="noreferrer"
                 className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white"
               >
                 Ver historico completo
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/api/openapi.json"
-                target="_blank"
-                rel="noreferrer"
                 className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
               >
                 Definicion API
-              </a>
+              </Link>
             </div>
           </aside>
         </div>
@@ -482,40 +468,27 @@ export function HelpCenterClient() {
           <div className="max-w-md">
             <h2 className="text-2xl font-bold">No encontraste lo que buscabas?</h2>
             <p className="mt-2 text-sm text-white/85">
-              Puedes consultar la definicion de la API y descargar el historico agregado disponible desde el primer registro.
+              Si necesitas soporte directo o quieres compartir feedback, puedes escribirnos y consultar el historico agregado disponible.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <a
-              href="/api/openapi.json"
+              href="https://www.linkedin.com/in/guillermocastella/"
               target="_blank"
               rel="noreferrer"
               className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[var(--accent)]"
             >
-              Definicion API
+              Contacto
             </a>
-            <a
+            <Link
               href="/api/history"
-              target="_blank"
-              rel="noreferrer"
               className="rounded-lg border border-white/30 bg-black/20 px-6 py-3 text-sm font-bold text-white"
             >
               Ver todos los datos
-            </a>
+            </Link>
           </div>
         </div>
       </main>
-
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-8 md:px-10">
-        <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 text-xs text-[var(--muted)] md:flex-row">
-          <span>Panel de analitica Bizi Zaragoza</span>
-          <div className="flex gap-6">
-            <span>Privacidad</span>
-            <span>Cookies</span>
-            <span>Terminos de servicio</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

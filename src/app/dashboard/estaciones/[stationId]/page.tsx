@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
@@ -12,6 +11,7 @@ import {
   type StationsResponse,
 } from '@/lib/api';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { Heatmap } from '../../_components/Heatmap';
 import { HourlyCharts } from '../../_components/HourlyCharts';
 import { MethodologyPanel } from '../../_components/MethodologyPanel';
@@ -21,19 +21,6 @@ import { StationDetailPanel } from '../../_components/StationDetailPanel';
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 export const dynamic = 'force-dynamic';
-
-export const metadata: Metadata = {
-  title: 'Detalle de estacion',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard/estaciones',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Detalle de estacion`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard/estaciones',
-  },
-};
 
 type StationDetailPageProps = {
   params: Promise<{
@@ -47,6 +34,25 @@ function decodeStationId(encodedStationId: string): string {
   } catch {
     return encodedStationId;
   }
+}
+
+export async function generateMetadata({ params }: StationDetailPageProps): Promise<Metadata> {
+  const { stationId: encodedStationId } = await params;
+  const stationId = decodeStationId(encodedStationId);
+  const canonicalPath = `/dashboard/estaciones/${encodeURIComponent(stationId)}`;
+
+  return {
+    title: `Detalle de estacion ${stationId}`,
+    description: SITE_DESCRIPTION,
+    alternates: {
+      canonical: canonicalPath,
+    },
+    openGraph: {
+      title: `${SITE_TITLE} - Detalle de estacion ${stationId}`,
+      description: SITE_DESCRIPTION,
+      url: canonicalPath,
+    },
+  };
 }
 
 export default async function StationDetailPage({ params }: StationDetailPageProps) {
@@ -116,15 +122,12 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="icon-button">
-              Inicio
-            </Link>
-            <Link href="/dashboard/estaciones" className="icon-button">
-              Estaciones
-            </Link>
-            <Link href="/dashboard/ayuda" className="icon-button">
-              Ayuda
-            </Link>
+            <DashboardRouteLinks
+              activeRoute="stations"
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              variant="chips"
+              className="flex items-center gap-2"
+            />
             <a
               href={REPO_URL}
               target="_blank"
