@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
@@ -19,7 +20,7 @@ import {
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 
-  const PERIODS = [
+const PERIODS = [
   { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
   { key: 'morning', label: 'Manana', from: 6, to: 11 },
   { key: 'midday', label: 'Mediodia', from: 12, to: 16 },
@@ -93,6 +94,18 @@ function getPeriodByHour(hour: number): PeriodKey {
   return 'night';
 }
 
+function isPeriodKey(value: string | null): value is PeriodKey {
+  if (!value) {
+    return false;
+  }
+
+  return PERIODS.some((period) => period.key === value);
+}
+
+function resolvePeriod(value: string | null): PeriodKey {
+  return isPeriodKey(value) ? value : 'all';
+}
+
 function getDayLabel(day: string): string {
   if (typeof day !== 'string' || day.length < 10) {
     return day;
@@ -118,11 +131,45 @@ export function MobilityInsights({
   mobilityDays = 14,
   demandDays = 30,
 }: MobilityInsightsProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activePeriod, setActivePeriod] = useState<PeriodKey>('all');
+  const [activePeriod, setActivePeriod] = useState<PeriodKey>(() =>
+    resolvePeriod(searchParams.get('period'))
+  );
+
+  useEffect(() => {
+    const periodFromUrl = resolvePeriod(searchParams.get('period'));
+
+    setActivePeriod((current) => (current === periodFromUrl ? current : periodFromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    let hasChanges = false;
+
+    if (activePeriod === 'all') {
+      if (nextParams.has('period')) {
+        nextParams.delete('period');
+        hasChanges = true;
+      }
+    } else if (nextParams.get('period') !== activePeriod) {
+      nextParams.set('period', activePeriod);
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      return;
+    }
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [activePeriod, pathname, router, searchParams]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -418,6 +465,7 @@ export function MobilityInsights({
             <button
               key={period.key}
               type="button"
+              aria-pressed={activePeriod === period.key}
               className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
                 activePeriod === period.key
                   ? 'bg-[var(--accent)] text-white shadow-sm'

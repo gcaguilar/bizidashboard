@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -44,9 +45,12 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
             <h1 className="text-xl font-bold text-[var(--foreground)]">Directorio de estaciones</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="icon-button">
-              Volver al inicio
-            </Link>
+            <DashboardRouteLinks
+              activeRoute="stations"
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              variant="chips"
+              className="flex items-center gap-2"
+            />
             <a
               href={REPO_URL}
               target="_blank"

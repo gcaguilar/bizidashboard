@@ -18,7 +18,15 @@ type DistrictSlice = {
   stationCount: number;
 };
 
-const SLICE_COLORS = ['#ea0615', 'rgba(234, 6, 21, 0.65)', 'rgba(234, 6, 21, 0.35)'];
+const SLICE_COLORS = [
+  '#ea0615',
+  'rgba(234, 6, 21, 0.82)',
+  'rgba(234, 6, 21, 0.68)',
+  'rgba(234, 6, 21, 0.56)',
+  'rgba(234, 6, 21, 0.44)',
+  'rgba(234, 6, 21, 0.32)',
+];
+const MAX_VISIBLE_DISTRICTS = 6;
 
 function getOccupancy(station: StationSnapshot): number {
   if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
@@ -88,7 +96,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
     return Array.from(counter.entries())
       .map(([district, stationCount]) => ({ district, stationCount }))
       .sort((left, right) => right.stationCount - left.stationCount)
-      .slice(0, 3);
+      .slice(0, MAX_VISIBLE_DISTRICTS);
   }, [stationDistrictMap, stations]);
 
   const totalStations = stations.length;

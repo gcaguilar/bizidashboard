@@ -146,7 +146,7 @@ export const openApiDocument = {
             schema: {
               type: 'integer',
               minimum: 1,
-              maximum: 90,
+              maximum: 365,
               default: 14
             }
           },
@@ -158,7 +158,7 @@ export const openApiDocument = {
             schema: {
               type: 'integer',
               minimum: 1,
-              maximum: 120,
+              maximum: 365,
               default: 30
             }
           }
