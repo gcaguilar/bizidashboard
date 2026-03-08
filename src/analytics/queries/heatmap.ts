@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
+import { forEachSqliteBatch } from '@/analytics/sqlite';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 
 export interface RollupResult {
@@ -103,27 +104,29 @@ export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
   });
 
   if (rows.length > 0) {
-    const values = rows.map((row) =>
-      Prisma.sql`(${row.stationId}, ${row.dayOfWeek}, ${row.hour}, ${row.bikesAvg}, ${row.anchorsAvg}, ${row.occupancyAvg}, ${row.sampleCount})`
-    );
+    await forEachSqliteBatch(rows, 7, async (rowChunk) => {
+      const values = rowChunk.map((row) =>
+        Prisma.sql`(${row.stationId}, ${row.dayOfWeek}, ${row.hour}, ${row.bikesAvg}, ${row.anchorsAvg}, ${row.occupancyAvg}, ${row.sampleCount})`
+      );
 
-    await prisma.$executeRaw`
-      INSERT INTO StationHeatmapCell (
-        stationId,
-        dayOfWeek,
-        hour,
-        bikesAvg,
-        anchorsAvg,
-        occupancyAvg,
-        sampleCount
-      )
-      VALUES ${Prisma.join(values)}
-      ON CONFLICT(stationId, dayOfWeek, hour) DO UPDATE SET
-        bikesAvg = excluded.bikesAvg,
-        anchorsAvg = excluded.anchorsAvg,
-        occupancyAvg = excluded.occupancyAvg,
-        sampleCount = excluded.sampleCount;
-    `;
+      await prisma.$executeRaw`
+        INSERT INTO StationHeatmapCell (
+          stationId,
+          dayOfWeek,
+          hour,
+          bikesAvg,
+          anchorsAvg,
+          occupancyAvg,
+          sampleCount
+        )
+        VALUES ${Prisma.join(values)}
+        ON CONFLICT(stationId, dayOfWeek, hour) DO UPDATE SET
+          bikesAvg = excluded.bikesAvg,
+          anchorsAvg = excluded.anchorsAvg,
+          occupancyAvg = excluded.occupancyAvg,
+          sampleCount = excluded.sampleCount;
+      `;
+    });
 
     await setWatermark(HEATMAP_WATERMARK, windowEnd);
   }
