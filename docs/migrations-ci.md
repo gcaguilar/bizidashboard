@@ -16,5 +16,5 @@ Add it in:
 
 ## Health Check
 
-`npm run db:health` validates connectivity and confirms migrations are reachable.
+`pnpm run db:health` validates connectivity and confirms migrations are reachable.
 The workflow runs it after `prisma migrate deploy` on `main`.
