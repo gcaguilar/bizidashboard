@@ -12,33 +12,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Validate schema
         env:
           DATABASE_URL: file:./dev.db
-        run: npx prisma validate
+        run: pnpm exec prisma validate
 
       - name: Generate Prisma Client
         env:
           DATABASE_URL: file:./dev.db
-        run: npx prisma generate
+        run: pnpm exec prisma generate
 
       - name: Deploy migrations (production only)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma migrate deploy
+        run: pnpm exec prisma migrate deploy
 
       - name: Health check
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npm run db:health
+        run: pnpm run db:health
+
+      - name: Warn when DATABASE_URL is missing on main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DATABASE_URL == ''
+        run: echo "::warning::Skipping migrate deploy and db:health because DATABASE_URL secret is not configured."
