@@ -26,6 +26,17 @@ const metricsCache = {
   } | null
 }
 
+const METRICS_CACHE_TTL_MS = 30_000
+
+let metricsSnapshotCache: {
+  value: PipelineMetrics
+  expiresAt: number
+} | null = null
+
+function clearMetricsSnapshotCache(): void {
+  metricsSnapshotCache = null
+}
+
 /**
  * Pipeline health status
  */
@@ -181,31 +192,25 @@ async function getLastStationCount(): Promise<number> {
 async function getAverageStationsPerPoll(): Promise<number> {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    
-    // Get all timestamps in the last 7 days with their counts
-    const timestamps = await prisma.stationStatus.groupBy({
+
+    const groupedPolls = await prisma.stationStatus.groupBy({
       by: ['recordedAt'],
       where: {
         recordedAt: {
           gte: sevenDaysAgo
         }
+      },
+      _count: {
+        _all: true
       }
     })
-    
-    if (timestamps.length === 0) {
+
+    if (groupedPolls.length === 0) {
       return 0
     }
-    
-    // Get counts for each timestamp
-    let totalStations = 0
-    for (const { recordedAt } of timestamps) {
-      const count = await prisma.stationStatus.count({
-        where: { recordedAt }
-      })
-      totalStations += count
-    }
-    
-    return Math.round(totalStations / timestamps.length)
+
+    const totalStations = groupedPolls.reduce((sum, poll) => sum + poll._count._all, 0)
+    return Math.round(totalStations / groupedPolls.length)
   } catch (error) {
     console.error('[Metrics] Error calculating average:', error)
     return 0
@@ -306,6 +311,8 @@ export function recordCollection(result: {
     stationsCollected: result.stationsCollected,
     timestamp: result.timestamp
   }
+
+  clearMetricsSnapshotCache()
   
   if (result.success) {
     metricsCache.consecutiveFailures = 0
@@ -327,6 +334,7 @@ export function recordCollection(result: {
  */
 export function incrementValidationErrors(count: number = 1): void {
   metricsCache.lastValidationErrors += count
+  clearMetricsSnapshotCache()
   console.warn(`[Metrics] ${count} validation error(s) recorded. Total: ${metricsCache.lastValidationErrors}`)
 }
 
@@ -336,6 +344,7 @@ export function incrementValidationErrors(count: number = 1): void {
  */
 export function resetValidationErrors(): void {
   metricsCache.lastValidationErrors = 0
+  clearMetricsSnapshotCache()
   console.log('[Metrics] Validation errors reset')
 }
 
@@ -345,12 +354,19 @@ export function resetValidationErrors(): void {
  */
 export function resetConsecutiveFailures(): void {
   metricsCache.consecutiveFailures = 0
+  clearMetricsSnapshotCache()
 }
 
 /**
  * Get current pipeline metrics
  */
 export async function getMetrics(): Promise<PipelineMetrics> {
+  const now = Date.now()
+
+  if (metricsSnapshotCache && metricsSnapshotCache.expiresAt > now) {
+    return metricsSnapshotCache.value
+  }
+
   const [
     lastSuccessfulPoll,
     totalRowsCollected,
@@ -374,7 +390,7 @@ export async function getMetrics(): Promise<PipelineMetrics> {
     pollsLast24Hours
   )
   
-  return {
+  const metrics: PipelineMetrics = {
     lastSuccessfulPoll,
     totalRowsCollected,
     pollsLast24Hours,
@@ -386,6 +402,13 @@ export async function getMetrics(): Promise<PipelineMetrics> {
     healthStatus,
     healthReason
   }
+
+  metricsSnapshotCache = {
+    value: metrics,
+    expiresAt: now + METRICS_CACHE_TTL_MS
+  }
+
+  return metrics
 }
 
 /**
