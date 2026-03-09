@@ -25,7 +25,7 @@ import { formatPercent } from '@/lib/format';
 
 const PERIODS = [
   { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
-  { key: 'morning', label: 'Manana', from: 6, to: 11 },
+  { key: 'morning', label: 'Mañana', from: 6, to: 11 },
   { key: 'midday', label: 'Mediodia', from: 12, to: 16 },
   { key: 'evening', label: 'Tarde', from: 17, to: 21 },
   { key: 'night', label: 'Noche', from: 22, to: 5 },

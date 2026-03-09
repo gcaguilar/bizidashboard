@@ -51,6 +51,14 @@ export function MapPanel({
   const mapRef = useRef<MapRef | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
 
+  const handleZoomIn = () => {
+    mapRef.current?.getMap()?.zoomIn({ duration: 240 });
+  };
+
+  const handleZoomOut = () => {
+    mapRef.current?.getMap()?.zoomOut({ duration: 240 });
+  };
+
   const selectedStation = useMemo(() => {
     if (!selectedStationId) {
       return null;
@@ -88,6 +96,7 @@ export function MapPanel({
       <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
         <button
           type="button"
+          onClick={handleZoomIn}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Acercar"
         >
@@ -95,6 +104,7 @@ export function MapPanel({
         </button>
         <button
           type="button"
+          onClick={handleZoomOut}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Alejar"
         >
