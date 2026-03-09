@@ -5,8 +5,10 @@ import {
 } from '@/jobs/analytics-aggregation';
 
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
+const ANALYTICS_START_DELAY_MS = 2 * 60 * 1000;
 
 let jobsInitialized = false;
+let analyticsStartTimer: ReturnType<typeof setTimeout> | null = null;
 
 function shouldEnableInternalJobs(): boolean {
   if (process.env.NODE_ENV === 'test') {
@@ -38,9 +40,20 @@ export function initJobs(): void {
 
   console.log('[Jobs] Initializing background jobs...');
   startCollectionJob();
-  startAnalyticsAggregationJob();
+
+  analyticsStartTimer = setTimeout(() => {
+    startAnalyticsAggregationJob();
+    analyticsStartTimer = null;
+    console.log('[Jobs] Analytics job started after startup delay');
+  }, ANALYTICS_START_DELAY_MS);
+
+  if (typeof analyticsStartTimer.unref === 'function') {
+    analyticsStartTimer.unref();
+  }
+
   jobsInitialized = true;
   console.log('[Jobs] Collection job started');
+  console.log('[Jobs] Analytics job scheduled to start in 120 seconds');
 }
 
 /**
@@ -52,6 +65,12 @@ export function shutdownJobs(): void {
   }
 
   console.log('[Jobs] Shutting down background jobs...');
+
+  if (analyticsStartTimer) {
+    clearTimeout(analyticsStartTimer);
+    analyticsStartTimer = null;
+  }
+
   stopCollectionJob();
   stopAnalyticsAggregationJob();
   jobsInitialized = false;
