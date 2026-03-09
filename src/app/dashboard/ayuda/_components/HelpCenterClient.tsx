@@ -390,6 +390,16 @@ export function HelpCenterClient() {
     return Array.from(map.entries());
   }, [filteredItems]);
 
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    for (const item of FAQ_ITEMS) {
+      counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+    }
+
+    return counts;
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     let isActive = true;
@@ -540,6 +550,8 @@ export function HelpCenterClient() {
             const normalizedCategory = normalize(category);
             const isCategoryFilterActive = normalize(query) === normalizedCategory;
             const categoryMatches = filteredItems.filter((item) => item.category === category).length;
+            const totalInCategory = categoryCounts.get(category) ?? 0;
+            const showFilteredCount = normalize(query).length > 0;
 
             return (
               <button
@@ -561,7 +573,9 @@ export function HelpCenterClient() {
                 </div>
                 <h3 className="text-xl font-bold text-[var(--foreground)]">{category}</h3>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  {categoryMatches} respuestas disponibles.
+                  {showFilteredCount
+                    ? `${categoryMatches} de ${totalInCategory} preguntas coinciden.`
+                    : `${totalInCategory} preguntas disponibles.`}
                 </p>
               </button>
             );
