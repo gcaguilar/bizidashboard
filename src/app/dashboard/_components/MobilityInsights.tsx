@@ -6,6 +6,9 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -45,12 +48,37 @@ type DailyDemandRow = {
   sampleCount: number;
 };
 
+type TransitProviderKey = 'tram' | 'bus' | 'combined';
+
+type HourlyTransitImpactRow = {
+  provider: TransitProviderKey;
+  hour: number;
+  avgDeparturesWithTransit: number;
+  avgDeparturesWithoutTransit: number;
+  uplift: number;
+  upliftRatio: number | null;
+  avgArrivalPressure: number;
+  totalArrivalEvents: number;
+  samplesWithTransit: number;
+  samplesWithoutTransit: number;
+};
+
+type TransitImpactPayload = {
+  lookbackDays: number;
+  methodology: string;
+  minimumRecommendedSamples: number;
+  hasLowCoverage: boolean;
+  warning: string | null;
+  hourly: HourlyTransitImpactRow[];
+};
+
 type MobilityResponse = {
   mobilityDays: number;
   demandDays: number;
   methodology: string;
   hourlySignals: MobilitySignalRow[];
   dailyDemand: DailyDemandRow[];
+  transitImpact?: TransitImpactPayload;
   generatedAt: string;
 };
 
@@ -77,6 +105,18 @@ type MobilityInsightsProps = {
   mobilityDays?: number;
   demandDays?: number;
 };
+
+const TRANSIT_PROVIDER_ORDER: TransitProviderKey[] = ['combined', 'tram', 'bus'];
+
+const TRANSIT_PROVIDER_LABELS: Record<TransitProviderKey, string> = {
+  combined: 'Tram + bus',
+  tram: 'Tranvia',
+  bus: 'Bus',
+};
+
+function isTransitProviderKey(value: string): value is TransitProviderKey {
+  return value === 'tram' || value === 'bus' || value === 'combined';
+}
 
 function getPeriodByHour(hour: number): PeriodKey {
   if (hour >= 6 && hour <= 11) {
@@ -142,6 +182,8 @@ export function MobilityInsights({
   const [activePeriod, setActivePeriod] = useState<PeriodKey>(() =>
     resolvePeriod(searchParams.get('period'))
   );
+  const [activeTransitProvider, setActiveTransitProvider] =
+    useState<TransitProviderKey>('combined');
 
   useEffect(() => {
     const periodFromUrl = resolvePeriod(searchParams.get('period'));
@@ -304,9 +346,7 @@ export function MobilityInsights({
           volume: values.outbound + values.inbound,
           net: values.inbound - values.outbound,
         }))
-        .filter((row) => row.volume > 0)
-        .sort((left, right) => right.volume - left.volume)
-        .slice(0, 10);
+        .sort((left, right) => right.volume - left.volume);
 
       const totalInbound = districtRows.reduce((sum, row) => sum + row.inbound, 0);
       const matrix = districtRows.map((origin) =>
@@ -369,7 +409,7 @@ export function MobilityInsights({
       });
     });
 
-    return candidates.sort((left, right) => right.flow - left.flow).slice(0, 6);
+    return candidates.sort((left, right) => right.flow - left.flow).slice(0, 12);
   }, [activeInsights]);
 
   const selectedDistrict = selectedStationId
@@ -418,12 +458,121 @@ export function MobilityInsights({
     }));
   }, [mobilityData]);
 
+  const transitImpactRows = useMemo<HourlyTransitImpactRow[]>(() => {
+    const rows = mobilityData?.transitImpact?.hourly;
+
+    if (!rows || !Array.isArray(rows)) {
+      return [];
+    }
+
+    return rows
+      .map((row) => {
+        const rawProvider = String(row.provider);
+        const provider: TransitProviderKey = isTransitProviderKey(rawProvider)
+          ? rawProvider
+          : 'combined';
+
+        return {
+          provider,
+          hour: Number(row.hour),
+          avgDeparturesWithTransit: Number(row.avgDeparturesWithTransit),
+          avgDeparturesWithoutTransit: Number(row.avgDeparturesWithoutTransit),
+          uplift: Number(row.uplift),
+          upliftRatio:
+            row.upliftRatio === null || row.upliftRatio === undefined
+              ? null
+              : Number(row.upliftRatio),
+          avgArrivalPressure: Number(row.avgArrivalPressure),
+          totalArrivalEvents: Number(row.totalArrivalEvents),
+          samplesWithTransit: Number(row.samplesWithTransit),
+          samplesWithoutTransit: Number(row.samplesWithoutTransit),
+        };
+      })
+      .filter((row) => Number.isFinite(row.hour));
+  }, [mobilityData]);
+
+  const availableTransitProviders = useMemo<TransitProviderKey[]>(() => {
+    const providers = new Set<TransitProviderKey>();
+
+    for (const row of transitImpactRows) {
+      providers.add(row.provider);
+    }
+
+    return TRANSIT_PROVIDER_ORDER.filter((provider) => providers.has(provider));
+  }, [transitImpactRows]);
+
+  useEffect(() => {
+    if (availableTransitProviders.length === 0) {
+      return;
+    }
+
+    if (!availableTransitProviders.includes(activeTransitProvider)) {
+      setActiveTransitProvider(availableTransitProviders[0] ?? 'combined');
+    }
+  }, [activeTransitProvider, availableTransitProviders]);
+
+  const transitHourlySeries = useMemo(() => {
+    const providerRows = transitImpactRows.filter(
+      (row) => row.provider === activeTransitProvider
+    );
+
+    return Array.from({ length: 24 }, (_, hour) => {
+      const row =
+        providerRows.find((candidate) => Number(candidate.hour) === hour) ?? null;
+
+      return {
+        hour,
+        label: `${String(hour).padStart(2, '0')}:00`,
+        withTransit: row ? Number(row.avgDeparturesWithTransit) : 0,
+        withoutTransit: row ? Number(row.avgDeparturesWithoutTransit) : 0,
+        uplift: row ? Number(row.uplift) : 0,
+        upliftRatio: row?.upliftRatio ?? null,
+        avgArrivalPressure: row ? Number(row.avgArrivalPressure) : 0,
+        totalArrivalEvents: row ? Number(row.totalArrivalEvents) : 0,
+        samplesWithTransit: row ? Number(row.samplesWithTransit) : 0,
+        samplesWithoutTransit: row ? Number(row.samplesWithoutTransit) : 0,
+      };
+    });
+  }, [activeTransitProvider, transitImpactRows]);
+
+  const transitSummary = useMemo(() => {
+    const validRows = transitHourlySeries.filter(
+      (row) => row.samplesWithTransit > 0 && row.samplesWithoutTransit > 0
+    );
+
+    if (validRows.length === 0) {
+      return {
+        avgUplift: 0,
+        positiveHours: 0,
+        topHour: null as number | null,
+        maxUplift: 0,
+        totalWithTransitSamples: 0,
+      };
+    }
+
+    const avgUplift =
+      validRows.reduce((sum, row) => sum + row.uplift, 0) / validRows.length;
+    const positiveHours = validRows.filter((row) => row.uplift > 0).length;
+    const topRow = [...validRows].sort((left, right) => right.uplift - left.uplift)[0] ?? null;
+
+    return {
+      avgUplift,
+      positiveHours,
+      topHour: topRow ? topRow.hour : null,
+      maxUplift: topRow ? topRow.uplift : 0,
+      totalWithTransitSamples: validRows.reduce(
+        (sum, row) => sum + row.samplesWithTransit,
+        0
+      ),
+    };
+  }, [transitHourlySeries]);
+
   const chordNodes = useMemo(() => {
     if (!activeInsights || activeInsights.districts.length === 0) {
       return [] as Array<{ district: string; x: number; y: number }>;
     }
 
-    const nodes = activeInsights.districts.slice(0, 6);
+    const nodes = activeInsights.districts;
     const radius = 115;
     const center = 140;
 
@@ -446,7 +595,7 @@ export function MobilityInsights({
 
     return topRoutes
       .filter((route) => nodeNames.has(route.origin) && nodeNames.has(route.destination))
-      .slice(0, 8);
+      .slice(0, 12);
   }, [activeInsights, chordNodes, topRoutes]);
 
   return (
@@ -496,7 +645,7 @@ export function MobilityInsights({
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
-              <span className="text-xs text-[var(--muted)]">Top {chordNodes.length} barrios</span>
+              <span className="text-xs text-[var(--muted)]">Barrios representados: {chordNodes.length}</span>
             </div>
 
             <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-soft)] py-4">
@@ -543,10 +692,7 @@ export function MobilityInsights({
 
             <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--muted)]">
               <span className="legend-item">
-                <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Alto volumen
-              </span>
-              <span className="legend-item">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#3b82f6]" /> Prioridad de salida
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Mayor flujo estimado
               </span>
             </div>
           </article>
@@ -619,7 +765,7 @@ export function MobilityInsights({
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
             <h3 className="text-base font-bold text-[var(--foreground)]">Balance neto por barrio</h3>
             <div className="mt-4 space-y-5">
-              {activeInsights.districts.slice(0, 5).map((district) => {
+              {activeInsights.districts.map((district) => {
                 const net = district.net;
                 const maxMagnitude = Math.max(1, district.volume);
                 const width = Math.min(50, (Math.abs(net) / maxMagnitude) * 100);
@@ -773,6 +919,155 @@ export function MobilityInsights({
                   </ResponsiveContainer>
                 </div>
                 <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>
+              </>
+            )}
+          </article>
+
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-base font-bold text-[var(--foreground)]">
+                Impacto horario de transporte publico
+              </h3>
+              <span className="text-xs text-[var(--muted)]">
+                {mobilityData.transitImpact?.lookbackDays ?? mobilityData.mobilityDays} dias
+              </span>
+            </div>
+
+            {availableTransitProviders.length === 0 ? (
+              <p className="mt-4 text-sm text-[var(--muted)]">
+                Todavia no hay datos de tranvia o bus para estimar impacto horario.
+              </p>
+            ) : (
+              <>
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-1">
+                  {availableTransitProviders.map((provider) => (
+                    <button
+                      key={provider}
+                      type="button"
+                      aria-pressed={activeTransitProvider === provider}
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                        activeTransitProvider === provider
+                          ? 'bg-[var(--accent)] text-white shadow-sm'
+                          : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                      }`}
+                      onClick={() => setActiveTransitProvider(provider)}
+                    >
+                      {TRANSIT_PROVIDER_LABELS[provider]}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-500">
+                      Uplift medio
+                    </p>
+                    <p className="mt-1 text-xl font-black text-[var(--foreground)]">
+                      {transitSummary.avgUplift >= 0 ? '+' : ''}
+                      {transitSummary.avgUplift.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-sky-500">
+                      Horas con uplift +
+                    </p>
+                    <p className="mt-1 text-xl font-black text-[var(--foreground)]">
+                      {transitSummary.positiveHours}/24
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-amber-500">
+                      Pico de uplift
+                    </p>
+                    <p className="mt-1 text-xl font-black text-[var(--foreground)]">
+                      {transitSummary.maxUplift >= 0 ? '+' : ''}
+                      {transitSummary.maxUplift.toFixed(2)}
+                    </p>
+                    <p className="text-[10px] text-[var(--muted)]">
+                      Hora: {transitSummary.topHour === null ? 'N/D' : `${transitSummary.topHour}:00`}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+                      Muestras con llegada
+                    </p>
+                    <p className="mt-1 text-xl font-black text-[var(--foreground)]">
+                      {transitSummary.totalWithTransitSamples}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <LineChart
+                      data={transitHourlySeries}
+                      margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(59, 130, 246, 0.2)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
+                      <YAxis tick={{ fontSize: 11 }} width={46} />
+                      <Tooltip
+                        formatter={(
+                          value: number | string | Array<number | string> | undefined,
+                          name: string | undefined
+                        ) => {
+                          const numericValue = Array.isArray(value)
+                            ? Number(value[0])
+                            : Number(value);
+
+                          if (name === 'Con llegada') {
+                            return [numericValue.toFixed(2), 'Con llegada'];
+                          }
+
+                          if (name === 'Sin llegada') {
+                            return [numericValue.toFixed(2), 'Sin llegada'];
+                          }
+
+                          return [numericValue.toFixed(2), name ?? 'Valor'];
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Line
+                        type="monotone"
+                        dataKey="withTransit"
+                        name="Con llegada"
+                        stroke="#0ea5e9"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="withoutTransit"
+                        name="Sin llegada"
+                        stroke="#f97316"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {mobilityData.transitImpact?.hasLowCoverage ? (
+                  <p className="mt-3 text-[11px] text-[var(--muted)]">
+                    Cobertura baja: se recomiendan al menos{' '}
+                    {mobilityData.transitImpact.minimumRecommendedSamples} muestras por hora para
+                    interpretar tendencias.
+                  </p>
+                ) : null}
+
+                {mobilityData.transitImpact?.warning ? (
+                  <p className="mt-2 text-[11px] text-[var(--muted)]">
+                    {mobilityData.transitImpact.warning}
+                  </p>
+                ) : null}
+
+                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                  {mobilityData.transitImpact?.methodology ??
+                    'Comparativa horaria de salidas medias con y sin llegadas de transporte cercano.'}
+                </p>
               </>
             )}
           </article>
