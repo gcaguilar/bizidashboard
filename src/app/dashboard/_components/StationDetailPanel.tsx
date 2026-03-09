@@ -15,6 +15,7 @@ import {
   isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
+import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 
 type MobilitySignalRow = {
   stationId: string;
@@ -82,6 +83,7 @@ export function StationDetailPanel({
 }: StationDetailPanelProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobility, setMobility] = useState<MobilityResponse | null>(null);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -140,6 +142,33 @@ export function StationDetailPanel({
       controller.abort();
     };
   }, [demandDays, mobilityDays]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      return;
+    }
+
+    const watcherId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => {
+        setUserLocation(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 120_000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watcherId);
+    };
+  }, []);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
@@ -332,6 +361,48 @@ export function StationDetailPanel({
     return inbound - outbound;
   }, [mobility, selectedDistrict, stationDistrictMap]);
 
+  const nearestDistanceMeters = useMemo(() => {
+    if (!station || !userLocation) {
+      return null;
+    }
+
+    if (!Number.isFinite(station.lat) || !Number.isFinite(station.lon)) {
+      return null;
+    }
+
+    return haversineDistanceMeters(userLocation, {
+      latitude: station.lat,
+      longitude: station.lon,
+    });
+  }, [station, userLocation]);
+
+  const isNearestStation = useMemo(() => {
+    if (!station || !userLocation || stations.length === 0) {
+      return false;
+    }
+
+    let nearestStationId: string | null = null;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    for (const row of stations) {
+      if (!Number.isFinite(row.lat) || !Number.isFinite(row.lon)) {
+        continue;
+      }
+
+      const distance = haversineDistanceMeters(userLocation, {
+        latitude: row.lat,
+        longitude: row.lon,
+      });
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestStationId = row.id;
+      }
+    }
+
+    return nearestStationId === station.id;
+  }, [station, stations, userLocation]);
+
   if (!station) {
     return (
       <section className="dashboard-card">
@@ -375,6 +446,12 @@ export function StationDetailPanel({
                 ID: #{station.id}
                 {selectedDistrict ? ` · ${selectedDistrict}` : ''}
               </p>
+              {nearestDistanceMeters !== null ? (
+                <p className="mt-2 text-xs font-semibold text-[var(--accent)]">
+                  📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
+                  {isNearestStation ? ' · Es la mas cercana' : ''}
+                </p>
+              ) : null}
               <div
                 className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${
                   isCritical

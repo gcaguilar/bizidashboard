@@ -4,10 +4,16 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 
+type StationTrend = 'up' | 'down' | 'flat';
+
 type StationPickerProps = {
   stations: StationSnapshot[];
   selectedStationId: string;
   onSelectStation: (stationId: string) => void;
+  favoriteStationIds: string[];
+  onToggleFavorite: (stationId: string) => void;
+  trendByStationId?: Record<string, StationTrend>;
+  nearestStationId?: string | null;
 };
 
 function normalizeText(value: string): string {
@@ -104,11 +110,27 @@ type ScoredStation = {
   score: number;
 };
 
-function scoreStations(stations: StationSnapshot[], rawQuery: string): ScoredStation[] {
+function scoreStations(
+  stations: StationSnapshot[],
+  rawQuery: string,
+  favoriteStationSet: Set<string>
+): ScoredStation[] {
   const query = normalizeText(rawQuery);
 
   if (!query) {
-    return stations.slice(0, 8).map((station) => ({ station, score: 0 }));
+    return [...stations]
+      .sort((left, right) => {
+        const leftFavorite = favoriteStationSet.has(left.id) ? 1 : 0;
+        const rightFavorite = favoriteStationSet.has(right.id) ? 1 : 0;
+
+        if (leftFavorite !== rightFavorite) {
+          return rightFavorite - leftFavorite;
+        }
+
+        return left.name.localeCompare(right.name, 'es-ES');
+      })
+      .slice(0, 8)
+      .map((station) => ({ station, score: 0 }));
   }
 
   const isNumericQuery = /^\d+$/.test(query);
@@ -123,7 +145,7 @@ function scoreStations(stations: StationSnapshot[], rawQuery: string): ScoredSta
 
       return {
         station,
-        score: Math.max(nameScore, idScore) + numericBonus,
+        score: Math.max(nameScore, idScore) + numericBonus + (favoriteStationSet.has(station.id) ? 12 : 0),
       };
     })
     .sort((left, right) => right.score - left.score)
@@ -134,16 +156,39 @@ export function StationPicker({
   stations,
   selectedStationId,
   onSelectStation,
+  favoriteStationIds,
+  onToggleFavorite,
+  trendByStationId,
+  nearestStationId,
 }: StationPickerProps) {
   const [query, setQuery] = useState('');
+
+  const favoriteStationSet = useMemo(() => new Set(favoriteStationIds), [favoriteStationIds]);
+
+  const orderedStations = useMemo(() => {
+    return [...stations].sort((left, right) => {
+      const leftFavorite = favoriteStationSet.has(left.id) ? 1 : 0;
+      const rightFavorite = favoriteStationSet.has(right.id) ? 1 : 0;
+
+      if (leftFavorite !== rightFavorite) {
+        return rightFavorite - leftFavorite;
+      }
+
+      return left.name.localeCompare(right.name, 'es-ES');
+    });
+  }, [favoriteStationSet, stations]);
+
+  const favoriteStations = useMemo(() => {
+    return orderedStations.filter((station) => favoriteStationSet.has(station.id));
+  }, [favoriteStationSet, orderedStations]);
 
   const selectedStation = useMemo(() => {
     return stations.find((station) => station.id === selectedStationId) ?? null;
   }, [selectedStationId, stations]);
 
   const stationSuggestions = useMemo(() => {
-    return scoreStations(stations, query);
-  }, [query, stations]);
+    return scoreStations(orderedStations, query, favoriteStationSet);
+  }, [favoriteStationSet, orderedStations, query]);
 
   const bestMatch = stationSuggestions[0]?.station ?? null;
   const stationDetailUrl = selectedStation
@@ -161,8 +206,34 @@ export function StationPicker({
             Cambia estacion para sincronizar mapa, patrones y heatmap.
           </p>
         </div>
-        <span className="kpi-chip">{stations.length} estaciones</span>
+        <span className="kpi-chip">
+          {stations.length} estaciones · {favoriteStations.length} favoritas
+        </span>
       </div>
+
+      {favoriteStations.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
+            Favoritas
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {favoriteStations.slice(0, 8).map((station) => (
+              <button
+                key={`favorite-${station.id}`}
+                type="button"
+                onClick={() => onSelectStation(station.id)}
+                className={`max-w-full truncate rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                  station.id === selectedStationId
+                    ? 'border-amber-500 bg-amber-500 text-[#111827]'
+                    : 'border-amber-500/40 bg-amber-500/15 text-[var(--foreground)] hover:border-amber-500'
+                }`}
+              >
+                ★ {station.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid min-w-0 gap-3 lg:grid-cols-[1.4fr_1fr]">
         <label className="flex min-w-0 items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
@@ -171,16 +242,16 @@ export function StationPicker({
             className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
             placeholder="Buscar por nombre o ID"
             value={query}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              setQuery(nextValue);
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setQuery(nextValue);
 
-              const nextMatch = scoreStations(stations, nextValue)[0]?.station;
+                const nextMatch = scoreStations(orderedStations, nextValue, favoriteStationSet)[0]?.station;
 
-              if (nextMatch && nextMatch.id !== selectedStationId) {
-                onSelectStation(nextMatch.id);
-              }
-            }}
+                if (nextMatch && nextMatch.id !== selectedStationId) {
+                  onSelectStation(nextMatch.id);
+                }
+              }}
             autoComplete="off"
           />
         </label>
@@ -195,9 +266,9 @@ export function StationPicker({
           {stations.length === 0 ? (
             <option value="">Sin estaciones disponibles</option>
           ) : (
-            stations.map((station) => (
+            orderedStations.map((station) => (
               <option key={station.id} value={station.id}>
-                {station.name}
+                {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
               </option>
             ))
           )}
@@ -216,10 +287,39 @@ export function StationPicker({
             }`}
             onClick={() => onSelectStation(station.id)}
           >
+            {favoriteStationSet.has(station.id) ? '★ ' : ''}
             {station.name}
+            {nearestStationId === station.id ? ' · cerca' : ''}
+            {trendByStationId?.[station.id] === 'up' ? ' ↑' : ''}
+            {trendByStationId?.[station.id] === 'down' ? ' ↓' : ''}
           </button>
         ))}
       </div>
+
+      {selectedStation ? (
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
+          <span>
+            Tendencia seleccionada:{' '}
+            {trendByStationId?.[selectedStation.id] === 'up'
+              ? '↑ suben bicis'
+              : trendByStationId?.[selectedStation.id] === 'down'
+                ? '↓ bajan bicis'
+                : '→ sin cambios'}
+          </span>
+          <button
+            type="button"
+            onClick={() => onToggleFavorite(selectedStation.id)}
+            aria-pressed={favoriteStationSet.has(selectedStation.id)}
+            className={`rounded-full border px-2 py-1 text-[11px] font-bold ${
+              favoriteStationSet.has(selectedStation.id)
+                ? 'border-amber-500 bg-amber-500/20 text-amber-500'
+                : 'border-[var(--border)] text-[var(--foreground)]'
+            }`}
+          >
+            {favoriteStationSet.has(selectedStation.id) ? '★ Quitar favorita' : '☆ Marcar favorita'}
+          </button>
+        </div>
+      ) : null}
 
       {query.trim() ? (
         <p className="text-[11px] text-[var(--muted)]">
