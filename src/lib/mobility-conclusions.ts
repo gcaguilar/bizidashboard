@@ -27,6 +27,11 @@ type TopStationRow = {
   avgDemand: number | null;
 };
 
+type CachedBriefingRecord = {
+  payload: string;
+  sourceLastDay: Date | null;
+};
+
 export type MobilityConclusionsPayload = {
   dateKey: string;
   generatedAt: string;
@@ -111,6 +116,91 @@ function toDateOrNull(value: string | null): Date | null {
   const parsed = new Date(withTime);
 
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isOptionalFiniteNumber(value: unknown): value is number | null {
+  return value === null || isFiniteNumber(value);
+}
+
+function getErrorMessages(error: unknown): string[] {
+  if (!error || typeof error !== 'object') {
+    return [];
+  }
+
+  const typedError = error as { message?: unknown; cause?: unknown };
+  const messages: string[] = [];
+
+  if (typeof typedError.message === 'string' && typedError.message.length > 0) {
+    messages.push(typedError.message);
+  }
+
+  if (typedError.cause && typedError.cause !== error) {
+    messages.push(...getErrorMessages(typedError.cause));
+  }
+
+  return messages;
+}
+
+function isMissingMobilityBriefingCacheTableError(error: unknown): boolean {
+  return getErrorMessages(error).some((message) => {
+    const normalized = message.toLowerCase();
+
+    if (!normalized.includes('mobilitybriefingcache')) {
+      return false;
+    }
+
+    return (
+      normalized.includes('no such table') ||
+      normalized.includes('does not exist') ||
+      normalized.includes('p2021')
+    );
+  });
+}
+
+function hasCacheShape(payload: unknown): payload is MobilityConclusionsPayload {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+
+  const typed = payload as Partial<MobilityConclusionsPayload>;
+
+  if (
+    typeof typed.dateKey !== 'string' ||
+    typeof typed.generatedAt !== 'string' ||
+    typeof typed.summary !== 'string' ||
+    !isFiniteNumber(typed.totalHistoricalDays) ||
+    !isFiniteNumber(typed.stationsWithData) ||
+    !isFiniteNumber(typed.activeStations)
+  ) {
+    return false;
+  }
+
+  if (!typed.metrics || typeof typed.metrics !== 'object') {
+    return false;
+  }
+
+  const metrics = typed.metrics as Partial<MobilityConclusionsPayload['metrics']>;
+
+  if (
+    !isFiniteNumber(metrics.demandLast7Days) ||
+    !isFiniteNumber(metrics.demandPrevious7Days) ||
+    !isOptionalFiniteNumber(metrics.demandDeltaRatio) ||
+    !isFiniteNumber(metrics.occupancyLast7Days) ||
+    !isFiniteNumber(metrics.occupancyPrevious7Days) ||
+    !isOptionalFiniteNumber(metrics.occupancyDeltaRatio)
+  ) {
+    return false;
+  }
+
+  if (!Array.isArray(typed.highlights) || !Array.isArray(typed.recommendations) || !Array.isArray(typed.topStationsByDemand)) {
+    return false;
+  }
+
+  return true;
 }
 
 async function buildMobilityConclusionsPayload(dateKey: string): Promise<MobilityConclusionsPayload> {
@@ -280,20 +370,23 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
 
 function parseCachedPayload(rawPayload: string): MobilityConclusionsPayload | null {
   try {
-    const parsed = JSON.parse(rawPayload) as MobilityConclusionsPayload;
-
-    if (!parsed || typeof parsed !== 'object') {
-      return null;
-    }
-
-    if (typeof parsed.dateKey !== 'string') {
-      return null;
-    }
-
-    return parsed;
+    const parsed = JSON.parse(rawPayload);
+    return hasCacheShape(parsed) ? parsed : null;
   } catch {
     return null;
   }
+}
+
+function hasSameSourceLastDay(cached: CachedBriefingRecord, sourceLastDay: Date | null): boolean {
+  if (!cached.sourceLastDay && !sourceLastDay) {
+    return true;
+  }
+
+  if (!cached.sourceLastDay || !sourceLastDay) {
+    return false;
+  }
+
+  return cached.sourceLastDay.getTime() === sourceLastDay.getTime();
 }
 
 export async function getDailyMobilityConclusions(): Promise<{
@@ -302,14 +395,41 @@ export async function getDailyMobilityConclusions(): Promise<{
 }> {
   const dateKey = getMadridDateKey();
 
-  const cached = await prisma.mobilityBriefingCache.findUnique({
-    where: { dateKey },
-  });
+  let cached: CachedBriefingRecord | null = null;
+  let cacheTableAvailable = true;
+
+  try {
+    cached = await prisma.mobilityBriefingCache.findUnique({
+      where: { dateKey },
+      select: {
+        payload: true,
+        sourceLastDay: true,
+      },
+    });
+  } catch (error) {
+    if (!isMissingMobilityBriefingCacheTableError(error)) {
+      throw error;
+    }
+
+    cacheTableAvailable = false;
+    console.warn('[MobilityConclusions] MobilityBriefingCache table is missing; computing payload without cache.');
+  }
 
   if (cached) {
     const parsed = parseCachedPayload(cached.payload);
 
-    if (parsed) {
+    const latestAggregatedDaily = await prisma.dailyStationStat.findFirst({
+      orderBy: {
+        bucketDate: 'desc',
+      },
+      select: {
+        bucketDate: true,
+      },
+    });
+
+    const sourceLastDay = latestAggregatedDaily?.bucketDate ?? null;
+
+    if (parsed && hasSameSourceLastDay(cached, sourceLastDay)) {
       return {
         payload: parsed,
         fromCache: true,
@@ -320,18 +440,28 @@ export async function getDailyMobilityConclusions(): Promise<{
   const payload = await buildMobilityConclusionsPayload(dateKey);
   const sourceLastDay = toDateOrNull(payload.sourceLastDay);
 
-  await prisma.mobilityBriefingCache.upsert({
-    where: { dateKey },
-    create: {
-      dateKey,
-      payload: JSON.stringify(payload),
-      sourceLastDay,
-    },
-    update: {
-      payload: JSON.stringify(payload),
-      sourceLastDay,
-    },
-  });
+  if (cacheTableAvailable) {
+    try {
+      await prisma.mobilityBriefingCache.upsert({
+        where: { dateKey },
+        create: {
+          dateKey,
+          payload: JSON.stringify(payload),
+          sourceLastDay,
+        },
+        update: {
+          payload: JSON.stringify(payload),
+          sourceLastDay,
+        },
+      });
+    } catch (error) {
+      if (!isMissingMobilityBriefingCacheTableError(error)) {
+        throw error;
+      }
+
+      console.warn('[MobilityConclusions] MobilityBriefingCache table is missing; skipping cache persistence.');
+    }
+  }
 
   return {
     payload,
