@@ -3,6 +3,7 @@ import { fetchStations } from '@/lib/api';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MobilityInsights } from '../_components/MobilityInsights';
+import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -47,12 +48,12 @@ export default async function DashboardFlowPage() {
               className="hidden items-center gap-5 md:flex"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="flow"
               routes={['dashboard', 'stations', 'conclusions', 'help']}
               variant="chips"
-              className="flex items-center gap-2 md:hidden"
+              className="flex flex-wrap items-center gap-2 md:hidden"
             />
             <DashboardRouteLinks
               activeRoute="flow"
@@ -60,6 +61,7 @@ export default async function DashboardFlowPage() {
               variant="chips"
               className="hidden items-center gap-2 md:flex"
             />
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -67,7 +69,8 @@ export default async function DashboardFlowPage() {
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
           </div>
         </div>

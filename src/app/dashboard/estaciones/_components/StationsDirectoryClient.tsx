@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -44,13 +45,20 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estaciones</p>
             <h1 className="text-xl font-bold text-[var(--foreground)]">Directorio de estaciones</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="stations"
               routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
-              className="flex items-center gap-2"
+              className="hidden items-center gap-2 md:flex"
             />
+            <DashboardRouteLinks
+              activeRoute="stations"
+              routes={['dashboard', 'stations', 'flow', 'help']}
+              variant="chips"
+              className="flex flex-wrap items-center gap-2 md:hidden"
+            />
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -58,7 +66,8 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
           </div>
         </div>

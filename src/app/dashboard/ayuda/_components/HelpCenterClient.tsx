@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -246,9 +247,9 @@ export function HelpCenterClient() {
   }, [query]);
 
   const categories = useMemo(() => {
-    const uniqueCategories = new Set(filteredItems.map((item) => item.category));
+    const uniqueCategories = new Set(FAQ_ITEMS.map((item) => item.category));
     return Array.from(uniqueCategories.values());
-  }, [filteredItems]);
+  }, []);
 
   const groupedItems = useMemo(() => {
     const map = new Map<string, FaqItem[]>();
@@ -319,7 +320,7 @@ export function HelpCenterClient() {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <label className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 sm:flex">
               <input
                 type="text"
@@ -335,6 +336,7 @@ export function HelpCenterClient() {
             <Link href="/api/history" className="icon-button" aria-label="Historico completo">
               Historico
             </Link>
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -342,7 +344,8 @@ export function HelpCenterClient() {
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
           </div>
         </div>
@@ -406,20 +409,36 @@ export function HelpCenterClient() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => setQuery(category)}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)]"
-            >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-xl font-black text-[var(--accent)]">
-                {category.slice(0, 1)}
-              </div>
-              <h3 className="text-xl font-bold text-[var(--foreground)]">{category}</h3>
-              <p className="mt-2 text-sm text-[var(--muted)]">{filteredItems.filter((item) => item.category === category).length} respuestas disponibles.</p>
-            </button>
-          ))}
+          {categories.map((category) => {
+            const normalizedCategory = normalize(category);
+            const isCategoryFilterActive = normalize(query) === normalizedCategory;
+            const categoryMatches = filteredItems.filter((item) => item.category === category).length;
+
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() =>
+                  setQuery((currentQuery) =>
+                    normalize(currentQuery) === normalizedCategory ? '' : category
+                  )
+                }
+                className={`rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
+                  isCategoryFilterActive
+                    ? 'border-[var(--accent)] shadow-[0_0_0_1px_rgba(234,6,21,0.22)]'
+                    : 'border-[var(--border)]'
+                }`}
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-xl font-black text-[var(--accent)]">
+                  {category.slice(0, 1)}
+                </div>
+                <h3 className="text-xl font-bold text-[var(--foreground)]">{category}</h3>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  {categoryMatches} respuestas disponibles.
+                </p>
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-14 space-y-8">
@@ -476,7 +495,7 @@ export function HelpCenterClient() {
               href="https://www.linkedin.com/in/guillermocastella/"
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[var(--accent)]"
+              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#1f2937] transition hover:bg-white/90"
             >
               Contacto
             </a>
