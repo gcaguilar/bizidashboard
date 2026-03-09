@@ -52,6 +52,14 @@ DATABASE_URL=file:./dev.db
 # Redis (optional for local)
 REDIS_URL=redis://localhost:6379
 
+# Internal jobs
+ENABLE_INTERNAL_JOBS=false
+
+# Manual collect trigger security
+COLLECT_API_KEY=change-me
+COLLECT_RATE_LIMIT_MAX=6
+COLLECT_RATE_LIMIT_WINDOW_MS=60000
+
 # GBFS source and request tuning
 GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
 GBFS_REQUEST_TIMEOUT_MS=20000
@@ -104,8 +112,9 @@ It also includes:
 
 - A Redis service with health checks.
 - A one-shot migration service (`migrate`) that runs `prisma migrate deploy` on `/data/dev.db` before app startup.
-- An app health check against `/api/status`.
-- An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes.
+- An app liveness health check against `/api/health/live` (no DB calls).
+- A readiness probe at `/api/health/ready` (verifies DB connectivity).
+- An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes using `x-collect-api-key`.
 - Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
 
 The container entrypoint also bootstraps SQLite on startup: if `DATABASE_URL` is missing or points to a relative SQLite path, it falls back to `file:/data/dev.db` and initializes it from `/app/bootstrap.db` when the file is empty or missing.
@@ -126,6 +135,11 @@ DATABASE_URL=file:/data/dev.db
 # Redis service from docker-compose
 REDIS_URL=redis://redis:6379
 
+# Required in production for POST /api/collect
+COLLECT_API_KEY=use-a-long-random-secret
+COLLECT_RATE_LIMIT_MAX=6
+COLLECT_RATE_LIMIT_WINDOW_MS=60000
+
 GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
 GBFS_REQUEST_TIMEOUT_MS=20000
 GBFS_MAX_RETRIES=5
@@ -137,6 +151,12 @@ GBFS_RETRY_BASE_DELAY_MS=1000
 
 `ROBOTS_BASE_URL` is optional. When set, `robots.txt` host/sitemap and `sitemap.xml`
 URL entries use this value.
+
+`COLLECT_API_KEY` is required in production. Requests to `POST /api/collect` must include
+the `x-collect-api-key` header with that exact value.
+
+`/api/status` is intended for observability dashboards. Container health checks should use
+`/api/health/live` (liveness) and optionally `/api/health/ready` (readiness).
 
 ```bash
 docker compose up -d
