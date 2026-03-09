@@ -18,15 +18,19 @@ type DistrictSlice = {
   stationCount: number;
 };
 
-const SLICE_COLORS = [
-  '#ea0615',
-  'rgba(234, 6, 21, 0.82)',
-  'rgba(234, 6, 21, 0.68)',
-  'rgba(234, 6, 21, 0.56)',
-  'rgba(234, 6, 21, 0.44)',
-  'rgba(234, 6, 21, 0.32)',
-];
-const MAX_VISIBLE_DISTRICTS = 6;
+const SLICE_BASE_RED = 234;
+const SLICE_BASE_GREEN = 6;
+const SLICE_BASE_BLUE = 21;
+
+function getSliceColor(index: number, total: number): string {
+  if (index === 0 || total <= 1) {
+    return `rgb(${SLICE_BASE_RED}, ${SLICE_BASE_GREEN}, ${SLICE_BASE_BLUE})`;
+  }
+
+  const ratio = index / Math.max(1, total - 1);
+  const alpha = 0.9 - ratio * 0.65;
+  return `rgba(${SLICE_BASE_RED}, ${SLICE_BASE_GREEN}, ${SLICE_BASE_BLUE}, ${Math.max(0.2, alpha).toFixed(2)})`;
+}
 
 function getOccupancy(station: StationSnapshot): number {
   if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
@@ -88,6 +92,13 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
   const slices = useMemo<DistrictSlice[]>(() => {
     const counter = new Map<string, number>();
 
+    for (const feature of districts?.features ?? []) {
+      const district = feature.properties?.distrito ?? 'Distrito sin nombre';
+      if (!counter.has(district)) {
+        counter.set(district, 0);
+      }
+    }
+
     for (const station of stations) {
       const district = stationDistrictMap.get(station.id) ?? 'Sin distrito';
       counter.set(district, (counter.get(district) ?? 0) + 1);
@@ -95,23 +106,30 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
 
     return Array.from(counter.entries())
       .map(([district, stationCount]) => ({ district, stationCount }))
-      .sort((left, right) => right.stationCount - left.stationCount)
-      .slice(0, MAX_VISIBLE_DISTRICTS);
-  }, [stationDistrictMap, stations]);
+      .sort((left, right) => {
+        if (right.stationCount !== left.stationCount) {
+          return right.stationCount - left.stationCount;
+        }
+
+        return left.district.localeCompare(right.district, 'es');
+      });
+  }, [districts, stationDistrictMap, stations]);
 
   const totalStations = stations.length;
 
   const donutSlices = useMemo(() => {
-    if (totalStations <= 0 || slices.length === 0) {
+    const slicesWithStations = slices.filter((slice) => slice.stationCount > 0);
+
+    if (totalStations <= 0 || slicesWithStations.length === 0) {
       return [] as Array<{ color: string; size: number; offset: number }>;
     }
 
     let currentOffset = 0;
 
-    return slices.map((slice, index) => {
+    return slicesWithStations.map((slice, index) => {
       const size = (slice.stationCount / totalStations) * 100;
       const arc = {
-        color: SLICE_COLORS[index] ?? 'rgba(234, 6, 21, 0.2)',
+        color: getSliceColor(index, slicesWithStations.length),
         size,
         offset: currentOffset,
       };
@@ -134,7 +152,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
         <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
           Carga por barrio
         </h3>
-        <span className="text-xs text-[var(--muted)]">Distribucion</span>
+        <span className="text-xs text-[var(--muted)]">Barrios: {slices.length}</span>
       </div>
 
       <div className="flex items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
@@ -167,15 +185,20 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           </div>
         </div>
 
-        <div className="space-y-2 text-[11px]">
-          {slices.length === 0 ? (
+        <div className="max-h-44 space-y-2 overflow-y-auto pr-1 text-[11px]">
+          {slices.length === 0 || totalStations === 0 ? (
             <p className="text-[var(--muted)]">Sin datos de distritos.</p>
           ) : (
             slices.map((slice, index) => (
               <div key={slice.district} className="flex items-center gap-2 text-[var(--foreground)]">
                 <span
                   className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: SLICE_COLORS[index] ?? 'rgba(234, 6, 21, 0.2)' }}
+                  style={{
+                    backgroundColor:
+                      slice.stationCount > 0
+                        ? getSliceColor(index, slices.length)
+                        : 'rgba(100, 116, 139, 0.45)',
+                  }}
                 />
                 <span className="font-semibold">{slice.district}</span>
                 <span className="text-[var(--muted)]">
