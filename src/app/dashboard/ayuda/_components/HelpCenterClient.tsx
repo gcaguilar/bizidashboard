@@ -636,16 +636,10 @@ export function HelpCenterClient() {
               href="https://www.linkedin.com/in/guillermocastella/"
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#1f2937] transition hover:bg-white/90"
+              className="rounded-lg border border-white/30 bg-black/20 px-6 py-3 text-sm font-bold text-white"
             >
               Contacto
             </a>
-            <Link
-              href="/api/history"
-              className="rounded-lg border border-white/30 bg-black/20 px-6 py-3 text-sm font-bold text-white"
-            >
-              Ver todos los datos
-            </Link>
           </div>
         </div>
       </main>
