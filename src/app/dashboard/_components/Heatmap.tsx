@@ -179,23 +179,27 @@ export function Heatmap({
         {hasData ? (
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-              <ScatterChart margin={{ top: 10, right: 14, bottom: 0, left: 0 }}>
+              <ScatterChart margin={{ top: 16, right: 24, bottom: 20, left: 18 }}>
                 <XAxis
                   type="number"
                   dataKey="hour"
-                  domain={[0, 23]}
+                  domain={[-0.5, 23.5]}
                   ticks={tickHours}
+                  allowDecimals={false}
                   tickFormatter={(value) => `${String(value).padStart(2, '0')}:00`}
                   tick={{ fontSize: 11 }}
+                  tickMargin={8}
                 />
                 <YAxis
                   type="number"
                   dataKey="day"
-                  domain={[0, 6]}
+                  domain={[-0.5, 6.5]}
                   ticks={[0, 1, 2, 3, 4, 5, 6]}
+                  allowDecimals={false}
                   tickFormatter={(value) => DAY_LABELS[value] ?? 'Dia'}
                   tick={{ fontSize: 11 }}
-                  width={40}
+                  tickMargin={8}
+                  width={52}
                 />
                 <Tooltip content={<HeatTooltip />} />
                 <Scatter
@@ -211,7 +215,7 @@ export function Heatmap({
                       return null;
                     }
 
-                    const size = 16;
+                    const size = 14;
                     const fill = getHeatColor(payload.value, stats.min, stats.max);
 
                     return (
