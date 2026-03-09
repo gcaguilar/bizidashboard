@@ -18,6 +18,19 @@ type DailyDemandRow = {
   sampleCount: number;
 };
 
+type HourlyTransitImpactRow = {
+  provider: string;
+  hour: number;
+  avgDeparturesWithTransit: number;
+  avgDeparturesWithoutTransit: number;
+  uplift: number;
+  upliftRatio: number | null;
+  avgArrivalPressure: number;
+  totalArrivalEvents: number;
+  samplesWithTransit: number;
+  samplesWithoutTransit: number;
+};
+
 export async function getStationRankings(
   type: RankingType,
   limit = 20
@@ -207,5 +220,105 @@ export async function getDailyDemandCurve(days = 30): Promise<DailyDemandRow[]> 
     FROM date_series
     LEFT JOIN daily ON daily.day = date_series.day
     ORDER BY date_series.day ASC;
+  `;
+}
+
+export async function getHourlyTransitImpact(
+  days = 14
+): Promise<HourlyTransitImpactRow[]> {
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+  const daysModifier = `-${safeDays} days`;
+
+  return prisma.$queryRaw<HourlyTransitImpactRow[]>`
+    WITH base AS (
+      SELECT
+        stationId,
+        provider,
+        bucketStart,
+        departures,
+        arrivalPressureAvg,
+        arrivalEvents,
+        hasArrivalEvent
+      FROM HourlyTransitImpact
+      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
+    ),
+    provider_hour AS (
+      SELECT
+        provider AS provider,
+        CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
+        AVG(CASE WHEN hasArrivalEvent THEN departures ELSE NULL END) AS avgDeparturesWithTransit,
+        AVG(CASE WHEN NOT hasArrivalEvent THEN departures ELSE NULL END) AS avgDeparturesWithoutTransit,
+        AVG(arrivalPressureAvg) AS avgArrivalPressure,
+        SUM(arrivalEvents) AS totalArrivalEvents,
+        SUM(CASE WHEN hasArrivalEvent THEN 1 ELSE 0 END) AS samplesWithTransit,
+        SUM(CASE WHEN NOT hasArrivalEvent THEN 1 ELSE 0 END) AS samplesWithoutTransit
+      FROM base
+      GROUP BY
+        provider,
+        CAST(strftime('%H', bucketStart) AS INTEGER)
+    ),
+    combined_base AS (
+      SELECT
+        stationId,
+        bucketStart,
+        AVG(departures) AS departures,
+        SUM(arrivalPressureAvg) AS arrivalPressure,
+        SUM(arrivalEvents) AS arrivalEvents,
+        MAX(CASE WHEN hasArrivalEvent THEN 1 ELSE 0 END) AS hasArrivalEvent
+      FROM base
+      GROUP BY stationId, bucketStart
+    ),
+    combined_hour AS (
+      SELECT
+        'COMBINED' AS provider,
+        CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
+        AVG(CASE WHEN hasArrivalEvent > 0 THEN departures ELSE NULL END) AS avgDeparturesWithTransit,
+        AVG(CASE WHEN hasArrivalEvent <= 0 THEN departures ELSE NULL END) AS avgDeparturesWithoutTransit,
+        AVG(arrivalPressure) AS avgArrivalPressure,
+        SUM(arrivalEvents) AS totalArrivalEvents,
+        SUM(CASE WHEN hasArrivalEvent > 0 THEN 1 ELSE 0 END) AS samplesWithTransit,
+        SUM(CASE WHEN hasArrivalEvent <= 0 THEN 1 ELSE 0 END) AS samplesWithoutTransit
+      FROM combined_base
+      GROUP BY CAST(strftime('%H', bucketStart) AS INTEGER)
+    ),
+    unioned AS (
+      SELECT
+        provider,
+        hour,
+        avgDeparturesWithTransit,
+        avgDeparturesWithoutTransit,
+        avgArrivalPressure,
+        totalArrivalEvents,
+        samplesWithTransit,
+        samplesWithoutTransit
+      FROM provider_hour
+      UNION ALL
+      SELECT
+        provider,
+        hour,
+        avgDeparturesWithTransit,
+        avgDeparturesWithoutTransit,
+        avgArrivalPressure,
+        totalArrivalEvents,
+        samplesWithTransit,
+        samplesWithoutTransit
+      FROM combined_hour
+    )
+    SELECT
+      provider,
+      hour,
+      COALESCE(avgDeparturesWithTransit, 0) AS avgDeparturesWithTransit,
+      COALESCE(avgDeparturesWithoutTransit, 0) AS avgDeparturesWithoutTransit,
+      COALESCE(avgDeparturesWithTransit, 0) - COALESCE(avgDeparturesWithoutTransit, 0) AS uplift,
+      CASE
+        WHEN avgDeparturesWithoutTransit IS NULL OR avgDeparturesWithoutTransit <= 0 THEN NULL
+        ELSE (COALESCE(avgDeparturesWithTransit, 0) - avgDeparturesWithoutTransit) / avgDeparturesWithoutTransit
+      END AS upliftRatio,
+      COALESCE(avgArrivalPressure, 0) AS avgArrivalPressure,
+      COALESCE(totalArrivalEvents, 0) AS totalArrivalEvents,
+      COALESCE(samplesWithTransit, 0) AS samplesWithTransit,
+      COALESCE(samplesWithoutTransit, 0) AS samplesWithoutTransit
+    FROM unioned
+    ORDER BY provider ASC, hour ASC;
   `;
 }
