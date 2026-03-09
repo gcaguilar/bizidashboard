@@ -1,0 +1,54 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+
+async function isDatabaseReady(): Promise<boolean> {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('[Health] Readiness check failed:', error);
+    return false;
+  }
+}
+
+export async function GET(): Promise<NextResponse> {
+  const databaseReady = await isDatabaseReady();
+
+  if (!databaseReady) {
+    return NextResponse.json(
+      {
+        status: 'degraded',
+        ready: false,
+        checks: {
+          database: 'down',
+        },
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
+    );
+  }
+
+  return NextResponse.json(
+    {
+      status: 'ok',
+      ready: true,
+      checks: {
+        database: 'ok',
+      },
+      timestamp: new Date().toISOString(),
+    },
+    {
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    }
+  );
+}
