@@ -29,47 +29,78 @@ type FaqItem = {
   answer: string;
 };
 
+const CATEGORY_PRIORITY = [
+  'Alertas',
+  'Prediccion',
+  'Movilidad',
+  'Clasificaciones',
+  'Datos',
+  'Uso',
+  'Soporte',
+] as const;
+
+const FAQ_PRIORITY_IDS = [
+  'alertas-activas',
+  'alerta-resuelta-significado',
+  'severidad-alertas',
+  'proyeccion',
+  'prediccion-que-es',
+  'confianza-prediccion',
+  'prediccion-uso-practico',
+  'calculo-rutas',
+  'matriz-od',
+  'demanda-no-viajes-reales',
+  'movilidad-causalidad',
+] as const;
+
 const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'alertas-activas',
     category: 'Alertas',
     question: 'Cuando una estacion entra en alerta?',
-    answer: `Se evalua una ventana movil de ${ANALYTICS_WINDOWS.alertWindowHours} horas. Se genera alerta si bicis medias < ${ALERT_THRESHOLDS.lowBikes} o anclajes libres < ${ALERT_THRESHOLDS.lowAnchors}.`,
+    answer: `Miramos las ultimas ${ANALYTICS_WINDOWS.alertWindowHours} horas (no solo el ultimo minuto). Si la media de bicis baja de ${ALERT_THRESHOLDS.lowBikes} o la media de anclajes libres baja de ${ALERT_THRESHOLDS.lowAnchors}, la estacion entra en alerta.`,
   },
   {
     id: 'severidad-alertas',
     category: 'Alertas',
     question: 'Que significa una alerta critica?',
     answer:
-      'Severidad 2 indica un nivel mas extremo de escasez. Es una estacion prioritaria para redistribucion.',
+      'Tenemos dos niveles: severidad 1 (media) y severidad 2 (critica). Critica significa que la situacion es mas urgente y esa estacion suele ir primero en la cola de redistribucion.',
   },
   {
     id: 'alerta-persistente',
     category: 'Alertas',
     question: 'Por que la alerta sigue activa aunque la estacion mejoro?',
     answer:
-      'Porque se calcula sobre una ventana movil y no solo con la ultima lectura. La alerta desaparece cuando la media reciente vuelve a valores normales.',
+      'Porque no usamos solo una foto puntual. Si venia mal durante varias lecturas, puede tardar un poco en salir de alerta. Se limpia cuando la media reciente vuelve a valores normales.',
+  },
+  {
+    id: 'alerta-resuelta-significado',
+    category: 'Alertas',
+    question: 'Que significa que una alerta salga como resuelta?',
+    answer:
+      'Significa que ya no supera el umbral en la ventana reciente. Ojo: no siempre implica que la operacion en calle este cerrada; solo indica que el dato actual ya no esta en zona de alerta.',
   },
   {
     id: 'alerta-vacia-llena',
     category: 'Alertas',
     question: 'Que diferencia hay entre alerta de vacia y de llena?',
     answer:
-      'Vacia significa riesgo de falta de bicis para retirar. Llena significa falta de anclajes libres para devolver bicis. Ambas afectan la operativa.',
+      'Vacia = poca bici para sacar. Llena = pocos anclajes para devolver. En ambos casos hay friccion para la persona usuaria y suele requerir movimiento de flota.',
   },
   {
     id: 'rotacion-14d',
     category: 'Clasificaciones',
     question: 'Que es la metrica de rotacion 14d?',
     answer:
-      'Es una puntuacion de uso calculada sobre la ventana reciente de analitica. Ayuda a identificar estaciones con mayor dinamica.',
+      'Es un indicador para comparar actividad entre estaciones en los ultimos 14 dias. Cuanto mayor, mas movimiento. Es una puntuacion relativa (ranking), no un numero exacto de viajes.',
   },
   {
     id: 'horas-problema',
     category: 'Clasificaciones',
     question: 'Como se calcula horas problema?',
     answer:
-      'Suma horas con bicis casi vacias y horas con anclajes casi llenos durante la ventana de ranking.',
+      'Sumamos las horas en las que la estacion estuvo en zona complicada: muy pocas bicis o muy pocos anclajes libres. Cuantas mas horas problema, mas riesgo operativo.',
   },
   {
     id: 'ranking-no-aparece',
@@ -83,70 +114,112 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'Clasificaciones',
     question: 'Que diferencia hay entre rotacion y criticidad?',
     answer:
-      'Rotacion mide dinamica de uso. Criticidad prioriza estaciones con mas horas problematicas. Son indicadores complementarios para decisiones distintas.',
+      'Rotacion responde a "donde hay mas movimiento". Criticidad responde a "donde hay mas problemas de disponibilidad". Una estacion puede tener mucha rotacion y poca criticidad, o al reves.',
+  },
+  {
+    id: 'comparar-estaciones',
+    category: 'Clasificaciones',
+    question: 'Como comparo estaciones de distinto tamano?',
+    answer:
+      'Para comparar justo, mira primero porcentaje de ocupacion y horas problema. Los valores absolutos (bicis/anclajes) pueden enganar porque una estacion grande siempre mueve mas volumen que una pequena.',
   },
   {
     id: 'proyeccion',
     category: 'Prediccion',
     question: 'La proyeccion de +30/+60 min es un modelo IA?',
     answer:
-      'No. Es una estimacion basada en patrones historicos por franja horaria y ocupacion reciente de la estacion.',
+      'No es una "bola de cristal" ni una lectura real futura. Es una estimacion hecha con lo que suele pasar en esa estacion a esa hora y con su estado reciente.',
   },
   {
     id: 'confianza-prediccion',
     category: 'Prediccion',
     question: 'Que significa el porcentaje de confianza?',
     answer:
-      'Es un indicador de robustez de la estimacion segun la cantidad de muestra reciente disponible. Mayor confianza implica menor incertidumbre.',
+      'Es una pista de cuanta fe darle a la prediccion. Si hay buen historico reciente, la confianza sube. Si faltan datos o hay mucho ruido, baja. No es garantia, es orientacion.',
   },
   {
     id: 'prediccion-sin-datos',
     category: 'Prediccion',
     question: 'Por que a veces no hay prediccion o aparece muy plana?',
     answer:
-      'Cuando falta historico suficiente, el sistema usa valores de respaldo mas conservadores y la curva puede verse menos variable.',
+      'Suele pasar cuando hay poco historico, datos irregulares o cambios recientes en la estacion. En esos casos se usa una estimacion mas conservadora y por eso la curva se ve "plana".',
+  },
+  {
+    id: 'prediccion-que-es',
+    category: 'Prediccion',
+    question: 'Que son exactamente las predicciones del dashboard?',
+    answer:
+      'Son valores estimados de disponibilidad futura (por ejemplo +30 y +60 min). Se calculan con patrones del pasado + situacion actual. Sirven para anticipar, no para confirmar lo que va a pasar al 100%.',
+  },
+  {
+    id: 'prediccion-uso-practico',
+    category: 'Prediccion',
+    question: 'Como usar la prediccion en la operativa diaria?',
+    answer:
+      'Usala como alerta temprana: si una estacion apunta a quedarse sin bicis o sin anclajes en +30/+60 min, adelantate con redistribucion. Es mejor para prevenir que para auditar a posteriori.',
   },
   {
     id: 'matriz-od',
     category: 'Movilidad',
     question: 'La matriz O-D representa viajes reales?',
     answer:
-      'No directamente. Es una inferencia agregada por distrito usando variaciones de disponibilidad por hora.',
+      'No son viajes uno a uno. Es una estimacion agregada por distritos para entender hacia donde parece moverse la demanda en cada franja horaria.',
   },
   {
     id: 'destinos-estimados',
     category: 'Movilidad',
     question: 'Como se obtienen los destinos estimados?',
     answer:
-      'Se reparte el flujo saliente del distrito segun el peso relativo de entradas en otros distritos.',
+      'Primero vemos cuanto "sale" de cada distrito. Luego repartimos ese flujo entre distritos destino segun el peso de entradas observadas en ese mismo tramo horario.',
   },
   {
     id: 'balance-neto',
     category: 'Movilidad',
     question: 'Que indica un balance neto positivo o negativo?',
     answer:
-      'Positivo indica que el barrio recibe mas flujo del que envia. Negativo indica que emite mas del que recibe en el periodo seleccionado.',
+      'Positivo: entra mas flujo del que sale. Negativo: sale mas del que entra. Te ayuda a ver que barrios "reciben" o "expulsan" demanda en cada periodo.',
   },
   {
     id: 'periodos-flujo',
     category: 'Movilidad',
     question: 'Como cambian los resultados por franja horaria?',
     answer:
-      'Los filtros de manana, mediodia, tarde y noche recalculan volumen, matriz y rutas destacadas solo para ese tramo horario.',
+      'Cada filtro (mañana, mediodia, tarde, noche) recalcula todo para ese tramo. Por eso una ruta puede ser fuerte por la mañana y casi desaparecer por la noche.',
   },
   {
     id: 'diagrama-chord',
     category: 'Movilidad',
     question: 'Como leer el diagrama chord?',
     answer:
-      'Cada nodo es un distrito y cada arco representa flujo estimado entre dos zonas. Cuanto mas intenso y grueso el arco, mayor volumen.',
+      'Cada bloque es un distrito y cada banda une origen-destino. Banda mas gruesa = mas flujo estimado. Sirve para ver "corredores" de demanda de un vistazo.',
+  },
+  {
+    id: 'calculo-rutas',
+    category: 'Movilidad',
+    question: 'Como se calculan las rutas estimadas?',
+    answer:
+      'Tomamos cambios de disponibilidad por hora en estaciones, los agrupamos por distrito y estimamos que parte del flujo va a cada destino segun su peso relativo. Resultado: rutas probables entre zonas, no rutas GPS exactas.',
+  },
+  {
+    id: 'demanda-no-viajes-reales',
+    category: 'Movilidad',
+    question: 'Demanda significa numero real de viajes?',
+    answer:
+      'No exactamente. Es un indice para medir "actividad" del sistema. Va muy bien para comparar dias y zonas, pero no debe leerse como contador oficial de viajes cerrados.',
+  },
+  {
+    id: 'movilidad-causalidad',
+    category: 'Movilidad',
+    question: 'Si dos metricas suben a la vez, significa causa directa?',
+    answer:
+      'No siempre. El dashboard muestra relaciones utiles para tomar decisiones rapidas, pero correlacion no es prueba de causa. Para causalidad hace falta analisis mas profundo.',
   },
   {
     id: 'actualizacion',
     category: 'Datos',
     question: 'Con que frecuencia se actualiza el dashboard?',
     answer:
-      'Las consultas API usan cache corta. El sistema de recogida se ejecuta periodicamente y refresca las agregaciones.',
+      'Los datos se refrescan de forma periodica y la API usa cache corta para no saturar consultas. Por eso puede haber unos minutos de diferencia entre una vista y otra.',
   },
   {
     id: 'ventana-analitica',
@@ -167,7 +240,14 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'Datos',
     question: 'Por que a veces aparece "sin datos"?',
     answer:
-      'Puede ocurrir por estaciones nuevas, incidencias temporales en la recogida o falta de muestra minima para calcular metricas fiables.',
+      'Las causas mas comunes son: estacion nueva, huecos temporales en la recogida o pocas muestras para calcular con fiabilidad. No siempre es fallo; a veces es falta de base suficiente.',
+  },
+  {
+    id: 'desfase-horario',
+    category: 'Datos',
+    question: 'Por que a veces no coincide la hora exacta con otra app?',
+    answer:
+      'Puede haber pequenas diferencias por zona horaria mostrada, cache o momento de refresco. Para validar, revisa siempre la marca de "ultima actualizacion" del panel.',
   },
   {
     id: 'busqueda',
@@ -205,6 +285,43 @@ const FAQ_ITEMS: FaqItem[] = [
       'Incluye estacion, hora aproximada, vista donde aparece el problema y una captura. Con ese contexto se acelera la revision tecnica.',
   },
 ];
+
+const CATEGORY_PRIORITY_MAP = new Map<string, number>(
+  CATEGORY_PRIORITY.map((category, index) => [category, index])
+);
+
+const FAQ_PRIORITY_MAP = new Map<string, number>(
+  FAQ_PRIORITY_IDS.map((faqId, index) => [faqId, index])
+);
+
+const FAQ_INDEX_MAP = new Map<string, number>(
+  FAQ_ITEMS.map((item, index) => [item.id, index])
+);
+
+function compareCategories(a: string, b: string): number {
+  const rankA = CATEGORY_PRIORITY_MAP.get(a) ?? Number.MAX_SAFE_INTEGER;
+  const rankB = CATEGORY_PRIORITY_MAP.get(b) ?? Number.MAX_SAFE_INTEGER;
+
+  if (rankA !== rankB) {
+    return rankA - rankB;
+  }
+
+  return a.localeCompare(b, 'es-ES');
+}
+
+function compareFaqItems(a: FaqItem, b: FaqItem): number {
+  const rankA = FAQ_PRIORITY_MAP.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+  const rankB = FAQ_PRIORITY_MAP.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+  if (rankA !== rankB) {
+    return rankA - rankB;
+  }
+
+  const originalA = FAQ_INDEX_MAP.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+  const originalB = FAQ_INDEX_MAP.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+  return originalA - originalB;
+}
 
 function normalize(value: string): string {
   return value
@@ -248,13 +365,23 @@ export function HelpCenterClient() {
 
   const categories = useMemo(() => {
     const uniqueCategories = new Set(FAQ_ITEMS.map((item) => item.category));
-    return Array.from(uniqueCategories.values());
+    return Array.from(uniqueCategories.values()).sort(compareCategories);
   }, []);
 
   const groupedItems = useMemo(() => {
+    const sortedItems = [...filteredItems].sort((a, b) => {
+      const categoryDiff = compareCategories(a.category, b.category);
+
+      if (categoryDiff !== 0) {
+        return categoryDiff;
+      }
+
+      return compareFaqItems(a, b);
+    });
+
     const map = new Map<string, FaqItem[]>();
 
-    for (const item of filteredItems) {
+    for (const item of sortedItems) {
       const rows = map.get(item.category) ?? [];
       rows.push(item);
       map.set(item.category, rows);

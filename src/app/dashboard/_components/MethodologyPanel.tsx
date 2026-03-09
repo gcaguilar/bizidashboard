@@ -4,17 +4,27 @@ import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
 const QUICK_FAQ = [
   {
     question: 'Como se detecta una alerta activa?',
-    answer: `Se analiza una ventana movil de ${ANALYTICS_WINDOWS.alertWindowHours} horas. Si bicis medias < ${ALERT_THRESHOLDS.lowBikes} o anclajes libres < ${ALERT_THRESHOLDS.lowAnchors}, se genera alerta.`,
+    answer: `Miramos las ultimas ${ANALYTICS_WINDOWS.alertWindowHours} horas. Si la media de bicis baja de ${ALERT_THRESHOLDS.lowBikes} o la media de anclajes libres baja de ${ALERT_THRESHOLDS.lowAnchors}, entra en alerta.`,
   },
   {
     question: 'Que significa horas problema?',
     answer:
-      'Es la suma de horas con disponibilidad muy baja de bicis o de anclajes, dentro de la ventana de ranking.',
+      'Es el tiempo acumulado con riesgo operativo: pocas bicis o pocos anclajes. Mas horas problema = mas necesidad de actuar.',
   },
   {
     question: 'Como se estima la matriz O-D?',
     answer:
-      'Se infiere desde variaciones netas horarias por estacion y se agrega por distrito. No representa viajes individuales observados.',
+      'Se estima con cambios de disponibilidad por hora y se agrupa por distritos. Sirve para ver tendencias, no viajes individuales exactos.',
+  },
+  {
+    question: 'Como se calculan las rutas destacadas?',
+    answer:
+      'Se reparte el flujo saliente de cada distrito entre destinos segun su peso de entradas en esa franja. Son rutas probables, no trazas GPS.',
+  },
+  {
+    question: 'Que significa prediccion en el dashboard?',
+    answer:
+      'Las predicciones (+30/+60 min) anticipan disponibilidad con historico + estado reciente. Ayudan a prevenir, pero no garantizan el valor final.',
   },
 ];
 
