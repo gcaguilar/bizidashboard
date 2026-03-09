@@ -26,6 +26,8 @@ model Station {
   patterns         StationPattern[]
   heatmapCells     StationHeatmapCell[]
   alerts           StationAlert[]
+  transitLinks     StationTransitLink[]
+  transitImpact    HourlyTransitImpact[]
 
   @@index([isActive])
   @@index([lat, lon])
@@ -53,6 +55,11 @@ enum DayType {
 enum AlertType {
   LOW_BIKES
   LOW_ANCHORS
+}
+
+enum TransitProvider {
+  TRAM
+  BUS
 }
 
 model HourlyStationStat {
@@ -177,4 +184,80 @@ model JobLock {
   lockedAt      DateTime?
   lockExpiresAt DateTime?
   lockedBy      String?
+}
+
+model TransitStop {
+  id         String          @id
+  provider   TransitProvider
+  externalId String
+  name       String
+  lat        Float
+  lon        Float
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  stationLinks StationTransitLink[]
+  snapshots    TransitSnapshot[]
+
+  @@unique([provider, externalId])
+  @@index([provider, isActive])
+  @@index([lat, lon])
+}
+
+model StationTransitLink {
+  stationId      String
+  provider       TransitProvider
+  transitStopId  String
+  distanceMeters Float
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  station    Station     @relation(fields: [stationId], references: [id])
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@id([stationId, provider])
+  @@index([provider, transitStopId])
+  @@index([provider, stationId])
+}
+
+model TransitSnapshot {
+  id             Int             @id @default(autoincrement())
+  provider       TransitProvider
+  transitStopId  String
+  observedAt     DateTime
+  sourceUpdatedAt DateTime?
+  etaMinutes     Int?
+  arrivalPressure Float
+  arrivalEvents  Int
+  isStale        Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@index([provider, observedAt])
+  @@index([provider, isStale, observedAt, transitStopId])
+  @@index([provider, transitStopId, observedAt])
+  @@index([transitStopId, observedAt])
+  @@index([isStale, observedAt])
+}
+
+model HourlyTransitImpact {
+  stationId           String
+  provider            TransitProvider
+  bucketStart         DateTime
+  departures          Float
+  arrivalPressureAvg  Float
+  arrivalEvents       Int
+  sampleCount         Int
+  hasArrivalEvent     Boolean
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id])
+
+  @@id([stationId, provider, bucketStart])
+  @@index([provider, bucketStart])
+  @@index([bucketStart])
+  @@index([stationId, bucketStart])
 }
