@@ -9,6 +9,12 @@ import type {
   StationsResponse,
   StatusResponse,
 } from '@/lib/api';
+import {
+  buildStationDistrictMap,
+  DISTRICTS_GEOJSON_URL,
+  type DistrictCollection,
+  isDistrictCollection,
+} from '@/lib/districts';
 import { AlertsPanel } from './AlertsPanel';
 import { DemandFlowCard } from './DemandFlowCard';
 import { FlowPreviewPanel } from './FlowPreviewPanel';
@@ -111,6 +117,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [activeWindowId, setActiveWindowId] = useState(() =>
     resolveTimeWindowId(searchParams.get('timeWindow'))
   );
+  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobilityPreview, setMobilityPreview] =
     useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
   const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
@@ -125,6 +132,52 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       null
     );
   }, [initialData.stations.stations, selectedStationId]);
+
+  const stationDistrictMap = useMemo(() => {
+    if (!districts) {
+      return new Map<string, string>();
+    }
+
+    return buildStationDistrictMap(initialData.stations.stations, districts);
+  }, [districts, initialData.stations.stations]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let isActive = true;
+
+    const loadDistricts = async () => {
+      try {
+        const response = await fetch(DISTRICTS_GEOJSON_URL, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = (await response.json()) as unknown;
+
+        if (!isDistrictCollection(payload) || !isActive) {
+          return;
+        }
+
+        setDistricts(payload);
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          return;
+        }
+
+        console.error('[Dashboard] No se pudieron cargar distritos para busqueda por barrio.', error);
+      }
+    };
+
+    void loadDistricts();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const stationIdFromUrl = resolveStationId(initialData.stations.stations, searchParams.get('stationId'));
@@ -173,17 +226,41 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }
 
     const query = normalizeText(searchQuery);
-    const bestMatch = initialData.stations.stations.find((station) => {
+    const bestStationMatch = initialData.stations.stations.find((station) => {
       const normalizedName = normalizeText(station.name);
       const normalizedId = normalizeText(station.id);
 
       return normalizedName.includes(query) || normalizedId.includes(query);
     });
 
-    if (bestMatch && bestMatch.id !== selectedStationId) {
-      setSelectedStationId(bestMatch.id);
+    if (bestStationMatch) {
+      if (bestStationMatch.id !== selectedStationId) {
+        setSelectedStationId(bestStationMatch.id);
+      }
+
+      return;
     }
-  }, [initialData.stations.stations, searchQuery, selectedStationId]);
+
+    if (stationDistrictMap.size === 0) {
+      return;
+    }
+
+    const matchingDistrict = Array.from(new Set(stationDistrictMap.values())).find((district) =>
+      normalizeText(district).includes(query)
+    );
+
+    if (!matchingDistrict) {
+      return;
+    }
+
+    const districtStation = initialData.stations.stations.find(
+      (station) => stationDistrictMap.get(station.id) === matchingDistrict
+    );
+
+    if (districtStation && districtStation.id !== selectedStationId) {
+      setSelectedStationId(districtStation.id);
+    }
+  }, [initialData.stations.stations, searchQuery, selectedStationId, stationDistrictMap]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -283,7 +360,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               <input
                 type="text"
                 className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                placeholder="Buscar estacion o barrio..."
+                placeholder="Buscar estacion, ID o barrio..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
@@ -329,7 +406,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             <input
               type="text"
               className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-              placeholder="Buscar estacion o barrio..."
+              placeholder="Buscar estacion, ID o barrio..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
             />

@@ -481,7 +481,7 @@ export function StationDetailPanel({
 
         <article className="rounded-xl border-2 border-[var(--accent)] bg-[var(--accent)] p-5 text-white">
           <h3 className="text-lg font-bold">Prediccion de disponibilidad</h3>
-          <p className="mt-1 text-sm text-white/80">Estimacion de disponibilidad para 120 minutos.</p>
+          <p className="mt-1 text-sm text-white/80">Estimacion de disponibilidad para 60 minutos.</p>
           <div className="mt-4 space-y-3">
             <div className="rounded-lg border border-white/25 bg-white/10 px-3 py-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/70">En 30 min</p>

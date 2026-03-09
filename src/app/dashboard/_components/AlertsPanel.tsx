@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { AlertsResponse, StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 
@@ -20,20 +21,28 @@ export function AlertsPanel({ alerts, stations }: AlertsPanelProps) {
         <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
           Estaciones criticas
         </h2>
-        <span className="rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
-          {activeAlerts.length} accion requerida
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
+            {activeAlerts.length} accion requerida
+          </span>
+          <Link
+            href="/dashboard/alertas"
+            className="rounded-full border border-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+          >
+            Historial
+          </Link>
+        </div>
       </header>
 
       {activeAlerts.length === 0 ? (
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
-          <button
-            type="button"
+          <Link
+            href="/dashboard/alertas"
             className="w-full rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Ver historial de alertas
-          </button>
+          </Link>
         </div>
       ) : (
         <ul className="max-h-[500px] space-y-3 overflow-auto p-4">
