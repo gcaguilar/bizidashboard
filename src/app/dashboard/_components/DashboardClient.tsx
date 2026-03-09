@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   AlertsResponse,
   RankingsResponse,
@@ -15,6 +15,7 @@ import {
   type DistrictCollection,
   isDistrictCollection,
 } from '@/lib/districts';
+import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { AlertsPanel } from './AlertsPanel';
 import { DemandFlowCard } from './DemandFlowCard';
 import { FlowPreviewPanel } from './FlowPreviewPanel';
@@ -66,6 +67,22 @@ type MobilityPreviewData = {
   dailyDemand: DailyDemandRow[];
 };
 
+type StationTrend = 'up' | 'down' | 'flat';
+
+type StationSnapshotMap = Record<string, number>;
+
+type RefreshPayload<T> = {
+  ok: true;
+  data: T;
+} | {
+  ok: false;
+};
+
+const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
+const TREND_SNAPSHOT_STORAGE_KEY = 'bizidashboard-session-station-snapshot';
+const REFRESH_AFTER_LAST_DATA_MS = 30 * 60_000;
+const MIN_REFRESH_FALLBACK_MS = 60_000;
+
 const TIME_WINDOWS: TimeWindow[] = [
   { id: '24h', label: 'Ultimas 24h', mobilityDays: 1, demandDays: 7 },
   { id: '7d', label: '7 dias', mobilityDays: 7, demandDays: 14 },
@@ -106,9 +123,135 @@ function resolveStationId(stations: StationsResponse['stations'], value: string 
   return stations[0]?.id ?? '';
 }
 
+function toStationSnapshot(stations: StationsResponse['stations']): StationSnapshotMap {
+  return stations.reduce<StationSnapshotMap>((accumulator, station) => {
+    accumulator[station.id] = Number(station.bikesAvailable);
+    return accumulator;
+  }, {});
+}
+
+function parseStationSnapshot(rawValue: string | null): StationSnapshotMap | null {
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as unknown;
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null;
+    }
+
+    const snapshot: StationSnapshotMap = {};
+
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+
+      snapshot[key] = Number(value);
+    }
+
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+function computeStationTrends(
+  previousSnapshot: StationSnapshotMap,
+  currentStations: StationsResponse['stations']
+): Record<string, StationTrend> {
+  const trends: Record<string, StationTrend> = {};
+
+  for (const station of currentStations) {
+    const previousBikes = previousSnapshot[station.id];
+
+    if (!Number.isFinite(previousBikes)) {
+      trends[station.id] = 'flat';
+      continue;
+    }
+
+    if (station.bikesAvailable > previousBikes) {
+      trends[station.id] = 'up';
+    } else if (station.bikesAvailable < previousBikes) {
+      trends[station.id] = 'down';
+    } else {
+      trends[station.id] = 'flat';
+    }
+  }
+
+  return trends;
+}
+
+function parseFavoriteIds(rawValue: string | null): string[] {
+  if (!rawValue) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((value): value is string => typeof value === 'string')
+      .map((value) => value.trim())
+      .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+  } catch {
+    return [];
+  }
+}
+
+function toTimestamp(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function resolveLatestDataUpdatedAt(stations: StationsResponse, status: StatusResponse): Date {
+  const stationRecordings = stations.stations
+    .map((station) => toTimestamp(station.recordedAt))
+    .filter((value): value is number => value !== null);
+
+  const candidates = [
+    ...stationRecordings,
+    toTimestamp(status.pipeline.lastSuccessfulPoll),
+    toTimestamp(stations.generatedAt),
+    toTimestamp(status.timestamp),
+  ].filter((value): value is number => value !== null);
+
+  if (candidates.length === 0) {
+    return new Date();
+  }
+
+  return new Date(Math.max(...candidates));
+}
+
+function formatCountdown(valueMs: number): string {
+  const safeMs = Math.max(0, valueMs);
+
+  if (safeMs < 60_000) {
+    return `${Math.ceil(safeMs / 1000)}s`;
+  }
+
+  const minutes = Math.ceil(safeMs / 60_000);
+  return `${minutes} min`;
+}
+
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
+  const [statusData, setStatusData] = useState<StatusResponse>(initialData.status);
+  const [alertsData, setAlertsData] = useState<AlertsResponse>(initialData.alerts);
+  const [rankingsData, setRankingsData] = useState(initialData.rankings);
 
   const [selectedStationId, setSelectedStationId] = useState(() =>
     resolveStationId(initialData.stations.stations, searchParams.get('stationId'))
@@ -117,29 +260,83 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [activeWindowId, setActiveWindowId] = useState(() =>
     resolveTimeWindowId(searchParams.get('timeWindow'))
   );
+  const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
+  const [onlyWithBikes, setOnlyWithBikes] = useState(false);
+  const [onlyWithAnchors, setOnlyWithAnchors] = useState(false);
+  const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() => {
+    const latestUpdate = resolveLatestDataUpdatedAt(initialData.stations, initialData.status);
+    return new Date(latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS);
+  });
+  const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobilityPreview, setMobilityPreview] =
     useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
   const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
 
+  const filteredStations = useMemo(() => {
+    return stationsData.stations.filter((station) => {
+      if (onlyWithBikes && station.bikesAvailable <= 0) {
+        return false;
+      }
+
+      if (onlyWithAnchors && station.anchorsFree <= 0) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [onlyWithAnchors, onlyWithBikes, stationsData.stations]);
+
   const activeWindow =
     TIME_WINDOWS.find((window) => window.id === activeWindowId) ?? TIME_WINDOWS[1];
 
   const selectedStation = useMemo(() => {
-    return (
-      initialData.stations.stations.find((station) => station.id === selectedStationId) ??
-      initialData.stations.stations[0] ??
-      null
-    );
-  }, [initialData.stations.stations, selectedStationId]);
+    if (filteredStations.length === 0) {
+      return null;
+    }
+
+    return filteredStations.find((station) => station.id === selectedStationId) ?? filteredStations[0];
+  }, [filteredStations, selectedStationId]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
       return new Map<string, string>();
     }
 
-    return buildStationDistrictMap(initialData.stations.stations, districts);
-  }, [districts, initialData.stations.stations]);
+    return buildStationDistrictMap(stationsData.stations, districts);
+  }, [districts, stationsData.stations]);
+
+  const nearestStation = useMemo(() => {
+    if (!userLocation || stationsData.stations.length === 0) {
+      return null;
+    }
+
+    let bestMatch: { stationId: string; distanceMeters: number } | null = null;
+
+    for (const station of stationsData.stations) {
+      if (!Number.isFinite(station.lat) || !Number.isFinite(station.lon)) {
+        continue;
+      }
+
+      const distanceMeters = haversineDistanceMeters(userLocation, {
+        latitude: station.lat,
+        longitude: station.lon,
+      });
+
+      if (!bestMatch || distanceMeters < bestMatch.distanceMeters) {
+        bestMatch = {
+          stationId: station.id,
+          distanceMeters,
+        };
+      }
+    }
+
+    return bestMatch;
+  }, [stationsData.stations, userLocation]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -180,7 +377,79 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, []);
 
   useEffect(() => {
-    const stationIdFromUrl = resolveStationId(initialData.stations.stations, searchParams.get('stationId'));
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
+    setFavoriteStationIds(parsedFavorites);
+
+    const previousSnapshot = parseStationSnapshot(
+      window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
+    );
+
+    if (previousSnapshot) {
+      setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
+    }
+
+    window.sessionStorage.setItem(
+      TREND_SNAPSHOT_STORAGE_KEY,
+      JSON.stringify(toStationSnapshot(initialData.stations.stations))
+    );
+  }, [initialData.stations]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteStationIds));
+  }, [favoriteStationIds]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeolocationError('La geolocalizacion no esta disponible en este navegador.');
+      return;
+    }
+
+    const watcherId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setGeolocationError(null);
+      },
+      (error) => {
+        setGeolocationError(error.message || 'No se pudo obtener tu ubicacion.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 90_000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watcherId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (filteredStations.length === 0) {
+      setSelectedStationId('');
+      return;
+    }
+
+    if (filteredStations.some((station) => station.id === selectedStationId)) {
+      return;
+    }
+
+    setSelectedStationId(filteredStations[0]?.id ?? '');
+  }, [filteredStations, selectedStationId]);
+
+  useEffect(() => {
+    const stationIdFromUrl = resolveStationId(stationsData.stations, searchParams.get('stationId'));
     const windowIdFromUrl = resolveTimeWindowId(searchParams.get('timeWindow'));
 
     setSelectedStationId((current) =>
@@ -190,7 +459,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     setActiveWindowId((current) =>
       current === windowIdFromUrl ? current : windowIdFromUrl
     );
-  }, [initialData.stations.stations, searchParams]);
+  }, [searchParams, stationsData.stations]);
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -226,7 +495,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }
 
     const query = normalizeText(searchQuery);
-    const bestStationMatch = initialData.stations.stations.find((station) => {
+    const sourceStations = filteredStations.length > 0 ? filteredStations : stationsData.stations;
+    const bestStationMatch = sourceStations.find((station) => {
       const normalizedName = normalizeText(station.name);
       const normalizedId = normalizeText(station.id);
 
@@ -253,14 +523,132 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       return;
     }
 
-    const districtStation = initialData.stations.stations.find(
+    const districtStation = sourceStations.find(
       (station) => stationDistrictMap.get(station.id) === matchingDistrict
     );
 
     if (districtStation && districtStation.id !== selectedStationId) {
       setSelectedStationId(districtStation.id);
     }
-  }, [initialData.stations.stations, searchQuery, selectedStationId, stationDistrictMap]);
+  }, [filteredStations, searchQuery, selectedStationId, stationDistrictMap, stationsData.stations]);
+
+  const toggleFavoriteStation = useCallback((stationId: string) => {
+    setFavoriteStationIds((current) => {
+      if (current.includes(stationId)) {
+        return current.filter((id) => id !== stationId);
+      }
+
+      return [...current, stationId];
+    });
+  }, []);
+
+  const refreshDashboardData = useCallback(async () => {
+    const fetchJson = async <T,>(url: string): Promise<RefreshPayload<T>> => {
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        return {
+          ok: true,
+          data: (await response.json()) as T,
+        };
+      } catch (error) {
+        console.error(`[Dashboard] No se pudo refrescar ${url}`, error);
+        return { ok: false };
+      }
+    };
+
+    setIsRefreshingData(true);
+
+    try {
+      const rankingLimit = Math.max(50, Math.min(200, stationsData.stations.length || 50));
+
+      const [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult] =
+        await Promise.all([
+          fetchJson<StationsResponse>('/api/stations'),
+          fetchJson<AlertsResponse>('/api/alerts?limit=20'),
+          fetchJson<RankingsResponse>(`/api/rankings?type=turnover&limit=${rankingLimit}`),
+          fetchJson<RankingsResponse>(`/api/rankings?type=availability&limit=${rankingLimit}`),
+          fetchJson<StatusResponse>('/api/status'),
+        ]);
+
+      if (stationsResult.ok) {
+        const previousSnapshot = parseStationSnapshot(
+          window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
+        );
+        const fallbackSnapshot = toStationSnapshot(stationsData.stations);
+        const trendSource = previousSnapshot ?? fallbackSnapshot;
+
+        setStationTrendById(computeStationTrends(trendSource, stationsResult.data.stations));
+
+        window.sessionStorage.setItem(
+          TREND_SNAPSHOT_STORAGE_KEY,
+          JSON.stringify(toStationSnapshot(stationsResult.data.stations))
+        );
+
+        setStationsData(stationsResult.data);
+      }
+
+      if (alertsResult.ok) {
+        setAlertsData(alertsResult.data);
+      }
+
+      if (turnoverResult.ok && availabilityResult.ok) {
+        setRankingsData({
+          turnover: turnoverResult.data,
+          availability: availabilityResult.data,
+        });
+      }
+
+      if (statusResult.ok) {
+        setStatusData(statusResult.data);
+      }
+
+      const latestStations = stationsResult.ok ? stationsResult.data : stationsData;
+      const latestStatus = statusResult.ok ? statusResult.data : statusData;
+      const latestUpdate = resolveLatestDataUpdatedAt(latestStations, latestStatus);
+      const targetTimestamp = Math.max(
+        latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS,
+        Date.now() + MIN_REFRESH_FALLBACK_MS
+      );
+      setNextRefreshAt(new Date(targetTimestamp));
+    } finally {
+      setIsRefreshingData(false);
+    }
+  }, [stationsData, statusData]);
+
+  useEffect(() => {
+    const delayMs = nextRefreshAt.getTime() - Date.now();
+
+    if (delayMs <= 0) {
+      void refreshDashboardData();
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void refreshDashboardData();
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [nextRefreshAt, refreshDashboardData]);
+
+  useEffect(() => {
+    setRefreshCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
+
+    const timerId = window.setInterval(() => {
+      const remaining = Math.max(0, nextRefreshAt.getTime() - Date.now());
+      setRefreshCountdownMs(remaining);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [nextRefreshAt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -323,6 +711,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const selectedStationDetailUrl = selectedStation
     ? `/dashboard/estaciones/${encodeURIComponent(selectedStation.id)}`
     : '/dashboard/estaciones';
+  const totalStationsCount = stationsData.stations.length;
+  const filteredOutCount = Math.max(0, totalStationsCount - filteredStations.length);
+  const nearestStationInfo = nearestStation
+    ? stationsData.stations.find((station) => station.id === nearestStation.stationId) ?? null
+    : null;
+  const refreshProgress =
+    ((REFRESH_AFTER_LAST_DATA_MS - Math.max(0, refreshCountdownMs)) / REFRESH_AFTER_LAST_DATA_MS) *
+    100;
+  const hasAvailabilityFilter = onlyWithBikes || onlyWithAnchors;
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 overflow-x-hidden">
@@ -412,12 +809,41 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             />
           </label>
 
-          <p className="text-xs text-[var(--muted)]">
-            Estaciones: {initialData.stations.stations.length} · Alertas activas:{' '}
-            {initialData.alerts.alerts.length} · Ultima consulta: {initialData.status.timestamp} · Ventana:{' '}
-            {activeWindow.label}
-            {isMobilityPreviewLoading ? ' (actualizando...)' : ''}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1.5">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
+              <input
+                type="checkbox"
+                checked={onlyWithBikes}
+                onChange={(event) => setOnlyWithBikes(event.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--accent)]"
+              />
+              Solo con bicis
+            </label>
+
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
+              <input
+                type="checkbox"
+                checked={onlyWithAnchors}
+                onChange={(event) => setOnlyWithAnchors(event.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--accent)]"
+              />
+              Solo con huecos
+            </label>
+          </div>
+
+          <div className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs text-[var(--muted)]">
+            <p>
+              Estaciones: {filteredStations.length}/{totalStationsCount}
+              {hasAvailabilityFilter && filteredOutCount > 0 ? ` (filtradas ${filteredOutCount})` : ''} ·
+              Favoritas: {favoriteStationIds.length} · Alertas activas: {alertsData.alerts.length} · Ventana:{' '}
+              {activeWindow.label}
+              {isMobilityPreviewLoading ? ' (actualizando flujo...)' : ''}
+            </p>
+            <p>
+              Ultima consulta: {statusData.timestamp}
+              {isRefreshingData ? ' · Refrescando ahora...' : ''}
+            </p>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
             {TIME_WINDOWS.map((window) => (
@@ -434,7 +860,48 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               >
                 {window.label}
               </button>
-            ))}
+              ))}
+            </div>
+
+          <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
+            <p className="text-xs text-[var(--foreground)]">
+              {nearestStationInfo && nearestStation
+                ? `📍 Estacion mas cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
+                : geolocationError
+                  ? `📍 ${geolocationError}`
+                  : '📍 Buscando tu ubicacion para calcular la estacion mas cercana...'}
+            </p>
+
+            {nearestStationInfo && nearestStation ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOnlyWithBikes(false);
+                  setOnlyWithAnchors(false);
+                  setSelectedStationId(nearestStationInfo.id);
+                }}
+                className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              >
+                Ir a la mas cercana
+              </button>
+            ) : null}
+          </div>
+
+          <div className="w-full">
+            <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
+              <span>Auto-refresh: ultima actualizacion de datos + 30 min</span>
+              <span>
+                {isRefreshingData
+                  ? 'sincronizando...'
+                  : `siguiente en ${formatCountdown(refreshCountdownMs)}`}
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/15">
+              <div
+                className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500"
+                style={{ width: `${Math.max(0, Math.min(100, refreshProgress))}%` }}
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -442,13 +909,20 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
         <div className="min-w-0 lg:col-span-3">
           <MapPanel
-            stations={initialData.stations.stations}
+            stations={filteredStations}
+            totalStations={totalStationsCount}
             selectedStationId={selectedStationId}
             onSelectStation={setSelectedStationId}
+            favoriteStationIds={favoriteStationIds}
+            onToggleFavorite={toggleFavoriteStation}
+            trendByStationId={stationTrendById}
+            nearestStationId={nearestStation?.stationId ?? null}
+            nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+            userLocation={userLocation}
           />
         </div>
         <div className="min-w-0 lg:col-span-1">
-          <AlertsPanel alerts={initialData.alerts} stations={initialData.stations.stations} />
+          <AlertsPanel alerts={alertsData} stations={stationsData.stations} />
         </div>
       </div>
 
@@ -458,8 +932,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           windowLabel={activeWindow.label}
           requestedDays={activeWindow.demandDays}
         />
-        <RankingsTable rankings={initialData.rankings} stations={initialData.stations.stations} />
-        <NeighborhoodLoadCard stations={initialData.stations.stations} />
+        <RankingsTable rankings={rankingsData} stations={stationsData.stations} />
+        <NeighborhoodLoadCard stations={stationsData.stations} />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
@@ -480,15 +954,19 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </Link>
         </div>
         <FlowPreviewPanel
-          stations={initialData.stations.stations}
+          stations={stationsData.stations}
           hourlySignals={mobilityPreview.hourlySignals}
         />
       </section>
 
       <StationPicker
-        stations={initialData.stations.stations}
+        stations={filteredStations}
         selectedStationId={selectedStationId}
         onSelectStation={setSelectedStationId}
+        favoriteStationIds={favoriteStationIds}
+        onToggleFavorite={toggleFavoriteStation}
+        trendByStationId={stationTrendById}
+        nearestStationId={nearestStation?.stationId ?? null}
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
