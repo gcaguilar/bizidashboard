@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getDailyDemandCurve,
   getHourlyMobilitySignals,
+  getHourlyTransitImpact,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 
@@ -10,6 +11,47 @@ export const dynamic = 'force-dynamic';
 const CACHE_TTL_SECONDS = 300;
 const DEFAULT_MOBILITY_DAYS = 14;
 const DEFAULT_DEMAND_DAYS = 30;
+const TRANSIT_MIN_RECOMMENDED_SAMPLES = 6;
+
+type ErrorWithMeta = {
+  cause?: unknown;
+  meta?: {
+    driverAdapterError?: unknown;
+  };
+};
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function isMissingTableError(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase();
+
+  if (message.includes('no such table') || message.includes('p2021')) {
+    return true;
+  }
+
+  if (error && typeof error === 'object') {
+    const maybeError = error as ErrorWithMeta;
+
+    if (maybeError.cause && isMissingTableError(maybeError.cause)) {
+      return true;
+    }
+
+    if (
+      maybeError.meta?.driverAdapterError &&
+      isMissingTableError(maybeError.meta.driverAdapterError)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 function parseDays(
   value: string | null,
@@ -64,6 +106,49 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         getDailyDemandCurve(demandDays),
       ]);
 
+      let transitWarning: string | null = null;
+      let hourlyTransitImpact =
+        [] as Awaited<ReturnType<typeof getHourlyTransitImpact>>;
+
+      try {
+        hourlyTransitImpact = await getHourlyTransitImpact(mobilityDays);
+      } catch (error) {
+        if (isMissingTableError(error)) {
+          console.warn(
+            '[API Mobility] Transit impact skipped because transit tables are missing. Run migrations to enable this section.'
+          );
+          transitWarning =
+            'Transit impact unavailable because transit tables are missing.';
+        } else {
+          throw error;
+        }
+      }
+
+      const normalizedTransitImpact = hourlyTransitImpact.map((row) => ({
+        provider: String(row.provider).toLowerCase(),
+        hour: Number(row.hour),
+        avgDeparturesWithTransit: Number(row.avgDeparturesWithTransit),
+        avgDeparturesWithoutTransit: Number(row.avgDeparturesWithoutTransit),
+        uplift: Number(row.uplift),
+        upliftRatio:
+          row.upliftRatio === null || row.upliftRatio === undefined
+            ? null
+            : Number(row.upliftRatio),
+        avgArrivalPressure: Number(row.avgArrivalPressure),
+        totalArrivalEvents: Number(row.totalArrivalEvents),
+        samplesWithTransit: Number(row.samplesWithTransit),
+        samplesWithoutTransit: Number(row.samplesWithoutTransit),
+      }));
+
+      const maxComparableTransitSamples = normalizedTransitImpact.reduce(
+        (maxSamples, row) =>
+          Math.max(
+            maxSamples,
+            Math.min(row.samplesWithTransit, row.samplesWithoutTransit)
+          ),
+        0
+      );
+
       return {
         mobilityDays,
         demandDays,
@@ -82,6 +167,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           avgOccupancy: Number(row.avgOccupancy),
           sampleCount: Number(row.sampleCount),
         })),
+        transitImpact: {
+          lookbackDays: mobilityDays,
+          methodology:
+            'Compara salidas medias por estacion/hora cuando hay llegadas de transporte publico cercano (tram o bus) frente a cuando no hay llegadas inminentes.',
+          minimumRecommendedSamples: TRANSIT_MIN_RECOMMENDED_SAMPLES,
+          hasLowCoverage:
+            normalizedTransitImpact.length === 0 ||
+            maxComparableTransitSamples < TRANSIT_MIN_RECOMMENDED_SAMPLES,
+          warning: transitWarning,
+          hourly: normalizedTransitImpact,
+        },
         generatedAt: new Date().toISOString(),
       };
     });

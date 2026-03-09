@@ -4,13 +4,49 @@ export const openApiDocument = {
     title: 'Bizi Dashboard API',
     version: '0.5.0',
     description:
-      'API endpoints for station status, rankings, alerts, patterns, heatmaps, and mobility.'
+      'API endpoints for station status, rankings, alerts, patterns, heatmaps, mobility, and transit impact.'
+  },
+  components: {
+    securitySchemes: {
+      CollectApiKey: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-collect-api-key',
+        description:
+          'Required for POST /api/collect when COLLECT_API_KEY is configured (always required in production).'
+      }
+    }
   },
   paths: {
+    '/api/health/live': {
+      get: {
+        operationId: 'get_health_live',
+        summary: 'Liveness probe (no dependencies)',
+        responses: {
+          200: {
+            description: 'Process is alive'
+          }
+        }
+      }
+    },
+    '/api/health/ready': {
+      get: {
+        operationId: 'get_health_ready',
+        summary: 'Readiness probe (checks database connectivity)',
+        responses: {
+          200: {
+            description: 'Service is ready to serve traffic'
+          },
+          503: {
+            description: 'Service dependencies are not ready'
+          }
+        }
+      }
+    },
     '/api/status': {
       get: {
         operationId: 'get_status',
-        summary: 'Get pipeline status and observability metrics',
+        summary: 'Get pipeline observability metrics',
         responses: {
           200: {
             description: 'Pipeline and system status payload'
@@ -89,6 +125,116 @@ export const openApiDocument = {
         }
       }
     },
+    '/api/alerts/history': {
+      get: {
+        operationId: 'get_alerts_history',
+        summary: 'List alert history with filters, pagination, and CSV export',
+        parameters: [
+          {
+            name: 'state',
+            in: 'query',
+            required: false,
+            description: 'Filter by alert state',
+            schema: {
+              type: 'string',
+              enum: ['all', 'active', 'resolved'],
+              default: 'all'
+            }
+          },
+          {
+            name: 'stationId',
+            in: 'query',
+            required: false,
+            description: 'Filter by station identifier',
+            schema: {
+              type: 'string'
+            }
+          },
+          {
+            name: 'alertType',
+            in: 'query',
+            required: false,
+            description: 'Filter by alert type',
+            schema: {
+              type: 'string',
+              enum: ['all', 'LOW_BIKES', 'LOW_ANCHORS'],
+              default: 'all'
+            }
+          },
+          {
+            name: 'severity',
+            in: 'query',
+            required: false,
+            description: 'Filter by severity (1=media, 2=critica)',
+            schema: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 5
+            }
+          },
+          {
+            name: 'from',
+            in: 'query',
+            required: false,
+            description: 'Start datetime (ISO 8601)',
+            schema: {
+              type: 'string',
+              format: 'date-time'
+            }
+          },
+          {
+            name: 'to',
+            in: 'query',
+            required: false,
+            description: 'End datetime (ISO 8601)',
+            schema: {
+              type: 'string',
+              format: 'date-time'
+            }
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            description: 'Rows per page',
+            schema: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 2000,
+              default: 200
+            }
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            required: false,
+            description: 'Pagination offset',
+            schema: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 20000,
+              default: 0
+            }
+          },
+          {
+            name: 'format',
+            in: 'query',
+            required: false,
+            description: 'Response format',
+            schema: {
+              type: 'string',
+              enum: ['json', 'csv'],
+              default: 'json'
+            }
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Alert history payload or CSV file'
+          }
+        }
+      }
+    },
     '/api/patterns': {
       get: {
         operationId: 'get_patterns',
@@ -136,7 +282,7 @@ export const openApiDocument = {
     '/api/mobility': {
       get: {
         operationId: 'get_mobility',
-        summary: 'Get mobility signals and demand curve',
+        summary: 'Get mobility signals, demand curve, and transit impact',
         parameters: [
           {
             name: 'mobilityDays',
@@ -194,9 +340,23 @@ export const openApiDocument = {
       post: {
         operationId: 'post_collect',
         summary: 'Trigger one data collection run',
+        security: [
+          {
+            CollectApiKey: []
+          }
+        ],
         responses: {
           200: {
             description: 'Collection execution payload'
+          },
+          401: {
+            description: 'Missing or invalid API key'
+          },
+          429: {
+            description: 'Rate limit exceeded'
+          },
+          503: {
+            description: 'Collect trigger endpoint misconfigured'
           }
         }
       }
