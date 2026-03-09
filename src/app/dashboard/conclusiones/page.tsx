@@ -3,6 +3,7 @@ import { formatPercent } from '@/lib/format';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
+import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -98,13 +99,14 @@ export default async function DashboardConclusionsPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="conclusions"
               routes={['dashboard', 'stations', 'conclusions', 'help']}
               variant="chips"
-              className="flex items-center gap-2 md:hidden"
+              className="flex flex-wrap items-center gap-2 md:hidden"
             />
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -112,7 +114,8 @@ export default async function DashboardConclusionsPage() {
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
           </div>
         </div>

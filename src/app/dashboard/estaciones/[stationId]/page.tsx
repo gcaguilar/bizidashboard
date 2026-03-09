@@ -17,6 +17,7 @@ import { HourlyCharts } from '../../_components/HourlyCharts';
 import { MethodologyPanel } from '../../_components/MethodologyPanel';
 import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
+import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
@@ -121,13 +122,20 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
               <h1 className="text-lg font-bold text-[var(--foreground)]">{selectedStation.name}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="stations"
               routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
-              className="flex items-center gap-2"
+              className="hidden items-center gap-2 md:flex"
             />
+            <DashboardRouteLinks
+              activeRoute="stations"
+              routes={['dashboard', 'stations', 'flow', 'help']}
+              variant="chips"
+              className="flex flex-wrap items-center gap-2 md:hidden"
+            />
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -135,7 +143,8 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
           </div>
         </div>

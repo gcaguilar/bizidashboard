@@ -15,7 +15,9 @@ import { FlowPreviewPanel } from './FlowPreviewPanel';
 import { MapPanel } from './MapPanel';
 import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
 import { RankingsTable } from './RankingsTable';
+import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { StationPicker } from './StationPicker';
+import { ThemeToggleButton } from './ThemeToggleButton';
 
 export type DashboardInitialData = {
   stations: StationsResponse;
@@ -276,7 +278,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
             <label className="hidden w-full max-w-md items-center rounded-lg border border-transparent bg-[var(--surface-soft)] px-3 py-2 md:flex md:border-[var(--border)]/60">
               <input
                 type="text"
@@ -287,19 +289,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               />
             </label>
 
-            <button type="button" className="icon-button" aria-label="Notificaciones">
-              N
-            </button>
             <Link
               href="/dashboard/conclusiones"
-              className="icon-button"
+              className="icon-button hidden sm:inline-flex"
               aria-label="Conclusiones de movilidad"
             >
               Conclusiones
             </Link>
-            <Link href="/dashboard/ayuda" className="icon-button" aria-label="Centro de ayuda">
+            <Link
+              href="/dashboard/ayuda"
+              className="icon-button hidden sm:inline-flex"
+              aria-label="Centro de ayuda"
+            >
               Ayuda
             </Link>
+            <ThemeToggleButton />
             <a
               href={REPO_URL}
               target="_blank"
@@ -307,15 +311,20 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               className="icon-button"
               aria-label="Repositorio de la aplicacion"
             >
-              Repositorio
+              <span className="sm:hidden">Repo</span>
+              <span className="hidden sm:inline">Repositorio</span>
             </a>
-            <div className="hidden h-9 w-9 items-center justify-center rounded-full border border-[var(--accent)]/40 bg-[var(--accent)]/20 text-xs font-bold text-[var(--foreground)] sm:flex">
-              BA
-            </div>
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
+          <DashboardRouteLinks
+            activeRoute="dashboard"
+            routes={['stations', 'flow', 'conclusions', 'help']}
+            variant="chips"
+            className="flex flex-wrap items-center gap-2 sm:hidden"
+          />
+
           <label className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
             <input
               type="text"
@@ -333,7 +342,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             {isMobilityPreviewLoading ? ' (actualizando...)' : ''}
           </p>
 
-          <div className="flex items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
             {TIME_WINDOWS.map((window) => (
               <button
                 key={window.id}

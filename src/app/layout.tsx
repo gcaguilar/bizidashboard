@@ -22,6 +22,20 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 const siteUrl = getSiteUrl();
 const googleSiteVerificationToken = getGoogleSiteVerificationToken();
+const THEME_STORAGE_KEY = "bizidashboard-theme";
+const themeInitializerScript = `(() => {
+  try {
+    const storedTheme = window.localStorage.getItem('${THEME_STORAGE_KEY}');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = storedTheme ? storedTheme === 'dark' : prefersDark;
+
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+  } catch {
+    document.documentElement.classList.add('dark');
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -105,10 +119,11 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="es" className="dark">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
       >
+        <script dangerouslySetInnerHTML={{ __html: themeInitializerScript }} />
         {children}
         <script
           type="application/ld+json"
