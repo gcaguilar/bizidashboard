@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import {
   getGoogleSiteVerificationToken,
@@ -7,6 +7,7 @@ import {
   SITE_NAME,
   SITE_TITLE,
 } from "@/lib/site";
+import { ServiceWorkerRegister } from "./_components/ServiceWorkerRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -48,6 +49,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  manifest: '/manifest.webmanifest',
   keywords: [
     "bizi",
     "zaragoza",
@@ -87,6 +89,11 @@ export const metadata: Metadata = {
     : undefined,
 };
 
+export const viewport: Viewport = {
+  themeColor: '#ea0615',
+  colorScheme: 'light dark',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -124,6 +131,7 @@ export default function RootLayout({
         className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <script dangerouslySetInnerHTML={{ __html: themeInitializerScript }} />
+        <ServiceWorkerRegister />
         {children}
         <script
           type="application/ld+json"
