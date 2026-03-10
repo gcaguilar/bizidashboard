@@ -57,13 +57,3 @@ test('flow period filter is reflected in query string', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('button', { name: 'Manana' })).toHaveAttribute('aria-pressed', 'true');
 });
-
-test('transport dashboards are reachable from classic dashboard', async ({ page }) => {
-  await page.goto('/dashboard');
-
-  await page.getByRole('link', { name: 'Abrir dashboard bus' }).click();
-  await expect(page).toHaveURL(/\/dashboard\/transporte\/bus/);
-
-  await page.getByRole('link', { name: 'Tranvia' }).click();
-  await expect(page).toHaveURL(/\/dashboard\/transporte\/tranvia/);
-});

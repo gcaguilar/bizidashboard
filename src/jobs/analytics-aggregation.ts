@@ -14,14 +14,6 @@ import { runHeatmapRollup } from '@/analytics/queries/heatmap';
 import { runHourlyRollup } from '@/analytics/queries/hourly';
 import { runPatternRollup } from '@/analytics/queries/patterns';
 import { runRankingRollup } from '@/analytics/queries/rankings';
-import {
-  deactivateActiveTransitAlerts,
-  runTransitAlertRollup,
-} from '@/analytics/queries/transit-alerts';
-import { runTransitHeatmapRollup } from '@/analytics/queries/transit-heatmap';
-import { runHourlyTransitStopRollup } from '@/analytics/queries/transit-hourly';
-import { runTransitPatternRollup } from '@/analytics/queries/transit-patterns';
-import { runTransitRankingRollup } from '@/analytics/queries/transit-rankings';
 import { runHourlyTransitImpactRollup } from '@/analytics/queries/transit-impact';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 
@@ -100,15 +92,6 @@ async function runAnalyticsAggregation(): Promise<void> {
       `[Analytics] Transit impact rollup processed ${transitImpactResult.processedCount} rows into ${transitImpactResult.upsertedCount} buckets in ${transitImpactDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
     );
 
-    await lock.refresh();
-    const transitHourlyStart = Date.now();
-    const transitHourlyResult = await runHourlyTransitStopRollup(hourlyCutoff);
-    const transitHourlyDuration = Date.now() - transitHourlyStart;
-
-    console.log(
-      `[Analytics] Transit stop hourly rollup processed ${transitHourlyResult.processedCount} rows into ${transitHourlyResult.upsertedCount} buckets in ${transitHourlyDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
-    );
-
     if (hourlyResult.processedCount > 0) {
       await lock.refresh();
       const rankingStart = Date.now();
@@ -145,46 +128,6 @@ async function runAnalyticsAggregation(): Promise<void> {
 
       console.log(
         `[Analytics] Alert rollup upserted ${alertResult.upsertedCount} alerts in ${alertDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
-
-    }
-
-    if (transitHourlyResult.processedCount > 0) {
-      await lock.refresh();
-      const transitRankingStart = Date.now();
-      const transitRankingResult = await runTransitRankingRollup(hourlyCutoff);
-      const transitRankingDuration = Date.now() - transitRankingStart;
-
-      console.log(
-        `[Analytics] Transit ranking rollup upserted ${transitRankingResult.upsertedCount} stops in ${transitRankingDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
-
-      await lock.refresh();
-      const transitPatternStart = Date.now();
-      const transitPatternResult = await runTransitPatternRollup(hourlyCutoff);
-      const transitPatternDuration = Date.now() - transitPatternStart;
-
-      console.log(
-        `[Analytics] Transit pattern rollup upserted ${transitPatternResult.upsertedCount} buckets in ${transitPatternDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
-
-      await lock.refresh();
-      const transitHeatmapStart = Date.now();
-      const transitHeatmapResult = await runTransitHeatmapRollup(hourlyCutoff);
-      const transitHeatmapDuration = Date.now() - transitHeatmapStart;
-
-      console.log(
-        `[Analytics] Transit heatmap rollup upserted ${transitHeatmapResult.upsertedCount} cells in ${transitHeatmapDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
-
-      await lock.refresh();
-      await deactivateActiveTransitAlerts();
-      const transitAlertStart = Date.now();
-      const transitAlertResult = await runTransitAlertRollup(hourlyCutoff);
-      const transitAlertDuration = Date.now() - transitAlertStart;
-
-      console.log(
-        `[Analytics] Transit alert rollup upserted ${transitAlertResult.upsertedCount} alerts in ${transitAlertDuration}ms (window end ${hourlyCutoff.toISOString()})`
       );
     }
 

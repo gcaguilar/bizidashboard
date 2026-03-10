@@ -54,8 +54,6 @@ export interface RetentionResult {
   stationAlertsDeleted: number;
   transitSnapshotsDeleted: number;
   transitImpactDeleted: number;
-  transitHourlyStatsDeleted: number;
-  transitAlertsDeleted: number;
 }
 
 export async function runRetentionCleanup(): Promise<RetentionResult> {
@@ -96,8 +94,6 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
 
   let transitSnapshotsDeleted = 0;
   let transitImpactDeleted = 0;
-  let transitHourlyStatsDeleted = 0;
-  let transitAlertsDeleted = 0;
 
   try {
     const transitSnapshotResult = await prisma.transitSnapshot.deleteMany({
@@ -135,44 +131,8 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     }
   }
 
-  try {
-    const transitHourlyStatsResult = await prisma.hourlyTransitStopStat.deleteMany({
-      where: {
-        bucketStart: {
-          lt: transitImpactCutoff,
-        },
-      },
-    });
-
-    transitHourlyStatsDeleted = transitHourlyStatsResult.count;
-  } catch (error) {
-    if (isMissingTableError(error)) {
-      console.warn('[Retention] HourlyTransitStopStat table missing, skipping transit hourly cleanup');
-    } else {
-      throw error;
-    }
-  }
-
-  try {
-    const transitAlertsResult = await prisma.transitStopAlert.deleteMany({
-      where: {
-        generatedAt: {
-          lt: alertCutoff,
-        },
-      },
-    });
-
-    transitAlertsDeleted = transitAlertsResult.count;
-  } catch (error) {
-    if (isMissingTableError(error)) {
-      console.warn('[Retention] TransitStopAlert table missing, skipping transit alert cleanup');
-    } else {
-      throw error;
-    }
-  }
-
   console.log(
-    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsResult.count} hourly rows, ${stationAlertsResult.count} alert rows, ${transitSnapshotsDeleted} transit snapshots, ${transitImpactDeleted} transit impact rows, ${transitHourlyStatsDeleted} transit hourly rows, ${transitAlertsDeleted} transit alerts`
+    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsResult.count} hourly rows, ${stationAlertsResult.count} alert rows, ${transitSnapshotsDeleted} transit snapshots, ${transitImpactDeleted} transit impact rows`
   );
 
   return {
@@ -181,8 +141,6 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     stationAlertsDeleted: stationAlertsResult.count,
     transitSnapshotsDeleted,
     transitImpactDeleted,
-    transitHourlyStatsDeleted,
-    transitAlertsDeleted,
   };
 }
 
