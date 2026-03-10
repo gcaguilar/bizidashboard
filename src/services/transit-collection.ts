@@ -10,6 +10,8 @@ type TransitStation = {
   lon: number;
 };
 
+type ProviderCollectionMode = 'full' | 'rotating-batch';
+
 type TransitStopCandidate = {
   externalId: string;
   name: string;
@@ -48,10 +50,13 @@ type StationLinkCandidate = {
 
 export type TransitProviderCollectionResult = {
   provider: TransitProvider;
+  mode: ProviderCollectionMode;
   linksRefreshed: boolean;
   stopsDiscovered: number;
   linkedStations: number;
   uniqueLinkedStops: number;
+  activeStops: number;
+  snapshotsAttempted: number;
   snapshotsStored: number;
   snapshotsDeduplicated: number;
   staleSnapshots: number;
@@ -75,6 +80,7 @@ const BUS_REALTIME_MAX_CONCURRENCY = Number(process.env.BUS_REALTIME_MAX_CONCURR
 const BUS_STOPS_CACHE_TTL_MS = Number(process.env.BUS_STOPS_CACHE_TTL_MS ?? 6 * 60 * 60 * 1000);
 const TRANSIT_LINK_REFRESH_MINUTES = Number(process.env.TRANSIT_LINK_REFRESH_MINUTES ?? 360);
 const TRANSIT_LINK_REFRESH_MS = Math.max(1, TRANSIT_LINK_REFRESH_MINUTES) * 60_000;
+const BUS_REALTIME_BATCH_SIZE = Number(process.env.BUS_REALTIME_BATCH_SIZE ?? 80);
 
 const TRAM_STOPS_URL =
   process.env.TRAM_STOPS_URL ??
@@ -375,6 +381,18 @@ function getLinkSyncWatermarkName(provider: TransitProvider): string {
   return `transit-link-sync-${provider.toLowerCase()}`;
 }
 
+function getRealtimeCursorWatermarkName(provider: TransitProvider): string {
+  return `transit-realtime-cursor-${provider.toLowerCase()}`;
+}
+
+function getCursorValueFromDate(date: Date, size: number): number {
+  if (!Number.isFinite(date.getTime()) || size <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(date.getTime() % size));
+}
+
 type ExistingProviderLink = {
   stationId: string;
   provider: TransitProvider;
@@ -414,6 +432,72 @@ async function getExistingProviderLinks(
       },
     },
   });
+}
+
+async function getActiveStops(provider: TransitProvider): Promise<TransitStopCandidate[]> {
+  const rows = await prisma.transitStop.findMany({
+    where: {
+      provider,
+      isActive: true,
+    },
+    orderBy: {
+      externalId: 'asc',
+    },
+    select: {
+      externalId: true,
+      name: true,
+      lat: true,
+      lon: true,
+    },
+  });
+
+  return rows.map((row) => ({
+    externalId: row.externalId,
+    name: row.name,
+    lat: row.lat,
+    lon: row.lon,
+  }));
+}
+
+async function getProviderRealtimeTargets(
+  provider: TransitProvider,
+  stops: TransitStopCandidate[]
+): Promise<{ mode: ProviderCollectionMode; stops: TransitStopCandidate[] }> {
+  if (provider !== TransitProvider.BUS) {
+    return {
+      mode: 'full',
+      stops,
+    };
+  }
+
+  const sortedStops = [...stops].sort((left, right) =>
+    left.externalId.localeCompare(right.externalId, 'es')
+  );
+
+  if (sortedStops.length <= BUS_REALTIME_BATCH_SIZE) {
+    return {
+      mode: 'full',
+      stops: sortedStops,
+    };
+  }
+
+  const cursorDate = await getWatermark(getRealtimeCursorWatermarkName(provider), new Date(0));
+  const cursor = getCursorValueFromDate(cursorDate, sortedStops.length);
+  const batchSize = Math.max(1, Math.min(BUS_REALTIME_BATCH_SIZE, sortedStops.length));
+  const batch = Array.from({ length: batchSize }, (_, offset) => {
+    return sortedStops[(cursor + offset) % sortedStops.length] as TransitStopCandidate;
+  });
+  const nextCursor = (cursor + batchSize) % sortedStops.length;
+
+  await setWatermark(
+    getRealtimeCursorWatermarkName(provider),
+    new Date(Date.UTC(1970, 0, 1, 0, 0, 0, nextCursor))
+  );
+
+  return {
+    mode: 'rotating-batch',
+    stops: batch,
+  };
 }
 
 type LatestSnapshotRow = {
@@ -715,7 +799,7 @@ async function syncProvider(
   let linksRefreshed = false;
   let stopsDiscovered = 0;
   let links: StationLinkCandidate[] = [];
-  const linkedStopsByExternalId = new Map<string, TransitStopCandidate>();
+  let activeStops: TransitStopCandidate[] = [];
 
   const shouldRefreshLinks =
     existingLinks.length === 0 || now.getTime() - lastLinkSync.getTime() >= TRANSIT_LINK_REFRESH_MS;
@@ -724,19 +808,9 @@ async function syncProvider(
     const allStops = await adapter.fetchStops();
     stopsDiscovered = allStops.length;
 
-    const stopByExternalId = new Map(
-      allStops.map((stop) => [stop.externalId, stop] as const)
-    );
+     activeStops = allStops;
+
     links = pickNearestStops(provider, stations, allStops);
-
-    for (const link of links) {
-      const stop = stopByExternalId.get(link.externalId);
-      if (stop) {
-        linkedStopsByExternalId.set(link.externalId, stop);
-      }
-    }
-
-    const linkedStops = Array.from(linkedStopsByExternalId.values());
 
     await prisma.$transaction(async (tx) => {
       await tx.transitStop.updateMany({
@@ -744,7 +818,7 @@ async function syncProvider(
         data: { isActive: false },
       });
 
-      for (const stop of linkedStops) {
+      for (const stop of allStops) {
         await tx.transitStop.upsert({
           where: {
             id: toTransitStopId(provider, stop.externalId),
@@ -796,38 +870,32 @@ async function syncProvider(
         externalId: link.transitStop.externalId,
         distanceMeters: link.distanceMeters,
       });
-
-      linkedStopsByExternalId.set(link.transitStop.externalId, {
-        externalId: link.transitStop.externalId,
-        name: link.transitStop.name,
-        lat: link.transitStop.lat,
-        lon: link.transitStop.lon,
-      });
     }
 
-    stopsDiscovered = await prisma.transitStop.count({
-      where: {
-        provider,
-        isActive: true,
-      },
-    });
+    activeStops = await getActiveStops(provider);
+    stopsDiscovered = activeStops.length;
   }
 
-  const linkedStops = Array.from(linkedStopsByExternalId.values());
-  const linkedStopIds = linkedStops.map((stop) => toTransitStopId(provider, stop.externalId));
+  const linkedStops = activeStops.filter((stop) =>
+    links.some((link) => link.externalId === stop.externalId)
+  );
+  const realtimeTargets = await getProviderRealtimeTargets(provider, activeStops);
 
-  const snapshotFetch = await adapter.fetchSnapshots(Array.from(linkedStopsByExternalId.keys()));
+  const snapshotFetch = await adapter.fetchSnapshots(
+    realtimeTargets.stops.map((stop) => stop.externalId)
+  );
   warnings.push(...snapshotFetch.warnings);
 
   const snapshotRows = snapshotFetch.snapshots.filter((snapshot) =>
-    linkedStopsByExternalId.has(snapshot.externalId)
+    activeStops.some((stop) => stop.externalId === snapshot.externalId)
   );
 
   let snapshotsStored = 0;
   let snapshotsDeduplicated = 0;
 
   if (snapshotRows.length > 0) {
-    const latestByStop = await getLatestSnapshotsByTransitStop(provider, linkedStopIds);
+    const targetStopIds = snapshotRows.map((snapshot) => toTransitStopId(provider, snapshot.externalId));
+    const latestByStop = await getLatestSnapshotsByTransitStop(provider, targetStopIds);
     const rowsToInsert = snapshotRows.filter((snapshot) => {
       const transitStopId = toTransitStopId(provider, snapshot.externalId);
       const latest = latestByStop.get(transitStopId);
@@ -858,7 +926,7 @@ async function syncProvider(
     warnings.push(`no station links found within ${TRANSIT_MAX_LINK_DISTANCE_METERS}m`);
   }
 
-  if (linkedStopIds.length > 0 && snapshotsStored === 0) {
+  if (snapshotRows.length > 0 && snapshotsStored === 0) {
     if (snapshotsDeduplicated > 0) {
       warnings.push(`no new snapshots stored (${snapshotsDeduplicated} unchanged)`);
     } else {
@@ -868,10 +936,13 @@ async function syncProvider(
 
   return {
     provider,
+    mode: realtimeTargets.mode,
     linksRefreshed,
     stopsDiscovered,
     linkedStations: links.length,
     uniqueLinkedStops: linkedStops.length,
+    activeStops: activeStops.length,
+    snapshotsAttempted: snapshotRows.length,
     snapshotsStored,
     snapshotsDeduplicated,
     staleSnapshots: snapshotRows.filter((snapshot) => snapshot.isStale).length,
@@ -879,20 +950,13 @@ async function syncProvider(
   };
 }
 
-export async function runTransitCollection(stations: TransitStation[]): Promise<TransitCollectionSummary> {
+export async function runTransitCollection(stations: TransitStation[] = []): Promise<TransitCollectionSummary> {
   const cleanStations = stations.filter(
     (station) =>
       Boolean(station.id) &&
       isFiniteNumber(station.lat) &&
       isFiniteNumber(station.lon)
   );
-
-  if (cleanStations.length === 0) {
-    return {
-      providers: [],
-      warnings: ['No valid stations available for transit linking'],
-    };
-  }
 
   const providerResults = await Promise.all(
     PROVIDERS.map(async (provider) => {
@@ -903,10 +967,13 @@ export async function runTransitCollection(stations: TransitStation[]): Promise<
 
         return {
           provider: provider.provider,
+          mode: provider.provider === TransitProvider.BUS ? 'rotating-batch' : 'full',
           linksRefreshed: false,
           stopsDiscovered: 0,
           linkedStations: 0,
           uniqueLinkedStops: 0,
+          activeStops: 0,
+          snapshotsAttempted: 0,
           snapshotsStored: 0,
           snapshotsDeduplicated: 0,
           staleSnapshots: 0,

@@ -199,6 +199,11 @@ model TransitStop {
 
   stationLinks StationTransitLink[]
   snapshots    TransitSnapshot[]
+  hourlyStats   HourlyTransitStopStat[]
+  patterns      TransitStopPattern[]
+  heatmapCells  TransitStopHeatmapCell[]
+  alerts        TransitStopAlert[]
+  rankings      TransitStopRanking[]
 
   @@unique([provider, externalId])
   @@index([provider, isActive])
@@ -260,4 +265,96 @@ model HourlyTransitImpact {
   @@index([provider, bucketStart])
   @@index([bucketStart])
   @@index([stationId, bucketStart])
+}
+
+model HourlyTransitStopStat {
+  transitStopId      String
+  provider           TransitProvider
+  bucketStart        DateTime
+  etaMin             Int?
+  etaAvg             Float?
+  etaMax             Int?
+  arrivalPressureAvg Float
+  arrivalEvents      Int
+  sampleCount        Int
+  staleSampleCount   Int
+  realtimeSampleCount Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@id([transitStopId, bucketStart])
+  @@index([provider, bucketStart])
+  @@index([bucketStart])
+}
+
+model TransitStopPattern {
+  transitStopId      String
+  provider           TransitProvider
+  dayType            DayType
+  hour               Int
+  etaAvg             Float?
+  arrivalPressureAvg Float
+  arrivalEventsAvg   Float
+  staleRate          Float
+  sampleCount        Int
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@id([transitStopId, dayType, hour])
+  @@index([provider, dayType, hour])
+}
+
+model TransitStopHeatmapCell {
+  transitStopId      String
+  provider           TransitProvider
+  dayOfWeek          Int
+  hour               Int
+  etaAvg             Float?
+  arrivalPressureAvg Float
+  arrivalEventsAvg   Float
+  staleRate          Float
+  sampleCount        Int
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@id([transitStopId, dayOfWeek, hour])
+  @@index([provider, dayOfWeek, hour])
+}
+
+model TransitStopRanking {
+  id                Int             @id @default(autoincrement())
+  transitStopId     String
+  provider          TransitProvider
+  criticalityScore  Float
+  staleRate         Float
+  avgEta            Float?
+  noRealtimeHours   Int
+  totalHours        Int
+  windowStart       DateTime
+  windowEnd         DateTime
+  updatedAt         DateTime @updatedAt
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@unique([transitStopId, windowStart, windowEnd])
+  @@index([provider, windowEnd])
+}
+
+model TransitStopAlert {
+  id              Int             @id @default(autoincrement())
+  transitStopId   String
+  provider        TransitProvider
+  alertType       String
+  severity        Int
+  metricValue     Float
+  windowHours     Int
+  generatedAt     DateTime        @default(now())
+  isActive        Boolean         @default(true)
+
+  transitStop TransitStop @relation(fields: [transitStopId], references: [id])
+
+  @@unique([transitStopId, alertType, windowHours, generatedAt])
+  @@index([provider, generatedAt])
 }

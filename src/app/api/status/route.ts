@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getStatus } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
@@ -21,7 +21,7 @@ const CORS_HEADERS = {
  * 
  * @returns {Promise<NextResponse>} JSON response with status data
  */
-export async function GET(_request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const status = await getStatus()
     
@@ -56,7 +56,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
  * CORS handling for status endpoint
  * Allows dashboard clients to fetch status from different origins
  */
-export async function OPTIONS(_request: NextRequest): Promise<NextResponse> {
+export async function OPTIONS(): Promise<NextResponse> {
   return NextResponse.json({}, {
     status: 200,
     headers: CORS_HEADERS

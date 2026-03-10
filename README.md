@@ -102,6 +102,14 @@ The dashboard includes:
 - Hourly patterns and occupancy heatmap by station.
 - Mobility flow analysis and daily demand curve.
 
+Additional transport dashboards are available at:
+
+- `http://localhost:3000/dashboard/transporte/bus`
+- `http://localhost:3000/dashboard/transporte/tranvia`
+
+These transport views provide complete network coverage, operational alerts, criticality rankings,
+hourly patterns, and temporal heatmaps for Zaragoza bus and tram stops.
+
 ## Production Deployment (Docker Compose)
 
 The provided `docker-compose.yml` is production-oriented and builds the app image from the local `Dockerfile` by default.
@@ -144,6 +152,23 @@ GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.j
 GBFS_REQUEST_TIMEOUT_MS=20000
 GBFS_MAX_RETRIES=5
 GBFS_RETRY_BASE_DELAY_MS=1000
+
+TRAM_STOPS_URL=https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/parada-tranvia.json
+BUS_STOPS_URL=https://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/poste.json?srsname=wgs84
+BUS_REALTIME_BASE_URL=https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/poste-autobus
+BUS_STOPS_CACHE_TTL_MS=21600000
+TRANSIT_REQUEST_TIMEOUT_MS=12000
+TRANSIT_MAX_RETRIES=2
+TRANSIT_RETRY_BASE_DELAY_MS=500
+TRANSIT_LINK_REFRESH_MINUTES=360
+TRANSIT_MAX_LINK_DISTANCE_METERS=200
+TRANSIT_EVENT_WINDOW_MINUTES=12
+TRANSIT_SNAPSHOT_STALE_MINUTES=45
+BUS_REALTIME_MAX_CONCURRENCY=8
+BUS_REALTIME_BATCH_SIZE=80
+TRANSIT_IMPACT_BACKFILL_HOURS=6
+TRANSIT_SNAPSHOT_RETENTION_DAYS=45
+TRANSIT_IMPACT_RETENTION_DAYS=365
 ```
 
 `GOOGLE_SITE_VERIFICATION` is optional. Set it to your own token (with or without the
