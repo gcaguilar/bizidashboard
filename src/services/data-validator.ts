@@ -68,6 +68,13 @@ function generateCollectionId(): string {
 }
 
 /**
+ * Convert GBFS timestamp (Unix seconds) to UTC Date
+ */
+function toUTCDate(unixTimestamp: number): Date {
+  return new Date(unixTimestamp * 1000)
+}
+
+/**
  * Orchestrates the complete validation and storage pipeline:
  * 1. Validate data quality (Five Pillars)
  * 2. Log observability metrics

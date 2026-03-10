@@ -1,9 +1,5 @@
 import { startCollectionJob, stopCollectionJob } from '@/jobs/bizi-collection';
 import {
-  startTransitCollectionJob,
-  stopTransitCollectionJob,
-} from '@/jobs/transit-collection';
-import {
   startAnalyticsAggregationJob,
   stopAnalyticsAggregationJob,
 } from '@/jobs/analytics-aggregation';
@@ -44,7 +40,6 @@ export function initJobs(): void {
 
   console.log('[Jobs] Initializing background jobs...');
   startCollectionJob();
-  startTransitCollectionJob();
 
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
@@ -58,7 +53,6 @@ export function initJobs(): void {
 
   jobsInitialized = true;
   console.log('[Jobs] Collection job started');
-  console.log('[Jobs] Transit job started');
   console.log('[Jobs] Analytics job scheduled to start in 120 seconds');
 }
 
@@ -78,7 +72,6 @@ export function shutdownJobs(): void {
   }
 
   stopCollectionJob();
-  stopTransitCollectionJob();
   stopAnalyticsAggregationJob();
   jobsInitialized = false;
 }

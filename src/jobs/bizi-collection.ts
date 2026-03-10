@@ -10,6 +10,7 @@ import { schedule, ScheduledTask } from 'node-cron';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
 import { upsertStations } from '@/services/data-storage';
+import { runTransitCollection } from '@/services/transit-collection';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 
@@ -110,12 +111,41 @@ export async function runCollection(): Promise<CollectionResult> {
       }
     );
 
-    // Step 5: Build result from validation
+    // Step 5: Collect nearby transit snapshots (tram + bus)
+    const transitSummary = await runTransitCollection(
+      stationInformation.map((station) => ({
+        id: station.station_id,
+        lat: station.lat,
+        lon: station.lon,
+      }))
+    );
+
+    // Build result from validation
     result.success = validationResult.success;
     result.stationCount = validationResult.storageResult?.count ?? 0;
     result.recordedAt = validationResult.metrics?.freshness.lastUpdated ?? new Date();
     result.quality = validationResult.metrics;
     result.warnings = validationResult.warnings;
+
+    const transitSnapshots = transitSummary.providers.reduce(
+      (sum, providerResult) => sum + providerResult.snapshotsStored,
+      0
+    );
+    const transitSnapshotsDeduplicated = transitSummary.providers.reduce(
+      (sum, providerResult) => sum + providerResult.snapshotsDeduplicated,
+      0
+    );
+    const transitLinks = transitSummary.providers.reduce(
+      (sum, providerResult) => sum + providerResult.linkedStations,
+      0
+    );
+    const transitLinksRefreshed = transitSummary.providers.filter(
+      (providerResult) => providerResult.linksRefreshed
+    ).length;
+
+    if (transitSummary.warnings.length > 0) {
+      result.warnings.push(...transitSummary.warnings.map((warning) => `Transit: ${warning}`));
+    }
 
     if (validationResult.errors.length > 0) {
       result.warnings.push(...validationResult.errors);
@@ -125,7 +155,9 @@ export async function runCollection(): Promise<CollectionResult> {
       jobState.lastSuccess = new Date();
       jobState.totalSuccesses++;
       jobState.consecutiveFailures = 0;
-      console.log(`[Collection] Successfully collected ${result.stationCount} stations`);
+      console.log(
+        `[Collection] Successfully collected ${result.stationCount} stations and ${transitSnapshots} transit snapshots (${transitSnapshotsDeduplicated} deduplicated, ${transitLinks} station links, ${transitLinksRefreshed} providers refreshed links)`
+      );
     } else {
       jobState.consecutiveFailures++;
       result.error = validationResult.errors.join(', ');

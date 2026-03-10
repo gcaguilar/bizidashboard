@@ -969,7 +969,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         nearestStationId={nearestStation?.stationId ?? null}
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="dashboard-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
             Detalle de estacion
@@ -1027,36 +1027,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Abrir ayuda
-          </Link>
-        </article>
-
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Bus urbano
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Paradas, alertas operativas, criticidad y patrones horarios de toda la red.
-          </p>
-          <Link
-            href="/dashboard/transporte/bus"
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Abrir dashboard bus
-          </Link>
-        </article>
-
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Tranvia
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Seguimiento completo de la linea, cobertura realtime y heatmap operativo de paradas.
-          </p>
-          <Link
-            href="/dashboard/transporte/tranvia"
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Abrir dashboard tranvia
           </Link>
         </article>
       </section>
