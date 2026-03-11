@@ -1,25 +1,10 @@
 import type { StatusResponse } from '@/lib/api';
-import { formatRelativeMinutes } from '@/lib/format';
+import { formatFreshnessLabel } from '@/lib/freshness';
 
 type StatusBannerProps = {
   status: StatusResponse;
   stationsGeneratedAt?: string | null;
 };
-
-function formatUpdatedText(value: string | null | undefined): string {
-  if (!value) {
-    return 'sin datos';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return 'sin datos';
-  }
-
-  const diffMinutes = (Date.now() - date.getTime()) / 60000;
-  return formatRelativeMinutes(diffMinutes);
-}
 
 function getHealthStyle(statusLabel: string): string {
   switch (statusLabel) {
@@ -36,7 +21,7 @@ function getHealthStyle(statusLabel: string): string {
 
 export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps) {
   const lastUpdated = status.quality.freshness.lastUpdated ?? stationsGeneratedAt ?? null;
-  const updatedText = formatUpdatedText(lastUpdated);
+  const updatedText = formatFreshnessLabel(lastUpdated);
   const volumeRange = status.quality.volume.expectedRange;
 
   return (

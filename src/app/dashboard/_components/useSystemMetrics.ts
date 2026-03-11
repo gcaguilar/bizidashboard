@@ -21,6 +21,10 @@ function occupancyRatio(station: StationSnapshot): number {
   return Math.max(0, Math.min(1, station.bikesAvailable / station.capacity));
 }
 
+export function calculateFrictionScore(emptyHours: number, fullHours: number): number {
+  return Math.max(0, emptyHours) + Math.max(0, fullHours);
+}
+
 export function calculateBalanceIndex(stations: StationSnapshot[]): number {
   const valid = stations.filter((station) => Number.isFinite(station.capacity) && station.capacity > 0);
 
@@ -45,7 +49,7 @@ export function useSystemMetrics({ stations, rankings, alerts, status }: SystemM
     );
     const frictionRanking = rankings.availability.rankings.slice(0, 10).map((row) => ({
       ...row,
-      frictionScore: row.emptyHours + row.fullHours,
+      frictionScore: calculateFrictionScore(row.emptyHours, row.fullHours),
     }));
     const topFriction = frictionRanking[0] ?? null;
     const activeAlerts = alerts.alerts.filter((alert) => alert.isActive);

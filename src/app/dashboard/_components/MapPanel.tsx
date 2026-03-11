@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GeoJSONSource } from 'maplibre-gl';
 import type { StyleSpecification } from 'react-map-gl/maplibre';
+import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import {
   Layer,
   Map,
@@ -17,12 +18,17 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { StationSnapshot } from '@/lib/api';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
+import { buildStationFeatureCollection } from '@/lib/map-features';
+import type { DashboardMapViewState } from '@/lib/map-view-state';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
 type MapPanelProps = {
   stations: StationSnapshot[];
   totalStations: number;
+  viewMode?: DashboardViewMode;
+  initialViewState?: DashboardMapViewState;
+  frictionByStationId?: Record<string, number>;
   selectedStationId?: string;
   onSelectStation?: (stationId: string) => void;
   favoriteStationIds?: string[];
@@ -31,6 +37,7 @@ type MapPanelProps = {
   nearestStationId?: string | null;
   nearestDistanceMeters?: number | null;
   userLocation?: Coordinates | null;
+  onViewStateCommit?: (state: DashboardMapViewState) => void;
 };
 
 const DEFAULT_VIEW_STATE = {
@@ -119,6 +126,32 @@ const UNCLUSTERED_POINTS_LAYER: LayerProps = {
   },
 };
 
+const OPERATIONS_HEAT_LAYER: LayerProps = {
+  id: 'operations-heat',
+  type: 'circle',
+  source: 'stations-source',
+  filter: ['all', ['!', ['has', 'point_count']], ['>', ['coalesce', ['get', 'frictionScore'], 0], 0]],
+  paint: {
+    'circle-color': '#ea0615',
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['coalesce', ['get', 'frictionScore'], 0],
+      0,
+      10,
+      4,
+      18,
+      8,
+      28,
+      16,
+      42,
+    ],
+    'circle-opacity': 0.14,
+    'circle-blur': 0.7,
+    'circle-stroke-width': 0,
+  },
+};
+
 function getMarkerColor(station: StationSnapshot): string {
   if (station.capacity <= 0) {
     return '#64748b';
@@ -160,6 +193,9 @@ function getTrendLabel(trend: StationTrend | undefined): string {
 export function MapPanel({
   stations,
   totalStations,
+  viewMode = 'overview',
+  initialViewState,
+  frictionByStationId = {},
   selectedStationId,
   onSelectStation,
   favoriteStationIds = [],
@@ -168,6 +204,7 @@ export function MapPanel({
   nearestStationId,
   nearestDistanceMeters,
   userLocation,
+  onViewStateCommit,
 }: MapPanelProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -197,26 +234,14 @@ export function MapPanel({
   }, []);
 
   const stationCollection = useMemo(() => {
-    return {
-      type: 'FeatureCollection' as const,
-      features: stations
-        .filter((station) => Number.isFinite(station.lat) && Number.isFinite(station.lon))
-        .map((station) => ({
-          type: 'Feature' as const,
-          properties: {
-            stationId: station.id,
-            stationName: station.name,
-            markerColor: getMarkerColor(station),
-            isFavorite: favoriteStationSet.has(station.id) ? 1 : 0,
-            isSelected: selectedStationId && selectedStationId === station.id ? 1 : 0,
-          },
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [station.lon, station.lat] as [number, number],
-          },
-        })),
-    };
-  }, [favoriteStationSet, selectedStationId, stations]);
+    return buildStationFeatureCollection({
+      stations,
+      getMarkerColor,
+      favoriteStationIds: favoriteStationSet,
+      selectedStationId,
+      frictionByStationId,
+    });
+  }, [favoriteStationSet, frictionByStationId, selectedStationId, stations]);
 
   const selectedStation = useMemo(() => {
     if (!selectedStationId) {
@@ -257,6 +282,21 @@ export function MapPanel({
 
   const handleZoomOut = () => {
     mapRef.current?.getMap()?.zoomOut({ duration: 240 });
+  };
+
+  const commitMapViewState = () => {
+    const map = mapRef.current?.getMap();
+
+    if (!map || !onViewStateCommit) {
+      return;
+    }
+
+    const center = map.getCenter();
+    onViewStateCommit({
+      latitude: center.lat,
+      longitude: center.lng,
+      zoom: map.getZoom(),
+    });
   };
 
   const expandCluster = async (clusterId: number, coordinates: [number, number]) => {
@@ -318,15 +358,31 @@ export function MapPanel({
 
   const mapStyle = isDarkTheme ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
   const isFilteredView = stations.length !== totalStations;
+  const criticalCount = stations.filter(
+    (station) => station.bikesAvailable <= 0 || station.anchorsFree <= 0
+  ).length;
+  const headerTitle =
+    viewMode === 'operations' ? 'Mapa de accion operativa' : 'Mapa general del sistema';
+  const headerHint =
+    viewMode === 'operations'
+      ? `${criticalCount} estaciones en estado critico ahora mismo.`
+      : 'Usa el mapa para localizar estaciones, favoritos y zonas con problemas de disponibilidad.';
+  const legendItems =
+    viewMode === 'operations'
+      ? ['Halo rojo = friccion alta', 'Rojo = tension alta', 'Azul = favorita', 'Click para actuar']
+      : ['Rojo = desequilibrio', 'Verde = estable', 'Azul = favorita', 'Click para detalle'];
 
   return (
     <section
       className="relative w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]"
       style={{ height: `${MAP_HEIGHT}px` }}
     >
-      <div className="absolute left-4 top-4 z-20 rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 text-xs font-semibold text-[var(--foreground)] backdrop-blur">
-        Mapa operativo · {stations.length}/{totalStations} estaciones
-        {isFilteredView ? ' (filtradas)' : ''}
+      <div className="absolute left-4 top-4 z-20 max-w-[75%] rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 backdrop-blur">
+        <p className="text-xs font-semibold text-[var(--foreground)]">
+          {headerTitle} · {stations.length}/{totalStations} estaciones
+          {isFilteredView ? ' (filtradas)' : ''}
+        </p>
+        <p className="mt-1 text-[11px] text-[var(--muted)]">{headerHint}</p>
       </div>
 
       <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
@@ -349,10 +405,9 @@ export function MapPanel({
       </div>
 
       <div className="absolute bottom-4 left-4 z-20 flex max-w-[90%] flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 text-[11px] backdrop-blur">
-        <span className="legend-item">🚲 Con bicis</span>
-        <span className="legend-item">✕ Llena</span>
-        <span className="legend-item">○ Sin bicis</span>
-        <span className="legend-item">★ Favorita</span>
+        {legendItems.map((item) => (
+          <span key={item} className="legend-item">{item}</span>
+        ))}
       </div>
 
       <div className="h-full w-full">
@@ -365,11 +420,12 @@ export function MapPanel({
             ref={mapRef}
             onLoad={() => setIsMapReady(true)}
             onClick={handleMapClick}
+            onMoveEnd={commitMapViewState}
             interactiveLayerIds={['clusters', 'unclustered-points']}
             initialViewState={{
-              latitude: DEFAULT_VIEW_STATE.latitude,
-              longitude: DEFAULT_VIEW_STATE.longitude,
-              zoom: DEFAULT_VIEW_STATE.zoom,
+              latitude: initialViewState?.latitude ?? DEFAULT_VIEW_STATE.latitude,
+              longitude: initialViewState?.longitude ?? DEFAULT_VIEW_STATE.longitude,
+              zoom: initialViewState?.zoom ?? DEFAULT_VIEW_STATE.zoom,
             }}
             style={{ width: '100%', height: '100%' }}
             mapStyle={mapStyle}
@@ -384,6 +440,7 @@ export function MapPanel({
               clusterRadius={50}
               clusterMaxZoom={13}
             >
+            {viewMode === 'operations' ? <Layer {...OPERATIONS_HEAT_LAYER} /> : null}
             <Layer {...CLUSTER_LAYER} />
             <Layer {...SELECTED_HALO_LAYER} />
             <Layer {...UNCLUSTERED_POINTS_LAYER} />

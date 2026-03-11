@@ -1,7 +1,5 @@
 'use client';
-
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
@@ -17,62 +15,54 @@ import {
 } from '@/lib/districts';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
-import { BalanceIndexCard } from './BalanceIndexCard';
-import { DataModeCard } from './DataModeCard';
+import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
 import { DashboardLayout } from './DashboardLayout';
-import { DailyInsightsCard } from './DailyInsightsCard';
-import { DemandFlowCard } from './DemandFlowCard';
 import { DashboardHeader } from './DashboardHeader';
+import { ModeIntroBanner } from './ModeIntroBanner';
 import { DashboardQuickLinks } from './DashboardQuickLinks';
 import { ModeHeader } from './ModeHeader';
-import { StatusBanner } from './StatusBanner';
-import { SystemHealthCard } from './SystemHealthCard';
 import { useSystemMetrics } from './useSystemMetrics';
+import { WidgetSkeleton } from './WidgetSkeleton';
+import {
+  resolveDashboardMapViewState,
+  type DashboardMapViewState,
+} from '@/lib/map-view-state';
+import {
+  parseRecentSnapshots,
+  pushRecentSnapshot,
+  type RecentStationSnapshot,
+  type StationSnapshotMap,
+} from '@/lib/recent-station-history';
 
-const AlertsPanel = dynamic(() => import('./AlertsPanel').then((module) => module.AlertsPanel), {
-  ssr: false,
-  loading: () => <div className="h-full min-h-[320px] animate-pulse rounded-xl bg-[var(--surface-soft)]" />,
-});
-
-const StationPicker = dynamic(
-  () => import('./StationPicker').then((module) => module.StationPicker),
+const OverviewModeView = dynamic(
+  () => import('./OverviewModeView').then((module) => module.OverviewModeView),
   {
     ssr: false,
-    loading: () => <div className="dashboard-card min-h-[220px] animate-pulse bg-[var(--surface-soft)]" />,
+    loading: () => <WidgetSkeleton className="min-h-[360px]" lines={6} />,
   }
 );
 
-const MapPanel = dynamic(() => import('./MapPanel').then((module) => module.MapPanel), {
-  ssr: false,
-  loading: () => <div className="h-[560px] animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]" />,
-});
-
-const FlowPreviewPanel = dynamic(
-  () => import('./FlowPreviewPanel').then((module) => module.FlowPreviewPanel),
+const OperationsModeView = dynamic(
+  () => import('./OperationsModeView').then((module) => module.OperationsModeView),
   {
     ssr: false,
-    loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-[var(--surface-soft)]" />,
+    loading: () => <WidgetSkeleton className="min-h-[320px]" lines={6} />,
   }
 );
 
-const NeighborhoodLoadCard = dynamic(
-  () => import('./NeighborhoodLoadCard').then((module) => module.NeighborhoodLoadCard),
+const ResearchModeView = dynamic(
+  () => import('./ResearchModeView').then((module) => module.ResearchModeView),
   {
     ssr: false,
-    loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
+    loading: () => <WidgetSkeleton className="min-h-[360px]" lines={6} />,
   }
 );
 
-const RankingsTable = dynamic(() => import('./RankingsTable').then((module) => module.RankingsTable), {
-  ssr: false,
-  loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
-});
-
-const SystemIntradayCard = dynamic(
-  () => import('./SystemIntradayCard').then((module) => module.SystemIntradayCard),
+const DataModeView = dynamic(
+  () => import('./DataModeView').then((module) => module.DataModeView),
   {
     ssr: false,
-    loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
+    loading: () => <WidgetSkeleton className="min-h-[260px]" lines={5} />,
   }
 );
 
@@ -125,8 +115,6 @@ type MobilityPreviewData = {
 
 type StationTrend = 'up' | 'down' | 'flat';
 
-type StationSnapshotMap = Record<string, number>;
-
 type RefreshPayload<T> = {
   ok: true;
   data: T;
@@ -136,6 +124,7 @@ type RefreshPayload<T> = {
 
 const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
 const TREND_SNAPSHOT_STORAGE_KEY = 'bizidashboard-session-station-snapshot';
+const RECENT_SNAPSHOTS_STORAGE_KEY = 'bizidashboard-session-recent-station-snapshots';
 const REFRESH_AFTER_LAST_DATA_MS = 30 * 60_000;
 const MIN_REFRESH_FALLBACK_MS = 60_000;
 
@@ -325,7 +314,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
   const [onlyWithBikes, setOnlyWithBikes] = useState(() => parseBooleanFilter(searchParams.get('onlyWithBikes')));
   const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parseBooleanFilter(searchParams.get('onlyWithAnchors')));
+  const [mapViewState, setMapViewState] = useState<DashboardMapViewState>(() =>
+    resolveDashboardMapViewState(searchParams)
+  );
   const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
+  const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() => {
     const latestUpdate = resolveLatestDataUpdatedAt(initialData.stations, initialData.status);
@@ -453,10 +446,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
     }
 
+    const nextRecentSnapshots = pushRecentSnapshot(
+      parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
+      {
+        recordedAt: initialData.stations.generatedAt,
+        snapshot: toStationSnapshot(initialData.stations.stations),
+      }
+    );
+
+    setRecentSnapshots(nextRecentSnapshots);
+
     window.sessionStorage.setItem(
       TREND_SNAPSHOT_STORAGE_KEY,
       JSON.stringify(toStationSnapshot(initialData.stations.stations))
     );
+    window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
   }, [initialData.stations]);
 
   useEffect(() => {
@@ -520,6 +524,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const queryFromUrl = searchParams.get('q') ?? '';
     const onlyWithBikesFromUrl = parseBooleanFilter(searchParams.get('onlyWithBikes'));
     const onlyWithAnchorsFromUrl = parseBooleanFilter(searchParams.get('onlyWithAnchors'));
+    const mapViewFromUrl = resolveDashboardMapViewState(searchParams);
 
     setSelectedStationId((current) =>
       current === stationIdFromUrl ? current : stationIdFromUrl
@@ -532,62 +537,27 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     setSearchQuery((current) => (current === queryFromUrl ? current : queryFromUrl));
     setOnlyWithBikes((current) => (current === onlyWithBikesFromUrl ? current : onlyWithBikesFromUrl));
     setOnlyWithAnchors((current) => (current === onlyWithAnchorsFromUrl ? current : onlyWithAnchorsFromUrl));
+    setMapViewState((current) =>
+      current.latitude === mapViewFromUrl.latitude &&
+      current.longitude === mapViewFromUrl.longitude &&
+      current.zoom === mapViewFromUrl.zoom
+        ? current
+        : mapViewFromUrl
+    );
   }, [searchParams, stationsData.stations]);
 
   useEffect(() => {
-    const nextParams = new URLSearchParams(searchParams.toString());
-    let hasChanges = false;
+    const nextParams = buildDashboardUrlSearchParams(searchParams, {
+      activeWindowId,
+      viewMode,
+      selectedStationId,
+      searchQuery,
+      onlyWithBikes,
+      onlyWithAnchors,
+      mapViewState,
+    });
 
-    if (nextParams.get('timeWindow') !== activeWindowId) {
-      nextParams.set('timeWindow', activeWindowId);
-      hasChanges = true;
-    }
-
-    if (nextParams.get('mode') !== viewMode) {
-      nextParams.set('mode', viewMode);
-      hasChanges = true;
-    }
-
-    if (selectedStationId) {
-      if (nextParams.get('stationId') !== selectedStationId) {
-        nextParams.set('stationId', selectedStationId);
-        hasChanges = true;
-      }
-    } else if (nextParams.has('stationId')) {
-      nextParams.delete('stationId');
-      hasChanges = true;
-    }
-
-    const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery) {
-      if (nextParams.get('q') !== trimmedQuery) {
-        nextParams.set('q', trimmedQuery);
-        hasChanges = true;
-      }
-    } else if (nextParams.has('q')) {
-      nextParams.delete('q');
-      hasChanges = true;
-    }
-
-    if (onlyWithBikes) {
-      if (nextParams.get('onlyWithBikes') !== '1') {
-        nextParams.set('onlyWithBikes', '1');
-        hasChanges = true;
-      }
-    } else if (nextParams.has('onlyWithBikes')) {
-      nextParams.delete('onlyWithBikes');
-      hasChanges = true;
-    }
-
-    if (onlyWithAnchors) {
-      if (nextParams.get('onlyWithAnchors') !== '1') {
-        nextParams.set('onlyWithAnchors', '1');
-        hasChanges = true;
-      }
-    } else if (nextParams.has('onlyWithAnchors')) {
-      nextParams.delete('onlyWithAnchors');
-      hasChanges = true;
-    }
+    const hasChanges = nextParams.toString() !== searchParams.toString();
 
     if (!hasChanges) {
       return;
@@ -596,7 +566,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
     window.history.replaceState(window.history.state, '', nextUrl);
-  }, [activeWindowId, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId, viewMode]);
+  }, [activeWindowId, mapViewState, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId, viewMode]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -702,6 +672,17 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           TREND_SNAPSHOT_STORAGE_KEY,
           JSON.stringify(toStationSnapshot(stationsResult.data.stations))
         );
+
+        const nextRecentSnapshots = pushRecentSnapshot(
+          parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
+          {
+            recordedAt: stationsResult.data.generatedAt,
+            snapshot: toStationSnapshot(stationsResult.data.stations),
+          }
+        );
+
+        setRecentSnapshots(nextRecentSnapshots);
+        window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
 
         setStationsData(stationsResult.data);
       }
@@ -862,6 +843,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const topFrictionStationName = systemMetrics.topFriction
     ? stationsData.stations.find((station) => station.id === systemMetrics.topFriction?.stationId)?.name ?? systemMetrics.topFriction.stationId
     : null;
+  const frictionByStationId = useMemo(
+    () =>
+      Object.fromEntries(
+        rankingsData.availability.rankings.map((row) => [row.stationId, row.emptyHours + row.fullHours])
+      ),
+    [rankingsData.availability.rankings]
+  );
 
   return (
     <DashboardLayout>
@@ -902,153 +890,90 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       <ModeHeader activeMode={viewMode} onChangeMode={setViewMode} />
 
-      <StatusBanner status={statusData} stationsGeneratedAt={stationsData.generatedAt} />
+      <ModeIntroBanner mode={viewMode} />
 
       {viewMode === 'overview' ? (
-        <div id="mode-panel-overview" role="tabpanel" aria-labelledby="mode-tab-overview" className="grid gap-6 lg:grid-cols-3">
-          <SystemHealthCard
-            totalStations={systemMetrics.totalStations}
-            bikesAvailable={systemMetrics.bikesAvailable}
-            anchorsFree={systemMetrics.anchorsFree}
-            avgOccupancy={systemMetrics.avgOccupancy}
-            updatedText={updatedText}
-          />
-          <BalanceIndexCard
-            balanceIndex={systemMetrics.balanceIndex}
-            criticalStationsCount={systemMetrics.criticalStations.length}
-          />
-          <DailyInsightsCard
-            insight={systemMetrics.dailyInsight}
-            topFrictionStationName={topFrictionStationName}
-            activeAlertsCount={systemMetrics.activeAlerts.length}
-          />
-        </div>
+        <OverviewModeView
+          status={statusData}
+          stationsGeneratedAt={stationsData.generatedAt}
+          totalStations={totalStationsCount}
+          stations={stationsData.stations}
+          filteredStations={filteredStations}
+          selectedStationId={selectedStationId}
+          onSelectStation={setSelectedStationId}
+          favoriteStationIds={favoriteStationIds}
+          onToggleFavorite={toggleFavoriteStation}
+          trendByStationId={stationTrendById}
+          nearestStationId={nearestStation?.stationId ?? null}
+          nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+          userLocation={userLocation}
+          mapViewState={mapViewState}
+          onViewStateCommit={setMapViewState}
+          frictionByStationId={frictionByStationId}
+          systemMetrics={systemMetrics}
+          updatedText={updatedText}
+          topFrictionStationName={topFrictionStationName}
+          mobilityPreview={mobilityPreview}
+          activeWindowLabel={activeWindow.label}
+          activeWindowDemandDays={activeWindow.demandDays}
+        />
       ) : null}
 
       {viewMode === 'operations' ? (
-        <div id="mode-panel-operations" role="tabpanel" aria-labelledby="mode-tab-operations" className="grid gap-6 lg:grid-cols-2">
-          <BalanceIndexCard
-            balanceIndex={systemMetrics.balanceIndex}
-            criticalStationsCount={systemMetrics.criticalStations.length}
-          />
-          <DailyInsightsCard
-            insight={systemMetrics.dailyInsight}
-            topFrictionStationName={topFrictionStationName}
-            activeAlertsCount={systemMetrics.activeAlerts.length}
-          />
-        </div>
+        <OperationsModeView
+          stations={stationsData.stations}
+          filteredStations={filteredStations}
+          totalStations={totalStationsCount}
+          selectedStationId={selectedStationId}
+          onSelectStation={setSelectedStationId}
+          favoriteStationIds={favoriteStationIds}
+          onToggleFavorite={toggleFavoriteStation}
+          trendByStationId={stationTrendById}
+          nearestStationId={nearestStation?.stationId ?? null}
+          nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+          userLocation={userLocation}
+          mapViewState={mapViewState}
+          onViewStateCommit={setMapViewState}
+          frictionByStationId={frictionByStationId}
+          alerts={alertsData}
+          rankings={rankingsData}
+          balanceIndex={systemMetrics.balanceIndex}
+          criticalStationsCount={systemMetrics.criticalStations.length}
+          dailyInsight={systemMetrics.dailyInsight}
+          topFrictionStationName={topFrictionStationName}
+          activeAlertsCount={systemMetrics.activeAlerts.length}
+        />
       ) : null}
 
-      {(viewMode === 'overview' || viewMode === 'operations') ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
-          <div className="min-w-0 lg:col-span-3">
-            <MapPanel
-              stations={filteredStations}
-              totalStations={totalStationsCount}
-              selectedStationId={selectedStationId}
-              onSelectStation={setSelectedStationId}
-              favoriteStationIds={favoriteStationIds}
-              onToggleFavorite={toggleFavoriteStation}
-              trendByStationId={stationTrendById}
-              nearestStationId={nearestStation?.stationId ?? null}
-              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-              userLocation={userLocation}
-            />
-          </div>
-          <div className="min-w-0 lg:col-span-1">
-            <AlertsPanel alerts={alertsData} stations={stationsData.stations} />
-          </div>
-        </div>
-      ) : null}
-
-      {(viewMode === 'overview' || viewMode === 'research') ? (
-        <div id={viewMode === 'research' ? 'mode-panel-research' : undefined} role={viewMode === 'research' ? 'tabpanel' : undefined} aria-labelledby={viewMode === 'research' ? 'mode-tab-research' : undefined} className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <DemandFlowCard
-            dailyDemand={mobilityPreview.dailyDemand}
-            windowLabel={activeWindow.label}
-            requestedDays={activeWindow.demandDays}
-          />
-          <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindow.label} />
-          <NeighborhoodLoadCard stations={stationsData.stations} />
-        </div>
-      ) : null}
-
-      {(viewMode === 'operations' || viewMode === 'research') ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <RankingsTable rankings={rankingsData} stations={stationsData.stations} />
-          <StationPicker
-            stations={filteredStations}
-            selectedStationId={selectedStationId}
-            onSelectStation={setSelectedStationId}
-            favoriteStationIds={favoriteStationIds}
-            onToggleFavorite={toggleFavoriteStation}
-            trendByStationId={stationTrendById}
-            nearestStationId={nearestStation?.stationId ?? null}
-          />
-        </div>
-      ) : null}
-
-      {(viewMode === 'overview' || viewMode === 'research') ? (
-        <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
-            <div>
-              <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">
-                Analisis de flujo y corredores populares
-              </h2>
-              <p className="text-xs text-[var(--muted)]">
-                Movimiento entre barrios en tiempo real.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/flujo"
-              className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-            >
-              Vista completa
-            </Link>
-          </div>
-          <FlowPreviewPanel
-            stations={stationsData.stations}
-            hourlySignals={mobilityPreview.hourlySignals}
-          />
-        </section>
+      {viewMode === 'research' ? (
+        <ResearchModeView
+          stations={stationsData.stations}
+          filteredStations={filteredStations}
+          selectedStationId={selectedStationId}
+          onSelectStation={setSelectedStationId}
+          favoriteStationIds={favoriteStationIds}
+          onToggleFavorite={toggleFavoriteStation}
+          trendByStationId={stationTrendById}
+          nearestStationId={nearestStation?.stationId ?? null}
+          rankings={rankingsData}
+          dailyDemand={mobilityPreview.dailyDemand}
+          systemHourlyProfile={mobilityPreview.systemHourlyProfile}
+          hourlySignals={mobilityPreview.hourlySignals}
+          windowLabel={activeWindow.label}
+          requestedDays={activeWindow.demandDays}
+          recentSnapshots={recentSnapshots}
+        />
       ) : null}
 
       {viewMode === 'data' ? (
-        <>
-        <div id="mode-panel-data" role="tabpanel" aria-labelledby="mode-tab-data" className="contents">
-        <DataModeCard
+        <DataModeView
           stationsCsvUrl="/api/stations?format=csv"
           frictionCsvUrl="/api/rankings?type=availability&limit=200&format=csv"
           historyJsonUrl="/api/history"
+          historyCsvUrl="/api/history?format=csv"
+          alertsCsvUrl="/api/alerts/history?format=csv&state=all&limit=500"
+          statusCsvUrl="/api/status?format=csv"
         />
-        <section className="grid gap-4 lg:grid-cols-2">
-          <article className="dashboard-card">
-            <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Metodologia y origen</h3>
-            <p className="text-sm text-[var(--muted)]">
-              Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
-            </p>
-            <Link
-              href="/dashboard/ayuda"
-              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-            >
-              Revisar metodologia
-            </Link>
-          </article>
-          <article className="dashboard-card">
-            <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Estado del pipeline</h3>
-            <p className="text-sm text-[var(--muted)]">
-              Usa esta vista para comprobar trazabilidad, salud del sistema y acceder a vistas dedicadas de transparencia y analitica.
-            </p>
-            <Link
-              href="/dashboard/alertas"
-              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-            >
-              Ver historial operativo
-            </Link>
-          </article>
-        </section>
-        </div>
-        </>
       ) : null}
 
       <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />

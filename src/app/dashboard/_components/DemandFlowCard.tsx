@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { WidgetEmptyState } from './WidgetEmptyState';
 
 type DailyDemandRow = {
   day: string;
@@ -101,9 +102,11 @@ export function DemandFlowCard({
       </div>
 
       {rows.length === 0 ? (
-        <div className="flex h-48 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-sm text-[var(--muted)]">
-          Sin datos de demanda.
-        </div>
+        <WidgetEmptyState
+          title="Sin datos de demanda"
+          description="Aun no hay suficiente serie diaria para dibujar la evolucion de la demanda en esta ventana."
+          helpHref="/dashboard/ayuda#demanda-no-viajes-reales"
+        />
       ) : (
         <>
           <div className="flex h-48 gap-2">

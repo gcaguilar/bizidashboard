@@ -7,7 +7,7 @@ type DailyInsightsCardProps = {
 export function DailyInsightsCard({ insight, topFrictionStationName, activeAlertsCount }: DailyInsightsCardProps) {
   return (
     <article className="dashboard-card">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Daily insights</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Lectura diaria</p>
       <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura rapida del dia</h3>
       <p className="mt-3 text-sm text-[var(--foreground)]">{insight}</p>
 
