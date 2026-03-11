@@ -168,6 +168,11 @@ a {
 
 .station-map-popup .maplibregl-popup-close-button {
   color: var(--muted);
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  font-size: 20px;
+  line-height: 1;
 }
 
 .station-map-popup .maplibregl-popup-close-button:hover {

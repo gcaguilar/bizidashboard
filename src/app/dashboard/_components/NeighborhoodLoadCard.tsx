@@ -5,9 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
-  isDistrictCollection,
 } from '@/lib/districts';
 
 type NeighborhoodLoadCardProps = {
@@ -50,17 +49,9 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
 
     const loadDistricts = async () => {
       try {
-        const response = await fetch(DISTRICTS_GEOJSON_URL, {
-          signal: controller.signal,
-        });
+        const payload = await fetchDistrictCollection(controller.signal);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-
-        if (!isDistrictCollection(payload) || !isActive) {
+        if (!payload || !isActive) {
           return;
         }
 

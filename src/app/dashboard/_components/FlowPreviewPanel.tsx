@@ -5,9 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
-  isDistrictCollection,
 } from '@/lib/districts';
 
 type HourlySignalRow = {
@@ -38,17 +37,9 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
 
     const loadDistricts = async () => {
       try {
-        const response = await fetch(DISTRICTS_GEOJSON_URL, {
-          signal: controller.signal,
-        });
+        const payload = await fetchDistrictCollection(controller.signal);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-
-        if (!isDistrictCollection(payload) || !isActive) {
+        if (!payload || !isActive) {
           return;
         }
 
@@ -144,7 +135,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           </p>
           <Link
             href="/dashboard/flujo"
-            className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white transition hover:brightness-110"
+            className="mt-4 rounded-lg bg-[#8f1018] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#731017]"
           >
             Expandir vista completa
           </Link>

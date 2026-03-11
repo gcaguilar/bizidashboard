@@ -28,6 +28,9 @@ export type DistrictCollection = {
   features: DistrictFeature[];
 };
 
+let districtCollectionCache: DistrictCollection | null = null;
+let districtCollectionPromise: Promise<DistrictCollection | null> | null = null;
+
 type StationPoint = {
   id: string;
   lon: number;
@@ -132,6 +135,60 @@ export function isDistrictCollection(value: unknown): value is DistrictCollectio
 
     const geometryType = maybeFeature.geometry?.type;
     return geometryType === 'Polygon' || geometryType === 'MultiPolygon';
+  });
+}
+
+export async function fetchDistrictCollection(signal?: AbortSignal): Promise<DistrictCollection | null> {
+  if (districtCollectionCache) {
+    return districtCollectionCache;
+  }
+
+  if (!districtCollectionPromise) {
+    districtCollectionPromise = fetch(DISTRICTS_GEOJSON_URL)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = (await response.json()) as unknown;
+        return isDistrictCollection(payload) ? payload : null;
+      })
+      .then((collection) => {
+        districtCollectionCache = collection;
+        return collection;
+      })
+      .catch((error) => {
+        districtCollectionPromise = null;
+        throw error;
+      });
+  }
+
+  if (!signal) {
+    return districtCollectionPromise;
+  }
+
+  return new Promise<DistrictCollection | null>((resolve, reject) => {
+    const handleAbort = () => {
+      signal.removeEventListener('abort', handleAbort);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+
+    if (signal.aborted) {
+      handleAbort();
+      return;
+    }
+
+    signal.addEventListener('abort', handleAbort, { once: true });
+
+    districtCollectionPromise
+      ?.then((value) => {
+        signal.removeEventListener('abort', handleAbort);
+        resolve(value);
+      })
+      .catch((error) => {
+        signal.removeEventListener('abort', handleAbort);
+        reject(error);
+      });
   });
 }
 

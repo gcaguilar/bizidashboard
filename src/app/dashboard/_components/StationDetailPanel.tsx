@@ -10,7 +10,7 @@ import type {
 } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
   isDistrictCollection,
 } from '@/lib/districts';
@@ -87,6 +87,7 @@ export function StationDetailPanel({
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobility, setMobility] = useState<MobilityResponse | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -103,23 +104,18 @@ export function StationDetailPanel({
           params.set('month', selectedMonth);
         }
 
-        const [districtResponse, mobilityResponse] = await Promise.all([
-          fetch(DISTRICTS_GEOJSON_URL, {
-            signal: controller.signal,
-          }),
+        const [districtPayload, mobilityResponse] = await Promise.all([
+          fetchDistrictCollection(controller.signal),
           fetch(`/api/mobility?${params.toString()}`, {
             signal: controller.signal,
           }),
         ]);
 
-        if (!districtResponse.ok || !mobilityResponse.ok) {
+        if (!districtPayload || !mobilityResponse.ok) {
           throw new Error('No se pudieron cargar datos auxiliares de estacion.');
         }
 
-        const [districtPayload, mobilityPayload] = (await Promise.all([
-          districtResponse.json(),
-          mobilityResponse.json(),
-        ])) as [unknown, unknown];
+        const mobilityPayload = (await mobilityResponse.json()) as unknown;
 
         if (!isActive) {
           return;
@@ -151,6 +147,10 @@ export function StationDetailPanel({
   }, [demandDays, mobilityDays, selectedMonth]);
 
   useEffect(() => {
+    if (!isGeolocationEnabled) {
+      return;
+    }
+
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       return;
     }
@@ -175,7 +175,7 @@ export function StationDetailPanel({
     return () => {
       navigator.geolocation.clearWatch(watcherId);
     };
-  }, []);
+  }, [isGeolocationEnabled]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
@@ -458,6 +458,14 @@ export function StationDetailPanel({
                   📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
                   {isNearestStation ? ' · Es la mas cercana' : ''}
                 </p>
+              ) : !isGeolocationEnabled ? (
+                <button
+                  type="button"
+                  onClick={() => setIsGeolocationEnabled(true)}
+                  className="mt-2 rounded-lg border border-[var(--accent)] px-2 py-1 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                >
+                  Usar mi ubicacion para calcular distancia
+                </button>
               ) : null}
               <div
                 className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${

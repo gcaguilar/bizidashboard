@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -11,22 +12,61 @@ import type {
 } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
-  isDistrictCollection,
 } from '@/lib/districts';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
-import { AlertsPanel } from './AlertsPanel';
 import { DemandFlowCard } from './DemandFlowCard';
-import { FlowPreviewPanel } from './FlowPreviewPanel';
-import { MapPanel } from './MapPanel';
-import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
-import { RankingsTable } from './RankingsTable';
-import { DashboardRouteLinks } from './DashboardRouteLinks';
+import { DashboardHeader } from './DashboardHeader';
+import { DashboardQuickLinks } from './DashboardQuickLinks';
 import { StatusBanner } from './StatusBanner';
-import { StationPicker } from './StationPicker';
-import { SystemIntradayCard } from './SystemIntradayCard';
-import { ThemeToggleButton } from './ThemeToggleButton';
+
+const AlertsPanel = dynamic(() => import('./AlertsPanel').then((module) => module.AlertsPanel), {
+  ssr: false,
+  loading: () => <div className="h-full min-h-[320px] animate-pulse rounded-xl bg-[var(--surface-soft)]" />,
+});
+
+const StationPicker = dynamic(
+  () => import('./StationPicker').then((module) => module.StationPicker),
+  {
+    ssr: false,
+    loading: () => <div className="dashboard-card min-h-[220px] animate-pulse bg-[var(--surface-soft)]" />,
+  }
+);
+
+const MapPanel = dynamic(() => import('./MapPanel').then((module) => module.MapPanel), {
+  ssr: false,
+  loading: () => <div className="h-[560px] animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]" />,
+});
+
+const FlowPreviewPanel = dynamic(
+  () => import('./FlowPreviewPanel').then((module) => module.FlowPreviewPanel),
+  {
+    ssr: false,
+    loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-[var(--surface-soft)]" />,
+  }
+);
+
+const NeighborhoodLoadCard = dynamic(
+  () => import('./NeighborhoodLoadCard').then((module) => module.NeighborhoodLoadCard),
+  {
+    ssr: false,
+    loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
+  }
+);
+
+const RankingsTable = dynamic(() => import('./RankingsTable').then((module) => module.RankingsTable), {
+  ssr: false,
+  loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
+});
+
+const SystemIntradayCard = dynamic(
+  () => import('./SystemIntradayCard').then((module) => module.SystemIntradayCard),
+  {
+    ssr: false,
+    loading: () => <div className="dashboard-card h-full animate-pulse bg-[var(--surface-soft)]" />,
+  }
+);
 
 export type DashboardInitialData = {
   stations: StationsResponse;
@@ -103,8 +143,6 @@ const EMPTY_MOBILITY_PREVIEW: MobilityPreviewData = {
   dailyDemand: [],
   systemHourlyProfile: [],
 };
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 function normalizeText(value: string): string {
   return value
@@ -285,6 +323,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
+  const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobilityPreview, setMobilityPreview] =
     useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
@@ -351,23 +390,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     return bestMatch;
   }, [stationsData.stations, userLocation]);
 
+  const shouldLoadDistricts = searchQuery.trim().length > 0;
+
   useEffect(() => {
+    if (!shouldLoadDistricts || districts) {
+      return;
+    }
+
     const controller = new AbortController();
     let isActive = true;
 
     const loadDistricts = async () => {
       try {
-        const response = await fetch(DISTRICTS_GEOJSON_URL, {
-          signal: controller.signal,
-        });
+        const payload = await fetchDistrictCollection(controller.signal);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-
-        if (!isDistrictCollection(payload) || !isActive) {
+        if (!payload || !isActive) {
           return;
         }
 
@@ -387,7 +424,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       isActive = false;
       controller.abort();
     };
-  }, []);
+  }, [districts, shouldLoadDistricts]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -420,6 +457,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [favoriteStationIds]);
 
   useEffect(() => {
+    if (!isGeolocationEnabled) {
+      return;
+    }
+
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setGeolocationError('La geolocalizacion no esta disponible en este navegador.');
       return;
@@ -446,7 +487,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     return () => {
       navigator.geolocation.clearWatch(watcherId);
     };
-  }, []);
+  }, [isGeolocationEnabled]);
 
   useEffect(() => {
     if (filteredStations.length === 0) {
@@ -590,6 +631,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       return [...current, stationId];
     });
+  }, []);
+
+  const enableGeolocation = useCallback(() => {
+    setIsGeolocationEnabled(true);
+    setGeolocationError(null);
   }, []);
 
   const refreshDashboardData = useCallback(async () => {
@@ -779,188 +825,50 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     ((REFRESH_AFTER_LAST_DATA_MS - Math.max(0, refreshCountdownMs)) / REFRESH_AFTER_LAST_DATA_MS) *
     100;
   const hasAvailabilityFilter = onlyWithBikes || onlyWithAnchors;
+  const nearestMessage = nearestStationInfo && nearestStation
+    ? `📍 Estacion mas cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
+    : geolocationError
+      ? `📍 ${geolocationError}`
+      : isGeolocationEnabled
+        ? '📍 Buscando tu ubicacion para calcular la estacion mas cercana...'
+        : '📍 Activa tu ubicacion para calcular la estacion mas cercana.';
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 overflow-x-hidden">
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-6">
-            <div className="flex items-center gap-3 text-[var(--accent)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-black text-white">
-                B
-              </div>
-              <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Bizi Zaragoza</h1>
-            </div>
+      <DashboardHeader
+        timeWindows={TIME_WINDOWS}
+        activeWindowId={activeWindowId}
+        onChangeWindow={setActiveWindowId}
+        searchQuery={searchQuery}
+        onChangeSearch={setSearchQuery}
+        onlyWithBikes={onlyWithBikes}
+        onlyWithAnchors={onlyWithAnchors}
+        onToggleOnlyWithBikes={setOnlyWithBikes}
+        onToggleOnlyWithAnchors={setOnlyWithAnchors}
+        filteredStationsCount={filteredStations.length}
+        totalStationsCount={totalStationsCount}
+        filteredOutCount={hasAvailabilityFilter ? filteredOutCount : 0}
+        favoriteCount={favoriteStationIds.length}
+        activeAlertsCount={alertsData.alerts.length}
+        activeWindowLabel={activeWindow.label}
+        isMobilityPreviewLoading={isMobilityPreviewLoading}
+        isRefreshingData={isRefreshingData}
+        nearestMessage={nearestMessage}
+        onUseGeolocation={enableGeolocation}
+        canUseGeolocation={!isGeolocationEnabled && !(nearestStationInfo && nearestStation)}
+        onJumpToNearest={() => {
+          if (!nearestStationInfo) {
+            return;
+          }
 
-            <div className="hidden items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:flex">
-              {TIME_WINDOWS.map((window) => (
-                <button
-                  key={window.id}
-                  type="button"
-                  onClick={() => setActiveWindowId(window.id)}
-                  aria-pressed={activeWindowId === window.id}
-                  className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${
-                    activeWindowId === window.id
-                      ? 'bg-[var(--accent)] text-white shadow-sm'
-                      : 'text-[var(--muted)] hover:bg-[var(--accent)]/10 hover:text-[var(--foreground)]'
-                  }`}
-                >
-                  {window.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-            <label className="hidden w-full max-w-md items-center rounded-lg border border-transparent bg-[var(--surface-soft)] px-3 py-2 md:flex md:border-[var(--border)]/60">
-              <input
-                type="text"
-                className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-                placeholder="Buscar estacion, ID o barrio..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
-            </label>
-
-            <Link
-              href="/dashboard/conclusiones"
-              className="icon-button hidden sm:inline-flex"
-              aria-label="Conclusiones de movilidad"
-            >
-              Conclusiones
-            </Link>
-            <Link
-              href="/dashboard/ayuda"
-              className="icon-button hidden sm:inline-flex"
-              aria-label="Centro de ayuda"
-            >
-              Ayuda
-            </Link>
-            <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
-          <DashboardRouteLinks
-            activeRoute="dashboard"
-            routes={['stations', 'flow', 'conclusions', 'help']}
-            variant="chips"
-            className="flex flex-wrap items-center gap-2 sm:hidden"
-          />
-
-          <label className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
-            <input
-              type="text"
-              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-              placeholder="Buscar estacion, ID o barrio..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-            />
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1.5">
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
-              <input
-                type="checkbox"
-                checked={onlyWithBikes}
-                onChange={(event) => setOnlyWithBikes(event.target.checked)}
-                className="h-3.5 w-3.5 accent-[var(--accent)]"
-              />
-              Solo con bicis
-            </label>
-
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
-              <input
-                type="checkbox"
-                checked={onlyWithAnchors}
-                onChange={(event) => setOnlyWithAnchors(event.target.checked)}
-                className="h-3.5 w-3.5 accent-[var(--accent)]"
-              />
-              Solo con huecos
-            </label>
-          </div>
-
-          <div className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs text-[var(--muted)]">
-            <p>
-              Estaciones: {filteredStations.length}/{totalStationsCount}
-              {hasAvailabilityFilter && filteredOutCount > 0 ? ` (filtradas ${filteredOutCount})` : ''} ·
-              Favoritas: {favoriteStationIds.length} · Alertas activas: {alertsData.alerts.length} · Ventana:{' '}
-              {activeWindow.label}
-              {isMobilityPreviewLoading ? ' (actualizando flujo...)' : ''}
-            </p>
-            <p>{isRefreshingData ? 'Refrescando datos del sistema ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
-            {TIME_WINDOWS.map((window) => (
-              <button
-                key={window.id}
-                type="button"
-                onClick={() => setActiveWindowId(window.id)}
-                aria-pressed={activeWindowId === window.id}
-                className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
-                  activeWindowId === window.id
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'text-[var(--muted)] hover:text-[var(--foreground)]'
-                }`}
-              >
-                {window.label}
-              </button>
-              ))}
-            </div>
-
-          <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
-            <p className="text-xs text-[var(--foreground)]">
-              {nearestStationInfo && nearestStation
-                ? `📍 Estacion mas cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
-                : geolocationError
-                  ? `📍 ${geolocationError}`
-                  : '📍 Buscando tu ubicacion para calcular la estacion mas cercana...'}
-            </p>
-
-            {nearestStationInfo && nearestStation ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOnlyWithBikes(false);
-                  setOnlyWithAnchors(false);
-                  setSelectedStationId(nearestStationInfo.id);
-                }}
-                className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-              >
-                Ir a la mas cercana
-              </button>
-            ) : null}
-          </div>
-
-          <div className="w-full">
-            <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
-              <span>Auto-refresh: ultima actualizacion de datos + 30 min</span>
-              <span>
-                {isRefreshingData
-                  ? 'sincronizando...'
-                  : `siguiente en ${formatCountdown(refreshCountdownMs)}`}
-              </span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/15">
-              <div
-                className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500"
-                style={{ width: `${Math.max(0, Math.min(100, refreshProgress))}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+          setOnlyWithBikes(false);
+          setOnlyWithAnchors(false);
+          setSelectedStationId(nearestStationInfo.id);
+        }}
+        canJumpToNearest={Boolean(nearestStationInfo && nearestStation)}
+        refreshCountdownLabel={formatCountdown(refreshCountdownMs)}
+        refreshProgress={refreshProgress}
+      />
 
       <StatusBanner status={statusData} stationsGeneratedAt={stationsData.generatedAt} />
 
@@ -1028,67 +936,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         nearestStationId={nearestStation?.stationId ?? null}
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Detalle de estacion
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Abre la vista completa de la estacion seleccionada para ver prediccion, mapa por barrios y comparativas.
-          </p>
-          <Link
-            href={selectedStationDetailUrl}
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Abrir detalle completo
-          </Link>
-        </article>
-
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Flujo por barrios
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
-          </p>
-          <Link
-            href="/dashboard/flujo"
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Ir a analisis de flujo
-          </Link>
-        </article>
-
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Conclusiones diarias
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
-          </p>
-          <Link
-            href="/dashboard/conclusiones"
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Ver conclusiones
-          </Link>
-        </article>
-
-        <article className="dashboard-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Centro de ayuda
-          </h3>
-          <p className="text-sm text-[var(--muted)]">
-            Metodologia, criterios de alertas y documentacion en una pagina independiente.
-          </p>
-          <Link
-            href="/dashboard/ayuda"
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Abrir ayuda
-          </Link>
-        </article>
-      </section>
+      <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
 
       <footer className="pb-4 text-center text-[11px] text-[var(--muted)]">
         © 2024 Bizi Zaragoza - Sistema de analitica de movilidad urbana.
