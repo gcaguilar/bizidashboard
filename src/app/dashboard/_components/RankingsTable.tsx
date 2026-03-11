@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 
@@ -15,9 +17,38 @@ type RankingsTableProps = {
 type RankingTab = 'turnover' | 'availability';
 
 export function RankingsTable({ rankings, stations }: RankingsTableProps) {
-  const [activeTab, setActiveTab] = useState<RankingTab>('availability');
-  const [search, setSearch] = useState('');
-  const [showAll, setShowAll] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('rankingTab');
+  const activeTab: RankingTab =
+    tabFromUrl === 'turnover' ? 'turnover' : 'availability'
+  const search = searchParams.get('rankingSearch') ?? '';
+  const showAll = searchParams.get('rankingShowAll') === '1';
+
+  const updateQuery = (next: { tab?: RankingTab; search?: string; showAll?: boolean }) => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    const nextTab = next.tab ?? activeTab;
+    const nextSearch = next.search ?? search;
+    const nextShowAll = next.showAll ?? showAll;
+
+    nextParams.set('rankingTab', nextTab);
+
+    if (nextSearch.trim()) {
+      nextParams.set('rankingSearch', nextSearch.trim());
+    } else {
+      nextParams.delete('rankingSearch');
+    }
+
+    if (nextShowAll) {
+      nextParams.set('rankingShowAll', '1');
+    } else {
+      nextParams.delete('rankingShowAll');
+    }
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  };
 
   const stationMap = useMemo(() => {
     return new Map(stations.map((station) => [station.id, station]));
@@ -70,7 +101,17 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
           </h2>
           <p className="text-xs text-[var(--muted)]">Estaciones con mayor friccion operativa recurrente.</p>
         </div>
-        <span className="kpi-chip">{rows.length} resultados</span>
+        <div className="text-right">
+          <span className="kpi-chip">{rows.length} resultados</span>
+          <div className="mt-1">
+            <Link
+              href="/dashboard/ayuda#ranking-rotacion-vs-criticidad"
+              className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            >
+              Entender ranking
+            </Link>
+          </div>
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -83,8 +124,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
             }`}
             onClick={() => {
-              setActiveTab('availability');
-              setShowAll(false);
+              updateQuery({ tab: 'availability', showAll: false });
             }}
           >
             Criticas
@@ -97,8 +137,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
             }`}
             onClick={() => {
-              setActiveTab('turnover');
-              setShowAll(false);
+              updateQuery({ tab: 'turnover', showAll: false });
             }}
           >
             Rotacion
@@ -110,8 +149,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
           placeholder="Buscar estacion"
           value={search}
           onChange={(event) => {
-            setSearch(event.target.value);
-            setShowAll(false);
+            updateQuery({ search: event.target.value, showAll: false });
           }}
         />
       </div>
@@ -165,7 +203,9 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
       {rows.length > 8 ? (
         <button
           type="button"
-          onClick={() => setShowAll((current) => !current)}
+          onClick={() => {
+            updateQuery({ showAll: !showAll });
+          }}
           className="rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}

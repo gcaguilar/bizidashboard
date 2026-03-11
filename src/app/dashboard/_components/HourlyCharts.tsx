@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo } from 'react';
 import type { StationPatternRow } from '@/lib/api';
 import { DayType } from '@/analytics/types';
@@ -125,8 +126,19 @@ export function HourlyCharts({
           <p className="text-xs text-[var(--muted)]">
             Estacion {stationName} ({stationId || 'sin seleccion'})
           </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Compara el patron medio horario entre laborables y fines de semana para esta estacion.
+          </p>
         </div>
-        {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/ayuda#detalle-estacion"
+            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          >
+            Entender grafico
+          </Link>
+          {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+        </div>
       </header>
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">

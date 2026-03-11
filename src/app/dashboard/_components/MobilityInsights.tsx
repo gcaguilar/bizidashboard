@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -866,9 +867,24 @@ export function MobilityInsights({
           </article>
 
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
-              <span className="text-xs text-[var(--muted)]">{mobilityData.demandDays} dias</span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Muestra como cambia la actividad diaria y la ocupacion media en el periodo activo.
+                </p>
+              </div>
+              <div className="text-right text-xs text-[var(--muted)]">
+                <span>{mobilityData.demandDays} dias</span>
+                <div>
+                  <Link
+                    href="/dashboard/ayuda#demanda-no-viajes-reales"
+                    className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                  >
+                    Entender curva
+                  </Link>
+                </div>
+              </div>
             </div>
             {dailyCurveData.length === 0 ? (
               <p className="mt-4 text-sm text-[var(--muted)]">Sin datos de demanda diaria.</p>
@@ -931,12 +947,25 @@ export function MobilityInsights({
 
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-base font-bold text-[var(--foreground)]">
-                Impacto horario de transporte publico
-              </h3>
-              <span className="text-xs text-[var(--muted)]">
-                {mobilityData.transitImpact?.lookbackDays ?? mobilityData.mobilityDays} dias
-              </span>
+              <div>
+                <h3 className="text-base font-bold text-[var(--foreground)]">
+                  Impacto horario de transporte publico
+                </h3>
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Compara salidas medias con y sin llegadas cercanas de bus o tranvia.
+                </p>
+              </div>
+              <div className="text-right text-xs text-[var(--muted)]">
+                <span>{mobilityData.transitImpact?.lookbackDays ?? mobilityData.mobilityDays} dias</span>
+                <div>
+                  <Link
+                    href="/dashboard/ayuda#movilidad-causalidad"
+                    className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                  >
+                    Interpretar impacto
+                  </Link>
+                </div>
+              </div>
             </div>
 
             {availableTransitProviders.length === 0 ? (

@@ -37,14 +37,15 @@ function getHealthStyle(statusLabel: string): string {
 export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps) {
   const lastUpdated = status.quality.freshness.lastUpdated ?? stationsGeneratedAt ?? null;
   const updatedText = formatUpdatedText(lastUpdated);
+  const volumeRange = status.quality.volume.expectedRange;
 
   return (
     <section className="dashboard-card gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estado operativo</p>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Salud del sistema y del pipeline</h2>
-          <p className="text-xs text-[var(--muted)]">Actualizado {updatedText}</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">System summary</p>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Resumen de salud del sistema</h2>
+          <p className="text-xs text-[var(--muted)]">Freshness {updatedText} · entorno {status.system.environment}</p>
         </div>
         <span
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthStyle(status.pipeline.healthStatus)}`}
@@ -67,11 +68,14 @@ export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps)
           <p className="stat-value">{status.pipeline.pollsLast24Hours}</p>
         </article>
         <article className="stat-card">
-          <p className="stat-label">Registros totales</p>
-          <p className="stat-value">{status.pipeline.totalRowsCollected}</p>
+          <p className="stat-label">Estaciones recientes</p>
+          <p className="stat-value">{status.quality.volume.recentStationCount}</p>
+          <p className="text-[11px] text-[var(--muted)]">
+            Rango esperado {volumeRange.min}-{volumeRange.max}
+          </p>
         </article>
         <article className="stat-card">
-          <p className="stat-label">Validaciones fallidas</p>
+          <p className="stat-label">Errores de validacion</p>
           <p className="stat-value">{status.pipeline.validationErrors}</p>
         </article>
         <article className="stat-card">

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo } from 'react';
 import type { HeatmapCell } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
@@ -154,8 +155,19 @@ export function Heatmap({
           <p className="text-xs text-[var(--muted)]">
             Estacion {stationName} ({stationId || 'sin seleccion'})
           </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Cada celda resume la ocupacion media por dia de semana y hora para detectar patrones repetidos.
+          </p>
         </div>
-        {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/ayuda#detalle-estacion"
+            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          >
+            Como leerlo
+          </Link>
+          {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+        </div>
       </header>
 
       <div className="grid gap-3 md:grid-cols-3">

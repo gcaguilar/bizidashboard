@@ -3,11 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   getDailyDemandCurveMock,
   getHourlyMobilitySignalsMock,
+  getSystemHourlyProfileMock,
   getHourlyTransitImpactMock,
   withCacheMock,
 } = vi.hoisted(() => ({
   getDailyDemandCurveMock: vi.fn(),
   getHourlyMobilitySignalsMock: vi.fn(),
+  getSystemHourlyProfileMock: vi.fn(),
   getHourlyTransitImpactMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
@@ -15,6 +17,7 @@ const {
 vi.mock('@/analytics/queries/read', () => ({
   getDailyDemandCurve: getDailyDemandCurveMock,
   getHourlyMobilitySignals: getHourlyMobilitySignalsMock,
+  getSystemHourlyProfile: getSystemHourlyProfileMock,
   getHourlyTransitImpact: getHourlyTransitImpactMock,
 }));
 
@@ -28,6 +31,7 @@ describe('GET /api/mobility', () => {
   beforeEach(() => {
     getDailyDemandCurveMock.mockReset();
     getHourlyMobilitySignalsMock.mockReset();
+    getSystemHourlyProfileMock.mockReset();
     getHourlyTransitImpactMock.mockReset();
     withCacheMock.mockReset();
   });
@@ -64,6 +68,14 @@ describe('GET /api/mobility', () => {
         samplesWithoutTransit: 12,
       },
     ]);
+    getSystemHourlyProfileMock.mockResolvedValue([
+      {
+        hour: 8,
+        avgOccupancy: 0.41,
+        bikesInCirculation: 12.5,
+        sampleCount: 320,
+      },
+    ]);
     withCacheMock.mockImplementation(
       async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
     );
@@ -81,9 +93,11 @@ describe('GET /api/mobility', () => {
     );
     expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, undefined);
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, undefined);
+    expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, undefined);
     expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, undefined);
     expect(payload.hourlySignals).toHaveLength(1);
     expect(payload.dailyDemand).toHaveLength(1);
+    expect(payload.systemHourlyProfile).toHaveLength(1);
     expect(payload.transitImpact.hourly).toHaveLength(1);
     expect(payload.transitImpact.hourly[0].provider).toBe('tram');
   });
@@ -91,6 +105,7 @@ describe('GET /api/mobility', () => {
   it('passes selected month through cache key and query calls', async () => {
     getHourlyMobilitySignalsMock.mockResolvedValue([]);
     getDailyDemandCurveMock.mockResolvedValue([]);
+    getSystemHourlyProfileMock.mockResolvedValue([]);
     getHourlyTransitImpactMock.mockResolvedValue([]);
     withCacheMock.mockImplementation(
       async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
@@ -109,6 +124,7 @@ describe('GET /api/mobility', () => {
     );
     expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, '2026-03');
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
+    expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, '2026-03');
     expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, '2026-03');
     expect(payload.selectedMonth).toBe('2026-03');
   });
@@ -116,6 +132,7 @@ describe('GET /api/mobility', () => {
   it('falls back when transit tables are missing', async () => {
     getHourlyMobilitySignalsMock.mockResolvedValue([]);
     getDailyDemandCurveMock.mockResolvedValue([]);
+    getSystemHourlyProfileMock.mockResolvedValue([]);
     getHourlyTransitImpactMock.mockRejectedValue(new Error('no such table: TransitSnapshot'));
     withCacheMock.mockImplementation(
       async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()

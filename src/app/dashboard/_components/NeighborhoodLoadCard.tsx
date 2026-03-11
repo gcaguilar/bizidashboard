@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import {
@@ -149,10 +150,25 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
   return (
     <section className="dashboard-card h-full">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
-          Carga por barrio
-        </h3>
-        <span className="text-xs text-[var(--muted)]">Barrios: {slices.length}</span>
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
+            Carga por barrio
+          </h3>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Distribucion de estaciones por distrito y ocupacion media actual de ciudad.
+          </p>
+        </div>
+        <div className="text-right text-xs text-[var(--muted)]">
+          <span>Barrios: {slices.length}</span>
+          <div>
+            <Link
+              href="/dashboard/ayuda#estados-mapa"
+              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            >
+              Como leerlo
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">

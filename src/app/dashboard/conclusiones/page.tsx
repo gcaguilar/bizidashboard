@@ -4,7 +4,7 @@ import { fetchAvailableDataMonths } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
@@ -14,18 +14,12 @@ const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: 'Conclusiones de movilidad',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard/conclusiones',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Conclusiones de movilidad`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard/conclusiones',
-  },
-};
+  description:
+    'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.',
+  path: '/dashboard/conclusiones',
+});
 
 function formatDelta(deltaRatio: number | null): string {
   if (deltaRatio === null || !Number.isFinite(deltaRatio)) {
@@ -84,6 +78,18 @@ function getPeriodCaption(selectedMonth: string | null, fallback: string): strin
   return toMonthOptions([selectedMonth])[0]?.label ?? selectedMonth;
 }
 
+function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
+  const { weekdayWeekendProfile } = payload;
+
+  if (!weekdayWeekendProfile.dominantPeriod) {
+    return 'Aun no hay suficiente muestra para comparar dias laborables y fin de semana.';
+  }
+
+  return weekdayWeekendProfile.dominantPeriod === 'weekday'
+    ? `Entre semana la red concentra mas actividad media por dia que en fin de semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts).`
+    : `En fin de semana la red concentra mas actividad media por dia que entre semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts).`;
+}
+
 type DashboardConclusionsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -114,6 +120,13 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
     peakDemandHours: [],
     topDistrictsByDemand: [],
     topStationsByDemand: [],
+    leastUsedStations: [],
+    weekdayWeekendProfile: {
+      weekday: { avgDemand: 0, avgOccupancy: 0, daysCount: 0 },
+      weekend: { avgDemand: 0, avgOccupancy: 0, daysCount: 0 },
+      demandGapRatio: null,
+      dominantPeriod: null,
+    },
   };
 }
 
@@ -268,6 +281,36 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       <section className="grid gap-4 xl:grid-cols-2">
         <article className="dashboard-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Entre semana vs fin de semana</h3>
+            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ventana actual')}</span>
+          </div>
+
+          <p className="mt-3 text-sm text-[var(--muted)]">{getWeekPatternSummary(payload)}</p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Entre semana</p>
+              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Ocupacion media {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)} · {payload.weekdayWeekendProfile.weekday.daysCount} dias
+              </p>
+            </div>
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Fin de semana</p>
+              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Ocupacion media {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)} · {payload.weekdayWeekendProfile.weekend.daysCount} dias
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            Variacion relativa fin de semana vs laborable: {formatDelta(payload.weekdayWeekendProfile.demandGapRatio)}
+          </p>
+        </article>
+
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Horas pico de demanda</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
           </div>
@@ -319,20 +362,21 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
         </article>
       </section>
 
-      <section className="dashboard-card">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-bold text-[var(--foreground)]">
-            {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
-          </h3>
-          <span className="text-xs text-[var(--muted)]">
-            {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria en cache de BD'}
-          </span>
-        </div>
+      <section className="grid gap-4 xl:grid-cols-2">
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">
+              {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
+            </h3>
+            <span className="text-xs text-[var(--muted)]">
+              {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria en cache de BD'}
+            </span>
+          </div>
 
-        {payload.topStationsByDemand.length === 0 ? (
-          <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones disponible todavia.</p>
-        ) : (
-            <div className="space-y-2">
+          {payload.topStationsByDemand.length === 0 ? (
+            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones disponible todavia.</p>
+          ) : (
+            <div className="mt-4 space-y-2">
               {payload.topStationsByDemand.map((station, index) => (
                 <Link
                   key={station.stationId}
@@ -353,6 +397,41 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               ))}
             </div>
           )}
+        </article>
+
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">
+              {payload.selectedMonth ? 'Estaciones menos usadas del mes' : 'Estaciones menos usadas'}
+            </h3>
+            <span className="text-xs text-[var(--muted)]">Tambien enlaza al detalle</span>
+          </div>
+
+          {payload.leastUsedStations.length === 0 ? (
+            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones menos usadas disponible todavia.</p>
+          ) : (
+            <div className="mt-4 space-y-2">
+              {payload.leastUsedStations.map((station, index) => (
+                <Link
+                  key={station.stationId}
+                  href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--foreground)]/8 text-xs font-bold text-[var(--foreground)]">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--foreground)]">{station.stationName}</p>
+                      <p className="text-[11px] text-[var(--muted)]">ID {station.stationId}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs font-bold text-[var(--foreground)]">Indice {station.avgDemand.toFixed(1)}</p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </article>
       </section>
     </main>
   );
