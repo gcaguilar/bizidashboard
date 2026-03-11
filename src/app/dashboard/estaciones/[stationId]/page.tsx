@@ -12,7 +12,7 @@ import {
   type StationsResponse,
 } from '@/lib/api';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { Heatmap } from '../../_components/Heatmap';
 import { HourlyCharts } from '../../_components/HourlyCharts';
@@ -46,18 +46,11 @@ export async function generateMetadata({ params }: StationDetailPageProps): Prom
   const stationId = decodeStationId(encodedStationId);
   const canonicalPath = `/dashboard/estaciones/${encodeURIComponent(stationId)}`;
 
-  return {
+  return buildPageMetadata({
     title: `Detalle de estacion ${stationId}`,
-    description: SITE_DESCRIPTION,
-    alternates: {
-      canonical: canonicalPath,
-    },
-    openGraph: {
-      title: `${SITE_TITLE} - Detalle de estacion ${stationId}`,
-      description: SITE_DESCRIPTION,
-      url: canonicalPath,
-    },
-  };
+    description: `Consulta el detalle de la estacion ${stationId} de Bizi Zaragoza con ocupacion por hora, heatmap y comparativas operativas.`,
+    path: canonicalPath,
+  });
 }
 
 export default async function StationDetailPage({ params, searchParams }: StationDetailPageProps) {

@@ -1,22 +1,16 @@
 import type { Metadata } from 'next';
 import { fetchStations } from '@/lib/api';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { AlertsHistoryClient } from './_components/AlertsHistoryClient';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: 'Historial de alertas',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard/alertas',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Historial de alertas`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard/alertas',
-  },
-};
+  description:
+    'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones vacias, llenas o con riesgo operativo.',
+  path: '/dashboard/alertas',
+});
 
 export default async function DashboardAlertsHistoryPage() {
   const stations = await fetchStations().catch(() => ({

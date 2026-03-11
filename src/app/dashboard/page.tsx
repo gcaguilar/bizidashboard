@@ -9,23 +9,17 @@ import {
   type StationsResponse,
   type StatusResponse,
 } from '@/lib/api';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: 'Panel clasico',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Panel clasico`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard',
-  },
-};
+  description:
+    'Panel principal de Bizi Zaragoza con estado del sistema, mapa en tiempo real, demanda, rankings y flujo urbano.',
+  path: '/dashboard',
+});
 
 type ErrorWithMeta = {
   cause?: unknown;

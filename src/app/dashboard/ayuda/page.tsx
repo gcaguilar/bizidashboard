@@ -1,21 +1,15 @@
 import type { Metadata } from 'next';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { HelpCenterClient } from './_components/HelpCenterClient';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: 'Centro de ayuda',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard/ayuda',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Centro de ayuda`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard/ayuda',
-  },
-};
+  description:
+    'FAQ del dashboard de Bizi Zaragoza para entender alertas, rankings, movilidad, predicciones y metodologia de calculo.',
+  path: '/dashboard/ayuda',
+});
 
 export default function DashboardHelpPage() {
   return <HelpCenterClient />;
