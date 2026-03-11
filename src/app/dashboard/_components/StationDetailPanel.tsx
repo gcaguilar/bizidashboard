@@ -28,6 +28,7 @@ type MobilitySignalRow = {
 type MobilityResponse = {
   mobilityDays: number;
   demandDays: number;
+  selectedMonth?: string | null;
   methodology: string;
   hourlySignals: MobilitySignalRow[];
 };
@@ -44,6 +45,7 @@ type StationDetailPanelProps = {
   heatmap: HeatmapCell[];
   mobilityDays?: number;
   demandDays?: number;
+  selectedMonth?: string | null;
 };
 
 function toOccupancy(station: StationSnapshot | null): number {
@@ -80,6 +82,7 @@ export function StationDetailPanel({
   heatmap,
   mobilityDays = 14,
   demandDays = 30,
+  selectedMonth = null,
 }: StationDetailPanelProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobility, setMobility] = useState<MobilityResponse | null>(null);
@@ -95,6 +98,10 @@ export function StationDetailPanel({
           mobilityDays: String(mobilityDays),
           demandDays: String(demandDays),
         });
+
+        if (selectedMonth) {
+          params.set('month', selectedMonth);
+        }
 
         const [districtResponse, mobilityResponse] = await Promise.all([
           fetch(DISTRICTS_GEOJSON_URL, {
@@ -141,7 +148,7 @@ export function StationDetailPanel({
       isActive = false;
       controller.abort();
     };
-  }, [demandDays, mobilityDays]);
+  }, [demandDays, mobilityDays, selectedMonth]);
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {

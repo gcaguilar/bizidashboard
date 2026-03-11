@@ -5,6 +5,7 @@ import {
   getHourlyTransitImpact,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { isValidMonthKey } from '@/lib/months';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,6 +88,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     1,
     365
   );
+  const selectedMonth = searchParams.get('month');
+  const monthKey = isValidMonthKey(selectedMonth) ? selectedMonth : null;
 
   if (mobilityDays === null || demandDays === null) {
     return NextResponse.json(
@@ -99,11 +102,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}`;
+    const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}:month=${monthKey ?? 'all'}`;
     const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
       const [hourlySignals, dailyDemand] = await Promise.all([
-        getHourlyMobilitySignals(mobilityDays),
-        getDailyDemandCurve(demandDays),
+        getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined),
+        getDailyDemandCurve(demandDays, monthKey ?? undefined),
       ]);
 
       let transitWarning: string | null = null;
@@ -111,7 +114,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         [] as Awaited<ReturnType<typeof getHourlyTransitImpact>>;
 
       try {
-        hourlyTransitImpact = await getHourlyTransitImpact(mobilityDays);
+        hourlyTransitImpact = await getHourlyTransitImpact(mobilityDays, monthKey ?? undefined);
       } catch (error) {
         if (isMissingTableError(error)) {
           console.warn(
@@ -152,6 +155,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return {
         mobilityDays,
         demandDays,
+        selectedMonth: monthKey,
         methodology:
           'Matriz O-D estimada con variaciones netas horarias de bicis por estacion; no representa viajes individuales observados.',
         hourlySignals: hourlySignals.map((row) => ({

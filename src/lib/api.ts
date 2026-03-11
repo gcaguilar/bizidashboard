@@ -3,6 +3,7 @@ import 'server-only';
 import { AlertType, DayType } from '@/analytics/types';
 import {
   getActiveAlerts,
+  getAvailableDataMonths,
   getHeatmap,
   getStationPatterns,
   getStationRankings,
@@ -79,6 +80,11 @@ export type AlertRow = {
 export type AlertsResponse = {
   limit: number;
   alerts: AlertRow[];
+  generatedAt: string;
+};
+
+export type AvailableMonthsResponse = {
+  months: string[];
   generatedAt: string;
 };
 
@@ -195,33 +201,44 @@ export async function fetchStatus(): Promise<StatusResponse> {
 }
 
 export async function fetchPatterns(
-  stationId: string
+  stationId: string,
+  monthKey?: string | null
 ): Promise<StationPatternRow[]> {
   if (!stationId) {
     throw new Error('stationId es obligatorio para patrones.');
   }
 
   const data = await withCache(
-    `patterns:stationId=${stationId}`,
+    `patterns:stationId=${stationId}:month=${monthKey ?? 'all'}`,
     CACHE_TTL_SECONDS,
-    () => getStationPatterns(stationId)
+    () => getStationPatterns(stationId, monthKey ?? undefined)
   );
 
   assertArray(data, 'patterns');
   return data;
 }
 
-export async function fetchHeatmap(stationId: string): Promise<HeatmapCell[]> {
+export async function fetchHeatmap(stationId: string, monthKey?: string | null): Promise<HeatmapCell[]> {
   if (!stationId) {
     throw new Error('stationId es obligatorio para el heatmap.');
   }
 
   const data = await withCache(
-    `heatmap:stationId=${stationId}`,
+    `heatmap:stationId=${stationId}:month=${monthKey ?? 'all'}`,
     CACHE_TTL_SECONDS,
-    () => getHeatmap(stationId)
+    () => getHeatmap(stationId, monthKey ?? undefined)
   );
 
   assertArray(data, 'heatmap');
   return data;
+}
+
+export async function fetchAvailableDataMonths(): Promise<AvailableMonthsResponse> {
+  const payload = await withCache('data-months', CACHE_TTL_SECONDS, async () => ({
+    months: await getAvailableDataMonths(),
+    generatedAt: new Date().toISOString(),
+  }));
+
+  assertArray(payload.months, 'months');
+  return payload;
 }

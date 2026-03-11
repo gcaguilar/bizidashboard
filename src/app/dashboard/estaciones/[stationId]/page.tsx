@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
   fetchAlerts,
+  fetchAvailableDataMonths,
   fetchHeatmap,
   fetchPatterns,
   fetchRankings,
@@ -10,11 +11,13 @@ import {
   type RankingsResponse,
   type StationsResponse,
 } from '@/lib/api';
+import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { Heatmap } from '../../_components/Heatmap';
 import { HourlyCharts } from '../../_components/HourlyCharts';
 import { MethodologyPanel } from '../../_components/MethodologyPanel';
+import { MonthFilter } from '../../_components/MonthFilter';
 import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -27,6 +30,7 @@ type StationDetailPageProps = {
   params: Promise<{
     stationId: string;
   }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function decodeStationId(encodedStationId: string): string {
@@ -56,8 +60,9 @@ export async function generateMetadata({ params }: StationDetailPageProps): Prom
   };
 }
 
-export default async function StationDetailPage({ params }: StationDetailPageProps) {
+export default async function StationDetailPage({ params, searchParams }: StationDetailPageProps) {
   const { stationId: encodedStationId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const stationId = decodeStationId(encodedStationId);
   const nowIso = new Date().toISOString();
 
@@ -83,7 +88,15 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
     generatedAt: nowIso,
   };
 
-  const stations = await fetchStations().catch(() => fallbackStations);
+  const [stations, availableMonths] = await Promise.all([
+    fetchStations().catch(() => fallbackStations),
+    fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
+  ]);
+
+  const activeMonth = resolveActiveMonth(
+    availableMonths.months,
+    normalizeMonthSearchParam(resolvedSearchParams.month)
+  );
 
   if (stations.stations.length === 0) {
     notFound();
@@ -105,8 +118,8 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
       ...fallbackAvailability,
       limit: rankingLimit,
     })),
-    fetchPatterns(selectedStation.id).catch(() => []),
-    fetchHeatmap(selectedStation.id).catch(() => []),
+    fetchPatterns(selectedStation.id, activeMonth).catch(() => []),
+    fetchHeatmap(selectedStation.id, activeMonth).catch(() => []),
   ]);
 
   return (
@@ -150,6 +163,8 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
         </div>
       </header>
 
+      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+
       <StationDetailPanel
         station={selectedStation}
         stations={stations.stations}
@@ -157,6 +172,7 @@ export default async function StationDetailPage({ params }: StationDetailPagePro
         alerts={alerts}
         patterns={patterns}
         heatmap={heatmap}
+        selectedMonth={activeMonth}
       />
 
       <div className="grid gap-6 xl:grid-cols-12">

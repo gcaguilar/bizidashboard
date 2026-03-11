@@ -75,6 +75,7 @@ type TransitImpactPayload = {
 type MobilityResponse = {
   mobilityDays: number;
   demandDays: number;
+  selectedMonth?: string | null;
   methodology: string;
   hourlySignals: MobilitySignalRow[];
   dailyDemand: DailyDemandRow[];
@@ -184,6 +185,7 @@ export function MobilityInsights({
   );
   const [activeTransitProvider, setActiveTransitProvider] =
     useState<TransitProviderKey>('combined');
+  const selectedMonth = searchParams.get('month');
 
   useEffect(() => {
     const periodFromUrl = resolvePeriod(searchParams.get('period'));
@@ -226,6 +228,10 @@ export function MobilityInsights({
           mobilityDays: String(mobilityDays),
           demandDays: String(demandDays),
         });
+
+        if (selectedMonth) {
+          searchParams.set('month', selectedMonth);
+        }
 
         const [mobilityResponse, districtsResponse] = await Promise.all([
           fetch(`/api/mobility?${searchParams.toString()}`, {
@@ -287,7 +293,7 @@ export function MobilityInsights({
       isActive = false;
       controller.abort();
     };
-  }, [demandDays, mobilityDays]);
+  }, [demandDays, mobilityDays, selectedMonth]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {

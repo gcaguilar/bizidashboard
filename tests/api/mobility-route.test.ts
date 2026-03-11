@@ -75,14 +75,42 @@ describe('GET /api/mobility', () => {
 
     expect(response.status).toBe(200);
     expect(withCacheMock).toHaveBeenCalledWith(
-      'mobility:mobilityDays=14:demandDays=30',
+      'mobility:mobilityDays=14:demandDays=30:month=all',
       300,
       expect.any(Function)
     );
+    expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, undefined);
+    expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, undefined);
+    expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, undefined);
     expect(payload.hourlySignals).toHaveLength(1);
     expect(payload.dailyDemand).toHaveLength(1);
     expect(payload.transitImpact.hourly).toHaveLength(1);
     expect(payload.transitImpact.hourly[0].provider).toBe('tram');
+  });
+
+  it('passes selected month through cache key and query calls', async () => {
+    getHourlyMobilitySignalsMock.mockResolvedValue([]);
+    getDailyDemandCurveMock.mockResolvedValue([]);
+    getHourlyTransitImpactMock.mockResolvedValue([]);
+    withCacheMock.mockImplementation(
+      async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
+    );
+
+    const response = await GET(
+      new Request('http://localhost/api/mobility?mobilityDays=14&demandDays=30&month=2026-03') as never
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(withCacheMock).toHaveBeenCalledWith(
+      'mobility:mobilityDays=14:demandDays=30:month=2026-03',
+      300,
+      expect.any(Function)
+    );
+    expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, '2026-03');
+    expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
+    expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, '2026-03');
+    expect(payload.selectedMonth).toBe('2026-03');
   });
 
   it('falls back when transit tables are missing', async () => {
