@@ -89,6 +89,13 @@ const FAQ_ITEMS: FaqItem[] = [
       'Vacia = poca bici para sacar. Llena = pocos anclajes para devolver. En ambos casos hay friccion para la persona usuaria y suele requerir movimiento de flota.',
   },
   {
+    id: 'balance-index',
+    category: 'Clasificaciones',
+    question: 'Que es el Balance Index del sistema?',
+    answer:
+      'Es una medida de equilibrio global. Compara la ocupacion de cada estacion con el 50%. Si muchas estaciones estan cerca de ese punto, el indice sube. Si muchas estan vacias o llenas, baja.',
+  },
+  {
     id: 'rotacion-14d',
     category: 'Clasificaciones',
     question: 'Que es la metrica de rotacion 14d?',
@@ -213,6 +220,13 @@ const FAQ_ITEMS: FaqItem[] = [
     question: 'Si dos metricas suben a la vez, significa causa directa?',
     answer:
       'No siempre. El dashboard muestra relaciones utiles para tomar decisiones rapidas, pero correlacion no es prueba de causa. Para causalidad hace falta analisis mas profundo.',
+  },
+  {
+    id: 'exportaciones',
+    category: 'Datos',
+    question: 'Que datos puedo exportar desde el modo Data?',
+    answer:
+      'Puedes descargar el estado actual de estaciones en CSV, el ranking de friccion y el historico agregado para analisis externo o transparencia.',
   },
   {
     id: 'actualizacion',
@@ -400,6 +414,22 @@ export function HelpCenterClient() {
     return counts;
   }, []);
 
+  const faqStructuredData = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: FAQ_ITEMS.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      })),
+    }),
+    []
+  );
+
   useEffect(() => {
     const controller = new AbortController();
     let isActive = true;
@@ -440,6 +470,7 @@ export function HelpCenterClient() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/95 px-6 py-4 backdrop-blur-md md:px-10">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <div className="flex items-center gap-8">
@@ -598,20 +629,24 @@ export function HelpCenterClient() {
                 <div className="space-y-3">
                   {items.map((item) => {
                     const isOpen = openItemId === item.id;
+                    const buttonId = `faq-button-${item.id}`;
+                    const panelId = `faq-panel-${item.id}`;
 
                     return (
                       <article key={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
                         <button
+                          id={buttonId}
                           type="button"
                           className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                           onClick={() => setOpenItemId((current) => (current === item.id ? '' : item.id))}
                           aria-expanded={isOpen}
+                          aria-controls={panelId}
                         >
                           <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
                           <span className="text-lg font-bold text-[var(--muted)]">{isOpen ? '-' : '+'}</span>
                         </button>
                         {isOpen ? (
-                          <div className="border-t border-[var(--border)] px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
+                          <div id={panelId} role="region" aria-labelledby={buttonId} className="border-t border-[var(--border)] px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
                             {item.answer}
                           </div>
                         ) : null}
