@@ -27,6 +27,10 @@ export function getSiteUrl(): string {
   return normalizeHttpOrigin(candidate, FALLBACK_SITE_URL);
 }
 
+export function isFallbackSiteUrl(url: string): boolean {
+  return normalizeHttpOrigin(url, FALLBACK_SITE_URL) === FALLBACK_SITE_URL;
+}
+
 export function getRobotsBaseUrl(): string {
   const candidate = process.env.ROBOTS_BASE_URL?.trim();
 
