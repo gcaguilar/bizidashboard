@@ -95,8 +95,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
     notFound();
   }
 
-  const selectedStation =
-    stations.stations.find((station) => station.id === stationId) ?? stations.stations[0] ?? null;
+  const selectedStation = stations.stations.find((station) => station.id === stationId) ?? null;
 
   if (!selectedStation) {
     notFound();

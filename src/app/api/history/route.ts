@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
 
@@ -23,10 +23,28 @@ type DailyHistoryRow = {
   demandScore: number;
   avgOccupancy: number;
   sampleCount: number;
+  balanceIndex: number;
 };
 
-export async function GET(): Promise<NextResponse> {
+function toCsv(
+  rows: Array<{
+    day: string;
+    demandScore: number;
+    avgOccupancy: number;
+    balanceIndex: number;
+    sampleCount: number;
+  }>
+): string {
+  const headers = ['day', 'demandScore', 'avgOccupancy', 'balanceIndex', 'sampleCount'];
+  const values = rows.map((row) => [row.day, row.demandScore, row.avgOccupancy, row.balanceIndex, row.sampleCount]);
+  return [headers, ...values]
+    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
+    .join('\n');
+}
+
+export async function GET(request?: NextRequest): Promise<NextResponse> {
   try {
+    const format = request ? new URL(request.url).searchParams.get('format') : null;
     const payload = await withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
       const [coverageRows, stationRows, dailyHistoryRows] = await Promise.all([
         prisma.$queryRaw<CoverageRow[]>`
@@ -46,6 +64,7 @@ export async function GET(): Promise<NextResponse> {
             date(bucketStart) AS day,
             SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
             AVG(occupancyAvg) AS avgOccupancy,
+            AVG(MAX(0, 1 - (2 * ABS(occupancyAvg - 0.5)))) AS balanceIndex,
             SUM(sampleCount) AS sampleCount
           FROM HourlyStationStat
           GROUP BY date(bucketStart)
@@ -77,11 +96,24 @@ export async function GET(): Promise<NextResponse> {
           day: row.day,
           demandScore: Number(row.demandScore ?? 0),
           avgOccupancy: Number(row.avgOccupancy ?? 0),
+          balanceIndex: Number(row.balanceIndex ?? 0),
           sampleCount: Number(row.sampleCount ?? 0),
         })),
         generatedAt: new Date().toISOString(),
       };
     });
+
+    if (format === 'csv') {
+      const csv = toCsv(payload.history);
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="history-balance.csv"',
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=120',
+        },
+      });
+    }
 
     return NextResponse.json(payload, {
       status: 200,

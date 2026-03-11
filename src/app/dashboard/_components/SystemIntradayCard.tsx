@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 import { formatPercent } from '@/lib/format';
+import { WidgetEmptyState } from './WidgetEmptyState';
 
 type SystemHourlyProfileRow = {
   hour: number;
@@ -95,9 +96,11 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
       </div>
 
       {chartData.length === 0 ? (
-        <div className="mt-4 flex h-64 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-sm text-[var(--muted)]">
-          Sin perfil horario suficiente todavia.
-        </div>
+        <WidgetEmptyState
+          title="Sin perfil horario suficiente"
+          description="Todavia no hay suficiente historico por hora para resumir como cambia la ocupacion y las bicis durante el dia."
+          helpHref="/dashboard/ayuda#demanda-no-viajes-reales"
+        />
       ) : (
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
           <div className="h-[280px]">

@@ -57,6 +57,10 @@ export function MethodologyPanel() {
           </article>
         ))}
       </div>
+
+      <p className="mt-4 text-xs text-[var(--muted)]">
+        Si una seccion todavia no tiene historico suficiente o una capacidad avanzada activa, el dashboard muestra el bloque igualmente y explica por que falta ese dato.
+      </p>
     </section>
   );
 }

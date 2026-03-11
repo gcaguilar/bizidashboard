@@ -97,8 +97,10 @@ export function DashboardHeader({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-          <label className="hidden w-full max-w-md items-center rounded-lg border border-transparent bg-[var(--surface-soft)] px-3 py-2 md:flex md:border-[var(--border)]/60">
+          <label htmlFor="dashboard-search-desktop" className="hidden w-full max-w-md items-center rounded-lg border border-transparent bg-[var(--surface-soft)] px-3 py-2 md:flex md:border-[var(--border)]/60">
+            <span className="sr-only">Buscar estacion, identificador o barrio</span>
             <input
+              id="dashboard-search-desktop"
               type="text"
               className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
               placeholder="Buscar estacion, ID o barrio..."
@@ -129,8 +131,10 @@ export function DashboardHeader({
           className="flex flex-wrap items-center gap-2 sm:hidden"
         />
 
-        <label className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
+        <label htmlFor="dashboard-search-mobile" className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
+          <span className="sr-only">Buscar estacion, identificador o barrio</span>
           <input
+            id="dashboard-search-mobile"
             type="text"
             className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
             placeholder="Buscar estacion, ID o barrio..."
@@ -210,8 +214,8 @@ export function DashboardHeader({
 
         <div className="w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
-            <span>Auto-refresh: ultima actualizacion de datos + 30 min</span>
-            <span>{isRefreshingData ? 'sincronizando...' : `siguiente en ${refreshCountdownLabel}`}</span>
+            <span>Proxima actualizacion automatica en menos de 30 min</span>
+            <span>{isRefreshingData ? 'actualizando...' : `siguiente en ${refreshCountdownLabel}`}</span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/15">
             <div

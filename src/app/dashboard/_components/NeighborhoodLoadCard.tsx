@@ -8,6 +8,7 @@ import {
   fetchDistrictCollection,
   type DistrictCollection,
 } from '@/lib/districts';
+import { WidgetEmptyState } from './WidgetEmptyState';
 
 type NeighborhoodLoadCardProps = {
   stations: StationSnapshot[];
@@ -194,7 +195,12 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
 
         <div className="max-h-44 space-y-2 overflow-y-auto pr-1 text-[11px]">
           {slices.length === 0 || totalStations === 0 ? (
-            <p className="text-[var(--muted)]">Sin datos de distritos.</p>
+            <WidgetEmptyState
+              title="Sin datos de distritos"
+              description="El mapa de barrios necesita el cruce entre estaciones y distritos. Si ese cruce no esta disponible, el reparto por barrio no puede calcularse."
+              helpHref="/dashboard/ayuda#estados-mapa"
+              helpLabel="Ver ayuda sobre barrios"
+            />
           ) : (
             slices.map((slice, index) => (
               <div key={slice.district} className="flex items-center gap-2 text-[var(--foreground)]">

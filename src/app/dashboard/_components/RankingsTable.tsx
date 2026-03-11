@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
+import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
+import { calculateFrictionScore } from './useSystemMetrics';
 
 type RankingsTableProps = {
   rankings: {
@@ -12,11 +14,12 @@ type RankingsTableProps = {
     availability: RankingsResponse;
   };
   stations: StationSnapshot[];
+  density?: 'normal' | 'compact';
 };
 
 type RankingTab = 'turnover' | 'availability';
 
-export function RankingsTable({ rankings, stations }: RankingsTableProps) {
+export function RankingsTable({ rankings, stations, density = 'normal' }: RankingsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -60,7 +63,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
 
     const enriched = activeRankings.map((row) => {
       const station = stationMap.get(row.stationId);
-      const problemHours = row.emptyHours + row.fullHours;
+      const problemHours = calculateFrictionScore(row.emptyHours, row.fullHours);
       const problemRate = row.totalHours > 0 ? (problemHours / row.totalHours) * 100 : 0;
 
       return {
@@ -91,6 +94,10 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
 
   const maxTurnover = Math.max(1, ...rows.map((row) => row.turnoverScore));
   const maxProblemRate = Math.max(1, ...rows.map((row) => row.problemRate));
+  const itemClass =
+    density === 'compact'
+      ? 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2'
+      : 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2.5';
 
   return (
     <section className="dashboard-card h-full">
@@ -99,7 +106,13 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
             Cuellos de botella
           </h2>
-          <p className="text-xs text-[var(--muted)]">Estaciones con mayor friccion operativa recurrente.</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-xs text-[var(--muted)]">Estaciones con mayor friccion operativa recurrente.</p>
+            <InfoHint
+              label="Como se calcula la friccion"
+              content="La friccion suma el tiempo en que una estacion estuvo vacia o llena. Cuantas mas horas problema acumula, mas alta aparece en el ranking."
+            />
+          </div>
         </div>
         <div className="text-right">
           <span className="kpi-chip">{rows.length} resultados</span>
@@ -167,7 +180,7 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
             return (
               <li
                 key={`${row.id}-${activeTab}`}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2"
+                className={itemClass}
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <div>
@@ -194,6 +207,11 @@ export function RankingsTable({ rankings, stations }: RankingsTableProps) {
                     style={{ width: `${Math.max(8, Math.min(100, barWidth))}%` }}
                   />
                 </div>
+                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                  {activeTab === 'turnover'
+                    ? `Movimiento relativo frente al resto de estaciones. Capacidad ${row.stationCapacity}.`
+                    : `Friccion = horas vacia + horas llena sobre ${row.totalHours}h observadas.`}
+                </p>
               </li>
             );
           })}
