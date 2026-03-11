@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MonthFilter } from '../_components/MonthFilter';
 import { MobilityInsights } from '../_components/MobilityInsights';
@@ -23,6 +24,7 @@ type DashboardFlowPageProps = {
 };
 
 export default async function DashboardFlowPage({ searchParams }: DashboardFlowPageProps) {
+  const siteUrl = getSiteUrl();
   const resolvedSearchParams = searchParams ? await searchParams : {};
 
   const [stations, availableMonths] = await Promise.all([
@@ -39,9 +41,39 @@ export default async function DashboardFlowPage({ searchParams }: DashboardFlowP
   );
 
   const selectedStationId = stations.stations[0]?.id ?? '';
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
+          { '@type': 'ListItem', position: 2, name: 'Dashboard', item: `${siteUrl}/dashboard` },
+          { '@type': 'ListItem', position: 3, name: 'Flujo', item: `${siteUrl}/dashboard/flujo` },
+        ],
+      },
+      {
+        '@type': 'Dataset',
+        name: 'Corredores y flujo por barrios de Bizi Zaragoza',
+        description:
+          'Datos agregados de movilidad, demanda, impacto del transporte publico y flujos entre barrios para el analisis urbano.',
+        url: `${siteUrl}/dashboard/flujo`,
+        creator: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: siteUrl,
+        },
+        distribution: [
+          { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/mobility` },
+          { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/history` },
+        ],
+      },
+    ],
+  };
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -61,7 +93,7 @@ export default async function DashboardFlowPage({ searchParams }: DashboardFlowP
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="flow"
-              routes={['dashboard', 'stations', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />

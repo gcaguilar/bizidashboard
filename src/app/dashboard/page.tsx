@@ -10,6 +10,7 @@ import {
   type StatusResponse,
 } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -97,6 +98,7 @@ function buildFallbackStatus(nowIso: string): StatusResponse {
 }
 
 export default async function DashboardPage() {
+  const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
   const fallbackStations: StationsResponse = {
     stations: [],
@@ -174,9 +176,48 @@ export default async function DashboardPage() {
   };
 
   const isSchemaMissing = schemaMissingFlags.length > 0;
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
+          { '@type': 'ListItem', position: 2, name: 'Dashboard', item: `${siteUrl}/dashboard` },
+        ],
+      },
+      {
+        '@type': 'WebApplication',
+        name: `${SITE_TITLE} Dashboard`,
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        url: `${siteUrl}/dashboard`,
+        description:
+          'Panel principal de Bizi Zaragoza con estado del sistema, mapa en tiempo real, demanda, rankings y flujo urbano.',
+        publisher: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: siteUrl,
+        },
+      },
+      {
+        '@type': 'Dataset',
+        name: 'Estado y analitica del sistema Bizi Zaragoza',
+        description:
+          'Datos agregados de estaciones, alertas, demanda, ocupacion y salud del sistema para el dashboard principal.',
+        url: `${siteUrl}/dashboard`,
+        distribution: [
+          { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/stations` },
+          { '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: `${siteUrl}/api/stations?format=csv` },
+          { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/status` },
+        ],
+      },
+    ],
+  };
 
   return (
     <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       {loadErrors.length > 0 ? (
         <section className="mx-auto mb-6 w-full max-w-[1280px] rounded-2xl border border-amber-500/40 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
           <p className="font-semibold">
