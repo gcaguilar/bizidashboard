@@ -222,11 +222,25 @@ const FAQ_ITEMS: FaqItem[] = [
       'No siempre. El dashboard muestra relaciones utiles para tomar decisiones rapidas, pero correlacion no es prueba de causa. Para causalidad hace falta analisis mas profundo.',
   },
   {
+    id: 'historico-balance-data',
+    category: 'Datos',
+    question: 'Que enseña el historico de equilibrio y demanda?',
+    answer:
+      'Combina dos lecturas: la demanda agregada y el balance index diario. Asi puedes ver si el sistema mueve mucha actividad pero sigue equilibrado, o si el volumen crece junto con la friccion.',
+  },
+  {
     id: 'exportaciones',
     category: 'Datos',
     question: 'Que datos puedo exportar desde el modo Data?',
     answer:
-      'Puedes descargar el estado actual de estaciones en CSV, el ranking de friccion y el historico agregado para analisis externo o transparencia.',
+      'Puedes descargar el estado actual de estaciones en CSV, el ranking de friccion, el historico agregado con balance, el historico de alertas y el resumen del sistema.',
+  },
+  {
+    id: 'desconectado-frescura',
+    category: 'Datos',
+    question: 'Cuando aparece que el sistema esta desconectado?',
+    answer:
+      'Cuando la ultima actualizacion util tiene mas de 10 minutos. Es una forma simple de avisar de que los datos pueden estar atrasados o que la ingesta necesita revisarse.',
   },
   {
     id: 'actualizacion',
@@ -271,11 +285,67 @@ const FAQ_ITEMS: FaqItem[] = [
       'Puedes buscar por nombre o ID. El buscador ignora mayusculas y acentos para encontrar coincidencias de forma mas flexible.',
   },
   {
+    id: 'enlaces-directos-modo',
+    category: 'Uso',
+    question: 'Hay enlaces directos para abrir un modo concreto del dashboard?',
+    answer:
+      'Si. Tambien existen rutas directas por modo, como /dashboard/views/operations o /dashboard/views/research. Redirigen al dashboard con el modo correcto ya seleccionado.',
+  },
+  {
+    id: 'mapa-compartible',
+    category: 'Uso',
+    question: 'Puedo compartir el mapa tal y como lo estoy viendo?',
+    answer:
+      'Si. La URL guarda el modo, los filtros principales y la posicion del mapa. Asi otra persona puede abrir el mismo contexto de trabajo con bastante precision.',
+  },
+  {
+    id: 'mapa-por-modo',
+    category: 'Uso',
+    question: 'Por que cambia el mensaje del mapa segun el modo?',
+    answer:
+      'Porque cada modo tiene un objetivo distinto. En overview el mapa ayuda a entender el estado general. En operations resalta mejor donde conviene intervenir primero.',
+  },
+  {
+    id: 'mapa-friccion-operaciones',
+    category: 'Uso',
+    question: 'Que significa el halo rojo en el mapa de operaciones?',
+    answer:
+      'Ese halo resalta estaciones con mas friccion acumulada. Cuanto mayor es, mas tiempo ha pasado la estacion en estados operativamente problematicos, como vacia o llena.',
+  },
+  {
     id: 'estados-mapa',
     category: 'Uso',
     question: 'Que significan los colores del mapa?',
     answer:
       'Verde indica buena disponibilidad, amarillo nivel intermedio y rojo estado critico respecto a la ocupacion de la estacion.',
+  },
+  {
+    id: 'estaciones-criticas-overview',
+    category: 'Uso',
+    question: 'Que significa Top estaciones criticas?',
+    answer:
+      'Es una lista priorizada para actuar rapido. Da mas peso a estaciones vacias o llenas, y despues a las que tienen una ocupacion muy extrema aunque todavia no hayan llegado al limite.',
+  },
+  {
+    id: 'volatilidad-operativa',
+    category: 'Movilidad',
+    question: 'Que significa volatilidad operativa?',
+    answer:
+      'Es una forma simple de resumir cuanta inestabilidad hay en la red. Si muchas estaciones pasan una parte alta del tiempo vacias o llenas, la volatilidad sube.',
+  },
+  {
+    id: 'research-snapshots-recientes',
+    category: 'Movilidad',
+    question: 'Que significa cambio mas visible en memoria?',
+    answer:
+      'Es una comparacion rapida entre el primer y el ultimo snapshot reciente guardado en el navegador. No sustituye al historico agregado, pero ayuda a ver movimientos inmediatos mientras exploras la vista de analisis.',
+  },
+  {
+    id: 'research-lectura-temporal',
+    category: 'Movilidad',
+    question: 'Que aporta la lectura temporal rapida en research?',
+    answer:
+      'Resume de forma sencilla que dia tuvo mas demanda y en que hora suele haber mas bici disponible. Es una puerta de entrada antes de ir a graficos mas detallados.',
   },
   {
     id: 'detalle-estacion',
@@ -285,11 +355,25 @@ const FAQ_ITEMS: FaqItem[] = [
       'Cuando necesites analisis profundo: benchmarking, prediccion temporal, curva horaria y comparativas para una estacion concreta.',
   },
   {
+    id: 'estabilidad-estacion',
+    category: 'Clasificaciones',
+    question: 'Que significa estabilidad por estacion?',
+    answer:
+      'Resume cuanto tiempo pasa una estacion lejos de un comportamiento sano. Si acumula muchas horas vacia o llena, su estabilidad baja. Sirve para detectar puntos delicados en el tiempo.',
+  },
+  {
+    id: 'predicciones-futuro-endpoint',
+    category: 'Datos',
+    question: 'Que significa que el sistema ya este preparado para predicciones?',
+    answer:
+      'Significa que la interfaz y la estructura de datos ya contemplan un endpoint de predicciones. Hoy devuelve una estructura base vacia y en el futuro podra añadir ocupacion estimada a corto plazo sin rehacer el dashboard desde cero.',
+  },
+  {
     id: 'api-documentacion',
     category: 'Soporte',
     question: 'Hay endpoints API para integrar estos datos?',
     answer:
-      'Si. El proyecto expone endpoints para estado, alertas, rankings, patrones, heatmap y movilidad. Usa la documentacion API para ver formatos y parametros.',
+      'Si. El proyecto expone endpoints para estado, estaciones, alertas, rankings, patrones, heatmap, movilidad, historico y una estructura base de predicciones. El modo Data resume los principales formatos y rutas.',
   },
   {
     id: 'contacto-soporte',
@@ -478,7 +562,7 @@ export function HelpCenterClient() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white">
                 B
               </div>
-              <h2 className="text-lg font-bold text-[var(--foreground)]">Bizi Analitica</h2>
+              <h2 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h2>
             </div>
             <DashboardRouteLinks
               activeRoute="help"
@@ -489,8 +573,10 @@ export function HelpCenterClient() {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <label className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 sm:flex">
+            <label htmlFor="help-search-desktop" className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 sm:flex">
+              <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
               <input
+                id="help-search-desktop"
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -498,9 +584,12 @@ export function HelpCenterClient() {
                 placeholder="Buscar ayuda..."
               />
             </label>
-            <Link href="/dashboard" className="icon-button md:hidden" aria-label="Volver">
-              Inicio
-            </Link>
+            <DashboardRouteLinks
+              activeRoute="help"
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              variant="chips"
+              className="flex flex-wrap items-center gap-2 md:hidden"
+            />
             <Link href="/api/history" className="icon-button" aria-label="Historico completo">
               Historico
             </Link>
@@ -520,6 +609,18 @@ export function HelpCenterClient() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
+        <label htmlFor="help-search-mobile" className="mb-6 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm sm:hidden">
+          <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
+          <input
+            id="help-search-mobile"
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            placeholder="Buscar ayuda..."
+          />
+        </label>
+
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">

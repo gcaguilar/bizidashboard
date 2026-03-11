@@ -5,6 +5,7 @@ import { formatPercent } from '@/lib/format';
 import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
@@ -131,6 +132,7 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
 }
 
 export default async function DashboardConclusionsPage({ searchParams }: DashboardConclusionsPageProps) {
+  const siteUrl = getSiteUrl();
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const fallbackPayload = buildFallbackPayload();
   const availableMonths = await fetchAvailableDataMonths().catch(() => ({
@@ -147,8 +149,43 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
     fromCache: false,
   }));
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
+          { '@type': 'ListItem', position: 2, name: 'Dashboard', item: `${siteUrl}/dashboard` },
+          { '@type': 'ListItem', position: 3, name: 'Conclusiones', item: `${siteUrl}/dashboard/conclusiones` },
+        ],
+      },
+      {
+        '@type': 'Report',
+        name: 'Conclusiones de movilidad en Zaragoza',
+        description: payload.summary,
+        datePublished: payload.generatedAt,
+        dateModified: payload.generatedAt,
+        inLanguage: 'es',
+        publisher: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: siteUrl,
+        },
+        about: {
+          '@type': 'Dataset',
+          name: 'Movilidad urbana de Bizi Zaragoza',
+          distribution: [
+            { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/history` },
+          ],
+        },
+      },
+    ],
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -204,7 +241,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span className="kpi-chip">Dia informe {payload.dateKey}</span>
-            <span className="kpi-chip">{fromCache ? 'Cache diaria DB' : 'Recalculado hoy'}</span>
+            <span className="kpi-chip">{fromCache ? 'Actualizacion diaria en cache' : 'Actualizado hoy'}</span>
           </div>
         </div>
       </section>

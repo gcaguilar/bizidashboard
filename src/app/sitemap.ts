@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { fetchStations } from '@/lib/api';
+import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
@@ -29,6 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: toValidDate(station.recordedAt, lastModified),
     changeFrequency: 'hourly',
     priority: 0.6,
+  }));
+
+  const modeEntries: MetadataRoute.Sitemap = DASHBOARD_VIEW_MODES.map((mode) => ({
+    url: `${siteUrl}/dashboard/views/${mode}`,
+    lastModified,
+    changeFrequency: 'weekly',
+    priority: 0.55,
   }));
 
   return [
@@ -74,6 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.75,
     },
+    ...modeEntries,
     ...stationEntries,
   ];
 }
