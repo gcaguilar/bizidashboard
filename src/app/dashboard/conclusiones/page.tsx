@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { fetchAvailableDataMonths } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
+import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
@@ -46,12 +50,51 @@ function formatDate(value: string | null): string {
   return parsed.toLocaleDateString('es-ES');
 }
 
+function formatInteger(value: number): string {
+  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
+}
+
+function formatHourLabel(hour: number): string {
+  return `${String(hour).padStart(2, '0')}:00-${String((hour + 1) % 24).padStart(2, '0')}:00`;
+}
+
+function getDemandCardLabel(selectedMonth: string | null): string {
+  return selectedMonth ? 'Variacion demanda del mes' : 'Variacion demanda 7 dias';
+}
+
+function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
+  const monthLabel = payload.selectedMonth
+    ? toMonthOptions([payload.selectedMonth])[0]?.label ?? payload.selectedMonth
+    : null;
+
+  return payload.selectedMonth
+    ? `Demanda agregada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (indice de actividad, no viajes exactos).`
+    : `Demanda agregada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 dias (indice de actividad, no viajes exactos).`;
+}
+
+function getOccupancyCardLabel(selectedMonth: string | null): string {
+  return selectedMonth ? 'Ocupacion media del mes' : 'Ocupacion media 7 dias';
+}
+
+function getPeriodCaption(selectedMonth: string | null, fallback: string): string {
+  if (!selectedMonth) {
+    return fallback;
+  }
+
+  return toMonthOptions([selectedMonth])[0]?.label ?? selectedMonth;
+}
+
+type DashboardConclusionsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
 function buildFallbackPayload(): MobilityConclusionsPayload {
   const now = new Date().toISOString().slice(0, 10);
 
   return {
     dateKey: now,
     generatedAt: new Date().toISOString(),
+    selectedMonth: null,
     sourceFirstDay: null,
     sourceLastDay: null,
     totalHistoricalDays: 0,
@@ -68,14 +111,25 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
     summary: 'Todavia no hay historico suficiente para generar conclusiones de movilidad.',
     highlights: [],
     recommendations: ['Recoge al menos varios dias de datos para habilitar recomendaciones operativas.'],
+    peakDemandHours: [],
+    topDistrictsByDemand: [],
     topStationsByDemand: [],
   };
 }
 
-export default async function DashboardConclusionsPage() {
+export default async function DashboardConclusionsPage({ searchParams }: DashboardConclusionsPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const fallbackPayload = buildFallbackPayload();
+  const availableMonths = await fetchAvailableDataMonths().catch(() => ({
+    months: [],
+    generatedAt: new Date().toISOString(),
+  }));
+  const activeMonth = resolveActiveMonth(
+    availableMonths.months,
+    normalizeMonthSearchParam(resolvedSearchParams.month)
+  );
 
-  const { payload, fromCache } = await getDailyMobilityConclusions().catch(() => ({
+  const { payload, fromCache } = await getDailyMobilityConclusions(activeMonth).catch(() => ({
     payload: fallbackPayload,
     fromCache: false,
   }));
@@ -121,6 +175,8 @@ export default async function DashboardConclusionsPage() {
         </div>
       </header>
 
+      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+
       <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl space-y-2">
@@ -140,15 +196,15 @@ export default async function DashboardConclusionsPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article className="dashboard-card">
-          <p className="stat-label">Demanda ultimos 7 dias</p>
-          <p className="stat-value">{payload.metrics.demandLast7Days}</p>
-          <p className="text-xs text-[var(--muted)]">Variacion: {formatDelta(payload.metrics.demandDeltaRatio)}</p>
+          <p className="stat-label">{getDemandCardLabel(payload.selectedMonth)}</p>
+          <p className="stat-value">{formatDelta(payload.metrics.demandDeltaRatio)}</p>
+          <p className="text-xs text-[var(--muted)]">{getDemandCardDetail(payload)}</p>
         </article>
 
         <article className="dashboard-card">
-          <p className="stat-label">Ocupacion media 7 dias</p>
+          <p className="stat-label">{getOccupancyCardLabel(payload.selectedMonth)}</p>
           <p className="stat-value">{formatPercent(payload.metrics.occupancyLast7Days)}</p>
           <p className="text-xs text-[var(--muted)]">
             Variacion: {formatDelta(payload.metrics.occupancyDeltaRatio)}
@@ -161,11 +217,6 @@ export default async function DashboardConclusionsPage() {
           <p className="text-xs text-[var(--muted)]">Dias con informacion consolidada.</p>
         </article>
 
-        <article className="dashboard-card">
-          <p className="stat-label">Estaciones monitorizadas</p>
-          <p className="stat-value">{payload.activeStations}</p>
-          <p className="text-xs text-[var(--muted)]">Con muestra historica: {payload.stationsWithData}</p>
-        </article>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-12">
@@ -214,35 +265,94 @@ export default async function DashboardConclusionsPage() {
         </article>
       </section>
 
+      <section className="grid gap-4 xl:grid-cols-2">
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Horas pico de demanda</h3>
+            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
+          </div>
+
+          {payload.peakDemandHours.length === 0 ? (
+            <p className="mt-4 text-sm text-[var(--muted)]">Todavia no hay suficiente historico horario para detectar picos.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {payload.peakDemandHours.map((slot, index) => (
+                <div
+                  key={`${slot.hour}-${index}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourLabel(slot.hour)}</p>
+                    <p className="text-[11px] text-[var(--muted)]">Franja con mayor actividad agregada</p>
+                  </div>
+                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(slot.demandScore)} pts</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </article>
+
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Barrios con mas demanda</h3>
+            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
+          </div>
+
+          {payload.topDistrictsByDemand.length === 0 ? (
+            <p className="mt-4 text-sm text-[var(--muted)]">No se ha podido agrupar la demanda por barrios todavia.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {payload.topDistrictsByDemand.map((district, index) => (
+                <div
+                  key={`${district.district}-${index}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
+                    <p className="text-[11px] text-[var(--muted)]">Mayor intensidad agregada de uso reciente</p>
+                  </div>
+                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(district.demandScore)} pts</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
+
       <section className="dashboard-card">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-bold text-[var(--foreground)]">Estaciones con mayor demanda media (30 dias)</h3>
-          <span className="text-xs text-[var(--muted)]">Actualizacion diaria en cache de BD</span>
+          <h3 className="text-base font-bold text-[var(--foreground)]">
+            {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
+          </h3>
+          <span className="text-xs text-[var(--muted)]">
+            {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria en cache de BD'}
+          </span>
         </div>
 
         {payload.topStationsByDemand.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones disponible todavia.</p>
         ) : (
-          <div className="space-y-2">
-            {payload.topStationsByDemand.map((station, index) => (
-              <div
-                key={station.stationId}
-                className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[var(--foreground)]">{station.stationName}</p>
-                    <p className="text-[11px] text-[var(--muted)]">ID {station.stationId}</p>
+            <div className="space-y-2">
+              {payload.topStationsByDemand.map((station, index) => (
+                <Link
+                  key={station.stationId}
+                  href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--foreground)]">{station.stationName}</p>
+                      <p className="text-[11px] text-[var(--muted)]">ID {station.stationId}</p>
+                    </div>
                   </div>
-                </div>
-                <p className="text-xs font-bold text-[var(--foreground)]">Indice {station.avgDemand.toFixed(1)}</p>
-              </div>
-            ))}
-          </div>
-        )}
+                  <p className="text-xs font-bold text-[var(--foreground)]">Indice {station.avgDemand.toFixed(1)}</p>
+                </Link>
+              ))}
+            </div>
+          )}
       </section>
     </main>
   );

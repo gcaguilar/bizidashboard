@@ -1,7 +1,154 @@
-import { prisma } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 import { AlertType } from '@/analytics/types';
+import { getLocalBucket } from '@/analytics/time-buckets';
+import { prisma } from '@/lib/db';
+import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 export type RankingType = 'turnover' | 'availability';
+
+type StationPatternRow = {
+  stationId: string;
+  dayType: string;
+  hour: number;
+  bikesAvg: number;
+  anchorsAvg: number;
+  occupancyAvg: number;
+  sampleCount: number;
+};
+
+type HeatmapRow = {
+  stationId: string;
+  dayOfWeek: number;
+  hour: number;
+  bikesAvg: number;
+  anchorsAvg: number;
+  occupancyAvg: number;
+  sampleCount: number;
+};
+
+type HourlyStatRow = {
+  stationId: string;
+  bucketStart: string | Date;
+  bikesAvg: number;
+  anchorsAvg: number;
+  occupancyAvg: number;
+  sampleCount: number;
+};
+
+function parseBucketStart(value: string | Date): Date {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (value.includes('T')) {
+    return new Date(value);
+  }
+
+  return new Date(value.replace(' ', 'T') + 'Z');
+}
+
+function buildRangeFilter(column: string, days: number, monthKey?: string): Prisma.Sql {
+  if (monthKey && isValidMonthKey(monthKey)) {
+    const { start, endExclusive } = getMonthBounds(monthKey);
+    return Prisma.sql`datetime(${Prisma.raw(column)}) >= datetime(${start}) AND datetime(${Prisma.raw(
+      column
+    )}) < datetime(${endExclusive})`;
+  }
+
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+  const daysModifier = `-${safeDays} days`;
+  return Prisma.sql`datetime(${Prisma.raw(column)}) >= datetime('now', ${daysModifier})`;
+}
+
+function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
+  if (monthKey && isValidMonthKey(monthKey)) {
+    const { start, endExclusive } = getMonthBounds(monthKey);
+    return Prisma.sql`
+      WITH RECURSIVE date_series(day) AS (
+        SELECT date(${start})
+        UNION ALL
+        SELECT date(day, '+1 day')
+        FROM date_series
+        WHERE day < date(${endExclusive}, '-1 day')
+      ),
+      daily AS (
+        SELECT
+          date(bucketStart) AS day,
+          SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
+          AVG(occupancyAvg) AS avgOccupancy,
+          SUM(sampleCount) AS sampleCount
+        FROM HourlyStationStat
+        WHERE datetime(bucketStart) >= datetime(${start})
+          AND datetime(bucketStart) < datetime(${endExclusive})
+        GROUP BY date(bucketStart)
+      )
+      SELECT
+        date_series.day AS day,
+        COALESCE(daily.demandScore, 0) AS demandScore,
+        COALESCE(daily.avgOccupancy, 0) AS avgOccupancy,
+        COALESCE(daily.sampleCount, 0) AS sampleCount
+      FROM date_series
+      LEFT JOIN daily ON daily.day = date_series.day
+      ORDER BY date_series.day ASC;
+    `;
+  }
+
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+  const startOffsetDays = Math.max(0, safeDays - 1);
+  const daysModifier = `-${startOffsetDays} days`;
+
+  return Prisma.sql`
+    WITH RECURSIVE date_series(day) AS (
+      SELECT date('now', ${daysModifier})
+      UNION ALL
+      SELECT date(day, '+1 day')
+      FROM date_series
+      WHERE day < date('now')
+    ),
+    daily AS (
+      SELECT
+        date(bucketStart) AS day,
+        SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
+        AVG(occupancyAvg) AS avgOccupancy,
+        SUM(sampleCount) AS sampleCount
+      FROM HourlyStationStat
+      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
+      GROUP BY date(bucketStart)
+    )
+    SELECT
+      date_series.day AS day,
+      COALESCE(daily.demandScore, 0) AS demandScore,
+      COALESCE(daily.avgOccupancy, 0) AS avgOccupancy,
+      COALESCE(daily.sampleCount, 0) AS sampleCount
+    FROM date_series
+    LEFT JOIN daily ON daily.day = date_series.day
+    ORDER BY date_series.day ASC;
+  `;
+}
+
+async function getHourlyStatsForMonth(stationId: string, monthKey: string): Promise<HourlyStatRow[]> {
+  const { start, endExclusive } = getMonthBounds(monthKey);
+
+  return prisma.$queryRaw<HourlyStatRow[]>`
+    SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
+    FROM HourlyStationStat
+    WHERE stationId = ${stationId}
+      AND datetime(bucketStart) >= datetime(${start})
+      AND datetime(bucketStart) < datetime(${endExclusive})
+    ORDER BY datetime(bucketStart) ASC;
+  `;
+}
+
+export async function getAvailableDataMonths(): Promise<string[]> {
+  const rows = await prisma.$queryRaw<Array<{ monthKey: string | null }>>`
+    SELECT DISTINCT strftime('%Y-%m', bucketStart) AS monthKey
+    FROM HourlyStationStat
+    WHERE bucketStart IS NOT NULL
+    ORDER BY monthKey DESC;
+  `;
+
+  return rows.map((row) => row.monthKey).filter(isValidMonthKey);
+}
 
 type HourlyMobilitySignalRow = {
   stationId: string;
@@ -95,17 +242,48 @@ export async function getStationsWithLatestStatus(): Promise<
   `;
 }
 
-export async function getStationPatterns(stationId: string): Promise<
-  {
-    stationId: string;
-    dayType: string;
-    hour: number;
-    bikesAvg: number;
-    anchorsAvg: number;
-    occupancyAvg: number;
-    sampleCount: number;
-  }[]
-> {
+export async function getStationPatterns(stationId: string, monthKey?: string): Promise<StationPatternRow[]> {
+  if (monthKey && isValidMonthKey(monthKey)) {
+    const hourlyStats = await getHourlyStatsForMonth(stationId, monthKey);
+    const aggregates = new Map<string, StationPatternRow>();
+
+    for (const stat of hourlyStats) {
+      const { hour, dayType } = getLocalBucket(parseBucketStart(stat.bucketStart));
+      const key = `${dayType}-${hour}`;
+      const sampleCount = Number(stat.sampleCount) || 0;
+      const current = aggregates.get(key);
+
+      if (current) {
+        current.bikesAvg += Number(stat.bikesAvg) * sampleCount;
+        current.anchorsAvg += Number(stat.anchorsAvg) * sampleCount;
+        current.occupancyAvg += Number(stat.occupancyAvg) * sampleCount;
+        current.sampleCount += sampleCount;
+      } else {
+        aggregates.set(key, {
+          stationId,
+          dayType,
+          hour,
+          bikesAvg: Number(stat.bikesAvg) * sampleCount,
+          anchorsAvg: Number(stat.anchorsAvg) * sampleCount,
+          occupancyAvg: Number(stat.occupancyAvg) * sampleCount,
+          sampleCount,
+        });
+      }
+    }
+
+    return Array.from(aggregates.values())
+      .map((row) => {
+        const divisor = row.sampleCount || 1;
+        return {
+          ...row,
+          bikesAvg: row.bikesAvg / divisor,
+          anchorsAvg: row.anchorsAvg / divisor,
+          occupancyAvg: row.occupancyAvg / divisor,
+        };
+      })
+      .sort((left, right) => left.dayType.localeCompare(right.dayType) || left.hour - right.hour);
+  }
+
   return prisma.$queryRaw`
     SELECT stationId, dayType, hour, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
     FROM StationPattern
@@ -114,17 +292,48 @@ export async function getStationPatterns(stationId: string): Promise<
   `;
 }
 
-export async function getHeatmap(stationId: string): Promise<
-  {
-    stationId: string;
-    dayOfWeek: number;
-    hour: number;
-    bikesAvg: number;
-    anchorsAvg: number;
-    occupancyAvg: number;
-    sampleCount: number;
-  }[]
-> {
+export async function getHeatmap(stationId: string, monthKey?: string): Promise<HeatmapRow[]> {
+  if (monthKey && isValidMonthKey(monthKey)) {
+    const hourlyStats = await getHourlyStatsForMonth(stationId, monthKey);
+    const aggregates = new Map<string, HeatmapRow>();
+
+    for (const stat of hourlyStats) {
+      const { hour, dayOfWeek } = getLocalBucket(parseBucketStart(stat.bucketStart));
+      const key = `${dayOfWeek}-${hour}`;
+      const sampleCount = Number(stat.sampleCount) || 0;
+      const current = aggregates.get(key);
+
+      if (current) {
+        current.bikesAvg += Number(stat.bikesAvg) * sampleCount;
+        current.anchorsAvg += Number(stat.anchorsAvg) * sampleCount;
+        current.occupancyAvg += Number(stat.occupancyAvg) * sampleCount;
+        current.sampleCount += sampleCount;
+      } else {
+        aggregates.set(key, {
+          stationId,
+          dayOfWeek,
+          hour,
+          bikesAvg: Number(stat.bikesAvg) * sampleCount,
+          anchorsAvg: Number(stat.anchorsAvg) * sampleCount,
+          occupancyAvg: Number(stat.occupancyAvg) * sampleCount,
+          sampleCount,
+        });
+      }
+    }
+
+    return Array.from(aggregates.values())
+      .map((row) => {
+        const divisor = row.sampleCount || 1;
+        return {
+          ...row,
+          bikesAvg: row.bikesAvg / divisor,
+          anchorsAvg: row.anchorsAvg / divisor,
+          occupancyAvg: row.occupancyAvg / divisor,
+        };
+      })
+      .sort((left, right) => left.dayOfWeek - right.dayOfWeek || left.hour - right.hour);
+  }
+
   return prisma.$queryRaw`
     SELECT stationId, dayOfWeek, hour, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
     FROM StationHeatmapCell
@@ -155,10 +364,10 @@ export async function getActiveAlerts(limit = 50): Promise<
 }
 
 export async function getHourlyMobilitySignals(
-  days = 14
+  days = 14,
+  monthKey?: string
 ): Promise<HourlyMobilitySignalRow[]> {
-  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
-  const daysModifier = `-${safeDays} days`;
+  const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
   return prisma.$queryRaw<HourlyMobilitySignalRow[]>`
     WITH with_lag AS (
@@ -170,7 +379,7 @@ export async function getHourlyMobilitySignals(
           ORDER BY datetime(bucketStart)
         ) AS delta
       FROM HourlyStationStat
-      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
+      WHERE ${rangeFilter}
     ),
     hourly AS (
       SELECT
@@ -189,45 +398,15 @@ export async function getHourlyMobilitySignals(
   `;
 }
 
-export async function getDailyDemandCurve(days = 30): Promise<DailyDemandRow[]> {
-  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
-  const startOffsetDays = Math.max(0, safeDays - 1);
-  const daysModifier = `-${startOffsetDays} days`;
-
-  return prisma.$queryRaw<DailyDemandRow[]>`
-    WITH RECURSIVE date_series(day) AS (
-      SELECT date('now', ${daysModifier})
-      UNION ALL
-      SELECT date(day, '+1 day')
-      FROM date_series
-      WHERE day < date('now')
-    ),
-    daily AS (
-      SELECT
-        date(bucketStart) AS day,
-        SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
-        AVG(occupancyAvg) AS avgOccupancy,
-        SUM(sampleCount) AS sampleCount
-      FROM HourlyStationStat
-      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
-      GROUP BY date(bucketStart)
-    )
-    SELECT
-      date_series.day AS day,
-      COALESCE(daily.demandScore, 0) AS demandScore,
-      COALESCE(daily.avgOccupancy, 0) AS avgOccupancy,
-      COALESCE(daily.sampleCount, 0) AS sampleCount
-    FROM date_series
-    LEFT JOIN daily ON daily.day = date_series.day
-    ORDER BY date_series.day ASC;
-  `;
+export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
+  return prisma.$queryRaw<DailyDemandRow[]>(buildDemandSeriesQuery(days, monthKey));
 }
 
 export async function getHourlyTransitImpact(
-  days = 14
+  days = 14,
+  monthKey?: string
 ): Promise<HourlyTransitImpactRow[]> {
-  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
-  const daysModifier = `-${safeDays} days`;
+  const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
   return prisma.$queryRaw<HourlyTransitImpactRow[]>`
     WITH base AS (
@@ -240,7 +419,7 @@ export async function getHourlyTransitImpact(
         arrivalEvents,
         hasArrivalEvent
       FROM HourlyTransitImpact
-      WHERE datetime(bucketStart) >= datetime('now', ${daysModifier})
+      WHERE ${rangeFilter}
     ),
     provider_hour AS (
       SELECT

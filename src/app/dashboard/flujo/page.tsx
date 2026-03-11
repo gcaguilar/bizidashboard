@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import { fetchStations } from '@/lib/api';
+import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
+import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
+import { MonthFilter } from '../_components/MonthFilter';
 import { MobilityInsights } from '../_components/MobilityInsights';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
@@ -22,11 +24,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function DashboardFlowPage() {
-  const stations = await fetchStations().catch(() => ({
-    stations: [],
-    generatedAt: new Date().toISOString(),
-  }));
+type DashboardFlowPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function DashboardFlowPage({ searchParams }: DashboardFlowPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+
+  const [stations, availableMonths] = await Promise.all([
+    fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: new Date().toISOString(),
+    })),
+    fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: new Date().toISOString() })),
+  ]);
+
+  const activeMonth = resolveActiveMonth(
+    availableMonths.months,
+    normalizeMonthSearchParam(resolvedSearchParams.month)
+  );
 
   const selectedStationId = stations.stations[0]?.id ?? '';
 
@@ -75,6 +91,8 @@ export default async function DashboardFlowPage() {
           </div>
         </div>
       </header>
+
+      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
 
       <MobilityInsights
         stations={stations.stations}

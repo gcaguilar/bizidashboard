@@ -1,6 +1,9 @@
 import 'server-only';
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';
+import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { TIMEZONE } from '@/lib/timezone';
 
 const madridDateFormatter = new Intl.DateTimeFormat('en-CA', {
@@ -27,14 +30,31 @@ type TopStationRow = {
   avgDemand: number | null;
 };
 
+type PeakHourRow = {
+  hour: number | null;
+  demandScore: number | null;
+};
+
+type StationDemandRow = {
+  stationId: string;
+  demandScore: number | null;
+};
+
 type CachedBriefingRecord = {
   payload: string;
   sourceLastDay: Date | null;
 };
 
+type CoverageSignature = {
+  firstDay: string | null;
+  lastDay: string | null;
+  totalDays: number;
+};
+
 export type MobilityConclusionsPayload = {
   dateKey: string;
   generatedAt: string;
+  selectedMonth: string | null;
   sourceFirstDay: string | null;
   sourceLastDay: string | null;
   totalHistoricalDays: number;
@@ -54,6 +74,14 @@ export type MobilityConclusionsPayload = {
     detail: string;
   }>;
   recommendations: string[];
+  peakDemandHours: Array<{
+    hour: number;
+    demandScore: number;
+  }>;
+  topDistrictsByDemand: Array<{
+    district: string;
+    demandScore: number;
+  }>;
   topStationsByDemand: Array<{
     stationId: string;
     stationName: string;
@@ -107,6 +135,23 @@ function formatDelta(deltaRatio: number | null): string {
   return `${prefix}${Math.round(deltaRatio * 100)}%`;
 }
 
+async function getDistrictCollection() {
+  try {
+    const response = await fetch(DISTRICTS_GEOJSON_URL, {
+      next: { revalidate: 86400 },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+    return isDistrictCollection(payload) ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
 function toDateOrNull(value: string | null): Date | null {
   if (!value) {
     return null;
@@ -124,6 +169,10 @@ function isFiniteNumber(value: unknown): value is number {
 
 function isOptionalFiniteNumber(value: unknown): value is number | null {
   return value === null || isFiniteNumber(value);
+}
+
+function isOptionalString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
 }
 
 function getErrorMessages(error: unknown): string[] {
@@ -171,6 +220,7 @@ function hasCacheShape(payload: unknown): payload is MobilityConclusionsPayload 
   if (
     typeof typed.dateKey !== 'string' ||
     typeof typed.generatedAt !== 'string' ||
+    !isOptionalString(typed.selectedMonth) ||
     typeof typed.summary !== 'string' ||
     !isFiniteNumber(typed.totalHistoricalDays) ||
     !isFiniteNumber(typed.stationsWithData) ||
@@ -200,45 +250,100 @@ function hasCacheShape(payload: unknown): payload is MobilityConclusionsPayload 
     return false;
   }
 
+  if (!Array.isArray(typed.peakDemandHours) || !Array.isArray(typed.topDistrictsByDemand)) {
+    return false;
+  }
+
   return true;
 }
 
-async function buildMobilityConclusionsPayload(dateKey: string): Promise<MobilityConclusionsPayload> {
-  const generatedAt = new Date();
+function buildConclusionsRange(monthKey?: string): {
+  currentDaily: Prisma.Sql;
+  previousDaily: Prisma.Sql;
+  currentHourly: Prisma.Sql;
+  topStationsDaily: Prisma.Sql;
+  summaryScope: string;
+  comparisonScope: string;
+} {
+  if (monthKey && isValidMonthKey(monthKey)) {
+    const { start, endExclusive } = getMonthBounds(monthKey);
+    const [year, month] = monthKey.split('-').map(Number);
+    const previousStart = new Date(Date.UTC((year ?? 1970), (month ?? 1) - 2, 1)).toISOString();
 
-  const [coverageRows, demandLastRows, demandPreviousRows, occupancyLastRows, occupancyPreviousRows, activeStations, topStationsRows] =
-    await Promise.all([
+    return {
+      currentDaily: Prisma.sql`datetime(bucketDate) >= datetime(${start}) AND datetime(bucketDate) < datetime(${endExclusive})`,
+      previousDaily: Prisma.sql`datetime(bucketDate) >= datetime(${previousStart}) AND datetime(bucketDate) < datetime(${start})`,
+      currentHourly: Prisma.sql`datetime(bucketStart) >= datetime(${start}) AND datetime(bucketStart) < datetime(${endExclusive})`,
+      topStationsDaily: Prisma.sql`datetime(DailyStationStat.bucketDate) >= datetime(${start}) AND datetime(DailyStationStat.bucketDate) < datetime(${endExclusive})`,
+      summaryScope: `en ${formatMonthLabel(monthKey)}`,
+      comparisonScope: 'vs mes previo',
+    };
+  }
+
+  return {
+    currentDaily: Prisma.sql`datetime(bucketDate) >= datetime('now', '-6 days')`,
+    previousDaily: Prisma.sql`datetime(bucketDate) >= datetime('now', '-13 days') AND datetime(bucketDate) < datetime('now', '-6 days')`,
+    currentHourly: Prisma.sql`datetime(bucketStart) >= datetime('now', '-6 days')`,
+    topStationsDaily: Prisma.sql`datetime(DailyStationStat.bucketDate) >= datetime('now', '-29 days')`,
+    summaryScope: 'en la ultima semana',
+    comparisonScope: 'vs semana previa',
+  };
+}
+
+async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: string | null): Promise<MobilityConclusionsPayload> {
+  const generatedAt = new Date();
+  const selectedMonth = monthKey && isValidMonthKey(monthKey) ? monthKey : null;
+  const range = buildConclusionsRange(selectedMonth ?? undefined);
+
+  const [
+    coverageRows,
+    demandLastRows,
+    demandPreviousRows,
+    occupancyLastRows,
+    occupancyPreviousRows,
+    activeStationRows,
+    topStationsRows,
+    peakHourRows,
+    stationDemandRows,
+    districts,
+  ] = await Promise.all([
       prisma.$queryRaw<CoverageRow[]>`
         SELECT
           MIN(date(bucketDate)) AS firstDay,
           MAX(date(bucketDate)) AS lastDay,
           COUNT(DISTINCT date(bucketDate)) AS totalDays,
           COUNT(DISTINCT stationId) AS stationsWithData
-        FROM DailyStationStat;
+        FROM DailyStationStat
+        ${selectedMonth ? Prisma.sql`WHERE ${range.currentDaily}` : Prisma.sql``};
       `,
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS value
         FROM DailyStationStat
-        WHERE datetime(bucketDate) >= datetime('now', '-6 days');
+        WHERE ${range.currentDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS value
         FROM DailyStationStat
-        WHERE datetime(bucketDate) >= datetime('now', '-13 days')
-          AND datetime(bucketDate) < datetime('now', '-6 days');
+        WHERE ${range.previousDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(AVG(occupancyAvg), 0) AS value
         FROM DailyStationStat
-        WHERE datetime(bucketDate) >= datetime('now', '-6 days');
+        WHERE ${range.currentDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(AVG(occupancyAvg), 0) AS value
         FROM DailyStationStat
-        WHERE datetime(bucketDate) >= datetime('now', '-13 days')
-          AND datetime(bucketDate) < datetime('now', '-6 days');
+        WHERE ${range.previousDaily};
       `,
-      prisma.station.count({ where: { isActive: true } }),
+      prisma.station.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          lat: true,
+          lon: true,
+        },
+      }),
       prisma.$queryRaw<TopStationRow[]>`
         SELECT
           DailyStationStat.stationId AS stationId,
@@ -246,11 +351,31 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
           AVG((DailyStationStat.bikesMax - DailyStationStat.bikesMin) + (DailyStationStat.anchorsMax - DailyStationStat.anchorsMin)) AS avgDemand
         FROM DailyStationStat
         INNER JOIN Station ON Station.id = DailyStationStat.stationId
-        WHERE datetime(DailyStationStat.bucketDate) >= datetime('now', '-29 days')
+        WHERE ${range.topStationsDaily}
         GROUP BY DailyStationStat.stationId, Station.name
         ORDER BY avgDemand DESC
         LIMIT 5;
       `,
+      prisma.$queryRaw<PeakHourRow[]>`
+        SELECT
+          CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
+          COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore
+        FROM HourlyStationStat
+        WHERE ${range.currentHourly}
+        GROUP BY CAST(strftime('%H', bucketStart) AS INTEGER)
+        ORDER BY demandScore DESC, hour ASC
+        LIMIT 3;
+      `,
+      prisma.$queryRaw<StationDemandRow[]>`
+        SELECT
+          stationId,
+          COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore
+        FROM DailyStationStat
+        WHERE ${range.currentDaily}
+        GROUP BY stationId
+        ORDER BY demandScore DESC;
+      `,
+      getDistrictCollection(),
     ]);
 
   const coverage = coverageRows[0] ?? {
@@ -274,23 +399,56 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
     avgDemand: round(toNumber(row.avgDemand), 1),
   }));
 
+  const peakDemandHours = peakHourRows
+    .map((row) => ({
+      hour: Math.max(0, Math.min(23, toNumber(row.hour))),
+      demandScore: Math.round(toNumber(row.demandScore)),
+    }))
+    .filter((row) => row.demandScore > 0);
+
+  const topDistrictsByDemand = (() => {
+    if (!districts || activeStationRows.length === 0 || stationDemandRows.length === 0) {
+      return [] as MobilityConclusionsPayload['topDistrictsByDemand'];
+    }
+
+    const stationDistrictMap = buildStationDistrictMap(activeStationRows, districts);
+    const districtTotals = new Map<string, number>();
+
+    for (const row of stationDemandRows) {
+      const district = stationDistrictMap.get(row.stationId);
+
+      if (!district) {
+        continue;
+      }
+
+      districtTotals.set(district, (districtTotals.get(district) ?? 0) + toNumber(row.demandScore));
+    }
+
+    return Array.from(districtTotals.entries())
+      .map(([district, demandScore]) => ({ district, demandScore: Math.round(demandScore) }))
+      .sort((left, right) => right.demandScore - left.demandScore || left.district.localeCompare(right.district, 'es'))
+      .slice(0, 3);
+  })();
+
   const summary =
     demandDeltaRatio === null
-      ? `La ciudad acumula ${Math.round(demandLast7Days)} puntos de demanda agregada en la ultima semana, con ocupacion media del ${Math.round(
+      ? `La ciudad acumula ${Math.round(demandLast7Days)} puntos de demanda agregada ${range.summaryScope}, con ocupacion media del ${Math.round(
           occupancyLast7Days * 100
         )}% sobre ${toNumber(coverage.totalDays)} dias historicos disponibles.`
-      : `La demanda semanal se mueve ${formatDelta(demandDeltaRatio)} frente a la semana previa y la ocupacion media se situa en ${Math.round(
+      : `La demanda ${selectedMonth ? 'mensual' : 'semanal'} se mueve ${formatDelta(demandDeltaRatio)} ${range.comparisonScope} y la ocupacion media se situa en ${Math.round(
           occupancyLast7Days * 100
         )}% (${formatDelta(occupancyDeltaRatio)}).`;
 
   const highlights = [
     {
-      title: 'Demanda semanal',
-      detail: `${Math.round(demandLast7Days)} puntos en 7 dias (${formatDelta(demandDeltaRatio)} vs semana previa).`,
+      title: selectedMonth ? 'Demanda del mes' : 'Demanda semanal',
+      detail: `${Math.round(demandLast7Days)} puntos ${selectedMonth ? `en ${formatMonthLabel(selectedMonth)}` : 'en 7 dias'} (${formatDelta(
+        demandDeltaRatio
+      )} ${range.comparisonScope}).`,
     },
     {
-      title: 'Ocupacion media',
-      detail: `${Math.round(occupancyLast7Days * 100)}% en la ultima semana (${formatDelta(occupancyDeltaRatio)}).`,
+      title: selectedMonth ? 'Ocupacion media del mes' : 'Ocupacion media',
+      detail: `${Math.round(occupancyLast7Days * 100)}% ${range.summaryScope} (${formatDelta(occupancyDeltaRatio)}).`,
     },
     {
       title: 'Cobertura historica',
@@ -311,15 +469,15 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
 
   if (demandDeltaRatio !== null && demandDeltaRatio > 0.08) {
     recommendations.push(
-      'Refuerza la redistribucion preventiva en franjas de entrada laboral para absorber el incremento de demanda semanal.'
-    );
+       `Refuerza la redistribucion preventiva para absorber el incremento de demanda ${selectedMonth ? 'del mes' : 'semanal'}.`
+     );
   } else if (demandDeltaRatio !== null && demandDeltaRatio < -0.08) {
     recommendations.push(
-      'Ajusta el despliegue operativo a una demanda mas contenida y prioriza zonas con mayor variabilidad antes que volumen absoluto.'
+      `Ajusta el despliegue operativo a una demanda mas contenida ${selectedMonth ? 'en el mes seleccionado' : 'esta semana'} y prioriza zonas con mayor variabilidad.`
     );
   } else {
     recommendations.push(
-      'Mantener el plan operativo actual con seguimiento diario, ya que la demanda semanal evoluciona dentro de un rango estable.'
+      `Mantener el plan operativo actual con seguimiento diario, ya que la demanda ${selectedMonth ? 'del periodo' : 'semanal'} evoluciona dentro de un rango estable.`
     );
   }
 
@@ -345,14 +503,21 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
     );
   }
 
+  if (peakDemandHours[0]) {
+    recommendations.push(
+      `Refuerza seguimiento y redistribucion en torno a las ${String(peakDemandHours[0].hour).padStart(2, '0')}:00, la franja con mayor intensidad reciente.`
+    );
+  }
+
   return {
     dateKey,
     generatedAt: generatedAt.toISOString(),
+    selectedMonth,
     sourceFirstDay: coverage.firstDay,
     sourceLastDay: coverage.lastDay,
     totalHistoricalDays: toNumber(coverage.totalDays),
     stationsWithData: toNumber(coverage.stationsWithData),
-    activeStations,
+    activeStations: activeStationRows.length,
     metrics: {
       demandLast7Days: Math.round(demandLast7Days),
       demandPrevious7Days: Math.round(demandPrevious7Days),
@@ -364,6 +529,8 @@ async function buildMobilityConclusionsPayload(dateKey: string): Promise<Mobilit
     summary,
     highlights,
     recommendations,
+    peakDemandHours,
+    topDistrictsByDemand,
     topStationsByDemand,
   };
 }
@@ -377,23 +544,63 @@ function parseCachedPayload(rawPayload: string): MobilityConclusionsPayload | nu
   }
 }
 
-function hasSameSourceLastDay(cached: CachedBriefingRecord, sourceLastDay: Date | null): boolean {
-  if (!cached.sourceLastDay && !sourceLastDay) {
+function hasSameSourceLastDay(cachedSourceLastDay: Date | null, sourceLastDay: Date | null): boolean {
+  if (!cachedSourceLastDay && !sourceLastDay) {
     return true;
   }
 
-  if (!cached.sourceLastDay || !sourceLastDay) {
+  if (!cachedSourceLastDay || !sourceLastDay) {
     return false;
   }
 
-  return cached.sourceLastDay.getTime() === sourceLastDay.getTime();
+  return cachedSourceLastDay.getTime() === sourceLastDay.getTime();
 }
 
-export async function getDailyMobilityConclusions(): Promise<{
+async function getCoverageSignature(): Promise<CoverageSignature> {
+  const [coverage] = await prisma.$queryRaw<CoverageRow[]>`
+    SELECT
+      MIN(date(bucketDate)) AS firstDay,
+      MAX(date(bucketDate)) AS lastDay,
+      COUNT(DISTINCT date(bucketDate)) AS totalDays,
+      COUNT(DISTINCT stationId) AS stationsWithData
+    FROM DailyStationStat;
+  `;
+
+  return {
+    firstDay: coverage?.firstDay ?? null,
+    lastDay: coverage?.lastDay ?? null,
+    totalDays: toNumber(coverage?.totalDays),
+  };
+}
+
+function hasSameCoverageSignature(
+  payload: MobilityConclusionsPayload,
+  coverage: CoverageSignature,
+  sourceLastDay: Date | null
+): boolean {
+  if (!hasSameSourceLastDay(toDateOrNull(payload.sourceLastDay), sourceLastDay)) {
+    return false;
+  }
+
+  return (
+    payload.sourceFirstDay === coverage.firstDay &&
+    payload.sourceLastDay === coverage.lastDay &&
+    payload.totalHistoricalDays === coverage.totalDays
+  );
+}
+
+export async function getDailyMobilityConclusions(monthKey?: string | null): Promise<{
   payload: MobilityConclusionsPayload;
   fromCache: boolean;
 }> {
   const dateKey = getMadridDateKey();
+
+  if (monthKey && isValidMonthKey(monthKey)) {
+    return {
+      payload: await buildMobilityConclusionsPayload(dateKey, monthKey),
+      fromCache: false,
+    };
+  }
 
   let cached: CachedBriefingRecord | null = null;
   let cacheTableAvailable = true;
@@ -418,18 +625,10 @@ export async function getDailyMobilityConclusions(): Promise<{
   if (cached) {
     const parsed = parseCachedPayload(cached.payload);
 
-    const latestAggregatedDaily = await prisma.dailyStationStat.findFirst({
-      orderBy: {
-        bucketDate: 'desc',
-      },
-      select: {
-        bucketDate: true,
-      },
-    });
+    const coverage = await getCoverageSignature();
+    const sourceLastDay = toDateOrNull(coverage.lastDay);
 
-    const sourceLastDay = latestAggregatedDaily?.bucketDate ?? null;
-
-    if (parsed && hasSameSourceLastDay(cached, sourceLastDay)) {
+    if (parsed && hasSameCoverageSignature(parsed, coverage, sourceLastDay)) {
       return {
         payload: parsed,
         fromCache: true,
