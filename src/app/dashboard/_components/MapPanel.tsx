@@ -413,6 +413,7 @@ export function MapPanel({
                 latitude={popupStation.lat}
                 offset={18}
                 closeOnClick={false}
+                className="station-map-popup"
                 onClose={() => setDismissedPopupId(selectedStationId ?? null)}
               >
                 <div className="min-w-[220px] text-[var(--foreground)]">
@@ -427,8 +428,8 @@ export function MapPanel({
                       aria-pressed={favoriteStationSet.has(popupStation.id)}
                       className={`rounded-md border px-2 py-1 text-xs font-bold transition ${
                         favoriteStationSet.has(popupStation.id)
-                          ? 'border-amber-500 bg-amber-500/20 text-amber-600'
-                          : 'border-[var(--border)] text-[var(--foreground)] hover:border-amber-500 hover:text-amber-600'
+                          ? 'border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]'
+                          : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
                       }`}
                     >
                       {favoriteStationSet.has(popupStation.id) ? '★ Favorita' : '☆ Favorita'}
