@@ -16,10 +16,18 @@ import {
   type DistrictCollection,
 } from '@/lib/districts';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
+import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
+import { BalanceIndexCard } from './BalanceIndexCard';
+import { DataModeCard } from './DataModeCard';
+import { DashboardLayout } from './DashboardLayout';
+import { DailyInsightsCard } from './DailyInsightsCard';
 import { DemandFlowCard } from './DemandFlowCard';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardQuickLinks } from './DashboardQuickLinks';
+import { ModeHeader } from './ModeHeader';
 import { StatusBanner } from './StatusBanner';
+import { SystemHealthCard } from './SystemHealthCard';
+import { useSystemMetrics } from './useSystemMetrics';
 
 const AlertsPanel = dynamic(() => import('./AlertsPanel').then((module) => module.AlertsPanel), {
   ssr: false,
@@ -307,6 +315,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [selectedStationId, setSelectedStationId] = useState(() =>
     resolveStationId(initialData.stations.stations, searchParams.get('stationId'))
   );
+  const [viewMode, setViewMode] = useState<DashboardViewMode>(() =>
+    resolveDashboardViewMode(searchParams.get('mode'))
+  );
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') ?? '');
   const [activeWindowId, setActiveWindowId] = useState(() =>
     resolveTimeWindowId(searchParams.get('timeWindow'))
@@ -505,6 +516,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   useEffect(() => {
     const stationIdFromUrl = resolveStationId(stationsData.stations, searchParams.get('stationId'));
     const windowIdFromUrl = resolveTimeWindowId(searchParams.get('timeWindow'));
+    const modeFromUrl = resolveDashboardViewMode(searchParams.get('mode'));
     const queryFromUrl = searchParams.get('q') ?? '';
     const onlyWithBikesFromUrl = parseBooleanFilter(searchParams.get('onlyWithBikes'));
     const onlyWithAnchorsFromUrl = parseBooleanFilter(searchParams.get('onlyWithAnchors'));
@@ -516,6 +528,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     setActiveWindowId((current) =>
       current === windowIdFromUrl ? current : windowIdFromUrl
     );
+    setViewMode((current) => (current === modeFromUrl ? current : modeFromUrl));
     setSearchQuery((current) => (current === queryFromUrl ? current : queryFromUrl));
     setOnlyWithBikes((current) => (current === onlyWithBikesFromUrl ? current : onlyWithBikesFromUrl));
     setOnlyWithAnchors((current) => (current === onlyWithAnchorsFromUrl ? current : onlyWithAnchorsFromUrl));
@@ -527,6 +540,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     if (nextParams.get('timeWindow') !== activeWindowId) {
       nextParams.set('timeWindow', activeWindowId);
+      hasChanges = true;
+    }
+
+    if (nextParams.get('mode') !== viewMode) {
+      nextParams.set('mode', viewMode);
       hasChanges = true;
     }
 
@@ -578,7 +596,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
     window.history.replaceState(window.history.state, '', nextUrl);
-  }, [activeWindowId, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId]);
+  }, [activeWindowId, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId, viewMode]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -832,9 +850,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       : isGeolocationEnabled
         ? '📍 Buscando tu ubicacion para calcular la estacion mas cercana...'
         : '📍 Activa tu ubicacion para calcular la estacion mas cercana.';
+  const systemMetrics = useSystemMetrics({
+    stations: stationsData.stations,
+    rankings: rankingsData,
+    alerts: alertsData,
+    status: statusData,
+  });
+  const updatedText = statusData.quality.freshness.lastUpdated
+    ? new Date(statusData.quality.freshness.lastUpdated).toLocaleString('es-ES')
+    : 'sin datos';
+  const topFrictionStationName = systemMetrics.topFriction
+    ? stationsData.stations.find((station) => station.id === systemMetrics.topFriction?.stationId)?.name ?? systemMetrics.topFriction.stationId
+    : null;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 overflow-x-hidden">
+    <DashboardLayout>
       <DashboardHeader
         timeWindows={TIME_WINDOWS}
         activeWindowId={activeWindowId}
@@ -870,77 +900,162 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         refreshProgress={refreshProgress}
       />
 
+      <ModeHeader activeMode={viewMode} onChangeMode={setViewMode} />
+
       <StatusBanner status={statusData} stationsGeneratedAt={stationsData.generatedAt} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
-        <div className="min-w-0 lg:col-span-3">
-          <MapPanel
+      {viewMode === 'overview' ? (
+        <div id="mode-panel-overview" role="tabpanel" aria-labelledby="mode-tab-overview" className="grid gap-6 lg:grid-cols-3">
+          <SystemHealthCard
+            totalStations={systemMetrics.totalStations}
+            bikesAvailable={systemMetrics.bikesAvailable}
+            anchorsFree={systemMetrics.anchorsFree}
+            avgOccupancy={systemMetrics.avgOccupancy}
+            updatedText={updatedText}
+          />
+          <BalanceIndexCard
+            balanceIndex={systemMetrics.balanceIndex}
+            criticalStationsCount={systemMetrics.criticalStations.length}
+          />
+          <DailyInsightsCard
+            insight={systemMetrics.dailyInsight}
+            topFrictionStationName={topFrictionStationName}
+            activeAlertsCount={systemMetrics.activeAlerts.length}
+          />
+        </div>
+      ) : null}
+
+      {viewMode === 'operations' ? (
+        <div id="mode-panel-operations" role="tabpanel" aria-labelledby="mode-tab-operations" className="grid gap-6 lg:grid-cols-2">
+          <BalanceIndexCard
+            balanceIndex={systemMetrics.balanceIndex}
+            criticalStationsCount={systemMetrics.criticalStations.length}
+          />
+          <DailyInsightsCard
+            insight={systemMetrics.dailyInsight}
+            topFrictionStationName={topFrictionStationName}
+            activeAlertsCount={systemMetrics.activeAlerts.length}
+          />
+        </div>
+      ) : null}
+
+      {(viewMode === 'overview' || viewMode === 'operations') ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
+          <div className="min-w-0 lg:col-span-3">
+            <MapPanel
+              stations={filteredStations}
+              totalStations={totalStationsCount}
+              selectedStationId={selectedStationId}
+              onSelectStation={setSelectedStationId}
+              favoriteStationIds={favoriteStationIds}
+              onToggleFavorite={toggleFavoriteStation}
+              trendByStationId={stationTrendById}
+              nearestStationId={nearestStation?.stationId ?? null}
+              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+              userLocation={userLocation}
+            />
+          </div>
+          <div className="min-w-0 lg:col-span-1">
+            <AlertsPanel alerts={alertsData} stations={stationsData.stations} />
+          </div>
+        </div>
+      ) : null}
+
+      {(viewMode === 'overview' || viewMode === 'research') ? (
+        <div id={viewMode === 'research' ? 'mode-panel-research' : undefined} role={viewMode === 'research' ? 'tabpanel' : undefined} aria-labelledby={viewMode === 'research' ? 'mode-tab-research' : undefined} className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <DemandFlowCard
+            dailyDemand={mobilityPreview.dailyDemand}
+            windowLabel={activeWindow.label}
+            requestedDays={activeWindow.demandDays}
+          />
+          <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindow.label} />
+          <NeighborhoodLoadCard stations={stationsData.stations} />
+        </div>
+      ) : null}
+
+      {(viewMode === 'operations' || viewMode === 'research') ? (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <RankingsTable rankings={rankingsData} stations={stationsData.stations} />
+          <StationPicker
             stations={filteredStations}
-            totalStations={totalStationsCount}
             selectedStationId={selectedStationId}
             onSelectStation={setSelectedStationId}
             favoriteStationIds={favoriteStationIds}
             onToggleFavorite={toggleFavoriteStation}
             trendByStationId={stationTrendById}
             nearestStationId={nearestStation?.stationId ?? null}
-            nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-            userLocation={userLocation}
           />
         </div>
-        <div className="min-w-0 lg:col-span-1">
-          <AlertsPanel alerts={alertsData} stations={stationsData.stations} />
-        </div>
-      </div>
+      ) : null}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <DemandFlowCard
-          dailyDemand={mobilityPreview.dailyDemand}
-          windowLabel={activeWindow.label}
-          requestedDays={activeWindow.demandDays}
-        />
-        <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindow.label} />
-        <RankingsTable rankings={rankingsData} stations={stationsData.stations} />
-        <NeighborhoodLoadCard stations={stationsData.stations} />
-      </div>
-
-      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
-          <div>
-            <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">
-              Analisis de flujo y corredores populares
-            </h2>
-            <p className="text-xs text-[var(--muted)]">
-              Movimiento entre barrios en tiempo real.
-            </p>
+      {(viewMode === 'overview' || viewMode === 'research') ? (
+        <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
+            <div>
+              <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">
+                Analisis de flujo y corredores populares
+              </h2>
+              <p className="text-xs text-[var(--muted)]">
+                Movimiento entre barrios en tiempo real.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/flujo"
+              className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            >
+              Vista completa
+            </Link>
           </div>
-          <Link
-            href="/dashboard/flujo"
-            className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Vista completa
-          </Link>
-        </div>
-        <FlowPreviewPanel
-          stations={stationsData.stations}
-          hourlySignals={mobilityPreview.hourlySignals}
-        />
-      </section>
+          <FlowPreviewPanel
+            stations={stationsData.stations}
+            hourlySignals={mobilityPreview.hourlySignals}
+          />
+        </section>
+      ) : null}
 
-      <StationPicker
-        stations={filteredStations}
-        selectedStationId={selectedStationId}
-        onSelectStation={setSelectedStationId}
-        favoriteStationIds={favoriteStationIds}
-        onToggleFavorite={toggleFavoriteStation}
-        trendByStationId={stationTrendById}
-        nearestStationId={nearestStation?.stationId ?? null}
-      />
+      {viewMode === 'data' ? (
+        <>
+        <div id="mode-panel-data" role="tabpanel" aria-labelledby="mode-tab-data" className="contents">
+        <DataModeCard
+          stationsCsvUrl="/api/stations?format=csv"
+          frictionCsvUrl="/api/rankings?type=availability&limit=200&format=csv"
+          historyJsonUrl="/api/history"
+        />
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="dashboard-card">
+            <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Metodologia y origen</h3>
+            <p className="text-sm text-[var(--muted)]">
+              Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
+            </p>
+            <Link
+              href="/dashboard/ayuda"
+              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            >
+              Revisar metodologia
+            </Link>
+          </article>
+          <article className="dashboard-card">
+            <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Estado del pipeline</h3>
+            <p className="text-sm text-[var(--muted)]">
+              Usa esta vista para comprobar trazabilidad, salud del sistema y acceder a vistas dedicadas de transparencia y analitica.
+            </p>
+            <Link
+              href="/dashboard/alertas"
+              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            >
+              Ver historial operativo
+            </Link>
+          </article>
+        </section>
+        </div>
+        </>
+      ) : null}
 
       <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
 
       <footer className="pb-4 text-center text-[11px] text-[var(--muted)]">
         © 2024 Bizi Zaragoza - Sistema de analitica de movilidad urbana.
       </footer>
-    </div>
+    </DashboardLayout>
   );
 }

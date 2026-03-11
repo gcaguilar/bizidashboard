@@ -14,10 +14,29 @@ function parseLimit(value: string | null, fallback: number): number | null {
   return parsed;
 }
 
+function toCsv(
+  rows: Array<{
+    stationId: string;
+    turnoverScore: number;
+    emptyHours: number;
+    fullHours: number;
+    totalHours: number;
+    windowStart: string;
+    windowEnd: string;
+  }>
+): string {
+  const headers = ['stationId', 'turnoverScore', 'emptyHours', 'fullHours', 'frictionScore', 'totalHours', 'windowStart', 'windowEnd'];
+  const values = rows.map((row) => [row.stationId, row.turnoverScore, row.emptyHours, row.fullHours, row.emptyHours + row.fullHours, row.totalHours, row.windowStart, row.windowEnd]);
+  return [headers, ...values]
+    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
+    .join('\n');
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const typeParam = searchParams.get('type');
   const limit = parseLimit(searchParams.get('limit'), DEFAULT_LIMIT);
+  const format = searchParams.get('format');
 
   if (typeParam !== 'turnover' && typeParam !== 'availability') {
     return NextResponse.json(
@@ -44,6 +63,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         generatedAt: new Date().toISOString(),
       };
     });
+
+    if (format === 'csv') {
+      const csv = toCsv(payload.rankings);
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="rankings-${typeParam}.csv"`,
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+        },
+      });
+    }
 
     return NextResponse.json(payload, {
       status: 200,
