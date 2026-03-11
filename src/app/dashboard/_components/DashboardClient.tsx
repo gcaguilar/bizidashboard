@@ -23,7 +23,9 @@ import { MapPanel } from './MapPanel';
 import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
 import { RankingsTable } from './RankingsTable';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
+import { StatusBanner } from './StatusBanner';
 import { StationPicker } from './StationPicker';
+import { SystemIntradayCard } from './SystemIntradayCard';
 import { ThemeToggleButton } from './ThemeToggleButton';
 
 export type DashboardInitialData = {
@@ -65,6 +67,12 @@ type DailyDemandRow = {
 type MobilityPreviewData = {
   hourlySignals: MobilitySignalRow[];
   dailyDemand: DailyDemandRow[];
+  systemHourlyProfile: Array<{
+    hour: number;
+    avgOccupancy: number;
+    bikesInCirculation: number;
+    sampleCount: number;
+  }>;
 };
 
 type StationTrend = 'up' | 'down' | 'flat';
@@ -93,6 +101,7 @@ const TIME_WINDOWS: TimeWindow[] = [
 const EMPTY_MOBILITY_PREVIEW: MobilityPreviewData = {
   hourlySignals: [],
   dailyDemand: [],
+  systemHourlyProfile: [],
 };
 
 const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
@@ -113,6 +122,10 @@ function resolveTimeWindowId(value: string | null): string {
   return TIME_WINDOWS.some((window) => window.id === value)
     ? value
     : (TIME_WINDOWS[1]?.id ?? '7d');
+}
+
+function parseBooleanFilter(value: string | null): boolean {
+  return value === '1' || value === 'true';
 }
 
 function resolveStationId(stations: StationsResponse['stations'], value: string | null): string {
@@ -256,13 +269,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [selectedStationId, setSelectedStationId] = useState(() =>
     resolveStationId(initialData.stations.stations, searchParams.get('stationId'))
   );
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') ?? '');
   const [activeWindowId, setActiveWindowId] = useState(() =>
     resolveTimeWindowId(searchParams.get('timeWindow'))
   );
   const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
-  const [onlyWithBikes, setOnlyWithBikes] = useState(false);
-  const [onlyWithAnchors, setOnlyWithAnchors] = useState(false);
+  const [onlyWithBikes, setOnlyWithBikes] = useState(() => parseBooleanFilter(searchParams.get('onlyWithBikes')));
+  const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parseBooleanFilter(searchParams.get('onlyWithAnchors')));
   const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() => {
@@ -451,6 +464,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   useEffect(() => {
     const stationIdFromUrl = resolveStationId(stationsData.stations, searchParams.get('stationId'));
     const windowIdFromUrl = resolveTimeWindowId(searchParams.get('timeWindow'));
+    const queryFromUrl = searchParams.get('q') ?? '';
+    const onlyWithBikesFromUrl = parseBooleanFilter(searchParams.get('onlyWithBikes'));
+    const onlyWithAnchorsFromUrl = parseBooleanFilter(searchParams.get('onlyWithAnchors'));
 
     setSelectedStationId((current) =>
       current === stationIdFromUrl ? current : stationIdFromUrl
@@ -459,6 +475,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     setActiveWindowId((current) =>
       current === windowIdFromUrl ? current : windowIdFromUrl
     );
+    setSearchQuery((current) => (current === queryFromUrl ? current : queryFromUrl));
+    setOnlyWithBikes((current) => (current === onlyWithBikesFromUrl ? current : onlyWithBikesFromUrl));
+    setOnlyWithAnchors((current) => (current === onlyWithAnchorsFromUrl ? current : onlyWithAnchorsFromUrl));
   }, [searchParams, stationsData.stations]);
 
   useEffect(() => {
@@ -480,6 +499,37 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       hasChanges = true;
     }
 
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      if (nextParams.get('q') !== trimmedQuery) {
+        nextParams.set('q', trimmedQuery);
+        hasChanges = true;
+      }
+    } else if (nextParams.has('q')) {
+      nextParams.delete('q');
+      hasChanges = true;
+    }
+
+    if (onlyWithBikes) {
+      if (nextParams.get('onlyWithBikes') !== '1') {
+        nextParams.set('onlyWithBikes', '1');
+        hasChanges = true;
+      }
+    } else if (nextParams.has('onlyWithBikes')) {
+      nextParams.delete('onlyWithBikes');
+      hasChanges = true;
+    }
+
+    if (onlyWithAnchors) {
+      if (nextParams.get('onlyWithAnchors') !== '1') {
+        nextParams.set('onlyWithAnchors', '1');
+        hasChanges = true;
+      }
+    } else if (nextParams.has('onlyWithAnchors')) {
+      nextParams.delete('onlyWithAnchors');
+      hasChanges = true;
+    }
+
     if (!hasChanges) {
       return;
     }
@@ -487,7 +537,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
     window.history.replaceState(window.history.state, '', nextUrl);
-  }, [activeWindowId, pathname, searchParams, selectedStationId]);
+  }, [activeWindowId, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -665,6 +715,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           demandDays: String(activeWindow.demandDays),
         });
 
+        const selectedMonth = new URLSearchParams(window.location.search).get('month');
+
+        if (selectedMonth) {
+          searchParams.set('month', selectedMonth);
+        }
+
         const response = await fetch(`/api/mobility?${searchParams.toString()}`, {
           signal: controller.signal,
         });
@@ -682,6 +738,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         setMobilityPreview({
           hourlySignals: Array.isArray(payload.hourlySignals) ? payload.hourlySignals : [],
           dailyDemand: Array.isArray(payload.dailyDemand) ? payload.dailyDemand : [],
+          systemHourlyProfile: Array.isArray(payload.systemHourlyProfile)
+            ? payload.systemHourlyProfile
+            : [],
         });
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
@@ -839,10 +898,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               {activeWindow.label}
               {isMobilityPreviewLoading ? ' (actualizando flujo...)' : ''}
             </p>
-            <p>
-              Ultima consulta: {statusData.timestamp}
-              {isRefreshingData ? ' · Refrescando ahora...' : ''}
-            </p>
+            <p>{isRefreshingData ? 'Refrescando datos del sistema ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
@@ -906,6 +962,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
       </header>
 
+      <StatusBanner status={statusData} stationsGeneratedAt={stationsData.generatedAt} />
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
         <div className="min-w-0 lg:col-span-3">
           <MapPanel
@@ -932,6 +990,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           windowLabel={activeWindow.label}
           requestedDays={activeWindow.demandDays}
         />
+        <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindow.label} />
         <RankingsTable rankings={rankingsData} stations={stationsData.stations} />
         <NeighborhoodLoadCard stations={stationsData.stations} />
       </div>

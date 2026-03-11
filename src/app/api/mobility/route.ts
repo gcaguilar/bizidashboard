@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getDailyDemandCurve,
   getHourlyMobilitySignals,
+  getSystemHourlyProfile,
   getHourlyTransitImpact,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
@@ -104,9 +105,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}:month=${monthKey ?? 'all'}`;
     const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-      const [hourlySignals, dailyDemand] = await Promise.all([
+      const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
         getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined),
         getDailyDemandCurve(demandDays, monthKey ?? undefined),
+        getSystemHourlyProfile(mobilityDays, monthKey ?? undefined),
       ]);
 
       let transitWarning: string | null = null;
@@ -169,6 +171,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           day: row.day,
           demandScore: Number(row.demandScore),
           avgOccupancy: Number(row.avgOccupancy),
+          sampleCount: Number(row.sampleCount),
+        })),
+        systemHourlyProfile: systemHourlyProfile.map((row) => ({
+          hour: Number(row.hour),
+          avgOccupancy: Number(row.avgOccupancy),
+          bikesInCirculation: Number(row.bikesInCirculation),
           sampleCount: Number(row.sampleCount),
         })),
         transitImpact: {

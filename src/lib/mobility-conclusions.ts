@@ -40,6 +40,13 @@ type StationDemandRow = {
   demandScore: number | null;
 };
 
+type DayTypeProfileRow = {
+  dayType: string;
+  avgDemand: number | null;
+  avgOccupancy: number | null;
+  daysCount: number | null;
+};
+
 type CachedBriefingRecord = {
   payload: string;
   sourceLastDay: Date | null;
@@ -87,6 +94,25 @@ export type MobilityConclusionsPayload = {
     stationName: string;
     avgDemand: number;
   }>;
+  leastUsedStations: Array<{
+    stationId: string;
+    stationName: string;
+    avgDemand: number;
+  }>;
+  weekdayWeekendProfile: {
+    weekday: {
+      avgDemand: number;
+      avgOccupancy: number;
+      daysCount: number;
+    };
+    weekend: {
+      avgDemand: number;
+      avgOccupancy: number;
+      daysCount: number;
+    };
+    demandGapRatio: number | null;
+    dominantPeriod: 'weekday' | 'weekend' | null;
+  };
 };
 
 function getMadridDateKey(value: Date = new Date()): string {
@@ -246,11 +272,21 @@ function hasCacheShape(payload: unknown): payload is MobilityConclusionsPayload 
     return false;
   }
 
-  if (!Array.isArray(typed.highlights) || !Array.isArray(typed.recommendations) || !Array.isArray(typed.topStationsByDemand)) {
+  if (
+    !Array.isArray(typed.highlights) ||
+    !Array.isArray(typed.recommendations) ||
+    !Array.isArray(typed.topStationsByDemand) ||
+    !Array.isArray(typed.leastUsedStations)
+  ) {
     return false;
   }
 
-  if (!Array.isArray(typed.peakDemandHours) || !Array.isArray(typed.topDistrictsByDemand)) {
+  if (
+    !Array.isArray(typed.peakDemandHours) ||
+    !Array.isArray(typed.topDistrictsByDemand) ||
+    !typed.weekdayWeekendProfile ||
+    typeof typed.weekdayWeekendProfile !== 'object'
+  ) {
     return false;
   }
 
@@ -290,6 +326,14 @@ function buildConclusionsRange(monthKey?: string): {
   };
 }
 
+function getDominantPeriod(weekdayDemand: number, weekendDemand: number): 'weekday' | 'weekend' | null {
+  if (weekdayDemand <= 0 && weekendDemand <= 0) {
+    return null;
+  }
+
+  return weekdayDemand >= weekendDemand ? 'weekday' : 'weekend';
+}
+
 async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: string | null): Promise<MobilityConclusionsPayload> {
   const generatedAt = new Date();
   const selectedMonth = monthKey && isValidMonthKey(monthKey) ? monthKey : null;
@@ -303,6 +347,8 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     occupancyPreviousRows,
     activeStationRows,
     topStationsRows,
+    leastUsedStationsRows,
+    dayTypeProfileRows,
     peakHourRows,
     stationDemandRows,
     districts,
@@ -356,6 +402,40 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         ORDER BY avgDemand DESC
         LIMIT 5;
       `,
+      prisma.$queryRaw<TopStationRow[]>`
+        SELECT
+          DailyStationStat.stationId AS stationId,
+          Station.name AS stationName,
+          AVG((DailyStationStat.bikesMax - DailyStationStat.bikesMin) + (DailyStationStat.anchorsMax - DailyStationStat.anchorsMin)) AS avgDemand
+        FROM DailyStationStat
+        INNER JOIN Station ON Station.id = DailyStationStat.stationId
+        WHERE ${range.topStationsDaily}
+        GROUP BY DailyStationStat.stationId, Station.name
+        HAVING COUNT(*) > 0
+        ORDER BY avgDemand ASC, Station.name ASC
+        LIMIT 5;
+      `,
+      prisma.$queryRaw<DayTypeProfileRow[]>`
+        WITH daily_totals AS (
+          SELECT
+            date(bucketDate) AS bucketDay,
+            SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
+            AVG(occupancyAvg) AS occupancyAvg
+          FROM DailyStationStat
+          WHERE ${range.currentDaily}
+          GROUP BY date(bucketDate)
+        )
+        SELECT
+          CASE
+            WHEN CAST(strftime('%w', bucketDay) AS INTEGER) IN (0, 6) THEN 'weekend'
+            ELSE 'weekday'
+          END AS dayType,
+          AVG(demandScore) AS avgDemand,
+          AVG(occupancyAvg) AS avgOccupancy,
+          COUNT(*) AS daysCount
+        FROM daily_totals
+        GROUP BY dayType;
+      `,
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
           CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
@@ -398,6 +478,36 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     stationName: row.stationName,
     avgDemand: round(toNumber(row.avgDemand), 1),
   }));
+
+  const leastUsedStations = leastUsedStationsRows.map((row) => ({
+    stationId: row.stationId,
+    stationName: row.stationName,
+    avgDemand: round(toNumber(row.avgDemand), 1),
+  }));
+
+  const weekdayProfile = dayTypeProfileRows.find((row) => row.dayType === 'weekday');
+  const weekendProfile = dayTypeProfileRows.find((row) => row.dayType === 'weekend');
+
+  const weekdayWeekendProfile = {
+    weekday: {
+      avgDemand: round(toNumber(weekdayProfile?.avgDemand), 1),
+      avgOccupancy: round(toNumber(weekdayProfile?.avgOccupancy), 4),
+      daysCount: Math.round(toNumber(weekdayProfile?.daysCount)),
+    },
+    weekend: {
+      avgDemand: round(toNumber(weekendProfile?.avgDemand), 1),
+      avgOccupancy: round(toNumber(weekendProfile?.avgOccupancy), 4),
+      daysCount: Math.round(toNumber(weekendProfile?.daysCount)),
+    },
+    demandGapRatio: calculateDelta(
+      toNumber(weekendProfile?.avgDemand),
+      toNumber(weekdayProfile?.avgDemand)
+    ),
+    dominantPeriod: getDominantPeriod(
+      toNumber(weekdayProfile?.avgDemand),
+      toNumber(weekendProfile?.avgDemand)
+    ),
+  };
 
   const peakDemandHours = peakHourRows
     .map((row) => ({
@@ -465,6 +575,16 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     });
   }
 
+  if (weekdayWeekendProfile.dominantPeriod) {
+    highlights.push({
+      title: 'Patron semanal',
+      detail:
+        weekdayWeekendProfile.dominantPeriod === 'weekday'
+          ? `La red rinde mas entre semana, con ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} puntos medios al dia frente a ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} en fin de semana.`
+          : `La red rinde mas en fin de semana, con ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} puntos medios al dia frente a ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} entre semana.`,
+    });
+  }
+
   const recommendations: string[] = [];
 
   if (demandDeltaRatio !== null && demandDeltaRatio > 0.08) {
@@ -509,6 +629,16 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     );
   }
 
+  if (weekdayWeekendProfile.dominantPeriod === 'weekday') {
+    recommendations.push(
+      'Dimensiona el operativo principal para dias laborables y reserva ajustes mas ligeros para sabados y domingos.'
+    );
+  } else if (weekdayWeekendProfile.dominantPeriod === 'weekend') {
+    recommendations.push(
+      'Refuerza capacidad y seguimiento en fines de semana, donde la red concentra mayor intensidad media de uso.'
+    );
+  }
+
   return {
     dateKey,
     generatedAt: generatedAt.toISOString(),
@@ -532,6 +662,8 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     peakDemandHours,
     topDistrictsByDemand,
     topStationsByDemand,
+    leastUsedStations,
+    weekdayWeekendProfile,
   };
 }
 

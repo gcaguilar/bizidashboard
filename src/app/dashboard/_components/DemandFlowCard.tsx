@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 type DailyDemandRow = {
   day: string;
   demandScore: number;
@@ -75,12 +77,27 @@ export function DemandFlowCard({
   return (
     <section className="dashboard-card h-full">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
-          Flujo diario de demanda
-        </h3>
-        <span className="text-right text-xs text-[var(--muted)]">
-          {windowLabel} · {dailyDemand.length}/{requestedDays} dias
-        </span>
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
+            Flujo diario de demanda
+          </h3>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Indice de actividad por dia para comparar intensidad, no viajes cerrados exactos.
+          </p>
+        </div>
+        <div className="text-right text-xs text-[var(--muted)]">
+          <span>
+            {windowLabel} · {dailyDemand.length}/{requestedDays} dias
+          </span>
+          <div>
+            <Link
+              href="/dashboard/ayuda#demanda-no-viajes-reales"
+              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            >
+              Entender metrica
+            </Link>
+          </div>
+        </div>
       </div>
 
       {rows.length === 0 ? (

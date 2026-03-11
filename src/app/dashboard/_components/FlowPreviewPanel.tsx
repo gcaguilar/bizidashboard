@@ -152,9 +152,22 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
       </div>
 
       <div className="space-y-3">
-        <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-          Corredores de alto volumen
-        </h4>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
+              Corredores de alto volumen
+            </h4>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Rutas probables entre barrios estimadas a partir de entradas y salidas agregadas.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/ayuda#calculo-rutas"
+            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          >
+            Como se calcula
+          </Link>
+        </div>
 
         {topRoutes.length === 0 ? (
           <p className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">

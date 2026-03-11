@@ -165,6 +165,13 @@ type DailyDemandRow = {
   sampleCount: number;
 };
 
+type SystemHourlyProfileRow = {
+  hour: number;
+  avgOccupancy: number;
+  bikesInCirculation: number;
+  sampleCount: number;
+};
+
 type HourlyTransitImpactRow = {
   provider: string;
   hour: number;
@@ -400,6 +407,25 @@ export async function getHourlyMobilitySignals(
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
   return prisma.$queryRaw<DailyDemandRow[]>(buildDemandSeriesQuery(days, monthKey));
+}
+
+export async function getSystemHourlyProfile(
+  days = 14,
+  monthKey?: string
+): Promise<SystemHourlyProfileRow[]> {
+  const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
+
+  return prisma.$queryRaw<SystemHourlyProfileRow[]>`
+    SELECT
+      CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
+      AVG(occupancyAvg) AS avgOccupancy,
+      AVG(bikesAvg) AS bikesInCirculation,
+      SUM(sampleCount) AS sampleCount
+    FROM HourlyStationStat
+    WHERE ${rangeFilter}
+    GROUP BY CAST(strftime('%H', bucketStart) AS INTEGER)
+    ORDER BY hour ASC;
+  `;
 }
 
 export async function getHourlyTransitImpact(
