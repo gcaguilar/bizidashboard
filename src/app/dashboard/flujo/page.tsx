@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { MonthFilter } from '../_components/MonthFilter';
 import { MobilityInsights } from '../_components/MobilityInsights';
@@ -11,18 +11,12 @@ const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: 'Analisis de flujo',
-  description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: '/dashboard/flujo',
-  },
-  openGraph: {
-    title: `${SITE_TITLE} - Analisis de flujo`,
-    description: SITE_DESCRIPTION,
-    url: '/dashboard/flujo',
-  },
-};
+  description:
+    'Analiza corredores de movilidad de Bizi Zaragoza, curva diaria de demanda e impacto horario del transporte publico.',
+  path: '/dashboard/flujo',
+});
 
 type DashboardFlowPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

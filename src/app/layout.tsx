@@ -46,8 +46,21 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  authors: [{ name: 'BiziDashboard' }],
+  creator: 'BiziDashboard',
+  publisher: 'BiziDashboard',
+  category: 'technology',
+  referrer: 'origin-when-cross-origin',
   alternates: {
     canonical: "/",
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.svg', type: 'image/svg+xml' },
+      { url: '/icon-512.svg', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: '/icon-192.svg', type: 'image/svg+xml' }],
+    shortcut: ['/icon-192.svg'],
   },
   manifest: '/manifest.webmanifest',
   keywords: [
@@ -76,11 +89,25 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: SITE_TITLE,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: ['/twitter-image'],
+  },
+  appleWebApp: {
+    capable: true,
+    title: SITE_TITLE,
+    statusBarStyle: 'default',
   },
   verification: googleSiteVerificationToken
     ? {
@@ -108,6 +135,17 @@ export default function RootLayout({
         url: siteUrl,
         inLanguage: "es",
         description: SITE_DESCRIPTION,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${siteUrl}/dashboard?q={search_term_string}`,
+          "query-input": 'required name=search_term_string',
+        },
+      },
+      {
+        "@type": "Organization",
+        name: SITE_NAME,
+        url: siteUrl,
+        logo: `${siteUrl}/icon-512.svg`,
       },
       {
         "@type": "SoftwareApplication",
