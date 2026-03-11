@@ -258,6 +258,7 @@ export function StationPicker({
 
         <select
           id="station-picker"
+          aria-label="Seleccionar estacion"
           className="w-full min-w-0 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           value={selectedStationId}
           onChange={(event) => onSelectStation(event.target.value)}

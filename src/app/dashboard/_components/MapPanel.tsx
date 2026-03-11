@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GeoJSONSource } from 'maplibre-gl';
+import type { StyleSpecification } from 'react-map-gl/maplibre';
 import {
   Layer,
   Map,
@@ -40,8 +41,43 @@ const DEFAULT_VIEW_STATE = {
 
 const FOCUS_ZOOM = 14.8;
 const MAP_HEIGHT = 560;
-const MAP_STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
-const MAP_STYLE_LIGHT = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const MAP_STYLE_LIGHT: StyleSpecification = {
+  version: 8,
+  sources: {
+    cartoLight: {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-light',
+      type: 'raster',
+      source: 'cartoLight',
+    },
+  ],
+};
+
+const MAP_STYLE_DARK: StyleSpecification = {
+  version: 8,
+  sources: {
+    cartoDark: {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-dark',
+      type: 'raster',
+      source: 'cartoDark',
+    },
+  ],
+};
 
 const CLUSTER_LAYER: LayerProps = {
   id: 'clusters',
@@ -53,21 +89,6 @@ const CLUSTER_LAYER: LayerProps = {
     'circle-radius': ['step', ['get', 'point_count'], 18, 20, 22, 50, 28],
     'circle-stroke-color': '#ffffff',
     'circle-stroke-width': 2,
-  },
-};
-
-const CLUSTER_COUNT_LAYER: LayerProps = {
-  id: 'cluster-count',
-  type: 'symbol',
-  source: 'stations-source',
-  filter: ['has', 'point_count'],
-  layout: {
-    'text-field': '{point_count_abbreviated}',
-    'text-size': 12,
-    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-  },
-  paint: {
-    'text-color': '#ffffff',
   },
 };
 
@@ -98,21 +119,6 @@ const UNCLUSTERED_POINTS_LAYER: LayerProps = {
   },
 };
 
-const POINT_GLYPH_LAYER: LayerProps = {
-  id: 'point-glyph',
-  type: 'symbol',
-  source: 'stations-source',
-  filter: ['!', ['has', 'point_count']],
-  layout: {
-    'text-field': ['get', 'statusGlyph'],
-    'text-size': 11,
-    'text-allow-overlap': true,
-  },
-  paint: {
-    'text-color': '#ffffff',
-  },
-};
-
 function getMarkerColor(station: StationSnapshot): string {
   if (station.capacity <= 0) {
     return '#64748b';
@@ -137,18 +143,6 @@ function getMarkerColor(station: StationSnapshot): string {
   }
 
   return '#b91c1c';
-}
-
-function getStatusGlyph(station: StationSnapshot): string {
-  if (station.anchorsFree <= 0) {
-    return '✕';
-  }
-
-  if (station.bikesAvailable > 0) {
-    return '🚲';
-  }
-
-  return '○';
 }
 
 function getTrendLabel(trend: StationTrend | undefined): string {
@@ -213,7 +207,6 @@ export function MapPanel({
             stationId: station.id,
             stationName: station.name,
             markerColor: getMarkerColor(station),
-            statusGlyph: getStatusGlyph(station),
             isFavorite: favoriteStationSet.has(station.id) ? 1 : 0,
             isSelected: selectedStationId && selectedStationId === station.id ? 1 : 0,
           },
@@ -391,12 +384,10 @@ export function MapPanel({
               clusterRadius={50}
               clusterMaxZoom={13}
             >
-              <Layer {...CLUSTER_LAYER} />
-              <Layer {...CLUSTER_COUNT_LAYER} />
-              <Layer {...SELECTED_HALO_LAYER} />
-              <Layer {...UNCLUSTERED_POINTS_LAYER} />
-              <Layer {...POINT_GLYPH_LAYER} />
-            </Source>
+            <Layer {...CLUSTER_LAYER} />
+            <Layer {...SELECTED_HALO_LAYER} />
+            <Layer {...UNCLUSTERED_POINTS_LAYER} />
+          </Source>
 
             {userLocation ? (
               <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">

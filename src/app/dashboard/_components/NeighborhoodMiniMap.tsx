@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Layer, Map as MapView, Source } from 'react-map-gl/maplibre';
+import { Layer, Map as MapView, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { StationSnapshot } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
-  isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 
@@ -74,6 +73,25 @@ const DISTRICT_BORDER_LAYER_PROPS =
 const STATION_POINTS_LAYER_PROPS =
   STATION_POINTS_LAYER as unknown as Parameters<typeof Layer>[0];
 
+const MINI_MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    cartoDark: {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    },
+  },
+  layers: [
+    {
+      id: 'carto-dark',
+      type: 'raster',
+      source: 'cartoDark',
+    },
+  ],
+};
+
 type DistrictRow = {
   name: string;
   bikesScore: number;
@@ -111,17 +129,9 @@ export function NeighborhoodMiniMap({
     const loadDistricts = async () => {
       try {
         setErrorMessage(null);
-        const response = await fetch(DISTRICTS_GEOJSON_URL, {
-          signal: controller.signal,
-        });
+        const payload = await fetchDistrictCollection(controller.signal);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-
-        if (!isDistrictCollection(payload)) {
+        if (!payload) {
           throw new Error('GeoJSON de distritos invalido.');
         }
 
@@ -288,7 +298,7 @@ export function NeighborhoodMiniMap({
               zoom: 10.6,
             }}
             style={{ width: '100%', height: '100%' }}
-            mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+            mapStyle={MINI_MAP_STYLE}
             attributionControl={false}
             dragPan={false}
             scrollZoom={false}

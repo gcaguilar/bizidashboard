@@ -18,7 +18,7 @@ import {
 import type { StationSnapshot } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  DISTRICTS_GEOJSON_URL,
+  fetchDistrictCollection,
   type DistrictCollection,
   isDistrictCollection,
 } from '@/lib/districts';
@@ -234,23 +234,18 @@ export function MobilityInsights({
           searchParams.set('month', selectedMonth);
         }
 
-        const [mobilityResponse, districtsResponse] = await Promise.all([
+        const [mobilityResponse, districtsPayload] = await Promise.all([
           fetch(`/api/mobility?${searchParams.toString()}`, {
             signal: controller.signal,
           }),
-          fetch(DISTRICTS_GEOJSON_URL, {
-            signal: controller.signal,
-          }),
+          fetchDistrictCollection(controller.signal),
         ]);
 
-        if (!mobilityResponse.ok || !districtsResponse.ok) {
+        if (!mobilityResponse.ok || !districtsPayload) {
           throw new Error('No se pudieron cargar los datos de movilidad.');
         }
 
-        const [mobilityPayload, districtsPayload] = (await Promise.all([
-          mobilityResponse.json(),
-          districtsResponse.json(),
-        ])) as [unknown, unknown];
+        const mobilityPayload = (await mobilityResponse.json()) as unknown;
 
         if (!isActive) {
           return;
