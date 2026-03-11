@@ -156,6 +156,41 @@ a {
   color: #ffffff;
 }
 
+.station-map-popup .maplibregl-popup-content {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  padding: 0.9rem;
+  color: var(--foreground);
+  backdrop-filter: blur(10px);
+}
+
+.station-map-popup .maplibregl-popup-close-button {
+  color: var(--muted);
+}
+
+.station-map-popup .maplibregl-popup-close-button:hover {
+  color: var(--accent);
+  background: transparent;
+}
+
+.station-map-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+}
+
+.station-map-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--surface);
+}
+
+.station-map-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--surface);
+}
+
+.station-map-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--surface);
+}
+
 @media (min-width: 768px) {
   .hero-card {
     padding: 1.35rem;
