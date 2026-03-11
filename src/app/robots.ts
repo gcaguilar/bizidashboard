@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
-import { getRobotsBaseUrl, getRobotsSitemapUrl } from '@/lib/site';
+import { getRobotsBaseUrl, getRobotsSitemapUrl, isFallbackSiteUrl } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
   const host = getRobotsBaseUrl();
+  const hasPublicHost = !isFallbackSiteUrl(host);
 
   return {
     rules: [
@@ -11,7 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
       },
     ],
-    sitemap: getRobotsSitemapUrl(),
-    host,
+    sitemap: hasPublicHost ? getRobotsSitemapUrl() : undefined,
   };
 }
