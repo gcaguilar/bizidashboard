@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
@@ -22,6 +23,16 @@ type ParsedQuery = {
   from: Date | null;
   to: Date | null;
 };
+
+type StationAlertRow = Prisma.StationAlertGetPayload<{
+  include: {
+    station: {
+      select: {
+        name: true;
+      };
+    };
+  };
+}>;
 
 function parseBoundedInteger(
   value: string | null,
@@ -247,8 +258,8 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
   };
 }
 
-function buildWhereFilters(query: ParsedQuery): Record<string, unknown> {
-  const where: Record<string, unknown> = {};
+function buildWhereFilters(query: ParsedQuery): Prisma.StationAlertWhereInput {
+  const where: Prisma.StationAlertWhereInput = {};
 
   if (query.state === 'active') {
     where.isActive = true;
@@ -286,13 +297,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const where = buildWhereFilters(parsed);
-  const db = prisma as any;
 
   try {
     const [total, rows] = await Promise.all([
-      db.stationAlert.count({ where }),
-      db.stationAlert.findMany({
-        where: where as never,
+      prisma.stationAlert.count({ where }),
+      prisma.stationAlert.findMany({
+        where,
         include: {
           station: {
             select: {
@@ -306,7 +316,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }),
     ]);
 
-    const alerts = rows.map((row: any) => ({
+    const alerts = rows.map((row: StationAlertRow) => ({
       id: row.id,
       stationId: row.stationId,
       stationName: row.station?.name ?? row.stationId,

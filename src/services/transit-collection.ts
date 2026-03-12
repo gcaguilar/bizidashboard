@@ -493,7 +493,7 @@ async function getLatestSnapshotsByTransitStop(
     WHERE ts.provider = ${provider};
   `;
 
-  return new Map(rows.map((row: any) => [row.transitStopId, row] as const));
+  return new Map(rows.map((row) => [row.transitStopId, row] as const));
 }
 
 const tramProvider: TransitProviderAdapter = {
@@ -745,7 +745,7 @@ async function syncProvider(
 
     const linkedStops = Array.from(linkedStopsByExternalId.values());
 
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.transitStop.updateMany({
         where: { provider },
         data: { isActive: false },

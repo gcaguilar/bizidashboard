@@ -15,7 +15,7 @@ RUN pnpm prisma generate
 RUN DATABASE_URL=file:/app/bootstrap.db pnpm prisma migrate deploy --schema prisma/schema.prisma
 RUN pnpm run build
 
-FROM node:22-bookworm-slim AS runner
+FROM oven/bun:1.3.10-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
