@@ -165,6 +165,14 @@ type DailyDemandRow = {
   sampleCount: number;
 };
 
+type MonthlyDemandRow = {
+  monthKey: string;
+  demandScore: number;
+  avgOccupancy: number;
+  activeStations: number;
+  sampleCount: number;
+};
+
 type SystemHourlyProfileRow = {
   hour: number;
   avgOccupancy: number;
@@ -407,6 +415,31 @@ export async function getHourlyMobilitySignals(
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
   return (await prisma.$queryRaw(buildDemandSeriesQuery(days, monthKey))) as DailyDemandRow[];
+}
+
+export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDemandRow[]> {
+  const safeLimit = Math.max(1, Math.min(36, Math.floor(limitMonths)));
+
+  const rows = await prisma.$queryRaw<MonthlyDemandRow[]>`
+    WITH monthly AS (
+      SELECT
+        strftime('%Y-%m', bucketDate) AS monthKey,
+        COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore,
+        COALESCE(AVG(occupancyAvg), 0) AS avgOccupancy,
+        COUNT(DISTINCT stationId) AS activeStations,
+        COALESCE(SUM(sampleCount), 0) AS sampleCount
+      FROM DailyStationStat
+      WHERE bucketDate IS NOT NULL
+      GROUP BY strftime('%Y-%m', bucketDate)
+      ORDER BY monthKey DESC
+      LIMIT ${safeLimit}
+    )
+    SELECT monthKey, demandScore, avgOccupancy, activeStations, sampleCount
+    FROM monthly
+    ORDER BY monthKey ASC;
+  `;
+
+  return rows;
 }
 
 export async function getSystemHourlyProfile(

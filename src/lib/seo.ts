@@ -5,12 +5,14 @@ type BuildPageMetadataOptions = {
   title: string;
   description: string;
   path: string;
+  keywords?: string[];
 };
 
-export function buildPageMetadata({ title, description, path }: BuildPageMetadataOptions): Metadata {
+export function buildPageMetadata({ title, description, path, keywords }: BuildPageMetadataOptions): Metadata {
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: path,
     },

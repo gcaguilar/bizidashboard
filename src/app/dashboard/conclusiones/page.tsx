@@ -460,6 +460,60 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           )}
         </article>
       </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Informes mensuales publicados</h3>
+            <Link
+              href="/informes"
+              className="text-xs font-bold text-[var(--accent)] transition hover:opacity-80"
+            >
+              Ver archivo completo
+            </Link>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {availableMonths.months.slice(0, 6).map((month) => (
+              <Link
+                key={month}
+                href={`/informes/${month}`}
+                className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">Informe {toMonthOptions([month])[0]?.label ?? month}</p>
+                  <p className="text-[11px] text-[var(--muted)]">URL indexable permanente con resumen y enlaces al dashboard filtrado.</p>
+                </div>
+                <span className="text-xs font-bold text-[var(--accent)]">Abrir</span>
+              </Link>
+            ))}
+          </div>
+        </article>
+
+        <article className="dashboard-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Landings SEO relacionadas</h3>
+            <span className="text-xs text-[var(--muted)]">Enlazadas al dashboard y al detalle de estaciones</span>
+          </div>
+
+          <div className="mt-4 grid gap-2 md:grid-cols-2">
+            {[
+              ['/estaciones-mas-usadas-zaragoza', 'Estaciones mas usadas'],
+              ['/ranking-estaciones-bizi', 'Ranking de estaciones'],
+              ['/viajes-por-dia-zaragoza', 'Viajes por dia'],
+              ['/viajes-por-mes-zaragoza', 'Viajes por mes'],
+            ].map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </article>
+      </section>
     </main>
   );
 }

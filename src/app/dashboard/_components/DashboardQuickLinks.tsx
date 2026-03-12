@@ -6,7 +6,7 @@ type DashboardQuickLinksProps = {
 
 export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuickLinksProps) {
   return (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <article className="dashboard-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Detalle de estacion</h3>
         <p className="text-sm text-[var(--muted)]">
@@ -56,6 +56,19 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Abrir ayuda
+        </Link>
+      </article>
+
+      <article className="dashboard-card">
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Paginas SEO</h3>
+        <p className="text-sm text-[var(--muted)]">
+          Rankings indexables, series temporales e informes mensuales enlazados al dashboard.
+        </p>
+        <Link
+          href="/informes"
+          className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+        >
+          Ver informes y rankings
         </Link>
       </article>
     </section>
