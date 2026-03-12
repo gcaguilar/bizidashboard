@@ -852,7 +852,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   );
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mode={viewMode}>
       <DashboardHeader
         timeWindows={TIME_WINDOWS}
         activeWindowId={activeWindowId}

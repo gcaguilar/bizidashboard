@@ -1,4 +1,3 @@
-import { AlertType, Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
@@ -10,12 +9,13 @@ const MAX_OFFSET = 20000;
 
 type AlertState = 'all' | 'active' | 'resolved';
 type ExportFormat = 'json' | 'csv';
+type AlertTypeValue = 'LOW_BIKES' | 'LOW_ANCHORS';
 
 type ParsedQuery = {
   format: ExportFormat;
   state: AlertState;
   stationId: string | null;
-  alertType: AlertType | null;
+  alertType: AlertTypeValue | null;
   severity: number | null;
   limit: number;
   offset: number;
@@ -80,12 +80,12 @@ function parseFormat(value: string | null): ExportFormat | null {
   return null;
 }
 
-function parseAlertType(value: string | null): AlertType | null {
+function parseAlertType(value: string | null): AlertTypeValue | null {
   if (!value || value === 'all') {
     return null;
   }
 
-  if (value === AlertType.LOW_BIKES || value === AlertType.LOW_ANCHORS) {
+  if (value === 'LOW_BIKES' || value === 'LOW_ANCHORS') {
     return value;
   }
 
@@ -247,8 +247,8 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
   };
 }
 
-function buildWhereFilters(query: ParsedQuery): Prisma.StationAlertWhereInput {
-  const where: Prisma.StationAlertWhereInput = {};
+function buildWhereFilters(query: ParsedQuery): Record<string, unknown> {
+  const where: Record<string, unknown> = {};
 
   if (query.state === 'active') {
     where.isActive = true;
@@ -286,12 +286,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const where = buildWhereFilters(parsed);
+  const db = prisma as any;
 
   try {
     const [total, rows] = await Promise.all([
-      prisma.stationAlert.count({ where }),
-      prisma.stationAlert.findMany({
-        where,
+      db.stationAlert.count({ where }),
+      db.stationAlert.findMany({
+        where: where as never,
         include: {
           station: {
             select: {
@@ -305,7 +306,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }),
     ]);
 
-    const alerts = rows.map((row) => ({
+    const alerts = rows.map((row: any) => ({
       id: row.id,
       stationId: row.stationId,
       stationName: row.station?.name ?? row.stationId,

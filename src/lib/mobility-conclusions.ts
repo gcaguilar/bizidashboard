@@ -473,20 +473,20 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   const demandDeltaRatio = calculateDelta(demandLast7Days, demandPrevious7Days);
   const occupancyDeltaRatio = calculateDelta(occupancyLast7Days, occupancyPrevious7Days);
 
-  const topStationsByDemand = topStationsRows.map((row) => ({
+  const topStationsByDemand = topStationsRows.map((row: any) => ({
     stationId: row.stationId,
     stationName: row.stationName,
     avgDemand: round(toNumber(row.avgDemand), 1),
   }));
 
-  const leastUsedStations = leastUsedStationsRows.map((row) => ({
+  const leastUsedStations = leastUsedStationsRows.map((row: any) => ({
     stationId: row.stationId,
     stationName: row.stationName,
     avgDemand: round(toNumber(row.avgDemand), 1),
   }));
 
-  const weekdayProfile = dayTypeProfileRows.find((row) => row.dayType === 'weekday');
-  const weekendProfile = dayTypeProfileRows.find((row) => row.dayType === 'weekend');
+  const weekdayProfile = dayTypeProfileRows.find((row: any) => row.dayType === 'weekday');
+  const weekendProfile = dayTypeProfileRows.find((row: any) => row.dayType === 'weekend');
 
   const weekdayWeekendProfile = {
     weekday: {
@@ -510,11 +510,11 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   };
 
   const peakDemandHours = peakHourRows
-    .map((row) => ({
+    .map((row: any) => ({
       hour: Math.max(0, Math.min(23, toNumber(row.hour))),
       demandScore: Math.round(toNumber(row.demandScore)),
     }))
-    .filter((row) => row.demandScore > 0);
+    .filter((row: any) => row.demandScore > 0);
 
   const topDistrictsByDemand = (() => {
     if (!districts || activeStationRows.length === 0 || stationDemandRows.length === 0) {

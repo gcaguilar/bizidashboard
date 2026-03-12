@@ -145,9 +145,9 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
+            <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
               Corredores de alto volumen
-            </h4>
+            </h3>
             <p className="mt-1 text-xs text-[var(--muted)]">
               Rutas probables entre barrios estimadas a partir de entradas y salidas agregadas.
             </p>

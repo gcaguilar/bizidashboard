@@ -76,35 +76,26 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     },
   });
 
-  const hourlyStatsResult = await prisma.hourlyStationStat.deleteMany({
-    where: {
-      bucketStart: {
-        lt: hourlyCutoff,
-      },
-    },
-  });
+  const hourlyStatsDeleted = await prisma.$executeRaw`
+    DELETE FROM HourlyStationStat
+    WHERE bucketStart < ${hourlyCutoff};
+  `;
 
-  const stationAlertsResult = await prisma.stationAlert.deleteMany({
-    where: {
-      generatedAt: {
-        lt: alertCutoff,
-      },
-    },
-  });
+  const stationAlertsDeleted = await prisma.$executeRaw`
+    DELETE FROM StationAlert
+    WHERE generatedAt < ${alertCutoff};
+  `;
 
   let transitSnapshotsDeleted = 0;
   let transitImpactDeleted = 0;
 
   try {
-    const transitSnapshotResult = await prisma.transitSnapshot.deleteMany({
-      where: {
-        observedAt: {
-          lt: transitSnapshotCutoff,
-        },
-      },
-    });
+    const deleted = await prisma.$executeRaw`
+      DELETE FROM TransitSnapshot
+      WHERE observedAt < ${transitSnapshotCutoff};
+    `;
 
-    transitSnapshotsDeleted = transitSnapshotResult.count;
+    transitSnapshotsDeleted = Number(deleted);
   } catch (error) {
     if (isMissingTableError(error)) {
       console.warn('[Retention] TransitSnapshot table missing, skipping transit snapshot cleanup');
@@ -114,15 +105,12 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
   }
 
   try {
-    const transitImpactResult = await prisma.hourlyTransitImpact.deleteMany({
-      where: {
-        bucketStart: {
-          lt: transitImpactCutoff,
-        },
-      },
-    });
+    const deleted = await prisma.$executeRaw`
+      DELETE FROM HourlyTransitImpact
+      WHERE bucketStart < ${transitImpactCutoff};
+    `;
 
-    transitImpactDeleted = transitImpactResult.count;
+    transitImpactDeleted = Number(deleted);
   } catch (error) {
     if (isMissingTableError(error)) {
       console.warn('[Retention] HourlyTransitImpact table missing, skipping transit impact cleanup');
@@ -132,13 +120,13 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
   }
 
   console.log(
-    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsResult.count} hourly rows, ${stationAlertsResult.count} alert rows, ${transitSnapshotsDeleted} transit snapshots, ${transitImpactDeleted} transit impact rows`
+    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsDeleted} hourly rows, ${stationAlertsDeleted} alert rows, ${transitSnapshotsDeleted} transit snapshots, ${transitImpactDeleted} transit impact rows`
   );
 
   return {
     stationStatusDeleted: stationStatusResult.count,
-    hourlyStatsDeleted: hourlyStatsResult.count,
-    stationAlertsDeleted: stationAlertsResult.count,
+    hourlyStatsDeleted: Number(hourlyStatsDeleted),
+    stationAlertsDeleted: Number(stationAlertsDeleted),
     transitSnapshotsDeleted,
     transitImpactDeleted,
   };

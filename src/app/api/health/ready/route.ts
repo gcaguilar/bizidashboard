@@ -3,7 +3,15 @@ import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build';
+}
+
 async function isDatabaseReady(): Promise<boolean> {
+  if (isBuildPhase()) {
+    return true;
+  }
+
   try {
     await prisma.$queryRaw`SELECT 1`;
     return true;

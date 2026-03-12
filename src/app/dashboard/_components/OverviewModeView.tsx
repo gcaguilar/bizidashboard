@@ -9,7 +9,6 @@ import { DemandFlowCard } from './DemandFlowCard';
 import { FlowPreviewPanel } from './FlowPreviewPanel';
 import { MapPanel } from './MapPanel';
 import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
-import { StatusBanner } from './StatusBanner';
 import { SystemHealthCard } from './SystemHealthCard';
 import { SystemIntradayCard } from './SystemIntradayCard';
 
@@ -77,10 +76,17 @@ export function OverviewModeView({
   activeWindowLabel,
   activeWindowDemandDays,
 }: OverviewModeViewProps) {
+  const statusLabel =
+    status.pipeline.healthStatus === 'healthy'
+      ? 'saludable'
+      : status.pipeline.healthStatus === 'degraded'
+        ? 'degradado'
+        : status.pipeline.healthStatus === 'down'
+          ? 'caido'
+          : 'desconocido';
+
   return (
     <>
-      <StatusBanner status={status} stationsGeneratedAt={stationsGeneratedAt} />
-
       <div id="mode-panel-overview" role="tabpanel" aria-labelledby="mode-tab-overview" className="grid gap-6 lg:grid-cols-3">
         <SystemHealthCard
           totalStations={systemMetrics.totalStations}
@@ -99,6 +105,25 @@ export function OverviewModeView({
           activeAlertsCount={systemMetrics.activeAlerts.length}
         />
       </div>
+
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del sistema</p>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnostico rapido fuera del panel principal</h2>
+            <p className="text-sm text-[var(--muted)]">
+              Estado actual: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · ultima referencia {updatedText}
+            </p>
+          </div>
+
+          <Link
+            href="/dashboard/status"
+            className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+          >
+            Abrir pagina de estado
+          </Link>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
         <div className="min-w-0 lg:col-span-3">

@@ -14,6 +14,7 @@ import {
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { buildPageMetadata } from '@/lib/seo';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { Heatmap } from '../../_components/Heatmap';
 import { HourlyCharts } from '../../_components/HourlyCharts';
 import { MethodologyPanel } from '../../_components/MethodologyPanel';
@@ -21,8 +22,6 @@ import { MonthFilter } from '../../_components/MonthFilter';
 import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 export const dynamic = 'force-dynamic';
 
@@ -131,26 +130,17 @@ export default async function StationDetailPage({ params, searchParams }: Statio
             <DashboardRouteLinks
               activeRoute="stations"
               routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
-              variant="chips"
-              className="hidden items-center gap-2 md:flex"
+              variant="inline"
+              className="hidden items-center gap-5 md:flex"
             />
             <DashboardRouteLinks
               activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
             <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
+            <GitHubRepoButton />
           </div>
         </div>
       </header>

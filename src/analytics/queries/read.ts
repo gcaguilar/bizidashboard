@@ -147,7 +147,7 @@ export async function getAvailableDataMonths(): Promise<string[]> {
     ORDER BY monthKey DESC;
   `;
 
-  return rows.map((row) => row.monthKey).filter(isValidMonthKey);
+  return rows.map((row: { monthKey: string | null }) => row.monthKey).filter(isValidMonthKey);
 }
 
 type HourlyMobilitySignalRow = {
@@ -406,7 +406,7 @@ export async function getHourlyMobilitySignals(
 }
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
-  return prisma.$queryRaw<DailyDemandRow[]>(buildDemandSeriesQuery(days, monthKey));
+  return (await prisma.$queryRaw(buildDemandSeriesQuery(days, monthKey))) as DailyDemandRow[];
 }
 
 export async function getSystemHourlyProfile(

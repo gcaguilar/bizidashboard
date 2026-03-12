@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
+import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
 
 type TimeWindowOption = {
@@ -35,8 +36,6 @@ type DashboardHeaderProps = {
   refreshCountdownLabel: string;
   refreshProgress: number;
 };
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 export function DashboardHeader({
   timeWindows,
@@ -97,29 +96,14 @@ export function DashboardHeader({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-          <label htmlFor="dashboard-search-desktop" className="hidden w-full max-w-md items-center rounded-lg border border-transparent bg-[var(--surface-soft)] px-3 py-2 md:flex md:border-[var(--border)]/60">
-            <span className="sr-only">Buscar estacion, identificador o barrio</span>
-            <input
-              id="dashboard-search-desktop"
-              type="text"
-              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-              placeholder="Buscar estacion, ID o barrio..."
-              value={searchQuery}
-              onChange={(event) => onChangeSearch(event.target.value)}
-            />
-          </label>
-
-          <Link href="/dashboard/conclusiones" className="icon-button hidden sm:inline-flex" aria-label="Conclusiones de movilidad">
+          <Link href="/dashboard/conclusiones" className="icon-button hidden sm:inline-flex">
             Conclusiones
           </Link>
-          <Link href="/dashboard/ayuda" className="icon-button hidden sm:inline-flex" aria-label="Centro de ayuda">
+          <Link href="/dashboard/ayuda" className="icon-button hidden sm:inline-flex">
             Ayuda
           </Link>
           <ThemeToggleButton />
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="icon-button" aria-label="Repositorio de la aplicacion">
-            <span className="sm:hidden">Repo</span>
-            <span className="hidden sm:inline">Repositorio</span>
-          </a>
+          <GitHubRepoButton />
         </div>
       </div>
 
@@ -131,10 +115,10 @@ export function DashboardHeader({
           className="flex flex-wrap items-center gap-2 sm:hidden"
         />
 
-        <label htmlFor="dashboard-search-mobile" className="flex w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm md:hidden">
+        <label htmlFor="dashboard-search" className="flex min-h-11 w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm">
           <span className="sr-only">Buscar estacion, identificador o barrio</span>
           <input
-            id="dashboard-search-mobile"
+            id="dashboard-search"
             type="text"
             className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
             placeholder="Buscar estacion, ID o barrio..."
@@ -144,22 +128,22 @@ export function DashboardHeader({
         </label>
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1.5">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={onlyWithBikes}
               onChange={(event) => onToggleOnlyWithBikes(event.target.checked)}
-              className="h-3.5 w-3.5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-[var(--accent)]"
             />
             Solo con bicis
           </label>
 
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1 text-xs font-semibold text-[var(--foreground)]">
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)]">
             <input
               type="checkbox"
               checked={onlyWithAnchors}
               onChange={(event) => onToggleOnlyWithAnchors(event.target.checked)}
-              className="h-3.5 w-3.5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-[var(--accent)]"
             />
             Solo con huecos
           </label>
