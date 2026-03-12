@@ -22,7 +22,7 @@ ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV DATABASE_URL=file:/data/dev.db
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN apt-get update && apt-get install -y --no-install-recommends curl openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl wget openssl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data
 COPY --from=builder /app/bootstrap.db /app/bootstrap.db
 RUN cp /app/bootstrap.db /data/dev.db

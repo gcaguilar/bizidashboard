@@ -22,6 +22,7 @@
     "db:health": "tsx scripts/db-health-check.ts"
   },
   "dependencies": {
+    "@libsql/isomorphic-ws": "^0.1.5",
     "@prisma/adapter-libsql": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "maplibre-gl": "^5.20.0",
