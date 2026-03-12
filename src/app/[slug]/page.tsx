@@ -19,6 +19,7 @@ import {
   getDailyMobilityConclusions,
   type MobilityConclusionsPayload,
 } from '@/lib/mobility-conclusions';
+import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig, isSeoPageSlug, SEO_PAGE_SLUGS, type SeoPageSlug } from '@/lib/seo-pages';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
@@ -290,6 +291,7 @@ function renderPageBody(
     systemHourlyProfile: Array<{ hour: number; avgOccupancy: number; bikesInCirculation: number; sampleCount: number }>;
     monthlyReport: MobilityConclusionsPayload;
     latestMonth: string | null;
+    districtRows: Awaited<ReturnType<typeof getDistrictSeoRows>>;
   }
 ) {
   const dailyComparative = buildDailyComparative(data.dailyDemand);
@@ -306,6 +308,7 @@ function renderPageBody(
   const topOccupancyHour = [...data.systemHourlyProfile].sort(
     (left, right) => right.avgOccupancy - left.avgOccupancy
   )[0] ?? null;
+  const topDistrictRow = data.districtRows[0] ?? null;
 
   switch (slug) {
     case 'estaciones-mas-usadas-zaragoza':
@@ -345,6 +348,58 @@ function renderPageBody(
               detail="Este listado usa el indice de rotacion reciente del sistema para detectar donde hay mas intercambio de bicicletas y anclajes."
             />
             <div className="mt-2 space-y-3">{renderUsageRanking(data.turnoverRankings)}</div>
+          </section>
+        </>
+      );
+    case 'barrios-bizi-zaragoza':
+      return (
+        <>
+          <section className="grid gap-4 md:grid-cols-3">
+            <article className="dashboard-card">
+              <p className="stat-label">Barrio lider</p>
+              <p className="stat-value">{topDistrictRow?.name ?? 'Sin datos'}</p>
+              <p className="text-xs text-[var(--muted)]">
+                {topDistrictRow
+                  ? `${formatDecimal(topDistrictRow.avgTurnover)} puntos medios de rotacion por estacion.`
+                  : 'Aun no hay comparativa por barrios.'}
+              </p>
+            </article>
+            <article className="dashboard-card">
+              <p className="stat-label">Mas bicis en barrio</p>
+              <p className="stat-value">{topDistrictRow ? formatInteger(topDistrictRow.bikesAvailable) : 'Sin datos'}</p>
+              <p className="text-xs text-[var(--muted)]">Disponibilidad agregada actual en el barrio con mayor intensidad reciente.</p>
+            </article>
+            <article className="dashboard-card">
+              <p className="stat-label">Cobertura</p>
+              <p className="stat-value">{formatInteger(data.districtRows.length)}</p>
+              <p className="text-xs text-[var(--muted)]">Barrios con estaciones mapeadas y comparables en esta capa SEO.</p>
+            </article>
+          </section>
+
+          <section className="dashboard-card">
+            <SectionTitle
+              title="Comparativa de barrios con uso de Bizi"
+              detail="Cada barrio resume estaciones activas, bicicletas disponibles y una media reciente de rotacion para enlazar a su ficha SEO propia."
+            />
+            <div className="mt-2 space-y-3">
+              {data.districtRows.map((district) => (
+                <Link
+                  key={district.slug}
+                  href={`/barrios/${district.slug}`}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{district.name}</p>
+                    <p className="text-[11px] text-[var(--muted)]">
+                      {district.stationCount} estaciones · {district.bikesAvailable} bicis actuales · riesgo medio {formatDecimal(district.avgAvailabilityRisk)}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[var(--accent)]/12 px-3 py-1 text-xs font-bold text-[var(--accent)]">
+                    {formatDecimal(district.avgTurnover)} pts
+                  </span>
+                </Link>
+              ))}
+            </div>
           </section>
         </>
       );
@@ -654,7 +709,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
   const config = getSeoPageConfig(slug);
   const siteUrl = getSiteUrl();
   const stationsResponse = await fetchStations().catch(() => ({ stations: [], generatedAt: new Date().toISOString() }));
-  const [turnoverResponse, availabilityResponse, dailyDemand, hourlySignals, systemHourlyProfile, monthlyDemand, availableMonths] =
+  const [turnoverResponse, availabilityResponse, dailyDemand, hourlySignals, systemHourlyProfile, monthlyDemand, availableMonths, districtRows] =
     await Promise.all([
       fetchRankings('turnover', 20).catch(() => ({ type: 'turnover' as const, limit: 20, rankings: [], generatedAt: new Date().toISOString() })),
       fetchRankings('availability', 20).catch(() => ({ type: 'availability' as const, limit: 20, rankings: [], generatedAt: new Date().toISOString() })),
@@ -663,6 +718,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
       getSystemHourlyProfile(30).catch(() => []),
       getMonthlyDemandCurve(12).catch(() => []),
       fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: new Date().toISOString() })),
+      getDistrictSeoRows().catch(() => []),
     ]);
 
   const latestMonth = availableMonths.months[0] ?? monthlyDemand.at(-1)?.monthKey ?? null;
@@ -776,6 +832,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         })),
         monthlyReport,
         latestMonth,
+        districtRows,
       })}
 
       <section className="dashboard-card">
