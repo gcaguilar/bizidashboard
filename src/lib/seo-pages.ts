@@ -1,5 +1,6 @@
 export const SEO_PAGE_SLUGS = [
   'estaciones-mas-usadas-zaragoza',
+  'barrios-bizi-zaragoza',
   'uso-bizi-por-hora',
   'ranking-estaciones-bizi',
   'viajes-por-dia-zaragoza',
@@ -35,6 +36,18 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     heroKicker: 'Ranking de demanda reciente',
     dashboardHref: '/dashboard/conclusiones',
     dashboardLabel: 'Ver conclusiones y comparativas en el dashboard',
+  },
+  'barrios-bizi-zaragoza': {
+    slug: 'barrios-bizi-zaragoza',
+    title: 'Barrios de Zaragoza con mas uso de Bizi',
+    metadataTitle: 'Barrios de Zaragoza con mas uso de Bizi y estaciones destacadas',
+    description:
+      'Comparativa SEO de barrios de Zaragoza con mas uso de Bizi, estaciones destacadas, disponibilidad actual y enlaces al dashboard.',
+    keywords: ['barrios bizi zaragoza', 'bizi por barrios zaragoza', 'distritos con mas uso bizi', 'estaciones bizi por barrio'],
+    cadenceLabel: 'Actualizacion diaria',
+    heroKicker: 'Comparativa por barrios',
+    dashboardHref: '/dashboard/flujo',
+    dashboardLabel: 'Abrir flujo por barrios en el dashboard',
   },
   'uso-bizi-por-hora': {
     slug: 'uso-bizi-por-hora',

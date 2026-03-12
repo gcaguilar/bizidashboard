@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
 import { isValidMonthKey } from '@/lib/months';
+import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
@@ -34,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
+  const districtRows = await getDistrictSeoRows().catch(() => []);
 
   const stationEntries: MetadataRoute.Sitemap = stations.map((station) => ({
     url: `${siteUrl}/dashboard/estaciones/${encodeURIComponent(station.id)}`,
@@ -61,6 +63,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified,
     changeFrequency: 'monthly',
     priority: 0.74,
+  }));
+
+  const districtEntries: MetadataRoute.Sitemap = districtRows.map((district) => ({
+    url: `${siteUrl}/barrios/${district.slug}`,
+    lastModified,
+    changeFrequency: 'daily',
+    priority: 0.68,
   }));
 
   return [
@@ -122,5 +131,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...stationEntries,
     ...seoEntries,
     ...reportEntries,
+    ...districtEntries,
   ];
 }
