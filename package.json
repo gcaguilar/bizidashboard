@@ -47,5 +47,12 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "overrides": {
+      "lodash": "4.17.23",
+      "hono": "4.12.7",
+      "@hono/node-server": "1.19.10"
+    }
   }
 }
