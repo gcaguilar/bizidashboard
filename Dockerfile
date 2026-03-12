@@ -2,14 +2,14 @@ FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN corepack enable && pnpm config set store-dir /app/.pnpm-store && pnpm install --frozen-lockfile
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm config set store-dir /app/.pnpm-store && pnpm install --frozen-lockfile
 
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm prisma generate
 RUN DATABASE_URL=file:/app/bootstrap.db pnpm prisma migrate deploy --schema prisma/schema.prisma
