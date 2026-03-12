@@ -22,7 +22,7 @@ if [ "${DB_URL#file:}" != "$DB_URL" ]; then
 
   if [ ! -s "$DB_PATH" ]; then
     SHOULD_BOOTSTRAP=true
-  elif ! ENTRYPOINT_DB_PATH="$DB_PATH" NODE_NO_WARNINGS=1 node -e "const { DatabaseSync } = require('node:sqlite'); const db = new DatabaseSync(process.env.ENTRYPOINT_DB_PATH, { readonly: true }); const row = db.prepare(\"SELECT name FROM sqlite_master WHERE type='table' AND name='StationStatus'\").get(); db.close(); if (!row) { process.exit(1); }"; then
+  elif ! ENTRYPOINT_DB_PATH="$DB_PATH" bun -e "const { DatabaseSync } = require('node:sqlite'); const db = new DatabaseSync(process.env.ENTRYPOINT_DB_PATH, { readonly: true }); const row = db.prepare(\"SELECT name FROM sqlite_master WHERE type='table' AND name='StationStatus'\").get(); db.close(); if (!row) { process.exit(1); }"; then
     SHOULD_BOOTSTRAP=true
   fi
 
@@ -32,4 +32,4 @@ if [ "${DB_URL#file:}" != "$DB_URL" ]; then
   fi
 fi
 
-exec node server.js
+exec bun server.js

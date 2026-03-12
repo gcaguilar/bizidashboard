@@ -11,7 +11,7 @@ function isBuildPhase(): boolean {
   return process.env.NEXT_PHASE === 'phase-production-build'
 }
 
-function createBuildPrismaMock(path: string[] = []): any {
+function createBuildPrismaMock(path: string[] = []): PrismaClient {
   return new Proxy(() => undefined, {
     get(_target, property) {
       return createBuildPrismaMock([...path, String(property)])
@@ -38,7 +38,7 @@ function createBuildPrismaMock(path: string[] = []): any {
 
       return Promise.resolve({})
     },
-  })
+  }) as unknown as PrismaClient
 }
 
 function ensureSqliteDirectory(url: string): void {
@@ -61,7 +61,7 @@ ensureSqliteDirectory(databaseUrl)
 
 const adapter = new PrismaLibSql({ url: databaseUrl })
 
-export const prisma: any = isBuildPhase()
+export const prisma: PrismaClient = isBuildPhase()
   ? createBuildPrismaMock()
   : globalForPrisma.prisma || new PrismaClient({ adapter })
 

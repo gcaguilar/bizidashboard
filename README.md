@@ -26,6 +26,8 @@ This project provides a full prototype pipeline:
 - Next.js (App Router) and React
 - TypeScript
 - Prisma with SQLite/libSQL adapter
+- pnpm for dependency management, installs, builds and day-to-day developer workflows
+- Bun for standalone runtime verification and the production container entrypoint
 - Redis cache layer (optional)
 - Vitest for automated tests
 
@@ -88,6 +90,13 @@ pnpm build
 pnpm db:health
 ```
 
+Standalone runtime check with Bun:
+
+```bash
+pnpm build
+pnpm start:bun
+```
+
 ## Dashboard Web
 
 The application currently ships the classic dashboard at:
@@ -106,6 +115,8 @@ The dashboard includes:
 
 The provided `docker-compose.yml` is production-oriented and builds the app image from the local `Dockerfile` by default.
 
+Build/install still happen with Node.js + `pnpm`, but the final production container runs the generated standalone server with `bun`.
+
 To use a published image instead, set `BIZIDASHBOARD_IMAGE` before running Compose (for example: `BIZIDASHBOARD_IMAGE=gcaguilar/bizidashboard:latest`).
 
 It also includes:
@@ -118,6 +129,11 @@ It also includes:
 - Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
 
 The container entrypoint also bootstraps SQLite on startup: if `DATABASE_URL` is missing or points to a relative SQLite path, it falls back to `file:/data/dev.db` and initializes it from `/app/bootstrap.db` when the file is empty or missing.
+
+Runtime split:
+
+- `pnpm install`, `pnpm prisma generate`, `pnpm prisma migrate deploy` and `pnpm build` run in the Node-based build stages.
+- The final runtime image is based on Bun and starts the standalone app with `bun server.js`.
 
 Run in production mode:
 
@@ -161,6 +177,21 @@ the `x-collect-api-key` header with that exact value.
 ```bash
 docker compose up -d
 ```
+
+## Bun Runtime Notes
+
+- Keep `pnpm-lock.yaml` as the only lockfile committed to the repo.
+- Use `pnpm` for installs, upgrades, tests, linting and builds.
+- Use Bun only to execute the generated standalone runtime in production-like environments.
+- Prisma currently still relies on `@prisma/adapter-libsql`, which remains required for SQLite runtime access.
+
+Dependency audit status for the Bun transition:
+
+- Keep: `@prisma/adapter-libsql`, `redis`, `node-cron`.
+- Removed direct deps: `@libsql/client`, `@libsql/isomorphic-ws`, `react-is`, `@types/node-cron`.
+- `@libsql/client` still reaches the runtime transitively through `@prisma/adapter-libsql`, so it does not need to stay in `package.json`.
+- Review later: `node-cron` if collection/aggregation jobs move completely outside the app container.
+- No extra Bun-specific package is required right now.
 
 ## Project Status
 

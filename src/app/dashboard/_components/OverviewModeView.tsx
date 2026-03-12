@@ -54,7 +54,6 @@ type OverviewModeViewProps = {
 
 export function OverviewModeView({
   status,
-  stationsGeneratedAt,
   totalStations,
   stations,
   filteredStations,

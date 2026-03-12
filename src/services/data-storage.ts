@@ -69,7 +69,7 @@ export async function storeStationStatuses(
 
     // SQLite doesn't support skipDuplicates, so we insert individually
     // and catch unique constraint errors for duplicates
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       for (const item of data) {
         try {
           await tx.stationStatus.create({
@@ -121,7 +121,7 @@ export async function upsertStations(
 ): Promise<{ createdOrUpdated: number }> {
   let createdOrUpdated = 0
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     for (const station of stations) {
       await tx.station.upsert({
         where: { id: station.station_id },

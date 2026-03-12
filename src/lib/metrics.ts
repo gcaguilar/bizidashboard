@@ -226,7 +226,7 @@ async function getAverageStationsPerPoll(): Promise<number> {
       return 0
     }
 
-    const totalStations = groupedPolls.reduce((sum: number, poll: any) => sum + poll._count._all, 0)
+    const totalStations = groupedPolls.reduce((sum, poll) => sum + poll._count._all, 0)
     return Math.round(totalStations / groupedPolls.length)
   } catch (error) {
     console.error('[Metrics] Error calculating average:', error)
@@ -492,8 +492,6 @@ async function getTransitMetrics(): Promise<TransitMetrics> {
 
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const db = prisma as any
-
     const [
       linkedStations,
       linkedStops,
@@ -502,19 +500,19 @@ async function getTransitMetrics(): Promise<TransitMetrics> {
       stopProviderRows,
       snapshotProviderRows
     ] = await Promise.all([
-      db.stationTransitLink.count(),
-      db.transitStop.count({ where: { isActive: true } }),
-      db.transitSnapshot.findFirst({
+      prisma.stationTransitLink.count(),
+      prisma.transitStop.count({ where: { isActive: true } }),
+      prisma.transitSnapshot.findFirst({
         orderBy: { observedAt: 'desc' },
         select: { observedAt: true }
       }),
-      db.stationTransitLink.groupBy({
+      prisma.stationTransitLink.groupBy({
         by: ['provider'],
         _count: {
           _all: true
         }
       }),
-      db.transitStop.groupBy({
+      prisma.transitStop.groupBy({
         by: ['provider'],
         where: {
           isActive: true
@@ -529,10 +527,10 @@ async function getTransitMetrics(): Promise<TransitMetrics> {
     ])
 
     const linkByProvider = new Map<string, number>(
-      linkProviderRows.map((row: any) => [String(row.provider), row._count._all] as const)
+      linkProviderRows.map((row) => [String(row.provider), row._count._all] as const)
     )
     const stopsByProvider = new Map<string, number>(
-      stopProviderRows.map((row: any) => [String(row.provider), row._count._all] as const)
+      stopProviderRows.map((row) => [String(row.provider), row._count._all] as const)
     )
     const snapshotsByProvider = new Map<string, { provider: string; total: number; stale: number }>(
       snapshotProviderRows.map((row: { provider: string; total: number; stale: number }) => [row.provider, row] as const)
