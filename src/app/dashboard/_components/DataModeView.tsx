@@ -54,10 +54,10 @@ export function DataModeView({
       description: 'Sirve para estudiar incidencias activas y resueltas con filtros por estado y limite.',
     },
     {
-      label: 'Predicciones base',
+      label: 'Predicciones por estacion',
       path: '/api/predictions?stationId=101',
       format: 'JSON',
-      description: 'Devuelve la estructura preparada para futuras predicciones a corto plazo por estacion.',
+      description: 'Estima bicis y anclajes a corto plazo mezclando estado actual y patrones historicos por hora.',
     },
   ];
 
@@ -93,7 +93,7 @@ export function DataModeView({
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del modo datos</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          Esta vista ya centraliza exportaciones, metodologia y trazabilidad. Los siguientes pasos del roadmap son conectar predicciones reales y ampliar descargas por periodo o modo.
+          Esta vista ya centraliza exportaciones, metodologia, trazabilidad y una primera capa predictiva. El siguiente paso pendiente sigue siendo medir rendimiento real en produccion tras despliegue.
         </p>
       </section>
     </section>

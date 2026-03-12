@@ -41,6 +41,7 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
 
   const nextThemeLabel = theme === 'dark' ? 'claro' : 'oscuro';
   const buttonLabel = theme === 'dark' ? 'Claro' : 'Oscuro';
+  const icon = theme === 'dark' ? '☀' : '☾';
 
   return (
     <button
@@ -56,6 +57,9 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
       aria-label={`Cambiar tema a ${nextThemeLabel}`}
       title={`Cambiar tema a ${nextThemeLabel}`}
     >
+      <span aria-hidden="true" className="text-sm leading-none" suppressHydrationWarning>
+        {icon}
+      </span>
       <span suppressHydrationWarning>{buttonLabel}</span>
     </button>
   );

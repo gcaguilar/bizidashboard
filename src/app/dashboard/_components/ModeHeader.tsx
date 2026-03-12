@@ -54,8 +54,6 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
           {MODE_OPTIONS.map((mode, index) => {
             const isActive = activeMode === mode.id;
             const tabId = `mode-tab-${mode.id}`;
-            const panelId = `mode-panel-${mode.id}`;
-
             return (
               <button
                 key={mode.id}
@@ -65,7 +63,6 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
                 role="tab"
                 id={tabId}
                 aria-selected={isActive}
-                aria-controls={panelId}
                 tabIndex={isActive ? 0 : -1}
                 className={`rounded-xl border px-4 py-3 text-left transition ${
                   isActive

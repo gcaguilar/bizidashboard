@@ -5,9 +5,8 @@ import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 type StationsDirectoryClientProps = {
   stations: StationSnapshot[];
@@ -49,26 +48,17 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
             <DashboardRouteLinks
               activeRoute="stations"
               routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
-              variant="chips"
-              className="hidden items-center gap-2 md:flex"
+              variant="inline"
+              className="hidden items-center gap-5 md:flex"
             />
             <DashboardRouteLinks
               activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
             <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
+            <GitHubRepoButton />
           </div>
         </div>
         <label className="mt-3 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">

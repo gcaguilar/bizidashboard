@@ -1,40 +1,44 @@
 import { prisma } from '@/lib/db';
 
+type WatermarkRow = {
+  name: string;
+  lastAggregatedAt: string | Date | null;
+};
+
+function toDate(value: string | Date | null | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export async function getWatermark(name: string, defaultDate: Date): Promise<Date> {
-  const record = await prisma.analyticsWatermark.findUnique({
-    where: { name },
-  });
+  const rows = await prisma.$queryRaw<WatermarkRow[]>`
+    SELECT name, lastAggregatedAt
+    FROM AnalyticsWatermark
+    WHERE name = ${name}
+    LIMIT 1;
+  `;
 
-  if (record?.lastAggregatedAt) {
-    return record.lastAggregatedAt;
+  const record = rows[0] ?? null;
+  const storedDate = toDate(record?.lastAggregatedAt);
+
+  if (storedDate) {
+    return storedDate;
   }
 
-  if (!record) {
-    await prisma.analyticsWatermark.create({
-      data: {
-        name,
-        lastAggregatedAt: defaultDate,
-      },
-    });
-  } else {
-    await prisma.analyticsWatermark.update({
-      where: { name },
-      data: { lastAggregatedAt: defaultDate },
-    });
-  }
-
+  await setWatermark(name, defaultDate);
   return defaultDate;
 }
 
 export async function setWatermark(name: string, date: Date): Promise<void> {
-  await prisma.analyticsWatermark.upsert({
-    where: { name },
-    create: {
-      name,
-      lastAggregatedAt: date,
-    },
-    update: {
-      lastAggregatedAt: date,
-    },
-  });
+  await prisma.$executeRaw`
+    INSERT INTO AnalyticsWatermark (name, lastAggregatedAt, updatedAt)
+    VALUES (${name}, ${date}, CURRENT_TIMESTAMP)
+    ON CONFLICT(name) DO UPDATE SET
+      lastAggregatedAt = excluded.lastAggregatedAt,
+      updatedAt = CURRENT_TIMESTAMP;
+  `;
 }

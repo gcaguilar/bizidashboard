@@ -1,8 +1,15 @@
-import { Prisma, TransitProvider } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 import { withRetry } from '@/lib/retry';
 import { getEuropeMadridOffset } from '@/lib/timezone';
+
+const TransitProvider = {
+  TRAM: 'TRAM',
+  BUS: 'BUS',
+} as const;
+
+type TransitProvider = (typeof TransitProvider)[keyof typeof TransitProvider];
 
 type TransitStation = {
   id: string;
@@ -486,7 +493,7 @@ async function getLatestSnapshotsByTransitStop(
     WHERE ts.provider = ${provider};
   `;
 
-  return new Map(rows.map((row) => [row.transitStopId, row] as const));
+  return new Map(rows.map((row: any) => [row.transitStopId, row] as const));
 }
 
 const tramProvider: TransitProviderAdapter = {
@@ -738,7 +745,7 @@ async function syncProvider(
 
     const linkedStops = Array.from(linkedStopsByExternalId.values());
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.transitStop.updateMany({
         where: { provider },
         data: { isActive: false },

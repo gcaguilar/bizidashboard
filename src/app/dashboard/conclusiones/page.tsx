@@ -7,10 +7,9 @@ import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
@@ -206,21 +205,12 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="conclusions"
-              routes={['dashboard', 'stations', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
             <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
+            <GitHubRepoButton />
           </div>
         </div>
       </header>

@@ -18,7 +18,7 @@ function shouldEnableInternalJobs(): boolean {
   const rawValue = process.env.ENABLE_INTERNAL_JOBS;
 
   if (!rawValue || rawValue.trim() === '') {
-    return process.env.NODE_ENV === 'production';
+    return false;
   }
 
   return ENABLED_VALUES.has(rawValue.trim().toLowerCase());

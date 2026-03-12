@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 const PAGE_SIZE = 100;
 const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -430,16 +430,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               Inicio
             </Link>
             <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
+            <GitHubRepoButton />
           </div>
         </div>
 

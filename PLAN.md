@@ -18,10 +18,10 @@
 
 ### Pendiente / siguiente foco recomendado
 
-- [ ] Conectar un modelo real al endpoint `/api/predictions`
-- [ ] Afinar más la diferencia visual entre modos sin penalizar rendimiento
+- [x] Conectar un modelo real al endpoint `/api/predictions`
+- [x] Afinar más la diferencia visual entre modos sin penalizar rendimiento
 - [ ] Medir en producción TTI/PageSpeed tras despliegue y ajustar según métricas reales
-- [ ] Valorar una separación mayor de `MapEngine` si el mapa sigue creciendo
+- [x] Valorar una separación mayor de `MapEngine` si el mapa sigue creciendo
 
 ---
 

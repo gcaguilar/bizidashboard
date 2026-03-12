@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
-
-const REPO_URL = 'https://github.com/gcaguilar/bizidashboard';
 
 type HistoryApiResponse = {
   source?: {
@@ -366,14 +365,14 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'Datos',
     question: 'Que significa que el sistema ya este preparado para predicciones?',
     answer:
-      'Significa que la interfaz y la estructura de datos ya contemplan un endpoint de predicciones. Hoy devuelve una estructura base vacia y en el futuro podra añadir ocupacion estimada a corto plazo sin rehacer el dashboard desde cero.',
+      'Significa que ya existe un endpoint operativo de prediccion y una UI preparada para consumirlo. Ahora mismo estima ocupacion a corto plazo con patrones historicos y estado actual, sin necesidad de rehacer el dashboard.',
   },
   {
     id: 'api-documentacion',
     category: 'Soporte',
     question: 'Hay endpoints API para integrar estos datos?',
     answer:
-      'Si. El proyecto expone endpoints para estado, estaciones, alertas, rankings, patrones, heatmap, movilidad, historico y una estructura base de predicciones. El modo Data resume los principales formatos y rutas.',
+      'Si. El proyecto expone endpoints para estado, estaciones, alertas, rankings, patrones, heatmap, movilidad, historico y predicciones por estacion. El modo Data resume los principales formatos y rutas.',
   },
   {
     id: 'contacto-soporte',
@@ -445,21 +444,26 @@ function formatDateTime(value: string | null | undefined): string {
 
 export function HelpCenterClient() {
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string>(FAQ_ITEMS[0]?.id ?? '');
   const [historyMeta, setHistoryMeta] = useState<HistoryApiResponse | null>(null);
 
+  const normalizedQuery = useMemo(() => normalize(query), [query]);
+
   const filteredItems = useMemo(() => {
-    const normalizedQuery = normalize(query);
-
-    if (!normalizedQuery) {
-      return FAQ_ITEMS;
-    }
-
     return FAQ_ITEMS.filter((item) => {
+      if (activeCategory && item.category !== activeCategory) {
+        return false;
+      }
+
+      if (!normalizedQuery) {
+        return true;
+      }
+
       const searchable = normalize(`${item.category} ${item.question} ${item.answer}`);
       return searchable.includes(normalizedQuery);
     });
-  }, [query]);
+  }, [activeCategory, normalizedQuery]);
 
   const categories = useMemo(() => {
     const uniqueCategories = new Set(FAQ_ITEMS.map((item) => item.category));
@@ -498,6 +502,29 @@ export function HelpCenterClient() {
     return counts;
   }, []);
 
+  const categoryMatchesBySearch = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    for (const category of categories) {
+      counts.set(category, 0);
+    }
+
+    for (const item of FAQ_ITEMS) {
+      if (!normalizedQuery) {
+        counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+        continue;
+      }
+
+      const searchable = normalize(`${item.category} ${item.question} ${item.answer}`);
+
+      if (searchable.includes(normalizedQuery)) {
+        counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+      }
+    }
+
+    return counts;
+  }, [categories, normalizedQuery]);
+
   const faqStructuredData = useMemo(
     () => ({
       '@context': 'https://schema.org',
@@ -513,6 +540,8 @@ export function HelpCenterClient() {
     }),
     []
   );
+
+  const showFilteredCount = normalizedQuery.length > 0 || activeCategory !== null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -552,6 +581,19 @@ export function HelpCenterClient() {
     };
   }, []);
 
+  useEffect(() => {
+    if (filteredItems.length === 0) {
+      setOpenItemId('');
+      return;
+    }
+
+    if (filteredItems.some((item) => item.id === openItemId)) {
+      return;
+    }
+
+    setOpenItemId(filteredItems[0]?.id ?? '');
+  }, [filteredItems, openItemId]);
+
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
@@ -590,20 +632,11 @@ export function HelpCenterClient() {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href="/api/history" className="icon-button" aria-label="Historico completo">
+            <Link href="/api/history" className="icon-button">
               Historico
             </Link>
             <ThemeToggleButton />
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="icon-button"
-              aria-label="Repositorio de la aplicacion"
-            >
-              <span className="sm:hidden">Repo</span>
-              <span className="hidden sm:inline">Repositorio</span>
-            </a>
+            <GitHubRepoButton />
           </div>
         </div>
       </header>
@@ -632,6 +665,29 @@ export function HelpCenterClient() {
             <p className="mt-4 text-lg text-[var(--muted)]">
               Explora nuestra metodologia y resuelve dudas sobre como procesamos los datos de Bizi Zaragoza en tiempo real.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
+              <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1">
+                {filteredItems.length} preguntas visibles
+              </span>
+              {activeCategory ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory(null)}
+                  className="rounded-full border border-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1 text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                >
+                  Categoria: {activeCategory} ×
+                </button>
+              ) : null}
+              {normalizedQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                >
+                  Buscar: {query} ×
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <aside className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
@@ -679,29 +735,33 @@ export function HelpCenterClient() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {categories.map((category) => {
-            const normalizedCategory = normalize(category);
-            const isCategoryFilterActive = normalize(query) === normalizedCategory;
-            const categoryMatches = filteredItems.filter((item) => item.category === category).length;
+            const isCategoryFilterActive = activeCategory === category;
+            const categoryMatches = categoryMatchesBySearch.get(category) ?? 0;
             const totalInCategory = categoryCounts.get(category) ?? 0;
-            const showFilteredCount = normalize(query).length > 0;
 
             return (
               <button
                 key={category}
                 type="button"
-                onClick={() =>
-                  setQuery((currentQuery) =>
-                    normalize(currentQuery) === normalizedCategory ? '' : category
-                  )
-                }
+                onClick={() => setActiveCategory((currentCategory) => (currentCategory === category ? null : category))}
+                aria-pressed={isCategoryFilterActive}
                 className={`rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
                   isCategoryFilterActive
-                    ? 'border-[var(--accent)] shadow-[0_0_0_1px_rgba(234,6,21,0.22)]'
+                    ? 'border-[var(--accent)] bg-[var(--accent)]/6 shadow-[0_0_0_1px_var(--accent-soft)]'
                     : 'border-[var(--border)]'
                 }`}
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-xl font-black text-[var(--accent)]">
-                  {category.slice(0, 1)}
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-xl font-black text-[var(--accent)]">
+                    {category.slice(0, 1)}
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                    isCategoryFilterActive
+                      ? 'bg-[var(--accent)] text-white'
+                      : 'border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
+                  }`}>
+                    {categoryMatches}/{totalInCategory}
+                  </span>
                 </div>
                 <h3 className="text-xl font-bold text-[var(--foreground)]">{category}</h3>
                 <p className="mt-2 text-sm text-[var(--muted)]">
@@ -725,6 +785,9 @@ export function HelpCenterClient() {
                 <h2 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
                   <span className="h-1 w-8 rounded-full bg-[var(--accent)]" />
                   {category}
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-bold text-[var(--muted)]">
+                    {items.length}
+                  </span>
                 </h2>
 
                 <div className="space-y-3">

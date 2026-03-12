@@ -186,6 +186,7 @@ export function MobilityInsights({
   );
   const [activeTransitProvider, setActiveTransitProvider] =
     useState<TransitProviderKey>('combined');
+  const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
   const selectedMonth = searchParams.get('month');
 
   useEffect(() => {
@@ -418,8 +419,25 @@ export function MobilityInsights({
     ? stationDistrictMap.get(selectedStationId) ?? null
     : null;
 
+  useEffect(() => {
+    if (!activeInsights || activeInsights.districts.length === 0) {
+      setSelectedDistrictName('');
+      return;
+    }
+
+    const preferredDistrict = selectedDistrict ?? activeInsights.districts[0]?.district ?? '';
+
+    setSelectedDistrictName((current) => {
+      if (current && activeInsights.districts.some((district) => district.district === current)) {
+        return current;
+      }
+
+      return preferredDistrict;
+    });
+  }, [activeInsights, selectedDistrict]);
+
   const selectedDistrictFlow = activeInsights?.districts.find(
-    (district) => district.district === selectedDistrict
+    (district) => district.district === selectedDistrictName
   );
 
   const topExporter = useMemo(() => {
@@ -645,9 +663,24 @@ export function MobilityInsights({
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
-              <span className="text-xs text-[var(--muted)]">Barrios representados: {chordNodes.length}</span>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
+                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[var(--muted)]">
+                  Resume de un vistazo que barrios parecen enviar o recibir mas flujo en el periodo activo. Cada nodo es un barrio y cada curva representa un corredor estimado: cuanto mas marcada, mas volumen relativo.
+                </p>
+              </div>
+              <div className="text-right text-xs text-[var(--muted)]">
+                <span>Barrios representados: {chordNodes.length}</span>
+                <div>
+                  <Link
+                    href="/dashboard/ayuda#diagrama-chord"
+                    className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                  >
+                    Como interpretarlo
+                  </Link>
+                </div>
+              </div>
             </div>
 
             <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-soft)] py-4">
@@ -732,6 +765,25 @@ export function MobilityInsights({
 
             <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
               <h3 className="text-base font-bold text-[var(--foreground)]">Resumen de balance neto</h3>
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+                <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+                  Barrio de referencia
+                </label>
+                <select
+                  value={selectedDistrictName}
+                  onChange={(event) => setSelectedDistrictName(event.target.value)}
+                  className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] outline-none"
+                >
+                  {activeInsights.districts.map((district) => (
+                    <option key={district.district} value={district.district}>
+                      {district.district}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-[var(--muted)]">
+                  Cambia el barrio para revisar su saldo neto sin depender de la estacion seleccionada.
+                </p>
+              </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-center">
                   <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">Mayor emisor</p>
@@ -758,9 +810,16 @@ export function MobilityInsights({
                   </p>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-[var(--muted)]">
-                Distrito seleccionado: {selectedDistrictFlow ? selectedDistrict : 'sin seleccion'}
-              </p>
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-xs text-[var(--muted)]">
+                {selectedDistrictFlow ? (
+                  <>
+                    <span className="font-semibold text-[var(--foreground)]">{selectedDistrictName}</span>
+                    {`: ${selectedDistrictFlow.net >= 0 ? '+' : ''}${selectedDistrictFlow.net.toFixed(1)} de balance neto, ${selectedDistrictFlow.inbound.toFixed(0)} entradas estimadas y ${selectedDistrictFlow.outbound.toFixed(0)} salidas estimadas.`}
+                  </>
+                ) : (
+                  'No hay un barrio de referencia disponible para este periodo.'
+                )}
+              </div>
             </article>
           </div>
 
@@ -900,8 +959,8 @@ export function MobilityInsights({
                       />
                       <Tooltip
                         formatter={(
-                          value: number | string | Array<number | string> | undefined,
-                          name: string | undefined
+                          value: number | string | ReadonlyArray<number | string> | undefined,
+                          name: string | number | undefined
                         ) => {
                           const numericValue = Array.isArray(value)
                             ? Number(value[0])
@@ -1041,8 +1100,8 @@ export function MobilityInsights({
                       <YAxis tick={{ fontSize: 11 }} width={46} />
                       <Tooltip
                         formatter={(
-                          value: number | string | Array<number | string> | undefined,
-                          name: string | undefined
+                          value: number | string | ReadonlyArray<number | string> | undefined,
+                          name: string | number | undefined
                         ) => {
                           const numericValue = Array.isArray(value)
                             ? Number(value[0])

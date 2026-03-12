@@ -51,9 +51,9 @@ export function DashboardRouteLinks({
             ? `icon-button ${
                 isActive ? 'border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent)]' : ''
               }`
-            : isActive
+             : isActive
               ? 'border-b-2 border-[var(--accent)] pb-1 text-sm font-bold text-[var(--foreground)]'
-              : 'pb-1 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--accent)]';
+              : 'pb-1 text-sm font-semibold text-[var(--accent-strong)] transition hover:text-[var(--accent)]';
 
         return (
           <Link

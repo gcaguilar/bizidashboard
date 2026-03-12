@@ -92,7 +92,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
           totalStations,
           totalDays: dailyHistoryRows.length,
         },
-        history: dailyHistoryRows.map((row) => ({
+        history: dailyHistoryRows.map((row: any) => ({
           day: row.day,
           demandScore: Number(row.demandScore ?? 0),
           avgOccupancy: Number(row.avgOccupancy ?? 0),
