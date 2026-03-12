@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
+import { isValidMonthKey } from '@/lib/months';
+import { SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
@@ -25,6 +27,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .then(({ fetchStations }) => fetchStations())
     .then((response) => response.stations)
     .catch(() => []);
+  const months = await import('@/lib/api')
+    .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
+    .then((response) => response.months)
+    .catch(() => []);
+  const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
+    right.localeCompare(left, 'es')
+  );
 
   const stationEntries: MetadataRoute.Sitemap = stations.map((station) => ({
     url: `${siteUrl}/dashboard/estaciones/${encodeURIComponent(station.id)}`,
@@ -40,12 +49,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
+  const seoEntries: MetadataRoute.Sitemap = SEO_PAGE_SLUGS.map((slug) => ({
+    url: `${siteUrl}/${slug}`,
+    lastModified,
+    changeFrequency: slug === 'estaciones-con-mas-bicis' ? 'hourly' : 'daily',
+    priority: slug === 'informes-mensuales-bizi-zaragoza' ? 0.78 : 0.72,
+  }));
+
+  const reportEntries: MetadataRoute.Sitemap = validMonths.map((month) => ({
+    url: `${siteUrl}/informes/${month}`,
+    lastModified,
+    changeFrequency: 'monthly',
+    priority: 0.74,
+  }));
+
   return [
     {
       url: siteUrl,
       lastModified,
       changeFrequency: 'hourly',
       priority: 1,
+    },
+    {
+      url: `${siteUrl}/informes`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.82,
     },
     {
       url: `${siteUrl}/dashboard`,
@@ -91,5 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...modeEntries,
     ...stationEntries,
+    ...seoEntries,
+    ...reportEntries,
   ];
 }
