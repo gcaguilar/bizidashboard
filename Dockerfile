@@ -29,6 +29,7 @@ RUN cp /app/bootstrap.db /data/dev.db
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 VOLUME ["/data"]
