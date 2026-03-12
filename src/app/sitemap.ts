@@ -1,9 +1,9 @@
 import type { MetadataRoute } from 'next';
-import { fetchStations } from '@/lib/api';
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 function toValidDate(value: string | null | undefined, fallback: Date): Date {
   if (!value) {
@@ -21,7 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const lastModified = new Date();
-  const stations = await fetchStations()
+  const stations = await import('@/lib/api')
+    .then(({ fetchStations }) => fetchStations())
     .then((response) => response.stations)
     .catch(() => []);
 
