@@ -1,32 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 
 const STORAGE_KEY = 'bizidashboard-beta-banner-dismissed';
 
+function getInitialVisible(): boolean {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+  try {
+    return !window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return true;
+  }
+}
+
 export function BetaBanner() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(getInitialVisible);
 
-  useEffect(() => {
-    try {
-      const dismissed = window.localStorage.getItem(STORAGE_KEY);
-      if (!dismissed) {
-        setVisible(true);
-      }
-    } catch {
-      setVisible(true);
-    }
-  }, []);
-
-  function dismiss() {
+  const dismiss = useCallback(() => {
     setVisible(false);
     try {
       window.localStorage.setItem(STORAGE_KEY, '1');
     } catch {
       // ignore storage errors
     }
-  }
+  }, []);
 
   if (!visible) {
     return null;
