@@ -11,6 +11,7 @@ import {
 } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
+import { BetaBanner } from './_components/BetaBanner';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -218,6 +219,7 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <BetaBanner />
       {loadErrors.length > 0 ? (
         <section className="mx-auto mb-6 w-full max-w-[1280px] rounded-2xl border border-amber-500/40 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
           <p className="font-semibold">
