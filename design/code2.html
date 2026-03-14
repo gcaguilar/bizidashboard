@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Station Details - Bizi Zaragoza</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea0615",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#230f11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header/Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-6 py-4 lg:px-40">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">directions_bike</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Station Analytics</h2>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg h-10 bg-primary/10 hover:bg-primary/20 text-primary w-10 transition-colors">
+<span class="material-symbols-outlined text-xl">share</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 bg-primary/10 hover:bg-primary/20 text-primary w-10 transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+</button>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8 px-6 lg:px-40">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-6">
+<!-- Station Identity & Status Badge -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-primary/5 p-6 rounded-xl border border-primary/10">
+<div class="flex items-center gap-6">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg h-24 w-24 border-2 border-primary/20" data-alt="Modern bike sharing station in Zaragoza city center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCiIh4EJrX9K0zcKXcLbXBmt8t8pEI4_cxEuR5yLf2iFCl50iAr8Lo1xqQ0ct2P2qq3csWjZ42xx0GZxu1agDmOFY3UVk2eKyOmuYdJWYw7vLIYlZIA2JpsZ_9kHK_FFZSKKjK3hhu3LcQFKfIFy1FjoeapfQMFCLwngkW145LQXTi1fCPqCzeIyFPD0NEWotCRc1sSB-eLRTmX_MTSYSIE0Dr0ZDUagUTSQevOnv4kWadFbzyO5UeS-Etf8PQeeSR3DTx1Uv_MBBE");'>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-bold tracking-tight">Plaza de España</h1>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-slate-500 dark:text-slate-400 font-medium">ID: #024</span>
+<span class="h-1 w-1 bg-slate-400 rounded-full"></span>
+<span class="text-slate-500 dark:text-slate-400 font-medium">Distrito Centro</span>
+</div>
+<div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary text-primary text-xs font-bold uppercase tracking-wider">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                                    Critical - Empty
+                                </div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<div class="text-right">
+<p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Last Updated</p>
+<p class="text-sm font-medium">Just now (14:32:05)</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                                Force Refresh
+                            </button>
+</div>
+</div>
+<!-- Real-time Status Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-primary/10 border border-primary/20">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase">Bikes Available</p>
+<span class="material-symbols-outlined text-primary">directions_bike</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-4xl font-bold">0</p>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<p class="text-sm font-bold">-100% vs avg</p>
+</div>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase mt-1">Avg in Distrito Centro: 4.2</p></div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase">Free Docks</p>
+<span class="material-symbols-outlined text-emerald-500">dock</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-4xl font-bold">25</p>
+<div class="flex items-center gap-1 text-emerald-500">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<p class="text-sm font-bold">Full Capacity</p>
+</div>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase mt-1">Avg in Distrito Centro: 18.5</p></div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase">Avg. Session</p>
+<span class="material-symbols-outlined text-slate-400">timer</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-4xl font-bold">14m</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">-2m from station avg</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase">Daily Trips</p>
+<span class="material-symbols-outlined text-slate-400">route</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-4xl font-bold">142</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">High traffic area</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Occupation Chart (2/3 width) -->
+<div class="lg:col-span-2 flex flex-col gap-6 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-center">
+<h3 class="text-lg font-bold">Occupation Levels (Last 24h)</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-xs font-bold text-slate-500"><span class="h-2 w-2 rounded-full bg-primary"></span> Bikes</span>
+<span class="flex items-center gap-1 text-xs font-bold text-slate-500"><span class="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700"></span> Docks</span>
+</div>
+</div>
+<div class="relative h-[240px] w-full mt-4">
+<svg class="h-full w-full" fill="none" preserveaspectratio="none" viewbox="0 0 478 150">
+<path class="text-primary" d="M0 130C20 120 40 40 60 45C80 50 100 110 120 105C140 100 160 30 180 35C200 40 220 80 240 85C260 90 280 140 300 145C320 150 340 10 360 5C380 0 400 60 420 70C440 80 460 125 478 135" stroke="currentColor" stroke-width="3"></path>
+<path class="opacity-10" d="M0 130C20 120 40 40 60 45C80 50 100 110 120 105C140 100 160 30 180 35C200 40 220 80 240 85C260 90 280 140 300 145C320 150 340 10 360 5C380 0 400 60 420 70C440 80 460 125 478 135 V150 H0 Z" fill="url(#gradient-chart)"></path>
+<defs>
+<lineargradient id="gradient-chart" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#ea0615"></stop>
+<stop offset="100%" stop-color="#ea0615" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-between mt-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>Now</span>
+</div>
+</div>
+</div>
+<!-- Predictive Insights -->
+<div class="flex flex-col gap-4 rounded-xl p-6 bg-primary border-2 border-primary">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined">psychology</span>
+<h3 class="text-lg font-bold">Predictive Insights</h3>
+</div>
+<p class="text-white/80 text-sm">AI-driven availability forecast for the next 120 minutes.</p>
+<div class="flex flex-col gap-4 mt-2">
+<div class="flex justify-between items-center bg-white/10 p-3 rounded-lg border border-white/20">
+<div class="flex flex-col">
+<span class="text-xs text-white/60 font-bold uppercase tracking-tighter">In 30 mins</span>
+<span class="text-white font-bold">2 Bikes expected</span>
+</div>
+<span class="material-symbols-outlined text-white">trending_up</span>
+</div>
+<div class="flex justify-between items-center bg-white/10 p-3 rounded-lg border border-white/20">
+<div class="flex flex-col">
+<span class="text-xs text-white/60 font-bold uppercase tracking-tighter">In 60 mins</span>
+<span class="text-white font-bold">5 Bikes expected</span>
+</div>
+<span class="material-symbols-outlined text-white">trending_up</span>
+</div>
+<div class="flex flex-col gap-2 pt-2">
+<p class="text-xs text-white/80 italic font-medium">"Peak morning usage starting soon. High dock turnover expected."</p>
+<div class="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-white rounded-full w-3/4"></div>
+</div>
+<span class="text-[10px] text-white/60 text-right font-bold">Confidence: 94%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Top Routes -->
+<div class="flex flex-col gap-4 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold">Top Destinations</h3>
+<button class="text-xs font-bold text-primary hover:underline">View Map</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">1</div>
+<p class="font-semibold">Univ. San Francisco</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-slate-500">22% of trips</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">2</div>
+<p class="font-semibold">Paseo Independencia</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-slate-500">18% of trips</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">3</div>
+<p class="font-semibold">Estación Delicias</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-slate-500">15% of trips</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="mt-2 h-40 w-full rounded-lg overflow-hidden border border-slate-200 dark:border-primary/10 grayscale opacity-80" data-alt="Mini map of Zaragoza bike routes" data-location="Zaragoza" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAYwkCz-ZtqVAvmHkrWFgqR0QTiBkOVKQMvv1cRCyMDUylZVz5hnObVbHEgC-2pV67Kp1lsTWHUDe3KfjTe3QWipnAnPd7fIUyjJUwtSspQqT7aYv-qnACvxGz8H5DB4yaaFsq8RvOLsM3HC9e9jg4yDXTP1DU8oxfAGocgcUwBZy1Db4W1aN9VhJDxQqiJbIP3bGY0L2jjkoSheazgwJkSlOsP0H2dGy4HQD5WxDoc-RWpdfIwd6tTlBzL2-H6P0zrtt0cv4c0_UA'); background-size: cover; background-position: center;">
+</div>
+</div>
+<!-- Technical Info -->
+<!-- Neighborhood Benchmarking -->
+<div class="flex flex-col gap-4 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold">Neighborhood Benchmarking</h3>
+<span class="text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-1 rounded">Distrito Centro</span>
+</div>
+<div class="space-y-4">
+<div class="grid grid-cols-3 text-xs font-bold text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-200 dark:border-primary/10">
+<span>Metric</span>
+<span class="text-center">This Station</span>
+<span class="text-right">District Avg</span>
+</div>
+<div class="grid grid-cols-3 items-center py-1">
+<span class="text-sm font-medium">Daily Peak Demand</span>
+<span class="text-center text-sm font-bold">42 bikes/hr</span>
+<span class="text-right text-sm text-slate-500">28 bikes/hr</span>
+</div>
+<div class="grid grid-cols-3 items-center py-1">
+<span class="text-sm font-medium">Turnover Rate</span>
+<span class="text-center text-sm font-bold">5.2x</span>
+<span class="text-right text-sm text-slate-500">3.8x</span>
+</div>
+<div class="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/10">
+<p class="text-xs text-slate-500 leading-relaxed">
+<span class="font-bold text-primary">Insight:</span> This station experiences <span class="text-slate-900 dark:text-slate-100">50% higher peak demand</span> than the district average, suggesting a need for increased rebalancing priority during morning hours.
+            </p>
+</div>
+</div>
+</div><div class="flex flex-col gap-6 rounded-xl p-6 bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<h3 class="text-lg font-bold">Technical Diagnostics</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 rounded-lg bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-2 text-slate-500 mb-2">
+<span class="material-symbols-outlined text-sm">build</span>
+<span class="text-[10px] font-bold uppercase">Last Maintenance</span>
+</div>
+<p class="text-xl font-bold">Oct 12, 2023</p>
+<p class="text-xs text-emerald-500 font-medium mt-1">Status: Operational</p>
+</div>
+<div class="p-4 rounded-lg bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-2 text-slate-500 mb-2">
+<span class="material-symbols-outlined text-sm">battery_charging_full</span>
+<span class="text-[10px] font-bold uppercase">Kiosk Battery</span>
+</div>
+<p class="text-xl font-bold">88%</p>
+<p class="text-xs text-slate-400 font-medium mt-1">Grid connected</p>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between mb-1">
+<span class="text-xs font-bold text-slate-500 uppercase">Station Hardware Health</span>
+<span class="text-xs font-bold text-emerald-500">Optimal</span>
+</div>
+<div class="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[96%]"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">notifications_active</span>
+</div>
+<div>
+<p class="text-sm font-bold">System Alert</p>
+<p class="text-xs text-slate-500">Dock #12 reported mechanical resistance during last return. Maintenance scheduled for 22:00.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar (Mobile Responsive) -->
+<div class="fixed bottom-0 left-0 right-0 p-4 lg:hidden bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-primary/20">
+<button class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">map</span>
+                    Navigate to Station
+                </button>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 type ApiCatalogCardProps = {
   items: Array<{
     label: string;
@@ -17,12 +19,12 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
             Resumen rapido de las rutas utiles para integrar datos del dashboard desde otras herramientas.
           </p>
         </div>
-        <a
+        <Link
           href="/dashboard/ayuda#api-documentacion"
           className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Ver ayuda
-        </a>
+        </Link>
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">

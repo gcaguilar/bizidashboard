@@ -97,7 +97,8 @@ export function DataHistoryCard() {
             </Link>
           </div>
           <div>
-            <a href="/api/history?format=csv" className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/api/history?format=csv" className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline" rel="noopener noreferrer">
               Descargar CSV
             </a>
           </div>

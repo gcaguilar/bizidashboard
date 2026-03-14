@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bizi Zaragoza - Urban Mobility Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea0615",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#230f11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header Section -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-primary/20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary flex items-center justify-center rounded-lg text-white">
+<span class="material-symbols-outlined">pedal_bike</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Bizi Zaragoza</h2>
+</div>
+<div class="hidden lg:flex items-center gap-2 bg-primary/10 dark:bg-primary/20 p-1 rounded-lg">
+<button class="px-4 py-1.5 text-xs font-semibold rounded-md bg-primary text-white shadow-sm">Last 24h</button>
+<button class="px-4 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-primary/10 rounded-md">7 Days</button>
+<button class="px-4 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-primary/10 rounded-md">Month</button>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-4 items-center">
+<label class="relative flex items-center w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-slate-200/50 dark:bg-white/5 border-none focus:ring-2 focus:ring-primary rounded-lg pl-10 pr-4 py-2 text-sm placeholder:text-slate-500" placeholder="Search for a station or neighborhood..." type="text"/>
+</label>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg bg-slate-200/50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-primary/20 hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-lg bg-slate-200/50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-primary/20 hover:text-primary transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="size-9 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="User avatar illustration" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6JN9giVlJvyYE4NVPqWhcM5gjjJofWCjmNQeEWUu0eNE-H8DEIijRGz65oK-ZZh2K8QRnKoytEwaLnxryXA4XP112W89-ajyTYtFnXU0Yd4QQFP75r3g3g6cPeagSIS087DS5WsBwlnaMrGXhECwDvhpdKd3noSLOqUWpPpxmzYyM0LqFdHCZS9a1j_L8MtSeGmM-yi1o1csd4YmfMUcdCtkiDg-YqmRuLlAu7KTDYtXTxVCHRvg4nuAsCdJnvVyB8U88k6ftNeI"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 p-6 space-y-6">
+<!-- Hero Map Section -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[600px]">
+<div class="lg:col-span-3 relative rounded-xl overflow-hidden border border-primary/10 shadow-xl bg-slate-200 dark:bg-slate-800">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Detailed urban map of Zaragoza city center" data-location="Zaragoza, Spain" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCxD-EKMlv93Ue4cZ7uVrXCxiYAbRPBWvrYS-EXdjo1rDLsILSwZ08H6sX3lVevz2a2h7NXbwcXlSfIBCIDYYNvrzxIz3rKAbflmWRAqD-K35qHcYE5dmlgjsiB06VQEXRgJGlzEMmcmYici2f0j50-qd_jARxxJGyhnpBgGbbAQ_s2iU9YIJmzQY-LrCQRLASYKme5-RCE0gXXKTr7Tbs0xWHDyTx2sZ4bew1gnmdRx_MLg9d1JQlt4I_xm3f3-yeU1W2amzsLaSg')"></div>
+<!-- Map Controls Overlay -->
+<div class="absolute top-4 right-4 flex flex-col gap-2">
+<button class="p-2 bg-background-light dark:bg-background-dark rounded-lg shadow-lg border border-primary/20 hover:text-primary">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="p-2 bg-background-light dark:bg-background-dark rounded-lg shadow-lg border border-primary/20 hover:text-primary">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="p-2 bg-background-light dark:bg-background-dark rounded-lg shadow-lg border border-primary/20 hover:text-primary mt-2">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Legend Overlay -->
+<div class="absolute bottom-4 left-4 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur px-4 py-3 rounded-xl border border-primary/20 shadow-2xl flex gap-6">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-green-500"></span>
+<span class="text-xs font-medium">Available</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-yellow-500"></span>
+<span class="text-xs font-medium">Low Stock</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-primary"></span>
+<span class="text-xs font-medium">Critical</span>
+</div>
+</div>
+</div>
+<!-- Side Panel: Critical Stations -->
+<div class="bg-background-light dark:bg-background-dark rounded-xl border border-primary/10 shadow-xl flex flex-col overflow-hidden">
+<div class="p-4 border-b border-primary/10 flex justify-between items-center bg-primary/5">
+<h3 class="font-bold text-sm uppercase tracking-wider text-primary">Critical Stations</h3>
+<span class="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full">8 Action Required</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<div class="p-3 rounded-lg border border-primary/20 bg-primary/5 group cursor-pointer hover:bg-primary/10 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-bold">Plaza de España</span>
+<span class="text-xs font-bold text-primary">EMPTY</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Station #024 • Dist: 0.2km</p>
+<div class="w-full bg-slate-300 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="p-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5 group cursor-pointer hover:bg-yellow-500/10 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-bold">Univ. San Francisco</span>
+<span class="text-xs font-bold text-yellow-500">FULL</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Station #102 • Dist: 1.5km</p>
+<div class="w-full bg-slate-300 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-yellow-500 h-full" style="width: 100%"></div>
+</div>
+</div>
+<div class="p-3 rounded-lg border border-primary/20 bg-primary/5 group cursor-pointer hover:bg-primary/10 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-bold">Puente de Piedra</span>
+<span class="text-xs font-bold text-primary">EMPTY</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Station #045 • Dist: 0.8km</p>
+<div class="w-full bg-slate-300 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 5%"></div>
+</div>
+</div>
+<div class="p-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 opacity-60">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-bold text-slate-400">Paseo Independencia</span>
+<span class="text-xs font-bold text-slate-400">OFFLINE</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Station #001 • Maint. Required</p>
+</div>
+</div>
+<button class="m-4 py-2 border border-primary text-primary text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-all">
+                    VIEW ALL ALERTS
+                </button>
+</div>
+</div>
+<!-- Data Visualization Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Line Chart: Bike Demand -->
+<div class="bg-background-light dark:bg-background-dark rounded-xl border border-primary/10 p-5 shadow-lg">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-sm uppercase tracking-wide">Daily Demand Flow</h3>
+<span class="material-symbols-outlined text-slate-400">show_chart</span>
+</div>
+<div class="h-48 flex items-end justify-between gap-1">
+<div class="w-full bg-primary/10 rounded-t h-[20%] relative group">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] hidden group-hover:block">06h</div>
+</div>
+<div class="w-full bg-primary/20 rounded-t h-[40%]"></div>
+<div class="w-full bg-primary/40 rounded-t h-[75%]"></div>
+<div class="w-full bg-primary/60 rounded-t h-[95%]"></div>
+<div class="w-full bg-primary rounded-t h-[85%]"></div>
+<div class="w-full bg-primary/80 rounded-t h-[60%]"></div>
+<div class="w-full bg-primary/50 rounded-t h-[45%]"></div>
+<div class="w-full bg-primary/40 rounded-t h-[70%]"></div>
+<div class="w-full bg-primary/60 rounded-t h-[100%]"></div>
+<div class="w-full bg-primary/40 rounded-t h-[60%]"></div>
+<div class="w-full bg-primary/20 rounded-t h-[30%]"></div>
+<div class="w-full bg-primary/10 rounded-t h-[15%]"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] text-slate-500 font-bold">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>23:59</span>
+</div>
+</div>
+<!-- Bar Chart: Problematic Stations -->
+<div class="bg-background-light dark:bg-background-dark rounded-xl border border-primary/10 p-5 shadow-lg">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-sm uppercase tracking-wide">Recurring Bottlenecks</h3>
+<span class="material-symbols-outlined text-slate-400">bar_chart</span>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium">
+<span>Av. Goya / Sagasta</span>
+<span>92% Empty freq.</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full">
+<div class="bg-primary h-full rounded-full" style="width: 92%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium">
+<span>Plaza San Francisco</span>
+<span>85% Full freq.</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full">
+<div class="bg-yellow-500 h-full rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium">
+<span>Estación Delicias</span>
+<span>78% Demand spike</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full">
+<div class="bg-primary h-full rounded-full" style="width: 78%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium">
+<span>Echegaray y Caballero</span>
+<span>64% Imbalance</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full">
+<div class="bg-primary h-full rounded-full" style="width: 64%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Donut Chart: Neighborhood Distribution -->
+<div class="bg-background-light dark:bg-background-dark rounded-xl border border-primary/10 p-5 shadow-lg">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-bold text-sm uppercase tracking-wide">Neighborhood Load</h3>
+<span class="material-symbols-outlined text-slate-400">donut_large</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative size-32 flex-shrink-0">
+<svg class="size-full" viewbox="0 0 36 36">
+<path class="text-primary/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="40, 100" stroke-linecap="round" stroke-width="4"></path>
+<path class="text-primary/60" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="25, 100" stroke-dashoffset="-40" stroke-linecap="round" stroke-width="4"></path>
+<path class="text-primary/30" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="35, 100" stroke-dashoffset="-65" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-lg font-bold">132</span>
+<span class="text-[8px] uppercase font-bold text-slate-500">Total Hubs</span>
+</div>
+</div>
+<div class="space-y-2 text-[10px] font-bold uppercase tracking-tight">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span>
+<span>Centro (40%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary/60"></span>
+<span>Actur (25%)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary/30"></span>
+<span>Delicias (35%)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Flow Analysis Section -->
+<div class="bg-background-light dark:bg-background-dark rounded-xl border border-primary/10 shadow-xl overflow-hidden">
+<div class="p-6 border-b border-primary/10 bg-primary/5">
+<div class="flex justify-between items-center">
+<div>
+<h3 class="font-bold text-lg leading-tight">Flow Analysis &amp; Popular Routes</h3>
+<p class="text-sm text-slate-500">Real-time movement between urban districts</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-primary/10 text-primary p-2 rounded-lg"><span class="material-symbols-outlined text-sm">filter_alt</span></button>
+<button class="bg-primary/10 text-primary p-2 rounded-lg"><span class="material-symbols-outlined text-sm">download</span></button>
+</div>
+</div>
+</div>
+<div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Abstract Chord/Flow Visual -->
+<div class="relative h-64 bg-slate-100 dark:bg-background-dark border border-dashed border-primary/30 rounded-xl flex items-center justify-center group">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at center, #ea0615 0%, transparent 70%);"></div>
+<div class="flex flex-col items-center text-center p-8">
+<span class="material-symbols-outlined text-4xl text-primary mb-3">query_stats</span>
+<p class="font-bold text-sm">Spatial Distribution Model</p>
+<p class="text-xs text-slate-500 mt-1 max-w-xs">Interactive chord diagram visualizing the volume of trips between the city's 12 major mobility sectors.</p>
+<button class="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg shadow-lg hover:scale-105 transition-transform">EXPAND FULL VIEW</button>
+</div>
+</div>
+<!-- Popular Routes Table -->
+<div class="space-y-4">
+<h4 class="text-xs font-bold uppercase text-slate-400">High Volume Corridors</h4>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-primary/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+<div>
+<p class="text-sm font-bold">Actur → Centro</p>
+<p class="text-[10px] text-slate-500 font-medium">Avg. Duration: 12m 40s</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold">1,240</p>
+<p class="text-[10px] text-green-500 font-bold">↑ 12%</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-primary/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+<div>
+<p class="text-sm font-bold">Delicias → Univ. San Francisco</p>
+<p class="text-[10px] text-slate-500 font-medium">Avg. Duration: 18m 15s</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold">982</p>
+<p class="text-[10px] text-green-500 font-bold">↑ 5%</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-primary/5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+</div>
+<div>
+<p class="text-sm font-bold">Las Fuentes → Centro</p>
+<p class="text-[10px] text-slate-500 font-medium">Avg. Duration: 14m 20s</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold">642</p>
+<p class="text-[10px] text-primary font-bold">↓ 8%</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="p-6 text-center border-t border-primary/10 bg-background-light dark:bg-background-dark">
+<p class="text-xs text-slate-500">© 2024 Bizi Zaragoza - Urban Mobility Management System. Powered by SmartCity Analytics.</p>
+</footer>
+</div>
+</body></html>

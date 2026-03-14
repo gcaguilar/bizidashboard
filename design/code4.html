@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea0615",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#230f11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<title>Bizi Zaragoza Analytics - FAQ</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex flex-col w-full overflow-x-hidden">
+<!-- Navigation -->
+<header class="flex items-center justify-between border-b border-primary/20 bg-background-light dark:bg-background-dark px-6 md:px-10 py-4 sticky top-0 z-50 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">directions_bike</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Bizi Analytics</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Alertas</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Estaciones</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">FAQ</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center bg-slate-200 dark:bg-primary/10 rounded-lg px-3 py-1.5 border border-transparent focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm placeholder:text-slate-500 dark:placeholder:text-slate-400 w-48" placeholder="Buscar ayuda..." type="text"/>
+</div>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-200 dark:bg-primary/20 text-slate-700 dark:text-slate-100 hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="max-w-5xl mx-auto w-full px-6 py-12">
+<!-- Hero Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+<div class="max-w-2xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
+<span class="material-symbols-outlined text-sm">help_center</span> Centro de Ayuda
+                    </div>
+<h1 class="text-slate-900 dark:text-slate-100 text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4">Preguntas Frecuentes</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
+                        Explora nuestra metodología y resuelve tus dudas sobre cómo procesamos los datos del servicio municipal de Bizi Zaragoza en tiempo real.
+                    </p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined">mail</span> Contactar Soporte
+                </button>
+</div>
+<!-- Categories Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 p-6 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all">
+<span class="material-symbols-outlined text-3xl">database</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Datos</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Origen, frecuencia de actualización y almacenamiento histórico.</p>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 p-6 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all">
+<span class="material-symbols-outlined text-3xl">analytics</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Algoritmos</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Modelos de IA, predicciones y criterios de criticidad.</p>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 p-6 rounded-xl hover:border-primary transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all">
+<span class="material-symbols-outlined text-3xl">dashboard</span>
+</div>
+<h3 class="text-xl font-bold mb-2">Uso</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Guía de usuario, alertas y visualización del dashboard.</p>
+</div>
+</div>
+<!-- Accordion FAQ Section -->
+<div class="space-y-6">
+<!-- Section: Metodología -->
+<div class="space-y-4">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3 mb-6">
+<span class="w-8 h-1 bg-primary rounded-full"></span>
+                        Metodología y Procesamiento
+                    </h2>
+<!-- Item 1 -->
+<details class="group bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden" open="">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<span class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">source</span>
+                                1. ¿Cuál es el origen de los datos?
+                            </span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-slate-500">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-0 ml-10">
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Los datos proceden directamente de dos fuentes oficiales: el portal <strong>Zaragoza Open Data</strong> del Ayuntamiento de Zaragoza y la <strong>API pública de Bizi</strong> proporcionada por Clear Channel. Nuestro sistema actúa como un agregador que normaliza esta información para su análisis visual.
+                            </p>
+</div>
+</details>
+<!-- Item 2 -->
+<details class="group bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<span class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">sync</span>
+                                2. ¿Cómo se realiza la recopilación de información?
+                            </span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-slate-500">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-0 ml-10">
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Realizamos un sondeo en tiempo real cada <strong>5 minutos</strong> (frecuencia de polling). Cada captura registra el número de anclajes libres, bicicletas disponibles y estado mecánico de cada una de las 130 estaciones. Esta información se procesa y almacena en una base de datos temporal para generar las tendencias horarias y diarias.
+                            </p>
+</div>
+</details>
+<!-- Item 3 -->
+<details class="group bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<span class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">report_problem</span>
+                                3. ¿Qué criterios definen una estación como problemática?
+                            </span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-slate-500">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-0 ml-10">
+<div class="space-y-4">
+<p class="text-slate-600 dark:text-slate-400">Nuestro algoritmo categoriza las estaciones basándose en tres niveles de alerta:</p>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="mt-1 w-2 h-2 rounded-full bg-primary shrink-0"></span>
+<span class="text-slate-600 dark:text-slate-400"><strong>Crítica:</strong> 0 bicicletas o 0 anclajes disponibles de forma continuada por más de 15 minutos.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="mt-1 w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>
+<span class="text-slate-600 dark:text-slate-400"><strong>Alta Demanda:</strong> Ocupación mayor al 90% o menor al 10% durante horas punta detectadas.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="mt-1 w-2 h-2 rounded-full bg-yellow-500 shrink-0"></span>
+<span class="text-slate-600 dark:text-slate-400"><strong>Desequilibrio:</strong> Tasa de rotación negativa (salen más bicis de las que entran) proyectando vacío inminente.</span>
+</li>
+</ul>
+</div>
+</div>
+</details>
+<!-- Item 4 -->
+<details class="group bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<span class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">psychology</span>
+                                4. ¿Cómo funcionan las predicciones con IA?
+                            </span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-slate-500">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-0 ml-10">
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Utilizamos un modelo de series temporales (LSTM - Long Short-Term Memory) que analiza las tendencias históricas de los últimos 6 meses. El modelo tiene en cuenta variables externas como <strong>predicciones meteorológicas</strong>, festivos locales y eventos masivos para predecir la disponibilidad en una estación específica con una ventana de hasta 2 horas de antelación.
+                            </p>
+</div>
+</details>
+<!-- Item 5 -->
+<details class="group bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<span class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">update</span>
+                                5. ¿Con qué frecuencia se actualiza el dashboard?
+                            </span>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-slate-500">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-0 ml-10">
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Los indicadores de estado actual se refrescan cada 5 minutos. Sin embargo, los informes de rendimiento diario y los gráficos comparativos se consolidan en ciclos de 24h, cerrándose a medianoche. Puede haber un retardo de hasta 10 minutos entre el evento real en la calle y su visualización debido a la latencia de la API de origen.
+                            </p>
+</div>
+</details>
+</div>
+</div>
+<!-- Support Footer -->
+<div class="mt-20 p-8 rounded-2xl bg-gradient-to-br from-primary to-primary/60 text-white flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 opacity-10">
+<span class="material-symbols-outlined text-[200px]">directions_bike</span>
+</div>
+<div class="relative z-10 text-center md:text-left">
+<h2 class="text-2xl font-bold mb-2">¿No encontraste lo que buscabas?</h2>
+<p class="text-white/80 max-w-md">Nuestro equipo técnico está disponible para resolver dudas avanzadas sobre la API o integraciones de datos externas.</p>
+</div>
+<div class="flex gap-4 relative z-10">
+<button class="bg-white text-primary hover:bg-slate-100 font-bold py-3 px-8 rounded-lg transition-all">
+                        Enviar Ticket
+                    </button>
+<button class="bg-black/20 hover:bg-black/30 border border-white/20 text-white font-bold py-3 px-8 rounded-lg transition-all">
+                        Documentación API
+                    </button>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="border-t border-primary/20 bg-background-light dark:bg-background-dark py-10 px-6 md:px-10 mt-12">
+<div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">data_exploration</span>
+<span class="text-sm">Bizi Zaragoza Analytics Dashboard v2.4.0</span>
+</div>
+<div class="flex gap-8">
+<a class="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Privacidad</a>
+<a class="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Cookies</a>
+<a class="text-xs text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Terminos de Servicio</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
