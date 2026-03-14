@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { InfoHint } from './InfoHint';
 
 type BalanceIndexCardProps = {
@@ -40,9 +41,9 @@ export function BalanceIndexCard({
           </div>
           <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
         </div>
-        <a href="/dashboard/ayuda#balance-index" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href="/dashboard/ayuda#balance-index" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           Entender formula
-        </a>
+        </Link>
       </div>
 
       <div className={`mt-5 flex items-end gap-4 ${compact ? 'items-center' : ''}`.trim()}>

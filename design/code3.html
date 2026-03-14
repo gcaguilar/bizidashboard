@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bizi Zaragoza - Neighborhood Flow Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea0615",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#230f11",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .chord-gradient {
+            background: radial-gradient(circle at center, rgba(234, 6, 21, 0.15) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-6 lg:px-10 py-3 bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">Bizi Zaragoza</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Flow Analysis</a>
+<a class="text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Stations</a>
+<a class="text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden sm:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-400 flex border-none bg-primary/10 items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-100 focus:outline-0 focus:ring-0 border-none bg-primary/10 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none pl-2 text-sm font-normal" placeholder="Search districts..." value=""/>
+</div>
+</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 hover:text-primary cursor-pointer">notifications</span>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 border-2 border-primary/30" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBE7eir6ilyVaLIYE0sPR_LWzCBYoefnsK42RH42OQWr0dIK0jf10Eeu-SldWCqzhnBfCUtmaDEYgJrvfVaeGpWkE73WXAnq7629kcsKJTbbGcWvhK90MxwFgWxYQ91oaHbw-NoVl1Vv2wOFze592OkBOcSqDEAe68NA1NCrCd7bx0xc-XwHQZJbViEOhHpRxOtb8LzfB9N18j8TuW5JtxGFE4osYfFVoLIP6mjoFRUPpQKWd9E33Nr541zsxhtkyZLWbdAWsAczzw");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 flex-col lg:flex-row">
+<!-- Sidebar Nav -->
+<aside class="w-full lg:w-64 border-r border-primary/10 bg-background-dark/30 p-4 space-y-6">
+<div>
+<h1 class="text-slate-100 text-base font-bold px-3">SmartCity Analytics</h1>
+<p class="text-slate-500 text-xs px-3">Zaragoza Bizi Dashboard</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium">Overview</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">map</span>
+<p class="text-sm font-medium">Live Map</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-all border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined">sync_alt</span>
+<p class="text-sm font-bold">Flow Analysis</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">ev_station</span>
+<p class="text-sm font-medium">Station Status</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium">Settings</p>
+</a>
+</nav>
+<div class="pt-6 border-t border-primary/10">
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold px-3 mb-2">Saved Filters</p>
+<div class="space-y-1">
+<button class="w-full text-left px-3 py-2 text-xs text-slate-400 hover:text-white flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span> Workday Commute
+                            </button>
+<button class="w-full text-left px-3 py-2 text-xs text-slate-400 hover:text-white flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500"></span> Weekend Leisure
+                            </button>
+</div>
+</div>
+</aside>
+<!-- Content Area -->
+<section class="flex-1 p-6 lg:p-8 space-y-8 overflow-y-auto">
+<!-- Header & Filters -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div>
+<h2 class="text-slate-100 text-3xl font-black leading-tight tracking-tight">Neighborhood Flow Analysis</h2>
+<p class="text-slate-500 text-base font-normal">Real-time inter-district trip distribution and net flow metrics.</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<div class="flex bg-primary/10 rounded-lg p-1 border border-primary/20">
+<button class="px-4 py-1.5 text-xs font-bold bg-primary rounded text-white shadow-lg shadow-primary/20">Morning</button>
+<button class="px-4 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">Afternoon</button>
+<button class="px-4 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">Evening</button>
+</div>
+<div class="flex bg-primary/10 rounded-lg p-1 border border-primary/20">
+<button class="px-4 py-1.5 text-xs font-bold bg-primary rounded text-white shadow-lg shadow-primary/20">Weekday</button>
+<button class="px-4 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">Weekend</button>
+</div>
+</div>
+</div>
+<!-- Main Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+<!-- Top Row: Chord Diagram & Peak Routes -->
+<div class="xl:col-span-8 bg-background-dark/40 border border-primary/10 rounded-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-slate-100 font-bold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">data_usage</span>
+                                    Inter-District Chord Diagram
+                                </h3>
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">fullscreen</span>
+</button>
+</div>
+<!-- Mockup Chord Diagram -->
+<div class="aspect-video w-full flex items-center justify-center relative chord-gradient rounded-full">
+<div class="absolute inset-0 flex items-center justify-center">
+<!-- Visualizing Chord with SVG -->
+<svg class="w-full max-w-md opacity-80" viewbox="0 0 400 400">
+<!-- Outer Rings representing Districts -->
+<circle class="opacity-20" cx="200" cy="200" fill="none" r="180" stroke="#ea0615" stroke-dasharray="100 12.5" stroke-width="8"></circle>
+<circle cx="200" cy="200" fill="none" r="180" stroke="#ea0615" stroke-dasharray="40 270" stroke-dashoffset="50" stroke-width="8"></circle>
+<circle cx="200" cy="200" fill="none" r="180" stroke="#3b82f6" stroke-dasharray="60 250" stroke-dashoffset="-80" stroke-width="8"></circle>
+<!-- Connection Chords -->
+<path class="opacity-40" d="M100 80 Q200 200 300 320" fill="none" stroke="#ea0615" stroke-width="12"></path>
+<path class="opacity-20" d="M50 200 Q200 200 350 200" fill="none" stroke="#ea0615" stroke-width="4"></path>
+<path class="opacity-30" d="M200 40 Q200 200 200 360" fill="none" stroke="#3b82f6" stroke-width="8"></path>
+<path class="opacity-50" d="M320 100 Q200 200 80 300" fill="none" stroke="#ea0615" stroke-width="20"></path>
+<!-- Labels -->
+<text fill="white" font-size="12" font-weight="bold" x="180" y="30">Centro</text>
+<text fill="white" font-size="12" font-weight="bold" x="350" y="200">Delicias</text>
+<text fill="white" font-size="12" font-weight="bold" x="50" y="320">Actur</text>
+<text fill="white" font-size="12" font-weight="bold" x="300" y="350">San José</text>
+</svg>
+</div>
+<div class="absolute inset-0 pointer-events-none border border-dashed border-primary/10 rounded-full scale-110"></div>
+</div>
+<div class="mt-8 flex flex-wrap gap-4 text-xs text-slate-400 justify-center">
+<div class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-primary"></span> High Volume</div>
+<div class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-primary/40"></span> Medium Volume</div>
+<div class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-blue-500"></span> Outflow Priority</div>
+</div>
+</div>
+<!-- Peak Routes Side Card -->
+<div class="xl:col-span-4 space-y-6">
+<div class="bg-background-dark/40 border border-primary/10 rounded-xl p-6">
+<h3 class="text-slate-100 font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+                                    Peak Flow Routes
+                                </h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-400 group-hover:text-primary transition-colors uppercase">Centro → Actur</span>
+<span class="text-lg font-black text-slate-100">1,240 trips</span>
+</div>
+<div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-400 group-hover:text-primary transition-colors uppercase">Delicias → Centro</span>
+<span class="text-lg font-black text-slate-100">982 trips</span>
+</div>
+<div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-400 group-hover:text-primary transition-colors uppercase">San José → Universidad</span>
+<span class="text-lg font-black text-slate-100">845 trips</span>
+</div>
+<div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 55%"></div>
+</div>
+</div>
+<div class="flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-400 group-hover:text-primary transition-colors uppercase">Torrero → Centro</span>
+<span class="text-lg font-black text-slate-100">720 trips</span>
+</div>
+<div class="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 48%"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-all">View All Routes</button>
+</div>
+<!-- Net Flow Quick Stats -->
+<div class="bg-background-dark/40 border border-primary/10 rounded-xl p-6">
+<h3 class="text-slate-100 font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">balance</span>
+                                    Net Flow Highlight
+                                </h3>
+<div class="flex items-center gap-4">
+<div class="flex-1 text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+<p class="text-[10px] text-red-400 font-bold uppercase mb-1">Top Exporter</p>
+<p class="text-sm font-bold text-slate-100">Centro</p>
+<p class="text-xl font-black text-red-500">-420</p>
+</div>
+<div class="flex-1 text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+<p class="text-[10px] text-green-400 font-bold uppercase mb-1">Top Importer</p>
+<p class="text-sm font-bold text-slate-100">Actur</p>
+<p class="text-xl font-black text-green-500">+385</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Second Row: Net Flow & Matrix -->
+<div class="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Net Flow Bar Chart -->
+<div class="bg-background-dark/40 border border-primary/10 rounded-xl p-6">
+<h3 class="text-slate-100 font-bold mb-6">Net Flow by Neighborhood (Morning)</h3>
+<div class="space-y-5">
+<div class="relative pt-4">
+<div class="flex justify-between items-center mb-1 text-xs">
+<span class="text-slate-300 font-bold">Centro</span>
+<span class="text-red-500 font-black">-12.4%</span>
+</div>
+<div class="w-full h-3 bg-slate-800 rounded-full relative">
+<div class="absolute right-1/2 h-full bg-red-500 rounded-l-full" style="width: 35%"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between items-center mb-1 text-xs">
+<span class="text-slate-300 font-bold">Actur</span>
+<span class="text-green-500 font-black">+8.2%</span>
+</div>
+<div class="w-full h-3 bg-slate-800 rounded-full relative">
+<div class="absolute left-1/2 h-full bg-green-500 rounded-r-full" style="width: 25%"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between items-center mb-1 text-xs">
+<span class="text-slate-300 font-bold">Delicias</span>
+<span class="text-green-500 font-black">+4.5%</span>
+</div>
+<div class="w-full h-3 bg-slate-800 rounded-full relative">
+<div class="absolute left-1/2 h-full bg-green-500 rounded-r-full" style="width: 15%"></div>
+</div>
+</div>
+<div class="relative">
+<div class="flex justify-between items-center mb-1 text-xs">
+<span class="text-slate-300 font-bold">Casco Histórico</span>
+<span class="text-red-500 font-black">-6.1%</span>
+</div>
+<div class="w-full h-3 bg-slate-800 rounded-full relative">
+<div class="absolute right-1/2 h-full bg-red-500 rounded-l-full" style="width: 18%"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between mt-8 text-[10px] text-slate-500 uppercase font-bold tracking-tighter">
+<span>Net Exporter (Leaving)</span>
+<span>Neutral</span>
+<span>Net Importer (Arriving)</span>
+</div>
+</div>
+<!-- O-D Matrix Table -->
+<div class="bg-background-dark/40 border border-primary/10 rounded-xl p-6 overflow-x-auto">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-slate-100 font-bold">Origin-Destination Matrix</h3>
+<span class="text-[10px] text-slate-500">Live data • Trips/hr</span>
+</div>
+<table class="w-full text-xs text-left border-collapse">
+<thead>
+<tr>
+<th class="p-2 border border-primary/5 text-slate-500 font-normal">O \ D</th>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Centro</th>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Actur</th>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">San J.</th>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Delic.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Centro</th>
+<td class="p-2 border border-primary/5 text-slate-500 italic bg-primary/10">82</td>
+<td class="p-2 border border-primary/5 text-slate-100 font-bold bg-primary/30">452</td>
+<td class="p-2 border border-primary/5 text-slate-100">120</td>
+<td class="p-2 border border-primary/5 text-slate-100">201</td>
+</tr>
+<tr>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Actur</th>
+<td class="p-2 border border-primary/5 text-slate-100">105</td>
+<td class="p-2 border border-primary/5 text-slate-500 italic bg-primary/10">45</td>
+<td class="p-2 border border-primary/5 text-slate-100">67</td>
+<td class="p-2 border border-primary/5 text-slate-100 font-bold bg-primary/20">312</td>
+</tr>
+<tr>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">San J.</th>
+<td class="p-2 border border-primary/5 text-slate-100 font-bold bg-primary/20">398</td>
+<td class="p-2 border border-primary/5 text-slate-100">88</td>
+<td class="p-2 border border-primary/5 text-slate-500 italic bg-primary/10">34</td>
+<td class="p-2 border border-primary/5 text-slate-100">142</td>
+</tr>
+<tr>
+<th class="p-2 border border-primary/5 text-slate-300 font-bold bg-primary/5">Delic.</th>
+<td class="p-2 border border-primary/5 text-slate-100 font-bold bg-primary/30">512</td>
+<td class="p-2 border border-primary/5 text-slate-100">156</td>
+<td class="p-2 border border-primary/5 text-slate-100">92</td>
+<td class="p-2 border border-primary/5 text-slate-500 italic bg-primary/10">56</td>
+</tr>
+</tbody>
+</table>
+<div class="mt-4 flex items-center gap-2 text-[10px] text-slate-500">
+<div class="size-3 bg-primary/30 rounded-sm"></div> High Frequency Connect
+                                    <div class="size-3 bg-primary/10 rounded-sm ml-4"></div> Intra-District
+                                </div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</body></html>
