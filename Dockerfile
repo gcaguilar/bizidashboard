@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl curl &&
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx prisma generate
-RUN DATABASE_URL=file:/app/bootstrap.db npx prisma migrate deploy --schema prisma/schema.prisma
+RUN bunx prisma generate
+RUN DATABASE_URL=file:/app/bootstrap.db bunx prisma migrate deploy --schema prisma/schema.prisma
 RUN bun run build
 
 FROM oven/bun:1.3.10-slim AS runner
