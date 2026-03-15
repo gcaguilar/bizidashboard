@@ -14,6 +14,27 @@ import { runTransitCollection } from '@/services/transit-collection';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 
+function isMissingTableError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const maybeError = error as { cause?: unknown; meta?: unknown };
+    if (maybeError.cause && isMissingTableError(maybeError.cause)) {
+      return true;
+    }
+    if (
+      maybeError.meta &&
+      typeof maybeError.meta === 'object' &&
+      'driverAdapterError' in maybeError.meta
+    ) {
+      const adapterError = (maybeError.meta as { driverAdapterError?: unknown }).driverAdapterError;
+      if (adapterError instanceof Error) {
+        return adapterError.message.includes('no such table');
+      }
+    }
+    return error.message.includes('no such table');
+  }
+  return false;
+}
+
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
   scheduled?: boolean;
@@ -112,13 +133,26 @@ export async function runCollection(): Promise<CollectionResult> {
     );
 
     // Step 5: Collect nearby transit snapshots (tram + bus)
-    const transitSummary = await runTransitCollection(
-      stationInformation.map((station) => ({
-        id: station.station_id,
-        lat: station.lat,
-        lon: station.lon,
-      }))
-    );
+    let transitSummary: Awaited<ReturnType<typeof runTransitCollection>>;
+    try {
+      transitSummary = await runTransitCollection(
+        stationInformation.map((station) => ({
+          id: station.station_id,
+          lat: station.lat,
+          lon: station.lon,
+        }))
+      );
+    } catch (error) {
+      if (isMissingTableError(error)) {
+        console.warn('[Collection] Transit tables missing; skipping transit collection');
+        transitSummary = {
+          providers: [],
+          warnings: ['Transit tables not available']
+        };
+      } else {
+        throw error;
+      }
+    }
 
     // Build result from validation
     result.success = validationResult.success;
