@@ -30,6 +30,9 @@ if [ "${DB_URL#file:}" != "$DB_URL" ]; then
     echo "[Entrypoint] Inicializando base SQLite en $DB_PATH desde /app/bootstrap.db"
     cp /app/bootstrap.db "$DB_PATH"
   fi
+
+  echo "[Entrypoint] Ejecutando migraciones de Prisma..."
+  DATABASE_URL="$DB_URL" node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
 fi
 
 exec bun server.js
