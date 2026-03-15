@@ -15,7 +15,7 @@ services:
       [
         "/bin/sh",
         "-c",
-        "pnpm prisma migrate deploy --schema prisma/schema.prisma",
+        "bun prisma migrate deploy --schema prisma/schema.prisma",
       ]
     restart: "no"
 

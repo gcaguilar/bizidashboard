@@ -1,15 +1,16 @@
 FROM oven/bun:1.3.10 AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-FROM oven/bun:1.3.10 AS builder
+FROM node:22-bookworm-slim AS builder
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN bun prisma generate
-RUN DATABASE_URL=file:/app/bootstrap.db bun prisma migrate deploy --schema prisma/schema.prisma
+RUN npx prisma generate
+RUN DATABASE_URL=file:/app/bootstrap.db npx prisma migrate deploy --schema prisma/schema.prisma
 RUN bun run build
 
 FROM oven/bun:1.3.10-slim AS runner
