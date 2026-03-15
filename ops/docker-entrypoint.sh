@@ -32,7 +32,7 @@ if [ "${DB_URL#file:}" != "$DB_URL" ]; then
   fi
 
   echo "[Entrypoint] Ejecutando migraciones de Prisma..."
-  DATABASE_URL="$DB_URL" node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma
+  DATABASE_URL="$DB_URL" bunx prisma migrate deploy --schema prisma/schema.prisma
 fi
 
 exec bun server.js
