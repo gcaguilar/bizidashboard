@@ -16,6 +16,8 @@ const securityHeaders = [
       "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com",
       "worker-src 'self' blob:",
       "frame-src 'none'",
+      "manifest-src 'self'",
+      "media-src 'self' blob:",
       'upgrade-insecure-requests',
     ].join('; '),
   },
