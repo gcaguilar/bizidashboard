@@ -7,7 +7,7 @@ import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { StatusBanner } from '../_components/StatusBanner';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Estado del sistema',
