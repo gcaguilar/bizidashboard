@@ -10,7 +10,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN bunx prisma generate
-RUN DATABASE_URL=file:/app/bootstrap.db bunx prisma migrate deploy --schema prisma/schema.prisma
+RUN DATABASE_URL=file:/app/dev.db bunx prisma db push --schema prisma/schema.prisma
 RUN bun run build
 
 FROM oven/bun:latest AS runner
@@ -22,8 +22,7 @@ ENV DATABASE_URL=file:/data/dev.db
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN apt-get update && apt-get install -y --no-install-recommends curl wget openssl libsqlite3-0 && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data
-COPY --from=builder /app/bootstrap.db /app/bootstrap.db
-RUN cp /app/bootstrap.db /data/dev.db
+COPY --from=builder /app/dev.db /data/dev.db
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
