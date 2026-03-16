@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "GPL-3.0-only",
   "private": true,
-  "packageManager": "bun@1.3.10",
+  "packageManager": "bun@latest",
   "engines": {
     "node": ">=20.0.0",
     "bun": ">=1.3.10"

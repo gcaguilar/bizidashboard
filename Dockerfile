@@ -1,9 +1,9 @@
-FROM oven/bun:1.3.10 AS deps
+FROM oven/bun:latest AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-FROM oven/bun:1.3.10 AS builder
+FROM oven/bun:latest AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl curl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -13,7 +13,7 @@ RUN bunx prisma generate
 RUN DATABASE_URL=file:/app/bootstrap.db bunx prisma migrate deploy --schema prisma/schema.prisma
 RUN bun run build
 
-FROM oven/bun:1.3.10-slim AS runner
+FROM oven/bun:latest-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
