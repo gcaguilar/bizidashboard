@@ -41,6 +41,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    if (!/^[A-Za-z0-9+/=]{40,}$/.test(body.publicKey)) {
+      return NextResponse.json(
+        { error: 'Invalid public key format' },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+
     const installId = randomUUID();
     const refreshToken = await generateRefreshToken(installId);
 
