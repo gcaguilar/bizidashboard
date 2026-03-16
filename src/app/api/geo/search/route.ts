@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
 import { searchLocations, type GeoSearchResult } from '@/lib/geo/nominatim';
 import { prisma } from '@/lib/db';
 
