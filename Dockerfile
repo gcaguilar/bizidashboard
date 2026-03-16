@@ -20,9 +20,6 @@ ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN apt-get update && apt-get install -y --no-install-recommends curl wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
-# Install SQLite adapter for migration (temporary, removed after first run)
-RUN bun add @prisma/adapter-libsql @libsql/client
-
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
