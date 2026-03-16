@@ -16,7 +16,7 @@ const redirects: [string, string][] = [
   ['/informes/', '/zaragoza/informes'],
 ]
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   for (const [from, to] of redirects) {
