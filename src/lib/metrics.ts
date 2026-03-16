@@ -72,28 +72,11 @@ export type SystemMetrics = {
   environment: string
 }
 
-export type TransitMetrics = {
-  linkedStations: number
-  linkedStops: number
-  snapshotsLast24Hours: number
-  staleSnapshotsLast24Hours: number
-  staleRateLast24Hours: number
-  lastSnapshotAt: Date | null
-  providers: Array<{
-    provider: string
-    linkedStations: number
-    linkedStops: number
-    snapshotsLast24Hours: number
-    staleSnapshotsLast24Hours: number
-  }>
-}
-
 /**
  * Complete status response
  */
 export type StatusResponse = {
   pipeline: PipelineMetrics
-  transit: TransitMetrics
   quality: {
     freshness: {
       isFresh: boolean
@@ -479,132 +462,17 @@ function isMissingTableError(error: unknown): boolean {
   return false
 }
 
-async function getTransitMetrics(): Promise<TransitMetrics> {
-  const emptyMetrics: TransitMetrics = {
-    linkedStations: 0,
-    linkedStops: 0,
-    snapshotsLast24Hours: 0,
-    staleSnapshotsLast24Hours: 0,
-    staleRateLast24Hours: 0,
-    lastSnapshotAt: null,
-    providers: []
-  }
-
-  try {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const [
-      linkedStations,
-      linkedStops,
-      lastSnapshot,
-      linkProviderRows,
-      stopProviderRows,
-      snapshotProviderRows
-    ] = await Promise.all([
-      prisma.stationTransitLink.count(),
-      prisma.transitStop.count({ where: { isActive: true } }),
-      prisma.transitSnapshot.findFirst({
-        orderBy: { observedAt: 'desc' },
-        select: { observedAt: true }
-      }),
-      prisma.stationTransitLink.groupBy({
-        by: ['provider'],
-        _count: {
-          _all: true
-        }
-      }),
-      prisma.transitStop.groupBy({
-        by: ['provider'],
-        where: {
-          isActive: true
-        },
-        _count: {
-          _all: true
-        }
-      }),
-      prisma.$queryRaw<
-        Array<{ provider: string; total: number; stale: number }>
-      >`SELECT provider, COUNT(*) as total, SUM(CASE WHEN isStale THEN 1 ELSE 0 END) as stale FROM TransitSnapshot WHERE observedAt >= ${twentyFourHoursAgo} GROUP BY provider;`
-    ])
-
-    const linkByProvider = new Map<string, number>(
-      linkProviderRows.map((row) => [String(row.provider), row._count._all] as const)
-    )
-    const stopsByProvider = new Map<string, number>(
-      stopProviderRows.map((row) => [String(row.provider), row._count._all] as const)
-    )
-    const snapshotsByProvider = new Map<string, { provider: string; total: number; stale: number }>(
-      snapshotProviderRows.map((row: { provider: string; total: number; stale: number }) => [row.provider, row] as const)
-    )
-
-    const providerSet = new Set<string>([
-      ...linkByProvider.keys(),
-      ...stopsByProvider.keys(),
-      ...snapshotsByProvider.keys()
-    ])
-
-    const providers = Array.from(providerSet)
-      .sort((left, right) => left.localeCompare(right))
-      .map((provider) => {
-        const links = Number(linkByProvider.get(provider) ?? 0)
-        const stops = Number(stopsByProvider.get(provider) ?? 0)
-        const snapshotStats = snapshotsByProvider.get(provider)
-        const snapshots = Number(snapshotStats?.total ?? 0)
-        const staleSnapshots = Number(snapshotStats?.stale ?? 0)
-
-        return {
-          provider: provider.toLowerCase(),
-          linkedStations: links,
-          linkedStops: stops,
-          snapshotsLast24Hours: snapshots,
-          staleSnapshotsLast24Hours: staleSnapshots
-        }
-      })
-
-    const snapshotsLast24Hours = providers.reduce(
-      (sum, provider) => sum + provider.snapshotsLast24Hours,
-      0
-    )
-    const staleSnapshotsLast24Hours = providers.reduce(
-      (sum, provider) => sum + provider.staleSnapshotsLast24Hours,
-      0
-    )
-
-    return {
-      linkedStations,
-      linkedStops,
-      snapshotsLast24Hours,
-      staleSnapshotsLast24Hours,
-      staleRateLast24Hours:
-        snapshotsLast24Hours > 0
-          ? staleSnapshotsLast24Hours / snapshotsLast24Hours
-          : 0,
-      lastSnapshotAt: lastSnapshot?.observedAt ?? null,
-      providers
-    }
-  } catch (error) {
-    if (isMissingTableError(error)) {
-      console.warn('[Metrics] Transit tables missing; returning empty transit metrics')
-      return emptyMetrics
-    }
-
-    console.error('[Metrics] Error computing transit metrics:', error)
-    return emptyMetrics
-  }
-}
-
 /**
  * Get complete status for the API endpoint
  */
 export async function getStatus(): Promise<StatusResponse> {
-  const [pipeline, system, transit] = await Promise.all([
+  const [pipeline, system] = await Promise.all([
     getMetrics(),
-    Promise.resolve(getSystemMetrics()),
-    getTransitMetrics()
+    Promise.resolve(getSystemMetrics())
   ])
   
   return {
     pipeline,
-    transit,
     quality: {
       freshness: {
         isFresh: pipeline.lastDataFreshness,

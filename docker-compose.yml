@@ -4,6 +4,8 @@ services:
     environment:
       POSTGRES_USER: bizi
       POSTGRES_PASSWORD: bizi_password
+      POSTGRES_DB: bizidashboard
+    command: postgres -c shared_preload_libraries=pg_stat_statements
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -30,7 +32,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=zaragoza
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_zaragoza
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=zaragoza
       - GBFS_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
@@ -57,7 +59,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=madrid
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_madrid
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=madrid
       - GBFS_URL=https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
@@ -81,7 +83,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=barcelona
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_barcelona
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=barcelona
       - GBFS_URL=https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
