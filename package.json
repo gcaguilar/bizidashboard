@@ -24,6 +24,7 @@
     "@libsql/isomorphic-ws": "^0.1.5",
     "@prisma/adapter-libsql": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "jose": "^6.2.1",
     "maplibre-gl": "^5.20.0",
     "next": "16.1.6",
     "node-cron": "^4.2.1",
