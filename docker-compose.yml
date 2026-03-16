@@ -1,66 +1,16 @@
 services:
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
-    env_file:
-      - .env
+  postgres:
+    image: postgres:16-alpine
     environment:
-      NODE_ENV: production
-      DATABASE_URL: file:/data/dev.db
+      POSTGRES_USER: bizi
+      POSTGRES_PASSWORD: bizi_password
     volumes:
-      - app-data:/data
-    command:
-      [
-        "/bin/sh",
-        "-c",
-        "bun prisma migrate deploy --schema prisma/schema.prisma",
-      ]
-    restart: "no"
-
-  app:
-    image: ${BIZIDASHBOARD_IMAGE:-bizidashboard:local}
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    environment:
-      NODE_ENV: production
-      REDIS_URL: redis://redis:6379
-      DATABASE_URL: file:/data/dev.db
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    volumes:
-      - app-data:/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U bizi"]
+      interval: 5s
+      timeout: 5s
       retries: 5
-      start_period: 20s
-
-  collect-cron:
-    image: alpine:3.21
-    depends_on:
-      app:
-        condition: service_healthy
-    env_file:
-      - .env
-    volumes:
-      - ./ops/collect.cron:/etc/crontabs/root:ro
-    command:
-      [
-        "/bin/sh",
-        "-c",
-        "apk add --no-cache curl >/dev/null && crond -f -l 2",
-      ]
 
   redis:
     image: redis:7-alpine
@@ -74,6 +24,129 @@ services:
       timeout: 5s
       retries: 5
 
+  bizi-zaragoza:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - CITY=zaragoza
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_zaragoza
+      - GBFS_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - SQLITE_SOURCE_PATH=/app/prisma/dev.db
+    volumes:
+      - ./prisma/dev.db:/app/prisma/dev.db:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  bizi-madrid:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - CITY=madrid
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_madrid
+      - GBFS_URL=https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  bizi-barcelona:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - CITY=barcelona
+      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard_barcelona
+      - GBFS_URL=https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    ports:
+      - "3002:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  collect-zaragoza:
+    image: alpine:3.21
+    depends_on:
+      bizi-zaragoza:
+        condition: service_healthy
+    volumes:
+      - ./ops/collect-zaragoza.cron:/etc/crontabs/root:ro
+    environment:
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "apk add --no-cache curl >/dev/null && crond -f -l 2",
+      ]
+
+  collect-madrid:
+    image: alpine:3.21
+    depends_on:
+      bizi-madrid:
+        condition: service_healthy
+    volumes:
+      - ./ops/collect-madrid.cron:/etc/crontabs/root:ro
+    environment:
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "apk add --no-cache curl >/dev/null && crond -f -l 2",
+      ]
+
+  collect-barcelona:
+    image: alpine:3.21
+    depends_on:
+      bizi-barcelona:
+        condition: service_healthy
+    volumes:
+      - ./ops/collect-barcelona.cron:/etc/crontabs/root:ro
+    environment:
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "apk add --no-cache curl >/dev/null && crond -f -l 2",
+      ]
+
 volumes:
-  app-data:
+  postgres-data:
   redis-data:
