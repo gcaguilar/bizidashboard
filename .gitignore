@@ -63,3 +63,7 @@ next-env.d.ts
 *.heapsnapshot
 trace.json
 trace.json.gz
+
+# local documentation
+docs/
+
