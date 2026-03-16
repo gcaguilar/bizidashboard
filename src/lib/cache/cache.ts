@@ -2,20 +2,28 @@ import { getRedisClient } from './redis'
 
 const DEFAULT_TTL_SECONDS = 300
 
+const CITY = process.env.CITY ?? 'default'
+
+function getNamespacedKey(key: string): string {
+  return `${CITY}:${key}`
+}
+
 export async function getCachedJson<T>(key: string): Promise<T | null> {
   const client = await getRedisClient()
 
   if (!client) return null
 
+  const fullKey = getNamespacedKey(key)
+
   try {
-    const cachedValue = await client.get(key)
+    const cachedValue = await client.get(fullKey)
 
     if (!cachedValue) return null
 
     try {
       return JSON.parse(cachedValue) as T
     } catch (error) {
-      console.warn(`Failed to parse cached JSON for key ${key}`, error)
+      console.warn(`Failed to parse cached JSON for key ${fullKey}`, error)
       return null
     }
   } catch (error) {
@@ -33,9 +41,11 @@ export async function setCachedJson(
 
   if (!client) return
 
+  const fullKey = getNamespacedKey(key)
+
   try {
     const payload = JSON.stringify(value)
-    await client.set(key, payload, { EX: ttlSeconds })
+    await client.set(fullKey, payload, { EX: ttlSeconds })
   } catch (error) {
     console.warn('Failed to write to Redis cache', error)
   }

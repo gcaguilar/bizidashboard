@@ -19,6 +19,7 @@ import {
 
 /** Bizi GBFS discovery URL */
 const DISCOVERY_URL =
+  process.env.GBFS_URL ??
   process.env.GBFS_DISCOVERY_URL ??
   'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
 
