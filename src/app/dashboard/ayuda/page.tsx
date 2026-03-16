@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { buildPageMetadata } from '@/lib/seo';
 import { HelpCenterClient } from './_components/HelpCenterClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Centro de ayuda',

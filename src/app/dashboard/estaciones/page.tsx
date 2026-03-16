@@ -3,7 +3,7 @@ import { fetchStations } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
 import { StationsDirectoryClient } from './_components/StationsDirectoryClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Estaciones',
