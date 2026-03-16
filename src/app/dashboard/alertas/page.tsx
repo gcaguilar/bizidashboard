@@ -3,7 +3,7 @@ import { fetchStations } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
 import { AlertsHistoryClient } from './_components/AlertsHistoryClient';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Historial de alertas',

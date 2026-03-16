@@ -23,7 +23,7 @@ import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 type StationDetailPageProps = {
   params: Promise<{

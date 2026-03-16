@@ -14,7 +14,7 @@ import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import { BetaBanner } from './_components/BetaBanner';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Panel clasico',
