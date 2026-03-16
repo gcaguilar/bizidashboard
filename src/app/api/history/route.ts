@@ -64,9 +64,14 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
             date(bucketStart) AS day,
             SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
             AVG(occupancyAvg) AS avgOccupancy,
-            AVG(MAX(0, 1 - (2 * ABS(occupancyAvg - 0.5)))) AS balanceIndex,
+            AVG(CASE 
+              WHEN occupancyAvg IS NULL THEN 0.5
+              WHEN ABS(occupancyAvg - 0.5) >= 0.5 THEN 0
+              ELSE 1 - (2 * ABS(occupancyAvg - 0.5))
+            END) AS balanceIndex,
             SUM(sampleCount) AS sampleCount
           FROM HourlyStationStat
+          WHERE occupancyAvg IS NOT NULL
           GROUP BY date(bucketStart)
           ORDER BY day ASC;
         `,
