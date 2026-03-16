@@ -4,7 +4,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production'
 );
 
-if (!process.env.JWT_SECRET) {
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'production') {
   console.warn('[WARNING] JWT_SECRET not set - using insecure default. Set JWT_SECRET in production!');
 }
 

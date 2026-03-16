@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl curl li
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV JWT_SECRET=production-secret-change-me
+ENV SIGNATURE_SECRET=production-secret-change-me
 RUN bunx prisma generate
 RUN bun run build
 
