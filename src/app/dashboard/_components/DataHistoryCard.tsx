@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatPercent } from '@/lib/format';
+import { ChartWrapper } from './ChartWrapper';
 
 type HistoryRow = {
   day: string;
@@ -113,31 +114,33 @@ export function DataHistoryCard() {
         <p className="mt-4 text-sm text-[var(--muted)]">Sin historico suficiente todavia.</p>
       ) : (
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-              <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
-                <YAxis yAxisId="demand" tick={{ fontSize: 11 }} width={46} />
-                <YAxis
-                  yAxisId="balance"
-                  orientation="right"
-                  tick={{ fontSize: 11 }}
-                  width={42}
-                  tickFormatter={(value) => formatPercent(Number(value))}
-                />
-                <Tooltip
-                  formatter={(value, name) =>
-                    name === 'Balance index'
-                      ? [formatPercent(Number(value)), 'Balance index']
-                      : [Number(value).toFixed(1), 'Demanda']
-                  }
-                />
-                <Area yAxisId="demand" type="monotone" dataKey="demandScore" name="Demanda" stroke="#ea0615" fill="rgba(234, 6, 21, 0.2)" strokeWidth={2} />
-                <Area yAxisId="balance" type="monotone" dataKey="balanceIndex" name="Balance index" stroke="#0f766e" fill="rgba(15, 118, 110, 0.16)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartWrapper height="h-[280px]">
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
+                  <YAxis yAxisId="demand" tick={{ fontSize: 11 }} width={46} />
+                  <YAxis
+                    yAxisId="balance"
+                    orientation="right"
+                    tick={{ fontSize: 11 }}
+                    width={42}
+                    tickFormatter={(value) => formatPercent(Number(value))}
+                  />
+                  <Tooltip
+                    formatter={(value, name) =>
+                      name === 'Balance index'
+                        ? [formatPercent(Number(value)), 'Balance index']
+                        : [Number(value).toFixed(1), 'Demanda']
+                    }
+                  />
+                  <Area yAxisId="demand" type="monotone" dataKey="demandScore" name="Demanda" stroke="#ea0615" fill="rgba(234, 6, 21, 0.2)" strokeWidth={2} />
+                  <Area yAxisId="balance" type="monotone" dataKey="balanceIndex" name="Balance index" stroke="#0f766e" fill="rgba(15, 118, 110, 0.16)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
             Balance index cerca de 1 significa una red mas equilibrada. Cerca de 0 indica muchas estaciones alejadas del 50% de ocupacion.
           </p>

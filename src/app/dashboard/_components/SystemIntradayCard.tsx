@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { formatPercent } from '@/lib/format';
 import { WidgetEmptyState } from './WidgetEmptyState';
+import { ChartWrapper } from './ChartWrapper';
 
 type SystemHourlyProfileRow = {
   hour: number;
@@ -103,46 +104,48 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
         />
       ) : (
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-              <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="hourLabel" tick={{ fontSize: 11 }} minTickGap={12} />
-                <YAxis
-                  yAxisId="occupancy"
-                  tick={{ fontSize: 11 }}
-                  width={42}
-                  tickFormatter={(value) => formatPercent(Number(value))}
-                />
-                <YAxis
-                  yAxisId="bikes"
-                  orientation="right"
-                  tick={{ fontSize: 11 }}
-                  width={42}
-                />
-                <Tooltip content={<SystemTooltip />} />
-                <Legend iconType="circle" />
-                <Area
-                  yAxisId="occupancy"
-                  type="monotone"
-                  dataKey="avgOccupancy"
-                  name="Ocupacion media"
-                  stroke="#ea0615"
-                  fill="rgba(234, 6, 21, 0.18)"
-                  strokeWidth={2}
-                />
-                <Line
-                  yAxisId="bikes"
-                  type="monotone"
-                  dataKey="bikesInCirculation"
-                  name="Bicis en circulacion"
-                  stroke="#0f766e"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartWrapper height="h-[280px]">
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="hourLabel" tick={{ fontSize: 11 }} minTickGap={12} />
+                  <YAxis
+                    yAxisId="occupancy"
+                    tick={{ fontSize: 11 }}
+                    width={42}
+                    tickFormatter={(value) => formatPercent(Number(value))}
+                  />
+                  <YAxis
+                    yAxisId="bikes"
+                    orientation="right"
+                    tick={{ fontSize: 11 }}
+                    width={42}
+                  />
+                  <Tooltip content={<SystemTooltip />} />
+                  <Legend iconType="circle" />
+                  <Area
+                    yAxisId="occupancy"
+                    type="monotone"
+                    dataKey="avgOccupancy"
+                    name="Ocupacion media"
+                    stroke="#ea0615"
+                    fill="rgba(234, 6, 21, 0.18)"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    yAxisId="bikes"
+                    type="monotone"
+                    dataKey="bikesInCirculation"
+                    name="Bicis en circulacion"
+                    stroke="#0f766e"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
             La ocupacion mide el porcentaje medio de bicis sobre capacidad. Bicis en circulacion refleja la media de bicis disponibles por estacion y hora, no un conteo unico de viajes.
           </p>
