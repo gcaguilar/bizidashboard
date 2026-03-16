@@ -261,3 +261,16 @@ model HourlyTransitImpact {
   @@index([bucketStart])
   @@index([stationId, bucketStart])
 }
+
+model Install {
+  id            String   @id @default(cuid())
+  installId     String   @unique
+  platform      String   // 'ios' | 'android'
+  appVersion    String
+  osVersion     String
+  publicKey    String
+  refreshToken String   @unique
+  isActive      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
