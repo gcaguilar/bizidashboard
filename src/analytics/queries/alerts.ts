@@ -1,7 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS, AlertType } from '@/analytics/types';
-import { forEachSqliteBatch } from '@/analytics/sqlite';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 
 export interface RollupResult {
@@ -56,7 +55,7 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
       anchorsAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bikesAvg, anchorsAvg, sampleCount FROM HourlyStationStat WHERE datetime(bucketStart) > datetime(${windowStart}) AND datetime(bucketStart) <= datetime(${windowEnd});`;
+  >`SELECT stationId, bikesAvg, anchorsAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
 
   const aggregates = new Map<string, AlertMetricAccumulator>();
 
@@ -113,28 +112,26 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
   }
 
   if (alerts.length > 0) {
-    await forEachSqliteBatch(alerts, 7, async (alertChunk) => {
-      const values = alertChunk.map((alert) =>
-        Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
-      );
+    const values = alerts.map((alert) =>
+      Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
+    );
 
-      await prisma.$executeRaw`
-        INSERT INTO StationAlert (
-          stationId,
-          alertType,
-          severity,
-          metricValue,
-          windowHours,
-          generatedAt,
-          isActive
-        )
-        VALUES ${Prisma.join(values)}
-        ON CONFLICT(stationId, alertType, windowHours, generatedAt) DO UPDATE SET
-          severity = excluded.severity,
-          metricValue = excluded.metricValue,
-          isActive = excluded.isActive;
-      `;
-    });
+    await prisma.$executeRaw`
+      INSERT INTO StationAlert (
+        stationId,
+        alertType,
+        severity,
+        metricValue,
+        windowHours,
+        generatedAt,
+        isActive
+      )
+      VALUES ${Prisma.join(values)}
+      ON CONFLICT(stationId, alertType, windowHours, generatedAt) DO UPDATE SET
+        severity = excluded.severity,
+        metricValue = excluded.metricValue,
+        isActive = excluded.isActive;
+    `;
 
     await setWatermark(ALERT_WATERMARK, windowEnd);
   }

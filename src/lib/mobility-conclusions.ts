@@ -307,20 +307,20 @@ function buildConclusionsRange(monthKey?: string): {
     const previousStart = new Date(Date.UTC((year ?? 1970), (month ?? 1) - 2, 1)).toISOString();
 
     return {
-      currentDaily: Prisma.sql`datetime(bucketDate) >= datetime(${start}) AND datetime(bucketDate) < datetime(${endExclusive})`,
-      previousDaily: Prisma.sql`datetime(bucketDate) >= datetime(${previousStart}) AND datetime(bucketDate) < datetime(${start})`,
-      currentHourly: Prisma.sql`datetime(bucketStart) >= datetime(${start}) AND datetime(bucketStart) < datetime(${endExclusive})`,
-      topStationsDaily: Prisma.sql`datetime(DailyStationStat.bucketDate) >= datetime(${start}) AND datetime(DailyStationStat.bucketDate) < datetime(${endExclusive})`,
+      currentDaily: Prisma.sql`bucketDate >= ${start}::timestamp AND bucketDate < ${endExclusive}::timestamp`,
+      previousDaily: Prisma.sql`bucketDate >= ${previousStart}::timestamp AND bucketDate < ${start}::timestamp`,
+      currentHourly: Prisma.sql`bucketStart >= ${start}::timestamp AND bucketStart < ${endExclusive}::timestamp`,
+      topStationsDaily: Prisma.sql`DailyStationStat.bucketDate >= ${start}::timestamp AND DailyStationStat.bucketDate < ${endExclusive}::timestamp`,
       summaryScope: `en ${formatMonthLabel(monthKey)}`,
       comparisonScope: 'vs mes previo',
     };
   }
 
   return {
-    currentDaily: Prisma.sql`datetime(bucketDate) >= datetime('now', '-6 days')`,
-    previousDaily: Prisma.sql`datetime(bucketDate) >= datetime('now', '-13 days') AND datetime(bucketDate) < datetime('now', '-6 days')`,
-    currentHourly: Prisma.sql`datetime(bucketStart) >= datetime('now', '-6 days')`,
-    topStationsDaily: Prisma.sql`datetime(DailyStationStat.bucketDate) >= datetime('now', '-29 days')`,
+    currentDaily: Prisma.sql`bucketDate >= CURRENT_DATE - INTERVAL '6 days'`,
+    previousDaily: Prisma.sql`bucketDate >= CURRENT_DATE - INTERVAL '13 days' AND bucketDate < CURRENT_DATE - INTERVAL '6 days'`,
+    currentHourly: Prisma.sql`bucketStart >= CURRENT_DATE - INTERVAL '6 days'`,
+    topStationsDaily: Prisma.sql`DailyStationStat.bucketDate >= CURRENT_DATE - INTERVAL '29 days'`,
     summaryScope: 'en la ultima semana',
     comparisonScope: 'vs semana previa',
   };
@@ -418,16 +418,16 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       prisma.$queryRaw<DayTypeProfileRow[]>`
         WITH daily_totals AS (
           SELECT
-            date(bucketDate) AS bucketDay,
+            bucketDate::date AS bucketDay,
             SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
             AVG(occupancyAvg) AS occupancyAvg
           FROM DailyStationStat
           WHERE ${range.currentDaily}
-          GROUP BY date(bucketDate)
+          GROUP BY bucketDate::date
         )
         SELECT
           CASE
-            WHEN CAST(strftime('%w', bucketDay) AS INTEGER) IN (0, 6) THEN 'weekend'
+            WHEN EXTRACT(DOW FROM bucketDay)::int IN (0, 6) THEN 'weekend'
             ELSE 'weekday'
           END AS dayType,
           AVG(demandScore) AS avgDemand,
@@ -438,11 +438,11 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       `,
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
-          CAST(strftime('%H', bucketStart) AS INTEGER) AS hour,
+          EXTRACT(HOUR FROM bucketStart)::int AS hour,
           COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore
         FROM HourlyStationStat
         WHERE ${range.currentHourly}
-        GROUP BY CAST(strftime('%H', bucketStart) AS INTEGER)
+        GROUP BY EXTRACT(HOUR FROM bucketStart)::int
         ORDER BY demandScore DESC, hour ASC
         LIMIT 3;
       `,

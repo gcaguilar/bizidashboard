@@ -2,7 +2,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ANALYTICS_WINDOWS, DayType } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
-import { forEachSqliteBatch } from '@/analytics/sqlite';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 
 export interface RollupResult {
@@ -61,7 +60,7 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
       occupancyAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount FROM HourlyStationStat WHERE datetime(bucketStart) > datetime(${windowStart}) AND datetime(bucketStart) <= datetime(${windowEnd});`;
+  >`SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
 
   const aggregates = new Map<string, PatternAccumulator>();
 
@@ -104,29 +103,27 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
   });
 
   if (rows.length > 0) {
-    await forEachSqliteBatch(rows, 7, async (rowChunk) => {
-      const values = rowChunk.map((row) =>
-        Prisma.sql`(${row.stationId}, ${row.dayType}, ${row.hour}, ${row.bikesAvg}, ${row.anchorsAvg}, ${row.occupancyAvg}, ${row.sampleCount})`
-      );
+    const values = rows.map((row) =>
+      Prisma.sql`(${row.stationId}, ${row.dayType}, ${row.hour}, ${row.bikesAvg}, ${row.anchorsAvg}, ${row.occupancyAvg}, ${row.sampleCount})`
+    );
 
-      await prisma.$executeRaw`
-        INSERT INTO StationPattern (
-          stationId,
-          dayType,
-          hour,
-          bikesAvg,
-          anchorsAvg,
-          occupancyAvg,
-          sampleCount
-        )
-        VALUES ${Prisma.join(values)}
-        ON CONFLICT(stationId, dayType, hour) DO UPDATE SET
-          bikesAvg = excluded.bikesAvg,
-          anchorsAvg = excluded.anchorsAvg,
-          occupancyAvg = excluded.occupancyAvg,
-          sampleCount = excluded.sampleCount;
-      `;
-    });
+    await prisma.$executeRaw`
+      INSERT INTO StationPattern (
+        stationId,
+        dayType,
+        hour,
+        bikesAvg,
+        anchorsAvg,
+        occupancyAvg,
+        sampleCount
+      )
+      VALUES ${Prisma.join(values)}
+      ON CONFLICT(stationId, dayType, hour) DO UPDATE SET
+        bikesAvg = excluded.bikesAvg,
+        anchorsAvg = excluded.anchorsAvg,
+        occupancyAvg = excluded.occupancyAvg,
+        sampleCount = excluded.sampleCount;
+    `;
 
     await setWatermark(PATTERN_WATERMARK, windowEnd);
   }

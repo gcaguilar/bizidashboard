@@ -22,18 +22,18 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
     WITH rollup AS (
       SELECT
         StationStatus.stationId as stationId,
-        strftime('%Y-%m-%d 00:00:00', StationStatus.recordedAt) as bucketDate,
+        DATE_TRUNC('day', StationStatus.recordedAt)::timestamp as bucketDate,
         MIN(StationStatus.bikesAvailable) as bikesMin,
         MAX(StationStatus.bikesAvailable) as bikesMax,
-        AVG(CAST(StationStatus.bikesAvailable AS REAL)) as bikesAvg,
+        AVG(StationStatus.bikesAvailable::float) as bikesAvg,
         MIN(StationStatus.anchorsFree) as anchorsMin,
         MAX(StationStatus.anchorsFree) as anchorsMax,
-        AVG(CAST(StationStatus.anchorsFree AS REAL)) as anchorsAvg,
+        AVG(StationStatus.anchorsFree::float) as anchorsAvg,
         COALESCE(
           AVG(
             CASE
               WHEN Station.capacity > 0
-                THEN CAST(StationStatus.bikesAvailable AS REAL) / Station.capacity
+                THEN StationStatus.bikesAvailable::float / Station.capacity
               ELSE NULL
             END
           ),
@@ -44,7 +44,7 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
       JOIN Station ON StationStatus.stationId = Station.id
       WHERE StationStatus.recordedAt > ${watermark}
         AND StationStatus.recordedAt <= ${cutoff}
-      GROUP BY StationStatus.stationId, strftime('%Y-%m-%d 00:00:00', StationStatus.recordedAt)
+      GROUP BY StationStatus.stationId, DATE_TRUNC('day', StationStatus.recordedAt)
     )
   `;
 
