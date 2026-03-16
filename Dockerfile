@@ -13,7 +13,7 @@ RUN bunx prisma generate
 RUN DATABASE_URL=file:/app/bootstrap.db bunx prisma migrate deploy --schema prisma/schema.prisma
 RUN bun run build
 
-FROM oven/bun:latest-slim AS runner
+FROM oven/bun:latest AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
