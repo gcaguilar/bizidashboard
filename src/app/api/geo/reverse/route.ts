@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
+import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
 import { reverseGeocode, type GeoReverseResult } from '@/lib/geo/nominatim';
 import { prisma } from '@/lib/db';
 
@@ -8,6 +9,8 @@ export const dynamic = 'force-dynamic';
 type GeoReverseRequest = {
   lat: number;
   lon: number;
+  timestamp?: number;
+  signature?: string;
 };
 
 type GeoReverseResponse = GeoReverseResult;
@@ -18,7 +21,7 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Installation-Id',
 };
 
-async function verifyAuth(request: NextRequest): Promise<{ valid: boolean; installId?: string; error?: string }> {
+async function verifyAuth(request: NextRequest, body: GeoReverseRequest): Promise<{ valid: boolean; installId?: string; error?: string }> {
   const authHeader = request.headers.get('authorization');
   const installId = request.headers.get('x-installation-id');
 
@@ -45,20 +48,29 @@ async function verifyAuth(request: NextRequest): Promise<{ valid: boolean; insta
     return { valid: false, error: 'Installation not found or inactive' };
   }
 
+  if (body.timestamp && body.signature) {
+    if (isSignatureExpired(body.timestamp, 60000)) {
+      return { valid: false, error: 'Request timestamp expired' };
+    }
+    if (!verifySignature(body, body.timestamp, body.signature)) {
+      return { valid: false, error: 'Invalid signature' };
+    }
+  }
+
   return { valid: true, installId };
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const authResult = await verifyAuth(request);
+    const body = (await request.json()) as GeoReverseRequest;
+
+    const authResult = await verifyAuth(request, body);
     if (!authResult.valid) {
       return NextResponse.json(
         { error: authResult.error },
         { status: 401, headers: CORS_HEADERS }
       );
     }
-
-    const body = (await request.json()) as GeoReverseRequest;
 
     if (!Number.isFinite(body.lat) || !Number.isFinite(body.lon)) {
       return NextResponse.json(

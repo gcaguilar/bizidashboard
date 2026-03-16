@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
-const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'change-this-secret-in-production';
+const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'dev-secret-do-not-use-in-production';
+
+if (!process.env.SIGNATURE_SECRET) {
+  console.warn('[WARNING] SIGNATURE_SECRET not set - using insecure default. Set SIGNATURE_SECRET in production!');
+}
 
 export interface SignedRequest {
   body: string;
