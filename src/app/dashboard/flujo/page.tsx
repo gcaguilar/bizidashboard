@@ -9,7 +9,7 @@ import { MonthFilter } from '../_components/MonthFilter';
 import { MobilityInsights } from '../_components/MobilityInsights';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Analisis de flujo',

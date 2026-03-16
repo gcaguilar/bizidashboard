@@ -11,7 +11,6 @@ import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildPageMetadata({
