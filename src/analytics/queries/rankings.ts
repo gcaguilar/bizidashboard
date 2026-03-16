@@ -30,7 +30,7 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
 
   const [{ count: processedCount = 0 } = {}] = await prisma.$queryRaw<
     { count: number }[]
-  >`SELECT COUNT(*) as count FROM HourlyStationStat WHERE datetime(bucketStart) > datetime(${windowStart}) AND datetime(bucketStart) <= datetime(${windowEnd});`;
+  >`SELECT COUNT(*) as count FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
 
   const rollupCte = Prisma.sql`
     WITH rollup AS (
@@ -41,8 +41,8 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
         SUM(CASE WHEN anchorsAvg <= 1 THEN 1 ELSE 0 END) as fullHours,
         COUNT(*) as totalHours
       FROM HourlyStationStat
-      WHERE datetime(bucketStart) > datetime(${windowStart})
-        AND datetime(bucketStart) <= datetime(${windowEnd})
+      WHERE bucketStart > ${windowStart}
+        AND bucketStart <= ${windowEnd}
       GROUP BY stationId
     )
   `;

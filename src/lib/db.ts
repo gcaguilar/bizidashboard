@@ -1,11 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { mkdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
-
-const DEFAULT_DATABASE_URL = 'file:./data/dev.db'
 
 function isBuildPhase(): boolean {
   return process.env.NEXT_PHASE === 'phase-production-build'
@@ -41,25 +37,12 @@ function createBuildPrismaMock(path: string[] = []): PrismaClient {
   }) as unknown as PrismaClient
 }
 
-function ensureSqliteDirectory(url: string): void {
-  if (!url.startsWith('file:')) {
-    return
-  }
-
-  const rawPath = url.slice('file:'.length).split('?')[0]?.split('#')[0] ?? ''
-
-  if (!rawPath || rawPath === ':memory:') {
-    return
-  }
-
-  const absolutePath = rawPath.startsWith('/') ? rawPath : resolve(process.cwd(), rawPath)
-  mkdirSync(dirname(absolutePath), { recursive: true })
+const databaseUrl = process.env.DATABASE_URL
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL environment variable is required')
 }
 
-const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL
-ensureSqliteDirectory(databaseUrl)
-
-const adapter = new PrismaLibSql({ url: databaseUrl })
+const adapter = new PrismaPg({ connectionString: databaseUrl })
 
 export const prisma: PrismaClient = isBuildPhase()
   ? createBuildPrismaMock()
