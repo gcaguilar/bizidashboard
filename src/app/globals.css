@@ -15,6 +15,23 @@
   --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #230f11;
+    --background-2: #18090a;
+    --foreground: #f8fafc;
+    --muted: #94a3b8;
+    --surface: rgba(35, 15, 17, 0.84);
+    --surface-soft: rgba(255, 255, 255, 0.05);
+    --accent: #ea0615;
+    --accent-soft: #fb7185;
+    --accent-strong: #ffb4ba;
+    --border: rgba(234, 6, 21, 0.24);
+    --shadow: 0 24px 54px rgba(0, 0, 0, 0.35);
+    --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
+  }
+}
+
 .dark {
   --background: #230f11;
   --background-2: #18090a;
