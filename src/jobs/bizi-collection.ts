@@ -10,30 +10,10 @@ import { schedule, ScheduledTask } from 'node-cron';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
 import { upsertStations } from '@/services/data-storage';
-import { runTransitCollection } from '@/services/transit-collection';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 
-function isMissingTableError(error: unknown): boolean {
-  if (error instanceof Error) {
-    const maybeError = error as { cause?: unknown; meta?: unknown };
-    if (maybeError.cause && isMissingTableError(maybeError.cause)) {
-      return true;
-    }
-    if (
-      maybeError.meta &&
-      typeof maybeError.meta === 'object' &&
-      'driverAdapterError' in maybeError.meta
-    ) {
-      const adapterError = (maybeError.meta as { driverAdapterError?: unknown }).driverAdapterError;
-      if (adapterError instanceof Error) {
-        return adapterError.message.includes('no such table');
-      }
-    }
-    return error.message.includes('no such table');
-  }
-  return false;
-}
+const CITY = process.env.CITY ?? 'default';
 
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
@@ -132,54 +112,12 @@ export async function runCollection(): Promise<CollectionResult> {
       }
     );
 
-    // Step 5: Collect nearby transit snapshots (tram + bus)
-    let transitSummary: Awaited<ReturnType<typeof runTransitCollection>>;
-    try {
-      transitSummary = await runTransitCollection(
-        stationInformation.map((station) => ({
-          id: station.station_id,
-          lat: station.lat,
-          lon: station.lon,
-        }))
-      );
-    } catch (error) {
-      if (isMissingTableError(error)) {
-        console.warn('[Collection] Transit tables missing; skipping transit collection');
-        transitSummary = {
-          providers: [],
-          warnings: ['Transit tables not available']
-        };
-      } else {
-        throw error;
-      }
-    }
-
     // Build result from validation
     result.success = validationResult.success;
     result.stationCount = validationResult.storageResult?.count ?? 0;
     result.recordedAt = validationResult.metrics?.freshness.lastUpdated ?? new Date();
     result.quality = validationResult.metrics;
     result.warnings = validationResult.warnings;
-
-    const transitSnapshots = transitSummary.providers.reduce(
-      (sum, providerResult) => sum + providerResult.snapshotsStored,
-      0
-    );
-    const transitSnapshotsDeduplicated = transitSummary.providers.reduce(
-      (sum, providerResult) => sum + providerResult.snapshotsDeduplicated,
-      0
-    );
-    const transitLinks = transitSummary.providers.reduce(
-      (sum, providerResult) => sum + providerResult.linkedStations,
-      0
-    );
-    const transitLinksRefreshed = transitSummary.providers.filter(
-      (providerResult) => providerResult.linksRefreshed
-    ).length;
-
-    if (transitSummary.warnings.length > 0) {
-      result.warnings.push(...transitSummary.warnings.map((warning) => `Transit: ${warning}`));
-    }
 
     if (validationResult.errors.length > 0) {
       result.warnings.push(...validationResult.errors);
@@ -190,7 +128,7 @@ export async function runCollection(): Promise<CollectionResult> {
       jobState.totalSuccesses++;
       jobState.consecutiveFailures = 0;
       console.log(
-        `[Collection] Successfully collected ${result.stationCount} stations and ${transitSnapshots} transit snapshots (${transitSnapshotsDeduplicated} deduplicated, ${transitLinks} station links, ${transitLinksRefreshed} providers refreshed links)`
+        `[Collection] Successfully collected ${result.stationCount} stations`
       );
     } else {
       jobState.consecutiveFailures++;

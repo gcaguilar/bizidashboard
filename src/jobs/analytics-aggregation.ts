@@ -14,7 +14,6 @@ import { runHeatmapRollup } from '@/analytics/queries/heatmap';
 import { runHourlyRollup } from '@/analytics/queries/hourly';
 import { runPatternRollup } from '@/analytics/queries/patterns';
 import { runRankingRollup } from '@/analytics/queries/rankings';
-import { runHourlyTransitImpactRollup } from '@/analytics/queries/transit-impact';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 
 // Type augmentation for node-cron 4.x options
@@ -81,15 +80,6 @@ async function runAnalyticsAggregation(): Promise<void> {
 
     console.log(
       `[Analytics] Hourly rollup processed ${hourlyResult.processedCount} rows into ${hourlyResult.upsertedCount} buckets in ${hourlyDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
-    );
-
-    await lock.refresh();
-    const transitImpactStart = Date.now();
-    const transitImpactResult = await runHourlyTransitImpactRollup(hourlyCutoff);
-    const transitImpactDuration = Date.now() - transitImpactStart;
-
-    console.log(
-      `[Analytics] Transit impact rollup processed ${transitImpactResult.processedCount} rows into ${transitImpactResult.upsertedCount} buckets in ${transitImpactDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
     );
 
     if (hourlyResult.processedCount > 0) {
