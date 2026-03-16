@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 
 const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'dev-secret-do-not-use-in-production';
 
-if (!process.env.SIGNATURE_SECRET) {
+if (!process.env.SIGNATURE_SECRET && process.env.NODE_ENV !== 'production') {
   console.warn('[WARNING] SIGNATURE_SECRET not set - using insecure default. Set SIGNATURE_SECRET in production!');
 }
 
