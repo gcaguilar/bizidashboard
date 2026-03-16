@@ -2,37 +2,45 @@
 
 set -eu
 
-DEFAULT_DB_URL="file:/data/dev.db"
-DB_URL="${DATABASE_URL:-$DEFAULT_DB_URL}"
-
-case "$DB_URL" in
-  file:./*|file:../*|file:dev.db|file:./dev.db)
-    echo "[Entrypoint] DATABASE_URL relativo detectado ($DB_URL). Usando $DEFAULT_DB_URL en produccion."
-    DB_URL="$DEFAULT_DB_URL"
-    export DATABASE_URL="$DB_URL"
-    ;;
-esac
-
-if [ "${DB_URL#file:}" != "$DB_URL" ]; then
-  DB_PATH="${DB_URL#file:}"
-  DB_DIR="$(dirname "$DB_PATH")"
-  SHOULD_BOOTSTRAP=false
-
-  mkdir -p "$DB_DIR"
-
-  if [ ! -s "$DB_PATH" ]; then
-    SHOULD_BOOTSTRAP=true
-  elif ! ENTRYPOINT_DB_PATH="$DB_PATH" bun -e "const { DatabaseSync } = require('node:sqlite'); const db = new DatabaseSync(process.env.ENTRYPOINT_DB_PATH, { readonly: true }); const row = db.prepare(\"SELECT name FROM sqlite_master WHERE type='table' AND name='StationStatus'\").get(); db.close(); if (!row) { process.exit(1); }"; then
-    SHOULD_BOOTSTRAP=true
-  fi
-
-  if [ "$SHOULD_BOOTSTRAP" = true ] && [ -f /app/bootstrap.db ]; then
-    echo "[Entrypoint] Inicializando base SQLite en $DB_PATH desde /app/bootstrap.db"
-    cp /app/bootstrap.db "$DB_PATH"
-  fi
-
-  echo "[Entrypoint] Ejecutando migraciones de Prisma..."
-  DATABASE_URL="$DB_URL" bunx prisma migrate deploy --schema prisma/schema.prisma
+if [ -z "$DATABASE_URL" ]; then
+  echo "[Entrypoint] DATABASE_URL is required"
+  exit 1
 fi
 
+CITY="${CITY:-zaragoza}"
+DB_NAME="${DATABASE_URL##*/}"  # Extract database name from URL
+
+echo "[Entrypoint] Running Prisma migrations for city: $CITY (database: $DB_NAME)..."
+DATABASE_URL="$DATABASE_URL" bunx prisma db push --schema prisma/schema.prisma --skip-generate
+
+# Migrate data from SQLite if SQLite source exists and PostgreSQL is empty
+if [ -n "$SQLITE_SOURCE_PATH" ] && [ -f "$SQLITE_SOURCE_PATH" ]; then
+  echo "[Entrypoint] Checking if data migration is needed from: $SQLITE_SOURCE_PATH"
+  
+  # Check if Station table has data using psql directly
+  # Extract host from DATABASE_URL
+  DB_HOST=$(echo "$DATABASE_URL" | sed -E 's|.*@([^/]+)/.*|\1|')
+  DB_USER=$(echo "$DATABASE_URL" | sed -E 's|.*://([^:]+):.*|\1|')
+  DB_PASS=$(echo "$DATABASE_URL" | sed -E 's|.*://[^:]+:([^@]+)@.*|\1|')
+  
+  STATION_COUNT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM Station;" 2>/dev/null || echo "0")
+  STATION_COUNT=$(echo "$STATION_COUNT" | xargs)
+  
+  if [ "$STATION_COUNT" = "0" ] || [ -z "$STATION_COUNT" ]; then
+    echo "[Entrypoint] PostgreSQL is empty (Station count: $STATION_COUNT), migrating data from SQLite..."
+    
+    # Run migration script
+    SQLITE_URL="file:$SQLITE_SOURCE_PATH" DATABASE_URL="$DATABASE_URL" bun run scripts/migrate-sqlite-to-postgres.ts
+    
+    # Verify migration
+    NEW_COUNT=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM Station;" 2>/dev/null | xargs)
+    echo "[Entrypoint] Migration complete! Station count: $NEW_COUNT"
+  else
+    echo "[Entrypoint] PostgreSQL already has data ($STATION_COUNT stations), skipping migration"
+  fi
+else
+  echo "[Entrypoint] No SQLite source path provided, skipping data migration"
+fi
+
+echo "[Entrypoint] Starting application for $CITY..."
 exec bun server.js
