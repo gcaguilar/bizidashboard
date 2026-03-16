@@ -14,6 +14,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ChartWrapper } from './ChartWrapper';
 
 type HourlyChartsProps = {
   stationId: string;
@@ -143,43 +144,45 @@ export function HourlyCharts({
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
         {hasData ? (
-          <div className="h-[270px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-              <LineChart data={chartData} margin={{ top: 6, right: 10, left: 0, bottom: 0 }}>
-                <XAxis
-                  dataKey="hourLabel"
-                  tick={{ fontSize: 11 }}
-                  axisLine={{ stroke: 'var(--border)' }}
-                  minTickGap={12}
-                />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  width={40}
-                  tickFormatter={(value) => formatPercent(value as number)}
-                />
-                <Tooltip content={<HourlyTooltip />} />
-                <Legend iconType="circle" />
-                <Line
-                  type="monotone"
-                  dataKey="weekday"
-                  name={weekdayLabel}
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  dot={false}
-                  connectNulls
-                />
-                <Line
-                  type="monotone"
-                  dataKey="weekend"
-                  name={weekendLabel}
-                  stroke="#14b8a6"
-                  strokeWidth={2}
-                  dot={false}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartWrapper height="h-[270px]">
+            <div className="h-[270px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                <LineChart data={chartData} margin={{ top: 6, right: 10, left: 0, bottom: 0 }}>
+                  <XAxis
+                    dataKey="hourLabel"
+                    tick={{ fontSize: 11 }}
+                    axisLine={{ stroke: 'var(--border)' }}
+                    minTickGap={12}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11 }}
+                    width={40}
+                    tickFormatter={(value) => formatPercent(value as number)}
+                  />
+                  <Tooltip content={<HourlyTooltip />} />
+                  <Legend iconType="circle" />
+                  <Line
+                    type="monotone"
+                    dataKey="weekday"
+                    name={weekdayLabel}
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="weekend"
+                    name={weekendLabel}
+                    stroke="#14b8a6"
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartWrapper>
         ) : (
           <div className="flex h-[270px] flex-col items-center justify-center gap-2 text-sm text-[var(--muted)]">
             <p>No hay datos de patrones para esta estacion.</p>

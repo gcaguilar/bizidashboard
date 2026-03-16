@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ChartWrapper } from './ChartWrapper';
 
 type HeatmapProps = {
   stationId: string;
@@ -189,65 +190,67 @@ export function Heatmap({
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
         {hasData ? (
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-              <ScatterChart margin={{ top: 16, right: 24, bottom: 20, left: 18 }}>
-                <XAxis
-                  type="number"
-                  dataKey="hour"
-                  domain={[-0.5, 23.5]}
-                  ticks={tickHours}
-                  allowDecimals={false}
-                  tickFormatter={(value) => `${String(value).padStart(2, '0')}:00`}
-                  tick={{ fontSize: 11 }}
-                  tickMargin={8}
-                />
-                <YAxis
-                  type="number"
-                  dataKey="day"
-                  domain={[-0.5, 6.5]}
-                  ticks={[0, 1, 2, 3, 4, 5, 6]}
-                  allowDecimals={false}
-                  tickFormatter={(value) => DAY_LABELS[value] ?? 'Dia'}
-                  tick={{ fontSize: 11 }}
-                  tickMargin={8}
-                  width={52}
-                />
-                <Tooltip content={<HeatTooltip />} />
-                <Scatter
-                  data={points}
-                  shape={(props) => {
-                    const { cx, cy, payload } = props as {
-                      cx?: number;
-                      cy?: number;
-                      payload?: HeatPoint;
-                    };
+          <ChartWrapper height="h-[300px]">
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                <ScatterChart margin={{ top: 16, right: 24, bottom: 20, left: 18 }}>
+                  <XAxis
+                    type="number"
+                    dataKey="hour"
+                    domain={[-0.5, 23.5]}
+                    ticks={tickHours}
+                    allowDecimals={false}
+                    tickFormatter={(value) => `${String(value).padStart(2, '0')}:00`}
+                    tick={{ fontSize: 11 }}
+                    tickMargin={8}
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="day"
+                    domain={[-0.5, 6.5]}
+                    ticks={[0, 1, 2, 3, 4, 5, 6]}
+                    allowDecimals={false}
+                    tickFormatter={(value) => DAY_LABELS[value] ?? 'Dia'}
+                    tick={{ fontSize: 11 }}
+                    tickMargin={8}
+                    width={52}
+                  />
+                  <Tooltip content={<HeatTooltip />} />
+                  <Scatter
+                    data={points}
+                    shape={(props) => {
+                      const { cx, cy, payload } = props as {
+                        cx?: number;
+                        cy?: number;
+                        payload?: HeatPoint;
+                      };
 
-                    if (cx === undefined || cy === undefined || !payload) {
-                      return null;
-                    }
+                      if (cx === undefined || cy === undefined || !payload) {
+                        return null;
+                      }
 
-                    const size = 14;
-                    const fill = getHeatColor(payload.value, stats.min, stats.max);
+                      const size = 14;
+                      const fill = getHeatColor(payload.value, stats.min, stats.max);
 
-                    return (
-                      <rect
-                        x={cx - size / 2}
-                        y={cy - size / 2}
-                        width={size}
-                        height={size}
-                        rx={4}
-                        ry={4}
-                        fill={fill}
-                        stroke="rgba(255,255,255,0.2)"
-                        strokeWidth={0.6}
-                      />
-                    );
-                  }}
-                />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
+                      return (
+                        <rect
+                          x={cx - size / 2}
+                          y={cy - size / 2}
+                          width={size}
+                          height={size}
+                          rx={4}
+                          ry={4}
+                          fill={fill}
+                          stroke="rgba(255,255,255,0.2)"
+                          strokeWidth={0.6}
+                        />
+                      );
+                    }}
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartWrapper>
         ) : (
           <div className="flex h-[300px] flex-col items-center justify-center gap-2 text-sm text-[var(--muted)]">
             <p>No hay datos de heatmap para esta estacion.</p>

@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ChartWrapper } from './ChartWrapper';
 import type { StationSnapshot } from '@/lib/api';
 import {
   buildStationDistrictMap,
@@ -944,56 +945,58 @@ export function MobilityInsights({
               <p className="mt-4 text-sm text-[var(--muted)]">Sin datos de demanda diaria.</p>
             ) : (
               <>
-                <div className="mt-3 h-[260px]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-                    <AreaChart data={dailyCurveData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(234, 6, 21, 0.22)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={14} />
-                      <YAxis yAxisId="score" tick={{ fontSize: 11 }} width={42} />
-                      <YAxis
-                        yAxisId="occ"
-                        orientation="right"
-                        tick={{ fontSize: 11 }}
-                        width={38}
-                        tickFormatter={(value) => formatPercent(value as number)}
-                      />
-                      <Tooltip
-                        formatter={(
-                          value: number | string | ReadonlyArray<number | string> | undefined,
-                          name: string | number | undefined
-                        ) => {
-                          const numericValue = Array.isArray(value)
-                            ? Number(value[0])
-                            : Number(value);
+                <ChartWrapper height="h-[260px]">
+                  <div className="mt-3 h-[260px]">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                      <AreaChart data={dailyCurveData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(234, 6, 21, 0.22)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={14} />
+                        <YAxis yAxisId="score" tick={{ fontSize: 11 }} width={42} />
+                        <YAxis
+                          yAxisId="occ"
+                          orientation="right"
+                          tick={{ fontSize: 11 }}
+                          width={38}
+                          tickFormatter={(value) => formatPercent(value as number)}
+                        />
+                        <Tooltip
+                          formatter={(
+                            value: number | string | ReadonlyArray<number | string> | undefined,
+                            name: string | number | undefined
+                          ) => {
+                            const numericValue = Array.isArray(value)
+                              ? Number(value[0])
+                              : Number(value);
 
-                          if (name === 'Demanda') {
-                            return [numericValue.toFixed(1), 'Demanda'];
-                          }
+                            if (name === 'Demanda') {
+                              return [numericValue.toFixed(1), 'Demanda'];
+                            }
 
-                          return [formatPercent(numericValue), 'Ocupacion media'];
-                        }}
-                      />
-                      <Area
-                        yAxisId="score"
-                        type="monotone"
-                        dataKey="demandScore"
-                        name="Demanda"
-                        stroke="#ea0615"
-                        fill="rgba(234, 6, 21, 0.26)"
-                        strokeWidth={2}
-                      />
-                      <Area
-                        yAxisId="occ"
-                        type="monotone"
-                        dataKey="avgOccupancyRatio"
-                        name="Ocupacion"
-                        stroke="#14b8a6"
-                        fill="rgba(20, 184, 166, 0.2)"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                            return [formatPercent(numericValue), 'Ocupacion media'];
+                          }}
+                        />
+                        <Area
+                          yAxisId="score"
+                          type="monotone"
+                          dataKey="demandScore"
+                          name="Demanda"
+                          stroke="#ea0615"
+                          fill="rgba(234, 6, 21, 0.26)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          yAxisId="occ"
+                          type="monotone"
+                          dataKey="avgOccupancyRatio"
+                          name="Ocupacion"
+                          stroke="#14b8a6"
+                          fill="rgba(20, 184, 166, 0.2)"
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartWrapper>
                 <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>
               </>
             )}
@@ -1089,55 +1092,57 @@ export function MobilityInsights({
                   </div>
                 </div>
 
-                <div className="mt-4 h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
-                    <LineChart
-                      data={transitHourlySeries}
-                      margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(59, 130, 246, 0.2)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
-                      <YAxis tick={{ fontSize: 11 }} width={46} />
-                      <Tooltip
-                        formatter={(
-                          value: number | string | ReadonlyArray<number | string> | undefined,
-                          name: string | number | undefined
-                        ) => {
-                          const numericValue = Array.isArray(value)
-                            ? Number(value[0])
-                            : Number(value);
+                <ChartWrapper height="h-[280px]">
+                  <div className="mt-4 h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                      <LineChart
+                        data={transitHourlySeries}
+                        margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(59, 130, 246, 0.2)" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
+                        <YAxis tick={{ fontSize: 11 }} width={46} />
+                        <Tooltip
+                          formatter={(
+                            value: number | string | ReadonlyArray<number | string> | undefined,
+                            name: string | number | undefined
+                          ) => {
+                            const numericValue = Array.isArray(value)
+                              ? Number(value[0])
+                              : Number(value);
 
-                          if (name === 'Con llegada') {
-                            return [numericValue.toFixed(2), 'Con llegada'];
-                          }
+                            if (name === 'Con llegada') {
+                              return [numericValue.toFixed(2), 'Con llegada'];
+                            }
 
-                          if (name === 'Sin llegada') {
-                            return [numericValue.toFixed(2), 'Sin llegada'];
-                          }
+                            if (name === 'Sin llegada') {
+                              return [numericValue.toFixed(2), 'Sin llegada'];
+                            }
 
-                          return [numericValue.toFixed(2), name ?? 'Valor'];
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
-                      <Line
-                        type="monotone"
-                        dataKey="withTransit"
-                        name="Con llegada"
-                        stroke="#0ea5e9"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="withoutTransit"
-                        name="Sin llegada"
-                        stroke="#f97316"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                            return [numericValue.toFixed(2), name ?? 'Valor'];
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Line
+                          type="monotone"
+                          dataKey="withTransit"
+                          name="Con llegada"
+                          stroke="#0ea5e9"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="withoutTransit"
+                          name="Sin llegada"
+                          stroke="#f97316"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartWrapper>
 
                 {mobilityData.transitImpact?.hasLowCoverage ? (
                   <p className="mt-3 text-[11px] text-[var(--muted)]">
