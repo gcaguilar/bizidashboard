@@ -190,14 +190,18 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const rawStatus = await getStatus();
-  const data = JSON.parse(JSON.stringify(rawStatus)) as StatusResponse;
+  const payload = await withCache('status:current', CACHE_TTL_SECONDS, async () => {
+    const rawStatus = await getStatus();
+    const data = JSON.parse(JSON.stringify(rawStatus)) as StatusResponse;
 
-  if (!data || typeof data !== 'object') {
-    throw new Error('Respuesta invalida al consultar el estado del sistema.');
-  }
+    if (!data || typeof data !== 'object') {
+      throw new Error('Respuesta invalida al consultar el estado del sistema.');
+    }
 
-  return data;
+    return data;
+  });
+
+  return payload;
 }
 
 export async function fetchPatterns(

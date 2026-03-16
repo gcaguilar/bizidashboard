@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { memo, useSyncExternalStore } from 'react';
 
 type ChartWrapperProps = {
   children: React.ReactNode;
@@ -19,7 +19,7 @@ function subscribe() {
   return () => {};
 }
 
-export function ChartWrapper({ children, height = 'h-[280px]' }: ChartWrapperProps) {
+export const ChartWrapper = memo(function ChartWrapper({ children, height = 'h-[280px]' }: ChartWrapperProps) {
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   if (!mounted) {
@@ -27,4 +27,4 @@ export function ChartWrapper({ children, height = 'h-[280px]' }: ChartWrapperPro
   }
 
   return <>{children}</>;
-}
+});
