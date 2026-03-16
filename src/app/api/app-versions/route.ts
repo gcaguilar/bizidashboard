@@ -14,18 +14,29 @@ export type AppVersionsResponse = {
   versions: AppVersion[];
 };
 
-const APP_VERSIONS: AppVersionsResponse = {
+const DEFAULT_APP_VERSIONS: AppVersionsResponse = {
   minVersion: '1.0.0',
   maxVersion: '999.999.999',
-  versions: [
-    { version: '1.0.0', allowed: true },
-    { version: '1.0.1', allowed: true },
-    { version: '1.0.2', allowed: true },
-    { version: '1.1.0', allowed: true },
-    { version: '1.1.1', allowed: true },
-    { version: '1.2.0', allowed: true },
-  ],
+  versions: [],
 };
+
+function parseAppVersions(): AppVersionsResponse {
+  const env = process.env.APP_VERSIONS;
+  
+  if (!env) {
+    return DEFAULT_APP_VERSIONS;
+  }
+
+  try {
+    const parsed = JSON.parse(env) as AppVersionsResponse;
+    return parsed;
+  } catch {
+    console.warn('[API App Versions] Invalid APP_VERSIONS JSON, using defaults');
+    return DEFAULT_APP_VERSIONS;
+  }
+}
+
+const APP_VERSIONS = parseAppVersions();
 
 export async function GET(): Promise<NextResponse<AppVersionsResponse>> {
   return NextResponse.json(APP_VERSIONS, {
