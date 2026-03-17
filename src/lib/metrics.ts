@@ -422,49 +422,6 @@ export function getSystemMetrics(): SystemMetrics {
   }
 }
 
-type ErrorWithMeta = {
-  cause?: unknown
-  meta?: {
-    driverAdapterError?: unknown
-  }
-}
-
-function toErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message
-  }
-
-  return String(error)
-}
-
-function isMissingTableError(error: unknown): boolean {
-  const message = toErrorMessage(error).toLowerCase()
-
-  if (message.includes('no such table') || message.includes('p2021')) {
-    return true
-  }
-
-  if (error && typeof error === 'object') {
-    const maybeError = error as ErrorWithMeta
-
-    if (maybeError.cause && isMissingTableError(maybeError.cause)) {
-      return true
-    }
-
-    if (
-      maybeError.meta?.driverAdapterError &&
-      isMissingTableError(maybeError.meta.driverAdapterError)
-    ) {
-      return true
-    }
-  }
-
-  return false
-}
-
-/**
- * Get complete status for the API endpoint
- */
 export async function getStatus(): Promise<StatusResponse> {
   const [pipeline, system] = await Promise.all([
     getMetrics(),
