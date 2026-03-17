@@ -12,6 +12,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      no-cache:
+        description: 'Build without cache'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   build:
@@ -45,7 +51,8 @@ jobs:
             type=ref,event=tag
             type=sha,prefix=sha-
 
-      - name: Build Docker image
+      - name: Build Docker image with cache
+        if: inputs.no-cache != 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -56,4 +63,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=main
           cache-to: type=gha,mode=max,scope=main
+          provenance: false
+
+      - name: Build Docker image without cache
+        if: inputs.no-cache == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          no-cache: true
           provenance: false
