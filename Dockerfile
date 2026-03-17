@@ -8,9 +8,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl curl libpq-dev && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG JWT_SECRET=production-secret-change-me
+ARG SIGNATURE_SECRET=production-secret-change-me
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV JWT_SECRET=production-secret-change-me
-ENV SIGNATURE_SECRET=production-secret-change-me
+ENV JWT_SECRET=$JWT_SECRET
+ENV SIGNATURE_SECRET=$SIGNATURE_SECRET
 RUN bunx prisma generate
 RUN bun run build
 
