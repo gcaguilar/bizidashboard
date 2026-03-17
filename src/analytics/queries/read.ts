@@ -6,6 +6,8 @@ import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 export type RankingType = 'turnover' | 'availability';
 
+const db = prisma
+
 type StationPatternRow = {
   stationId: string;
   dayType: string;
@@ -397,7 +399,8 @@ export async function getHourlyMobilitySignals(
 }
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
-  return (await prisma.$queryRaw(buildDemandSeriesQuery(days, monthKey))) as DailyDemandRow[];
+  const query = buildDemandSeriesQuery(days, monthKey)
+  return (await prisma.$queryRawUnsafe(query as unknown as string)) as DailyDemandRow[]
 }
 
 export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDemandRow[]> {

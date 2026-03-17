@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
@@ -21,9 +22,14 @@ function ensureSqliteDirectory(url: string): void {
 }
 
 const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL
+const city = process.env.CITY || 'zaragoza'
+
 ensureSqliteDirectory(databaseUrl)
 
-const adapter = new PrismaLibSql({ url: databaseUrl })
+const adapter = databaseUrl.startsWith('file:')
+  ? new PrismaLibSql({ url: databaseUrl })
+  : new PrismaPg({ connectionString: databaseUrl })
+
 const prisma = new PrismaClient({ adapter })
 
 type MigrationRow = {
@@ -32,6 +38,10 @@ type MigrationRow = {
 }
 
 async function main() {
+  if (!databaseUrl.startsWith('file:')) {
+    await prisma.$executeRawUnsafe(`SET search_path TO ${city}`)
+  }
+
   await prisma.$queryRaw`SELECT 1`
 
   let rows: MigrationRow[] = []
@@ -61,7 +71,7 @@ async function main() {
 
   const latest = rows[0]
   console.log(
-    `Database reachable. Latest migration: ${latest.migration_name} (${latest.finished_at ?? 'pending'}).`
+    `Database reachable (schema: ${city}). Latest migration: ${latest.migration_name} (${latest.finished_at ?? 'pending'}).`
   )
 }
 
