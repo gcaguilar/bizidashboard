@@ -13,8 +13,6 @@ import { upsertStations } from '@/services/data-storage';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 
-const CITY = process.env.CITY ?? 'default';
-
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
   scheduled?: boolean;

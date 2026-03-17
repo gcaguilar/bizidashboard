@@ -17,16 +17,24 @@ interface MigrationResult {
   install: number
 }
 
+interface DynamicPrismaClient {
+  [key: string]: {
+    findMany: () => Promise<unknown[]>
+    createMany: (args: { data: unknown[]; skipDuplicates: boolean }) => Promise<{ count: number }>
+    create: (args: { data: unknown }) => Promise<unknown>
+  }
+}
+
 async function migrateTable(
-  sqlitePrisma: PrismaClient,
-  pgPrisma: PrismaClient,
-  tableName: keyof MigrationResult
+  sqlitePrisma: DynamicPrismaClient,
+  pgPrisma: DynamicPrismaClient,
+  tableName: string
 ): Promise<number> {
   console.log(`Migrating ${tableName}...`)
   
   try {
     // Get all data from SQLite using Prisma
-    const data = await (sqlitePrisma as any)[tableName].findMany()
+    const data = await sqlitePrisma[tableName].findMany()
     
     if (!data || data.length === 0) {
       console.log(`  No data to migrate`)
@@ -46,7 +54,7 @@ async function migrateTable(
       
       try {
         // Use createMany for better performance
-        await (pgPrisma as any)[tableName].createMany({
+        await pgPrisma[tableName].createMany({
           data: batch,
           skipDuplicates: true
         })
@@ -57,11 +65,11 @@ async function migrateTable(
         // Try inserting one by one
         for (const row of batch) {
           try {
-            await (pgPrisma as any)[tableName].create({
+            await pgPrisma[tableName].create({
               data: row
             })
             inserted++
-          } catch (innerError) {
+          } catch {
             // Skip duplicate or invalid rows
           }
         }
@@ -114,19 +122,21 @@ async function main() {
   }
 
   try {
+    const sqlite = sqlitePrisma as unknown as DynamicPrismaClient
+    const pg = pgPrisma as unknown as DynamicPrismaClient
     // Migrate tables in order (dependencies first)
-    result.station = await migrateTable(sqlitePrisma, pgPrisma, 'station')
-    result.stationStatus = await migrateTable(sqlitePrisma, pgPrisma, 'stationStatus')
-    result.hourlyStationStat = await migrateTable(sqlitePrisma, pgPrisma, 'hourlyStationStat')
-    result.dailyStationStat = await migrateTable(sqlitePrisma, pgPrisma, 'dailyStationStat')
-    result.stationRanking = await migrateTable(sqlitePrisma, pgPrisma, 'stationRanking')
-    result.stationPattern = await migrateTable(sqlitePrisma, pgPrisma, 'stationPattern')
-    result.stationHeatmapCell = await migrateTable(sqlitePrisma, pgPrisma, 'stationHeatmapCell')
-    result.stationAlert = await migrateTable(sqlitePrisma, pgPrisma, 'stationAlert')
-    result.analyticsWatermark = await migrateTable(sqlitePrisma, pgPrisma, 'analyticsWatermark')
-    result.mobilityBriefingCache = await migrateTable(sqlitePrisma, pgPrisma, 'mobilityBriefingCache')
-    result.jobLock = await migrateTable(sqlitePrisma, pgPrisma, 'jobLock')
-    result.install = await migrateTable(sqlitePrisma, pgPrisma, 'install')
+    result.station = await migrateTable(sqlite, pg, 'station')
+    result.stationStatus = await migrateTable(sqlite, pg, 'stationStatus')
+    result.hourlyStationStat = await migrateTable(sqlite, pg, 'hourlyStationStat')
+    result.dailyStationStat = await migrateTable(sqlite, pg, 'dailyStationStat')
+    result.stationRanking = await migrateTable(sqlite, pg, 'stationRanking')
+    result.stationPattern = await migrateTable(sqlite, pg, 'stationPattern')
+    result.stationHeatmapCell = await migrateTable(sqlite, pg, 'stationHeatmapCell')
+    result.stationAlert = await migrateTable(sqlite, pg, 'stationAlert')
+    result.analyticsWatermark = await migrateTable(sqlite, pg, 'analyticsWatermark')
+    result.mobilityBriefingCache = await migrateTable(sqlite, pg, 'mobilityBriefingCache')
+    result.jobLock = await migrateTable(sqlite, pg, 'jobLock')
+    result.install = await migrateTable(sqlite, pg, 'install')
 
     console.log('')
     console.log('=== Migration Complete ===')

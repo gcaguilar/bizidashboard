@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
-import { reverseGeocode, type GeoReverseResult } from '@/lib/geo/nominatim';
+import { reverseGeocode } from '@/lib/geo/nominatim';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +12,6 @@ type GeoReverseRequest = {
   timestamp?: number;
   signature?: string;
 };
-
-type GeoReverseResponse = GeoReverseResult;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
