@@ -1,7 +1,7 @@
 FROM oven/bun:latest AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --production
 
 FROM oven/bun:latest AS builder
 WORKDIR /app
@@ -22,13 +22,14 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN apt-get update && apt-get install -y --no-install-recommends curl wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y --no-install-recommends wget libpq5 && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app/node_modules ./node_modules
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY ops/create-schema.ts /app/ops/create-schema.ts
 RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
