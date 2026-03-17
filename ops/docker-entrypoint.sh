@@ -11,7 +11,7 @@ CITY="${CITY:-zaragoza}"
 DB_NAME="${DATABASE_URL##*/}"
 
 echo "[Entrypoint] Running Prisma migrations for city: $CITY (database: $DB_NAME)..."
-DATABASE_URL="$DATABASE_URL" bunx prisma db push --schema prisma/schema.prisma --skip-generate
+DATABASE_URL="$DATABASE_URL" bunx prisma db push --schema prisma/schema.prisma
 
 if [ -n "$SQLITE_SOURCE_PATH" ] && [ -f "$SQLITE_SOURCE_PATH" ]; then
   echo "[Entrypoint] Checking if data migration is needed from: $SQLITE_SOURCE_PATH"
