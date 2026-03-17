@@ -25,12 +25,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN apt-get update && apt-get install -y --no-install-recommends curl wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY ops/create-schema.ts /app/ops/create-schema.ts
 RUN chmod +x /app/docker-entrypoint.sh
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 CMD wget --spider -q http://127.0.0.1:3000/api/health/live || exit 1
