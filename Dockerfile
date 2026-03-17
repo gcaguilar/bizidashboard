@@ -29,7 +29,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy SQLite database for migration (if exists)
+# Keep SQLite database as backup
 COPY --from=builder /app/prisma/dev.db ./prisma/dev.db
 
 EXPOSE 3000
