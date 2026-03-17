@@ -2,14 +2,14 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: bizi
-      POSTGRES_PASSWORD: bizi_password
-      POSTGRES_DB: bizidashboard
+      POSTGRES_USER: ${POSTGRES_USER:-bizi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bizi_password}
+      POSTGRES_DB: ${POSTGRES_DB:-bizidashboard}
     command: postgres -c shared_preload_libraries=pg_stat_statements
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bizi"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bizi}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -31,14 +31,13 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - CITY=zaragoza
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=zaragoza
-      - GBFS_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
-      - SQLITE_SOURCE_PATH=/app/prisma/dev.db
-    volumes:
-      - ./prisma/dev.db:/app/prisma/dev.db:ro
+      - CITY=${CITY:-zaragoza}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REDIS_URL=${REDIS_URL}
+      - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3000:3000"
     depends_on:
@@ -47,7 +46,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/api/health/live"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -59,10 +58,12 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=madrid
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=madrid
-      - GBFS_URL=https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REDIS_URL=${REDIS_URL}
+      - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3001:3000"
     depends_on:
@@ -71,7 +72,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/api/health/live"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -83,10 +84,12 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=barcelona
-      - DATABASE_URL=postgres://bizi:bizi_password@postgres:5432/bizidashboard?schema=barcelona
-      - GBFS_URL=https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REDIS_URL=${REDIS_URL}
+      - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3002:3000"
     depends_on:
@@ -95,7 +98,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/live"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/api/health/live"]
       interval: 30s
       timeout: 10s
       retries: 5
