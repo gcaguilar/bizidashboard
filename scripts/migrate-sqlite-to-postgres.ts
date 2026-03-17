@@ -17,24 +17,26 @@ interface MigrationResult {
   install: number
 }
 
-interface DynamicPrismaClient {
-  [key: string]: {
-    findMany: () => Promise<unknown[]>
-    createMany: (args: { data: unknown[]; skipDuplicates: boolean }) => Promise<{ count: number }>
-    create: (args: { data: unknown }) => Promise<unknown>
-  }
-}
-
 async function migrateTable(
-  sqlitePrisma: DynamicPrismaClient,
-  pgPrisma: DynamicPrismaClient,
+  sqlite: PrismaClient,
+  pg: PrismaClient,
   tableName: string
 ): Promise<number> {
   console.log(`Migrating ${tableName}...`)
   
   try {
-    // Get all data from SQLite using Prisma
-    const data = await sqlitePrisma[tableName].findMany()
+    const sqliteTable = (sqlite as unknown as Record<string, { findMany: () => Promise<unknown[]> }>)[tableName]
+    const pgTable = (pg as unknown as Record<string, { 
+      createMany: (args: { data: unknown[]; skipDuplicates: boolean }) => Promise<{ count: number }>
+      create: (args: { data: unknown }) => Promise<unknown>
+    }>)[tableName]
+    
+    if (!sqliteTable || !pgTable) {
+      console.log(`  Table not found`)
+      return 0
+    }
+    
+    const data = await sqliteTable.findMany()
     
     if (!data || data.length === 0) {
       console.log(`  No data to migrate`)
@@ -43,7 +45,6 @@ async function migrateTable(
 
     console.log(`  Found ${data.length} rows`)
 
-    // Insert in batches using Prisma
     const batchSize = 50
     let inserted = 0
     
@@ -53,8 +54,7 @@ async function migrateTable(
       if (batch.length === 0) continue
       
       try {
-        // Use createMany for better performance
-        await pgPrisma[tableName].createMany({
+        await pgTable.createMany({
           data: batch,
           skipDuplicates: true
         })
@@ -62,12 +62,9 @@ async function migrateTable(
         console.log(`  Inserted ${inserted}/${data.length} rows`)
       } catch (error) {
         console.error(`  Error inserting batch:`, error)
-        // Try inserting one by one
         for (const row of batch) {
           try {
-            await pgPrisma[tableName].create({
-              data: row
-            })
+            await pgTable.create({ data: row })
             inserted++
           } catch {
             // Skip duplicate or invalid rows
@@ -87,6 +84,7 @@ async function migrateTable(
 async function main() {
   const sqliteUrl = process.env.SQLITE_URL || 'file:./dev.db'
   const pgUrl = process.env.DATABASE_URL
+  const city = process.env.CITY || 'zaragoza'
   
   if (!pgUrl) {
     console.error('DATABASE_URL is required')
@@ -96,15 +94,20 @@ async function main() {
   console.log('=== SQLite to PostgreSQL Migration ===')
   console.log(`SQLite: ${sqliteUrl}`)
   console.log(`PostgreSQL: ${pgUrl}`)
+  console.log(`City/Schema: ${city}`)
   console.log('')
 
-  // Connect to SQLite
   const sqliteAdapter = new PrismaLibSql({ url: sqliteUrl })
   const sqlitePrisma = new PrismaClient({ adapter: sqliteAdapter })
 
-  // Connect to PostgreSQL  
   const pgAdapter = new PrismaPg({ connectionString: pgUrl })
   const pgPrisma = new PrismaClient({ adapter: pgAdapter })
+
+  console.log(`Ensuring schema ${city} exists...`)
+  await pgPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${city}`)
+  console.log(`Schema ${city} ready`)
+
+  await pgPrisma.$executeRawUnsafe(`SET search_path TO ${city}`)
 
   const result: MigrationResult = {
     station: 0,
@@ -122,21 +125,18 @@ async function main() {
   }
 
   try {
-    const sqlite = sqlitePrisma as unknown as DynamicPrismaClient
-    const pg = pgPrisma as unknown as DynamicPrismaClient
-    // Migrate tables in order (dependencies first)
-    result.station = await migrateTable(sqlite, pg, 'station')
-    result.stationStatus = await migrateTable(sqlite, pg, 'stationStatus')
-    result.hourlyStationStat = await migrateTable(sqlite, pg, 'hourlyStationStat')
-    result.dailyStationStat = await migrateTable(sqlite, pg, 'dailyStationStat')
-    result.stationRanking = await migrateTable(sqlite, pg, 'stationRanking')
-    result.stationPattern = await migrateTable(sqlite, pg, 'stationPattern')
-    result.stationHeatmapCell = await migrateTable(sqlite, pg, 'stationHeatmapCell')
-    result.stationAlert = await migrateTable(sqlite, pg, 'stationAlert')
-    result.analyticsWatermark = await migrateTable(sqlite, pg, 'analyticsWatermark')
-    result.mobilityBriefingCache = await migrateTable(sqlite, pg, 'mobilityBriefingCache')
-    result.jobLock = await migrateTable(sqlite, pg, 'jobLock')
-    result.install = await migrateTable(sqlite, pg, 'install')
+    result.station = await migrateTable(sqlitePrisma, pgPrisma, 'station')
+    result.stationStatus = await migrateTable(sqlitePrisma, pgPrisma, 'stationStatus')
+    result.hourlyStationStat = await migrateTable(sqlitePrisma, pgPrisma, 'hourlyStationStat')
+    result.dailyStationStat = await migrateTable(sqlitePrisma, pgPrisma, 'dailyStationStat')
+    result.stationRanking = await migrateTable(sqlitePrisma, pgPrisma, 'stationRanking')
+    result.stationPattern = await migrateTable(sqlitePrisma, pgPrisma, 'stationPattern')
+    result.stationHeatmapCell = await migrateTable(sqlitePrisma, pgPrisma, 'stationHeatmapCell')
+    result.stationAlert = await migrateTable(sqlitePrisma, pgPrisma, 'stationAlert')
+    result.analyticsWatermark = await migrateTable(sqlitePrisma, pgPrisma, 'analyticsWatermark')
+    result.mobilityBriefingCache = await migrateTable(sqlitePrisma, pgPrisma, 'mobilityBriefingCache')
+    result.jobLock = await migrateTable(sqlitePrisma, pgPrisma, 'jobLock')
+    result.install = await migrateTable(sqlitePrisma, pgPrisma, 'install')
 
     console.log('')
     console.log('=== Migration Complete ===')
@@ -157,6 +157,7 @@ async function main() {
     const total = Object.values(result).reduce((sum, count) => sum + count, 0)
     console.log('')
     console.log(`Total migrated: ${total} rows`)
+    console.log(`Schema: public.${city}`)
 
   } catch (error) {
     console.error('Migration failed:', error)

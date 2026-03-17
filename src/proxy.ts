@@ -1,28 +1,26 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const redirects: [string, string][] = [
-  // Dashboard redirects
-  ['/dashboard', '/zaragoza/dashboard'],
-  ['/dashboard/', '/zaragoza/dashboard'],
-  
-  // SEO page redirects
-  ['/estaciones-mas-usadas-zaragoza', '/zaragoza/estaciones-mas-usadas'],
-  ['/barrios-bizi-zaragoza', '/zaragoza/barrios-bizi-zaragoza'],
-  ['/viajes-por-dia-zaragoza', '/zaragoza/viajes-por-dia-zaragoza'],
-  ['/viajes-por-mes-zaragoza', '/zaragoza/viajes-por-mes-zaragoza'],
-  ['/informes-mensuales-bizi-zaragoza', '/zaragoza/informes-mensuales-bizi-zaragoza'],
-  ['/informes', '/zaragoza/informes'],
-  ['/informes/', '/zaragoza/informes'],
-]
-
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`
+
+  const redirects: [string, string][] = [
+    ['/dashboard', '/zaragoza/dashboard'],
+    ['/dashboard/', '/zaragoza/dashboard'],
+    ['/estaciones-mas-usadas-zaragoza', '/zaragoza/estaciones-mas-usadas'],
+    ['/barrios-bizi-zaragoza', '/zaragoza/barrios-bizi-zaragoza'],
+    ['/viajes-por-dia-zaragoza', '/zaragoza/viajes-por-dia-zaragoza'],
+    ['/viajes-por-mes-zaragoza', '/zaragoza/viajes-por-mes-zaragoza'],
+    ['/informes-mensuales-bizi-zaragoza', '/zaragoza/informes-mensuales-bizi-zaragoza'],
+    ['/informes', '/zaragoza/informes'],
+    ['/informes/', '/zaragoza/informes'],
+  ]
 
   for (const [from, to] of redirects) {
     if (pathname === from || pathname.startsWith(from + '/')) {
       const newPath = pathname.replace(from, to)
-      return NextResponse.redirect(newPath, 301)
+      return NextResponse.redirect(new URL(newPath, baseUrl), 301)
     }
   }
 
