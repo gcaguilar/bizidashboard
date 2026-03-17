@@ -33,5 +33,5 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 CMD curl -fsS http://127.0.0.1:3000/api/health/live >/dev/null || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 CMD wget --spider -q http://127.0.0.1:3000/api/health/live || exit 1
 CMD ["/app/docker-entrypoint.sh"]
