@@ -4,13 +4,11 @@ const {
   getDailyDemandCurveMock,
   getHourlyMobilitySignalsMock,
   getSystemHourlyProfileMock,
-  getHourlyTransitImpactMock,
   withCacheMock,
 } = vi.hoisted(() => ({
   getDailyDemandCurveMock: vi.fn(),
   getHourlyMobilitySignalsMock: vi.fn(),
   getSystemHourlyProfileMock: vi.fn(),
-  getHourlyTransitImpactMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
 
@@ -18,7 +16,6 @@ vi.mock('@/analytics/queries/read', () => ({
   getDailyDemandCurve: getDailyDemandCurveMock,
   getHourlyMobilitySignals: getHourlyMobilitySignalsMock,
   getSystemHourlyProfile: getSystemHourlyProfileMock,
-  getHourlyTransitImpact: getHourlyTransitImpactMock,
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
@@ -32,11 +29,10 @@ describe('GET /api/mobility', () => {
     getDailyDemandCurveMock.mockReset();
     getHourlyMobilitySignalsMock.mockReset();
     getSystemHourlyProfileMock.mockReset();
-    getHourlyTransitImpactMock.mockReset();
     withCacheMock.mockReset();
   });
 
-  it('returns mobility payload with hourly transit impact', async () => {
+  it('returns mobility payload with hourly signals', async () => {
     getHourlyMobilitySignalsMock.mockResolvedValue([
       {
         stationId: '101',
@@ -52,20 +48,6 @@ describe('GET /api/mobility', () => {
         demandScore: 120,
         avgOccupancy: 0.41,
         sampleCount: 320,
-      },
-    ]);
-    getHourlyTransitImpactMock.mockResolvedValue([
-      {
-        provider: 'TRAM',
-        hour: 8,
-        avgDeparturesWithTransit: 13.5,
-        avgDeparturesWithoutTransit: 11,
-        uplift: 2.5,
-        upliftRatio: 0.227,
-        avgArrivalPressure: 0.32,
-        totalArrivalEvents: 24,
-        samplesWithTransit: 16,
-        samplesWithoutTransit: 12,
       },
     ]);
     getSystemHourlyProfileMock.mockResolvedValue([
@@ -94,19 +76,15 @@ describe('GET /api/mobility', () => {
     expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, undefined);
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, undefined);
     expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, undefined);
-    expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, undefined);
     expect(payload.hourlySignals).toHaveLength(1);
     expect(payload.dailyDemand).toHaveLength(1);
     expect(payload.systemHourlyProfile).toHaveLength(1);
-    expect(payload.transitImpact.hourly).toHaveLength(1);
-    expect(payload.transitImpact.hourly[0].provider).toBe('tram');
   });
 
   it('passes selected month through cache key and query calls', async () => {
     getHourlyMobilitySignalsMock.mockResolvedValue([]);
     getDailyDemandCurveMock.mockResolvedValue([]);
     getSystemHourlyProfileMock.mockResolvedValue([]);
-    getHourlyTransitImpactMock.mockResolvedValue([]);
     withCacheMock.mockImplementation(
       async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
     );
@@ -125,25 +103,7 @@ describe('GET /api/mobility', () => {
     expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, '2026-03');
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
     expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, '2026-03');
-    expect(getHourlyTransitImpactMock).toHaveBeenCalledWith(14, '2026-03');
     expect(payload.selectedMonth).toBe('2026-03');
-  });
-
-  it('falls back when transit tables are missing', async () => {
-    getHourlyMobilitySignalsMock.mockResolvedValue([]);
-    getDailyDemandCurveMock.mockResolvedValue([]);
-    getSystemHourlyProfileMock.mockResolvedValue([]);
-    getHourlyTransitImpactMock.mockRejectedValue(new Error('no such table: TransitSnapshot'));
-    withCacheMock.mockImplementation(
-      async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
-    );
-
-    const response = await GET(new Request('http://localhost/api/mobility') as never);
-    const payload = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(payload.transitImpact.hourly).toEqual([]);
-    expect(payload.transitImpact.warning).toContain('Transit impact unavailable');
   });
 
   it('returns 400 on invalid days query params', async () => {
