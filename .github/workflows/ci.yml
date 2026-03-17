@@ -6,16 +6,43 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      clear-cache:
+        description: 'Clear cache before running'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: read
     env:
       DATABASE_URL: file:./dev.db
       NODE_ENV: test
     steps:
+      - name: Clear cache
+        if: inputs.clear-cache == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const caches = await github.rest.actions.listRepoCaches({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            for (const cache of caches.data.actions_caches) {
+              await github.rest.actions.deleteCache({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id,
+              });
+              console.log(`Deleted cache: ${cache.key}`);
+            }
+            console.log(`Total caches deleted: ${caches.data.actions_caches.length}`);
+
       - name: Checkout
         uses: actions/checkout@v4
 
