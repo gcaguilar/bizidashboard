@@ -12,13 +12,11 @@ DB_NAME="${DATABASE_URL##*/}"
 
 echo "[Entrypoint] City: $CITY (database: $DB_NAME)..."
 
-# First, create the schema
 echo "[Entrypoint] Creating schema $CITY..."
 bun run /app/ops/create-schema.ts
 
-# Then run Prisma db push (prisma.config.ts handles schema)
 echo "[Entrypoint] Running Prisma db push..."
-bunx prisma db push
+bunx prisma db push --skip-generate --accept-data-loss
 
 echo "[Entrypoint] Starting application for $CITY..."
 exec bun server.js
