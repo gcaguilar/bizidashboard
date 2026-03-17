@@ -2,4 +2,11 @@ node_modules
 .next
 dev.db
 .env
+.env.*
+!.env.example
 tests
+.git
+*.log
+.DS_Store
+design
+*.tsbuildinfo
