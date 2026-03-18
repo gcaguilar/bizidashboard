@@ -93,32 +93,30 @@ export async function storeStationStatuses(
   return result
 }
 
+import { Prisma } from '@prisma/client'
+
 export async function upsertStations(
   stations: GBFSStationInformation[]
 ): Promise<{ createdOrUpdated: number }> {
-  const upserts = stations.map(station =>
-    prisma.station.upsert({
-      where: { id: station.station_id },
-      create: {
-        id: station.station_id,
-        name: station.name,
-        lat: station.lat,
-        lon: station.lon,
-        capacity: station.capacity ?? 0,
-        isActive: true,
-      },
-      update: {
-        name: station.name,
-        lat: station.lat,
-        lon: station.lon,
-        capacity: station.capacity ?? 0,
-        isActive: true,
-      },
-    })
-  )
+  if (stations.length === 0) return { createdOrUpdated: 0 };
 
-  const results = await prisma.$transaction(upserts)
-  return { createdOrUpdated: results.length }
+  const values = stations.map(station => 
+    Prisma.sql`(${station.station_id}, ${station.name}, ${station.lat}, ${station.lon}, ${station.capacity ?? 0}, true, NOW(), NOW())`
+  );
+
+  await prisma.$executeRaw`
+    INSERT INTO "Station" (id, name, lat, lon, capacity, "isActive", "createdAt", "updatedAt")
+    VALUES ${Prisma.join(values)}
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      lat = EXCLUDED.lat,
+      lon = EXCLUDED.lon,
+      capacity = EXCLUDED.capacity,
+      "isActive" = EXCLUDED."isActive",
+      "updatedAt" = NOW();
+  `;
+
+  return { createdOrUpdated: stations.length };
 }
 
 /**

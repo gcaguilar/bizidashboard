@@ -174,10 +174,10 @@ export function startCollectionJob(): void {
     return;
   }
 
-  // Schedule: every 30 minutes
-  // */30 * * * * = every 30th minute
+  // Schedule: every 2 minutes
+  // */2 * * * * = every 2nd minute
   cronJob = schedule(
-    '*/30 * * * *',
+    '*/2 * * * *',
     async () => {
       try {
         await runCollection();

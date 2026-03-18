@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 
@@ -57,6 +58,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error('[API Stations] Error fetching stations:', error);
 
     return NextResponse.json(

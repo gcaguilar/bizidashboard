@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import {
   getDailyDemandCurve,
   getHourlyMobilitySignals,
@@ -106,6 +107,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error('[API Mobility] Error generating mobility insights:', error);
 
     return NextResponse.json(

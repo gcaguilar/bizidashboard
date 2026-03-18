@@ -15,6 +15,68 @@ import { runHourlyRollup } from '@/analytics/queries/hourly';
 import { runPatternRollup } from '@/analytics/queries/patterns';
 import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
+import { setCachedJson } from '@/lib/cache/cache';
+import { 
+  getStationsWithLatestStatus, 
+  getDailyDemandCurve, 
+  getHourlyMobilitySignals, 
+  getSystemHourlyProfile 
+} from '@/analytics/queries/read';
+
+async function warmCache(): Promise<void> {
+  console.log('[Analytics] Starting proactive cache warming...');
+  const start = Date.now();
+
+  try {
+    // 1. Warm stations:current
+    const stations = await getStationsWithLatestStatus();
+    await setCachedJson('stations:current', {
+      stations,
+      generatedAt: new Date().toISOString(),
+    }, 300);
+
+    // 2. Warm mobility:all
+    const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
+      getHourlyMobilitySignals(14),
+      getDailyDemandCurve(30),
+      getSystemHourlyProfile(14),
+    ]);
+
+    const mobilityPayload = {
+      mobilityDays: 14,
+      demandDays: 30,
+      selectedMonth: null,
+      methodology: 'Matriz O-D estimada con variaciones netas horarias de bicis por estacion; no representa viajes individuales observados.',
+      hourlySignals: hourlySignals.map((row) => ({
+        stationId: row.stationId,
+        hour: Number(row.hour),
+        departures: Number(row.departures),
+        arrivals: Number(row.arrivals),
+        sampleCount: Number(row.sampleCount),
+      })),
+      dailyDemand: dailyDemand.map((row) => ({
+        day: row.day,
+        demandScore: Number(row.demandScore),
+        avgOccupancy: Number(row.avgOccupancy),
+        sampleCount: Number(row.sampleCount),
+      })),
+      systemHourlyProfile: systemHourlyProfile.map((row) => ({
+        hour: Number(row.hour),
+        avgOccupancy: Number(row.avgOccupancy),
+        bikesInCirculation: Number(row.bikesInCirculation),
+        sampleCount: Number(row.sampleCount),
+      })),
+      generatedAt: new Date().toISOString(),
+    };
+
+    await setCachedJson('mobility:mobilityDays=14:demandDays=30:month=all', mobilityPayload, 300);
+
+    const duration = Date.now() - start;
+    console.log(`[Analytics] Cache warming completed in ${duration}ms`);
+  } catch (error) {
+    console.warn('[Analytics] Cache warming failed:', error);
+  }
+}
 
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
@@ -141,6 +203,9 @@ async function runAnalyticsAggregation(): Promise<void> {
         console.log('[Analytics] VACUUM completed after retention cleanup');
       }
     }
+
+    // Warm cache for high-traffic endpoints after rollups complete
+    await warmCache();
   } catch (error) {
     console.error('[Analytics] Aggregation run failed:', error);
   } finally {

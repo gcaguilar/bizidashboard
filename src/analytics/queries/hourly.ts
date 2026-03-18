@@ -44,19 +44,14 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
       JOIN "Station" ON "StationStatus"."stationId" = "Station".id
       WHERE "StationStatus"."recordedAt" > ${watermark}
         AND "StationStatus"."recordedAt" <= ${cutoff}
-      GROUP BY "StationStatus"."stationId", DATE_TRUNC('hour', "StationStatus"."recordedAt")
+      GROUP BY 1, 2
     )
   `;
 
-  const [{ count: upsertedCount = 0 } = {}] = await prisma.$queryRaw<
-    { count: number }[]
-  >`
-    ${rollupCte}
-    SELECT COUNT(*) as count FROM rollup;
-  `;
+  let upsertedCount = 0;
 
-  if (Number(upsertedCount) > 0) {
-    await prisma.$executeRaw`
+  if (Number(processedCount) > 0) {
+    upsertedCount = await prisma.$executeRaw`
       ${rollupCte}
       INSERT INTO "HourlyStationStat" (
         "stationId",
@@ -84,7 +79,6 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
         "sampleCount",
         CURRENT_TIMESTAMP
       FROM rollup
-      WHERE true
       ON CONFLICT("stationId", "bucketStart") DO UPDATE SET
         "bikesMin" = excluded."bikesMin",
         "bikesMax" = excluded."bikesMax",

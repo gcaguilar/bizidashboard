@@ -198,7 +198,7 @@ export function DashboardHeader({
 
         <div className="w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
-            <span>Proxima actualizacion automatica en menos de 30 min</span>
+            <span>Proxima actualizacion automatica en menos de 2 min</span>
             <span>{isRefreshingData ? 'actualizando...' : `siguiente en ${refreshCountdownLabel}`}</span>
           </div>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/15">

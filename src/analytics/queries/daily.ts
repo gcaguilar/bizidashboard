@@ -44,7 +44,7 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
       JOIN "Station" ON "StationStatus"."stationId" = "Station".id
       WHERE "StationStatus"."recordedAt" > ${watermark}
         AND "StationStatus"."recordedAt" <= ${cutoff}
-      GROUP BY "StationStatus"."stationId", DATE_TRUNC('day', "StationStatus"."recordedAt")
+      GROUP BY 1, 2
     )
   `;
 
