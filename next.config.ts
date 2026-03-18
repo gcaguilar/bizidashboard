@@ -13,7 +13,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://basemaps.cartocdn.com https://fonts.gstatic.com",
-      "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com",
+      "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.sentry.io",
       "worker-src 'self' blob:",
       "frame-src 'none'",
       "manifest-src 'self'",
@@ -51,6 +51,8 @@ const securityHeaders = [
   },
 ];
 
+import { withSentryConfig } from "@sentry/nextjs";
+
 const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
@@ -74,4 +76,39 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Injected content via Sentry wizard below
+
+export default withSentryConfig(nextConfig, {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  org: "bizidashboard",
+  project: "javascript-nextjs",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // For all available options, see:
+  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
+  // Upload a larger set of source maps for prettier stack traces (can increase build time)
+  widenClientFileUpload: true,
+
+  // Automatically annotate React components to show their full name in breadcrumbs and session replay
+  reactComponentAnnotation: {
+    enabled: true,
+  },
+
+  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+  // This can increase your server load as well as your Sentry bill.
+  tunnelRoute: "/monitoring",
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with other cron services).
+  // See the following for more information:
+  // https://docs.sentry.io/product/crons/
+  // https://vercel.com/docs/cron-jobs
+  automaticVercelMonitors: true,
+});
