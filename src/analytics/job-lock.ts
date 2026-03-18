@@ -48,7 +48,7 @@ export async function acquireJobLock(
   const release = async (): Promise<void> => {
     await prisma.$executeRaw`
       UPDATE JobLock
-      SET lockExpiresAt = ${new Date(0)}, lockedBy = NULL
+      SET lockExpiresAt = NULL, lockedAt = NULL, lockedBy = NULL
       WHERE name = ${name} AND lockedBy = ${ownerId};
     `;
   };

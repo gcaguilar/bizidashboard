@@ -277,7 +277,7 @@ export async function validateDataQuality(
   if (!volume.isValid) {
     const message = `Volume anomaly: ${volume.stationCount} stations (expected ${volume.expectedRange.min}-${volume.expectedRange.max})`
     errors.push(message)
-  } else if (volume.previousCount !== null) {
+  } else if (volume.previousCount !== null && volume.previousCount > 0) {
     // Check for significant change from previous
     const changePercent = Math.abs(volume.stationCount - volume.previousCount) / volume.previousCount * 100
     if (changePercent > 20) {
@@ -306,13 +306,12 @@ export async function validateDataQuality(
     errors.push(`Invalid GBFS version: ${lineage.gbfsVersion} (expected 2.x)`)
   }
 
-  const allChecksPassed = 
-    freshness.isFresh && 
-    volume.isValid && 
-    schema.isValid && 
-    distribution.isValid && 
-    lineage.isValid &&
-    errors.length === 0
+  const allChecksPassed =
+    freshness.isFresh &&
+    volume.isValid &&
+    schema.isValid &&
+    distribution.isValid &&
+    lineage.isValid
 
   return {
     timestamp,

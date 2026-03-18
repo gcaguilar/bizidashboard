@@ -5,11 +5,12 @@ type RedisClient = ReturnType<typeof createClient>
 let cachedClient: RedisClient | null = null
 let cachedClientPromise: Promise<RedisClient | null> | null = null
 let warnedMissingUrl = false
-let cacheDisabled = false
+let connectionFailures = 0
+const MAX_CONNECTION_RETRIES = 3
 let warnedConnectionFailure = false
 
 export async function getRedisClient(): Promise<RedisClient | null> {
-  if (cacheDisabled) return null
+  if (connectionFailures >= MAX_CONNECTION_RETRIES) return null
 
   const redisUrl = process.env.REDIS_URL
 
@@ -49,7 +50,7 @@ export async function getRedisClient(): Promise<RedisClient | null> {
         console.warn('Failed to connect to Redis; disabling cache', error)
         warnedConnectionFailure = true
       }
-      cacheDisabled = true
+      connectionFailures++
       cachedClientPromise = null
       return null
     })

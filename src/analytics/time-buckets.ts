@@ -46,6 +46,10 @@ export function getLocalDayOfWeek(date: Date): number {
 export function getLocalDayType(date: Date): DayType {
   const dayOfWeek = getLocalDayOfWeek(date);
 
+  if (Number.isNaN(dayOfWeek)) {
+    return DayType.WEEKDAY;
+  }
+
   if (dayOfWeek === 0 || dayOfWeek === 6) {
     return DayType.WEEKEND;
   }
@@ -64,6 +68,6 @@ export function getLocalBucket(date: Date): {
   return {
     hour,
     dayOfWeek,
-    dayType: dayOfWeek === 0 || dayOfWeek === 6 ? DayType.WEEKEND : DayType.WEEKDAY,
+    dayType: getLocalDayType(date),
   };
 }
