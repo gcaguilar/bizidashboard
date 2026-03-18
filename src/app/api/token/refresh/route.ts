@@ -62,10 +62,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const newRefreshToken = await generateRefreshToken(install.installId);
     const accessToken = await generateAccessToken(install.installId);
 
-    await prisma.install.update({
-      where: { installId: install.installId },
+    const updated = await prisma.install.updateMany({
+      where: { installId: install.installId, refreshToken: body.refreshToken },
       data: { refreshToken: newRefreshToken },
     });
+
+    if (updated.count === 0) {
+      return NextResponse.json(
+        { error: 'Refresh token already used' },
+        { status: 401, headers: CORS_HEADERS }
+      );
+    }
 
     const response: TokenRefreshResponse = {
       accessToken,
