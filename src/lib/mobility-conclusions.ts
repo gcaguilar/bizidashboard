@@ -131,7 +131,7 @@ function getMadridDateKey(value: Date = new Date()): string {
   return value.toISOString().slice(0, 10);
 }
 
-function toNumber(value: any): number {
+function toNumber(value: unknown): number {
   if (value === null || value === undefined) {
     return 0;
   }
