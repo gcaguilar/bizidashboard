@@ -131,12 +131,13 @@ function getMadridDateKey(value: Date = new Date()): string {
   return value.toISOString().slice(0, 10);
 }
 
-function toNumber(value: number | null | undefined): number {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
+function toNumber(value: any): number {
+  if (value === null || value === undefined) {
     return 0;
   }
 
-  return Number(value);
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
 }
 
 function round(value: number, decimals = 2): number {
@@ -355,9 +356,9 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   ] = await Promise.all([
       prisma.$queryRaw<CoverageRow[]>`
         SELECT
-          MIN(date("bucketDate")) AS "firstDay",
-          MAX(date("bucketDate")) AS "lastDay",
-          COUNT(DISTINCT date("bucketDate")) AS "totalDays",
+          MIN(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "firstDay",
+          MAX(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "lastDay",
+          COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays",
           COUNT(DISTINCT "stationId") AS "stationsWithData"
         FROM "DailyStationStat"
         ${selectedMonth ? Prisma.sql`WHERE ${range.currentDaily}` : Prisma.sql``};
@@ -691,9 +692,9 @@ function hasSameSourceLastDay(cachedSourceLastDay: Date | null, sourceLastDay: D
 async function getCoverageSignature(): Promise<CoverageSignature> {
   const [coverage] = await prisma.$queryRaw<CoverageRow[]>`
     SELECT
-      MIN(date("bucketDate")) AS "firstDay",
-      MAX(date("bucketDate")) AS "lastDay",
-      COUNT(DISTINCT date("bucketDate")) AS "totalDays",
+      MIN(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "firstDay",
+      MAX(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "lastDay",
+      COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays",
       COUNT(DISTINCT "stationId") AS "stationsWithData"
     FROM "DailyStationStat";
   `;
