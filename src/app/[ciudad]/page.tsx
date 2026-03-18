@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { CITIES, isValidCity } from '@/lib/constants'
+import { isValidCity } from '@/lib/constants'
 
 type PageProps = {
   params: Promise<{ ciudad: string }>

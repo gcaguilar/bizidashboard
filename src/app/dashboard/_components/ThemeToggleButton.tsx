@@ -32,6 +32,7 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   }, []);
 
