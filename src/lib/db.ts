@@ -29,7 +29,9 @@ async function createPrismaClient(): Promise<PrismaClient> {
   const client = new PrismaClient({ adapter })
 
   await client.$connect()
-  await client.$executeRawUnsafe(`SET search_path TO public`)
+  const city = getCity()
+  await client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${city}"`)
+  await client.$executeRawUnsafe(`SET search_path TO "${city}", public`)
 
   return client
 }
@@ -61,6 +63,9 @@ export const prisma = isBuildPhase() || !process.env.DATABASE_URL
   ? createBuildPrismaMock()
   : await getPrismaClient()
 
+import { DEFAULT_CITY } from './constants'
+
 export function getCity(): string {
-  return process.env.CITY || 'zaragoza'
+  const city = process.env.CITY || DEFAULT_CITY
+  return city.toLowerCase()
 }
