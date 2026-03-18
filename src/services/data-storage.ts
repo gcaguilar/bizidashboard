@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db'
-import { Prisma } from '@prisma/client'
 
 /**
  * Station status data from GBFS API (before database storage)
@@ -59,42 +58,20 @@ export async function storeStationStatuses(
   }
 
   try {
-    // Convert GBFS data to Prisma input format
     const data = statuses.map(status => ({
       stationId: status.station_id,
       bikesAvailable: status.num_bikes_available,
       anchorsFree: status.num_docks_available,
-      recordedAt: new Date(status.last_reported * 1000) // Convert Unix seconds to UTC Date
+      recordedAt: new Date(status.last_reported * 1000)
     }))
 
-    // SQLite doesn't support skipDuplicates, so we insert individually
-    // and catch unique constraint errors for duplicates
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      for (const item of data) {
-        try {
-          await tx.stationStatus.create({
-            data: item
-          })
-          result.count++
-        } catch (error) {
-          // Check if this is a unique constraint violation (duplicate)
-          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-            result.duplicateCount++
-          } else {
-            // Re-throw other errors to fail the transaction
-            throw error
-          }
-        }
-      }
-    }, {
-      // Transaction options for better performance
-      maxWait: 5000, // Maximum time to wait for transaction
-      timeout: 10000 // Maximum time for transaction to complete
+    const { count } = await prisma.stationStatus.createMany({
+      data,
+      skipDuplicates: true,
     })
 
-    if (result.duplicateCount > 0) {
-      console.log(`[Storage] Skipped ${result.duplicateCount} duplicate entries`)
-    }
+    result.count = count
+    result.duplicateCount = data.length - count
 
   } catch (error) {
     result.success = false
@@ -119,33 +96,29 @@ export async function storeStationStatuses(
 export async function upsertStations(
   stations: GBFSStationInformation[]
 ): Promise<{ createdOrUpdated: number }> {
-  let createdOrUpdated = 0
+  const upserts = stations.map(station =>
+    prisma.station.upsert({
+      where: { id: station.station_id },
+      create: {
+        id: station.station_id,
+        name: station.name,
+        lat: station.lat,
+        lon: station.lon,
+        capacity: station.capacity ?? 0,
+        isActive: true,
+      },
+      update: {
+        name: station.name,
+        lat: station.lat,
+        lon: station.lon,
+        capacity: station.capacity ?? 0,
+        isActive: true,
+      },
+    })
+  )
 
-  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    for (const station of stations) {
-      await tx.station.upsert({
-        where: { id: station.station_id },
-        create: {
-          id: station.station_id,
-          name: station.name,
-          lat: station.lat,
-          lon: station.lon,
-          capacity: station.capacity ?? 0,
-          isActive: true,
-        },
-        update: {
-          name: station.name,
-          lat: station.lat,
-          lon: station.lon,
-          capacity: station.capacity ?? 0,
-          isActive: true,
-        },
-      })
-      createdOrUpdated++
-    }
-  })
-
-  return { createdOrUpdated }
+  const results = await prisma.$transaction(upserts)
+  return { createdOrUpdated: results.length }
 }
 
 /**
