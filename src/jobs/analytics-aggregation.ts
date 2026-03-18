@@ -8,7 +8,7 @@ import { schedule, ScheduledTask } from 'node-cron';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { acquireJobLock } from '@/analytics/job-lock';
 import { getWatermark } from '@/analytics/watermarks';
-import { runAlertRollup, deactivateActiveAlerts } from '@/analytics/queries/alerts';
+import { runAlertRollup } from '@/analytics/queries/alerts';
 import { runDailyRollup } from '@/analytics/queries/daily';
 import { runHeatmapRollup } from '@/analytics/queries/heatmap';
 import { runHourlyRollup } from '@/analytics/queries/hourly';
@@ -41,7 +41,7 @@ function getHourlyCutoff(now: Date): Date {
     0
   );
 
-  return new Date(hourStartUtc - 1);
+  return new Date(hourStartUtc);
 }
 
 function getDailyCutoff(now: Date): Date {
@@ -57,7 +57,7 @@ function getDailyCutoff(now: Date): Date {
     0
   );
 
-  return new Date(dayStartUtc - 1);
+  return new Date(dayStartUtc);
 }
 
 async function runAnalyticsAggregation(): Promise<void> {
@@ -111,7 +111,6 @@ async function runAnalyticsAggregation(): Promise<void> {
       );
 
       await lock.refresh();
-      await deactivateActiveAlerts();
       const alertStart = Date.now();
       const alertResult = await runAlertRollup(hourlyCutoff);
       const alertDuration = Date.now() - alertStart;
@@ -145,7 +144,11 @@ async function runAnalyticsAggregation(): Promise<void> {
   } catch (error) {
     console.error('[Analytics] Aggregation run failed:', error);
   } finally {
-    await lock.release();
+    try {
+      await lock.release();
+    } catch (releaseError) {
+      console.error('[Analytics] Failed to release lock:', releaseError);
+    }
     const duration = Date.now() - runStart;
     console.log(`[Analytics] Aggregation run finished in ${duration}ms`);
   }
