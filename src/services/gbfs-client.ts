@@ -186,9 +186,9 @@ export async function fetchStationStatus(
   const stations = validateStationData(data);
   console.log(`[gbfs] Station status fetched successfully (${stations.length} stations)`);
 
-  const response = data as GBFSResponse;
-  response.data.stations = stations;
-  return response;
+  const gbfsResponse = data as GBFSResponse;
+  gbfsResponse.data.stations = stations;
+  return gbfsResponse;
 }
 
 export async function fetchStationInformation(
