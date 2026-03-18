@@ -41,6 +41,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const MAX_FIELD_LENGTH = 256;
+    if (body.appVersion.length > MAX_FIELD_LENGTH || body.osVersion.length > MAX_FIELD_LENGTH) {
+      return NextResponse.json(
+        { error: `appVersion and osVersion must be at most ${MAX_FIELD_LENGTH} characters` },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+
+    if (body.publicKey.length > 2048) {
+      return NextResponse.json(
+        { error: 'publicKey must be at most 2048 characters' },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+
     if (!/^[A-Za-z0-9+/=]{40,}$/.test(body.publicKey)) {
       return NextResponse.json(
         { error: 'Invalid public key format' },
