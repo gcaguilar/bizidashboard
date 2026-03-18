@@ -20,13 +20,13 @@ export async function acquireJobLock(
   const expiresAt = new Date(now.getTime() + ttlMs);
 
   const result = await prisma.$executeRaw`
-    INSERT INTO JobLock (name, lockedAt, lockExpiresAt, lockedBy)
+    INSERT INTO JobLock (name, "lockedAt", "lockExpiresAt", "lockedBy")
     VALUES (${name}, ${now}, ${expiresAt}, ${ownerId})
     ON CONFLICT(name) DO UPDATE SET
-      lockedAt = excluded.lockedAt,
-      lockExpiresAt = excluded.lockExpiresAt,
-      lockedBy = excluded.lockedBy
-    WHERE JobLock.lockExpiresAt IS NULL OR JobLock.lockExpiresAt <= ${now};
+      "lockedAt" = excluded."lockedAt",
+      "lockExpiresAt" = excluded."lockExpiresAt",
+      "lockedBy" = excluded."lockedBy"
+    WHERE JobLock."lockExpiresAt" IS NULL OR JobLock."lockExpiresAt" <= ${now};
   `;
 
   if (Number(result) === 0) {
@@ -38,8 +38,8 @@ export async function acquireJobLock(
     const refreshedUntil = new Date(refreshedAt.getTime() + ttlMs);
     const refreshed = await prisma.$executeRaw`
       UPDATE JobLock
-      SET lockedAt = ${refreshedAt}, lockExpiresAt = ${refreshedUntil}
-      WHERE name = ${name} AND lockedBy = ${ownerId};
+      SET "lockedAt" = ${refreshedAt}, "lockExpiresAt" = ${refreshedUntil}
+      WHERE name = ${name} AND "lockedBy" = ${ownerId};
     `;
 
     return Number(refreshed) > 0;
@@ -48,8 +48,8 @@ export async function acquireJobLock(
   const release = async (): Promise<void> => {
     await prisma.$executeRaw`
       UPDATE JobLock
-      SET lockExpiresAt = NULL, lockedAt = NULL, lockedBy = NULL
-      WHERE name = ${name} AND lockedBy = ${ownerId};
+      SET "lockExpiresAt" = NULL, "lockedAt" = NULL, "lockedBy" = NULL
+      WHERE name = ${name} AND "lockedBy" = ${ownerId};
     `;
   };
 
