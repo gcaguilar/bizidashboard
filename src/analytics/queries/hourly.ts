@@ -55,7 +55,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
     SELECT COUNT(*) as count FROM rollup;
   `;
 
-  if (upsertedCount > 0) {
+  if (Number(upsertedCount) > 0) {
     await prisma.$executeRaw`
       ${rollupCte}
       INSERT INTO HourlyStationStat (

@@ -89,18 +89,17 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
     }
   }
 
-  const rows = Array.from(aggregates.values()).map((entry) => {
-    const count = entry.sampleCount || 1;
-    return {
+  const rows = Array.from(aggregates.values())
+    .filter((entry) => entry.sampleCount > 0)
+    .map((entry) => ({
       stationId: entry.stationId,
       dayType: entry.dayType,
       hour: entry.hour,
-      bikesAvg: entry.bikesSum / count,
-      anchorsAvg: entry.anchorsSum / count,
-      occupancyAvg: entry.occupancySum / count,
+      bikesAvg: entry.bikesSum / entry.sampleCount,
+      anchorsAvg: entry.anchorsSum / entry.sampleCount,
+      occupancyAvg: entry.occupancySum / entry.sampleCount,
       sampleCount: entry.sampleCount,
-    };
-  });
+    }));
 
   if (rows.length > 0) {
     const values = rows.map((row) =>
