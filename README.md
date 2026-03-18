@@ -25,7 +25,7 @@ This project provides a full prototype pipeline:
 
 - Next.js (App Router) and React
 - TypeScript
-- Prisma with SQLite/libSQL adapter
+- Prisma with PostgreSQL adapter
 - pnpm for dependency management, installs, builds and day-to-day developer workflows
 - Bun for standalone runtime verification and the production container entrypoint
 - Redis cache layer (optional)
@@ -48,8 +48,8 @@ APP_URL=http://localhost:3000
 ROBOTS_BASE_URL=http://localhost:3000
 GOOGLE_SITE_VERIFICATION=
 
-# Database (local)
-DATABASE_URL=file:./dev.db
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://user:password@localhost:5432/bizidashboard?schema=public
 
 # Redis (optional for local)
 REDIS_URL=redis://localhost:6379
@@ -122,13 +122,13 @@ To use a published image instead, set `BIZIDASHBOARD_IMAGE` before running Compo
 It also includes:
 
 - A Redis service with health checks.
-- A one-shot migration service (`migrate`) that runs `prisma migrate deploy` on `/data/dev.db` before app startup.
-- An app liveness health check against `/api/health/live` (no DB calls).
+- A one-shot migration service (`migrate`) that runs `prisma migrate deploy` before app startup.
+- An app liveness health check against `/api/health/live` (basic check).
 - A readiness probe at `/api/health/ready` (verifies DB connectivity).
 - An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes using `x-collect-api-key`.
-- Persistent app database storage via the `app-data` Docker volume mounted at `/data`.
+- Persistent PostgreSQL storage for analytics and historical data.
 
-The container entrypoint also bootstraps SQLite on startup: if `DATABASE_URL` is missing or points to a relative SQLite path, it falls back to `file:/data/dev.db` and initializes it from `/app/bootstrap.db` when the file is empty or missing.
+The container entrypoint bootstraps the database connection: if `DATABASE_URL` is provided, it uses the PostgreSQL adapter.
 
 Runtime split:
 
@@ -145,8 +145,8 @@ APP_URL=https://your-domain.example
 ROBOTS_BASE_URL=https://your-domain.example
 GOOGLE_SITE_VERIFICATION=
 
-# In compose this is overridden to file:/data/dev.db
-DATABASE_URL=file:/data/dev.db
+# PostgreSQL connection string
+DATABASE_URL=postgresql://user:password@postgres:5432/bizidashboard?schema=public
 
 # Redis service from docker-compose
 REDIS_URL=redis://redis:6379
@@ -178,19 +178,28 @@ the `x-collect-api-key` header with that exact value.
 docker compose up -d
 ```
 
+## Developer Guidelines for PostgreSQL
+
+Since this project was migrated from SQLite, follow these rules when writing raw SQL queries:
+
+1.  **Quote Identifiers**: PostgreSQL is case-sensitive for unquoted identifiers. Always wrap **camelCase** table and column names in double quotes.
+    -   *Correct*: `SELECT "stationId" FROM "StationStatus"`
+    -   *Incorrect*: `SELECT stationId FROM StationStatus`
+2.  **Date Casting**: Use `TO_CHAR("column", 'YYYY-MM-DD')` instead of `date()` for consistent string-formatted dates.
+3.  **BigInt Handling**: PostgreSQL `SUM` and `COUNT` return `BigInt` (Int8). Always wrap results in `Number()` before doing JS math or returning JSON to avoid `TypeError`.
+4.  **No VACUUM in Transactions**: Avoid `VACUUM`. Use `ANALYZE` for maintenance as it's transaction-safe in Postgres.
+
 ## Bun Runtime Notes
 
 - Keep `pnpm-lock.yaml` as the only lockfile committed to the repo.
 - Use `pnpm` for installs, upgrades, tests, linting and builds.
 - Use Bun only to execute the generated standalone runtime in production-like environments.
-- Prisma currently still relies on `@prisma/adapter-libsql`, which remains required for SQLite runtime access.
+- Prisma uses `@prisma/adapter-pg` for PostgreSQL access.
 
-Dependency audit status for the Bun transition:
+Dependency audit status for the transition:
 
-- Keep: `@prisma/adapter-libsql`, `redis`, `node-cron`.
-- Removed direct deps: `@libsql/client`, `@libsql/isomorphic-ws`, `react-is`, `@types/node-cron`.
-- `@libsql/client` still reaches the runtime transitively through `@prisma/adapter-libsql`, so it does not need to stay in `package.json`.
-- Review later: `node-cron` if collection/aggregation jobs move completely outside the app container.
+- Used: `@prisma/adapter-pg`, `pg`, `redis`, `node-cron`.
+- Removed: `@libsql/client`, `@prisma/adapter-libsql`.
 - No extra Bun-specific package is required right now.
 
 ## Project Status
