@@ -35,6 +35,17 @@ The project natively supports multiple cities out of the box. To switch cities, 
 
 ---
 
+## 📍 Nominatim Geocoding
+
+The public `nominatim.openstreetmap.org` service has a strict usage policy. In practice, to avoid `403` responses you should configure the app with a real application identity and stay below **1 request per second** across the whole deployment.
+
+- Set `APP_URL` to the public origin of the app so outgoing requests include a valid `Referer`.
+- Set `NOMINATIM_CONTACT_EMAIL` in production so the requests are contactable.
+- Avoid client-side autocomplete patterns against the public API. Repeated per-keystroke searches can get blocked.
+- If you expect higher volume, point `NOMINATIM_BASE_URL` to your own Nominatim instance or another provider.
+
+---
+
 ## 🛠️ PostgreSQL Developer Guidelines
 
 Since the project uses **PostgreSQL**, strict rules apply when writing raw SQL queries to avoid syntax errors:
