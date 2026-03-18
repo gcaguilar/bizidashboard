@@ -64,15 +64,15 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
     const { start, endExclusive } = getMonthBounds(monthKey);
     return Prisma.sql`
       WITH RECURSIVE date_series(day) AS (
-        SELECT ${start}::date
+        SELECT TO_CHAR(${start}::date, 'YYYY-MM-DD') AS day
         UNION ALL
-        SELECT day + INTERVAL '1 day'
+        SELECT TO_CHAR(day::date + INTERVAL '1 day', 'YYYY-MM-DD')
         FROM date_series
-        WHERE day < ${endExclusive}::date - INTERVAL '1 day'
+        WHERE day < TO_CHAR(${endExclusive}::date - INTERVAL '1 day', 'YYYY-MM-DD')
       ),
       daily AS (
         SELECT
-          "bucketStart"::date AS day,
+          TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
           SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
           AVG("occupancyAvg") AS "avgOccupancy",
           SUM("sampleCount") AS "sampleCount"
@@ -97,15 +97,15 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
 
   return Prisma.sql`
     WITH RECURSIVE date_series(day) AS (
-      SELECT CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays}
+      SELECT TO_CHAR(CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays}, 'YYYY-MM-DD') AS day
       UNION ALL
-      SELECT day + INTERVAL '1 day'
+      SELECT TO_CHAR(day::date + INTERVAL '1 day', 'YYYY-MM-DD')
       FROM date_series
-      WHERE day < CURRENT_DATE
+      WHERE day < TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
     ),
     daily AS (
       SELECT
-        "bucketStart"::date AS day,
+        TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
         SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
         AVG("occupancyAvg") AS "avgOccupancy",
         SUM("sampleCount") AS "sampleCount"

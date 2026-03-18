@@ -61,7 +61,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
         `,
         prisma.$queryRaw<DailyHistoryRow[]>`
           SELECT
-            date("bucketStart") AS day,
+            TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
             SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
             AVG("occupancyAvg") AS "avgOccupancy",
             AVG(CASE
@@ -72,7 +72,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
             SUM("sampleCount") AS "sampleCount"
           FROM "HourlyStationStat"
           WHERE "occupancyAvg" IS NOT NULL
-          GROUP BY date("bucketStart")
+          GROUP BY TO_CHAR("bucketStart", 'YYYY-MM-DD')
           ORDER BY day ASC;
         `,
       ]);
