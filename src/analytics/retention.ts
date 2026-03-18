@@ -58,7 +58,7 @@ export async function runVacuumIfDue(): Promise<boolean> {
     return false;
   }
 
-  await prisma.$executeRaw`VACUUM;`;
+  await prisma.$executeRawUnsafe('VACUUM');
   await setWatermark('vacuum', now);
   console.log('[Retention] VACUUM executed');
 

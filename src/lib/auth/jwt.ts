@@ -1,12 +1,16 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET is required in production');
+}
+
+if (!process.env.JWT_SECRET) {
+  console.warn('[WARNING] JWT_SECRET not set - using insecure default. Set JWT_SECRET in production!');
+}
+
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production'
 );
-
-if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'production') {
-  console.warn('[WARNING] JWT_SECRET not set - using insecure default. Set JWT_SECRET in production!');
-}
 
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = '30d'; // 30 days
