@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SITE_NAME, SITE_TITLE } from '@/lib/site';
+import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 
 type BuildPageMetadataOptions = {
   title: string;
@@ -9,19 +9,20 @@ type BuildPageMetadataOptions = {
 };
 
 export function buildPageMetadata({ title, description, path, keywords }: BuildPageMetadataOptions): Metadata {
+  const absoluteUrl = `${getSiteUrl()}${path}`;
   return {
     title,
     description,
     keywords,
     alternates: {
-      canonical: path,
+      canonical: absoluteUrl,
     },
     openGraph: {
       type: 'website',
       siteName: SITE_NAME,
       title: `${SITE_TITLE} - ${title}`,
       description,
-      url: path,
+      url: absoluteUrl,
     },
     twitter: {
       card: 'summary_large_image',

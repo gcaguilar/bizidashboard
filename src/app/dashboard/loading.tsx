@@ -1,5 +1,3 @@
-'use client';
-
 import { WidgetSkeleton } from './_components/WidgetSkeleton';
 
 export default function DashboardLoading() {

@@ -14,15 +14,19 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
-      <h2 className="text-2xl font-bold">Algo salió mal</h2>
-      <p className="text-[var(--muted)]">Error: {error.message}</p>
-      <button
-        onClick={() => reset()}
-        className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white"
-      >
-        Reintentar
-      </button>
-    </div>
+    <html lang="es">
+      <body>
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
+          <h2 className="text-2xl font-bold">Algo salió mal</h2>
+          <p className="text-[var(--muted)]">Se ha producido un error inesperado. Inténtalo de nuevo.</p>
+          <button
+            onClick={() => reset()}
+            className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white"
+          >
+            Reintentar
+          </button>
+        </div>
+      </body>
+    </html>
   );
 }

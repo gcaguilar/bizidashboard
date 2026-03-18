@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import {
   fetchAlerts,
   fetchRankings,
@@ -232,7 +233,9 @@ export default async function DashboardPage() {
           </p>
         </section>
       ) : null}
-      <DashboardClient initialData={initialData} />
+      <Suspense>
+        <DashboardClient initialData={initialData} />
+      </Suspense>
     </main>
   );
 }

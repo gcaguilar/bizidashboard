@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { fetchStations } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
 import { AlertsHistoryClient } from './_components/AlertsHistoryClient';
@@ -18,5 +19,9 @@ export default async function DashboardAlertsHistoryPage() {
     generatedAt: new Date().toISOString(),
   }));
 
-  return <AlertsHistoryClient stations={stations.stations} />;
+  return (
+    <Suspense>
+      <AlertsHistoryClient stations={stations.stations} />
+    </Suspense>
+  );
 }

@@ -264,7 +264,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const currentViewQuery = buildViewQueryFromState(
-      parseViewStateFromSearchParams(new URLSearchParams(searchParams.toString()), stations)
+      parseViewStateFromSearchParams(new URLSearchParams(window.location.search), stations)
     );
 
     if (currentViewQuery === viewQueryString) {
@@ -273,7 +273,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
     const nextUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [isUrlReady, pathname, router, searchParams, stations, viewQueryString]);
+  }, [isUrlReady, pathname, router, stations, viewQueryString]);
 
   useEffect(() => {
     const controller = new AbortController();
