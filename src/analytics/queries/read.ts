@@ -56,7 +56,7 @@ function buildRangeFilter(column: string, days: number, monthKey?: string): Pris
   }
 
   const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
-  return Prisma.sql`${Prisma.raw(column)} >= NOW() - INTERVAL '${safeDays} days'`;
+  return Prisma.sql`${Prisma.raw(column)} >= NOW() - INTERVAL '1 day' * ${safeDays}`;
 }
 
 function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
@@ -97,7 +97,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
 
   return Prisma.sql`
     WITH RECURSIVE date_series(day) AS (
-      SELECT CURRENT_DATE - INTERVAL '${startOffsetDays} days'
+      SELECT CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays}
       UNION ALL
       SELECT day + INTERVAL '1 day'
       FROM date_series
@@ -110,7 +110,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
         AVG(occupancyAvg) AS avgOccupancy,
         SUM(sampleCount) AS sampleCount
       FROM HourlyStationStat
-      WHERE bucketStart >= NOW() - INTERVAL '${startOffsetDays} days'
+      WHERE bucketStart >= NOW() - INTERVAL '1 day' * ${startOffsetDays}
       GROUP BY bucketStart::date
     )
     SELECT
@@ -400,7 +400,7 @@ export async function getHourlyMobilitySignals(
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
   const query = buildDemandSeriesQuery(days, monthKey)
-  return (await prisma.$queryRawUnsafe(query as unknown as string)) as DailyDemandRow[]
+  return prisma.$queryRaw<DailyDemandRow[]>(query)
 }
 
 export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDemandRow[]> {
