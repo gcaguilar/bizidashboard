@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 
 const dbUrl = process.env.DATABASE_URL
 const city = process.env.CITY || 'zaragoza'
@@ -9,22 +8,27 @@ if (!dbUrl) {
   process.exit(1)
 }
 
+const VALID_SCHEMA_NAME = /^[a-z][a-z0-9_]{0,62}$/
+
+if (!VALID_SCHEMA_NAME.test(city)) {
+  console.error(`Invalid schema name: "${city}". Must match ${VALID_SCHEMA_NAME}`)
+  process.exit(1)
+}
+
 async function main() {
   console.log(`Creating schema ${city}...`)
-  
-  const client = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: dbUrl })
-  })
+
+  const client = new pg.Client({ connectionString: dbUrl })
 
   try {
-    await client.$connect()
-    await client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${city}`)
+    await client.connect()
+    await client.query(`CREATE SCHEMA IF NOT EXISTS "${city}"`)
     console.log(`Schema ${city} created successfully`)
   } catch (error) {
     console.error('Error creating schema:', error)
     throw error
   } finally {
-    await client.$disconnect()
+    await client.end()
   }
 }
 

@@ -25,7 +25,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget libpq5 && rm -rf /var/lib/apt/lists/*
 
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY ops/create-schema.ts /app/ops/create-schema.ts
 RUN chmod +x /app/docker-entrypoint.sh
