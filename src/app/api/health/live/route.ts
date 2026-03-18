@@ -6,6 +6,7 @@ export async function GET(): Promise<NextResponse> {
   return NextResponse.json(
     {
       status: 'ok',
+      ready: true,
       checks: {
         process: 'ok',
       },
