@@ -32,11 +32,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=${CITY:-zaragoza}
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3000:3000"
@@ -58,11 +58,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=madrid
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3001:3000"
@@ -84,11 +84,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - CITY=barcelona
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - SIGNATURE_SECRET=${SIGNATURE_SECRET}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
     ports:
       - "3002:3000"
