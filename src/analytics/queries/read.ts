@@ -63,12 +63,9 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
   if (monthKey && isValidMonthKey(monthKey)) {
     const { start, endExclusive } = getMonthBounds(monthKey);
     return Prisma.sql`
-      WITH RECURSIVE date_series(day) AS (
-        SELECT TO_CHAR(${start}::date, 'YYYY-MM-DD') AS day
-        UNION ALL
-        SELECT TO_CHAR(day::date + INTERVAL '1 day', 'YYYY-MM-DD')
-        FROM date_series
-        WHERE day < TO_CHAR(${endExclusive}::date - INTERVAL '1 day', 'YYYY-MM-DD')
+      WITH date_series AS (
+        SELECT TO_CHAR(day, 'YYYY-MM-DD') AS day
+        FROM generate_series(${start}::timestamp, (${endExclusive}::timestamp - INTERVAL '1 day'), '1 day'::interval) AS day
       ),
       daily AS (
         SELECT
@@ -96,12 +93,13 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
   const startOffsetDays = Math.max(0, safeDays - 1);
 
   return Prisma.sql`
-    WITH RECURSIVE date_series(day) AS (
-      SELECT TO_CHAR(CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays}, 'YYYY-MM-DD') AS day
-      UNION ALL
-      SELECT TO_CHAR(day::date + INTERVAL '1 day', 'YYYY-MM-DD')
-      FROM date_series
-      WHERE day < TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+    WITH date_series AS (
+      SELECT TO_CHAR(day, 'YYYY-MM-DD') AS day
+      FROM generate_series(
+        (CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays})::timestamp,
+        (CURRENT_DATE)::timestamp,
+        '1 day'::interval
+      ) AS day
     ),
     daily AS (
       SELECT
