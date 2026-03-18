@@ -125,8 +125,8 @@ type RefreshPayload<T> = {
 const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
 const TREND_SNAPSHOT_STORAGE_KEY = 'bizidashboard-session-station-snapshot';
 const RECENT_SNAPSHOTS_STORAGE_KEY = 'bizidashboard-session-recent-station-snapshots';
-const REFRESH_AFTER_LAST_DATA_MS = 30 * 60_000;
-const MIN_REFRESH_FALLBACK_MS = 60_000;
+const REFRESH_AFTER_LAST_DATA_MS = 2.5 * 60_000; // 2 min 30s
+const MIN_REFRESH_FALLBACK_MS = 30_000;
 
 const TIME_WINDOWS: TimeWindow[] = [
   { id: '24h', label: 'Ultimas 24h', mobilityDays: 1, demandDays: 7 },

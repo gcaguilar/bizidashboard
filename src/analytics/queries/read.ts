@@ -76,7 +76,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
         FROM "HourlyStationStat"
         WHERE "bucketStart" >= ${start}::timestamp
           AND "bucketStart" < ${endExclusive}::timestamp
-        GROUP BY "bucketStart"::date
+        GROUP BY 1
       )
       SELECT
         date_series.day AS day,
@@ -109,7 +109,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
         SUM("sampleCount") AS "sampleCount"
       FROM "HourlyStationStat"
       WHERE "bucketStart" >= NOW() - INTERVAL '1 day' * ${startOffsetDays}
-      GROUP BY "bucketStart"::date
+      GROUP BY 1
     )
     SELECT
       date_series.day AS day,
