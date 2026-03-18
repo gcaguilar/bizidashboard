@@ -456,11 +456,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     setRecentSnapshots(nextRecentSnapshots);
 
-    window.sessionStorage.setItem(
-      TREND_SNAPSHOT_STORAGE_KEY,
-      JSON.stringify(toStationSnapshot(initialData.stations.stations))
-    );
-    window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
+    try {
+      window.sessionStorage.setItem(
+        TREND_SNAPSHOT_STORAGE_KEY,
+        JSON.stringify(toStationSnapshot(initialData.stations.stations))
+      );
+      window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
+    } catch { /* quota exceeded or private browsing */ }
   }, [initialData.stations]);
 
   useEffect(() => {
@@ -668,10 +670,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
         setStationTrendById(computeStationTrends(trendSource, stationsResult.data.stations));
 
-        window.sessionStorage.setItem(
-          TREND_SNAPSHOT_STORAGE_KEY,
-          JSON.stringify(toStationSnapshot(stationsResult.data.stations))
-        );
+        try {
+          window.sessionStorage.setItem(
+            TREND_SNAPSHOT_STORAGE_KEY,
+            JSON.stringify(toStationSnapshot(stationsResult.data.stations))
+          );
+        } catch { /* quota exceeded or private browsing */ }
 
         const nextRecentSnapshots = pushRecentSnapshot(
           parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
@@ -682,7 +686,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         );
 
         setRecentSnapshots(nextRecentSnapshots);
-        window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
+        try {
+          window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
+        } catch { /* quota exceeded or private browsing */ }
 
         setStationsData(stationsResult.data);
       }
@@ -978,8 +984,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
 
-      <footer className="pb-4 text-center text-[11px] text-[var(--muted)]">
-        © 2024 Bizi Zaragoza - Sistema de analitica de movilidad urbana.
+      <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
+        © {new Date().getFullYear()} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
       </footer>
     </DashboardLayout>
   );

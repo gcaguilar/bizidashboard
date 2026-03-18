@@ -26,7 +26,15 @@ function formatValue(value: string | null | undefined): string {
 }
 
 export default async function DashboardStatusPage() {
-  const [status, stations] = await Promise.all([fetchStatus(), fetchStations()]);
+  const [status, stations] = await Promise.all([
+    fetchStatus().catch(() => ({
+      pipeline: { lastSuccessfulPoll: null, totalRowsCollected: 0, pollsLast24Hours: 0, validationErrors: 0, consecutiveFailures: 0, lastDataFreshness: false, lastStationCount: 0, averageStationsPerPoll: 0, healthStatus: 'down' as const, healthReason: 'No se pudieron consultar las tablas de datos.' },
+      quality: { freshness: { isFresh: false, lastUpdated: null, maxAgeSeconds: 300 }, volume: { recentStationCount: 0, averageStationsPerPoll: 0, expectedRange: { min: 200, max: 500 } }, lastCheck: null },
+      system: { uptime: new Date().toISOString(), version: '0.1.0', environment: 'production' },
+      timestamp: new Date().toISOString(),
+    })),
+    fetchStations().catch(() => ({ stations: [], generatedAt: new Date().toISOString() })),
+  ]);
 
   return (
     <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import {
   fetchAlerts,
   fetchAvailableDataMonths,
@@ -145,7 +146,9 @@ export default async function StationDetailPage({ params, searchParams }: Statio
         </div>
       </header>
 
-      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      <Suspense>
+        <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      </Suspense>
 
       <StationDetailPanel
         station={selectedStation}

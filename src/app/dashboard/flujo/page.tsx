@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { buildPageMetadata } from '@/lib/seo';
@@ -102,14 +103,18 @@ export default async function DashboardFlowPage({ searchParams }: DashboardFlowP
         </div>
       </header>
 
-      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      <Suspense>
+        <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      </Suspense>
 
-      <MobilityInsights
-        stations={stations.stations}
-        selectedStationId={selectedStationId}
-        mobilityDays={14}
-        demandDays={30}
-      />
+      <Suspense>
+        <MobilityInsights
+          stations={stations.stations}
+          selectedStationId={selectedStationId}
+          mobilityDays={14}
+          demandDays={30}
+        />
+      </Suspense>
     </main>
   );
 }

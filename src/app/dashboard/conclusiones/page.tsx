@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
@@ -214,7 +215,9 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
         </div>
       </header>
 
-      <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      <Suspense>
+        <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+      </Suspense>
 
       <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -497,10 +500,10 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {[
-              ['/estaciones-mas-usadas-zaragoza', 'Estaciones mas usadas'],
-              ['/ranking-estaciones-bizi', 'Ranking de estaciones'],
-              ['/viajes-por-dia-zaragoza', 'Viajes por dia'],
-              ['/viajes-por-mes-zaragoza', 'Viajes por mes'],
+              ['/dashboard/estaciones', 'Estaciones mas usadas'],
+              ['/dashboard?rankingTab=turnover', 'Ranking de estaciones'],
+              ['/dashboard/flujo', 'Viajes por dia'],
+              ['/informes', 'Viajes por mes'],
             ].map(([href, label]) => (
               <Link
                 key={href}

@@ -155,16 +155,16 @@ export function MobilityInsights({
   }, [searchParams]);
 
   useEffect(() => {
-    const nextParams = new URLSearchParams(searchParams.toString());
+    const currentParams = new URLSearchParams(window.location.search);
     let hasChanges = false;
 
     if (activePeriod === 'all') {
-      if (nextParams.has('period')) {
-        nextParams.delete('period');
+      if (currentParams.has('period')) {
+        currentParams.delete('period');
         hasChanges = true;
       }
-    } else if (nextParams.get('period') !== activePeriod) {
-      nextParams.set('period', activePeriod);
+    } else if (currentParams.get('period') !== activePeriod) {
+      currentParams.set('period', activePeriod);
       hasChanges = true;
     }
 
@@ -172,9 +172,9 @@ export function MobilityInsights({
       return;
     }
 
-    const nextQuery = nextParams.toString();
+    const nextQuery = currentParams.toString();
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [activePeriod, pathname, router, searchParams]);
+  }, [activePeriod, pathname, router]);
 
   useEffect(() => {
     const controller = new AbortController();
