@@ -16,35 +16,35 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
 
   const [{ count: processedCount = 0 } = {}] = await prisma.$queryRaw<
     { count: number }[]
-  >`SELECT COUNT(*) as count FROM StationStatus WHERE recordedAt > ${watermark} AND recordedAt <= ${cutoff};`;
+  >`SELECT COUNT(*) as count FROM "StationStatus" WHERE "recordedAt" > ${watermark} AND "recordedAt" <= ${cutoff};`;
 
   const rollupCte = Prisma.sql`
     WITH rollup AS (
       SELECT
-        StationStatus.stationId as stationId,
-        DATE_TRUNC('day', StationStatus.recordedAt)::timestamp as bucketDate,
-        MIN(StationStatus.bikesAvailable) as bikesMin,
-        MAX(StationStatus.bikesAvailable) as bikesMax,
-        AVG(StationStatus.bikesAvailable::float) as bikesAvg,
-        MIN(StationStatus.anchorsFree) as anchorsMin,
-        MAX(StationStatus.anchorsFree) as anchorsMax,
-        AVG(StationStatus.anchorsFree::float) as anchorsAvg,
+        "StationStatus"."stationId" as "stationId",
+        DATE_TRUNC('day', "StationStatus"."recordedAt")::timestamp as "bucketDate",
+        MIN("StationStatus"."bikesAvailable") as "bikesMin",
+        MAX("StationStatus"."bikesAvailable") as "bikesMax",
+        AVG("StationStatus"."bikesAvailable"::float) as "bikesAvg",
+        MIN("StationStatus"."anchorsFree") as "anchorsMin",
+        MAX("StationStatus"."anchorsFree") as "anchorsMax",
+        AVG("StationStatus"."anchorsFree"::float) as "anchorsAvg",
         COALESCE(
           AVG(
             CASE
-              WHEN Station.capacity > 0
-                THEN StationStatus.bikesAvailable::float / Station.capacity
+              WHEN "Station".capacity > 0
+                THEN "StationStatus"."bikesAvailable"::float / "Station".capacity
               ELSE NULL
             END
           ),
           0
-        ) as occupancyAvg,
-        COUNT(*) as sampleCount
-      FROM StationStatus
-      JOIN Station ON StationStatus.stationId = Station.id
-      WHERE StationStatus.recordedAt > ${watermark}
-        AND StationStatus.recordedAt <= ${cutoff}
-      GROUP BY StationStatus.stationId, DATE_TRUNC('day', StationStatus.recordedAt)
+        ) as "occupancyAvg",
+        COUNT(*) as "sampleCount"
+      FROM "StationStatus"
+      JOIN "Station" ON "StationStatus"."stationId" = "Station".id
+      WHERE "StationStatus"."recordedAt" > ${watermark}
+        AND "StationStatus"."recordedAt" <= ${cutoff}
+      GROUP BY "StationStatus"."stationId", DATE_TRUNC('day', "StationStatus"."recordedAt")
     )
   `;
 
@@ -58,49 +58,49 @@ export async function runDailyRollup(cutoff: Date): Promise<RollupResult> {
   if (Number(upsertedCount) > 0) {
     await prisma.$executeRaw`
       ${rollupCte}
-      INSERT INTO DailyStationStat (
-        stationId,
-        bucketDate,
-        bikesMin,
-        bikesMax,
-        bikesAvg,
-        anchorsMin,
-        anchorsMax,
-        anchorsAvg,
-        occupancyAvg,
-        sampleCount,
-        updatedAt
+      INSERT INTO "DailyStationStat" (
+        "stationId",
+        "bucketDate",
+        "bikesMin",
+        "bikesMax",
+        "bikesAvg",
+        "anchorsMin",
+        "anchorsMax",
+        "anchorsAvg",
+        "occupancyAvg",
+        "sampleCount",
+        "updatedAt"
       )
       SELECT
-        stationId,
-        bucketDate,
-        bikesMin,
-        bikesMax,
-        bikesAvg,
-        anchorsMin,
-        anchorsMax,
-        anchorsAvg,
-        occupancyAvg,
-        sampleCount,
+        "stationId",
+        "bucketDate",
+        "bikesMin",
+        "bikesMax",
+        "bikesAvg",
+        "anchorsMin",
+        "anchorsMax",
+        "anchorsAvg",
+        "occupancyAvg",
+        "sampleCount",
         CURRENT_TIMESTAMP
       FROM rollup
       WHERE true
-      ON CONFLICT(stationId, bucketDate) DO UPDATE SET
-        bikesMin = excluded.bikesMin,
-        bikesMax = excluded.bikesMax,
-        bikesAvg = excluded.bikesAvg,
-        anchorsMin = excluded.anchorsMin,
-        anchorsMax = excluded.anchorsMax,
-        anchorsAvg = excluded.anchorsAvg,
-        occupancyAvg = excluded.occupancyAvg,
-        sampleCount = excluded.sampleCount,
-        updatedAt = CURRENT_TIMESTAMP;
+      ON CONFLICT("stationId", "bucketDate") DO UPDATE SET
+        "bikesMin" = excluded."bikesMin",
+        "bikesMax" = excluded."bikesMax",
+        "bikesAvg" = excluded."bikesAvg",
+        "anchorsMin" = excluded."anchorsMin",
+        "anchorsMax" = excluded."anchorsMax",
+        "anchorsAvg" = excluded."anchorsAvg",
+        "occupancyAvg" = excluded."occupancyAvg",
+        "sampleCount" = excluded."sampleCount",
+        "updatedAt" = CURRENT_TIMESTAMP;
     `;
   }
 
   const [{ maxRecordedAt = null } = {}] = await prisma.$queryRaw<
     { maxRecordedAt: string | null }[]
-  >`SELECT MAX(recordedAt) as maxRecordedAt FROM StationStatus WHERE recordedAt > ${watermark} AND recordedAt <= ${cutoff};`;
+  >`SELECT MAX("recordedAt") as "maxRecordedAt" FROM "StationStatus" WHERE "recordedAt" > ${watermark} AND "recordedAt" <= ${cutoff};`;
 
   const nextWatermark = maxRecordedAt ? new Date(maxRecordedAt) : watermark;
 

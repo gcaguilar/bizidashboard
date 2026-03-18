@@ -49,30 +49,30 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       const [coverageRows, stationRows, dailyHistoryRows] = await Promise.all([
         prisma.$queryRaw<CoverageRow[]>`
           SELECT
-            MIN(recordedAt) AS firstRecordedAt,
-            MAX(recordedAt) AS lastRecordedAt,
-            COUNT(*) AS totalSamples
-          FROM StationStatus;
+            MIN("recordedAt") AS "firstRecordedAt",
+            MAX("recordedAt") AS "lastRecordedAt",
+            COUNT(*) AS "totalSamples"
+          FROM "StationStatus";
         `,
         prisma.$queryRaw<StationsRow[]>`
-          SELECT COUNT(*) AS totalStations
-          FROM Station
-          WHERE isActive = true;
+          SELECT COUNT(*) AS "totalStations"
+          FROM "Station"
+          WHERE "isActive" = true;
         `,
         prisma.$queryRaw<DailyHistoryRow[]>`
           SELECT
-            date(bucketStart) AS day,
-            SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
-            AVG(occupancyAvg) AS avgOccupancy,
-            AVG(CASE 
-              WHEN occupancyAvg IS NULL THEN 0.5
-              WHEN ABS(occupancyAvg - 0.5) >= 0.5 THEN 0
-              ELSE 1 - (2 * ABS(occupancyAvg - 0.5))
-            END) AS balanceIndex,
-            SUM(sampleCount) AS sampleCount
-          FROM HourlyStationStat
-          WHERE occupancyAvg IS NOT NULL
-          GROUP BY date(bucketStart)
+            date("bucketStart") AS day,
+            SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+            AVG("occupancyAvg") AS "avgOccupancy",
+            AVG(CASE
+              WHEN "occupancyAvg" IS NULL THEN 0.5
+              WHEN ABS("occupancyAvg" - 0.5) >= 0.5 THEN 0
+              ELSE 1 - (2 * ABS("occupancyAvg" - 0.5))
+            END) AS "balanceIndex",
+            SUM("sampleCount") AS "sampleCount"
+          FROM "HourlyStationStat"
+          WHERE "occupancyAvg" IS NOT NULL
+          GROUP BY date("bucketStart")
           ORDER BY day ASC;
         `,
       ]);

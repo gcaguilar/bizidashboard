@@ -29,7 +29,7 @@ interface AlertRow {
 const ALERT_WATERMARK = 'alert-rollup';
 
 export async function deactivateActiveAlerts(): Promise<void> {
-  await prisma.$executeRaw`UPDATE StationAlert SET isActive = false WHERE isActive = true;`;
+  await prisma.$executeRaw`UPDATE "StationAlert" SET "isActive" = false WHERE "isActive" = true;`;
 }
 
 export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
@@ -55,7 +55,7 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
       anchorsAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bikesAvg, anchorsAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
+  >`SELECT "stationId", "bikesAvg", "anchorsAvg", "sampleCount" FROM "HourlyStationStat" WHERE "bucketStart" > ${windowStart} AND "bucketStart" <= ${windowEnd};`;
 
   const aggregates = new Map<string, AlertMetricAccumulator>();
 
@@ -119,20 +119,20 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
     );
 
     await prisma.$executeRaw`
-      INSERT INTO StationAlert (
-        stationId,
-        alertType,
+      INSERT INTO "StationAlert" (
+        "stationId",
+        "alertType",
         severity,
-        metricValue,
-        windowHours,
-        generatedAt,
-        isActive
+        "metricValue",
+        "windowHours",
+        "generatedAt",
+        "isActive"
       )
       VALUES ${Prisma.join(values)}
-      ON CONFLICT(stationId, alertType, windowHours, generatedAt) DO UPDATE SET
+      ON CONFLICT("stationId", "alertType", "windowHours", "generatedAt") DO UPDATE SET
         severity = excluded.severity,
-        metricValue = excluded.metricValue,
-        isActive = excluded.isActive;
+        "metricValue" = excluded."metricValue",
+        "isActive" = excluded."isActive";
     `;
   }
 

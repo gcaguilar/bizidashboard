@@ -52,11 +52,11 @@ function parseBucketStart(value: string | Date): Date {
 function buildRangeFilter(column: string, days: number, monthKey?: string): Prisma.Sql {
   if (monthKey && isValidMonthKey(monthKey)) {
     const { start, endExclusive } = getMonthBounds(monthKey);
-    return Prisma.sql`${Prisma.raw(column)} >= ${start}::timestamp AND ${Prisma.raw(column)} < ${endExclusive}::timestamp`;
+    return Prisma.sql`${Prisma.raw(`"${column}"`)} >= ${start}::timestamp AND ${Prisma.raw(`"${column}"`)} < ${endExclusive}::timestamp`;
   }
 
   const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
-  return Prisma.sql`${Prisma.raw(column)} >= NOW() - INTERVAL '1 day' * ${safeDays}`;
+  return Prisma.sql`${Prisma.raw(`"${column}"`)} >= NOW() - INTERVAL '1 day' * ${safeDays}`;
 }
 
 function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
@@ -76,10 +76,10 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
           SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
           AVG(occupancyAvg) AS avgOccupancy,
           SUM(sampleCount) AS sampleCount
-        FROM HourlyStationStat
-        WHERE bucketStart >= ${start}::timestamp
-          AND bucketStart < ${endExclusive}::timestamp
-        GROUP BY bucketStart::date
+        FROM "HourlyStationStat"
+        WHERE "bucketStart" >= ${start}::timestamp
+          AND "bucketStart" < ${endExclusive}::timestamp
+        GROUP BY "bucketStart"::date
       )
       SELECT
         date_series.day AS day,
@@ -109,9 +109,9 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
         SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
         AVG(occupancyAvg) AS avgOccupancy,
         SUM(sampleCount) AS sampleCount
-      FROM HourlyStationStat
-      WHERE bucketStart >= NOW() - INTERVAL '1 day' * ${startOffsetDays}
-      GROUP BY bucketStart::date
+      FROM "HourlyStationStat"
+      WHERE "bucketStart" >= NOW() - INTERVAL '1 day' * ${startOffsetDays}
+      GROUP BY "bucketStart"::date
     )
     SELECT
       date_series.day AS day,
@@ -128,21 +128,21 @@ async function getHourlyStatsForMonth(stationId: string, monthKey: string): Prom
   const { start, endExclusive } = getMonthBounds(monthKey);
 
   return prisma.$queryRaw<HourlyStatRow[]>`
-    SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
-    FROM HourlyStationStat
-    WHERE stationId = ${stationId}
-      AND bucketStart >= ${start}::timestamp
-      AND bucketStart < ${endExclusive}::timestamp
-    ORDER BY bucketStart ASC;
+    SELECT "stationId", "bucketStart", "bikesAvg", "anchorsAvg", "occupancyAvg", "sampleCount"
+    FROM "HourlyStationStat"
+    WHERE "stationId" = ${stationId}
+      AND "bucketStart" >= ${start}::timestamp
+      AND "bucketStart" < ${endExclusive}::timestamp
+    ORDER BY "bucketStart" ASC;
   `;
 }
 
 export async function getAvailableDataMonths(): Promise<string[]> {
   const rows = await prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-    SELECT DISTINCT TO_CHAR(bucketStart, 'YYYY-MM') AS monthKey
-    FROM HourlyStationStat
-    WHERE bucketStart IS NOT NULL
-    ORDER BY monthKey DESC;
+    SELECT DISTINCT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
+    FROM "HourlyStationStat"
+    WHERE "bucketStart" IS NOT NULL
+    ORDER BY "monthKey" DESC;
   `;
 
   return rows.map((row: { monthKey: string | null }) => row.monthKey).filter(isValidMonthKey);
@@ -195,19 +195,19 @@ export async function getStationRankings(
 > {
   if (type === 'availability') {
     return prisma.$queryRaw`
-      SELECT id, stationId, turnoverScore, emptyHours, fullHours, totalHours, windowStart, windowEnd
-      FROM StationRanking
-      WHERE windowEnd = (SELECT MAX(windowEnd) FROM StationRanking)
-      ORDER BY (emptyHours + fullHours) DESC
+      SELECT id, "stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd"
+      FROM "StationRanking"
+      WHERE "windowEnd" = (SELECT MAX("windowEnd") FROM "StationRanking")
+      ORDER BY ("emptyHours" + "fullHours") DESC
       LIMIT ${limit};
     `;
   }
 
   return prisma.$queryRaw`
-    SELECT id, stationId, turnoverScore, emptyHours, fullHours, totalHours, windowStart, windowEnd
-    FROM StationRanking
-    WHERE windowEnd = (SELECT MAX(windowEnd) FROM StationRanking)
-    ORDER BY turnoverScore DESC
+    SELECT id, "stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd"
+    FROM "StationRanking"
+    WHERE "windowEnd" = (SELECT MAX("windowEnd") FROM "StationRanking")
+    ORDER BY "turnoverScore" DESC
     LIMIT ${limit};
   `;
 }
@@ -226,19 +226,19 @@ export async function getStationsWithLatestStatus(): Promise<
 > {
   return prisma.$queryRaw`
     WITH latest AS (
-      SELECT stationId, MAX(recordedAt) AS recordedAt
-      FROM StationStatus
-      GROUP BY stationId
+      SELECT "stationId", MAX("recordedAt") AS "recordedAt"
+      FROM "StationStatus"
+      GROUP BY "stationId"
     )
-    SELECT Station.id, Station.name, Station.lat, Station.lon, Station.capacity,
-      StationStatus.bikesAvailable, StationStatus.anchorsFree, StationStatus.recordedAt
-    FROM Station
-    INNER JOIN latest ON latest.stationId = Station.id
-    INNER JOIN StationStatus
-      ON StationStatus.stationId = latest.stationId
-      AND StationStatus.recordedAt = latest.recordedAt
-    WHERE Station.isActive = true
-    ORDER BY Station.name ASC;
+    SELECT "Station".id, "Station".name, "Station".lat, "Station".lon, "Station".capacity,
+      "StationStatus"."bikesAvailable", "StationStatus"."anchorsFree", "StationStatus"."recordedAt"
+    FROM "Station"
+    INNER JOIN latest ON latest."stationId" = "Station".id
+    INNER JOIN "StationStatus"
+      ON "StationStatus"."stationId" = latest."stationId"
+      AND "StationStatus"."recordedAt" = latest."recordedAt"
+    WHERE "Station"."isActive" = true
+    ORDER BY "Station".name ASC;
   `;
 }
 
@@ -285,10 +285,10 @@ export async function getStationPatterns(stationId: string, monthKey?: string): 
   }
 
   return prisma.$queryRaw`
-    SELECT stationId, dayType, hour, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
-    FROM StationPattern
-    WHERE stationId = ${stationId}
-    ORDER BY dayType ASC, hour ASC;
+    SELECT "stationId", "dayType", hour, "bikesAvg", "anchorsAvg", "occupancyAvg", "sampleCount"
+    FROM "StationPattern"
+    WHERE "stationId" = ${stationId}
+    ORDER BY "dayType" ASC, hour ASC;
   `;
 }
 
@@ -335,10 +335,10 @@ export async function getHeatmap(stationId: string, monthKey?: string): Promise<
   }
 
   return prisma.$queryRaw`
-    SELECT stationId, dayOfWeek, hour, bikesAvg, anchorsAvg, occupancyAvg, sampleCount
-    FROM StationHeatmapCell
-    WHERE stationId = ${stationId}
-    ORDER BY dayOfWeek ASC, hour ASC;
+    SELECT "stationId", "dayOfWeek", hour, "bikesAvg", "anchorsAvg", "occupancyAvg", "sampleCount"
+    FROM "StationHeatmapCell"
+    WHERE "stationId" = ${stationId}
+    ORDER BY "dayOfWeek" ASC, hour ASC;
   `;
 }
 
@@ -355,10 +355,10 @@ export async function getActiveAlerts(limit = 50): Promise<
   }[]
 > {
   return prisma.$queryRaw`
-    SELECT id, stationId, alertType, severity, metricValue, windowHours, generatedAt, isActive
-    FROM StationAlert
-    WHERE isActive = true
-    ORDER BY generatedAt DESC
+    SELECT id, "stationId", "alertType", severity, "metricValue", "windowHours", "generatedAt", "isActive"
+    FROM "StationAlert"
+    WHERE "isActive" = true
+    ORDER BY "generatedAt" DESC
     LIMIT ${limit};
   `;
 }
@@ -372,29 +372,29 @@ export async function getHourlyMobilitySignals(
   return prisma.$queryRaw<HourlyMobilitySignalRow[]>`
     WITH with_lag AS (
       SELECT
-        stationId,
-        bucketStart,
-        bikesAvg - LAG(bikesAvg) OVER (
-          PARTITION BY stationId
-          ORDER BY bucketStart
+        "stationId",
+        "bucketStart",
+        "bikesAvg" - LAG("bikesAvg") OVER (
+          PARTITION BY "stationId"
+          ORDER BY "bucketStart"
         ) AS delta
-      FROM HourlyStationStat
+      FROM "HourlyStationStat"
       WHERE ${rangeFilter}
     ),
     hourly AS (
       SELECT
-        stationId,
-        EXTRACT(HOUR FROM bucketStart)::int AS hour,
+        "stationId",
+        EXTRACT(HOUR FROM "bucketStart")::int AS hour,
         SUM(CASE WHEN delta < 0 THEN ABS(delta) ELSE 0 END) AS departures,
         SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END) AS arrivals,
         COUNT(*) AS sampleCount
       FROM with_lag
       WHERE delta IS NOT NULL
-      GROUP BY stationId, EXTRACT(HOUR FROM bucketStart)::int
+      GROUP BY "stationId", EXTRACT(HOUR FROM "bucketStart")::int
     )
-    SELECT stationId, hour, departures, arrivals, sampleCount
+    SELECT "stationId", hour, departures, arrivals, sampleCount
     FROM hourly
-    ORDER BY stationId ASC, hour ASC;
+    ORDER BY "stationId" ASC, hour ASC;
   `;
 }
 
@@ -409,20 +409,20 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
   const rows = await prisma.$queryRaw<MonthlyDemandRow[]>`
     WITH monthly AS (
       SELECT
-        TO_CHAR(bucketDate, 'YYYY-MM') AS monthKey,
-        COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore,
-        COALESCE(AVG(occupancyAvg), 0) AS avgOccupancy,
-        COUNT(DISTINCT stationId) AS activeStations,
-        COALESCE(SUM(sampleCount), 0) AS sampleCount
-      FROM DailyStationStat
-      WHERE bucketDate IS NOT NULL
-      GROUP BY TO_CHAR(bucketDate, 'YYYY-MM')
-      ORDER BY monthKey DESC
+        TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey",
+        COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore",
+        COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
+        COUNT(DISTINCT "stationId") AS "activeStations",
+        COALESCE(SUM("sampleCount"), 0) AS "sampleCount"
+      FROM "DailyStationStat"
+      WHERE "bucketDate" IS NOT NULL
+      GROUP BY TO_CHAR("bucketDate", 'YYYY-MM')
+      ORDER BY "monthKey" DESC
       LIMIT ${safeLimit}
     )
-    SELECT monthKey, demandScore, avgOccupancy, activeStations, sampleCount
+    SELECT "monthKey", "demandScore", "avgOccupancy", "activeStations", "sampleCount"
     FROM monthly
-    ORDER BY monthKey ASC;
+    ORDER BY "monthKey" ASC;
   `;
 
   return rows;
@@ -436,13 +436,13 @@ export async function getSystemHourlyProfile(
 
   return prisma.$queryRaw<SystemHourlyProfileRow[]>`
     SELECT
-      EXTRACT(HOUR FROM bucketStart)::int AS hour,
-      AVG(occupancyAvg) AS avgOccupancy,
-      AVG(bikesAvg) AS bikesInCirculation,
-      SUM(sampleCount) AS sampleCount
-    FROM HourlyStationStat
+      EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+      AVG("occupancyAvg") AS "avgOccupancy",
+      AVG("bikesAvg") AS "bikesInCirculation",
+      SUM("sampleCount") AS "sampleCount"
+    FROM "HourlyStationStat"
     WHERE ${rangeFilter}
-    GROUP BY EXTRACT(HOUR FROM bucketStart)::int
+    GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
     ORDER BY hour ASC;
   `;
 }
