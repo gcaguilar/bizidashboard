@@ -17,7 +17,7 @@ function toDate(value: string | Date | null | undefined): Date | null {
 export async function getWatermark(name: string, defaultDate: Date): Promise<Date> {
   const rows = await prisma.$queryRaw<WatermarkRow[]>`
     SELECT name, "lastAggregatedAt"
-    FROM AnalyticsWatermark
+    FROM "AnalyticsWatermark"
     WHERE name = ${name}
     LIMIT 1;
   `;
@@ -35,7 +35,7 @@ export async function getWatermark(name: string, defaultDate: Date): Promise<Dat
 
 export async function setWatermark(name: string, date: Date): Promise<void> {
   await prisma.$executeRaw`
-    INSERT INTO AnalyticsWatermark (name, "lastAggregatedAt", "updatedAt")
+    INSERT INTO "AnalyticsWatermark" (name, "lastAggregatedAt", "updatedAt")
     VALUES (${name}, ${date}, CURRENT_TIMESTAMP)
     ON CONFLICT(name) DO UPDATE SET
       "lastAggregatedAt" = excluded."lastAggregatedAt",
