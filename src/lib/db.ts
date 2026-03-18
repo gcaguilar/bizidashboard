@@ -8,11 +8,11 @@ function isBuildPhase(): boolean {
 
 function createBuildPrismaMock(): PrismaClient {
   return new Proxy(() => undefined, {
-    get(_target, property) {
+    get(_target, _property) {
       return createBuildPrismaMock()
     },
-    apply(_target, _thisArg, args) {
-      return Promise.resolve({})
+    apply(_target, _thisArg, _args) {
+      return Promise.reject(new Error('Database not available during build'))
     },
   }) as unknown as PrismaClient
 }
