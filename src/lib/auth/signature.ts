@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
-if (!process.env.SIGNATURE_SECRET && process.env.NODE_ENV === 'production') {
+if (!process.env.SIGNATURE_SECRET && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
   throw new Error('SIGNATURE_SECRET is required in production');
 }
 
