@@ -11,8 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Dummy URL — prisma generate only reads the schema, never connects
-ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN bunx prisma generate
@@ -22,7 +20,7 @@ RUN bun run build
 FROM oven/bun:1.3.10 AS prodeps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+RUN bun install --production
 # Prisma CLI is a devDependency — copy it for `prisma migrate deploy`
 COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 # Generated prisma client from builder stage
