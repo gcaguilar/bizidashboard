@@ -69,21 +69,21 @@ export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
     const { hour, dayOfWeek } = getLocalBucket(bucketStart);
     const key = `${stat.stationId}-${dayOfWeek}-${hour}`;
     const existing = aggregates.get(key);
-    const weight = stat.sampleCount || 0;
+    const weight = Number(stat.sampleCount) || 0;
 
     if (existing) {
-      existing.bikesSum += stat.bikesAvg * weight;
-      existing.anchorsSum += stat.anchorsAvg * weight;
-      existing.occupancySum += stat.occupancyAvg * weight;
+      existing.bikesSum += Number(stat.bikesAvg) * weight;
+      existing.anchorsSum += Number(stat.anchorsAvg) * weight;
+      existing.occupancySum += Number(stat.occupancyAvg) * weight;
       existing.sampleCount += weight;
     } else {
       aggregates.set(key, {
         stationId: stat.stationId,
         dayOfWeek,
         hour,
-        bikesSum: stat.bikesAvg * weight,
-        anchorsSum: stat.anchorsAvg * weight,
-        occupancySum: stat.occupancyAvg * weight,
+        bikesSum: Number(stat.bikesAvg) * weight,
+        anchorsSum: Number(stat.anchorsAvg) * weight,
+        occupancySum: Number(stat.occupancyAvg) * weight,
         sampleCount: weight,
       });
     }

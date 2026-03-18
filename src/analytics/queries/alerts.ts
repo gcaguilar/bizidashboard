@@ -61,16 +61,16 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
 
   for (const stat of hourlyStats) {
     const existing = aggregates.get(stat.stationId);
-    const weight = stat.sampleCount || 0;
+    const weight = Number(stat.sampleCount) || 0;
 
     if (existing) {
-      existing.bikesSum += stat.bikesAvg * weight;
-      existing.anchorsSum += stat.anchorsAvg * weight;
+      existing.bikesSum += Number(stat.bikesAvg) * weight;
+      existing.anchorsSum += Number(stat.anchorsAvg) * weight;
       existing.sampleCount += weight;
     } else {
       aggregates.set(stat.stationId, {
-        bikesSum: stat.bikesAvg * weight,
-        anchorsSum: stat.anchorsAvg * weight,
+        bikesSum: Number(stat.bikesAvg) * weight,
+        anchorsSum: Number(stat.anchorsAvg) * weight,
         sampleCount: weight,
       });
     }
