@@ -58,9 +58,11 @@ export async function runVacuumIfDue(): Promise<boolean> {
     return false;
   }
 
-  await prisma.$executeRawUnsafe('VACUUM');
+  // In Postgres, regular VACUUM cannot be run inside a transaction block 
+  // and Autovacuum usually handles this. ANALYZE is safer and helps the planner.
+  await prisma.$executeRawUnsafe('ANALYZE');
   await setWatermark('vacuum', now);
-  console.log('[Retention] VACUUM executed');
+  console.log('[Retention] ANALYZE executed');
 
   return true;
 }
