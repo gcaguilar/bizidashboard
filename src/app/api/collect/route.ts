@@ -20,6 +20,15 @@ type RateLimitResult = {
 };
 
 const rateLimitByClient = new Map<string, RateLimitState>();
+const RATE_LIMIT_MAX_ENTRIES = 10_000;
+
+function evictExpiredEntries(): void {
+  if (rateLimitByClient.size <= RATE_LIMIT_MAX_ENTRIES) return;
+  const now = Date.now();
+  for (const [key, state] of rateLimitByClient) {
+    if (state.resetAt <= now) rateLimitByClient.delete(key);
+  }
+}
 
 function toIsoString(value: Date | null): string | null {
   return value ? value.toISOString() : null;
@@ -79,6 +88,7 @@ function getClientIdentifier(request: Request): string {
 }
 
 function consumeRateLimit(request: Request): RateLimitResult {
+  evictExpiredEntries();
   const { max, windowMs } = getRateLimitConfig();
   const now = Date.now();
   const clientIdentifier = getClientIdentifier(request);
@@ -221,13 +231,12 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[API] Collection failed:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: errorMessage,
+        error: 'Collection failed',
         timestamp: new Date().toISOString(),
       },
       {

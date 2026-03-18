@@ -7,10 +7,12 @@ export const dynamic = 'force-dynamic';
 const CACHE_TTL_SECONDS = 300;
 const DEFAULT_LIMIT = 50;
 
+const MAX_LIMIT = 500;
+
 function parseLimit(value: string | null, fallback: number): number | null {
   if (value === null) return fallback;
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > MAX_LIMIT) return null;
   return parsed;
 }
 
