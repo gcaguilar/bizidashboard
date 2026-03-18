@@ -307,20 +307,20 @@ function buildConclusionsRange(monthKey?: string): {
     const previousStart = new Date(Date.UTC((year ?? 1970), (month ?? 1) - 2, 1)).toISOString();
 
     return {
-      currentDaily: Prisma.sql`bucketDate >= ${start}::timestamp AND bucketDate < ${endExclusive}::timestamp`,
-      previousDaily: Prisma.sql`bucketDate >= ${previousStart}::timestamp AND bucketDate < ${start}::timestamp`,
-      currentHourly: Prisma.sql`bucketStart >= ${start}::timestamp AND bucketStart < ${endExclusive}::timestamp`,
-      topStationsDaily: Prisma.sql`DailyStationStat.bucketDate >= ${start}::timestamp AND DailyStationStat.bucketDate < ${endExclusive}::timestamp`,
+      currentDaily: Prisma.sql`"bucketDate" >= ${start}::timestamp AND "bucketDate" < ${endExclusive}::timestamp`,
+      previousDaily: Prisma.sql`"bucketDate" >= ${previousStart}::timestamp AND "bucketDate" < ${start}::timestamp`,
+      currentHourly: Prisma.sql`"bucketStart" >= ${start}::timestamp AND "bucketStart" < ${endExclusive}::timestamp`,
+      topStationsDaily: Prisma.sql`"DailyStationStat"."bucketDate" >= ${start}::timestamp AND "DailyStationStat"."bucketDate" < ${endExclusive}::timestamp`,
       summaryScope: `en ${formatMonthLabel(monthKey)}`,
       comparisonScope: 'vs mes previo',
     };
   }
 
   return {
-    currentDaily: Prisma.sql`bucketDate >= CURRENT_DATE - INTERVAL '6 days'`,
-    previousDaily: Prisma.sql`bucketDate >= CURRENT_DATE - INTERVAL '13 days' AND bucketDate < CURRENT_DATE - INTERVAL '6 days'`,
-    currentHourly: Prisma.sql`bucketStart >= CURRENT_DATE - INTERVAL '6 days'`,
-    topStationsDaily: Prisma.sql`DailyStationStat.bucketDate >= CURRENT_DATE - INTERVAL '29 days'`,
+    currentDaily: Prisma.sql`"bucketDate" >= CURRENT_DATE - INTERVAL '6 days'`,
+    previousDaily: Prisma.sql`"bucketDate" >= CURRENT_DATE - INTERVAL '13 days' AND "bucketDate" < CURRENT_DATE - INTERVAL '6 days'`,
+    currentHourly: Prisma.sql`"bucketStart" >= CURRENT_DATE - INTERVAL '6 days'`,
+    topStationsDaily: Prisma.sql`"DailyStationStat"."bucketDate" >= CURRENT_DATE - INTERVAL '29 days'`,
     summaryScope: 'en la ultima semana',
     comparisonScope: 'vs semana previa',
   };
@@ -355,31 +355,31 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   ] = await Promise.all([
       prisma.$queryRaw<CoverageRow[]>`
         SELECT
-          MIN(date(bucketDate)) AS firstDay,
-          MAX(date(bucketDate)) AS lastDay,
-          COUNT(DISTINCT date(bucketDate)) AS totalDays,
-          COUNT(DISTINCT stationId) AS stationsWithData
-        FROM DailyStationStat
+          MIN(date("bucketDate")) AS "firstDay",
+          MAX(date("bucketDate")) AS "lastDay",
+          COUNT(DISTINCT date("bucketDate")) AS "totalDays",
+          COUNT(DISTINCT "stationId") AS "stationsWithData"
+        FROM "DailyStationStat"
         ${selectedMonth ? Prisma.sql`WHERE ${range.currentDaily}` : Prisma.sql``};
       `,
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS value
-        FROM DailyStationStat
+        SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
+        FROM "DailyStationStat"
         WHERE ${range.currentDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS value
-        FROM DailyStationStat
+        SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
+        FROM "DailyStationStat"
         WHERE ${range.previousDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(AVG(occupancyAvg), 0) AS value
-        FROM DailyStationStat
+        SELECT COALESCE(AVG("occupancyAvg"), 0) AS value
+        FROM "DailyStationStat"
         WHERE ${range.currentDaily};
       `,
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(AVG(occupancyAvg), 0) AS value
-        FROM DailyStationStat
+        SELECT COALESCE(AVG("occupancyAvg"), 0) AS value
+        FROM "DailyStationStat"
         WHERE ${range.previousDaily};
       `,
       prisma.station.findMany({
@@ -392,68 +392,68 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       }),
       prisma.$queryRaw<TopStationRow[]>`
         SELECT
-          DailyStationStat.stationId AS stationId,
-          Station.name AS stationName,
-          AVG((DailyStationStat.bikesMax - DailyStationStat.bikesMin) + (DailyStationStat.anchorsMax - DailyStationStat.anchorsMin)) AS avgDemand
-        FROM DailyStationStat
-        INNER JOIN Station ON Station.id = DailyStationStat.stationId
+          "DailyStationStat"."stationId" AS "stationId",
+          "Station".name AS "stationName",
+          AVG(("DailyStationStat"."bikesMax" - "DailyStationStat"."bikesMin") + ("DailyStationStat"."anchorsMax" - "DailyStationStat"."anchorsMin")) AS "avgDemand"
+        FROM "DailyStationStat"
+        INNER JOIN "Station" ON "Station".id = "DailyStationStat"."stationId"
         WHERE ${range.topStationsDaily}
-        GROUP BY DailyStationStat.stationId, Station.name
-        ORDER BY avgDemand DESC
+        GROUP BY "DailyStationStat"."stationId", "Station".name
+        ORDER BY "avgDemand" DESC
         LIMIT 5;
       `,
       prisma.$queryRaw<TopStationRow[]>`
         SELECT
-          DailyStationStat.stationId AS stationId,
-          Station.name AS stationName,
-          AVG((DailyStationStat.bikesMax - DailyStationStat.bikesMin) + (DailyStationStat.anchorsMax - DailyStationStat.anchorsMin)) AS avgDemand
-        FROM DailyStationStat
-        INNER JOIN Station ON Station.id = DailyStationStat.stationId
+          "DailyStationStat"."stationId" AS "stationId",
+          "Station".name AS "stationName",
+          AVG(("DailyStationStat"."bikesMax" - "DailyStationStat"."bikesMin") + ("DailyStationStat"."anchorsMax" - "DailyStationStat"."anchorsMin")) AS "avgDemand"
+        FROM "DailyStationStat"
+        INNER JOIN "Station" ON "Station".id = "DailyStationStat"."stationId"
         WHERE ${range.topStationsDaily}
-        GROUP BY DailyStationStat.stationId, Station.name
+        GROUP BY "DailyStationStat"."stationId", "Station".name
         HAVING COUNT(*) > 0
-        ORDER BY avgDemand ASC, Station.name ASC
+        ORDER BY "avgDemand" ASC, "Station".name ASC
         LIMIT 5;
       `,
       prisma.$queryRaw<DayTypeProfileRow[]>`
         WITH daily_totals AS (
           SELECT
-            bucketDate::date AS bucketDay,
-            SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) AS demandScore,
-            AVG(occupancyAvg) AS occupancyAvg
-          FROM DailyStationStat
+            "bucketDate"::date AS "bucketDay",
+            SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+            AVG("occupancyAvg") AS "occupancyAvg"
+          FROM "DailyStationStat"
           WHERE ${range.currentDaily}
-          GROUP BY bucketDate::date
+          GROUP BY "bucketDate"::date
         )
         SELECT
           CASE
-            WHEN EXTRACT(DOW FROM bucketDay)::int IN (0, 6) THEN 'weekend'
+            WHEN EXTRACT(DOW FROM "bucketDay")::int IN (0, 6) THEN 'weekend'
             ELSE 'weekday'
-          END AS dayType,
-          AVG(demandScore) AS avgDemand,
-          AVG(occupancyAvg) AS avgOccupancy,
-          COUNT(*) AS daysCount
+          END AS "dayType",
+          AVG("demandScore") AS "avgDemand",
+          AVG("occupancyAvg") AS "avgOccupancy",
+          COUNT(*) AS "daysCount"
         FROM daily_totals
-        GROUP BY dayType;
+        GROUP BY "dayType";
       `,
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
-          EXTRACT(HOUR FROM bucketStart)::int AS hour,
-          COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore
-        FROM HourlyStationStat
+          EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+          COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore"
+        FROM "HourlyStationStat"
         WHERE ${range.currentHourly}
-        GROUP BY EXTRACT(HOUR FROM bucketStart)::int
-        ORDER BY demandScore DESC, hour ASC
+        GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
+        ORDER BY "demandScore" DESC, hour ASC
         LIMIT 3;
       `,
       prisma.$queryRaw<StationDemandRow[]>`
         SELECT
-          stationId,
-          COALESCE(SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)), 0) AS demandScore
-        FROM DailyStationStat
+          "stationId",
+          COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore"
+        FROM "DailyStationStat"
         WHERE ${range.currentDaily}
-        GROUP BY stationId
-        ORDER BY demandScore DESC;
+        GROUP BY "stationId"
+        ORDER BY "demandScore" DESC;
       `,
       getDistrictCollection(),
     ]);
@@ -691,11 +691,11 @@ function hasSameSourceLastDay(cachedSourceLastDay: Date | null, sourceLastDay: D
 async function getCoverageSignature(): Promise<CoverageSignature> {
   const [coverage] = await prisma.$queryRaw<CoverageRow[]>`
     SELECT
-      MIN(date(bucketDate)) AS firstDay,
-      MAX(date(bucketDate)) AS lastDay,
-      COUNT(DISTINCT date(bucketDate)) AS totalDays,
-      COUNT(DISTINCT stationId) AS stationsWithData
-    FROM DailyStationStat;
+      MIN(date("bucketDate")) AS "firstDay",
+      MAX(date("bucketDate")) AS "lastDay",
+      COUNT(DISTINCT date("bucketDate")) AS "totalDays",
+      COUNT(DISTINCT "stationId") AS "stationsWithData"
+    FROM "DailyStationStat";
   `;
 
   return {

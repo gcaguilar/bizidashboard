@@ -27,13 +27,13 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
   });
 
   const hourlyStatsDeleted = await prisma.$executeRaw`
-    DELETE FROM HourlyStationStat
-    WHERE bucketStart < ${hourlyCutoff};
+    DELETE FROM "HourlyStationStat"
+    WHERE "bucketStart" < ${hourlyCutoff};
   `;
 
   const stationAlertsDeleted = await prisma.$executeRaw`
-    DELETE FROM StationAlert
-    WHERE generatedAt < ${alertCutoff};
+    DELETE FROM "StationAlert"
+    WHERE "generatedAt" < ${alertCutoff};
   `;
 
   console.log(

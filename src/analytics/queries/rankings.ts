@@ -30,20 +30,20 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
 
   const [{ count: processedCount = 0 } = {}] = await prisma.$queryRaw<
     { count: number }[]
-  >`SELECT COUNT(*) as count FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
+  >`SELECT COUNT(*) as count FROM "HourlyStationStat" WHERE "bucketStart" > ${windowStart} AND "bucketStart" <= ${windowEnd};`;
 
   const rollupCte = Prisma.sql`
     WITH rollup AS (
       SELECT
-        stationId as stationId,
-        SUM((bikesMax - bikesMin) + (anchorsMax - anchorsMin)) as turnoverScore,
-        SUM(CASE WHEN bikesAvg <= 1 THEN 1 ELSE 0 END) as emptyHours,
-        SUM(CASE WHEN anchorsAvg <= 1 THEN 1 ELSE 0 END) as fullHours,
-        COUNT(*) as totalHours
-      FROM HourlyStationStat
-      WHERE bucketStart > ${windowStart}
-        AND bucketStart <= ${windowEnd}
-      GROUP BY stationId
+        "stationId" as "stationId",
+        SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) as "turnoverScore",
+        SUM(CASE WHEN "bikesAvg" <= 1 THEN 1 ELSE 0 END) as "emptyHours",
+        SUM(CASE WHEN "anchorsAvg" <= 1 THEN 1 ELSE 0 END) as "fullHours",
+        COUNT(*) as "totalHours"
+      FROM "HourlyStationStat"
+      WHERE "bucketStart" > ${windowStart}
+        AND "bucketStart" <= ${windowEnd}
+      GROUP BY "stationId"
     )
   `;
 
@@ -57,33 +57,33 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
   if (Number(upsertedCount) > 0) {
     await prisma.$executeRaw`
       ${rollupCte}
-      INSERT INTO StationRanking (
-        stationId,
-        turnoverScore,
-        emptyHours,
-        fullHours,
-        totalHours,
-        windowStart,
-        windowEnd,
-        updatedAt
+      INSERT INTO "StationRanking" (
+        "stationId",
+        "turnoverScore",
+        "emptyHours",
+        "fullHours",
+        "totalHours",
+        "windowStart",
+        "windowEnd",
+        "updatedAt"
       )
       SELECT
-        stationId,
-        turnoverScore,
-        emptyHours,
-        fullHours,
-        totalHours,
+        "stationId",
+        "turnoverScore",
+        "emptyHours",
+        "fullHours",
+        "totalHours",
         ${windowStart},
         ${windowEnd},
         CURRENT_TIMESTAMP
       FROM rollup
       WHERE true
-      ON CONFLICT(stationId, windowStart, windowEnd) DO UPDATE SET
-        turnoverScore = excluded.turnoverScore,
-        emptyHours = excluded.emptyHours,
-        fullHours = excluded.fullHours,
-        totalHours = excluded.totalHours,
-        updatedAt = CURRENT_TIMESTAMP;
+      ON CONFLICT("stationId", "windowStart", "windowEnd") DO UPDATE SET
+        "turnoverScore" = excluded."turnoverScore",
+        "emptyHours" = excluded."emptyHours",
+        "fullHours" = excluded."fullHours",
+        "totalHours" = excluded."totalHours",
+        "updatedAt" = CURRENT_TIMESTAMP;
     `;
 
     await setWatermark(RANKING_WATERMARK, windowEnd);

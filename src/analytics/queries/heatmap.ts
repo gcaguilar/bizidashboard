@@ -60,7 +60,7 @@ export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
       occupancyAvg: number;
       sampleCount: number;
     }[]
-  >`SELECT stationId, bucketStart, bikesAvg, anchorsAvg, occupancyAvg, sampleCount FROM HourlyStationStat WHERE bucketStart > ${windowStart} AND bucketStart <= ${windowEnd};`;
+  >`SELECT "stationId", "bucketStart", "bikesAvg", "anchorsAvg", "occupancyAvg", "sampleCount" FROM "HourlyStationStat" WHERE "bucketStart" > ${windowStart} AND "bucketStart" <= ${windowEnd};`;
 
   const aggregates = new Map<string, HeatmapAccumulator>();
 
@@ -107,21 +107,21 @@ export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
     );
 
     await prisma.$executeRaw`
-      INSERT INTO StationHeatmapCell (
-        stationId,
-        dayOfWeek,
+      INSERT INTO "StationHeatmapCell" (
+        "stationId",
+        "dayOfWeek",
         hour,
-        bikesAvg,
-        anchorsAvg,
-        occupancyAvg,
-        sampleCount
+        "bikesAvg",
+        "anchorsAvg",
+        "occupancyAvg",
+        "sampleCount"
       )
       VALUES ${Prisma.join(values)}
-      ON CONFLICT(stationId, dayOfWeek, hour) DO UPDATE SET
-        bikesAvg = excluded.bikesAvg,
-        anchorsAvg = excluded.anchorsAvg,
-        occupancyAvg = excluded.occupancyAvg,
-        sampleCount = excluded.sampleCount;
+      ON CONFLICT("stationId", "dayOfWeek", hour) DO UPDATE SET
+        "bikesAvg" = excluded."bikesAvg",
+        "anchorsAvg" = excluded."anchorsAvg",
+        "occupancyAvg" = excluded."occupancyAvg",
+        "sampleCount" = excluded."sampleCount";
     `;
 
     await setWatermark(HEATMAP_WATERMARK, windowEnd);
