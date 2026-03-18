@@ -331,7 +331,7 @@ export default function BetaPage() {
             <p className="mt-1 text-[11px] text-[var(--muted)]">Mapa interactivo, estado del sistema y alertas.</p>
           </Link>
           <Link
-            href="/estaciones-con-mas-bicis"
+            href="/dashboard/estaciones"
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con mas bicis</p>
