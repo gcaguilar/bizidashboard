@@ -143,7 +143,7 @@ export default function RootLayout({
         description: SITE_DESCRIPTION,
         areaServed: {
           "@type": "City",
-          name: "Zaragoza",
+          name: SITE_TITLE.includes('Zaragoza') ? 'Zaragoza' : SITE_TITLE.split(' ').pop(),
         },
       },
     ],

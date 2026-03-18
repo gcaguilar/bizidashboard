@@ -1,7 +1,22 @@
+import { CITY_CONFIGS, DEFAULT_CITY, isValidCity } from './constants';
+
+function getCity(): string {
+  const city = process.env.CITY || DEFAULT_CITY;
+  return city.toLowerCase();
+}
+
+function getCityName(): string {
+  const cityKey = getCity();
+  if (isValidCity(cityKey)) {
+    return CITY_CONFIGS[cityKey].name;
+  }
+  return 'Zaragoza';
+}
+
 export const SITE_NAME = 'BiziDashboard';
-export const SITE_TITLE = 'BiziDashboard Zaragoza';
+export const SITE_TITLE = `BiziDashboard ${getCityName()}`;
 export const SITE_DESCRIPTION =
-  'Panel publico con analitica de estaciones Bizi Zaragoza: disponibilidad, alertas, patrones horarios y movilidad urbana.';
+  `Panel publico con analitica de estaciones Bizi ${getCityName()}: disponibilidad, alertas, patrones horarios y movilidad urbana.`;
 
 const FALLBACK_SITE_URL = 'http://localhost:3000';
 
