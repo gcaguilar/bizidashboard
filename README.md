@@ -108,6 +108,15 @@ Adding a new compatible city is easy:
 
 ---
 
+## 🧬 Observability (Sentry)
+
+Sentry is used for real-time error monitoring across both client and server.
+
+- **Setup**: Set `NEXT_PUBLIC_SENTRY_DSN` in your environment.
+- **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
+
+---
+
 ## 📜 License
 
 Licensed under the **GNU General Public License v3.0 (GPLv3)**.
