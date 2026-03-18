@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
@@ -19,16 +18,13 @@ function createBuildPrismaMock(): PrismaClient {
 }
 
 async function createPrismaClient(): Promise<PrismaClient> {
-  if (isBuildPhase()) {
-    return createBuildPrismaMock()
-  }
-
   const dbUrl = process.env.DATABASE_URL
-  
+
   if (!dbUrl) {
     return createBuildPrismaMock()
   }
 
+  const { PrismaPg } = await import('@prisma/adapter-pg')
   const adapter = new PrismaPg({ connectionString: dbUrl })
   const client = new PrismaClient({ adapter })
 
@@ -38,19 +34,32 @@ async function createPrismaClient(): Promise<PrismaClient> {
   return client
 }
 
-async function getPrismaClient(): Promise<PrismaClient> {
+let _prismaPromise: Promise<PrismaClient> | null = null
+
+function getPrismaClient(): Promise<PrismaClient> {
   if (isBuildPhase()) {
-    return createBuildPrismaMock()
+    return Promise.resolve(createBuildPrismaMock())
   }
 
   if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma = await createPrismaClient()
+    if (!_prismaPromise) {
+      _prismaPromise = createPrismaClient().then((client) => {
+        globalForPrisma.prisma = client
+        return client
+      }).catch((error) => {
+        _prismaPromise = null
+        throw error
+      })
+    }
+    return _prismaPromise
   }
 
-  return globalForPrisma.prisma
+  return Promise.resolve(globalForPrisma.prisma)
 }
 
-export const prisma = await getPrismaClient()
+export const prisma = isBuildPhase() || !process.env.DATABASE_URL
+  ? createBuildPrismaMock()
+  : await getPrismaClient()
 
 export function getCity(): string {
   return process.env.CITY || 'zaragoza'
