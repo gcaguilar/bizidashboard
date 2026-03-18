@@ -24,11 +24,11 @@ const DISCOVERY_URL =
   'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
 
 /** Request timeout in milliseconds */
-const REQUEST_TIMEOUT = Number(process.env.GBFS_REQUEST_TIMEOUT_MS ?? 20000);
+const REQUEST_TIMEOUT = Number(process.env.GBFS_REQUEST_TIMEOUT_MS ?? 20000) || 20000;
 
 /** Retry configuration */
-const MAX_RETRIES = Number(process.env.GBFS_MAX_RETRIES ?? 5);
-const BASE_DELAY = Number(process.env.GBFS_RETRY_BASE_DELAY_MS ?? 1000);
+const MAX_RETRIES = Number(process.env.GBFS_MAX_RETRIES ?? 5) || 5;
+const BASE_DELAY = Number(process.env.GBFS_RETRY_BASE_DELAY_MS ?? 1000) || 1000;
 
 /** User-Agent header for API requests */
 const USER_AGENT = 'BiziDashboard/1.0';
@@ -185,9 +185,10 @@ export async function fetchStationStatus(
   
   const stations = validateStationData(data);
   console.log(`[gbfs] Station status fetched successfully (${stations.length} stations)`);
-  
-  // Return full response structure
-  return data as GBFSResponse;
+
+  const response = data as GBFSResponse;
+  response.data.stations = stations;
+  return response;
 }
 
 export async function fetchStationInformation(
