@@ -6,7 +6,6 @@ import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildPageMetadata({
@@ -137,8 +136,8 @@ export default async function ReportsIndexPage() {
             <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">Cada informe tiene su propia URL estable y enlaza al dashboard con el mes ya seleccionado.</p>
           </div>
-          <Link href="/informes-mensuales-bizi-zaragoza" className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
-            Ver landing editorial
+          <Link href="/informes" className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
+            Ver archivo completo
           </Link>
         </div>
 
