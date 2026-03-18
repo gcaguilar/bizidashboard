@@ -112,6 +112,8 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
   }
 
   if (alerts.length > 0) {
+    await deactivateActiveAlerts();
+
     const values = alerts.map((alert) =>
       Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
     );
@@ -132,14 +134,14 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
         metricValue = excluded.metricValue,
         isActive = excluded.isActive;
     `;
-
-    await setWatermark(ALERT_WATERMARK, windowEnd);
   }
+
+  await setWatermark(ALERT_WATERMARK, windowEnd);
 
   return {
     processedCount: hourlyStats.length,
     upsertedCount: alerts.length,
-    watermark: alerts.length > 0 ? windowEnd : watermark,
+    watermark: windowEnd,
     cutoff,
   };
 }
