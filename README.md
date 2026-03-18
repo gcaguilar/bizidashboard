@@ -1,218 +1,113 @@
-# BiziDashboard
+# 🚲 BiziDashboard
 
-BiziDashboard is an experimental, vibe-coded project for evaluating data ingestion and analytics workflows over the public Bizi Zaragoza GBFS feeds.
+**BiziDashboard** is a multi-city analytics platform designed for real-time monitoring and historical data ingestion of shared bicycle systems using the **GBFS (General Bikeshare Feed Specification)** standard. 
 
-The repository is intended for rapid iteration and technical validation. It is used to test collection reliability, storage behavior, API contracts, and dashboard rendering under realistic conditions.
+Originally built for Zaragoza, it is now a generic, multi-tenant engine capable of supporting any city globally (Zaragoza, Madrid, Barcelona, NYC, Chicago, etc.) through independent PostgreSQL schemas.
 
-## Overview
+---
 
-This project provides a full prototype pipeline:
+## 🏗️ Project Architecture
 
-1. Collect live GBFS data (`station_status`, `station_information`).
-2. Persist snapshots and station metadata.
-3. Expose processed data through REST-style API routes.
-4. Visualize operational and analytical metrics in a web dashboard.
+The system is built on four core pillars:
 
-## Scope and Intended Use
+1. **Ingestion Engine**: Light, standalone cron tasks (via Bun or Alpine/curl) that trigger periodic GBFS snapshots via the `POST /api/collect` endpoint.
+2. **Storage Layer**: PostgreSQL with **Multi-Tenant by Schema** capability. Isolation is handled at the database level: each city has its own schema and tables.
+3. **Analytics Core**: Specialized SQL aggregations (Rankings, Trends, Alerts, Heatmaps, Mobility Signals) optimized for time-series bike availability data.
+4. **Visual Dashboard**: A Next.js (App Router) interface with real-time station statuses, historical graphs, and mobility reports.
 
-- Validate ingestion against an external API.
-- Test schema validation and retry strategies.
-- Evaluate analytical endpoints (rankings, alerts, patterns, heatmaps).
-- Exercise dashboard functionality using near real-time data.
-- Support architecture and implementation experiments before production hardening.
+---
 
-## Technology Stack
+## 📱 Mobile App Integration
 
-- Next.js (App Router) and React
-- TypeScript
-- Prisma with PostgreSQL adapter
-- pnpm for dependency management, installs, builds and day-to-day developer workflows
-- Bun for standalone runtime verification and the production container entrypoint
-- Redis cache layer (optional)
-- Vitest for automated tests
+This project exposes specialized analytical APIs that power the **[BiziMobile](https://github.com/gcaguilar/bizimobile)** application. When a station is empty, the mobile app uses our predictions and mobility signals to help users find the nearest available bike with high confidence using historical occupancy patterns.
 
-## Local Development
+---
 
-Create a local environment file:
+## 🌍 Supported Cities
 
-```bash
-cp .env.example .env
+The project natively supports multiple cities out of the box. To switch cities, configure these environment variables:
+
+| City | `CITY` Key | `GBFS_DISCOVERY_URL` |
+| :--- | :--- | :--- |
+| **Zaragoza** | `zaragoza` | `https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json` |
+| **Madrid** | `madrid` | `https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json` |
+| **Barcelona** | `barcelona` | `https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json` |
+
+---
+
+## 🛠️ PostgreSQL Developer Guidelines
+
+Since the project uses **PostgreSQL**, strict rules apply when writing raw SQL queries to avoid syntax errors:
+
+### 1. Quoting Identifiers (Case Sensitivity)
+Postgres requires double quotes for `camelCase` table and column names. Unquoted names are lowercased by default.
+- ✅ **Correct**: `SELECT "stationId" FROM "StationStatus"`
+- ❌ **Incorrect**: `SELECT stationId FROM StationStatus`
+
+### 2. BigInt & Type Safety
+Aggregations like `SUM()` and `COUNT()` return **BigInt** (Int8). Always cast to `Number()` in TypeScript to avoid math or serialization errors.
+- ✅ **Correct**: `const total = Number(row.totalCount)`
+
+### 3. PostgreSQL Date Handling
+Use `TO_CHAR` for consistent date formatting instead of SQLite-specific functions:
+- ✅ **Correct**: `TO_CHAR("recordedAt", 'YYYY-MM-DD')`
+
+### 4. Transaction-Safe Maintenance
+Do **not** use `VACUUM`. Use `ANALYZE` for maintaining query planner statistics, as it is safe to run inside transactions.
+
+---
+
+## 🚀 Deployment (Docker Compose)
+
+The architecture supports multiple isolated city deployments in a single `docker-compose.yml`:
+
+### Isolated Services
+Each city runs its own container, allowing independent scaling and city-specific SEO:
+
+```yaml
+services:
+  zaragoza-app:
+    environment:
+      - CITY=zaragoza
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/bizidashboard
+      - Port: 3000
+  
+  madrid-app:
+    environment:
+      - CITY=madrid
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/bizidashboard
+      - Port: 3001
 ```
 
-Suggested `.env.example` values:
+### Automatic Schema Isolation
+When a city container starts, it automatically executes `SET search_path TO "city-name"`, ensuring isolation within a shared database instance.
 
-```env
-# App
-NODE_ENV=development
-APP_URL=http://localhost:3000
-ROBOTS_BASE_URL=http://localhost:3000
-GOOGLE_SITE_VERIFICATION=
+---
 
-# Database (PostgreSQL)
-DATABASE_URL=postgresql://user:password@localhost:5432/bizidashboard?schema=public
+## ➕ Adding New Lyft/GBFS Systems
 
-# Redis (optional for local)
-REDIS_URL=redis://localhost:6379
+Adding a new compatible city is easy:
 
-# Internal jobs
-ENABLE_INTERNAL_JOBS=false
+1. Update `CITIES` and `CITY_CONFIGS` in `src/lib/constants.ts`.
+2. Find the system's `gbfs.json` URL.
+3. Deploy a new Docker service instance with the corresponding `CITY` and `GBFS_DISCOVERY_URL`.
+4. Run migrations for the new schema:
+   ```bash
+   DATABASE_URL="postgresql://user:pass@host:5432/db?schema=newcity" npx prisma migrate deploy
+   ```
 
-# Manual collect trigger security
-COLLECT_API_KEY=change-me
-COLLECT_RATE_LIMIT_MAX=6
-COLLECT_RATE_LIMIT_WINDOW_MS=60000
+---
 
-# GBFS source and request tuning
-GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
-GBFS_REQUEST_TIMEOUT_MS=20000
-GBFS_MAX_RETRIES=5
-GBFS_RETRY_BASE_DELAY_MS=1000
-```
+## ⚙️ Tech Stack
 
-Install dependencies:
+- **Framework**: Next.js 16 (App Router) + React 19
+- **Runtime**: Bun (Production) / Node (Build)
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis
+- **Testing**: Vitest
 
-```bash
-pnpm install
-```
+---
 
-Run the development server:
+## 📜 License
 
-```bash
-pnpm dev
-```
-
-Common development commands:
-
-```bash
-pnpm test
-pnpm lint
-pnpm build
-pnpm db:health
-```
-
-Standalone runtime check with Bun:
-
-```bash
-pnpm build
-pnpm start:bun
-```
-
-## Dashboard Web
-
-The application currently ships the classic dashboard at:
-
-- `http://localhost:3000/dashboard`
-
-The dashboard includes:
-
-- System health and ingestion status.
-- Station map with live availability.
-- Active alerts and bottleneck rankings.
-- Hourly patterns and occupancy heatmap by station.
-- Mobility flow analysis and daily demand curve.
-
-## Production Deployment (Docker Compose)
-
-The provided `docker-compose.yml` is production-oriented and builds the app image from the local `Dockerfile` by default.
-
-Build/install still happen with Node.js + `pnpm`, but the final production container runs the generated standalone server with `bun`.
-
-To use a published image instead, set `BIZIDASHBOARD_IMAGE` before running Compose (for example: `BIZIDASHBOARD_IMAGE=gcaguilar/bizidashboard:latest`).
-
-It also includes:
-
-- A Redis service with health checks.
-- A one-shot migration service (`migrate`) that runs `prisma migrate deploy` before app startup.
-- An app liveness health check against `/api/health/live` (basic check).
-- A readiness probe at `/api/health/ready` (verifies DB connectivity).
-- An external cron service (`collect-cron`) that triggers `POST /api/collect` every 30 minutes using `x-collect-api-key`.
-- Persistent PostgreSQL storage for analytics and historical data.
-
-The container entrypoint bootstraps the database connection: if `DATABASE_URL` is provided, it uses the PostgreSQL adapter.
-
-Runtime split:
-
-- `pnpm install`, `pnpm prisma generate`, `pnpm prisma migrate deploy` and `pnpm build` run in the Node-based build stages.
-- The final runtime image is based on Bun and starts the standalone app with `bun server.js`.
-
-Run in production mode:
-
-Example production `.env` values:
-
-```env
-NODE_ENV=production
-APP_URL=https://your-domain.example
-ROBOTS_BASE_URL=https://your-domain.example
-GOOGLE_SITE_VERIFICATION=
-
-# PostgreSQL connection string
-DATABASE_URL=postgresql://user:password@postgres:5432/bizidashboard?schema=public
-
-# Redis service from docker-compose
-REDIS_URL=redis://redis:6379
-
-# Required in production for POST /api/collect
-COLLECT_API_KEY=use-a-long-random-secret
-COLLECT_RATE_LIMIT_MAX=6
-COLLECT_RATE_LIMIT_WINDOW_MS=60000
-
-GBFS_DISCOVERY_URL=https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json
-GBFS_REQUEST_TIMEOUT_MS=20000
-GBFS_MAX_RETRIES=5
-GBFS_RETRY_BASE_DELAY_MS=1000
-```
-
-`GOOGLE_SITE_VERIFICATION` is optional. Set it to your own token (with or without the
-`.html` suffix) so forks can verify their own domain without code changes.
-
-`ROBOTS_BASE_URL` is optional. When set, `robots.txt` host/sitemap and `sitemap.xml`
-URL entries use this value.
-
-`COLLECT_API_KEY` is required in production. Requests to `POST /api/collect` must include
-the `x-collect-api-key` header with that exact value.
-
-`/api/status` is intended for observability dashboards. Container health checks should use
-`/api/health/live` (liveness) and optionally `/api/health/ready` (readiness).
-
-```bash
-docker compose up -d
-```
-
-## Developer Guidelines for PostgreSQL
-
-Since this project was migrated from SQLite, follow these rules when writing raw SQL queries:
-
-1.  **Quote Identifiers**: PostgreSQL is case-sensitive for unquoted identifiers. Always wrap **camelCase** table and column names in double quotes.
-    -   *Correct*: `SELECT "stationId" FROM "StationStatus"`
-    -   *Incorrect*: `SELECT stationId FROM StationStatus`
-2.  **Date Casting**: Use `TO_CHAR("column", 'YYYY-MM-DD')` instead of `date()` for consistent string-formatted dates.
-3.  **BigInt Handling**: PostgreSQL `SUM` and `COUNT` return `BigInt` (Int8). Always wrap results in `Number()` before doing JS math or returning JSON to avoid `TypeError`.
-4.  **No VACUUM in Transactions**: Avoid `VACUUM`. Use `ANALYZE` for maintenance as it's transaction-safe in Postgres.
-
-## Bun Runtime Notes
-
-- Keep `pnpm-lock.yaml` as the only lockfile committed to the repo.
-- Use `pnpm` for installs, upgrades, tests, linting and builds.
-- Use Bun only to execute the generated standalone runtime in production-like environments.
-- Prisma uses `@prisma/adapter-pg` for PostgreSQL access.
-
-Dependency audit status for the transition:
-
-- Used: `@prisma/adapter-pg`, `pg`, `redis`, `node-cron`.
-- Removed: `@libsql/client`, `@prisma/adapter-libsql`.
-- No extra Bun-specific package is required right now.
-
-## Project Status
-
-This repository is a prototype-oriented codebase. While functional, interfaces and internal implementation details may change as experimentation continues.
-
-External API availability and payload changes may affect runtime behavior.
-
-## Contributing
-
-Contributions are welcome for improvements in reliability, observability, API design, and developer experience. Please open an issue or pull request describing the proposed change and rationale.
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 (GPLv3).
-See `LICENSE` for details.
+Licensed under the **GNU General Public License v3.0 (GPLv3)**.
