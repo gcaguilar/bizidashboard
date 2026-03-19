@@ -93,6 +93,37 @@ services:
 ### Automatic Schema Isolation
 When a city container starts, it automatically executes `SET search_path TO "city-name"`, ensuring isolation within a shared database instance.
 
+### Repairing `StationStatus` Indexes In Docker
+If a schema drift leaves `StationStatus` with an incorrect unique index on `"stationId"` alone, snapshots can look like full duplicates even when bike/dock counts change.
+
+Inside the app container you can diagnose the live schema with:
+
+```bash
+bun /app/ops/fix-station-status-indexes.ts
+```
+
+And apply the repair with:
+
+```bash
+bun /app/ops/fix-station-status-indexes.ts --apply
+```
+
+The script targets the schema from `CITY`, drops unexpected `UNIQUE ("stationId")` constraints or indexes, removes exact duplicate rows for the same `("stationId", "recordedAt")`, and recreates the expected indexes for `StationStatus`.
+
+If the app accidentally wrote live data into `public` instead of the city schema, you can backfill the current city schema from `public` with:
+
+```bash
+bun /app/ops/move-public-schema-to-city.ts
+```
+
+And apply the copy with:
+
+```bash
+bun /app/ops/move-public-schema-to-city.ts --apply
+```
+
+This copies operational tables from `public` into the schema from `CITY` and leaves the source rows untouched so you can validate the backfill before cleaning anything up.
+
 ---
 
 ## ➕ Adding New Lyft/GBFS Systems
