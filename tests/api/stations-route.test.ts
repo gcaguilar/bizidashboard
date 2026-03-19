@@ -43,7 +43,7 @@ describe('GET /api/stations', () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(withCacheMock).toHaveBeenCalledWith('stations:current', 300, expect.any(Function));
+    expect(withCacheMock).toHaveBeenCalledWith('stations:current', 60, expect.any(Function));
     expect(payload.stations).toHaveLength(1);
     expect(payload.generatedAt).toBeTypeOf('string');
   });
