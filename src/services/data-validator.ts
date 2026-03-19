@@ -7,7 +7,7 @@ import {
   DataObservabilityMetrics 
 } from '@/lib/observability'
 import { incrementValidationErrors } from '@/lib/metrics'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
 
 /**
  * Raw GBFS status response structure
@@ -135,12 +135,14 @@ export async function validateAndStore(
       return result
     }
 
-    // Step 5: Convert GBFS data to storage format with UTC timestamps
+    // Step 5: Convert GBFS data to storage format. We use the feed-level
+    // last_updated as the snapshot timestamp so every station in the same
+    // upstream snapshot shares the same recordedAt value.
     const stationStatuses: GBFSStationStatus[] = response.data.stations.map(station => ({
       station_id: station.station_id,
       num_bikes_available: station.num_bikes_available,
       num_docks_available: station.num_docks_available,
-      last_reported: station.last_reported ?? response.last_updated
+      recorded_at: response.last_updated
     }))
 
     // Step 6: Store in database
@@ -166,9 +168,23 @@ export async function validateAndStore(
         storageResult.duplicateCount === stationStatuses.length &&
         stationStatuses.length > 0
       ) {
-        result.warnings.push(
-          `Snapshot already stored; skipped ${storageResult.duplicateCount} duplicates`
-        )
+        const warningMessage = `Snapshot already stored; skipped ${storageResult.duplicateCount} duplicates`
+        result.warnings.push(warningMessage)
+        captureWarningWithContext(warningMessage, {
+          area: 'services.data-validator',
+          operation: 'validateAndStore',
+          tags: {
+            handled: true,
+          },
+          dedupeKey: `data-validator:duplicate-snapshot:${response.last_updated}`,
+          extra: {
+            collectionId,
+            snapshotTimestamp: response.last_updated,
+            duplicateCount: storageResult.duplicateCount,
+            stationCount: stationStatuses.length,
+            sourceUrl: options.sourceUrl,
+          },
+        })
       }
     } else {
       result.success = false
