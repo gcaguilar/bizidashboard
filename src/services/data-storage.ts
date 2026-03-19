@@ -8,7 +8,7 @@ export type GBFSStationStatus = {
   station_id: string
   num_bikes_available: number
   num_docks_available: number
-  last_reported: number // Unix timestamp
+  recorded_at: number // Snapshot timestamp from GBFS response last_updated
 }
 
 export type GBFSStationInformation = {
@@ -63,7 +63,7 @@ export async function storeStationStatuses(
       stationId: status.station_id,
       bikesAvailable: status.num_bikes_available,
       anchorsFree: status.num_docks_available,
-      recordedAt: new Date(status.last_reported * 1000)
+      recordedAt: new Date(status.recorded_at * 1000)
     }))
 
     const { count } = await prisma.stationStatus.createMany({

@@ -5,7 +5,9 @@ type CaptureContext = {
   operation?: string;
   tags?: Record<string, string | number | boolean | null | undefined>;
   extra?: Record<string, unknown>;
+  dedupeKey?: string;
 };
+const capturedMessageKeys = new Set<string>();
 
 function toError(error: unknown): Error {
   if (error instanceof Error) {
@@ -23,6 +25,40 @@ function toError(error: unknown): Error {
   }
 }
 
+function applyContext(
+  scope: Parameters<typeof Sentry.withScope>[0] extends (scope: infer T) => void ? T : never,
+  context: CaptureContext
+): void {
+  scope.setTag('area', context.area);
+
+  if (context.operation) {
+    scope.setTag('operation', context.operation);
+  }
+
+  for (const [key, value] of Object.entries(context.tags ?? {})) {
+    if (value !== null && value !== undefined) {
+      scope.setTag(key, String(value));
+    }
+  }
+
+  if (context.extra && Object.keys(context.extra).length > 0) {
+    scope.setContext('details', context.extra);
+  }
+}
+
+function shouldSkipMessageCapture(dedupeKey?: string): boolean {
+  if (!dedupeKey) {
+    return false;
+  }
+
+  if (capturedMessageKeys.has(dedupeKey)) {
+    return true;
+  }
+
+  capturedMessageKeys.add(dedupeKey);
+  return false;
+}
+
 export function captureExceptionWithContext(
   error: unknown,
   context: CaptureContext
@@ -30,22 +66,22 @@ export function captureExceptionWithContext(
   const exception = toError(error);
 
   Sentry.withScope((scope) => {
-    scope.setTag('area', context.area);
-
-    if (context.operation) {
-      scope.setTag('operation', context.operation);
-    }
-
-    for (const [key, value] of Object.entries(context.tags ?? {})) {
-      if (value !== null && value !== undefined) {
-        scope.setTag(key, String(value));
-      }
-    }
-
-    if (context.extra && Object.keys(context.extra).length > 0) {
-      scope.setContext('details', context.extra);
-    }
-
+    applyContext(scope, context);
     Sentry.captureException(exception);
+  });
+}
+
+export function captureWarningWithContext(
+  message: string,
+  context: CaptureContext
+): void {
+  if (shouldSkipMessageCapture(context.dedupeKey)) {
+    return;
+  }
+
+  Sentry.withScope((scope) => {
+    applyContext(scope, context);
+    scope.setLevel('warning');
+    Sentry.captureMessage(message, 'warning');
   });
 }
