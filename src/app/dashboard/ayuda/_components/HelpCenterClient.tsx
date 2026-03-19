@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -569,6 +570,10 @@ export function HelpCenterClient() {
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.help-center',
+          operation: 'loadHistoryMeta',
+        });
         console.error('[Ayuda] No se pudo cargar metadata historica.', error);
       }
     };

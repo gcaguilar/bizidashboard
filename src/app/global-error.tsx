@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export default function GlobalError({
   error,
@@ -10,6 +11,13 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
+    captureExceptionWithContext(error, {
+      area: 'app.global-error',
+      operation: 'GlobalError',
+      extra: {
+        digest: error.digest,
+      },
+    });
     console.error('[GlobalError]', error);
   }, [error]);
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateRefreshToken } from '@/lib/auth/jwt';
 import { randomUUID } from 'crypto';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,6 +86,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, { status: 201, headers: CORS_HEADERS });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.install-register',
+      operation: 'POST /api/install/register',
+    });
     console.error('[API Install Register] Error:', error);
     return NextResponse.json(
       { error: 'Failed to register installation' },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStatus } from '@/lib/metrics'
+import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +70,13 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       }
     })
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.status',
+      operation: 'GET /api/status',
+      extra: {
+        format: new URL(_request.url).searchParams.get('format'),
+      },
+    })
     console.error('[API Status] Error fetching status:', error)
     
     return NextResponse.json(

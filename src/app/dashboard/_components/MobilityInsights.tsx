@@ -21,6 +21,7 @@ import {
   isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const PERIODS = [
   { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
@@ -232,6 +233,15 @@ export function MobilityInsights({
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.mobility-insights',
+          operation: 'loadData',
+          extra: {
+            mobilityDays,
+            demandDays,
+            selectedMonth,
+          },
+        });
         console.error('[Dashboard] Error cargando movilidad', error);
         if (isActive) {
           setErrorMessage('No se pudieron cargar los insights de movilidad.');

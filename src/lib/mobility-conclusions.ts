@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { TIMEZONE } from '@/lib/timezone';
 
 const madridDateFormatter = new Intl.DateTimeFormat('en-CA', {
@@ -12,6 +13,7 @@ const madridDateFormatter = new Intl.DateTimeFormat('en-CA', {
   month: '2-digit',
   day: '2-digit',
 });
+let hasReportedMissingMobilityBriefingCacheTable = false;
 
 type CoverageRow = {
   firstDay: string | null;
@@ -752,6 +754,16 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
     }
 
     cacheTableAvailable = false;
+    if (!hasReportedMissingMobilityBriefingCacheTable) {
+      captureExceptionWithContext(error, {
+        area: 'mobility.conclusions',
+        operation: 'readMobilityBriefingCache',
+        tags: {
+          handled: true,
+        },
+      });
+      hasReportedMissingMobilityBriefingCacheTable = true;
+    }
     console.warn('[MobilityConclusions] MobilityBriefingCache table is missing; computing payload without cache.');
   }
 
@@ -791,6 +803,16 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
         throw error;
       }
 
+      if (!hasReportedMissingMobilityBriefingCacheTable) {
+        captureExceptionWithContext(error, {
+          area: 'mobility.conclusions',
+          operation: 'writeMobilityBriefingCache',
+          tags: {
+            handled: true,
+          },
+        });
+        hasReportedMissingMobilityBriefingCacheTable = true;
+      }
       console.warn('[MobilityConclusions] MobilityBriefingCache table is missing; skipping cache persistence.');
     }
   }

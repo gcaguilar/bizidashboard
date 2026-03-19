@@ -1,4 +1,5 @@
 import { createClient } from 'redis'
+import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -34,6 +35,10 @@ export async function getRedisClient(): Promise<RedisClient | null> {
   })
   client.on('error', (error: unknown) => {
     if (!warnedConnectionFailure) {
+      captureExceptionWithContext(error, {
+        area: 'cache.redis',
+        operation: 'client.error',
+      })
       console.warn('Redis client error; disabling Redis cache for this process', error)
       warnedConnectionFailure = true
     }
@@ -47,6 +52,10 @@ export async function getRedisClient(): Promise<RedisClient | null> {
     })
     .catch((error: unknown) => {
       if (!warnedConnectionFailure) {
+        captureExceptionWithContext(error, {
+          area: 'cache.redis',
+          operation: 'connect',
+        })
         console.warn('Failed to connect to Redis; disabling cache', error)
         warnedConnectionFailure = true
       }

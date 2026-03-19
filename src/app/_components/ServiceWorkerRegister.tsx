@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
@@ -14,6 +15,10 @@ export function ServiceWorkerRegister() {
           scope: '/',
         });
       } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'pwa.service-worker',
+          operation: 'register',
+        });
         console.error('[PWA] No se pudo registrar el service worker.', error);
       }
     };

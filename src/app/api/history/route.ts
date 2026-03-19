@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,6 +129,10 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.history',
+      operation: 'GET /api/history',
+    });
     console.error('[API History] Error fetching historical data:', error);
 
     return NextResponse.json(

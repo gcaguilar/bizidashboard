@@ -8,6 +8,7 @@ import {
   fetchDistrictCollection,
   type DistrictCollection,
 } from '@/lib/districts';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type HourlySignalRow = {
   stationId: string;
@@ -49,6 +50,10 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.flow-preview',
+          operation: 'loadDistricts',
+        });
         console.error('[Dashboard] No se pudo cargar distritos para preview de flujo.', error);
       }
     };
