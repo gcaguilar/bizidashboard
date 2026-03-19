@@ -7,6 +7,7 @@ import {
   DataObservabilityMetrics 
 } from '@/lib/observability'
 import { incrementValidationErrors } from '@/lib/metrics'
+import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
 /**
  * Raw GBFS status response structure
@@ -153,10 +154,21 @@ export async function validateAndStore(
 
     if (storageResult.success) {
       result.stored = true
-      console.log(`[Validator] Stored ${storageResult.count} station statuses (collection: ${collectionId})`)
+      console.log(
+        `[Validator] Stored ${storageResult.count} station statuses (duplicates skipped: ${storageResult.duplicateCount}) (collection: ${collectionId})`
+      )
       
       if (storageResult.duplicateCount > 0) {
         result.warnings.push(`${storageResult.duplicateCount} duplicate entries skipped`)
+      }
+      if (
+        storageResult.count === 0 &&
+        storageResult.duplicateCount === stationStatuses.length &&
+        stationStatuses.length > 0
+      ) {
+        result.warnings.push(
+          `Snapshot already stored; skipped ${storageResult.duplicateCount} duplicates`
+        )
       }
     } else {
       result.success = false
@@ -173,6 +185,15 @@ export async function validateAndStore(
     result.success = false
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     result.errors.push(`Validation pipeline failed: ${errorMessage}`)
+    captureExceptionWithContext(error, {
+      area: 'services.data-validator',
+      operation: 'validateAndStore',
+      extra: {
+        collectionId,
+        sourceUrl: options.sourceUrl,
+        stationCount: response.data.stations.length,
+      },
+    })
     console.error('[Validator] Pipeline error:', error)
   }
 

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
 /**
  * Station status data from GBFS API (before database storage)
@@ -87,6 +88,13 @@ export async function storeStationStatuses(
       })
     }
 
+    captureExceptionWithContext(error, {
+      area: 'services.data-storage',
+      operation: 'storeStationStatuses',
+      extra: {
+        statusCount: statuses.length,
+      },
+    })
     console.error('[Storage] Failed to store station statuses:', error)
   }
 
@@ -117,6 +125,10 @@ export async function upsertStations(
   `;
 
   return { createdOrUpdated: stations.length };
+}
+
+export async function getStationMetadataCount(): Promise<number> {
+  return prisma.station.count()
 }
 
 /**

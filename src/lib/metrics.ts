@@ -12,6 +12,7 @@
  */
 
 import { prisma } from '@/lib/db'
+import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
 // In-memory cache for metrics that change frequently
 // This reduces database load for high-frequency operations
@@ -27,11 +28,32 @@ const metricsCache = {
 }
 
 const METRICS_CACHE_TTL_MS = 30_000
+const POLL_INTERVAL_MINUTES = 5
+const FRESH_DATA_MAX_AGE_MS = 10 * 60 * 1000
+const HEALTH_DOWN_AFTER_MS = 15 * 60 * 1000
+const EXPECTED_POLLS_PER_DAY = (24 * 60) / POLL_INTERVAL_MINUTES
+const DEGRADED_POLLS_THRESHOLD = 240
 
 let metricsSnapshotCache: {
   value: PipelineMetrics
   expiresAt: number
 } | null = null
+const reportedMetricsErrors = new Set<string>()
+
+function reportMetricsErrorOnce(
+  operation: string,
+  error: unknown
+): void {
+  if (reportedMetricsErrors.has(operation)) {
+    return
+  }
+
+  reportedMetricsErrors.add(operation)
+  captureExceptionWithContext(error, {
+    area: 'metrics',
+    operation,
+  })
+}
 
 function clearMetricsSnapshotCache(): void {
   metricsSnapshotCache = null
@@ -102,6 +124,7 @@ async function getTotalRowsCollected(): Promise<number> {
     const count = await prisma.stationStatus.count()
     return count
   } catch (error) {
+    reportMetricsErrorOnce('getTotalRowsCollected', error)
     console.error('[Metrics] Error counting total rows:', error)
     return 0
   }
@@ -126,6 +149,7 @@ async function getPollsLast24Hours(): Promise<number> {
     
     return result.length
   } catch (error) {
+    reportMetricsErrorOnce('getPollsLast24Hours', error)
     console.error('[Metrics] Error counting polls:', error)
     return 0
   }
@@ -148,6 +172,7 @@ async function getLastSuccessfulPoll(): Promise<Date | null> {
     
     return latest?.recordedAt || null
   } catch (error) {
+    reportMetricsErrorOnce('getLastSuccessfulPoll', error)
     console.error('[Metrics] Error getting last poll:', error)
     return null
   }
@@ -181,6 +206,7 @@ async function getLastStationCount(): Promise<number> {
     
     return count
   } catch (error) {
+    reportMetricsErrorOnce('getLastStationCount', error)
     console.error('[Metrics] Error getting station count:', error)
     return 0
   }
@@ -212,13 +238,14 @@ async function getAverageStationsPerPoll(): Promise<number> {
     const totalStations = groupedPolls.reduce((sum, poll) => sum + poll._count._all, 0)
     return Math.round(totalStations / groupedPolls.length)
   } catch (error) {
+    reportMetricsErrorOnce('getAverageStationsPerPoll', error)
     console.error('[Metrics] Error calculating average:', error)
     return 0
   }
 }
 
 /**
- * Check if the latest data is fresh (within 5 minutes)
+ * Check if the latest data is fresh (within 10 minutes)
  */
 async function isDataFresh(): Promise<{ isFresh: boolean; lastUpdated: Date | null }> {
   const lastPoll = await getLastSuccessfulPoll()
@@ -227,7 +254,7 @@ async function isDataFresh(): Promise<{ isFresh: boolean; lastUpdated: Date | nu
     return { isFresh: false, lastUpdated: null }
   }
   
-  const maxAgeMs = 5 * 60 * 1000 // 5 minutes
+  const maxAgeMs = FRESH_DATA_MAX_AGE_MS
   const ageMs = Date.now() - lastPoll.getTime()
   
   return {
@@ -245,8 +272,8 @@ function calculateHealthStatus(
   validationErrors: number,
   polls24h: number
 ): { status: HealthStatus; reason: string | null } {
-  // Down: No successful poll in the last hour or too many consecutive failures
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  // Down: No successful poll in the last 15 minutes or too many consecutive failures
+  const maxHealthyPollLag = new Date(Date.now() - HEALTH_DOWN_AFTER_MS)
   
   if (consecutiveFailures >= 5) {
     return {
@@ -255,21 +282,21 @@ function calculateHealthStatus(
     }
   }
   
-  if (!lastPoll || lastPoll < oneHourAgo) {
+  if (!lastPoll || lastPoll < maxHealthyPollLag) {
     return {
       status: 'down',
       reason: lastPoll 
-        ? `No successful poll in the last hour (last: ${lastPoll.toISOString()})`
+        ? `No successful poll in the last 15 minutes (last: ${lastPoll.toISOString()})`
         : 'No successful polls yet'
     }
   }
   
-  // Degraded: Fewer than expected polls (expect ~48 polls per day for 30-min interval)
+  // Degraded: Fewer than expected polls for a 5-minute cadence
   // or elevated validation errors
-  if (polls24h < 40) {
+  if (polls24h < DEGRADED_POLLS_THRESHOLD) {
     return {
       status: 'degraded',
-      reason: `Only ${polls24h} polls in last 24h (expected ~48)`
+      reason: `Only ${polls24h} polls in last 24h (expected ~${EXPECTED_POLLS_PER_DAY})`
     }
   }
   
@@ -434,7 +461,7 @@ export async function getStatus(): Promise<StatusResponse> {
       freshness: {
         isFresh: pipeline.lastDataFreshness,
         lastUpdated: pipeline.lastSuccessfulPoll,
-        maxAgeSeconds: 300 // 5 minutes
+        maxAgeSeconds: Math.floor(FRESH_DATA_MAX_AGE_MS / 1000)
       },
       volume: {
         recentStationCount: pipeline.lastStationCount,

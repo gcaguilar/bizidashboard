@@ -16,7 +16,13 @@ function translateHealthStatus(statusLabel: string): string {
 
 function translateHealthReason(reason: string): string {
   return reason
+    .replace('Pipeline has ', 'El pipeline acumula ')
+    .replace(' consecutive failures', ' fallos consecutivos')
+    .replace('No successful poll in the last 15 minutes', 'No ha habido una recogida correcta en los ultimos 15 minutos')
     .replace('No successful poll in the last hour', 'No ha habido una recogida correcta en la ultima hora')
+    .replace('Only ', 'Solo hubo ')
+    .replace(' polls in last 24h', ' recogidas en las ultimas 24h')
+    .replace('expected ~288', 'esperadas ~288')
     .replace('(last:', '(ultima correcta:');
 }
 

@@ -16,6 +16,7 @@ import {
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
 import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { DashboardLayout } from './DashboardLayout';
 import { DashboardHeader } from './DashboardHeader';
 import { ModeIntroBanner } from './ModeIntroBanner';
@@ -125,7 +126,7 @@ type RefreshPayload<T> = {
 const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
 const TREND_SNAPSHOT_STORAGE_KEY = 'bizidashboard-session-station-snapshot';
 const RECENT_SNAPSHOTS_STORAGE_KEY = 'bizidashboard-session-recent-station-snapshots';
-const REFRESH_AFTER_LAST_DATA_MS = 2.5 * 60_000; // 2 min 30s
+const REFRESH_AFTER_LAST_DATA_MS = 5 * 60_000; // 5 minutes
 const MIN_REFRESH_FALLBACK_MS = 30_000;
 
 const TIME_WINDOWS: TimeWindow[] = [
@@ -418,6 +419,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.client',
+          operation: 'loadDistrictsForSearch',
+          extra: {
+            searchQuery,
+          },
+        });
         console.error('[Dashboard] No se pudieron cargar distritos para busqueda por barrio.', error);
       }
     };
@@ -428,7 +436,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       isActive = false;
       controller.abort();
     };
-  }, [districts, shouldLoadDistricts]);
+  }, [districts, searchQuery, shouldLoadDistricts]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -642,6 +650,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           data: (await response.json()) as T,
         };
       } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'dashboard.client',
+          operation: 'refreshDashboardData.fetchJson',
+          extra: {
+            url,
+          },
+        });
         console.error(`[Dashboard] No se pudo refrescar ${url}`, error);
         return { ok: false };
       }
@@ -798,6 +813,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.client',
+          operation: 'refreshMobilityPreview',
+          extra: {
+            mobilityDays: activeWindow.mobilityDays,
+            demandDays: activeWindow.demandDays,
+          },
+        });
         console.error('Error al refrescar vista previa de flujo.', error);
 
         if (isActive) {
