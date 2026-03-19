@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeDatabaseSchemaName, quotePgIdentifier } from '@/lib/postgres-schema'
+import {
+  buildPgSearchPathOption,
+  normalizeDatabaseSchemaName,
+  quotePgIdentifier,
+  stripPrismaSchemaParam,
+} from '@/lib/postgres-schema'
 
 describe('postgres schema helpers', () => {
   it('normalizes valid schema names', () => {
@@ -15,5 +20,17 @@ describe('postgres schema helpers', () => {
 
   it('quotes valid identifiers safely', () => {
     expect(quotePgIdentifier('zaragoza')).toBe('"zaragoza"')
+  })
+
+  it('strips prisma schema query params from connection strings', () => {
+    expect(
+      stripPrismaSchemaParam(
+        'postgresql://user:pass@db:5432/postgres?schema=zaragoza&sslmode=require'
+      )
+    ).toBe('postgresql://user:pass@db:5432/postgres?sslmode=require')
+  })
+
+  it('builds a pg search_path option for pooled connections', () => {
+    expect(buildPgSearchPathOption('zaragoza')).toBe('-c search_path=zaragoza,public')
   })
 })

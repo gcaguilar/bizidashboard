@@ -18,3 +18,14 @@ export function quotePgIdentifier(identifier: string): string {
   const normalized = normalizeDatabaseSchemaName(identifier)
   return `"${normalized}"`
 }
+
+export function stripPrismaSchemaParam(databaseUrl: string): string {
+  const url = new URL(databaseUrl)
+  url.searchParams.delete('schema')
+  return url.toString()
+}
+
+export function buildPgSearchPathOption(schema: string): string {
+  const normalized = normalizeDatabaseSchemaName(schema)
+  return `-c search_path=${normalized},public`
+}
