@@ -10,6 +10,7 @@ import {
   type StationsResponse,
   type StatusResponse,
 } from '@/lib/api';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import { BetaBanner } from './_components/BetaBanner';
@@ -81,7 +82,7 @@ function buildFallbackStatus(nowIso: string): StatusResponse {
       freshness: {
         isFresh: false,
         lastUpdated: null,
-        maxAgeSeconds: 300,
+        maxAgeSeconds: 600,
       },
       volume: {
         recentStationCount: 0,
@@ -136,9 +137,21 @@ export default async function DashboardPage() {
     try {
       return await fetcher();
     } catch (error) {
+      const schemaMissing = isMissingTableError(error);
+      captureExceptionWithContext(error, {
+        area: 'dashboard.ssr',
+        operation: 'DashboardPage.withFallback',
+        tags: {
+          panel: label,
+          schemaMissing,
+        },
+        extra: {
+          label,
+        },
+      });
       console.error(`[Dashboard] Error cargando ${label}:`, error);
       loadErrors.push(label);
-      if (isMissingTableError(error)) {
+      if (schemaMissing) {
         schemaMissingFlags.push(true);
       }
       return fallback;

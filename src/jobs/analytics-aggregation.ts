@@ -16,12 +16,15 @@ import { runPatternRollup } from '@/analytics/queries/patterns';
 import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 import { setCachedJson } from '@/lib/cache/cache';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { 
   getStationsWithLatestStatus, 
   getDailyDemandCurve, 
   getHourlyMobilitySignals, 
   getSystemHourlyProfile 
 } from '@/analytics/queries/read';
+
+const LIVE_CACHE_TTL_SECONDS = 60;
 
 async function warmCache(): Promise<void> {
   console.log('[Analytics] Starting proactive cache warming...');
@@ -33,7 +36,7 @@ async function warmCache(): Promise<void> {
     await setCachedJson('stations:current', {
       stations,
       generatedAt: new Date().toISOString(),
-    }, 300);
+    }, LIVE_CACHE_TTL_SECONDS);
 
     // 2. Warm mobility:all
     const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
@@ -74,6 +77,10 @@ async function warmCache(): Promise<void> {
     const duration = Date.now() - start;
     console.log(`[Analytics] Cache warming completed in ${duration}ms`);
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'jobs.analytics',
+      operation: 'warmCache',
+    });
     console.warn('[Analytics] Cache warming failed:', error);
   }
 }
@@ -207,11 +214,19 @@ async function runAnalyticsAggregation(): Promise<void> {
     // Warm cache for high-traffic endpoints after rollups complete
     await warmCache();
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'jobs.analytics',
+      operation: 'runAnalyticsAggregation',
+    });
     console.error('[Analytics] Aggregation run failed:', error);
   } finally {
     try {
       await lock.release();
     } catch (releaseError) {
+      captureExceptionWithContext(releaseError, {
+        area: 'jobs.analytics',
+        operation: 'release analytics lock',
+      });
       console.error('[Analytics] Failed to release lock:', releaseError);
     }
     const duration = Date.now() - runStart;

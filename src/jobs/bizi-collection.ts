@@ -1,7 +1,7 @@
 /**
  * Bizi Data Collection Job
  * 
- * Scheduled collection job that runs every 30 minutes to fetch,
+ * Scheduled collection job that runs every 5 minutes to fetch,
  * validate, and store Bizi station data from the GBFS API.
  * Also provides manual trigger capability via runCollection().
  */
@@ -9,9 +9,11 @@
 import { schedule, ScheduledTask } from 'node-cron';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
-import { upsertStations } from '@/services/data-storage';
+import { getStationMetadataCount, upsertStations } from '@/services/data-storage';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { acquireJobLock } from '@/analytics/job-lock';
 
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
@@ -50,6 +52,11 @@ export interface JobState {
 // Module-level state
 let cronJob: ScheduledTask | null = null;
 let isScheduled = false;
+const COLLECTION_LOCK_TTL_MS = 10 * 60 * 1000;
+const COLLECTION_LOCK_NAME = 'gbfs-collection';
+const COLLECTION_CRON_SCHEDULE = '*/5 * * * *';
+const DEFAULT_GBFS_SOURCE_URL = 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
+let hasSyncedStationInformationSinceStartup = false;
 
 // Job state tracking
 const jobState: JobState = {
@@ -67,6 +74,15 @@ export function getJobState(): JobState {
   return { ...jobState };
 }
 
+async function shouldSyncStationInformation(): Promise<boolean> {
+  if (!hasSyncedStationInformationSinceStartup) {
+    return true;
+  }
+
+  const stationCount = await getStationMetadataCount();
+  return stationCount === 0;
+}
+
 /**
  * Run a single collection cycle
  * Orchestrates: fetch → validate → store
@@ -74,6 +90,21 @@ export function getJobState(): JobState {
 export async function runCollection(): Promise<CollectionResult> {
   const startTime = Date.now();
   console.log('[Collection] Starting Bizi data collection...');
+
+  const lock = await acquireJobLock(COLLECTION_LOCK_NAME, COLLECTION_LOCK_TTL_MS);
+  if (!lock) {
+    const skippedAt = new Date();
+    console.log('[Collection] Skipped because another collection lock is active');
+    return {
+      success: true,
+      stationCount: 0,
+      recordedAt: null,
+      quality: null,
+      duration: Date.now() - startTime,
+      warnings: ['Skipped collection because another collector is already running.'],
+      timestamp: skippedAt,
+    };
+  }
 
   // Update job state
   jobState.lastRun = new Date();
@@ -92,21 +123,36 @@ export async function runCollection(): Promise<CollectionResult> {
   try {
     // Step 1: Fetch discovery once and reuse for all feed requests
     const discovery = await fetchDiscovery();
+    const syncStationInformation = await shouldSyncStationInformation();
 
-    // Step 2: Fetch station metadata + live status
+    // Step 2: Fetch live station status, and station metadata only on the first run
+    // after startup or when the station table is empty.
+    const stationStatusPromise = fetchStationStatus(discovery);
+    const stationInformationPromise = syncStationInformation
+      ? fetchStationInformation(discovery)
+      : Promise.resolve(null);
+
     const [stationStatusResponse, stationInformation] = await Promise.all([
-      fetchStationStatus(discovery),
-      fetchStationInformation(discovery),
+      stationStatusPromise,
+      stationInformationPromise,
     ]);
 
-    // Step 3: Ensure station table is up to date before inserting statuses
-    await upsertStations(stationInformation);
+    // Step 3: Refresh station metadata sparingly. Station names/coords/capacity
+    // change infrequently, so we only sync them on deploy/startup or bootstrap.
+    if (stationInformation) {
+      await upsertStations(stationInformation);
+      hasSyncedStationInformationSinceStartup = true;
+      console.log(
+        `[Collection] Station metadata synced (${stationInformation.length} stations)`
+      );
+    }
+    await lock.refresh();
     
     // Step 4: Validate and store data
     const validationResult = await validateAndStore(
       stationStatusResponse as GBFSStatusResponse,
       {
-        sourceUrl: 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json',
+        sourceUrl: process.env.GBFS_URL ?? process.env.GBFS_DISCOVERY_URL ?? DEFAULT_GBFS_SOURCE_URL,
       }
     );
 
@@ -125,12 +171,35 @@ export async function runCollection(): Promise<CollectionResult> {
       jobState.lastSuccess = new Date();
       jobState.totalSuccesses++;
       jobState.consecutiveFailures = 0;
-      console.log(
-        `[Collection] Successfully collected ${result.stationCount} stations`
+      const duplicateOnlyWarning = result.warnings.find((warning) =>
+        warning.startsWith('Snapshot already stored;')
       );
+      if (duplicateOnlyWarning) {
+        console.log(`[Collection] ${duplicateOnlyWarning}`);
+      } else {
+        console.log(
+          `[Collection] Successfully collected ${result.stationCount} stations`
+        );
+      }
     } else {
       jobState.consecutiveFailures++;
       result.error = validationResult.errors.join(', ');
+      captureExceptionWithContext(
+        new Error(result.error || 'Collection completed with validation or storage errors'),
+        {
+          area: 'jobs.collection',
+          operation: 'runCollection',
+          tags: {
+            phase: 'validate-store',
+            handled: true,
+          },
+          extra: {
+            stationCount: result.stationCount,
+            warnings: result.warnings,
+            errors: validationResult.errors,
+          },
+        }
+      );
       console.warn(`[Collection] Collection completed with errors: ${result.error}`);
     }
 
@@ -139,6 +208,13 @@ export async function runCollection(): Promise<CollectionResult> {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     result.error = errorMessage;
     result.success = false;
+    captureExceptionWithContext(error, {
+      area: 'jobs.collection',
+      operation: 'runCollection',
+      extra: {
+        warnings: result.warnings,
+      },
+    });
     console.error(`[Collection] Failed: ${errorMessage}`);
 
     // Re-throw for upstream handling while still updating state
@@ -159,6 +235,16 @@ export async function runCollection(): Promise<CollectionResult> {
     if (jobState.consecutiveFailures >= 3) {
       console.warn(`[Collection] ${jobState.consecutiveFailures} consecutive failures`);
     }
+
+    try {
+      await lock.release();
+    } catch (releaseError) {
+      captureExceptionWithContext(releaseError, {
+        area: 'jobs.collection',
+        operation: 'release collection lock',
+      });
+      console.error('[Collection] Failed to release collection lock:', releaseError);
+    }
   }
 
   return result;
@@ -166,7 +252,7 @@ export async function runCollection(): Promise<CollectionResult> {
 
 /**
  * Start the scheduled collection job
- * Runs every 30 minutes in Europe/Madrid timezone
+ * Runs every 5 minutes in Europe/Madrid timezone
  */
 export function startCollectionJob(): void {
   if (cronJob) {
@@ -174,10 +260,9 @@ export function startCollectionJob(): void {
     return;
   }
 
-  // Schedule: every 2 minutes
-  // */2 * * * * = every 2nd minute
+  // Schedule: every 5 minutes
   cronJob = schedule(
-    '*/2 * * * *',
+    COLLECTION_CRON_SCHEDULE,
     async () => {
       try {
         await runCollection();
@@ -195,7 +280,7 @@ export function startCollectionJob(): void {
   );
 
   isScheduled = true;
-  console.log('[Cron] Bizi collection scheduled every 30 minutes');
+  console.log('[Cron] Bizi collection scheduled every 5 minutes');
 }
 
 /**

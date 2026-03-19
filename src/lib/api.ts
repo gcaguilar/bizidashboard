@@ -122,7 +122,8 @@ export type StatusResponse = {
   timestamp: string;
 };
 
-const CACHE_TTL_SECONDS = 300;
+const LIVE_CACHE_TTL_SECONDS = 60;
+const ANALYTICS_CACHE_TTL_SECONDS = 300;
 
 function assertArray(value: unknown, label: string): asserts value is unknown[] {
   if (!Array.isArray(value)) {
@@ -131,7 +132,7 @@ function assertArray(value: unknown, label: string): asserts value is unknown[] 
 }
 
 export async function fetchStations(): Promise<StationsResponse> {
-  const payload = await withCache('stations:current', CACHE_TTL_SECONDS, async () => {
+  const payload = await withCache('stations:current', LIVE_CACHE_TTL_SECONDS, async () => {
     const stations = await getStationsWithLatestStatus();
     return {
       stations,
@@ -156,7 +157,7 @@ export async function fetchRankings(
   }
 
   const cacheKey = `rankings:type=${type}:limit=${limit}`;
-  const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
+  const payload = await withCache(cacheKey, ANALYTICS_CACHE_TTL_SECONDS, async () => {
     const rankings = await getStationRankings(type, limit);
     return {
       type,
@@ -176,7 +177,7 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
   }
 
   const cacheKey = `alerts:limit=${limit}`;
-  const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
+  const payload = await withCache(cacheKey, ANALYTICS_CACHE_TTL_SECONDS, async () => {
     const alerts = await getActiveAlerts(limit);
     return {
       limit,
@@ -190,7 +191,7 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const payload = await withCache('status:current', CACHE_TTL_SECONDS, async () => {
+  const payload = await withCache('status:current', LIVE_CACHE_TTL_SECONDS, async () => {
     const rawStatus = await getStatus();
     const data = JSON.parse(JSON.stringify(rawStatus)) as StatusResponse;
 
@@ -214,7 +215,7 @@ export async function fetchPatterns(
 
   const data = await withCache(
     `patterns:stationId=${stationId}:month=${monthKey ?? 'all'}`,
-    CACHE_TTL_SECONDS,
+    ANALYTICS_CACHE_TTL_SECONDS,
     () => getStationPatterns(stationId, monthKey ?? undefined)
   );
 
@@ -229,7 +230,7 @@ export async function fetchHeatmap(stationId: string, monthKey?: string | null):
 
   const data = await withCache(
     `heatmap:stationId=${stationId}:month=${monthKey ?? 'all'}`,
-    CACHE_TTL_SECONDS,
+    ANALYTICS_CACHE_TTL_SECONDS,
     () => getHeatmap(stationId, monthKey ?? undefined)
   );
 
@@ -238,7 +239,7 @@ export async function fetchHeatmap(stationId: string, monthKey?: string | null):
 }
 
 export async function fetchAvailableDataMonths(): Promise<AvailableMonthsResponse> {
-  const payload = await withCache('data-months', CACHE_TTL_SECONDS, async () => ({
+  const payload = await withCache('data-months', ANALYTICS_CACHE_TTL_SECONDS, async () => ({
     months: await getAvailableDataMonths(),
     generatedAt: new Date().toISOString(),
   }));
