@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as Sentry from '@sentry/nextjs';
 import {
   getDailyDemandCurve,
   getHourlyMobilitySignals,
@@ -7,6 +6,7 @@ import {
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { isValidMonthKey } from '@/lib/months';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,7 +107,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
-    Sentry.captureException(error);
+    captureExceptionWithContext(error, {
+      area: 'api.mobility',
+      operation: 'GET /api/mobility',
+      extra: {
+        mobilityDays,
+        demandDays,
+        monthKey,
+      },
+    });
     console.error('[API Mobility] Error generating mobility insights:', error);
 
     return NextResponse.json(

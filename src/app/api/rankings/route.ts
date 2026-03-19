@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationRankings, type RankingType } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,6 +86,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.rankings',
+      operation: 'GET /api/rankings',
+      extra: {
+        type: typeParam,
+        limit,
+        format,
+      },
+    });
     console.error('[API Rankings] Error fetching rankings:', error);
     return NextResponse.json(
       {

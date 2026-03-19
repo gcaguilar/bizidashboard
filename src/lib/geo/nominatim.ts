@@ -1,4 +1,5 @@
 import { getCachedJson, setCachedJson } from '@/lib/cache/cache';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getSiteUrl, isFallbackSiteUrl, SITE_NAME } from '@/lib/site';
 
 const PUBLIC_NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
@@ -116,6 +117,16 @@ function warnIfPublicNominatimIdentityLooksWeak(): void {
   }
 
   hasWarnedWeakIdentity = true;
+  captureExceptionWithContext(
+    new Error('Public Nominatim configured without a strong application identity'),
+    {
+      area: 'geo.nominatim',
+      operation: 'warnIfPublicNominatimIdentityLooksWeak',
+      tags: {
+        handled: true,
+      },
+    }
+  );
   console.warn(
     '[Nominatim] Public API configured without APP_URL/NEXT_PUBLIC_APP_URL, NOMINATIM_CONTACT_EMAIL or NOMINATIM_USER_AGENT. This may trigger 403 blocks.'
   );

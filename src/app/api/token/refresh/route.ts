@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/lib/auth/jwt';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +83,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, { headers: CORS_HEADERS });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.token-refresh',
+      operation: 'POST /api/token/refresh',
+    });
     console.error('[API Token Refresh] Error:', error);
     return NextResponse.json(
       { error: 'Failed to refresh token' },

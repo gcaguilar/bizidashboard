@@ -10,6 +10,7 @@ import {
   type DistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const DISTRICT_FILL_LAYER = {
   id: 'district-fill-layer',
@@ -145,6 +146,10 @@ export function NeighborhoodMiniMap({
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.neighborhood-mini-map',
+          operation: 'loadDistricts',
+        });
         console.error('[Dashboard] No se pudo cargar el mapa de distritos.', error);
 
         if (isActive) {

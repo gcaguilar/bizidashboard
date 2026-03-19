@@ -9,6 +9,7 @@ import {
   type DistrictCollection,
 } from '@/lib/districts';
 import { WidgetEmptyState } from './WidgetEmptyState';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type NeighborhoodLoadCardProps = {
   stations: StationSnapshot[];
@@ -62,6 +63,10 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.neighborhood-load-card',
+          operation: 'loadDistricts',
+        });
         console.error('[Dashboard] No se pudo cargar distritos para el donut.', error);
       }
     };

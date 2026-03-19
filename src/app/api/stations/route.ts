@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as Sentry from '@sentry/nextjs';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
 const CACHE_KEY = 'stations:current';
-const CACHE_TTL_SECONDS = 300;
+const CACHE_TTL_SECONDS = 60;
 
 function toCsv(
   stations: Array<{
@@ -45,7 +45,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': 'attachment; filename="stations-current.csv"',
-          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=60',
         },
       });
     }
@@ -54,11 +54,18 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=60',
       },
     });
   } catch (error) {
-    Sentry.captureException(error);
+    const format = request ? new URL(request.url).searchParams.get('format') : null;
+    captureExceptionWithContext(error, {
+      area: 'api.stations',
+      operation: 'GET /api/stations',
+      extra: {
+        format,
+      },
+    });
     console.error('[API Stations] Error fetching stations:', error);
 
     return NextResponse.json(

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +31,11 @@ function parseAppVersions(): AppVersionsResponse {
   try {
     const parsed = JSON.parse(env) as AppVersionsResponse;
     return parsed;
-  } catch {
+  } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.app-versions',
+      operation: 'parseAppVersions',
+    });
     console.warn('[API App Versions] Invalid APP_VERSIONS JSON, using defaults');
     return DEFAULT_APP_VERSIONS;
   }

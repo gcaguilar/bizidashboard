@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -308,6 +309,13 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.alerts-history',
+          operation: 'loadHistory',
+          extra: {
+            query: apiQueryString,
+          },
+        });
         console.error('[Dashboard] Error cargando historial de alertas.', error);
 
         if (isActive) {

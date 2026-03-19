@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,10 @@ export async function GET(): Promise<NextResponse> {
       collectionLag = Math.floor((Date.now() - latest.recordedAt.getTime()) / 1000);
     }
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.health-live',
+      operation: 'GET /api/health/live',
+    });
     console.error('[Health] Check failed:', error);
     dbStatus = 'error';
   }

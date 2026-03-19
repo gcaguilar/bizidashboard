@@ -16,6 +16,7 @@ import {
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type MobilitySignalRow = {
   stationId: string;
@@ -134,6 +135,15 @@ export function StationDetailPanel({
           return;
         }
 
+        captureExceptionWithContext(error, {
+          area: 'dashboard.station-detail',
+          operation: 'loadExtraData',
+          extra: {
+            mobilityDays,
+            demandDays,
+            selectedMonth,
+          },
+        });
         console.error('[Dashboard] Error cargando detalle de estacion', error);
       }
     };

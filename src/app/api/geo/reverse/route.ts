@@ -3,6 +3,7 @@ import { verifyAccessToken } from '@/lib/auth/jwt';
 import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
 import { reverseGeocode } from '@/lib/geo/nominatim';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.geo-reverse',
+      operation: 'POST /api/geo/reverse',
+    });
     console.error('[API Geo Reverse] Error:', error);
     return NextResponse.json(
       { error: 'Failed to reverse geocode' },

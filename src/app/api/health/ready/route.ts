@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,10 @@ async function isDatabaseReady(): Promise<boolean> {
     await prisma.$queryRaw`SELECT 1`;
     return true;
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.health-ready',
+      operation: 'GET /api/health/ready',
+    });
     console.error('[Health] Readiness check failed:', error);
     return false;
   }

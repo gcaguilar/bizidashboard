@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -370,6 +371,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     );
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.alerts-history',
+      operation: 'GET /api/alerts/history',
+      extra: {
+        format: parsed.format,
+        state: parsed.state,
+        stationId: parsed.stationId,
+        alertType: parsed.alertType,
+        severity: parsed.severity,
+        limit: parsed.limit,
+        offset: parsed.offset,
+        from: parsed.from?.toISOString() ?? null,
+        to: parsed.to?.toISOString() ?? null,
+      },
+    });
     console.error('[API Alerts History] Error fetching alert history:', error);
 
     return NextResponse.json(

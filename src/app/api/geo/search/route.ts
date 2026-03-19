@@ -3,6 +3,7 @@ import { verifyAccessToken } from '@/lib/auth/jwt';
 import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
 import { searchLocations, type GeoSearchResult } from '@/lib/geo/nominatim';
 import { prisma } from '@/lib/db';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.geo-search',
+      operation: 'POST /api/geo/search',
+    });
     console.error('[API Geo Search] Error:', error);
     return NextResponse.json(
       { error: 'Failed to search locations' },

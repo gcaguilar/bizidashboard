@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveAlerts } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.alerts',
+      operation: 'GET /api/alerts',
+      extra: { limit },
+    });
     console.error('[API Alerts] Error fetching alerts:', error);
     return NextResponse.json(
       {

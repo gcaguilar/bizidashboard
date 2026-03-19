@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { runCollection, getJobState, isCollectionScheduled } from '@/jobs/bizi-collection';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const COLLECT_API_KEY_HEADER = 'x-collect-api-key';
 const DEFAULT_RATE_LIMIT_MAX = 6;
@@ -231,6 +232,13 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'api.collect',
+      operation: 'POST /api/collect',
+      extra: {
+        clientIdentifier: getClientIdentifier(request),
+      },
+    });
     console.error('[API] Collection failed:', error);
 
     return NextResponse.json(
