@@ -1,3 +1,8 @@
 export async function register(): Promise<void> {
-  return;
+  if (process.env.NEXT_RUNTIME !== 'nodejs') {
+    return;
+  }
+
+  const { initJobs } = await import('@/lib/jobs');
+  initJobs();
 }
