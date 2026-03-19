@@ -9,7 +9,11 @@
 import { schedule, ScheduledTask } from 'node-cron';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
-import { getStationMetadataCount, upsertStations } from '@/services/data-storage';
+import {
+  getSnapshotCount,
+  getStationMetadataCount,
+  upsertStations,
+} from '@/services/data-storage';
 import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -147,6 +151,31 @@ export async function runCollection(): Promise<CollectionResult> {
       );
     }
     await lock.refresh();
+
+    const snapshotRecordedAt = new Date(stationStatusResponse.last_updated * 1000);
+    const existingSnapshotCount = await getSnapshotCount(snapshotRecordedAt);
+    const expectedStationCount = stationStatusResponse.data.stations.length;
+
+    if (existingSnapshotCount >= expectedStationCount && expectedStationCount > 0) {
+      const skipMessage = `Snapshot ${snapshotRecordedAt.toISOString()} already ingested; skipping duplicate trigger (${existingSnapshotCount} stations)`;
+      result.success = true;
+      result.stationCount = expectedStationCount;
+      result.recordedAt = snapshotRecordedAt;
+      result.warnings = [skipMessage];
+
+      jobState.lastSuccess = new Date();
+      jobState.totalSuccesses++;
+      jobState.consecutiveFailures = 0;
+
+      console.log(`[Collection] ${skipMessage}`);
+      return result;
+    }
+
+    if (existingSnapshotCount > 0 && existingSnapshotCount < expectedStationCount) {
+      console.warn(
+        `[Collection] Completing partial snapshot ${snapshotRecordedAt.toISOString()} (${existingSnapshotCount}/${expectedStationCount} already stored)`
+      );
+    }
     
     // Step 4: Validate and store data
     const validationResult = await validateAndStore(
