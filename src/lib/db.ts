@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { normalizeDatabaseSchemaName, quotePgIdentifier } from './postgres-schema'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
@@ -8,10 +9,10 @@ function isBuildPhase(): boolean {
 
 function createBuildPrismaMock(): PrismaClient {
   return new Proxy(() => undefined, {
-    get(_target, _property) {
+    get() {
       return createBuildPrismaMock()
     },
-    apply(_target, _thisArg, _args) {
+    apply() {
       return Promise.reject(new Error('Database not available during build'))
     },
   }) as unknown as PrismaClient
@@ -30,8 +31,9 @@ async function createPrismaClient(): Promise<PrismaClient> {
 
   await client.$connect()
   const city = getCity()
-  await client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${city}"`)
-  await client.$executeRawUnsafe(`SET search_path TO "${city}", public`)
+  const quotedSchema = quotePgIdentifier(city)
+  await client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${quotedSchema}`)
+  await client.$executeRawUnsafe(`SET search_path TO ${quotedSchema}, public`)
 
   return client
 }
@@ -63,9 +65,6 @@ export const prisma = isBuildPhase() || !process.env.DATABASE_URL
   ? createBuildPrismaMock()
   : await getPrismaClient()
 
-import { DEFAULT_CITY } from './constants'
-
 export function getCity(): string {
-  const city = process.env.CITY || DEFAULT_CITY
-  return city.toLowerCase()
+  return normalizeDatabaseSchemaName(process.env.CITY)
 }
