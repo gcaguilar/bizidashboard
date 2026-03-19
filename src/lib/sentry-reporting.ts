@@ -7,6 +7,13 @@ type CaptureContext = {
   extra?: Record<string, unknown>;
   dedupeKey?: string;
 };
+
+type ScopeLike = {
+  setTag(key: string, value: string): void;
+  setContext(name: string, context: Record<string, unknown> | null): void;
+  setLevel(level: 'warning'): void;
+};
+
 const capturedMessageKeys = new Set<string>();
 
 function toError(error: unknown): Error {
@@ -26,7 +33,7 @@ function toError(error: unknown): Error {
 }
 
 function applyContext(
-  scope: Parameters<typeof Sentry.withScope>[0] extends (scope: infer T) => void ? T : never,
+  scope: ScopeLike,
   context: CaptureContext
 ): void {
   scope.setTag('area', context.area);
