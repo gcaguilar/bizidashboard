@@ -8,7 +8,7 @@
  * 5. Lineage: Source is traceable (GBFS version logged)
  */
 
-import { prisma } from '@/lib/db'
+import { getRecentSnapshotSummaries } from '@/services/data-storage'
 
 /**
  * Quality thresholds from RESEARCH.md
@@ -152,28 +152,18 @@ async function checkVolume(
  */
 async function getPreviousStationCount(): Promise<number | null> {
   try {
-    // Get the second most recent distinct recordedAt timestamp
-    const recentTimestamps = await prisma.stationStatus.groupBy({
-      by: ['recordedAt'],
-      orderBy: {
-        recordedAt: 'desc'
-      },
-      take: 2
+    // Compare against the previous complete snapshot, not against
+    // historical partial timestamps left behind by older ingestion bugs.
+    const recentSnapshots = await getRecentSnapshotSummaries({
+      limit: 2,
+      minStationCount: QUALITY_THRESHOLDS.volume.minStations,
     })
 
-    if (recentTimestamps.length < 2) {
+    if (recentSnapshots.length < 2) {
       return null // No previous collection
     }
 
-    const previousTimestamp = recentTimestamps[1].recordedAt
-
-    const count = await prisma.stationStatus.count({
-      where: {
-        recordedAt: previousTimestamp
-      }
-    })
-
-    return count
+    return recentSnapshots[1].stationCount
   } catch {
     return null
   }

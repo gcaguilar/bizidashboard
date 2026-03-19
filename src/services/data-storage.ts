@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 
@@ -39,6 +40,11 @@ export type StorageMetrics = {
   duplicateCount: number
   errorCount: number
   durationMs: number
+}
+
+export type SnapshotSummary = {
+  recordedAt: Date
+  stationCount: number
 }
 
 /**
@@ -101,8 +107,6 @@ export async function storeStationStatuses(
   return result
 }
 
-import { Prisma } from '@prisma/client'
-
 export async function upsertStations(
   stations: GBFSStationInformation[]
 ): Promise<{ createdOrUpdated: number }> {
@@ -129,6 +133,43 @@ export async function upsertStations(
 
 export async function getStationMetadataCount(): Promise<number> {
   return prisma.station.count()
+}
+
+export async function getSnapshotCount(recordedAt: Date): Promise<number> {
+  return prisma.stationStatus.count({
+    where: {
+      recordedAt,
+    },
+  })
+}
+
+export async function getRecentSnapshotSummaries(options?: {
+  limit?: number
+  minStationCount?: number
+}): Promise<SnapshotSummary[]> {
+  const limit = Math.max(1, options?.limit ?? 10)
+  const minStationCount = Math.max(0, options?.minStationCount ?? 0)
+  const havingClause =
+    minStationCount > 0
+      ? Prisma.sql`HAVING COUNT(*) >= ${minStationCount}`
+      : Prisma.empty
+
+  const rows = await prisma.$queryRaw<Array<{
+    recordedAt: Date
+    stationCount: number | bigint
+  }>>(Prisma.sql`
+    SELECT "recordedAt", COUNT(*)::int AS "stationCount"
+    FROM "StationStatus"
+    GROUP BY "recordedAt"
+    ${havingClause}
+    ORDER BY "recordedAt" DESC
+    LIMIT ${limit}
+  `)
+
+  return rows.map((row) => ({
+    recordedAt: row.recordedAt,
+    stationCount: Number(row.stationCount),
+  }))
 }
 
 /**
