@@ -3,6 +3,7 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
+import { normalizeDatabaseSchemaName, quotePgIdentifier } from '../src/lib/postgres-schema'
 
 const DEFAULT_DATABASE_URL = 'file:./data/dev.db'
 
@@ -22,7 +23,7 @@ function ensureSqliteDirectory(url: string): void {
 }
 
 const databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL
-const city = process.env.CITY || 'zaragoza'
+const city = normalizeDatabaseSchemaName(process.env.CITY)
 
 ensureSqliteDirectory(databaseUrl)
 
@@ -39,7 +40,7 @@ type MigrationRow = {
 
 async function main() {
   if (!databaseUrl.startsWith('file:')) {
-    await prisma.$executeRawUnsafe(`SET search_path TO ${city}`)
+    await prisma.$executeRawUnsafe(`SET search_path TO ${quotePgIdentifier(city)}`)
   }
 
   await prisma.$queryRaw`SELECT 1`

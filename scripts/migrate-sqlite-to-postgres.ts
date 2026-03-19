@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { normalizeDatabaseSchemaName, quotePgIdentifier } from '../src/lib/postgres-schema'
 
 interface MigrationResult {
   station: number
@@ -84,7 +85,7 @@ async function migrateTable(
 async function main() {
   const sqliteUrl = process.env.SQLITE_URL || 'file:./dev.db'
   const pgUrl = process.env.DATABASE_URL
-  const city = process.env.CITY || 'zaragoza'
+  const city = normalizeDatabaseSchemaName(process.env.CITY)
   
   if (!pgUrl) {
     console.error('DATABASE_URL is required')
@@ -104,10 +105,10 @@ async function main() {
   const pgPrisma = new PrismaClient({ adapter: pgAdapter })
 
   console.log(`Ensuring schema ${city} exists...`)
-  await pgPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${city}`)
+  await pgPrisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${quotePgIdentifier(city)}`)
   console.log(`Schema ${city} ready`)
 
-  await pgPrisma.$executeRawUnsafe(`SET search_path TO ${city}`)
+  await pgPrisma.$executeRawUnsafe(`SET search_path TO ${quotePgIdentifier(city)}`)
 
   const result: MigrationResult = {
     station: 0,
