@@ -6,8 +6,6 @@ import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 export type RankingType = 'turnover' | 'availability';
 
-const _db = prisma; // Prefix unused variable with '_' to satisfy linter
-
 type StationPatternRow = {
   stationId: string;
   dayType: string;
