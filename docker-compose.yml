@@ -35,6 +35,8 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
@@ -61,6 +63,8 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
@@ -87,6 +91,8 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
+      - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
