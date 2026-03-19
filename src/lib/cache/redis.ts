@@ -1,5 +1,5 @@
 import { createClient } from 'redis'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -17,6 +17,16 @@ export async function getRedisClient(): Promise<RedisClient | null> {
 
   if (!redisUrl) {
     if (!warnedMissingUrl) {
+      if (process.env.NODE_ENV === 'production') {
+        captureWarningWithContext('REDIS_URL is not set; Redis cache is disabled in production.', {
+          area: 'cache.redis',
+          operation: 'getRedisClient',
+          tags: {
+            handled: true,
+          },
+          dedupeKey: 'cache.redis.missing-url.production',
+        })
+      }
       console.warn('REDIS_URL is not set; skipping Redis cache')
       warnedMissingUrl = true
     }

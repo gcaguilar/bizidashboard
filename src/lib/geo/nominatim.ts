@@ -1,5 +1,5 @@
 import { getCachedJson, setCachedJson } from '@/lib/cache/cache';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { getSiteUrl, isFallbackSiteUrl, SITE_NAME } from '@/lib/site';
 
 const PUBLIC_NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
@@ -117,14 +117,15 @@ function warnIfPublicNominatimIdentityLooksWeak(): void {
   }
 
   hasWarnedWeakIdentity = true;
-  captureExceptionWithContext(
-    new Error('Public Nominatim configured without a strong application identity'),
+  captureWarningWithContext(
+    'Public Nominatim configured without a strong application identity.',
     {
       area: 'geo.nominatim',
       operation: 'warnIfPublicNominatimIdentityLooksWeak',
       tags: {
         handled: true,
       },
+      dedupeKey: 'geo.nominatim.weak-identity',
     }
   );
   console.warn(
