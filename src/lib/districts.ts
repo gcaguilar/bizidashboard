@@ -1,5 +1,4 @@
-export const DISTRICTS_GEOJSON_URL =
-  'https://raw.githubusercontent.com/bislai/bislai/master/mapas/distritos-ciudadanos-zaragoza.geojson';
+export const DISTRICTS_GEOJSON_URL = '/data/distritos-zaragoza.geojson';
 
 export type Coordinate = number[];
 
