@@ -16,7 +16,7 @@ on:
       no-cache:
         description: 'Build without cache'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build Docker image with cache
-        if: inputs.no-cache != 'true'
+        if: inputs.no-cache != true
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -61,12 +61,14 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=main
-          cache-to: type=gha,mode=max,scope=main
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository }}:cache
+            type=gha,scope=${{ runner.os }}-docker
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}:cache,mode=max
           provenance: false
 
       - name: Build Docker image without cache
-        if: inputs.no-cache == 'true'
+        if: inputs.no-cache == true
         uses: docker/build-push-action@v7
         with:
           context: .
