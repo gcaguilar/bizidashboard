@@ -1,12 +1,23 @@
-import proj4 from 'proj4';
 import fs from 'fs';
 
-const EPSG_23030 = '+proj=utm +zone=30 +ellps=GRS80 +units=m +no_defs';
-const WGS84 = 'EPSG:4326';
+type DistrictFeature = {
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon';
+    coordinates: number[][][] | number[][][][];
+  };
+  properties: { distrito: string };
+};
 
-const NEW_GEOJSON = JSON.parse(fs.readFileSync('public/data/distritos-zaragoza.geojson', 'utf-8'));
+type DistrictCollection = {
+  features: DistrictFeature[];
+};
 
-const OLD_GEOJSON_URL = 'https://raw.githubusercontent.com/bislai/bislai/master/mapas/distritos-ciudadanos-zaragoza.geojson';
+const NEW_GEOJSON: DistrictCollection = JSON.parse(
+  fs.readFileSync('public/data/distritos-zaragoza.geojson', 'utf-8')
+);
+
+const OLD_GEOJSON_URL =
+  'https://raw.githubusercontent.com/bislai/bislai/master/mapas/distritos-ciudadanos-zaragoza.geojson';
 
 function isPointInRing(point: [number, number], ring: number[][]): boolean {
   const [lng, lat] = point;
@@ -24,19 +35,20 @@ function isPointInRing(point: [number, number], ring: number[][]): boolean {
 }
 
 function isPointInPolygon(point: [number, number], polygon: number[][][]): boolean {
-  if (!isPointInRing(point, polygon[0] as number[][])) return false;
+  if (!isPointInRing(point, polygon[0])) return false;
   for (let i = 1; i < polygon.length; i++) {
-    if (isPointInRing(point, polygon[i] as number[][])) return false;
+    if (isPointInRing(point, polygon[i])) return false;
   }
   return true;
 }
 
-function findDistrict(point: [number, number], features: any[]): string | null {
+function findDistrict(point: [number, number], features: DistrictFeature[]): string | null {
   for (const f of features) {
     const coords = f.geometry.coordinates;
-    const isInDistrict = f.geometry.type === 'Polygon'
-      ? isPointInPolygon(point, coords)
-      : (coords as any[][][]).some((poly) => isPointInPolygon(point, poly as any));
+    const isInDistrict =
+      f.geometry.type === 'Polygon'
+        ? isPointInPolygon(point, coords as number[][][])
+        : (coords as number[][][][]).some((poly) => isPointInPolygon(point, poly));
     if (isInDistrict) return f.properties.distrito;
   }
   return null;
@@ -45,17 +57,17 @@ function findDistrict(point: [number, number], features: any[]): string | null {
 async function main() {
   console.log('Descargando GeoJSON antiguo...');
   const response = await fetch(OLD_GEOJSON_URL);
-  const oldGeojson = await response.json();
-  
-  console.log(`\nDistritos GeoJSON ANTIGUO (${oldGeojson.features.length}):`);
-  oldGeojson.features.forEach((f: any) => console.log(`  - ${f.properties.distrito}`));
-  
-  console.log(`\nDistritos GeoJSON NUEVO (${NEW_GEOJSON.features.length}):`);
-  NEW_GEOJSON.features.forEach((f: any) => console.log(`  - ${f.properties.distrito}`));
+  const oldGeojson = (await response.json()) as DistrictCollection;
 
-  const oldNames = new Set(oldGeojson.features.map((f: any) => f.properties.distrito));
-  const newNames = new Set(NEW_GEOJSON.features.map((f: any) => f.properties.distrito));
-  
+  console.log(`\nDistritos GeoJSON ANTIGUO (${oldGeojson.features.length}):`);
+  oldGeojson.features.forEach((f) => console.log(`  - ${f.properties.distrito}`));
+
+  console.log(`\nDistritos GeoJSON NUEVO (${NEW_GEOJSON.features.length}):`);
+  NEW_GEOJSON.features.forEach((f) => console.log(`  - ${f.properties.distrito}`));
+
+  const oldNames = new Set(oldGeojson.features.map((f) => f.properties.distrito));
+  const newNames = new Set(NEW_GEOJSON.features.map((f) => f.properties.distrito));
+
   console.log('\n' + '='.repeat(50));
   console.log('\nDistritos que CAMBIAN de nombre:');
   for (const name of oldNames) {
@@ -68,12 +80,12 @@ async function main() {
       console.log(`  + "${name}" es nuevo`);
     }
   }
-  
+
   const stations = [
     { id: '200', name: 'Actur - Celine', lon: -0.8677, lat: 41.6879 },
     { id: '210', name: 'Arrabal - Compromiso', lon: -0.8746, lat: 41.6749 },
   ];
-  
+
   console.log('\n' + '='.repeat(50));
   console.log('\nEjemplo de asignación para estaciones de Actur/Arrabal:');
   for (const s of stations) {

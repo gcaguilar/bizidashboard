@@ -1,6 +1,20 @@
 import fs from 'fs';
 
-const geojson = JSON.parse(fs.readFileSync('public/data/distritos-zaragoza.geojson', 'utf-8'));
+type DistrictFeature = {
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon';
+    coordinates: number[][][] | number[][][][];
+  };
+  properties: { distrito: string };
+};
+
+type DistrictCollection = {
+  features: DistrictFeature[];
+};
+
+const geojson: DistrictCollection = JSON.parse(
+  fs.readFileSync('public/data/distritos-zaragoza.geojson', 'utf-8')
+);
 
 const stations = [
   { id: '1', name: 'Plaza del Pilar', lon: -0.8769, lat: 41.6567 },
@@ -35,19 +49,20 @@ function isPointInRing(point: [number, number], ring: number[][]): boolean {
 }
 
 function isPointInPolygon(point: [number, number], polygon: number[][][]): boolean {
-  if (!isPointInRing(point, polygon[0] as number[][])) return false;
+  if (!isPointInRing(point, polygon[0])) return false;
   for (let i = 1; i < polygon.length; i++) {
-    if (isPointInRing(point, polygon[i] as number[][])) return false;
+    if (isPointInRing(point, polygon[i])) return false;
   }
   return true;
 }
 
-function findDistrict(point: [number, number], features: any[]): string | null {
+function findDistrict(point: [number, number], features: DistrictFeature[]): string | null {
   for (const f of features) {
     const coords = f.geometry.coordinates;
-    const isInDistrict = f.geometry.type === 'Polygon'
-      ? isPointInPolygon(point, coords)
-      : (coords as any[][][]).some((poly) => isPointInPolygon(point, poly as any));
+    const isInDistrict =
+      f.geometry.type === 'Polygon'
+        ? isPointInPolygon(point, coords as number[][][])
+        : (coords as number[][][][]).some((poly) => isPointInPolygon(point, poly));
     if (isInDistrict) return f.properties.distrito;
   }
   return null;
