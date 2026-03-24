@@ -5,7 +5,8 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 86400;
 
-const ANDROID_BETA_URL = 'https://appdistribution.firebase.dev/i/e00ef336fd84888c';
+const GOOGLE_GROUP_URL = 'https://groups.google.com/g/testers-biciradar';
+const PLAY_STORE_BETA_URL = 'https://play.google.com/apps/testing/com.gcaguilar.biciradar';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'App Bizi Zaragoza Beta - Estaciones, bicis y huecos en tiempo real',
@@ -83,7 +84,7 @@ export default function BetaPage() {
         operatingSystem: 'Android',
         applicationCategory: 'TravelApplication',
         url: `${siteUrl}/beta`,
-        installUrl: ANDROID_BETA_URL,
+        installUrl: PLAY_STORE_BETA_URL,
         softwareVersion: 'Beta',
         inLanguage: 'es',
         offers: {
@@ -117,7 +118,7 @@ export default function BetaPage() {
             name: 'Como puedo unirme a la beta?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'En Android, puedes unirte a traves del enlace de Firebase App Distribution. La version para iOS estara disponible proximamente.',
+              text: 'Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para acceder a la version beta. La version para iOS estara disponible proximamente.',
             },
           },
           {
@@ -157,7 +158,7 @@ export default function BetaPage() {
 
         <div className="flex flex-wrap gap-3">
           <a
-            href={ANDROID_BETA_URL}
+            href={GOOGLE_GROUP_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95"
@@ -165,7 +166,18 @@ export default function BetaPage() {
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M17.523 2.237a.625.625 0 0 0-.857.228l-1.376 2.4A8.154 8.154 0 0 0 12 4.098c-1.153 0-2.254.264-3.29.767L7.334 2.465a.626.626 0 0 0-1.085.629l1.344 2.348A7.677 7.677 0 0 0 4 11.874h16a7.677 7.677 0 0 0-3.593-6.432l1.344-2.348a.625.625 0 0 0-.228-.857zM9 9.375a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zm6 0a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zM4 13.125v6.25A1.875 1.875 0 0 0 5.875 21.25h.75v2.375a1.375 1.375 0 1 0 2.75 0V21.25h1.25v2.375a1.375 1.375 0 1 0 2.75 0V21.25h.75A1.875 1.875 0 0 0 20 19.375v-6.25H4zM1.375 13.125a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5zm18.5 0a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5z" />
             </svg>
-            Unirse a la beta en Android
+            Unirse al grupo de testers
+          </a>
+          <a
+            href={PLAY_STORE_BETA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z"/>
+            </svg>
+            Aceptar invitacion Play Store
           </a>
           <span
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-2.5 text-sm font-bold text-[var(--muted)] cursor-default"
@@ -217,18 +229,18 @@ export default function BetaPage() {
         <div className="grid gap-3 md:grid-cols-3">
           <StepCard
             step={1}
-            title="Abre el enlace de invitacion"
-            description="Pulsa el boton de Android de esta pagina desde tu telefono movil para acceder a la invitacion."
+            title="Unete al grupo de testers"
+            description="Accede al grupo de Google para unirte al programa de beta testers de la app."
           />
           <StepCard
             step={2}
-            title="Acepta la invitacion"
-            description="Firebase App Distribution te guiara para instalar la app en tu dispositivo Android."
+            title="Acepta la invitacion en Play Store"
+            description="Una vez en el grupo, abre el enlace de Play Store para aceptar la invitacion a la beta."
           />
           <StepCard
             step={3}
-            title="Explora y da feedback"
-            description="Usa la app, encuentra tus estaciones y cuentanos que mejorar. Tu opinion mejora la app para todos."
+            title="Descarga y explora"
+            description="Descarga la app desde Play Store, usala y envia feedback. Tu opinion mejora la app para todos."
           />
         </div>
       </section>
@@ -248,17 +260,26 @@ export default function BetaPage() {
             </div>
           </div>
           <p className="text-xs text-[var(--muted)]">
-            La beta para Android esta abierta a todos los usuarios a traves de Firebase App Distribution.
-            Descarga la app e instala las actualizaciones automaticamente.
+            Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para descargar la beta.
           </p>
-          <a
-            href={ANDROID_BETA_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-fit rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-          >
-            Descargar beta Android
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={GOOGLE_GROUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-fit rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            >
+              Unirse al grupo
+            </a>
+            <a
+              href={PLAY_STORE_BETA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-fit rounded-xl border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+            >
+              Play Store Beta
+            </a>
+          </div>
         </article>
 
         <article className="dashboard-card">
@@ -299,7 +320,7 @@ export default function BetaPage() {
           />
           <FaqItem
             question="Como puedo unirme a la beta en Android?"
-            answer="Pulsa el boton 'Unirse a la beta en Android' desde tu movil. Firebase App Distribution te guiara para instalar la app. Es rapido y seguro."
+            answer="Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para acceder a la version beta de la app."
           />
           <FaqItem
             question="Cuando estara disponible para iOS?"
@@ -311,7 +332,7 @@ export default function BetaPage() {
           />
           <FaqItem
             question="Como puedo enviar feedback?"
-            answer="Durante la beta puedes enviarnos comentarios directamente desde Firebase App Distribution. Tu opinion es clave para mejorar la app antes del lanzamiento oficial."
+            answer="Puedes enviarnos comentarios directamente desde Play Store o contactando a traves del grupo de testers de Google. Tu opinion es clave para mejorar la app."
           />
         </div>
       </section>

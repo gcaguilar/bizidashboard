@@ -39,7 +39,7 @@ export function BetaBanner() {
           <span className="hidden shrink-0 text-sm sm:inline" aria-hidden="true">📱</span>
           <p className="min-w-0 text-xs text-[var(--foreground)]">
             <span className="font-bold">Nueva app Bizi Zaragoza en beta</span>
-            <span className="text-[var(--muted)]"> &mdash; Estaciones cercanas, disponibilidad en tiempo real y favoritas.</span>
+            <span className="text-[var(--muted)]"> &mdash; Unete al grupo de testers. Android disponible, iOS proximamente.</span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
