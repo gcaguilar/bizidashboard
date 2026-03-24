@@ -9,20 +9,20 @@ const GOOGLE_GROUP_URL = 'https://groups.google.com/g/testers-biciradar';
 const PLAY_STORE_BETA_URL = 'https://play.google.com/apps/testing/com.gcaguilar.biciradar';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'App Bizi Zaragoza Beta - Estaciones, bicis y huecos en tiempo real',
+  title: 'App Bici Radar Beta - Estaciones, bicis y huecos en tiempo real',
   description:
-    'Unete a la beta de la app de Bizi Zaragoza. Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas. Disponible para Android, proximamente en iOS.',
+    'Unete a la beta de la app Bici Radar. Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas. Disponible para Android, proximamente en iOS.',
   path: '/beta',
   keywords: [
-    'app bizi zaragoza',
-    'bizi zaragoza app',
+    'app bici radar',
+    'bici radar app',
     'app bicicleta publica zaragoza',
     'estaciones bizi app',
     'bicis disponibles zaragoza app',
-    'beta bizi zaragoza',
-    'descargar app bizi',
-    'bizi zaragoza android',
-    'bizi zaragoza ios',
+    'beta bici radar',
+    'descargar app bici radar',
+    'bici radar android',
+    'bici radar ios',
   ],
 });
 
@@ -78,7 +78,7 @@ export default function BetaPage() {
       },
       {
         '@type': 'MobileApplication',
-        name: 'Bizi Zaragoza - Estaciones y disponibilidad',
+        name: 'Bici Radar - Estaciones y disponibilidad',
         description:
           'App para encontrar estaciones de Bizi Zaragoza cercanas, ver bicis y huecos libres en tiempo real y guardar favoritas.',
         operatingSystem: 'Android',
@@ -144,10 +144,10 @@ export default function BetaPage() {
           <div className="max-w-3xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Beta abierta</p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              La app de Bizi Zaragoza que necesitas
+              Bici Radar: la app que necesitas
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas para tenerlas siempre a mano. Unete a la beta y ayudanos a mejorar la experiencia de BiziZaragoza.
+              Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas para tenerlas siempre a mano. Unete a la beta de Bici Radar y ayudanos a mejorar.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -193,7 +193,7 @@ export default function BetaPage() {
       {/* Features grid */}
       <section>
         <div className="mb-4">
-          <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Que puedes hacer con la app</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Que puedes hacer con Bici Radar</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Pensada para el dia a dia del usuario de BiziZaragoza.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -311,7 +311,7 @@ export default function BetaPage() {
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <FaqItem
-            question="Que es la app de Bizi Zaragoza?"
+            question="Que es Bici Radar?"
             answer="Es una aplicacion movil que te permite encontrar estaciones de Bizi Zaragoza cercanas, ver en tiempo real cuantas bicicletas y huecos libres hay, y guardar tus estaciones favoritas para acceder a ellas rapidamente."
           />
           <FaqItem
