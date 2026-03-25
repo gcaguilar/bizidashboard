@@ -2,17 +2,20 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import {
   fetchAlerts,
+  fetchSharedDatasetSnapshot,
   fetchRankings,
   fetchStations,
   fetchStatus,
   type AlertsResponse,
   type RankingsResponse,
+  type SharedDatasetSnapshot,
   type StationsResponse,
   type StatusResponse,
 } from '@/lib/api';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
+import { getSharedDataSource } from '@/services/shared-data';
 import { BetaBanner } from './_components/BetaBanner';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
@@ -100,6 +103,31 @@ function buildFallbackStatus(nowIso: string): StatusResponse {
   };
 }
 
+function buildFallbackDatasetSnapshot(nowIso: string): SharedDatasetSnapshot {
+  return {
+    source: getSharedDataSource(),
+    coverage: {
+      firstRecordedAt: null,
+      lastRecordedAt: null,
+      totalSamples: 0,
+      totalStations: 0,
+      totalDays: 0,
+      generatedAt: nowIso,
+    },
+    lastUpdated: {
+      lastSampleAt: null,
+      generatedAt: nowIso,
+    },
+    stats: {
+      totalSamples: 0,
+      totalStations: 0,
+      totalDays: 0,
+      generatedAt: nowIso,
+    },
+    pipeline: buildFallbackStatus(nowIso),
+  };
+}
+
 export default async function DashboardPage() {
   const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
@@ -108,6 +136,7 @@ export default async function DashboardPage() {
     generatedAt: nowIso,
   };
   const fallbackStatus = buildFallbackStatus(nowIso);
+  const fallbackDataset = buildFallbackDatasetSnapshot(nowIso);
   const fallbackAlerts: AlertsResponse = {
     limit: 20,
     alerts: [],
@@ -158,7 +187,10 @@ export default async function DashboardPage() {
     }
   };
 
-  const stations = await withFallback('estaciones', fetchStations, fallbackStations);
+  const [stations, dataset] = await Promise.all([
+    withFallback('estaciones', fetchStations, fallbackStations),
+    withFallback('metadatos compartidos', fetchSharedDatasetSnapshot, fallbackDataset),
+  ]);
 
   const rankingLimit = Math.max(
     50,
@@ -181,6 +213,7 @@ export default async function DashboardPage() {
   ]);
 
   const initialData: DashboardInitialData = {
+    dataset,
     stations,
     status,
     alerts,

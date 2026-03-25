@@ -233,6 +233,8 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span className="kpi-chip">Dia informe {payload.dateKey}</span>
+            <span className="kpi-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
+            <span className="kpi-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
             <span className="kpi-chip">{fromCache ? 'Actualizacion diaria en cache' : 'Actualizado hoy'}</span>
           </div>
         </div>

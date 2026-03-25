@@ -46,6 +46,20 @@ function formatHourLabel(hour: number): string {
   return `${String(hour).padStart(2, '0')}:00-${String((hour + 1) % 24).padStart(2, '0')}:00`;
 }
 
+function formatDate(value: string | null): string {
+  if (!value) {
+    return 'Sin datos';
+  }
+
+  const parsed = new Date(value.length <= 10 ? `${value}T00:00:00.000Z` : value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('es-ES');
+}
+
 function buildFallbackPayload(month: string): MobilityConclusionsPayload {
   return {
     dateKey: new Date().toISOString().slice(0, 10),
@@ -188,6 +202,8 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="kpi-chip">Mes {month}</span>
+            <span className="kpi-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
+            <span className="kpi-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
             <span className="kpi-chip">Actualizado {new Date(payload.generatedAt).toLocaleDateString('es-ES')}</span>
           </div>
         </div>
@@ -316,6 +332,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <article className="dashboard-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cobertura</h2>
           <div className="mt-2 space-y-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Rango historico</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Desde {formatDate(payload.sourceFirstDay)} hasta {formatDate(payload.sourceLastDay)}.
+              </p>
+            </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Dias historicos</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{payload.totalHistoricalDays} dias con datos consolidados.</p>

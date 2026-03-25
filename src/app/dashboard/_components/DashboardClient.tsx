@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   AlertsResponse,
   RankingsResponse,
+  SharedDatasetSnapshot,
   StationsResponse,
   StatusResponse,
 } from '@/lib/api';
@@ -68,6 +69,7 @@ const DataModeView = dynamic(
 );
 
 export type DashboardInitialData = {
+  dataset: SharedDatasetSnapshot;
   stations: StationsResponse;
   status: StatusResponse;
   alerts: AlertsResponse;
@@ -263,12 +265,18 @@ function toTimestamp(value: string | null | undefined): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function resolveLatestDataUpdatedAt(stations: StationsResponse, status: StatusResponse): Date {
+function resolveLatestDataUpdatedAt(
+  dataset: SharedDatasetSnapshot,
+  stations: StationsResponse,
+  status: StatusResponse
+): Date {
   const stationRecordings = stations.stations
     .map((station) => toTimestamp(station.recordedAt))
     .filter((value): value is number => value !== null);
 
   const candidates = [
+    toTimestamp(dataset.lastUpdated.lastSampleAt),
+    toTimestamp(dataset.coverage.generatedAt),
     ...stationRecordings,
     toTimestamp(status.pipeline.lastSuccessfulPoll),
     toTimestamp(stations.generatedAt),
@@ -280,6 +288,24 @@ function resolveLatestDataUpdatedAt(stations: StationsResponse, status: StatusRe
   }
 
   return new Date(Math.max(...candidates));
+}
+
+function resolveNextRefreshAt(
+  dataset: SharedDatasetSnapshot,
+  stations: StationsResponse,
+  status: StatusResponse
+): Date {
+  if (stations.stations.length === 0) {
+    return new Date(Date.now() + MIN_REFRESH_FALLBACK_MS);
+  }
+
+  const latestUpdate = resolveLatestDataUpdatedAt(dataset, stations, status);
+  return new Date(
+    Math.max(
+      latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS,
+      Date.now() + MIN_REFRESH_FALLBACK_MS
+    )
+  );
 }
 
 function formatCountdown(valueMs: number): string {
@@ -321,10 +347,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
   const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
-  const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() => {
-    const latestUpdate = resolveLatestDataUpdatedAt(initialData.stations, initialData.status);
-    return new Date(latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS);
-  });
+  const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
+    resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status)
+  );
   const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
@@ -725,16 +750,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       const latestStations = stationsResult.ok ? stationsResult.data : stationsData;
       const latestStatus = statusResult.ok ? statusResult.data : statusData;
-      const latestUpdate = resolveLatestDataUpdatedAt(latestStations, latestStatus);
-      const targetTimestamp = Math.max(
-        latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS,
-        Date.now() + MIN_REFRESH_FALLBACK_MS
-      );
-      setNextRefreshAt(new Date(targetTimestamp));
+      setNextRefreshAt(resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus));
     } finally {
       setIsRefreshingData(false);
     }
-  }, [stationsData, statusData]);
+  }, [initialData.dataset, stationsData, statusData]);
 
   useEffect(() => {
     const delayMs = nextRefreshAt.getTime() - Date.now();
@@ -866,9 +886,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     alerts: alertsData,
     status: statusData,
   });
+  const datasetLastSampleAt =
+    statusData.quality.freshness.lastUpdated ?? initialData.dataset.lastUpdated.lastSampleAt;
   const updatedText = statusData.quality.freshness.lastUpdated
     ? new Date(statusData.quality.freshness.lastUpdated).toLocaleString('es-ES')
     : 'sin datos';
+  const sharedDatasetUpdatedText = datasetLastSampleAt
+    ? new Date(datasetLastSampleAt).toLocaleString('es-ES')
+    : 'sin datos';
+  const datasetSummaryLabel = `Cobertura ${initialData.dataset.coverage.totalDays} dias · ${initialData.dataset.coverage.totalStations} estaciones · ultima muestra ${sharedDatasetUpdatedText}`;
   const topFrictionStationName = systemMetrics.topFriction
     ? stationsData.stations.find((station) => station.id === systemMetrics.topFriction?.stationId)?.name ?? systemMetrics.topFriction.stationId
     : null;
@@ -901,6 +927,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         isMobilityPreviewLoading={isMobilityPreviewLoading}
         isRefreshingData={isRefreshingData}
         nearestMessage={nearestMessage}
+        datasetSummaryLabel={datasetSummaryLabel}
         onUseGeolocation={enableGeolocation}
         canUseGeolocation={!isGeolocationEnabled && !(nearestStationInfo && nearestStation)}
         onJumpToNearest={() => {

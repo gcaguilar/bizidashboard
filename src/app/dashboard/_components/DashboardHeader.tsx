@@ -29,6 +29,7 @@ type DashboardHeaderProps = {
   isMobilityPreviewLoading: boolean;
   isRefreshingData: boolean;
   nearestMessage: string;
+  datasetSummaryLabel: string;
   onUseGeolocation: () => void;
   canUseGeolocation: boolean;
   onJumpToNearest: () => void;
@@ -56,6 +57,7 @@ export function DashboardHeader({
   isMobilityPreviewLoading,
   isRefreshingData,
   nearestMessage,
+  datasetSummaryLabel,
   onUseGeolocation,
   canUseGeolocation,
   onJumpToNearest,
@@ -156,6 +158,7 @@ export function DashboardHeader({
             {isMobilityPreviewLoading ? ' (actualizando flujo...)' : ''}
           </p>
           <p>{isRefreshingData ? 'Refrescando datos del sistema ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
+          <p>{datasetSummaryLabel}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">

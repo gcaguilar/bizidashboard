@@ -1,5 +1,6 @@
 import type { StatusResponse } from '@/lib/api';
 import { formatFreshnessLabel } from '@/lib/freshness';
+import type { CoverageSummary } from '@/services/shared-data/types';
 
 function translateHealthStatus(statusLabel: string): string {
   switch (statusLabel) {
@@ -29,6 +30,8 @@ function translateHealthReason(reason: string): string {
 type StatusBannerProps = {
   status: StatusResponse;
   stationsGeneratedAt?: string | null;
+  coverage?: CoverageSummary | null;
+  lastSampleAt?: string | null;
 };
 
 function getHealthStyle(statusLabel: string): string {
@@ -44,10 +47,11 @@ function getHealthStyle(statusLabel: string): string {
   }
 }
 
-export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps) {
-  const lastUpdated = status.quality.freshness.lastUpdated ?? stationsGeneratedAt ?? null;
+export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSampleAt }: StatusBannerProps) {
+  const lastUpdated = lastSampleAt ?? status.quality.freshness.lastUpdated ?? stationsGeneratedAt ?? null;
   const updatedText = formatFreshnessLabel(lastUpdated);
   const volumeRange = status.quality.volume.expectedRange;
+  const coverageGeneratedText = formatFreshnessLabel(coverage?.generatedAt ?? null);
 
   return (
     <section className="dashboard-card gap-4">
@@ -55,7 +59,9 @@ export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps)
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Resumen del sistema</p>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Resumen de salud del sistema</h2>
-          <p className="text-xs text-[var(--muted)]">Actualizacion {updatedText} · entorno {status.system.environment}</p>
+          <p className="text-xs text-[var(--muted)]">
+            Actualizacion {updatedText} · cobertura {coverage?.totalDays ?? 0} dias · entorno {status.system.environment}
+          </p>
         </div>
         <span
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthStyle(status.pipeline.healthStatus)}`}
@@ -64,7 +70,7 @@ export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps)
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <article className="stat-card min-w-0">
           <p className="stat-label">Ultimo sondeo</p>
           <p className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
@@ -91,6 +97,13 @@ export function StatusBanner({ status, stationsGeneratedAt }: StatusBannerProps)
         <article className="stat-card min-w-0">
           <p className="stat-label">Fallos consecutivos</p>
           <p className="stat-value">{status.pipeline.consecutiveFailures}</p>
+        </article>
+        <article className="stat-card min-w-0">
+          <p className="stat-label">Cobertura dataset</p>
+          <p className="stat-value">{coverage?.totalDays ?? 0}</p>
+          <p className="text-[11px] text-[var(--muted)]">
+            {coverage?.totalStations ?? 0} estaciones · generado {coverageGeneratedText}
+          </p>
         </article>
       </div>
 

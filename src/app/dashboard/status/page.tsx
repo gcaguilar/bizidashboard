@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchStations, fetchStatus } from '@/lib/api';
+import { fetchSharedDatasetSnapshot, fetchStations, fetchStatus, type SharedDatasetSnapshot } from '@/lib/api';
 import { buildPageMetadata } from '@/lib/seo';
+import { getSharedDataSource } from '@/services/shared-data';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { StatusBanner } from '../_components/StatusBanner';
@@ -25,15 +26,47 @@ function formatValue(value: string | null | undefined): string {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString('es-ES');
 }
 
+function buildFallbackDatasetSnapshot(nowIso: string): SharedDatasetSnapshot {
+  return {
+    source: getSharedDataSource(),
+    coverage: {
+      firstRecordedAt: null,
+      lastRecordedAt: null,
+      totalSamples: 0,
+      totalStations: 0,
+      totalDays: 0,
+      generatedAt: nowIso,
+    },
+    lastUpdated: {
+      lastSampleAt: null,
+      generatedAt: nowIso,
+    },
+    stats: {
+      totalSamples: 0,
+      totalStations: 0,
+      totalDays: 0,
+      generatedAt: nowIso,
+    },
+    pipeline: {
+      pipeline: { lastSuccessfulPoll: null, totalRowsCollected: 0, pollsLast24Hours: 0, validationErrors: 0, consecutiveFailures: 0, lastDataFreshness: false, lastStationCount: 0, averageStationsPerPoll: 0, healthStatus: 'down', healthReason: 'No se pudieron consultar las tablas de datos.' },
+      quality: { freshness: { isFresh: false, lastUpdated: null, maxAgeSeconds: 300 }, volume: { recentStationCount: 0, averageStationsPerPoll: 0, expectedRange: { min: 200, max: 500 } }, lastCheck: null },
+      system: { uptime: nowIso, version: '0.1.0', environment: 'production' },
+      timestamp: nowIso,
+    },
+  };
+}
+
 export default async function DashboardStatusPage() {
-  const [status, stations] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  const [status, stations, dataset] = await Promise.all([
     fetchStatus().catch(() => ({
       pipeline: { lastSuccessfulPoll: null, totalRowsCollected: 0, pollsLast24Hours: 0, validationErrors: 0, consecutiveFailures: 0, lastDataFreshness: false, lastStationCount: 0, averageStationsPerPoll: 0, healthStatus: 'down' as const, healthReason: 'No se pudieron consultar las tablas de datos.' },
       quality: { freshness: { isFresh: false, lastUpdated: null, maxAgeSeconds: 300 }, volume: { recentStationCount: 0, averageStationsPerPoll: 0, expectedRange: { min: 200, max: 500 } }, lastCheck: null },
-      system: { uptime: new Date().toISOString(), version: '0.1.0', environment: 'production' },
-      timestamp: new Date().toISOString(),
+      system: { uptime: nowIso, version: '0.1.0', environment: 'production' },
+      timestamp: nowIso,
     })),
-    fetchStations().catch(() => ({ stations: [], generatedAt: new Date().toISOString() })),
+    fetchStations().catch(() => ({ stations: [], generatedAt: nowIso })),
+    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
 
   return (
@@ -68,7 +101,12 @@ export default async function DashboardStatusPage() {
           </div>
         </header>
 
-        <StatusBanner status={status} stationsGeneratedAt={stations.generatedAt} />
+        <StatusBanner
+          status={status}
+          stationsGeneratedAt={stations.generatedAt}
+          coverage={dataset.coverage}
+          lastSampleAt={dataset.lastUpdated.lastSampleAt}
+        />
 
         <section className="grid gap-6 lg:grid-cols-3">
           <article className="dashboard-card">
@@ -101,6 +139,11 @@ export default async function DashboardStatusPage() {
               <div className="stat-card">
                 <p className="stat-label">Media por sondeo</p>
                 <p className="stat-value">{Math.round(status.quality.volume.averageStationsPerPoll)}</p>
+              </div>
+              <div className="stat-card">
+                <p className="stat-label">Cobertura historica</p>
+                <p className="stat-value">{dataset.coverage.totalDays}</p>
+                <p className="text-xs text-[var(--muted)]">{dataset.coverage.totalStations} estaciones activas cubiertas</p>
               </div>
             </div>
           </article>

@@ -3,24 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import type { HistoryMetadata } from '@/services/shared-data/types';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
-
-type HistoryApiResponse = {
-  source?: {
-    provider?: string;
-    gbfsDiscoveryUrl?: string;
-  };
-  coverage?: {
-    firstRecordedAt?: string | null;
-    lastRecordedAt?: string | null;
-    totalDays?: number;
-    totalSamples?: number;
-    totalStations?: number;
-  };
-};
 
 type FaqItem = {
   id: string;
@@ -443,11 +429,14 @@ function formatDateTime(value: string | null | undefined): string {
   return parsed.toLocaleString('es-ES');
 }
 
-export function HelpCenterClient() {
+type HelpCenterClientProps = {
+  historyMeta: HistoryMetadata;
+};
+
+export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string>(FAQ_ITEMS[0]?.id ?? '');
-  const [historyMeta, setHistoryMeta] = useState<HistoryApiResponse | null>(null);
 
   const normalizedQuery = useMemo(() => normalize(query), [query]);
 
@@ -543,48 +532,6 @@ export function HelpCenterClient() {
   );
 
   const showFilteredCount = normalizedQuery.length > 0 || activeCategory !== null;
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadHistoryMeta = async () => {
-      try {
-        const response = await fetch('/api/history', {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error('No se pudo cargar el historico.');
-        }
-
-        const payload = (await response.json()) as HistoryApiResponse;
-
-        if (!isActive) {
-          return;
-        }
-
-        setHistoryMeta(payload);
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.help-center',
-          operation: 'loadHistoryMeta',
-        });
-        console.error('[Ayuda] No se pudo cargar metadata historica.', error);
-      }
-    };
-
-    void loadHistoryMeta();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, []);
 
   useEffect(() => {
     if (filteredItems.length === 0) {
