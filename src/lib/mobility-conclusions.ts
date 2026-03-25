@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
+import { getCoverageSummary } from '@/services/shared-data';
 import { TIMEZONE } from '@/lib/timezone';
 
 const madridDateFormatter = new Intl.DateTimeFormat('en-CA', {
@@ -338,12 +339,11 @@ function getDominantPeriod(weekdayDemand: number, weekendDemand: number): 'weekd
 }
 
 async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: string | null): Promise<MobilityConclusionsPayload> {
-  const generatedAt = new Date();
   const selectedMonth = monthKey && isValidMonthKey(monthKey) ? monthKey : null;
   const range = buildConclusionsRange(selectedMonth ?? undefined);
 
   const [
-    coverageRows,
+    sharedCoverage,
     demandLastRows,
     demandPreviousRows,
     occupancyLastRows,
@@ -356,15 +356,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     stationDemandRows,
     districts,
   ] = await Promise.all([
-      prisma.$queryRaw<CoverageRow[]>`
-        SELECT
-          MIN(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "firstDay",
-          MAX(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "lastDay",
-          COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays",
-          COUNT(DISTINCT "stationId") AS "stationsWithData"
-        FROM "DailyStationStat"
-        ${selectedMonth ? Prisma.sql`WHERE ${range.currentDaily}` : Prisma.sql``};
-      `,
+      getCoverageSummary(),
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
         FROM "DailyStationStat"
@@ -461,13 +453,6 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       getDistrictCollection(),
     ]);
 
-  const coverage = coverageRows[0] ?? {
-    firstDay: null,
-    lastDay: null,
-    totalDays: 0,
-    stationsWithData: 0,
-  };
-
   const demandLast7Days = toNumber(demandLastRows[0]?.value);
   const demandPrevious7Days = toNumber(demandPreviousRows[0]?.value);
   const occupancyLast7Days = toNumber(occupancyLastRows[0]?.value);
@@ -547,7 +532,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     demandDeltaRatio === null
       ? `La ciudad acumula ${Math.round(demandLast7Days)} puntos de demanda agregada ${range.summaryScope}, con ocupacion media del ${Math.round(
           occupancyLast7Days * 100
-        )}% sobre ${toNumber(coverage.totalDays)} dias historicos disponibles.`
+        )}% sobre ${sharedCoverage.totalDays} dias historicos disponibles.`
       : `La demanda ${selectedMonth ? 'mensual' : 'semanal'} se mueve ${formatDelta(demandDeltaRatio)} ${range.comparisonScope} y la ocupacion media se situa en ${Math.round(
           occupancyLast7Days * 100
         )}% (${formatDelta(occupancyDeltaRatio)}).`;
@@ -565,9 +550,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     },
     {
       title: 'Cobertura historica',
-      detail: `${toNumber(coverage.totalDays)} dias con datos y ${toNumber(
-        coverage.stationsWithData
-      )} estaciones con muestra.`,
+      detail: `${sharedCoverage.totalDays} dias con datos y ${sharedCoverage.totalStations} estaciones activas cubiertas.`,
     },
   ];
 
@@ -644,13 +627,13 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
 
   return {
     dateKey,
-    generatedAt: generatedAt.toISOString(),
+    generatedAt: sharedCoverage.generatedAt ?? new Date().toISOString(),
     selectedMonth,
-    sourceFirstDay: coverage.firstDay,
-    sourceLastDay: coverage.lastDay,
-    totalHistoricalDays: toNumber(coverage.totalDays),
-    stationsWithData: toNumber(coverage.stationsWithData),
-    activeStations: activeStationRows.length,
+    sourceFirstDay: sharedCoverage.firstRecordedAt,
+    sourceLastDay: sharedCoverage.lastRecordedAt,
+    totalHistoricalDays: sharedCoverage.totalDays,
+    stationsWithData: sharedCoverage.totalStations,
+    activeStations: sharedCoverage.totalStations,
     metrics: {
       demandLast7Days: Math.round(demandLast7Days),
       demandPrevious7Days: Math.round(demandPrevious7Days),

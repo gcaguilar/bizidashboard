@@ -2,22 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getHistoryMetadata } from '@/services/shared-data';
 
 export const dynamic = 'force-dynamic';
 
 const CACHE_KEY = 'history:full';
 const CACHE_TTL_SECONDS = 600;
-const SOURCE_URL = 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
-
-type CoverageRow = {
-  firstRecordedAt: string | null;
-  lastRecordedAt: string | null;
-  totalSamples: number;
-};
-
-type StationsRow = {
-  totalStations: number;
-};
 
 type DailyHistoryRow = {
   day: string;
@@ -47,19 +37,8 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
   try {
     const format = request ? new URL(request.url).searchParams.get('format') : null;
     const payload = await withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
-      const [coverageRows, stationRows, dailyHistoryRows] = await Promise.all([
-        prisma.$queryRaw<CoverageRow[]>`
-          SELECT
-            MIN("recordedAt") AS "firstRecordedAt",
-            MAX("recordedAt") AS "lastRecordedAt",
-            COUNT(*) AS "totalSamples"
-          FROM "StationStatus";
-        `,
-        prisma.$queryRaw<StationsRow[]>`
-          SELECT COUNT(*) AS "totalStations"
-          FROM "Station"
-          WHERE "isActive" = true;
-        `,
+      const [historyMeta, dailyHistoryRows] = await Promise.all([
+        getHistoryMetadata(),
         prisma.$queryRaw<DailyHistoryRow[]>`
           SELECT
             TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
@@ -78,26 +57,9 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
         `,
       ]);
 
-      const coverage = coverageRows[0] ?? {
-        firstRecordedAt: null,
-        lastRecordedAt: null,
-        totalSamples: 0,
-      };
-
-      const totalStations = Number(stationRows[0]?.totalStations ?? 0);
-
       return {
-        source: {
-          provider: 'Bizi Zaragoza GBFS',
-          gbfsDiscoveryUrl: SOURCE_URL,
-        },
-        coverage: {
-          firstRecordedAt: coverage.firstRecordedAt,
-          lastRecordedAt: coverage.lastRecordedAt,
-          totalSamples: Number(coverage.totalSamples ?? 0),
-          totalStations,
-          totalDays: dailyHistoryRows.length,
-        },
+        source: historyMeta.source,
+        coverage: historyMeta.coverage,
         history: dailyHistoryRows.map((row) => ({
           day: row.day,
           demandScore: Number(row.demandScore ?? 0),
@@ -105,7 +67,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
           balanceIndex: Number(row.balanceIndex ?? 0),
           sampleCount: Number(row.sampleCount ?? 0),
         })),
-        generatedAt: new Date().toISOString(),
+        generatedAt: historyMeta.generatedAt ?? new Date().toISOString(),
       };
     });
 

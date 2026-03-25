@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStatus } from '@/lib/metrics'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { getPipelineStatusSummary } from '@/services/shared-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +10,7 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type'
 }
 
-function toCsv(status: Awaited<ReturnType<typeof getStatus>>): string {
+function toCsv(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>): string {
   const rows = [
     ['timestamp', status.timestamp],
     ['healthStatus', status.pipeline.healthStatus],
@@ -46,7 +46,7 @@ function toCsv(status: Awaited<ReturnType<typeof getStatus>>): string {
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const format = new URL(_request.url).searchParams.get('format')
-    const status = await getStatus()
+    const status = await getPipelineStatusSummary()
 
     if (format === 'csv') {
       return new NextResponse(toCsv(status), {

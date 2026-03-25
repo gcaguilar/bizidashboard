@@ -10,7 +10,15 @@ import {
   getStationsWithLatestStatus,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
-import { getStatus } from '@/lib/metrics';
+import {
+  getHistoryMetadata,
+  getPipelineStatusSummary,
+  getSharedDatasetSnapshot,
+  type CoverageSummary,
+  type HistoryMetadata,
+  type PipelineStatusSummary,
+  type SharedDatasetSnapshot,
+} from '@/services/shared-data';
 
 export type StationSnapshot = {
   id: string;
@@ -88,39 +96,8 @@ export type AvailableMonthsResponse = {
   generatedAt: string;
 };
 
-export type StatusResponse = {
-  pipeline: {
-    lastSuccessfulPoll: string | null;
-    totalRowsCollected: number;
-    pollsLast24Hours: number;
-    validationErrors: number;
-    consecutiveFailures: number;
-    lastDataFreshness: boolean;
-    lastStationCount: number;
-    averageStationsPerPoll: number;
-    healthStatus: string;
-    healthReason: string | null;
-  };
-  quality: {
-    freshness: {
-      isFresh: boolean;
-      lastUpdated: string | null;
-      maxAgeSeconds: number;
-    };
-    volume: {
-      recentStationCount: number;
-      averageStationsPerPoll: number;
-      expectedRange: { min: number; max: number };
-    };
-    lastCheck: string | null;
-  };
-  system: {
-    uptime: string;
-    version: string;
-    environment: string;
-  };
-  timestamp: string;
-};
+export type StatusResponse = PipelineStatusSummary;
+export type { CoverageSummary, HistoryMetadata, SharedDatasetSnapshot };
 
 const LIVE_CACHE_TTL_SECONDS = 60;
 const ANALYTICS_CACHE_TTL_SECONDS = 300;
@@ -192,8 +169,7 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
 
 export async function fetchStatus(): Promise<StatusResponse> {
   const payload = await withCache('status:current', LIVE_CACHE_TTL_SECONDS, async () => {
-    const rawStatus = await getStatus();
-    const data = JSON.parse(JSON.stringify(rawStatus)) as StatusResponse;
+    const data = await getPipelineStatusSummary();
 
     if (!data || typeof data !== 'object') {
       throw new Error('Respuesta invalida al consultar el estado del sistema.');
@@ -245,5 +221,21 @@ export async function fetchAvailableDataMonths(): Promise<AvailableMonthsRespons
   }));
 
   assertArray(payload.months, 'months');
+  return payload;
+}
+
+export async function fetchHistoryMetadata(): Promise<HistoryMetadata> {
+  const payload = await withCache('history:metadata', ANALYTICS_CACHE_TTL_SECONDS, async () =>
+    getHistoryMetadata()
+  );
+
+  return payload;
+}
+
+export async function fetchSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot> {
+  const payload = await withCache('shared-dataset:snapshot', LIVE_CACHE_TTL_SECONDS, async () =>
+    getSharedDatasetSnapshot()
+  );
+
   return payload;
 }
