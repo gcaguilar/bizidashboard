@@ -6,13 +6,13 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 export const revalidate = 86400;
 
 const GOOGLE_GROUP_URL = 'https://groups.google.com/g/testers-biciradar';
-const PLAY_STORE_BETA_URL = 'https://play.google.com/apps/testing/com.gcaguilar.biciradar';
-const TESTFLIGHT_BETA_URL = 'https://testflight.apple.com/join/QqM9Kfruy';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar';
+const APP_STORE_URL = 'https://apps.apple.com/es/app/biciradar/id6760931316';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'App Bici Radar Beta - Estaciones, bicis y huecos en tiempo real',
+  title: 'App Bici Radar - Estaciones, bicis y huecos en tiempo real',
   description:
-    'Unete a la beta de la app Bici Radar. Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas. Disponible para Android, proximamente en iOS.',
+    'Descarga la app Bici Radar. Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas. Disponible para Android e iOS.',
   path: '/beta',
   keywords: [
     'app bici radar',
@@ -82,11 +82,11 @@ export default function BetaPage() {
         name: 'Bici Radar - Estaciones y disponibilidad',
         description:
           'App para encontrar estaciones de Bizi Zaragoza cercanas, ver bicis y huecos libres en tiempo real y guardar favoritas.',
-        operatingSystem: 'Android',
+        operatingSystem: 'Android, iOS',
         applicationCategory: 'TravelApplication',
         url: `${siteUrl}/beta`,
-        installUrl: PLAY_STORE_BETA_URL,
-        softwareVersion: 'Beta',
+        installUrl: PLAY_STORE_URL,
+        softwareVersion: '1.0',
         inLanguage: 'es',
         offers: {
           '@type': 'Offer',
@@ -116,10 +116,10 @@ export default function BetaPage() {
           },
           {
             '@type': 'Question',
-            name: 'Como puedo unirme a la beta?',
+            name: 'Como puedo descargar la app?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para acceder a la version beta. La version para iOS estara disponible proximamente.',
+              text: 'Puedes descargar la app directamente desde Google Play Store o Apple App Store. Es completamente gratuita.',
             },
           },
           {
@@ -170,7 +170,7 @@ export default function BetaPage() {
             Unirse al grupo de testers
           </a>
           <a
-            href={PLAY_STORE_BETA_URL}
+            href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
@@ -178,10 +178,10 @@ export default function BetaPage() {
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z"/>
             </svg>
-            Aceptar invitacion Play Store
+            Descargar en Play Store
           </a>
           <a
-            href={TESTFLIGHT_BETA_URL}
+            href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
@@ -189,7 +189,7 @@ export default function BetaPage() {
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
             </svg>
-            Unirse a la beta de iOS
+            Descargar en App Store
           </a>
         </div>
       </header>
@@ -227,24 +227,24 @@ export default function BetaPage() {
       {/* How to join */}
       <section className="dashboard-card">
         <div>
-          <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Como unirse a la beta</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">En tres pasos y menos de un minuto.</p>
+          <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Como descargar la app</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">En tres pasos.</p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           <StepCard
             step={1}
             title="Unete al grupo de testers"
-            description="Accede al grupo de Google para unirte al programa de beta testers de la app."
+            description="Accede al grupo de Google para formar parte del programa de testers de la app."
           />
           <StepCard
             step={2}
-            title="Acepta la invitacion en Play Store"
-            description="Una vez en el grupo, abre el enlace de Play Store para aceptar la invitacion a la beta."
+            title="Abre el enlace de Play Store"
+            description="Desde el grupo, accede al enlace de Play Store para ver la app."
           />
           <StepCard
             step={3}
-            title="Descarga y explora"
-            description="Descarga la app desde Play Store, usala y envia feedback. Tu opinion mejora la app para todos."
+            title="Descarga y disfruta"
+            description="Descarga la app, usala y envoyanos tu feedback. Tu opinion mejora la app para todos."
           />
         </div>
       </section>
@@ -264,7 +264,7 @@ export default function BetaPage() {
             </div>
           </div>
           <p className="text-xs text-[var(--muted)]">
-            Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para descargar la beta.
+            Unete al grupo de testers de Google, luego descarga la app desde Play Store.
           </p>
           <div className="flex flex-wrap gap-2">
             <a
@@ -276,12 +276,12 @@ export default function BetaPage() {
               Unirse al grupo
             </a>
             <a
-              href={PLAY_STORE_BETA_URL}
+              href={PLAY_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex w-fit rounded-xl border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
             >
-              Play Store Beta
+              Abrir Play Store
             </a>
           </div>
         </article>
@@ -299,15 +299,15 @@ export default function BetaPage() {
             </div>
           </div>
           <p className="text-xs text-[var(--muted)]">
-            Unete a la beta de TestFlight para probar la app en tu iPhone o iPad.
+            Descarga la app desde la App Store en tu iPhone o iPad.
           </p>
           <a
-            href={TESTFLIGHT_BETA_URL}
+            href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex w-fit rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
-            Unirse a la beta de iOS
+            Descargar en App Store
           </a>
         </article>
       </section>
@@ -328,12 +328,12 @@ export default function BetaPage() {
             answer="Si, la app es completamente gratuita tanto en su version beta como en su version final. No tiene publicidad ni compras dentro de la app."
           />
           <FaqItem
-            question="Como puedo unirme a la beta en Android?"
-            answer="Primero unete al grupo de testers de Google, luego acepta la invitacion en Play Store para acceder a la version beta de la app."
+            question="Como puedo descargar la app en Android?"
+            answer="Primero unete al grupo de testers de Google, luego abre el enlace de Play Store para descargar la app. Es gratuita."
           />
           <FaqItem
-            question="Cuando estara disponible para iOS?"
-            answer="Estamos trabajando en la version para iPhone y iPad. Proximamente publicaremos la beta en esta misma pagina. Vuelve a visitarnos para no perdertela."
+            question="Como puedo descargar la app en iOS?"
+            answer="Puedes descargar la app gratuitamente desde la Apple App Store en tu iPhone o iPad."
           />
           <FaqItem
             question="Que datos usa la app?"
@@ -341,7 +341,7 @@ export default function BetaPage() {
           />
           <FaqItem
             question="Como puedo enviar feedback?"
-            answer="Puedes enviarnos comentarios directamente desde Play Store o contactando a traves del grupo de testers de Google. Tu opinion es clave para mejorar la app."
+            answer="Puedes enviarnos comentarios directamente desde Play Store o App Store. Tu opinion es clave para mejorar la app."
           />
         </div>
       </section>
