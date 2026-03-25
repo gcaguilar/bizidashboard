@@ -86,6 +86,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: `${siteUrl}/biciradar`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: 0.76,
+    },
+    {
       url: `${siteUrl}/informes`,
       lastModified,
       changeFrequency: 'daily',

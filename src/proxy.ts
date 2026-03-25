@@ -1,40 +1,37 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const CITY_SEGMENTS = new Set(['zaragoza', 'madrid', 'barcelona']);
+const LEGACY_REDIRECTS = new Map<string, string>([
+  ['/estaciones-mas-usadas', '/estaciones-mas-usadas-zaragoza'],
+]);
 
 export default function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`
+  const segments = request.nextUrl.pathname.split('/').filter(Boolean);
+  const firstSegment = segments[0];
+  const currentPath = request.nextUrl.pathname;
 
-  const redirects: [string, string][] = [
-    ['/dashboard', '/zaragoza/dashboard'],
-    ['/dashboard/', '/zaragoza/dashboard'],
-    ['/estaciones-mas-usadas-zaragoza', '/zaragoza/estaciones-mas-usadas'],
-    ['/barrios-bizi-zaragoza', '/zaragoza/barrios-bizi-zaragoza'],
-    ['/viajes-por-dia-zaragoza', '/zaragoza/viajes-por-dia-zaragoza'],
-    ['/viajes-por-mes-zaragoza', '/zaragoza/viajes-por-mes-zaragoza'],
-    ['/informes-mensuales-bizi-zaragoza', '/zaragoza/informes-mensuales-bizi-zaragoza'],
-    ['/informes', '/zaragoza/informes'],
-    ['/informes/', '/zaragoza/informes'],
-  ]
-
-  for (const [from, to] of redirects) {
-    if (pathname === from || pathname.startsWith(from + '/')) {
-      const newPath = pathname.replace(from, to)
-      return NextResponse.redirect(new URL(newPath, baseUrl), 301)
-    }
+  const directLegacyTarget = LEGACY_REDIRECTS.get(currentPath);
+  if (directLegacyTarget) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = directLegacyTarget;
+    return NextResponse.redirect(destination, 308);
   }
 
-  return NextResponse.next()
+  if (!firstSegment || !CITY_SEGMENTS.has(firstSegment)) {
+    return NextResponse.next();
+  }
+
+  const strippedPath =
+    segments.length === 1 ? '/dashboard' : `/${segments.slice(1).join('/')}`;
+  const targetPath = LEGACY_REDIRECTS.get(strippedPath) ?? strippedPath;
+  const destination = request.nextUrl.clone();
+
+  destination.pathname = targetPath;
+
+  return NextResponse.redirect(destination, 308);
 }
 
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/estaciones-mas-usadas-zaragoza/:path*',
-    '/barrios-bizi-zaragoza/:path*',
-    '/viajes-por-dia-zaragoza/:path*',
-    '/viajes-por-mes-zaragoza/:path*',
-    '/informes-mensuales-bizi-zaragoza/:path*',
-    '/informes/:path*',
-  ],
-}
+  matcher: ['/zaragoza/:path*', '/madrid/:path*', '/barcelona/:path*'],
+};
