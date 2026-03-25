@@ -4,8 +4,8 @@ const { getStatusMock } = vi.hoisted(() => ({
   getStatusMock: vi.fn(),
 }));
 
-vi.mock('@/lib/metrics', () => ({
-  getStatus: getStatusMock,
+vi.mock('@/services/shared-data', () => ({
+  getPipelineStatusSummary: getStatusMock,
 }));
 
 import { GET } from '@/app/api/status/route';
