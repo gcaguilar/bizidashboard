@@ -8,6 +8,7 @@ import {
   fetchDistrictCollection,
   type DistrictCollection,
 } from '@/lib/districts';
+import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
@@ -159,7 +160,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           <span>Barrios: {slices.length}</span>
           <div>
             <Link
-              href="/dashboard/ayuda#estados-mapa"
+              href={appRoutes.dashboardHelp('estados-mapa')}
               className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Como leerlo
@@ -203,7 +204,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
             <WidgetEmptyState
               title="Sin datos de distritos"
               description="El mapa de barrios necesita el cruce entre estaciones y distritos. Si ese cruce no esta disponible, el reparto por barrio no puede calcularse."
-              helpHref="/dashboard/ayuda#estados-mapa"
+              helpHref={appRoutes.dashboardHelp('estados-mapa')}
               helpLabel="Ver ayuda sobre barrios"
             />
           ) : (

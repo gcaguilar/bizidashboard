@@ -3,6 +3,7 @@ import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api'
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
+import { appRoutes } from '@/lib/routes';
 import { BalanceIndexCard } from './BalanceIndexCard';
 import { DailyInsightsCard } from './DailyInsightsCard';
 import { DemandFlowCard } from './DemandFlowCard';
@@ -116,7 +117,7 @@ export function OverviewModeView({
           </div>
 
           <Link
-            href="/dashboard/status"
+            href={appRoutes.dashboardStatus()}
             className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Abrir pagina de estado
@@ -147,7 +148,7 @@ export function OverviewModeView({
           <div className="dashboard-card h-full">
             <p className="text-sm text-[var(--muted)]">Resumen visual rapido disponible en el modo Operaciones y el historial completo en la pagina de alertas.</p>
             <Link
-              href="/dashboard/alertas"
+              href={appRoutes.dashboardAlerts()}
               className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
             >
               Abrir alertas completas
@@ -173,7 +174,7 @@ export function OverviewModeView({
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
           <Link
-            href="/dashboard/flujo"
+            href={appRoutes.dashboardFlow()}
             className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Vista completa

@@ -1,31 +1,32 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 import { CITY_CONFIGS, DEFAULT_CITY, isValidCity } from '@/lib/constants';
 import { getSeoPageConfig, SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 
 const QUICK_LINKS = [
   {
-    href: '/dashboard',
+    href: appRoutes.dashboard(),
     title: 'Dashboard en vivo',
     description: 'Mapa, alertas, flujo y lecturas operativas del sistema actual.',
   },
   {
-    href: '/informes',
+    href: appRoutes.reports(),
     title: 'Archivo mensual',
     description: 'Informes indexables por mes con enlaces persistentes y contexto historico.',
   },
   {
-    href: '/dashboard/status',
+    href: appRoutes.dashboardStatus(),
     title: 'Estado del sistema',
     description: 'Frescura de datos, volumen reciente y diagnostico rapido.',
   },
   {
-    href: '/biciradar',
+    href: appRoutes.biciradar(),
     title: 'Bici Radar',
     description: 'App movil vinculada al proyecto con seguimiento de bicis compartidas.',
   },
   {
-    href: '/beta',
+    href: appRoutes.beta(),
     title: 'Vista beta',
     description: 'Exploracion del producto y acceso a los modulos en desarrollo.',
   },
@@ -67,13 +68,13 @@ export default function Home() {
 
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/dashboard"
+            href={appRoutes.dashboard()}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard principal
           </Link>
           <Link
-            href="/informes"
+            href={appRoutes.reports()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir informes
@@ -117,7 +118,7 @@ export default function Home() {
             return (
               <Link
                 key={slug}
-                href={`/${slug}`}
+                href={appRoutes.seoPage(slug)}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

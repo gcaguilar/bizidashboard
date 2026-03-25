@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import type { HeatmapCell } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import {
   ResponsiveContainer,
   Scatter,
@@ -162,7 +163,7 @@ export function Heatmap({
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/dashboard/ayuda#detalle-estacion"
+            href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
           >
             Como leerlo

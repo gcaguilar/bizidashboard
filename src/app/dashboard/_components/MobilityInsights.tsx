@@ -21,6 +21,7 @@ import {
   isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const PERIODS = [
@@ -196,7 +197,7 @@ export function MobilityInsights({
         }
 
         const [mobilityResponse, districtsPayload] = await Promise.all([
-          fetch(`/api/mobility?${searchParams.toString()}`, {
+          fetch(`${appRoutes.api.mobility()}?${searchParams.toString()}`, {
             signal: controller.signal,
           }),
           fetchDistrictCollection(controller.signal),
@@ -534,7 +535,7 @@ export function MobilityInsights({
                 <span>Barrios representados: {chordNodes.length}</span>
                 <div>
                   <Link
-                    href="/dashboard/ayuda#diagrama-chord"
+                    href={appRoutes.dashboardHelp('diagrama-chord')}
                     className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
                   >
                     Como interpretarlo
@@ -792,7 +793,7 @@ export function MobilityInsights({
                 <span>{mobilityData.demandDays} dias</span>
                 <div>
                   <Link
-                    href="/dashboard/ayuda#demanda-no-viajes-reales"
+                    href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
                     className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
                   >
                     Entender curva

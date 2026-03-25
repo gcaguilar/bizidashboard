@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
+import { appRoutes } from '@/lib/routes';
 
 const QUICK_FAQ = [
   {
@@ -39,7 +40,7 @@ export function MethodologyPanel() {
           </p>
         </div>
         <Link
-          href="/dashboard/ayuda"
+          href={appRoutes.dashboardHelp()}
           className="inline-flex items-center rounded-full border border-[var(--accent-soft)] bg-[var(--surface-soft)] px-4 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] hover:text-white hover:bg-[var(--accent)]"
         >
           Ir a la ayuda completa

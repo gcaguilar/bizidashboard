@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 
 type BalanceIndexCardProps = {
@@ -41,7 +42,7 @@ export function BalanceIndexCard({
           </div>
           <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
         </div>
-        <Link href="/dashboard/ayuda#balance-index" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           Entender formula
         </Link>
       </div>

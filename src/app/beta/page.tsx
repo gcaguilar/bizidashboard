@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -13,7 +16,7 @@ export const metadata: Metadata = buildPageMetadata({
   title: 'App Bici Radar - Estaciones, bicis y huecos en tiempo real',
   description:
     'Descarga la app Bici Radar. Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y guarda tus favoritas. Disponible para Android e iOS.',
-  path: '/beta',
+  path: appRoutes.beta(),
   keywords: [
     'app bici radar',
     'bici radar app',
@@ -66,17 +69,15 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 
 export default function BetaPage() {
   const siteUrl = getSiteUrl();
+  const breadcrumbs = createRootBreadcrumbs({
+    label: 'App Beta',
+    href: appRoutes.beta(),
+  });
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'App Beta', item: `${siteUrl}/beta` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'MobileApplication',
         name: 'Bici Radar - Estaciones y disponibilidad',
@@ -84,7 +85,7 @@ export default function BetaPage() {
           'App para encontrar estaciones de Bizi Zaragoza cercanas, ver bicis y huecos libres en tiempo real y guardar favoritas.',
         operatingSystem: 'Android, iOS',
         applicationCategory: 'TravelApplication',
-        url: `${siteUrl}/beta`,
+        url: `${siteUrl}${appRoutes.beta()}`,
         installUrl: PLAY_STORE_URL,
         softwareVersion: '1.0',
         inLanguage: 'es',
@@ -138,6 +139,7 @@ export default function BetaPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <SiteBreadcrumbs items={breadcrumbs} />
 
       {/* Hero */}
       <header className="hero-card">
@@ -354,28 +356,28 @@ export default function BetaPage() {
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link
-            href="/dashboard"
+            href={appRoutes.dashboard()}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Dashboard en tiempo real</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Mapa interactivo, estado del sistema y alertas.</p>
           </Link>
           <Link
-            href="/dashboard/estaciones"
+            href={appRoutes.seoPage('estaciones-con-mas-bicis')}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con mas bicis</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Donde hay bicicletas disponibles ahora mismo.</p>
           </Link>
           <Link
-            href="/dashboard/estaciones"
+            href={appRoutes.dashboardStations()}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Directorio de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Ficha detallada de cada estacion del sistema.</p>
           </Link>
           <Link
-            href="/informes"
+            href={appRoutes.reports()}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Informes mensuales</p>

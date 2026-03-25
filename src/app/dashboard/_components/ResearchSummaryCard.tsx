@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { StationSnapshot } from '@/lib/api';
+import { appRoutes } from '@/lib/routes';
 import type { RecentStationSnapshot } from '@/lib/recent-station-history';
 
 type DailyDemandRow = {
@@ -81,7 +82,7 @@ export function ResearchSummaryCard({
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura temporal rapida</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Resume cuando se concentra mas actividad y en que momento del dia se ve mas bici disponible.</p>
         </div>
-        <Link href="/dashboard/ayuda#demanda-no-viajes-reales" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('demanda-no-viajes-reales')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           Entender metrica
         </Link>
       </div>

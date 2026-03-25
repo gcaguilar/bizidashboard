@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 
 type ApiCatalogCardProps = {
   items: Array<{
@@ -20,7 +21,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
           </p>
         </div>
         <Link
-          href="/dashboard/ayuda#api-documentacion"
+          href={appRoutes.dashboardHelp('api-documentacion')}
           className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Ver ayuda

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
+import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
 import { calculateFrictionScore } from './useSystemMetrics';
@@ -118,7 +119,7 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
           <span className="kpi-chip">{rows.length} resultados</span>
           <div className="mt-1">
             <Link
-              href="/dashboard/ayuda#ranking-rotacion-vs-criticidad"
+              href={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
               className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Entender ranking

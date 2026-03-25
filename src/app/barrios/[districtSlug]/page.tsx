@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRowBySlug, getDistrictSeoRows } from '@/lib/seo-districts';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return buildPageMetadata({
     title: `Bizi en ${district.name}`,
     description: `Uso de Bizi en ${district.name}, con estaciones destacadas, bicicletas disponibles y acceso al dashboard de Zaragoza.`,
-    path: `/barrios/${district.slug}`,
+    path: appRoutes.districtDetail(district.slug),
     keywords: [
       `bizi ${district.name}`,
       `estaciones bizi ${district.name}`,
@@ -59,22 +62,25 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
   const siteUrl = getSiteUrl();
   const siblingDistricts = districts.filter((row) => row.slug !== district.slug).slice(0, 4);
+  const breadcrumbs = createRootBreadcrumbs(
+    {
+      label: 'Barrios Bizi Zaragoza',
+      href: appRoutes.districtLanding(),
+    },
+    {
+      label: district.name,
+      href: appRoutes.districtDetail(district.slug),
+    }
+  );
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Barrios Bizi Zaragoza', item: `${siteUrl}/barrios-bizi-zaragoza` },
-          { '@type': 'ListItem', position: 3, name: district.name, item: `${siteUrl}/barrios/${district.slug}` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'Dataset',
         name: `Bizi en ${district.name}`,
         description: `Comparativa de estaciones Bizi en ${district.name} con disponibilidad y actividad reciente.`,
-        url: `${siteUrl}/barrios/${district.slug}`,
+        url: `${siteUrl}${appRoutes.districtDetail(district.slug)}`,
         inLanguage: 'es',
         publisher: {
           '@type': 'Organization',
@@ -90,6 +96,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       <header className="hero-card">
+        <SiteBreadcrumbs items={breadcrumbs} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha SEO por barrio</p>
@@ -108,13 +115,13 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/dashboard/flujo"
+            href={appRoutes.dashboardFlow()}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir flujo por barrios en el dashboard
           </Link>
           <Link
-            href="/barrios-bizi-zaragoza"
+            href={appRoutes.districtLanding()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Ver comparativa de barrios
@@ -151,7 +158,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           {district.topStations.map((station, index) => (
             <Link
               key={station.stationId}
-              href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+              href={appRoutes.dashboardStation(station.stationId)}
               className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <div className="min-w-0">
@@ -174,7 +181,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           {siblingDistricts.map((row) => (
             <Link
               key={row.slug}
-              href={`/barrios/${row.slug}`}
+              href={appRoutes.districtDetail(row.slug)}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>

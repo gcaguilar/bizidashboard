@@ -1,5 +1,6 @@
 import { ApiCatalogCard } from './ApiCatalogCard';
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 import { DataHistoryCard } from './DataHistoryCard';
 import { DataModeCard } from './DataModeCard';
 import { MethodologyPanel } from './MethodologyPanel';
@@ -25,37 +26,37 @@ export function DataModeView({
   const apiItems = [
     {
       label: 'Estado actual de estaciones',
-      path: '/api/stations',
+      path: appRoutes.api.stations(),
       format: 'JSON / CSV',
       description: 'Devuelve el estado actual de las estaciones con bicis, anclajes, capacidad y timestamp.',
     },
     {
       label: 'Salud del sistema',
-      path: '/api/status',
+      path: appRoutes.api.status(),
       format: 'JSON / CSV',
       description: 'Resume la salud del pipeline, la frescura de los datos y el volumen reciente.',
     },
     {
       label: 'Movilidad agregada',
-      path: '/api/mobility',
+      path: appRoutes.api.mobility(),
       format: 'JSON',
       description: 'Entrega curvas de demanda, señales horarias y, si existe, impacto del transporte publico.',
     },
     {
       label: 'Historico agregado',
-      path: '/api/history',
+      path: appRoutes.api.history(),
       format: 'JSON / CSV',
       description: 'Ofrece demanda, ocupacion y balance diario para analisis y auditoria.',
     },
     {
       label: 'Alertas historicas',
-      path: '/api/alerts/history',
+      path: appRoutes.api.alertsHistory(),
       format: 'JSON / CSV',
       description: 'Sirve para estudiar incidencias activas y resueltas con filtros por estado y limite.',
     },
     {
       label: 'Predicciones por estacion',
-      path: '/api/predictions?stationId=101',
+      path: appRoutes.api.predictions(),
       format: 'JSON',
       description: 'Estima bicis y anclajes a corto plazo mezclando estado actual y patrones historicos por hora.',
     },
@@ -81,7 +82,7 @@ export function DataModeView({
             Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
           </p>
           <Link
-            href="/dashboard/ayuda"
+            href={appRoutes.dashboardHelp()}
             className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Revisar metodologia

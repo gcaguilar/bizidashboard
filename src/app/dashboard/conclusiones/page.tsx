@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { fetchAvailableDataMonths } from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatPercent } from '@/lib/format';
 import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
@@ -18,7 +21,7 @@ export const metadata: Metadata = buildPageMetadata({
   title: 'Conclusiones de movilidad',
   description:
     'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.',
-  path: '/dashboard/conclusiones',
+  path: appRoutes.dashboardConclusions(),
 });
 
 function formatDelta(deltaRatio: number | null): string {
@@ -147,18 +150,21 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
     payload: fallbackPayload,
     fromCache: false,
   }));
+  const breadcrumbs = createRootBreadcrumbs(
+    {
+      label: 'Dashboard',
+      href: appRoutes.dashboard(),
+    },
+    {
+      label: 'Conclusiones',
+      href: appRoutes.dashboardConclusions(),
+    }
+  );
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Dashboard', item: `${siteUrl}/dashboard` },
-          { '@type': 'ListItem', position: 3, name: 'Conclusiones', item: `${siteUrl}/dashboard/conclusiones` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'Report',
         name: 'Conclusiones de movilidad en Zaragoza',
@@ -175,7 +181,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           '@type': 'Dataset',
           name: 'Movilidad urbana de Bizi Zaragoza',
           distribution: [
-            { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}/api/history` },
+            { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${siteUrl}${appRoutes.api.history()}` },
           ],
         },
       },
@@ -186,6 +192,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+        <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3 text-[var(--accent)]">
@@ -411,7 +418,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.topStationsByDemand.map((station, index) => (
                 <Link
                   key={station.stationId}
-                  href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+                  href={appRoutes.dashboardStation(station.stationId)}
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -445,7 +452,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.leastUsedStations.map((station, index) => (
                 <Link
                   key={station.stationId}
-                  href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+                  href={appRoutes.dashboardStation(station.stationId)}
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
                 >
                   <div className="flex min-w-0 items-center gap-3">
@@ -470,7 +477,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Informes mensuales publicados</h3>
             <Link
-              href="/informes"
+              href={appRoutes.reports()}
               className="text-xs font-bold text-[var(--accent)] transition hover:opacity-80"
             >
               Ver archivo completo
@@ -481,7 +488,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
             {availableMonths.months.slice(0, 6).map((month) => (
               <Link
                 key={month}
-                href={`/informes/${month}`}
+                href={appRoutes.reportMonth(month)}
                 className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
               >
                 <div>
@@ -502,10 +509,10 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {[
-              ['/dashboard/estaciones', 'Estaciones mas usadas'],
-              ['/dashboard?rankingTab=turnover', 'Ranking de estaciones'],
-              ['/dashboard/flujo', 'Viajes por dia'],
-              ['/informes', 'Viajes por mes'],
+              [appRoutes.dashboardStations(), 'Estaciones mas usadas'],
+              [`${appRoutes.dashboard()}?rankingTab=turnover`, 'Ranking de estaciones'],
+              [appRoutes.dashboardFlow(), 'Viajes por dia'],
+              [appRoutes.reports(), 'Viajes por mes'],
             ].map(([href, label]) => (
               <Link
                 key={href}

@@ -16,6 +16,7 @@ import {
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
+import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type MobilitySignalRow = {
@@ -107,7 +108,7 @@ export function StationDetailPanel({
 
         const [districtPayload, mobilityResponse] = await Promise.all([
           fetchDistrictCollection(controller.signal),
-          fetch(`/api/mobility?${params.toString()}`, {
+          fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
             signal: controller.signal,
           }),
         ]);

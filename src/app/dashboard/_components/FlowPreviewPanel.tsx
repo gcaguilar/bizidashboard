@@ -8,6 +8,7 @@ import {
   fetchDistrictCollection,
   type DistrictCollection,
 } from '@/lib/districts';
+import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type HourlySignalRow = {
@@ -139,7 +140,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
           </p>
           <Link
-            href="/dashboard/flujo"
+            href={appRoutes.dashboardFlow()}
             className="mt-4 rounded-lg bg-[#8f1018] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#731017]"
           >
             Expandir vista completa
@@ -158,7 +159,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             </p>
           </div>
           <Link
-            href="/dashboard/ayuda#calculo-rutas"
+            href={appRoutes.dashboardHelp('calculo-rutas')}
             className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
           >
             Como se calcula

@@ -18,6 +18,7 @@ import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from 
 import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
 import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { appRoutes } from '@/lib/routes';
 import { DashboardLayout } from './DashboardLayout';
 import { DashboardHeader } from './DashboardHeader';
 import { ModeIntroBanner } from './ModeIntroBanner';
@@ -694,11 +695,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       const [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult] =
         await Promise.all([
-          fetchJson<StationsResponse>('/api/stations'),
-          fetchJson<AlertsResponse>('/api/alerts?limit=20'),
-          fetchJson<RankingsResponse>(`/api/rankings?type=turnover&limit=${rankingLimit}`),
-          fetchJson<RankingsResponse>(`/api/rankings?type=availability&limit=${rankingLimit}`),
-          fetchJson<StatusResponse>('/api/status'),
+          fetchJson<StationsResponse>(appRoutes.api.stations()),
+          fetchJson<AlertsResponse>(appRoutes.api.alerts({ limit: 20 })),
+          fetchJson<RankingsResponse>(appRoutes.api.rankings({ type: 'turnover', limit: rankingLimit })),
+          fetchJson<RankingsResponse>(appRoutes.api.rankings({ type: 'availability', limit: rankingLimit })),
+          fetchJson<StatusResponse>(appRoutes.api.status()),
         ]);
 
       if (stationsResult.ok) {
@@ -807,7 +808,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           searchParams.set('month', selectedMonth);
         }
 
-        const response = await fetch(`/api/mobility?${searchParams.toString()}`, {
+        const response = await fetch(`${appRoutes.api.mobility()}?${searchParams.toString()}`, {
           signal: controller.signal,
         });
 
@@ -862,8 +863,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [activeWindow.demandDays, activeWindow.mobilityDays]);
 
   const selectedStationDetailUrl = selectedStation
-    ? `/dashboard/estaciones/${encodeURIComponent(selectedStation.id)}`
-    : '/dashboard/estaciones';
+    ? appRoutes.dashboardStation(selectedStation.id)
+    : appRoutes.dashboardStations();
   const totalStationsCount = stationsData.stations.length;
   const filteredOutCount = Math.max(0, totalStationsCount - filteredStations.length);
   const nearestStationInfo = nearestStation
@@ -1023,12 +1024,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       {viewMode === 'data' ? (
         <DataModeView
-          stationsCsvUrl="/api/stations?format=csv"
-          frictionCsvUrl="/api/rankings?type=availability&limit=200&format=csv"
-          historyJsonUrl="/api/history"
-          historyCsvUrl="/api/history?format=csv"
-          alertsCsvUrl="/api/alerts/history?format=csv&state=all&limit=500"
-          statusCsvUrl="/api/status?format=csv"
+          stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
+          frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
+          historyJsonUrl={appRoutes.api.history()}
+          historyCsvUrl={appRoutes.api.history({ format: 'csv' })}
+          alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
+          statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
         />
       ) : null}
 

@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { fetchAvailableDataMonths } from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { appRoutes } from '@/lib/routes';
 import {
   getDailyMobilityConclusions,
   type MobilityConclusionsPayload,
@@ -120,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return buildPageMetadata({
     title: `Informe mensual Bizi Zaragoza ${monthLabel}`,
     description: `Informe mensual de Bizi Zaragoza para ${monthLabel}, con demanda estimada, ocupacion, horas pico, barrios destacados y comparativas operativas.`,
-    path: `/informes/${month}`,
+    path: appRoutes.reportMonth(month),
     keywords: [
       `informe mensual bizi ${month}`,
       `bizi zaragoza ${monthLabel}`,
@@ -158,18 +161,21 @@ export default async function MonthlyReportPage({ params }: PageProps) {
   const currentIndex = availableMonths.indexOf(month);
   const newerMonth = currentIndex > 0 ? availableMonths[currentIndex - 1] : null;
   const olderMonth = currentIndex >= 0 && currentIndex < availableMonths.length - 1 ? availableMonths[currentIndex + 1] : null;
+  const breadcrumbs = createRootBreadcrumbs(
+    {
+      label: 'Informes mensuales',
+      href: appRoutes.seoPage('informes-mensuales-bizi-zaragoza'),
+    },
+    {
+      label: monthLabel,
+      href: appRoutes.reportMonth(month),
+    }
+  );
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Informes mensuales', item: `${siteUrl}/informes-mensuales-bizi-zaragoza` },
-          { '@type': 'ListItem', position: 3, name: monthLabel, item: `${siteUrl}/informes/${month}` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'Report',
         name: `Informe mensual Bizi Zaragoza ${monthLabel}`,
@@ -177,7 +183,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         datePublished: payload.generatedAt,
         dateModified: payload.generatedAt,
         inLanguage: 'es',
-        url: `${siteUrl}/informes/${month}`,
+        url: `${siteUrl}${appRoutes.reportMonth(month)}`,
         publisher: {
           '@type': 'Organization',
           name: SITE_NAME,
@@ -192,6 +198,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       <header className="hero-card">
+        <SiteBreadcrumbs items={breadcrumbs} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Informe mensual indexable</p>
@@ -210,13 +217,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
 
         <div className="flex flex-wrap gap-3">
           <Link
-            href={`/dashboard/conclusiones?month=${month}`}
+            href={appRoutes.dashboardConclusions({ month })}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard filtrado por mes
           </Link>
           <Link
-            href="/informes"
+            href={appRoutes.reports()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Volver al archivo mensual
@@ -275,7 +282,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
             {payload.topStationsByDemand.map((station, index) => (
               <Link
                 key={station.stationId}
-                href={`/dashboard/estaciones/${encodeURIComponent(station.stationId)}`}
+                href={appRoutes.dashboardStation(station.stationId)}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
@@ -358,12 +365,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             {newerMonth ? (
-              <Link href={`/informes/${newerMonth}`} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <Link href={appRoutes.reportMonth(newerMonth)} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes mas reciente: {formatMonthLabel(newerMonth)}
               </Link>
             ) : null}
             {olderMonth ? (
-              <Link href={`/informes/${olderMonth}`} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <Link href={appRoutes.reportMonth(olderMonth)} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes anterior: {formatMonthLabel(olderMonth)}
               </Link>
             ) : null}
@@ -375,7 +382,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas paginas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link
-            href={`/${archiveConfig.slug}`}
+            href={appRoutes.seoPage(archiveConfig.slug)}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">{archiveConfig.title}</p>
@@ -384,7 +391,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           {relatedPages.map((page) => (
             <Link
               key={page.slug}
-              href={`/${page.slug}`}
+              href={appRoutes.seoPage(page.slug)}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

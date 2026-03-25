@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { ChartWrapper } from './ChartWrapper';
 
 type HistoryRow = {
@@ -41,7 +42,7 @@ export function DataHistoryCard() {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch('/api/history', { signal: controller.signal });
+        const response = await fetch(appRoutes.api.history(), { signal: controller.signal });
 
         if (!response.ok) {
           throw new Error('No se pudo cargar el historico agregado.');
@@ -93,13 +94,13 @@ export function DataHistoryCard() {
         </div>
         <div className="text-right text-xs text-[var(--muted)]">
           <div>
-            <Link href="/dashboard/ayuda#balance-index" className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+            <Link href={appRoutes.dashboardHelp('balance-index')} className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
               Entender balance
             </Link>
           </div>
           <div>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/api/history?format=csv" className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline" rel="noopener noreferrer">
+            <a href={appRoutes.api.historyCsv()} className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline" rel="noopener noreferrer">
               Descargar CSV
             </a>
           </div>

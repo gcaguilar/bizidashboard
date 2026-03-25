@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import {
   getDailyDemandCurve,
   getMonthlyDemandCurve,
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { fetchAvailableDataMonths, fetchRankings, fetchStations } from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import {
@@ -125,7 +128,7 @@ async function buildMostUsedStationsContent(
     return {
       title: `${index + 1}. ${station?.name ?? row.stationId}`,
       detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${station ? `${station.bikesAvailable} bicis ahora` : 'detalle operativo disponible'}`,
-      href: `/dashboard/estaciones/${encodeURIComponent(row.stationId)}`,
+      href: appRoutes.dashboardStation(row.stationId),
       badge: `Top ${index + 1}`,
     };
   });
@@ -170,7 +173,7 @@ async function buildDistrictOverviewContent(
   const items = rows.slice(0, 8).map((district, index) => ({
     title: `${index + 1}. ${district.name}`,
     detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} pts medios · ${district.bikesAvailable} bicis disponibles`,
-    href: `/barrios/${district.slug}`,
+    href: appRoutes.districtDetail(district.slug),
     badge: `${district.stationCount} est.`,
   }));
 
@@ -215,7 +218,7 @@ async function buildHourlyUsageContent(
     .map((row, index) => ({
       title: `${index + 1}. ${formatHourRange(row.hour)}`,
       detail: `${formatDecimal(Number(row.bikesInCirculation))} bicis medias en circulacion · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
-      href: '/dashboard/flujo',
+      href: appRoutes.dashboardFlow(),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
 
@@ -278,13 +281,13 @@ async function buildStationRankingContent(
     ...turnoverResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Uso ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
       detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${row.emptyHours + row.fullHours} horas de friccion`,
-      href: `/dashboard/estaciones/${encodeURIComponent(row.stationId)}`,
+      href: appRoutes.dashboardStation(row.stationId),
       badge: 'Demanda',
     })),
     ...availabilityResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Riesgo ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
       detail: `${row.emptyHours + row.fullHours} horas entre vaciado y saturacion · ${formatDecimal(row.turnoverScore)} pts de rotacion`,
-      href: `/dashboard/estaciones/${encodeURIComponent(row.stationId)}`,
+      href: appRoutes.dashboardStation(row.stationId),
       badge: 'Disponibilidad',
     })),
   ];
@@ -337,7 +340,7 @@ async function buildDailyTripsContent(
     .map((row) => ({
       title: row.day,
       detail: `${formatInteger(Number(row.demandScore))} pts de demanda · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
-      href: '/dashboard/conclusiones',
+      href: appRoutes.dashboardConclusions(),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
 
@@ -382,7 +385,7 @@ async function buildMonthlyTripsContent(
     .map((row) => ({
       title: isValidMonthKey(row.monthKey) ? formatMonthLabel(row.monthKey) : row.monthKey,
       detail: `${formatInteger(Number(row.demandScore))} pts · ocupacion ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`,
-      href: `/informes/${row.monthKey}`,
+      href: appRoutes.reportMonth(row.monthKey),
       badge: row.monthKey,
     }));
 
@@ -436,13 +439,13 @@ async function buildStationUsageContent(
     ...payload.topStationsByDemand.slice(0, 4).map((station, index) => ({
       title: `Alta demanda ${index + 1}. ${station.stationName}`,
       detail: `${formatDecimal(station.avgDemand)} pts/dia · enlace al detalle operativo`,
-      href: `/dashboard/estaciones/${encodeURIComponent(station.stationId)}`,
+      href: appRoutes.dashboardStation(station.stationId),
       badge: 'Top',
     })),
     ...payload.leastUsedStations.slice(0, 4).map((station, index) => ({
       title: `Menor uso ${index + 1}. ${station.stationName}`,
       detail: `${formatDecimal(station.avgDemand)} pts/dia · seguimiento recomendado`,
-      href: `/dashboard/estaciones/${encodeURIComponent(station.stationId)}`,
+      href: appRoutes.dashboardStation(station.stationId),
       badge: 'Seguimiento',
     })),
   ];
@@ -490,7 +493,7 @@ async function buildMostBikesContent(
   const items = stations.slice(0, 10).map((station, index) => ({
     title: `${index + 1}. ${station.name}`,
     detail: `${station.bikesAvailable} bicis · ${station.anchorsFree} anclajes libres · capacidad ${station.capacity}`,
-    href: `/dashboard/estaciones/${encodeURIComponent(station.id)}`,
+    href: appRoutes.dashboardStation(station.id),
     badge: `${station.bikesAvailable} bicis`,
   }));
 
@@ -543,7 +546,7 @@ async function buildMonthlyReportsContent(
       detail: row
         ? `${formatInteger(Number(row.demandScore))} pts · ocupacion ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`
         : 'Informe mensual publicado con acceso directo al dashboard filtrado.',
-      href: `/informes/${month}`,
+      href: appRoutes.reportMonth(month),
       badge: month,
     };
   });
@@ -611,7 +614,7 @@ export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Met
   return buildPageMetadata({
     title: config.metadataTitle,
     description: config.description,
-    path: `/${slug}`,
+    path: appRoutes.seoPage(slug),
     keywords: config.keywords,
   });
 }
@@ -620,25 +623,24 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
   const config = getSeoPageConfig(slug);
   const content = await buildSeoLandingContent(slug);
   const siteUrl = getSiteUrl();
+  const canonicalPath = appRoutes.seoPage(slug);
+  const breadcrumbs = createRootBreadcrumbs({
+    label: config.title,
+    href: canonicalPath,
+  });
   const relatedPages = SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
     .map((pageSlug) => getSeoPageConfig(pageSlug));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: config.title, item: `${siteUrl}/${slug}` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'CollectionPage',
         name: config.title,
         description: config.description,
         inLanguage: 'es',
-        url: `${siteUrl}/${slug}`,
+        url: toAbsoluteRouteUrl(canonicalPath),
         publisher: {
           '@type': 'Organization',
           name: SITE_NAME,
@@ -655,6 +657,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="hero-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -685,7 +688,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
             {config.dashboardLabel}
           </Link>
           <Link
-            href="/informes"
+            href={appRoutes.reports()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir archivo mensual
@@ -776,7 +779,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
           {relatedPages.map((page) => (
             <Link
               key={page.slug}
-              href={`/${page.slug}`}
+              href={appRoutes.seoPage(page.slug)}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

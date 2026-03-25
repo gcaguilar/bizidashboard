@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 
 type DailyDemandRow = {
@@ -92,7 +93,7 @@ export function DemandFlowCard({
           </span>
           <div>
             <Link
-              href="/dashboard/ayuda#demanda-no-viajes-reales"
+              href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
               className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Entender metrica
@@ -105,7 +106,7 @@ export function DemandFlowCard({
         <WidgetEmptyState
           title="Sin datos de demanda"
           description="Aun no hay suficiente serie diaria para dibujar la evolucion de la demanda en esta ventana."
-          helpHref="/dashboard/ayuda#demanda-no-viajes-reales"
+          helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />
       ) : (
         <>

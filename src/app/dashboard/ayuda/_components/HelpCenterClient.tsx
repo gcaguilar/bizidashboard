@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
+import { appRoutes } from '@/lib/routes';
 import type { HistoryMetadata } from '@/services/shared-data/types';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
@@ -275,7 +277,7 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'Uso',
     question: 'Hay enlaces directos para abrir un modo concreto del dashboard?',
     answer:
-      'Si. Tambien existen rutas directas por modo, como /dashboard/views/operations o /dashboard/views/research. Redirigen al dashboard con el modo correcto ya seleccionado.',
+      `Si. Tambien existen rutas directas por modo, como ${appRoutes.dashboardView('operations')} o ${appRoutes.dashboardView('research')}. Redirigen al dashboard con el modo correcto ya seleccionado.`,
   },
   {
     id: 'mapa-compartible',
@@ -437,6 +439,11 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string>(FAQ_ITEMS[0]?.id ?? '');
+  const breadcrumbs = [
+    { label: 'Inicio', href: appRoutes.home() },
+    { label: 'Dashboard', href: appRoutes.dashboard() },
+    { label: 'Ayuda', href: appRoutes.dashboardHelp() },
+  ];
 
   const normalizedQuery = useMemo(() => normalize(query), [query]);
 
@@ -584,7 +591,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href="/api/history" className="icon-button">
+            <Link href={appRoutes.api.history()} className="icon-button">
               Historico
             </Link>
             <ThemeToggleButton />
@@ -594,6 +601,8 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
+        <SiteBreadcrumbs items={breadcrumbs} className="mb-6" />
+
         <label htmlFor="help-search-mobile" className="mb-6 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm sm:hidden">
           <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
           <input
@@ -670,13 +679,13 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
-                href="/api/history"
+                href={appRoutes.api.history()}
                 className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white"
               >
                 Ver historico completo
               </Link>
               <Link
-                href="/api/openapi.json"
+                href={appRoutes.api.openApi()}
                 className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
               >
                 Definicion API

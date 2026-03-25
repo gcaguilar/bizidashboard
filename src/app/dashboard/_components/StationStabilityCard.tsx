@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { calculateFrictionScore } from './useSystemMetrics';
 
 type StationStabilityCardProps = {
@@ -34,7 +35,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estacion</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Una estacion es menos estable cuando pasa muchas horas vacia o llena respecto a su ventana observada.</p>
         </div>
-        <Link href="/dashboard/ayuda#horas-problema" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           Como leerlo
         </Link>
       </div>
@@ -46,7 +47,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
           {leastStable.map((row) => (
             <Link
               key={row.stationId}
-              href={`/dashboard/estaciones/${encodeURIComponent(row.stationId)}`}
+              href={appRoutes.dashboardStation(row.stationId)}
               className="block rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
             >
               <div className="flex items-center justify-between gap-3">

@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { getMonthlyDemandCurve } from '@/analytics/queries/read';
 import { fetchAvailableDataMonths } from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -12,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
   title: 'Informes Bizi Zaragoza por mes',
   description:
     'Indice SEO de informes mensuales de Bizi Zaragoza con acceso al historico por mes, comparativas y enlaces al dashboard filtrado.',
-  path: '/informes',
+  path: appRoutes.reports(),
   keywords: [
     'informes bizi zaragoza',
     'informes por mes bizi',
@@ -46,6 +49,10 @@ export default async function ReportsIndexPage() {
   const months = monthsResponse.months.filter(isValidMonthKey);
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
+  const breadcrumbs = createRootBreadcrumbs({
+    label: 'Informes',
+    href: appRoutes.reports(),
+  });
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -55,16 +62,10 @@ export default async function ReportsIndexPage() {
         name: 'Informes Bizi Zaragoza por mes',
         description:
           'Archivo historico de informes mensuales de Bizi Zaragoza con enlaces persistentes por mes y acceso al dashboard filtrado.',
-        url: `${siteUrl}/informes`,
+        url: `${siteUrl}${appRoutes.reports()}`,
         inLanguage: 'es',
       },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Informes', item: `${siteUrl}/informes` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'Organization',
         name: SITE_NAME,
@@ -78,6 +79,7 @@ export default async function ReportsIndexPage() {
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       <header className="hero-card">
+        <SiteBreadcrumbs items={breadcrumbs} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Archivo mensual indexable</p>
@@ -97,14 +99,14 @@ export default async function ReportsIndexPage() {
         <div className="flex flex-wrap gap-3">
           {latestMonth ? (
             <Link
-              href={`/informes/${latestMonth}`}
+              href={appRoutes.reportMonth(latestMonth)}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
             </Link>
           ) : null}
           <Link
-            href="/dashboard/conclusiones"
+            href={appRoutes.dashboardConclusions()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir conclusiones del dashboard
@@ -136,7 +138,7 @@ export default async function ReportsIndexPage() {
             <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">Cada informe tiene su propia URL estable y enlaza al dashboard con el mes ya seleccionado.</p>
           </div>
-          <Link href="/informes" className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
+          <Link href={appRoutes.reports()} className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
             Ver archivo completo
           </Link>
         </div>
@@ -148,7 +150,7 @@ export default async function ReportsIndexPage() {
             return (
               <Link
                 key={month}
-                href={`/informes/${month}`}
+                href={appRoutes.reportMonth(month)}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <div>

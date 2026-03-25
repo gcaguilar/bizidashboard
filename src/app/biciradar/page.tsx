@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -63,7 +66,7 @@ export const metadata: Metadata = buildPageMetadata({
   title: 'Bici Radar - App de bicis compartidas en tiempo real',
   description:
     'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.',
-  path: '/biciradar',
+  path: appRoutes.biciradar(),
   keywords: [
     'bici radar',
     'app bicis compartidas',
@@ -115,17 +118,15 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
 
 export default function BiciRadarPage() {
   const siteUrl = getSiteUrl();
+  const breadcrumbs = createRootBreadcrumbs({
+    label: 'Bici Radar',
+    href: appRoutes.biciradar(),
+  });
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Inicio', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Bici Radar', item: `${siteUrl}/biciradar` },
-        ],
-      },
+      buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'SoftwareApplication',
         name: 'Bici Radar',
@@ -133,7 +134,7 @@ export default function BiciRadarPage() {
           'App para encontrar estaciones de bicis compartidas en Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles y huecos libres en tiempo real.',
         applicationCategory: 'TravelApplication',
         operatingSystem: 'Android, iOS',
-        url: `${siteUrl}/biciradar`,
+        url: `${siteUrl}${appRoutes.biciradar()}`,
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -151,6 +152,7 @@ export default function BiciRadarPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="flex flex-col items-center text-center">
         <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent)]/60 text-4xl shadow-lg shadow-[var(--accent)]/25">

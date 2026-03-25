@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 
 const STORAGE_KEY = 'bizidashboard-beta-banner-dismissed';
 
@@ -44,7 +45,7 @@ export function BetaBanner() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/beta"
+            href={appRoutes.beta()}
             className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
           >
             Unirse a la beta

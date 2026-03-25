@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
@@ -287,7 +288,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           setErrorMessage(null);
         }
 
-        const response = await fetch(`/api/alerts/history?${apiQueryString}`, {
+        const response = await fetch(`${appRoutes.api.alertsHistory()}?${apiQueryString}`, {
           signal: controller.signal,
           cache: 'no-store',
         });
@@ -357,7 +358,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     params.set('offset', '0');
     params.set('limit', '2000');
     params.set('format', 'csv');
-    return `/api/alerts/history?${params.toString()}`;
+    return `${appRoutes.api.alertsHistory()}?${params.toString()}`;
   }, [apiQueryString]);
 
   const activeQuickRange = useMemo(() => {
@@ -434,7 +435,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href="/dashboard" className="icon-button" aria-label="Volver al dashboard">
+            <Link href={appRoutes.dashboard()} className="icon-button" aria-label="Volver al dashboard">
               Inicio
             </Link>
             <ThemeToggleButton />

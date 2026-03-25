@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 
 type DashboardQuickLinksProps = {
   selectedStationDetailUrl: string;
@@ -26,7 +27,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
           Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
         </p>
         <Link
-          href="/dashboard/flujo"
+          href={appRoutes.dashboardFlow()}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ir a analisis de flujo
@@ -39,7 +40,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
           Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
         </p>
         <Link
-          href="/dashboard/conclusiones"
+          href={appRoutes.dashboardConclusions()}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ver conclusiones
@@ -52,7 +53,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
           Metodologia, criterios de alertas y documentacion en una pagina independiente.
         </p>
         <Link
-          href="/dashboard/ayuda"
+          href={appRoutes.dashboardHelp()}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Abrir ayuda
@@ -65,7 +66,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
           Rankings indexables, series temporales e informes mensuales enlazados al dashboard.
         </p>
         <Link
-          href="/informes"
+          href={appRoutes.reports()}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ver informes y rankings

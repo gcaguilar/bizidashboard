@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { RankingsResponse } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 
 type ResearchVolatilityCardProps = {
   rankings: RankingsResponse;
@@ -36,7 +37,7 @@ export function ResearchVolatilityCard({ rankings }: ResearchVolatilityCardProps
             Resume cuanta inestabilidad acumula la red cuando una parte importante de estaciones pasa demasiadas horas vacia o llena.
           </p>
         </div>
-        <Link href="/dashboard/ayuda#estabilidad-estacion" className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           Como leerlo
         </Link>
       </div>

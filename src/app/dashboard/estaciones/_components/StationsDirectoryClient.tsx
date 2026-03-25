@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -98,7 +99,7 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
                 </div>
               </div>
               <Link
-                href={`/dashboard/estaciones/${encodeURIComponent(station.id)}`}
+                href={appRoutes.dashboardStation(station.id)}
                 className="mt-3 inline-flex rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
               >
                 Ver detalle

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -98,10 +99,10 @@ export function DashboardHeader({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-          <Link href="/dashboard/conclusiones" className="icon-button hidden sm:inline-flex">
+          <Link href={appRoutes.dashboardConclusions()} className="icon-button hidden sm:inline-flex">
             Conclusiones
           </Link>
-          <Link href="/dashboard/ayuda" className="icon-button hidden sm:inline-flex">
+          <Link href={appRoutes.dashboardHelp()} className="icon-button hidden sm:inline-flex">
             Ayuda
           </Link>
           <ThemeToggleButton />

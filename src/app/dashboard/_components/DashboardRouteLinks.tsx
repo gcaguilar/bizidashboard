@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DASHBOARD_ROUTE_CONFIG } from '@/lib/routes';
 
 export type DashboardRoute = 'dashboard' | 'stations' | 'flow' | 'conclusions' | 'help';
 
@@ -11,29 +12,6 @@ type DashboardRouteLinksProps = {
 
 const DEFAULT_ROUTES: DashboardRoute[] = ['dashboard', 'stations', 'flow', 'conclusions', 'help'];
 
-const ROUTE_CONFIG: Record<DashboardRoute, { href: string; label: string }> = {
-  dashboard: {
-    href: '/dashboard',
-    label: 'Inicio',
-  },
-  stations: {
-    href: '/dashboard/estaciones',
-    label: 'Estaciones',
-  },
-  flow: {
-    href: '/dashboard/flujo',
-    label: 'Flujo',
-  },
-  conclusions: {
-    href: '/dashboard/conclusiones',
-    label: 'Conclusiones',
-  },
-  help: {
-    href: '/dashboard/ayuda',
-    label: 'Ayuda',
-  },
-};
-
 export function DashboardRouteLinks({
   activeRoute,
   routes = DEFAULT_ROUTES,
@@ -43,7 +21,7 @@ export function DashboardRouteLinks({
   return (
     <nav className={className} aria-label="Secciones del dashboard">
       {routes.map((route) => {
-        const { href, label } = ROUTE_CONFIG[route];
+        const { href, label } = DASHBOARD_ROUTE_CONFIG[route];
         const isActive = route === activeRoute;
 
         const linkClass =

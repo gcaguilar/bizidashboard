@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { fetchHistoryMetadata } from '@/lib/api';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSharedDataSource, type HistoryMetadata } from '@/services/shared-data';
 import { HelpCenterClient } from './_components/HelpCenterClient';
@@ -10,7 +11,7 @@ export const metadata: Metadata = buildPageMetadata({
   title: 'Centro de ayuda',
   description:
     'FAQ del dashboard de Bizi Zaragoza para entender alertas, rankings, movilidad, predicciones y metodologia de calculo.',
-  path: '/dashboard/ayuda',
+  path: appRoutes.dashboardHelp(),
 });
 
 function buildFallbackHistoryMetadata(nowIso: string): HistoryMetadata {

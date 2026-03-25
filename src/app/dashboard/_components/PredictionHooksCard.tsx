@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { appRoutes } from '@/lib/routes';
 
 export function PredictionHooksCard() {
+  const predictionExamplePath = `${appRoutes.api.predictions().replace('101', '')}...`;
+
   return (
     <article className="dashboard-card">
       <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Predicciones futuras</h3>
@@ -8,7 +11,7 @@ export function PredictionHooksCard() {
         El endpoint de predicciones ya combina el estado actual con patrones historicos por franja horaria para estimar ocupacion en +30 y +60 minutos.
       </p>
       <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-xs text-[var(--muted)]">
-        <p><span className="font-semibold text-[var(--foreground)]">Endpoint activo:</span> <code>/api/predictions?stationId=...</code></p>
+        <p><span className="font-semibold text-[var(--foreground)]">Endpoint activo:</span> <code>{predictionExamplePath}</code></p>
         <p className="mt-1"><span className="font-semibold text-[var(--foreground)]">Horizontes:</span> T+30 min y T+60 min</p>
         <p className="mt-1"><span className="font-semibold text-[var(--foreground)]">Modelo:</span> baseline historico con confianza por cobertura muestral</p>
         <p className="mt-1"><span className="font-semibold text-[var(--foreground)]">Campos:</span> bicis, anclajes y confianza</p>
@@ -17,7 +20,7 @@ export function PredictionHooksCard() {
         Es un primer modelo interpretable pensado para exponer una senal util sin introducir infraestructura extra de ML en esta fase.
       </p>
       <Link
-        href="/dashboard/ayuda#prediccion-dashboard"
+        href={appRoutes.dashboardHelp('prediccion-dashboard')}
         className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
       >
         Ver contexto metodologico

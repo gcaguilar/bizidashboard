@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { permanentRedirect } from 'next/navigation';
 import { DASHBOARD_MODE_META, DASHBOARD_VIEW_MODES, resolveDashboardViewMode } from '@/lib/dashboard-modes';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 
 type DashboardModePageProps = {
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: DashboardModePageProps): Prom
   return buildPageMetadata({
     title: `${meta.label} del dashboard`,
     description: meta.introDescription,
-    path: `/dashboard/views/${resolvedMode}`,
+    path: appRoutes.dashboardView(resolvedMode),
   });
 }
 
@@ -29,5 +30,5 @@ export default async function DashboardModePage({ params }: DashboardModePagePro
   const { mode } = await params;
   const resolvedMode = resolveDashboardViewMode(mode);
 
-  permanentRedirect(`/dashboard?mode=${resolvedMode}`);
+  permanentRedirect(`${appRoutes.dashboard()}?mode=${resolvedMode}`);
 }

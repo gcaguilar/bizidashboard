@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import type { StationPatternRow } from '@/lib/api';
 import { DayType } from '@/analytics/types';
 import { formatDayType, formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import {
   Legend,
   Line,
@@ -133,7 +134,7 @@ export function HourlyCharts({
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/dashboard/ayuda#detalle-estacion"
+            href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
           >
             Entender grafico

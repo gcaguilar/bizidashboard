@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { AlertsResponse, StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 
 type AlertsPanelProps = {
   alerts: AlertsResponse;
@@ -28,7 +29,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
             {activeAlerts.length} accion requerida
           </span>
           <Link
-            href="/dashboard/alertas"
+            href={appRoutes.dashboardAlerts()}
             className="rounded-full border border-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Historial
@@ -40,7 +41,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
           <Link
-            href="/dashboard/alertas"
+            href={appRoutes.dashboardAlerts()}
             className="w-full rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Ver historial de alertas

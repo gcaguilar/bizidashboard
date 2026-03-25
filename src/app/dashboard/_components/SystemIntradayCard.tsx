@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 import { formatPercent } from '@/lib/format';
+import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { ChartWrapper } from './ChartWrapper';
 
@@ -89,7 +90,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
           </p>
         </div>
         <Link
-          href="/dashboard/ayuda#demanda-no-viajes-reales"
+          href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
           className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Como se calcula
@@ -100,7 +101,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
         <WidgetEmptyState
           title="Sin perfil horario suficiente"
           description="Todavia no hay suficiente historico por hora para resumir como cambia la ocupacion y las bicis durante el dia."
-          helpHref="/dashboard/ayuda#demanda-no-viajes-reales"
+          helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />
       ) : (
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">

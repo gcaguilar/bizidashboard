@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
+import { appRoutes } from '@/lib/routes';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -192,7 +193,7 @@ export function StationPicker({
 
   const bestMatch = stationSuggestions[0]?.station ?? null;
   const stationDetailUrl = selectedStation
-    ? `/dashboard/estaciones/${encodeURIComponent(selectedStation.id)}`
+    ? appRoutes.dashboardStation(selectedStation.id)
     : null;
 
   return (

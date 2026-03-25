@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import {
   fetchAlerts,
   fetchAvailableDataMonths,
@@ -12,7 +13,9 @@ import {
   type RankingsResponse,
   type StationsResponse,
 } from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
+import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
@@ -44,7 +47,7 @@ function decodeStationId(encodedStationId: string): string {
 export async function generateMetadata({ params }: StationDetailPageProps): Promise<Metadata> {
   const { stationId: encodedStationId } = await params;
   const stationId = decodeStationId(encodedStationId);
-  const canonicalPath = `/dashboard/estaciones/${encodeURIComponent(stationId)}`;
+  const canonicalPath = appRoutes.dashboardStation(stationId);
 
   return buildPageMetadata({
     title: `Detalle de estacion ${stationId}`,
@@ -100,6 +103,20 @@ export default async function StationDetailPage({ params, searchParams }: Statio
   if (!selectedStation) {
     notFound();
   }
+  const breadcrumbs = createRootBreadcrumbs(
+    {
+      label: 'Dashboard',
+      href: appRoutes.dashboard(),
+    },
+    {
+      label: 'Estaciones',
+      href: appRoutes.dashboardStations(),
+    },
+    {
+      label: selectedStation.name,
+      href: appRoutes.dashboardStation(selectedStation.id),
+    }
+  );
 
   const rankingLimit = Math.max(50, Math.min(200, stations.stations.length));
 
@@ -116,7 +133,18 @@ export default async function StationDetailPage({ params, searchParams }: Statio
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            ...buildBreadcrumbStructuredData(breadcrumbs),
+          }),
+        }}
+      />
       <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
+        <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-lg font-black text-[var(--accent)]">

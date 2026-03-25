@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { StationSnapshot } from '@/lib/api';
+import { appRoutes } from '@/lib/routes';
 import { DemandFlowCard } from './DemandFlowCard';
 import { FlowPreviewPanel } from './FlowPreviewPanel';
 import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
@@ -75,7 +76,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
           <Link
-            href="/dashboard/flujo"
+            href={appRoutes.dashboardFlow()}
             className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Vista completa
