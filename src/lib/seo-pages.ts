@@ -1,3 +1,5 @@
+import { appRoutes } from '@/lib/routes';
+
 export const SEO_PAGE_SLUGS = [
   'estaciones-mas-usadas-zaragoza',
   'barrios-bizi-zaragoza',
@@ -34,7 +36,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['estaciones bizi mas usadas', 'ranking bizi zaragoza', 'estaciones con mas uso', 'bizi zaragoza hoy'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Ranking de demanda reciente',
-    dashboardHref: '/dashboard/conclusiones',
+    dashboardHref: appRoutes.dashboardConclusions(),
     dashboardLabel: 'Ver conclusiones y comparativas en el dashboard',
   },
   'barrios-bizi-zaragoza': {
@@ -46,7 +48,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['barrios bizi zaragoza', 'bizi por barrios zaragoza', 'distritos con mas uso bizi', 'estaciones bizi por barrio'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Comparativa por barrios',
-    dashboardHref: '/dashboard/flujo',
+    dashboardHref: appRoutes.dashboardFlow(),
     dashboardLabel: 'Abrir flujo por barrios en el dashboard',
   },
   'uso-bizi-por-hora': {
@@ -58,7 +60,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['uso bizi por hora', 'horas pico bizi zaragoza', 'bizi zaragoza hora punta', 'movilidad bizi horaria'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Patrones horarios',
-    dashboardHref: '/dashboard/flujo',
+    dashboardHref: appRoutes.dashboardFlow(),
     dashboardLabel: 'Abrir flujo y movilidad horaria en el dashboard',
   },
   'ranking-estaciones-bizi': {
@@ -70,7 +72,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['ranking estaciones bizi', 'clasificacion estaciones bizi zaragoza', 'estaciones bizi disponibilidad', 'ranking bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Clasificacion operativa',
-    dashboardHref: '/dashboard',
+    dashboardHref: appRoutes.dashboard(),
     dashboardLabel: 'Ir al panel principal y ver el mapa en tiempo real',
   },
   'viajes-por-dia-zaragoza': {
@@ -82,7 +84,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['viajes bizi por dia', 'bizi zaragoza viajes diarios', 'demanda bizi diaria', 'estadisticas bizi zaragoza'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Serie diaria',
-    dashboardHref: '/dashboard/conclusiones',
+    dashboardHref: appRoutes.dashboardConclusions(),
     dashboardLabel: 'Ver resumen diario y tendencia reciente',
   },
   'viajes-por-mes-zaragoza': {
@@ -94,7 +96,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['viajes bizi por mes', 'bizi zaragoza mensual', 'informe mensual bizi', 'estadisticas mensuales bizi'],
     cadenceLabel: 'Actualizacion mensual',
     heroKicker: 'Serie mensual',
-    dashboardHref: '/dashboard/conclusiones',
+    dashboardHref: appRoutes.dashboardConclusions(),
     dashboardLabel: 'Abrir conclusiones por mes en el dashboard',
   },
   'uso-bizi-por-estacion': {
@@ -106,7 +108,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['uso bizi por estacion', 'comparativa estaciones bizi', 'estaciones bizi zaragoza demanda', 'detalle estacion bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Comparativa entre estaciones',
-    dashboardHref: '/dashboard/estaciones',
+    dashboardHref: appRoutes.dashboardStations(),
     dashboardLabel: 'Explorar el directorio completo de estaciones',
   },
   'estaciones-con-mas-bicis': {
@@ -118,7 +120,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['estaciones con mas bicis', 'bizi zaragoza disponibilidad actual', 'donde hay bicis bizi', 'bicis disponibles zaragoza'],
     cadenceLabel: 'Actualizacion horaria',
     heroKicker: 'Disponibilidad actual',
-    dashboardHref: '/dashboard/status',
+    dashboardHref: appRoutes.dashboardStatus(),
     dashboardLabel: 'Consultar estado del sistema y estaciones en vivo',
   },
   'informes-mensuales-bizi-zaragoza': {
@@ -130,7 +132,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['informes mensuales bizi', 'archivo bizi zaragoza', 'reporte mensual bizi', 'estadisticas bizi mensuales'],
     cadenceLabel: 'Actualizacion mensual',
     heroKicker: 'Archivo de informes',
-    dashboardHref: '/dashboard/conclusiones',
+    dashboardHref: appRoutes.dashboardConclusions(),
     dashboardLabel: 'Abrir conclusiones ejecutivas del dashboard',
   },
 };

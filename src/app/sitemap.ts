@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
 import { isValidMonthKey } from '@/lib/months';
+import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
@@ -38,107 +39,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const districtRows = await getDistrictSeoRows().catch(() => []);
 
   const stationEntries: MetadataRoute.Sitemap = stations.map((station) => ({
-    url: `${siteUrl}/dashboard/estaciones/${encodeURIComponent(station.id)}`,
+    url: `${siteUrl}${appRoutes.dashboardStation(station.id)}`,
     lastModified: toValidDate(station.recordedAt, lastModified),
     changeFrequency: 'hourly',
     priority: 0.6,
   }));
 
   const modeEntries: MetadataRoute.Sitemap = DASHBOARD_VIEW_MODES.map((mode) => ({
-    url: `${siteUrl}/dashboard/views/${mode}`,
+    url: `${siteUrl}${appRoutes.dashboardView(mode)}`,
     lastModified,
     changeFrequency: 'weekly',
     priority: 0.55,
   }));
 
   const seoEntries: MetadataRoute.Sitemap = SEO_PAGE_SLUGS.map((slug) => ({
-    url: `${siteUrl}/${slug}`,
+    url: `${siteUrl}${appRoutes.seoPage(slug)}`,
     lastModified,
     changeFrequency: slug === 'estaciones-con-mas-bicis' ? 'hourly' : 'daily',
     priority: slug === 'informes-mensuales-bizi-zaragoza' ? 0.78 : 0.72,
   }));
 
   const reportEntries: MetadataRoute.Sitemap = validMonths.map((month) => ({
-    url: `${siteUrl}/informes/${month}`,
+    url: `${siteUrl}${appRoutes.reportMonth(month)}`,
     lastModified,
     changeFrequency: 'monthly',
     priority: 0.74,
   }));
 
   const districtEntries: MetadataRoute.Sitemap = districtRows.map((district) => ({
-    url: `${siteUrl}/barrios/${district.slug}`,
+    url: `${siteUrl}${appRoutes.districtDetail(district.slug)}`,
     lastModified,
     changeFrequency: 'daily',
     priority: 0.68,
   }));
 
   return [
-    {
-      url: siteUrl,
+    ...STATIC_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
+      url: `${siteUrl}${entry.href}`,
       lastModified,
-      changeFrequency: 'hourly',
-      priority: 1,
-    },
-    {
-      url: `${siteUrl}/beta`,
-      lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
-    {
-      url: `${siteUrl}/biciradar`,
-      lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.76,
-    },
-    {
-      url: `${siteUrl}/informes`,
-      lastModified,
-      changeFrequency: 'daily',
-      priority: 0.82,
-    },
-    {
-      url: `${siteUrl}/dashboard`,
-      lastModified,
-      changeFrequency: 'hourly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/dashboard/flujo`,
-      lastModified,
-      changeFrequency: 'hourly',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/dashboard/alertas`,
-      lastModified,
-      changeFrequency: 'hourly',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/dashboard/estaciones`,
-      lastModified,
-      changeFrequency: 'daily',
-      priority: 0.7,
-    },
-    {
-      url: `${siteUrl}/dashboard/ayuda`,
-      lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/dashboard/status`,
-      lastModified,
-      changeFrequency: 'hourly',
-      priority: 0.65,
-    },
-    {
-      url: `${siteUrl}/dashboard/conclusiones`,
-      lastModified,
-      changeFrequency: 'daily',
-      priority: 0.75,
-    },
+      changeFrequency: entry.sitemap.changeFrequency,
+      priority: entry.sitemap.priority,
+    })),
     ...modeEntries,
     ...stationEntries,
     ...seoEntries,

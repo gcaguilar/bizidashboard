@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
+import { SITE_NAME, SITE_TITLE } from '@/lib/site';
+import { toAbsoluteRouteUrl } from '@/lib/routes';
 
 type BuildPageMetadataOptions = {
   title: string;
@@ -9,7 +10,7 @@ type BuildPageMetadataOptions = {
 };
 
 export function buildPageMetadata({ title, description, path, keywords }: BuildPageMetadataOptions): Metadata {
-  const absoluteUrl = `${getSiteUrl()}${path}`;
+  const absoluteUrl = toAbsoluteRouteUrl(path);
   return {
     title,
     description,

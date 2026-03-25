@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { appRoutes, toAbsoluteRouteUrl } from "@/lib/routes";
 import {
   getGoogleSiteVerificationToken,
   getSiteUrl,
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
   category: 'technology',
   referrer: 'origin-when-cross-origin',
   alternates: {
-    canonical: "/",
+    canonical: appRoutes.home(),
   },
   icons: {
     icon: [
@@ -71,7 +72,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_ES",
-    url: "/",
+    url: appRoutes.home(),
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
@@ -123,7 +124,7 @@ export default function RootLayout({
         description: SITE_DESCRIPTION,
         potentialAction: {
           "@type": "SearchAction",
-          target: `${siteUrl}/dashboard?q={search_term_string}`,
+          target: `${toAbsoluteRouteUrl(appRoutes.dashboard())}?q={search_term_string}`,
           "query-input": 'required name=search_term_string',
         },
       },
