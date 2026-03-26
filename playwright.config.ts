@@ -13,6 +13,7 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    serviceWorkers: 'block',
     video: 'retain-on-failure',
   },
   webServer: process.env.PLAYWRIGHT_BASE_URL
