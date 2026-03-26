@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-03-26T15:11:04.458Z",
+  "base_url": "http://127.0.0.1:3100",
+  "summary": {
+    "crawled_pages": 32,
+    "checked_urls": 62,
+    "sitemap_entries": 32
+  },
+  "broken_links": [],
+  "redirects": [
+    {
+      "url": "http://127.0.0.1:3100/dashboard/status",
+      "finalUrl": "http://127.0.0.1:3100/estado",
+      "finalStatus": 200,
+      "redirects": [
+        {
+          "url": "http://127.0.0.1:3100/dashboard/status",
+          "status": 301,
+          "location": "http://127.0.0.1:3100/estado"
+        }
+      ],
+      "sources": [
+        "__seed__"
+      ]
+    }
+  ],
+  "orphan_pages": [],
+  "sitemap_mismatch": {
+    "broken_entries": [],
+    "redirected_entries": [],
+    "missing_from_sitemap": []
+  },
+  "inconsistent_data_pages": [],
+  "stale_pages": [],
+  "pages_with_no_data": [
+    {
+      "page": "http://127.0.0.1:3100/barrios-bizi-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/dashboard/ayuda",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/dashboard/conclusiones",
+      "reason": "Coincide con el patron \"0 estaciones\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/dashboard/estaciones/101",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/dashboard/estaciones/102",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/dashboard/estaciones/103",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/estaciones-con-mas-bicis",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/estaciones-mas-usadas-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/informes-mensuales-bizi-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/informes",
+      "reason": "Coincide con el patron \"0 meses indexables\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/informes",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/informes",
+      "reason": "El archivo mensual muestra 0 meses publicados."
+    },
+    {
+      "page": "http://127.0.0.1:3100/ranking-estaciones-bizi",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/uso-bizi-por-estacion",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/uso-bizi-por-hora",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/viajes-por-dia-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3100/viajes-por-mes-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    }
+  ],
+  "api_vs_frontend_diff": [],
+  "api_errors": []
+}
