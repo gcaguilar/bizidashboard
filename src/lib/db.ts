@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import {
-  buildPgSearchPathOption,
   normalizeDatabaseSchemaName,
-  quotePgIdentifier,
-  stripPrismaSchemaParam,
 } from './postgres-schema'
+import { createPostgresPrismaClient } from './prisma-client'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
@@ -30,25 +28,10 @@ async function createPrismaClient(): Promise<PrismaClient> {
     return createBuildPrismaMock()
   }
 
-  const city = getCity()
-  const connectionString = stripPrismaSchemaParam(dbUrl)
-  const { PrismaPg } = await import('@prisma/adapter-pg')
-  const adapter = new PrismaPg(
-    {
-      connectionString,
-      options: buildPgSearchPathOption(city),
-    },
-    {
-      schema: city,
-    }
-  )
-  const client = new PrismaClient({ adapter })
-
-  await client.$connect()
-  const quotedSchema = quotePgIdentifier(city)
-  await client.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS ${quotedSchema}`)
-
-  return client
+  return createPostgresPrismaClient({
+    databaseUrl: dbUrl,
+    city: getCity(),
+  })
 }
 
 let _prismaPromise: Promise<PrismaClient> | null = null

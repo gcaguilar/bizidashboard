@@ -1,6 +1,5 @@
-import { AlertType, DayType, PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { AlertType, DayType } from '@prisma/client';
+import { createPostgresPrismaClient } from '../src/lib/prisma-client';
 
 const POLL_INTERVAL_MINUTES = 5;
 const POLLS_LAST_24_HOURS = (24 * 60) / POLL_INTERVAL_MINUTES;
@@ -39,6 +38,10 @@ function assertDatabaseUrl(): void {
     throw new Error('DATABASE_URL es obligatorio para seed-qa-db.');
   }
 }
+
+assertDatabaseUrl();
+
+const prisma = await createPostgresPrismaClient();
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
