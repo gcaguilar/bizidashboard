@@ -8,7 +8,7 @@ function getSearchParam(url: string, key: string): string | null {
   return new URL(url).searchParams.get(key);
 }
 
-test('public navigation keeps canonical routes, redirects and breadcrumbs aligned', async ({ page }) => {
+test('public search and explore hub keep canonical routes aligned', async ({ page }) => {
   await page.goto('/inicio');
   await expect.poll(() => getPathname(page.url())).toBe('/');
 
@@ -34,12 +34,20 @@ test('public navigation keeps canonical routes, redirects and breadcrumbs aligne
 
   const compareLink = page.getByRole('link', { name: 'Abrir comparador' });
   await expect(compareLink).toHaveAttribute('href', '/comparar');
+});
+
+test('compare hub loads with canonical route and breadcrumbs', async ({ page }) => {
   await page.goto('/comparar', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => getPathname(page.url())).toBe('/comparar');
 
-  breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
+  const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumbs).toContainText('Comparar');
   await expect(page.getByText('Elige dos lados y comparalos manualmente')).toBeVisible();
+});
+
+test('public redirects resolve to canonical pages', async ({ page }) => {
+  await page.goto('/developers');
+  await expect.poll(() => getPathname(page.url())).toBe('/developers');
 
   await page.getByRole('link', { name: 'API' }).first().click();
   await expect.poll(() => getPathname(page.url())).toBe('/developers');
