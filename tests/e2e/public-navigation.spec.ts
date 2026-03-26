@@ -23,7 +23,7 @@ test('public search and explore hub keep canonical routes aligned', async ({ pag
   await expect.poll(() => getSearchParam(page.url(), 'q')).toBeNull();
   await expect(page.getByText('Resultados para "api status"')).toHaveCount(0);
 
-  let breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
+  const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumbs).toBeVisible();
   await expect(breadcrumbs).toContainText('Explorar');
   const citySwitcher = page.getByLabel('Selector de ciudad');
