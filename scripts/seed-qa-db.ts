@@ -1,4 +1,4 @@
-import { AlertType, DayType } from '@prisma/client';
+import { AlertType, DayType, type PrismaClient } from '@prisma/client';
 import { createPostgresPrismaClient } from '../src/lib/prisma-client';
 
 const POLL_INTERVAL_MINUTES = 5;
@@ -38,10 +38,6 @@ function assertDatabaseUrl(): void {
     throw new Error('DATABASE_URL es obligatorio para seed-qa-db.');
   }
 }
-
-assertDatabaseUrl();
-
-const prisma = await createPostgresPrismaClient();
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
@@ -346,7 +342,7 @@ async function createInBatches<T>(
   }
 }
 
-async function resetDatabase() {
+async function resetDatabase(prisma: PrismaClient) {
   await prisma.$transaction([
     prisma.stationAlert.deleteMany(),
     prisma.stationHeatmapCell.deleteMany(),
@@ -363,104 +359,106 @@ async function resetDatabase() {
 
 async function main() {
   assertDatabaseUrl();
+  const prisma = await createPostgresPrismaClient();
 
-  const latestPollAt = roundToFiveMinutes(new Date());
-  const seededAt = new Date();
-  const statusRows = buildStatusRows(latestPollAt);
-  const hourlyRows = buildHourlyRows(latestPollAt);
-  const dailyRows = buildDailyRows(latestPollAt);
-  const rankingRows = buildRankingRows(latestPollAt);
-  const patternRows = buildPatternRows();
-  const heatmapRows = buildHeatmapRows();
-  const alertRows = buildAlertRows(latestPollAt);
+  try {
+    const latestPollAt = roundToFiveMinutes(new Date());
+    const seededAt = new Date();
+    const statusRows = buildStatusRows(latestPollAt);
+    const hourlyRows = buildHourlyRows(latestPollAt);
+    const dailyRows = buildDailyRows(latestPollAt);
+    const rankingRows = buildRankingRows(latestPollAt);
+    const patternRows = buildPatternRows();
+    const heatmapRows = buildHeatmapRows();
+    const alertRows = buildAlertRows(latestPollAt);
 
-  console.log('[seed-qa-db] Resetting QA schema');
-  await resetDatabase();
+    console.log('[seed-qa-db] Resetting QA schema');
+    await resetDatabase(prisma);
 
-  console.log('[seed-qa-db] Creating stations');
-  await prisma.station.createMany({
-    data: STATIONS.map((station) => ({
-      id: station.id,
-      name: station.name,
-      lat: station.lat,
-      lon: station.lon,
-      capacity: station.capacity,
-      isActive: true,
-      updatedAt: seededAt,
-    })),
-  });
+    console.log('[seed-qa-db] Creating stations');
+    await prisma.station.createMany({
+      data: STATIONS.map((station) => ({
+        id: station.id,
+        name: station.name,
+        lat: station.lat,
+        lon: station.lon,
+        capacity: station.capacity,
+        isActive: true,
+        updatedAt: seededAt,
+      })),
+    });
 
-  console.log('[seed-qa-db] Creating status snapshots');
-  await createInBatches(statusRows, (batch) =>
-    prisma.stationStatus.createMany({ data: batch })
-  );
-  console.log('[seed-qa-db] Creating hourly aggregates');
-  await createInBatches(hourlyRows, (batch) =>
-    prisma.hourlyStationStat.createMany({
-      data: batch.map((row) => ({
+    console.log('[seed-qa-db] Creating status snapshots');
+    await createInBatches(statusRows, (batch) =>
+      prisma.stationStatus.createMany({ data: batch })
+    );
+    console.log('[seed-qa-db] Creating hourly aggregates');
+    await createInBatches(hourlyRows, (batch) =>
+      prisma.hourlyStationStat.createMany({
+        data: batch.map((row) => ({
+          ...row,
+          updatedAt: seededAt,
+        })),
+      })
+    );
+    console.log('[seed-qa-db] Creating daily aggregates');
+    await createInBatches(dailyRows, (batch) =>
+      prisma.dailyStationStat.createMany({
+        data: batch.map((row) => ({
+          ...row,
+          updatedAt: seededAt,
+        })),
+      })
+    );
+    console.log('[seed-qa-db] Creating rankings, patterns, heatmap and alerts');
+    await prisma.stationRanking.createMany({
+      data: rankingRows.map((row) => ({
         ...row,
         updatedAt: seededAt,
       })),
-    })
-  );
-  console.log('[seed-qa-db] Creating daily aggregates');
-  await createInBatches(dailyRows, (batch) =>
-    prisma.dailyStationStat.createMany({
-      data: batch.map((row) => ({
-        ...row,
-        updatedAt: seededAt,
-      })),
-    })
-  );
-  console.log('[seed-qa-db] Creating rankings, patterns, heatmap and alerts');
-  await prisma.stationRanking.createMany({
-    data: rankingRows.map((row) => ({
-      ...row,
-      updatedAt: seededAt,
-    })),
-  });
-  await createInBatches(patternRows, (batch) =>
-    prisma.stationPattern.createMany({ data: batch })
-  );
-  await createInBatches(heatmapRows, (batch) =>
-    prisma.stationHeatmapCell.createMany({ data: batch })
-  );
-  await prisma.stationAlert.createMany({ data: alertRows });
-  console.log('[seed-qa-db] Creating analytics watermarks');
-  await prisma.analyticsWatermark.createMany({
-    data: [
-      { name: 'hourly', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
-      { name: 'daily', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
-    ],
-  });
+    });
+    await createInBatches(patternRows, (batch) =>
+      prisma.stationPattern.createMany({ data: batch })
+    );
+    await createInBatches(heatmapRows, (batch) =>
+      prisma.stationHeatmapCell.createMany({ data: batch })
+    );
+    await prisma.stationAlert.createMany({ data: alertRows });
+    console.log('[seed-qa-db] Creating analytics watermarks');
+    await prisma.analyticsWatermark.createMany({
+      data: [
+        { name: 'hourly', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
+        { name: 'daily', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
+      ],
+    });
 
-  console.log(
-    JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        latestPollAt: latestPollAt.toISOString(),
-        counts: {
-          stations: STATIONS.length,
-          station_status_rows: statusRows.length,
-          hourly_rows: hourlyRows.length,
-          daily_rows: dailyRows.length,
-          ranking_rows: rankingRows.length,
-          pattern_rows: patternRows.length,
-          heatmap_rows: heatmapRows.length,
-          alert_rows: alertRows.length,
+    console.log(
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          latestPollAt: latestPollAt.toISOString(),
+          counts: {
+            stations: STATIONS.length,
+            station_status_rows: statusRows.length,
+            hourly_rows: hourlyRows.length,
+            daily_rows: dailyRows.length,
+            ranking_rows: rankingRows.length,
+            pattern_rows: patternRows.length,
+            heatmap_rows: heatmapRows.length,
+            alert_rows: alertRows.length,
+          },
         },
-      },
-      null,
-      2
-    )
-  );
+        null,
+        2
+      )
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 void main()
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
