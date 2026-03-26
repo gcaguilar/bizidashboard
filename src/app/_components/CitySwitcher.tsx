@@ -1,4 +1,4 @@
-import { CITY_CONFIGS, CITIES, type City } from '@/lib/constants';
+import { CITY_CONFIGS, type City } from '@/lib/constants';
 import { getCurrentCityKey } from '@/lib/site';
 
 type CitySwitcherProps = {
@@ -16,13 +16,14 @@ type CitySwitcherItem = {
 function getCitySwitcherItems(): CitySwitcherItem[] {
   const currentCity = getCurrentCityKey();
 
-  return CITIES.map((city) => ({
-    city,
-    label: CITY_CONFIGS[city].name,
-    statusLabel:
-      city === currentCity ? 'Activa en esta instalacion' : 'Pendiente en esta instalacion',
-    isActive: city === currentCity,
-  }));
+  return [
+    {
+      city: currentCity,
+      label: CITY_CONFIGS[currentCity].name,
+      statusLabel: 'Activa en esta instalacion',
+      isActive: true,
+    },
+  ];
 }
 
 export function CitySwitcher({ className, compact = false }: CitySwitcherProps) {
@@ -40,8 +41,8 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
           </p>
           {!compact ? (
             <p className="text-xs text-[var(--muted)]">
-              La navegacion publica usa rutas canonicas comunes y muestra aqui la ciudad activa de
-              esta instalacion.
+              Esta instalacion publica esta operativa solo para Zaragoza y refleja aqui la ciudad
+              disponible.
             </p>
           ) : null}
         </div>
