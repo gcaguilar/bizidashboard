@@ -317,6 +317,10 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     destination: appRoutes.seoPage('estaciones-mas-usadas-zaragoza'),
   },
   {
+    source: appRoutes.dashboardStatus(),
+    destination: appRoutes.status(),
+  },
+  {
     source: appRoutes.homeAlias(),
     destination: appRoutes.home(),
   },

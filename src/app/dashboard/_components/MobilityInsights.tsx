@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
@@ -143,47 +143,15 @@ export function MobilityInsights({
   mobilityDays = 14,
   demandDays = 30,
 }: MobilityInsightsProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activePeriod, setActivePeriod] = useState<PeriodKey>(() =>
-    resolvePeriod(searchParams.get('period'))
-  );
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
   const selectedMonth = searchParams.get('month');
-
-  useEffect(() => {
-    const periodFromUrl = resolvePeriod(searchParams.get('period'));
-
-    setActivePeriod((current) => (current === periodFromUrl ? current : periodFromUrl));
-  }, [searchParams]);
-
-  useEffect(() => {
-    const currentParams = new URLSearchParams(window.location.search);
-    let hasChanges = false;
-
-    if (activePeriod === 'all') {
-      if (currentParams.has('period')) {
-        currentParams.delete('period');
-        hasChanges = true;
-      }
-    } else if (currentParams.get('period') !== activePeriod) {
-      currentParams.set('period', activePeriod);
-      hasChanges = true;
-    }
-
-    if (!hasChanges) {
-      return;
-    }
-
-    const nextQuery = currentParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [activePeriod, pathname, router]);
+  const activePeriod = resolvePeriod(searchParams.get('period'));
 
   useEffect(() => {
     const controller = new AbortController();
@@ -513,19 +481,21 @@ export function MobilityInsights({
         </div>
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)]/80 p-1">
           {PERIODS.map((period) => (
-            <button
+            <Link
               key={period.key}
-              type="button"
-              aria-pressed={activePeriod === period.key}
+              href={appRoutes.dashboardFlow({
+                month: selectedMonth,
+                period: period.key === 'all' ? null : period.key,
+              })}
+              aria-current={activePeriod === period.key ? 'page' : undefined}
               className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
                 activePeriod === period.key
                   ? 'bg-[var(--accent)] text-white shadow-sm'
                   : 'text-[var(--muted)] hover:text-[var(--foreground)]'
               }`}
-              onClick={() => setActivePeriod(period.key)}
             >
               {period.label}
-            </button>
+            </Link>
           ))}
         </div>
       </header>

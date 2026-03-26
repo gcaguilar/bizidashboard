@@ -17,7 +17,6 @@ import { getSeoPageConfig } from '@/lib/seo-pages';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
-export const dynamicParams = false;
 export const revalidate = 3600;
 
 type PageProps = {
@@ -107,11 +106,6 @@ async function getAvailableMonths(): Promise<string[]> {
   }));
 
   return response.months.filter(isValidMonthKey);
-}
-
-export async function generateStaticParams() {
-  const months = await getAvailableMonths();
-  return months.map((month) => ({ month }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

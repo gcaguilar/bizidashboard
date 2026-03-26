@@ -49,11 +49,11 @@ test('dashboard syncs selected window and station with URL', async ({ page }) =>
 test('flow period filter is reflected in query string', async ({ page }) => {
   await page.goto('/dashboard/flujo?period=night');
 
-  await expect(page.getByRole('button', { name: 'Noche' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('link', { name: 'Noche' })).toHaveAttribute('aria-current', 'page');
 
-  await page.getByRole('button', { name: 'Mañana' }).click();
+  await page.getByRole('link', { name: 'Mañana' }).click();
   await expect.poll(() => getSearchParam(page.url(), 'period')).toBe('morning');
 
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Mañana' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('link', { name: 'Mañana' })).toHaveAttribute('aria-current', 'page');
 });
