@@ -39,8 +39,8 @@ export function BetaBanner() {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="hidden shrink-0 text-sm sm:inline" aria-hidden="true">📱</span>
           <p className="min-w-0 text-xs text-[var(--foreground)]">
-            <span className="font-bold">Nueva app Bici Radar en beta</span>
-            <span className="text-[var(--muted)]"> &mdash; Disponible en Android e iOS.</span>
+            <span className="font-bold">Bici Radar ya esta disponible en iOS</span>
+            <span className="text-[var(--muted)]"> &mdash; Android sigue en acceso para testers desde Google Group.</span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -48,7 +48,7 @@ export function BetaBanner() {
             href={appRoutes.beta()}
             className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
           >
-            Unirse a la beta
+            Ver como instalar
           </Link>
           <button
             type="button"
