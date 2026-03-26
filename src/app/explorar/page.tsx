@@ -9,6 +9,7 @@ import {
   fetchStatus,
 } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { searchGlobalContent } from '@/lib/global-search';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes } from '@/lib/routes';
@@ -30,18 +31,35 @@ export const metadata: Metadata = buildPageMetadata({
   path: appRoutes.explore(),
 });
 
-export default async function ExploreHubPage() {
+type ExploreHubPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getFirstSearchParam(
+  value: string | string[] | undefined
+): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? '';
+  }
+
+  return value ?? '';
+}
+
+export default async function ExploreHubPage({ searchParams }: ExploreHubPageProps) {
   const nowIso = new Date().toISOString();
   const cityName = getCityName();
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const searchQuery = getFirstSearchParam(resolvedSearchParams.q).trim();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Explorar',
     href: appRoutes.explore(),
   });
 
-  const [dataset, status, availableMonths] = await Promise.all([
+  const [dataset, status, availableMonths, searchResults] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
     fetchStatus().catch(() => buildFallbackStatus(nowIso)),
     fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
+    searchQuery ? searchGlobalContent(searchQuery) : Promise.resolve(null),
   ]);
 
   const latestMonth = availableMonths.months.filter(isValidMonthKey)[0] ?? null;
@@ -120,9 +138,88 @@ export default async function ExploreHubPage() {
             </Link>
           </div>
 
-          <PublicSearchForm />
+          <PublicSearchForm defaultQuery={searchQuery} />
         </div>
       </header>
+
+      {searchResults ? (
+        <section className="dashboard-card">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+                Busqueda federada
+              </p>
+              <h2 className="text-xl font-black text-[var(--foreground)]">
+                Resultados para &quot;{searchResults.query}&quot;
+              </h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                El buscador cruza estaciones, barrios, informes, paginas publicas y endpoints API.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+              <span className="kpi-chip">{searchResults.totalMatches} coincidencias</span>
+              <Link
+                href={appRoutes.explore()}
+                className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              >
+                Limpiar busqueda
+              </Link>
+            </div>
+          </div>
+
+          {searchResults.totalMatches === 0 ? (
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-sm text-[var(--muted)]">
+              No hemos encontrado coincidencias exactas para esta consulta. Prueba con el nombre de
+              una estacion, un barrio, un mes como &quot;2026-03&quot; o un endpoint como
+              &quot;/api/status&quot;.
+            </div>
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-2">
+              {searchResults.groups.map((group) => (
+                <article key={group.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+                        {group.title}
+                      </p>
+                      <h3 className="text-lg font-black text-[var(--foreground)]">
+                        {group.results.length}
+                      </h3>
+                    </div>
+                    <span className="text-xs text-[var(--muted)]">
+                      {group.results.length > 0 ? 'Top resultados' : group.emptyLabel}
+                    </span>
+                  </div>
+
+                  {group.results.length > 0 ? (
+                    <div className="mt-4 space-y-3">
+                      {group.results.map((result) => (
+                        <Link
+                          key={result.id}
+                          href={result.href}
+                          className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-[var(--foreground)]">
+                              {result.title}
+                            </p>
+                            <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
+                              {result.badge}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
+                            {result.description}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-4">
         <article className="dashboard-card">

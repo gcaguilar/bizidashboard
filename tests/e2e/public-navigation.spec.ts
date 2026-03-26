@@ -8,7 +8,13 @@ test('public navigation keeps canonical routes, redirects and breadcrumbs aligne
   await page.goto('/inicio');
   await expect.poll(() => getPathname(page.url())).toBe('/');
 
-  await page.getByRole('link', { name: 'Abrir hub Explorar' }).click();
+  await page.getByLabel('Buscador global').fill('api status');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+  await expect.poll(() => getPathname(page.url())).toBe('/explorar');
+  await expect(page.getByText('Resultados para "api status"')).toBeVisible();
+  await expect(page.getByText('GET /api/status')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Limpiar busqueda' }).click();
   await expect.poll(() => getPathname(page.url())).toBe('/explorar');
 
   let breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });

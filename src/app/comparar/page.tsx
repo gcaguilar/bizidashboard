@@ -22,14 +22,34 @@ export const metadata: Metadata = buildPageMetadata({
   path: appRoutes.compare(),
 });
 
-export default async function ComparePage() {
+type ComparePageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getFirstSearchParam(
+  value: string | string[] | undefined
+): string | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+export default async function ComparePage({ searchParams }: ComparePageProps) {
   const cityName = getCityName();
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Comparar',
     href: appRoutes.compare(),
   });
   const data = await getComparisonHubData();
   const comparisonCount = data.sections.reduce((count, section) => count + section.cards.length, 0);
+  const initialQuery = {
+    dimensionId: getFirstSearchParam(resolvedSearchParams.dimension),
+    leftId: getFirstSearchParam(resolvedSearchParams.left),
+    rightId: getFirstSearchParam(resolvedSearchParams.right),
+  };
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
@@ -108,7 +128,7 @@ export default async function ComparePage() {
         />
       ) : null}
 
-      <InteractiveComparePanel data={data.interactive} />
+      <InteractiveComparePanel data={data.interactive} initialQuery={initialQuery} />
 
       <section className="grid gap-4 md:grid-cols-3">
         {data.sections.map((section) => (

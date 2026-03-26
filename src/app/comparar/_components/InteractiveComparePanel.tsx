@@ -1,15 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   InteractiveComparisonData,
   InteractiveComparisonDimension,
   InteractiveComparisonOption,
 } from '@/lib/comparison-hub';
+import { appRoutes } from '@/lib/routes';
 
 type InteractiveComparePanelProps = {
   data: InteractiveComparisonData;
+  initialQuery?: {
+    dimensionId?: string | null;
+    leftId?: string | null;
+    rightId?: string | null;
+  };
 };
 
 type SelectionState = Record<
@@ -46,8 +53,22 @@ function resolveOption(
   return dimension.options[fallbackIndex] ?? dimension.options[0] ?? null;
 }
 
-function buildInitialSelectionState(data: InteractiveComparisonData): SelectionState {
-  return data.dimensions.reduce<SelectionState>((accumulator, dimension) => {
+function resolveDimension(
+  data: InteractiveComparisonData,
+  requestedId: string | null | undefined
+): InteractiveComparisonDimension | null {
+  return (
+    data.dimensions.find((dimension) => dimension.id === requestedId) ??
+    data.dimensions[0] ??
+    null
+  );
+}
+
+function buildInitialSelectionState(
+  data: InteractiveComparisonData,
+  initialQuery?: InteractiveComparePanelProps['initialQuery']
+): SelectionState {
+  const initialState = data.dimensions.reduce<SelectionState>((accumulator, dimension) => {
     accumulator[dimension.id] = {
       leftId: dimension.defaultLeftId ?? dimension.options[0]?.id ?? '',
       rightId:
@@ -58,15 +79,49 @@ function buildInitialSelectionState(data: InteractiveComparisonData): SelectionS
     };
     return accumulator;
   }, {});
+
+  const requestedDimension = resolveDimension(data, initialQuery?.dimensionId);
+
+  if (!requestedDimension) {
+    return initialState;
+  }
+
+  const requestedLeftId =
+    resolveOption(requestedDimension, initialQuery?.leftId, 0)?.id ??
+    initialState[requestedDimension.id]?.leftId ??
+    '';
+  const requestedRightId =
+    resolveOption(requestedDimension, initialQuery?.rightId, 1)?.id ??
+    initialState[requestedDimension.id]?.rightId ??
+    requestedLeftId;
+
+  return {
+    ...initialState,
+    [requestedDimension.id]: {
+      leftId: requestedLeftId,
+      rightId: requestedRightId,
+    },
+  };
 }
 
-export function InteractiveComparePanel({ data }: InteractiveComparePanelProps) {
-  const [activeDimensionId, setActiveDimensionId] = useState(
-    data.defaultDimensionId ?? data.dimensions[0]?.id ?? ''
+export function InteractiveComparePanel({
+  data,
+  initialQuery,
+}: InteractiveComparePanelProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
+  const [activeDimensionId, setActiveDimensionId] = useState(() =>
+    resolveDimension(data, initialQuery?.dimensionId)?.id ??
+    data.defaultDimensionId ??
+    data.dimensions[0]?.id ??
+    ''
   );
   const [selectionState, setSelectionState] = useState<SelectionState>(() =>
-    buildInitialSelectionState(data)
+    buildInitialSelectionState(data, initialQuery)
   );
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const activeDimension = useMemo(
     () =>
@@ -131,6 +186,64 @@ export function InteractiveComparePanel({ data }: InteractiveComparePanelProps) 
           : `Ventaja absoluta ${formatSignedNumber(absoluteDelta)} y relativa ${formatPercentDelta(ratioDelta)}.`,
     };
   }, [activeDimension, leftOption, rightOption]);
+
+  const shareHref = useMemo(() => {
+    if (!activeDimension || !leftOption || !rightOption) {
+      return appRoutes.compare();
+    }
+
+    return appRoutes.compare({
+      dimension: activeDimension.id,
+      left: leftOption.id,
+      right: rightOption.id,
+    });
+  }, [activeDimension, leftOption, rightOption]);
+
+  useEffect(() => {
+    if (!activeDimension || !leftOption || !rightOption) {
+      return;
+    }
+
+    const currentDimension = searchParams.get('dimension');
+    const currentLeft = searchParams.get('left');
+    const currentRight = searchParams.get('right');
+
+    if (
+      currentDimension === activeDimension.id &&
+      currentLeft === leftOption.id &&
+      currentRight === rightOption.id
+    ) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set('dimension', activeDimension.id);
+    nextParams.set('left', leftOption.id);
+    nextParams.set('right', rightOption.id);
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [
+    activeDimension,
+    leftOption,
+    pathname,
+    rightOption,
+    router,
+    searchParams,
+    searchParamsKey,
+  ]);
+
+  useEffect(() => {
+    if (copyState === 'idle') {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCopyState('idle');
+    }, 2000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [copyState]);
 
   if (!activeDimension || !leftOption || !rightOption) {
     return (
@@ -256,6 +369,48 @@ export function InteractiveComparePanel({ data }: InteractiveComparePanelProps) 
           </article>
         ))}
       </div>
+
+      <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+          URL compartible
+        </p>
+        <p className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 font-mono text-xs text-[var(--foreground)]">
+          {shareHref}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const absoluteUrl =
+                  typeof window === 'undefined'
+                    ? shareHref
+                    : new URL(shareHref, window.location.origin).toString();
+                await navigator.clipboard.writeText(absoluteUrl);
+                setCopyState('copied');
+              } catch {
+                setCopyState('error');
+              }
+            }}
+            className="inline-flex rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
+          >
+            Copiar enlace
+          </button>
+          <Link
+            href={shareHref}
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          >
+            Abrir esta seleccion
+          </Link>
+        </div>
+        {copyState !== 'idle' ? (
+          <p className="mt-2 text-xs text-[var(--muted)]">
+            {copyState === 'copied'
+              ? 'Enlace copiado al portapapeles.'
+              : 'No se pudo copiar automaticamente el enlace.'}
+          </p>
+        ) : null}
+      </article>
 
       <article className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/8 p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">

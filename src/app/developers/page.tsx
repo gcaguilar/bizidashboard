@@ -11,6 +11,7 @@ import {
 } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
+import { buildDeveloperEndpointAnchorId } from '@/lib/global-search';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
@@ -282,7 +283,11 @@ export default async function DevelopersPage() {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {endpointDocs.map((endpoint) => (
-            <article key={`${endpoint.method}-${endpoint.path}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+            <article
+              key={`${endpoint.method}-${endpoint.path}`}
+              id={buildDeveloperEndpointAnchorId(endpoint.path, endpoint.method)}
+              className="scroll-mt-24 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4"
+            >
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                 {endpoint.method}
               </p>

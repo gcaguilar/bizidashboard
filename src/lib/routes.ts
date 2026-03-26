@@ -69,12 +69,22 @@ export const appRoutes = {
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
   biciradar: () => '/biciradar',
-  compare: () => '/comparar',
+  compare: (params?: {
+    dimension?: string | null;
+    left?: string | null;
+    right?: string | null;
+  }) =>
+    buildQuery('/comparar', {
+      dimension: params?.dimension,
+      left: params?.left,
+      right: params?.right,
+    }),
   developers: () => '/developers',
   developersAlias: () => '/developers',
   helpAlias: () => '/ayuda',
   methodologyAlias: () => '/metodologia',
-  explore: () => '/explorar',
+  explore: (params?: { q?: string | null }) =>
+    buildQuery('/explorar', { q: params?.q }),
   reports: () => '/informes',
   reportMonth: (month: string) => `/informes/${encodeSegment(month)}`,
   status: () => '/estado',

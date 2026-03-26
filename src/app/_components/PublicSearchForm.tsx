@@ -3,15 +3,19 @@ import { appRoutes } from '@/lib/routes';
 type PublicSearchFormProps = {
   className?: string;
   placeholder?: string;
+  defaultQuery?: string;
+  buttonLabel?: string;
 };
 
 export function PublicSearchForm({
   className,
-  placeholder = 'Busca una estacion, un barrio o un identificador',
+  placeholder = 'Busca estaciones, barrios, informes o endpoints API',
+  defaultQuery = '',
+  buttonLabel = 'Buscar',
 }: PublicSearchFormProps) {
   return (
     <form
-      action={appRoutes.dashboard()}
+      action={appRoutes.explore()}
       method="get"
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3 ${className ?? ''}`.trim()}
     >
@@ -23,6 +27,7 @@ export function PublicSearchForm({
           id="public-search"
           name="q"
           type="search"
+          defaultValue={defaultQuery}
           placeholder={placeholder}
           className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
         />
@@ -30,7 +35,7 @@ export function PublicSearchForm({
           type="submit"
           className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
         >
-          Abrir en dashboard
+          {buttonLabel}
         </button>
       </div>
     </form>
