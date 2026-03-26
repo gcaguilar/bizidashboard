@@ -39,6 +39,7 @@ test('public search and explore hub keep canonical routes aligned', async ({ pag
 test('compare hub loads with canonical route and breadcrumbs', async ({ page }) => {
   await page.goto('/comparar', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => getPathname(page.url())).toBe('/comparar');
+  await expect.poll(() => getSearchParam(page.url(), 'dimension')).toBeNull();
 
   const breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumbs).toContainText('Comparar');

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   InteractiveComparisonData,
@@ -108,11 +108,7 @@ export function InteractiveComparePanel({
   data,
   initialQuery,
 }: InteractiveComparePanelProps) {
-  const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchParamsKey = searchParams.toString();
-  const hasHandledInitialUrlSync = useRef(false);
   const [activeDimensionId, setActiveDimensionId] = useState(() =>
     resolveDimension(data, initialQuery?.dimensionId)?.id ??
     data.defaultDimensionId ??
@@ -123,6 +119,7 @@ export function InteractiveComparePanel({
     buildInitialSelectionState(data, initialQuery)
   );
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const lastSyncedHref = useRef<string | null>(null);
 
   const activeDimension = useMemo(
     () =>
@@ -200,50 +197,23 @@ export function InteractiveComparePanel({
     });
   }, [activeDimension, leftOption, rightOption]);
 
-  useEffect(() => {
-    if (!activeDimension || !leftOption || !rightOption) {
+  function syncCompareSelection(
+    dimension: InteractiveComparisonDimension,
+    selection: { leftId: string; rightId: string }
+  ) {
+    const nextHref = appRoutes.compare({
+      dimension: dimension.id,
+      left: selection.leftId,
+      right: selection.rightId,
+    });
+
+    if (lastSyncedHref.current === nextHref) {
       return;
     }
 
-    const currentDimension = searchParams.get('dimension');
-    const currentLeft = searchParams.get('left');
-    const currentRight = searchParams.get('right');
-
-    // Keep the clean canonical URL on first load when no explicit comparison
-    // has been requested yet. We only write query params after user changes or
-    // when we need to normalize an existing partial/invalid query.
-    if (!hasHandledInitialUrlSync.current) {
-      hasHandledInitialUrlSync.current = true;
-
-      if (!currentDimension && !currentLeft && !currentRight) {
-        return;
-      }
-    }
-
-    if (
-      currentDimension === activeDimension.id &&
-      currentLeft === leftOption.id &&
-      currentRight === rightOption.id
-    ) {
-      return;
-    }
-
-    const nextParams = new URLSearchParams(searchParams.toString());
-    nextParams.set('dimension', activeDimension.id);
-    nextParams.set('left', leftOption.id);
-    nextParams.set('right', rightOption.id);
-
-    const nextQuery = nextParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [
-    activeDimension,
-    leftOption,
-    pathname,
-    rightOption,
-    router,
-    searchParams,
-    searchParamsKey,
-  ]);
+    lastSyncedHref.current = nextHref;
+    router.replace(nextHref, { scroll: false });
+  }
 
   useEffect(() => {
     if (copyState === 'idle') {
@@ -298,12 +268,23 @@ export function InteractiveComparePanel({
       <div className="flex flex-wrap gap-2">
         {data.dimensions.map((dimension) => {
           const isActive = dimension.id === activeDimension.id;
+          const dimensionSelection = selectionState[dimension.id] ?? {
+            leftId: dimension.defaultLeftId ?? dimension.options[0]?.id ?? '',
+            rightId:
+              dimension.defaultRightId ??
+              dimension.options[1]?.id ??
+              dimension.options[0]?.id ??
+              '',
+          };
 
           return (
             <button
               key={dimension.id}
               type="button"
-              onClick={() => setActiveDimensionId(dimension.id)}
+              onClick={() => {
+                setActiveDimensionId(dimension.id);
+                syncCompareSelection(dimension, dimensionSelection);
+              }}
               aria-pressed={isActive}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
@@ -332,18 +313,21 @@ export function InteractiveComparePanel({
               </span>
               <select
                 value={side.option.id}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextSelection = {
+                    ...(selectionState[activeDimension.id] ?? {
+                      leftId: activeDimension.defaultLeftId ?? '',
+                      rightId: activeDimension.defaultRightId ?? '',
+                    }),
+                    [side.side === 'left' ? 'leftId' : 'rightId']: event.target.value,
+                  };
+
                   setSelectionState((current) => ({
                     ...current,
-                    [activeDimension.id]: {
-                      ...(current[activeDimension.id] ?? {
-                        leftId: activeDimension.defaultLeftId ?? '',
-                        rightId: activeDimension.defaultRightId ?? '',
-                      }),
-                      [side.side === 'left' ? 'leftId' : 'rightId']: event.target.value,
-                    },
-                  }))
-                }
+                    [activeDimension.id]: nextSelection,
+                  }));
+                  syncCompareSelection(activeDimension, nextSelection);
+                }}
                 className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] outline-none"
               >
                 {activeDimension.options.map((option) => (
