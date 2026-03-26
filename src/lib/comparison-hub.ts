@@ -2,10 +2,11 @@ import 'server-only';
 
 import { prisma } from '@/lib/db';
 import { combineDataStates, type DataState } from '@/lib/data-state';
+import { fetchDistrictCollection } from '@/lib/districts';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { getDistrictSeoRows } from '@/lib/seo-districts';
+import { buildDistrictSeoRows } from '@/lib/seo-districts';
 import { getDailyDemandCurve, getMonthlyDemandCurve, getSystemHourlyProfile } from '@/analytics/queries/read';
 import {
   fetchAvailableDataMonths,
@@ -100,6 +101,45 @@ export type ComparisonHubData = {
   interactive: InteractiveComparisonData;
   sections: ComparisonSection[];
 };
+
+function buildFallbackComparisonSections(): ComparisonSection[] {
+  return [
+    {
+      id: 'current',
+      title: 'Comparativas operativas',
+      description:
+        'Lecturas directas para comparar estaciones, barrios, franjas horarias y comportamiento laboral frente al fin de semana.',
+      cards: [],
+    },
+    {
+      id: 'historical',
+      title: 'Comparativas historicas',
+      description:
+        'Cortes temporales para comparar meses, anos, periodos y grandes cambios en la red o en la demanda.',
+      cards: [],
+    },
+    {
+      id: 'changes',
+      title: 'Cambios detectados',
+      description:
+        'Deltas recientes de rankings, demanda y balance para entender si el sistema mejora, empeora o gira de lideres.',
+      cards: [],
+    },
+  ];
+}
+
+export function buildFallbackComparisonHubData(nowIso = new Date().toISOString()): ComparisonHubData {
+  return {
+    latestMonth: null,
+    generatedAt: nowIso,
+    dataState: 'no_coverage',
+    interactive: {
+      defaultDimensionId: null,
+      dimensions: [],
+    },
+    sections: buildFallbackComparisonSections(),
+  };
+}
 
 function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
@@ -212,7 +252,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
     stationsResponse,
     turnoverResponse,
     availabilityResponse,
-    districtRows,
+    districtCollection,
     monthsResponse,
     monthlySeries,
     recentDemand,
@@ -235,7 +275,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
       generatedAt: nowIso,
       dataState: 'no_coverage' as const,
     })),
-    getDistrictSeoRows().catch(() => []),
+    fetchDistrictCollection().catch(() => null),
     fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
     getMonthlyDemandCurve(24).catch(() => []),
     getDailyDemandCurve(90).catch(() => []),
@@ -243,6 +283,12 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
     getRecentHistoryRows().catch(() => []),
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
+  const districtRows = buildDistrictSeoRows({
+    stations: stationsResponse.stations,
+    districtCollection,
+    turnoverRankings: turnoverResponse.rankings,
+    availabilityRankings: availabilityResponse.rankings,
+  });
 
   const validMonths = monthsResponse.months.filter(isValidMonthKey);
   const latestMonth = validMonths[0] ?? monthlySeries[monthlySeries.length - 1]?.monthKey ?? null;
@@ -907,4 +953,19 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
       },
     ],
   };
+}
+
+export async function getComparisonHubDataWithTimeout(
+  timeoutMs = 4000
+): Promise<ComparisonHubData> {
+  const nowIso = new Date().toISOString();
+
+  return Promise.race([
+    getComparisonHubData(),
+    new Promise<ComparisonHubData>((resolve) => {
+      setTimeout(() => {
+        resolve(buildFallbackComparisonHubData(nowIso));
+      }, timeoutMs);
+    }),
+  ]);
 }

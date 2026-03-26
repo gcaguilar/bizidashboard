@@ -1,8 +1,13 @@
 import 'server-only';
 
 import { cache } from 'react';
+import type { RankingRow, StationSnapshot } from '@/lib/api';
 import { fetchRankings, fetchStations } from '@/lib/api';
-import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import {
+  buildStationDistrictMap,
+  fetchDistrictCollection,
+  type DistrictCollection,
+} from '@/lib/districts';
 
 export type DistrictSeoStation = {
   stationId: string;
@@ -35,43 +40,31 @@ export function slugifyDistrictName(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export const getDistrictSeoRows = cache(async (): Promise<DistrictSeoRow[]> => {
-  const stationsResponse = await fetchStations().catch(() => ({
-    stations: [],
-    generatedAt: new Date().toISOString(),
-  }));
-  const stationCount = Math.max(stationsResponse.stations.length, 1);
-  const [districtCollection, turnoverResponse, availabilityResponse] = await Promise.all([
-    fetchDistrictCollection().catch(() => null),
-    fetchRankings('turnover', stationCount).catch(() => ({
-      type: 'turnover' as const,
-      limit: stationCount,
-      rankings: [],
-      generatedAt: new Date().toISOString(),
-    })),
-    fetchRankings('availability', stationCount).catch(() => ({
-      type: 'availability' as const,
-      limit: stationCount,
-      rankings: [],
-      generatedAt: new Date().toISOString(),
-    })),
-  ]);
-
+export function buildDistrictSeoRows({
+  stations,
+  districtCollection,
+  turnoverRankings,
+  availabilityRankings,
+}: {
+  stations: StationSnapshot[];
+  districtCollection: DistrictCollection | null;
+  turnoverRankings: RankingRow[];
+  availabilityRankings: RankingRow[];
+}): DistrictSeoRow[] {
   if (!districtCollection) {
     return [];
   }
 
-  const stationDistrictMap = buildStationDistrictMap(stationsResponse.stations, districtCollection);
+  const stationDistrictMap = buildStationDistrictMap(stations, districtCollection);
   const stationTurnoverMap = new Map(
-    turnoverResponse.rankings.map((row) => [row.stationId, Number(row.turnoverScore)])
+    turnoverRankings.map((row) => [row.stationId, Number(row.turnoverScore)])
   );
   const stationAvailabilityMap = new Map(
-    availabilityResponse.rankings.map((row) => [row.stationId, Number(row.emptyHours) + Number(row.fullHours)])
+    availabilityRankings.map((row) => [row.stationId, Number(row.emptyHours) + Number(row.fullHours)])
   );
-
   const groupedDistricts = new Map<string, DistrictSeoRow>();
 
-  for (const station of stationsResponse.stations) {
+  for (const station of stations) {
     const districtName = stationDistrictMap.get(station.id);
 
     if (!districtName) {
@@ -134,6 +127,36 @@ export const getDistrictSeoRows = cache(async (): Promise<DistrictSeoRow[]> => {
         right.stationCount - left.stationCount ||
         left.name.localeCompare(right.name, 'es')
     );
+}
+
+export const getDistrictSeoRows = cache(async (): Promise<DistrictSeoRow[]> => {
+  const stationsResponse = await fetchStations().catch(() => ({
+    stations: [],
+    generatedAt: new Date().toISOString(),
+  }));
+  const stationCount = Math.max(stationsResponse.stations.length, 1);
+  const [districtCollection, turnoverResponse, availabilityResponse] = await Promise.all([
+    fetchDistrictCollection().catch(() => null),
+    fetchRankings('turnover', stationCount).catch(() => ({
+      type: 'turnover' as const,
+      limit: stationCount,
+      rankings: [],
+      generatedAt: new Date().toISOString(),
+    })),
+    fetchRankings('availability', stationCount).catch(() => ({
+      type: 'availability' as const,
+      limit: stationCount,
+      rankings: [],
+      generatedAt: new Date().toISOString(),
+    })),
+  ]);
+
+  return buildDistrictSeoRows({
+    stations: stationsResponse.stations,
+    districtCollection,
+    turnoverRankings: turnoverResponse.rankings,
+    availabilityRankings: availabilityResponse.rankings,
+  });
 });
 
 export const getDistrictSeoRowBySlug = cache(async (slug: string): Promise<DistrictSeoRow | null> => {

@@ -137,21 +137,38 @@ export function isDistrictCollection(value: unknown): value is DistrictCollectio
   });
 }
 
+async function loadDistrictCollection(): Promise<DistrictCollection | null> {
+  if (typeof window === 'undefined') {
+    const [{ readFile }, path] = await Promise.all([
+      import('node:fs/promises'),
+      import('node:path'),
+    ]);
+    const geoJsonPath = path.join(
+      process.cwd(),
+      'public',
+      DISTRICTS_GEOJSON_URL.replace(/^\/+/, '')
+    );
+    const payload = JSON.parse(await readFile(geoJsonPath, 'utf8')) as unknown;
+    return isDistrictCollection(payload) ? payload : null;
+  }
+
+  const response = await fetch(DISTRICTS_GEOJSON_URL);
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const payload = (await response.json()) as unknown;
+  return isDistrictCollection(payload) ? payload : null;
+}
+
 export async function fetchDistrictCollection(signal?: AbortSignal): Promise<DistrictCollection | null> {
   if (districtCollectionCache) {
     return districtCollectionCache;
   }
 
   if (!districtCollectionPromise) {
-    districtCollectionPromise = fetch(DISTRICTS_GEOJSON_URL)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-        return isDistrictCollection(payload) ? payload : null;
-      })
+    districtCollectionPromise = loadDistrictCollection()
       .then((collection) => {
         districtCollectionCache = collection;
         return collection;
