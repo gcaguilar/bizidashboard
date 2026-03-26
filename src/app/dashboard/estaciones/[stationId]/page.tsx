@@ -11,12 +11,12 @@ import {
   fetchStations,
   type AlertsResponse,
   type RankingsResponse,
-  type StationsResponse,
 } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { Heatmap } from '../../_components/Heatmap';
@@ -62,10 +62,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
   const stationId = decodeStationId(encodedStationId);
   const nowIso = new Date().toISOString();
 
-  const fallbackStations: StationsResponse = {
-    stations: [],
-    generatedAt: nowIso,
-  };
+  const fallbackStations = buildFallbackStations(nowIso);
   const fallbackAlerts: AlertsResponse = {
     limit: 20,
     alerts: [],
@@ -76,12 +73,14 @@ export default async function StationDetailPage({ params, searchParams }: Statio
     limit: 50,
     rankings: [],
     generatedAt: nowIso,
+    dataState: 'no_coverage',
   };
   const fallbackAvailability: RankingsResponse = {
     type: 'availability',
     limit: 50,
     rankings: [],
     generatedAt: nowIso,
+    dataState: 'no_coverage',
   };
 
   const [stations, availableMonths] = await Promise.all([

@@ -5,8 +5,10 @@ import {
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { resolveMobilityDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getSharedDatasetSnapshot } from '@/services/shared-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error:
           'Invalid days parameters. mobilityDays and demandDays must be 1..365.',
+        dataState: 'error',
       },
       { status: 400 }
     );
@@ -64,10 +67,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}:month=${monthKey ?? 'all'}`;
     const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-      const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
+      const [hourlySignals, dailyDemand, systemHourlyProfile, dataset] = await Promise.all([
         getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined),
         getDailyDemandCurve(demandDays, monthKey ?? undefined),
         getSystemHourlyProfile(mobilityDays, monthKey ?? undefined),
+        getSharedDatasetSnapshot().catch(() => null),
       ]);
 
       return {
@@ -96,6 +100,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           sampleCount: Number(row.sampleCount),
         })),
         generatedAt: new Date().toISOString(),
+        dataState: resolveMobilityDataState({
+          dailyDemandCount: dailyDemand.length,
+          hourlySignalCount: hourlySignals.length,
+          requestedDemandDays: demandDays,
+          coverage: dataset?.coverage,
+          status: dataset?.pipeline,
+        }),
       };
     });
 
@@ -122,6 +133,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Failed to fetch mobility insights',
         timestamp: new Date().toISOString(),
+        dataState: 'error',
       },
       { status: 500 }
     );

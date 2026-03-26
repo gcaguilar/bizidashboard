@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { fetchStations } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
 import { StationsDirectoryClient } from './_components/StationsDirectoryClient';
 
 export const dynamic = 'force-dynamic';
@@ -14,10 +15,14 @@ export const metadata: Metadata = buildPageMetadata({
 });
 
 export default async function StationsDirectoryPage() {
-  const stations = await fetchStations().catch(() => ({
-    stations: [],
-    generatedAt: new Date().toISOString(),
-  }));
+  const stations = await fetchStations().catch(() =>
+    buildFallbackStations(new Date().toISOString())
+  );
 
-  return <StationsDirectoryClient stations={stations.stations} />;
+  return (
+    <StationsDirectoryClient
+      stations={stations.stations}
+      dataState={stations.dataState}
+    />
+  );
 }

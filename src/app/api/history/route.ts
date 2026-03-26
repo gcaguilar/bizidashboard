@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
+import { resolveHistoryDataState } from '@/lib/data-state';
 import { prisma } from '@/lib/db';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { getHistoryMetadata } from '@/services/shared-data';
+import { getHistoryMetadata, getPipelineStatusSummary } from '@/services/shared-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
   try {
     const format = request ? new URL(request.url).searchParams.get('format') : null;
     const payload = await withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
-      const [historyMeta, dailyHistoryRows] = await Promise.all([
+      const [historyMeta, dailyHistoryRows, status] = await Promise.all([
         getHistoryMetadata(),
         prisma.$queryRaw<DailyHistoryRow[]>`
           SELECT
@@ -55,19 +56,28 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
           GROUP BY TO_CHAR("bucketStart", 'YYYY-MM-DD')
           ORDER BY day ASC;
         `,
+        getPipelineStatusSummary().catch(() => null),
       ]);
+
+      const history = dailyHistoryRows.map((row) => ({
+        day: row.day,
+        demandScore: Number(row.demandScore ?? 0),
+        avgOccupancy: Number(row.avgOccupancy ?? 0),
+        balanceIndex: Number(row.balanceIndex ?? 0),
+        sampleCount: Number(row.sampleCount ?? 0),
+      }));
 
       return {
         source: historyMeta.source,
         coverage: historyMeta.coverage,
-        history: dailyHistoryRows.map((row) => ({
-          day: row.day,
-          demandScore: Number(row.demandScore ?? 0),
-          avgOccupancy: Number(row.avgOccupancy ?? 0),
-          balanceIndex: Number(row.balanceIndex ?? 0),
-          sampleCount: Number(row.sampleCount ?? 0),
-        })),
+        history,
         generatedAt: historyMeta.generatedAt ?? new Date().toISOString(),
+        dataState: resolveHistoryDataState({
+          count: history.length,
+          coverage: historyMeta.coverage,
+          status,
+          expectedDays: 30,
+        }),
       };
     });
 
@@ -101,6 +111,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       {
         error: 'Failed to fetch historical data',
         timestamp: new Date().toISOString(),
+        dataState: 'error',
       },
       { status: 500 }
     );

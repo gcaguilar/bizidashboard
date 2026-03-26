@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { withCacheMock, getHistoryMetadataMock, queryRawMock } = vi.hoisted(() => ({
+const {
+  withCacheMock,
+  getHistoryMetadataMock,
+  getPipelineStatusSummaryMock,
+  queryRawMock,
+} = vi.hoisted(() => ({
   withCacheMock: vi.fn(),
   getHistoryMetadataMock: vi.fn(),
+  getPipelineStatusSummaryMock: vi.fn(),
   queryRawMock: vi.fn(),
 }));
 
@@ -12,6 +18,7 @@ vi.mock('@/lib/cache/cache', () => ({
 
 vi.mock('@/services/shared-data', () => ({
   getHistoryMetadata: getHistoryMetadataMock,
+  getPipelineStatusSummary: getPipelineStatusSummaryMock,
 }));
 
 vi.mock('@/lib/db', () => ({
@@ -26,10 +33,22 @@ describe('GET /api/history', () => {
   beforeEach(() => {
     withCacheMock.mockReset();
     getHistoryMetadataMock.mockReset();
+    getPipelineStatusSummaryMock.mockReset();
     queryRawMock.mockReset();
 
     withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
       return fetcher();
+    });
+
+    getPipelineStatusSummaryMock.mockResolvedValue({
+      pipeline: {
+        healthStatus: 'healthy',
+      },
+      quality: {
+        freshness: {
+          isFresh: true,
+        },
+      },
     });
   });
 
@@ -82,6 +101,7 @@ describe('GET /api/history', () => {
         sampleCount: 144,
       },
     ]);
+    expect(payload.dataState).toBe('partial');
   });
 
   it('exports the history as csv when requested', async () => {
@@ -128,5 +148,6 @@ describe('GET /api/history', () => {
 
     expect(response.status).toBe(500);
     expect(payload.error).toBe('Failed to fetch historical data');
+    expect(payload.dataState).toBe('error');
   });
 });

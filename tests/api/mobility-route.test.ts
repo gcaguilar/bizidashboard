@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   getDailyDemandCurveMock,
+  getSharedDatasetSnapshotMock,
   getHourlyMobilitySignalsMock,
   getSystemHourlyProfileMock,
   withCacheMock,
 } = vi.hoisted(() => ({
   getDailyDemandCurveMock: vi.fn(),
+  getSharedDatasetSnapshotMock: vi.fn(),
   getHourlyMobilitySignalsMock: vi.fn(),
   getSystemHourlyProfileMock: vi.fn(),
   withCacheMock: vi.fn(),
@@ -22,14 +24,38 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
+vi.mock('@/services/shared-data', () => ({
+  getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
+}));
+
 import { GET } from '@/app/api/mobility/route';
 
 describe('GET /api/mobility', () => {
   beforeEach(() => {
     getDailyDemandCurveMock.mockReset();
+    getSharedDatasetSnapshotMock.mockReset();
     getHourlyMobilitySignalsMock.mockReset();
     getSystemHourlyProfileMock.mockReset();
     withCacheMock.mockReset();
+
+    getSharedDatasetSnapshotMock.mockResolvedValue({
+      coverage: {
+        generatedAt: '2026-03-08T00:00:00.000Z',
+        lastRecordedAt: '2026-03-08T00:00:00.000Z',
+        totalDays: 90,
+        totalSamples: 1440,
+      },
+      pipeline: {
+        pipeline: {
+          healthStatus: 'healthy',
+        },
+        quality: {
+          freshness: {
+            isFresh: true,
+          },
+        },
+      },
+    });
   });
 
   it('returns mobility payload with hourly signals', async () => {
@@ -79,6 +105,7 @@ describe('GET /api/mobility', () => {
     expect(payload.hourlySignals).toHaveLength(1);
     expect(payload.dailyDemand).toHaveLength(1);
     expect(payload.systemHourlyProfile).toHaveLength(1);
+    expect(payload.dataState).toBe('partial');
   });
 
   it('passes selected month through cache key and query calls', async () => {
@@ -104,6 +131,7 @@ describe('GET /api/mobility', () => {
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
     expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, '2026-03');
     expect(payload.selectedMonth).toBe('2026-03');
+    expect(payload.dataState).toBe('empty');
   });
 
   it('returns 400 on invalid days query params', async () => {
@@ -114,6 +142,7 @@ describe('GET /api/mobility', () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toContain('Invalid days parameters');
+    expect(payload.dataState).toBe('error');
     expect(withCacheMock).not.toHaveBeenCalled();
   });
 
@@ -125,5 +154,6 @@ describe('GET /api/mobility', () => {
 
     expect(response.status).toBe(500);
     expect(payload.error).toBe('Failed to fetch mobility insights');
+    expect(payload.dataState).toBe('error');
   });
 });

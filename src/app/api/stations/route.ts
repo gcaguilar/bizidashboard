@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { resolveStationsDataState } from '@/lib/data-state';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getSharedDatasetSnapshot } from '@/services/shared-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,10 +33,18 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
   try {
     const format = request ? new URL(request.url).searchParams.get('format') : null;
     const payload = await withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
-      const stations = await getStationsWithLatestStatus();
+      const [stations, dataset] = await Promise.all([
+        getStationsWithLatestStatus(),
+        getSharedDatasetSnapshot().catch(() => null),
+      ]);
       return {
         stations,
         generatedAt: new Date().toISOString(),
+        dataState: resolveStationsDataState({
+          count: stations.length,
+          coverage: dataset?.coverage,
+          status: dataset?.pipeline,
+        }),
       };
     });
 
@@ -72,6 +82,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
       {
         error: 'Failed to fetch stations',
         timestamp: new Date().toISOString(),
+        dataState: 'error',
       },
       { status: 500 }
     );

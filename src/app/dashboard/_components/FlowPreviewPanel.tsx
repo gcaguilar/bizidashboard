@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationSnapshot } from '@/lib/api';
+import { resolveDataState } from '@/lib/data-state';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -32,6 +34,8 @@ type RouteRow = {
 
 export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
+  const [isLoadingDistricts, setIsLoadingDistricts] = useState(true);
+  const [districtError, setDistrictError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,6 +43,8 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
 
     const loadDistricts = async () => {
       try {
+        setIsLoadingDistricts(true);
+        setDistrictError(null);
         const payload = await fetchDistrictCollection(controller.signal);
 
         if (!payload || !isActive) {
@@ -56,6 +62,13 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           operation: 'loadDistricts',
         });
         console.error('[Dashboard] No se pudo cargar distritos para preview de flujo.', error);
+        if (isActive) {
+          setDistrictError('No se pudieron cargar los distritos para el resumen de flujo.');
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingDistricts(false);
+        }
       }
     };
 
@@ -128,6 +141,13 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
   }, [hourlySignals, stationDistrictMap]);
 
   const topFlowValue = Math.max(1, ...topRoutes.map((route) => route.flow));
+  const flowPreviewState = resolveDataState({
+    isLoading: isLoadingDistricts,
+    error: districtError,
+    hasCoverage: hourlySignals.length > 0,
+    hasData: topRoutes.length > 0,
+  });
+  const canRenderRoutes = flowPreviewState === 'ok';
 
   return (
     <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-2">
@@ -166,10 +186,20 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           </Link>
         </div>
 
-        {topRoutes.length === 0 ? (
-          <p className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">
-            Sin datos de flujo para el periodo activo.
-          </p>
+        {!canRenderRoutes ? (
+          <DataStateNotice
+            state={flowPreviewState}
+            subject="el resumen de flujo"
+            description={
+              districtError ??
+              (isLoadingDistricts
+                ? 'Estamos cargando la geometria de barrios para estimar corredores.'
+                : 'No hay suficientes señales horarias para estimar corredores en esta ventana.')
+            }
+            href={appRoutes.status()}
+            actionLabel="Ver estado"
+            compact
+          />
         ) : (
           topRoutes.map((route) => {
             const flowPct = Math.max(8, Math.round((route.flow / topFlowValue) * 100));

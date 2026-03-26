@@ -20,6 +20,7 @@ const {
   withCacheMock,
   getSharedDatasetSnapshotMock,
   getHistoryMetadataMock,
+  getPipelineStatusSummaryMock,
   getCoverageSummaryMock,
   queryRawMock,
   stationFindManyMock,
@@ -27,6 +28,7 @@ const {
   withCacheMock: vi.fn(),
   getSharedDatasetSnapshotMock: vi.fn(),
   getHistoryMetadataMock: vi.fn(),
+  getPipelineStatusSummaryMock: vi.fn(),
   getCoverageSummaryMock: vi.fn(),
   queryRawMock: vi.fn(),
   stationFindManyMock: vi.fn(),
@@ -44,6 +46,7 @@ vi.mock('@/services/shared-data', async () => {
     getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
     getCoverageSummary: getCoverageSummaryMock,
     getHistoryMetadata: getHistoryMetadataMock,
+    getPipelineStatusSummary: getPipelineStatusSummaryMock,
   };
 });
 
@@ -76,6 +79,7 @@ describe('shared data consistency', () => {
     withCacheMock.mockReset();
     getSharedDatasetSnapshotMock.mockReset();
     getHistoryMetadataMock.mockReset();
+    getPipelineStatusSummaryMock.mockReset();
     getCoverageSummaryMock.mockReset();
     queryRawMock.mockReset();
     stationFindManyMock.mockReset();
@@ -136,6 +140,40 @@ describe('shared data consistency', () => {
       source: SHARED_SOURCE,
       coverage: SHARED_COVERAGE,
       generatedAt: SHARED_COVERAGE.generatedAt,
+    });
+
+    getPipelineStatusSummaryMock.mockResolvedValue({
+      pipeline: {
+        lastSuccessfulPoll: SHARED_COVERAGE.lastRecordedAt,
+        totalRowsCollected: SHARED_COVERAGE.totalSamples,
+        pollsLast24Hours: 288,
+        validationErrors: 0,
+        consecutiveFailures: 0,
+        lastDataFreshness: true,
+        lastStationCount: SHARED_COVERAGE.totalStations,
+        averageStationsPerPoll: SHARED_COVERAGE.totalStations,
+        healthStatus: 'healthy',
+        healthReason: null,
+      },
+      quality: {
+        freshness: {
+          isFresh: true,
+          lastUpdated: SHARED_COVERAGE.lastRecordedAt,
+          maxAgeSeconds: 600,
+        },
+        volume: {
+          recentStationCount: SHARED_COVERAGE.totalStations,
+          averageStationsPerPoll: SHARED_COVERAGE.totalStations,
+          expectedRange: { min: 200, max: 500 },
+        },
+        lastCheck: SHARED_COVERAGE.lastRecordedAt,
+      },
+      system: {
+        uptime: SHARED_COVERAGE.generatedAt,
+        version: '0.1.0',
+        environment: 'test',
+      },
+      timestamp: SHARED_COVERAGE.generatedAt,
     });
 
     getCoverageSummaryMock.mockResolvedValue(SHARED_COVERAGE);
@@ -206,5 +244,28 @@ describe('shared data consistency', () => {
     expect(historyPayload.coverage).toEqual(SHARED_COVERAGE);
     expect(normalizeReportsCoverage(report.payload)).toEqual(historyPayload.coverage);
     expect(normalizeReportsCoverage(report.payload)).toEqual(dashboard.coverage);
+  });
+
+  it('keeps date boundaries monotonic across dashboard, reports, and history metadata', async () => {
+    const dashboard = await fetchSharedDatasetSnapshot();
+    const help = await fetchHistoryMetadata();
+    const report = await getDailyMobilityConclusions('2026-03');
+
+    const firstRecordedAt = Date.parse(dashboard.coverage.firstRecordedAt ?? '');
+    const lastRecordedAt = Date.parse(dashboard.coverage.lastRecordedAt ?? '');
+    const generatedAt = Date.parse(dashboard.coverage.generatedAt ?? '');
+    const reportLastDay = Date.parse(report.payload.sourceLastDay ?? '');
+
+    expect(Number.isNaN(firstRecordedAt)).toBe(false);
+    expect(Number.isNaN(lastRecordedAt)).toBe(false);
+    expect(Number.isNaN(generatedAt)).toBe(false);
+    expect(Number.isNaN(reportLastDay)).toBe(false);
+
+    expect(firstRecordedAt).toBeLessThanOrEqual(lastRecordedAt);
+    expect(lastRecordedAt).toBe(reportLastDay);
+    expect(generatedAt).toBeGreaterThanOrEqual(lastRecordedAt);
+    expect(help.generatedAt).toBe(dashboard.coverage.generatedAt);
+    expect(help.coverage.firstRecordedAt).toBe(dashboard.coverage.firstRecordedAt);
+    expect(help.coverage.lastRecordedAt).toBe(dashboard.coverage.lastRecordedAt);
   });
 });

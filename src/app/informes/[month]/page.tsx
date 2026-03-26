@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { fetchAvailableDataMonths } from '@/lib/api';
+import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import {
@@ -12,6 +14,7 @@ import {
 } from '@/lib/mobility-conclusions';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig } from '@/lib/seo-pages';
+import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const dynamicParams = false;
@@ -146,9 +149,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
     notFound();
   }
 
-  const payload = await getDailyMobilityConclusions(month)
-    .then((result) => result.payload)
-    .catch(() => buildFallbackPayload(month));
+  const nowIso = new Date().toISOString();
+  const [payload, dataset] = await Promise.all([
+    getDailyMobilityConclusions(month)
+      .then((result) => result.payload)
+      .catch(() => buildFallbackPayload(month)),
+    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+  ]);
 
   const monthLabel = formatMonthLabel(month);
   const siteUrl = getSiteUrl();
@@ -161,6 +168,21 @@ export default async function MonthlyReportPage({ params }: PageProps) {
   const currentIndex = availableMonths.indexOf(month);
   const newerMonth = currentIndex > 0 ? availableMonths[currentIndex - 1] : null;
   const olderMonth = currentIndex >= 0 && currentIndex < availableMonths.length - 1 ? availableMonths[currentIndex + 1] : null;
+  const reportDataState = combineDataStates([
+    dataset.dataState,
+    resolveDataState({
+      hasCoverage:
+        dataset.coverage.totalDays > 0 ||
+        Boolean(payload.sourceFirstDay) ||
+        Boolean(payload.sourceLastDay),
+      hasData:
+        payload.activeStations > 0 ||
+        payload.metrics.demandLast7Days > 0,
+      isPartial:
+        dataset.coverage.totalDays > 0 &&
+        dataset.coverage.totalDays < 30,
+    }),
+  ]);
   const breadcrumbs = createRootBreadcrumbs(
     {
       label: 'Informes mensuales',
@@ -230,6 +252,16 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </Link>
         </div>
       </header>
+
+      {shouldShowDataStateNotice(reportDataState) ? (
+        <DataStateNotice
+          state={reportDataState}
+          subject={`el informe de ${monthLabel}`}
+          description="Este informe usa el snapshot compartido de cobertura. Si el dataset esta parcial o antiguo, algunas comparativas del mes pueden quedarse cortas respecto a la ventana ideal."
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+        />
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-3">
         <article className="dashboard-card">

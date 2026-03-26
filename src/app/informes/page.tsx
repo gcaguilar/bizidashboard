@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { getMonthlyDemandCurve } from '@/analytics/queries/read';
-import { fetchAvailableDataMonths } from '@/lib/api';
+import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 3600;
@@ -41,14 +44,24 @@ function formatPercent(value: number | null): string {
 
 export default async function ReportsIndexPage() {
   const siteUrl = getSiteUrl();
-  const [monthsResponse, monthlySeries] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  const [monthsResponse, monthlySeries, dataset] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: new Date().toISOString() })),
     getMonthlyDemandCurve(24).catch(() => []),
+    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
 
   const months = monthsResponse.months.filter(isValidMonthKey);
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
+  const reportsDataState = combineDataStates([
+    dataset.dataState,
+    resolveDataState({
+      hasCoverage: dataset.coverage.totalDays > 0 || months.length > 0,
+      hasData: months.length > 0,
+      isPartial: months.length > 0 && monthlySeries.length < months.length,
+    }),
+  ]);
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Informes',
     href: appRoutes.reports(),
@@ -113,6 +126,16 @@ export default async function ReportsIndexPage() {
           </Link>
         </div>
       </header>
+
+      {shouldShowDataStateNotice(reportsDataState) ? (
+        <DataStateNotice
+          state={reportsDataState}
+          subject="el archivo mensual"
+          description="Los informes mensuales usan la misma cobertura compartida que la API y el dashboard. Si falta cobertura o el dataset es parcial, puede haber meses sin informe o series incompletas."
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+        />
+      ) : null}
 
       <section className="grid gap-4 md:grid-cols-3">
         <article className="dashboard-card">

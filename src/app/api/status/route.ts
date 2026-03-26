@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { resolveStatusDataState } from '@/lib/data-state'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { getPipelineStatusSummary } from '@/services/shared-data'
 
@@ -47,6 +48,10 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const format = new URL(_request.url).searchParams.get('format')
     const status = await getPipelineStatusSummary()
+    const payload = {
+      ...status,
+      dataState: resolveStatusDataState(status),
+    }
 
     if (format === 'csv') {
       return new NextResponse(toCsv(status), {
@@ -60,7 +65,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       })
     }
     
-    return NextResponse.json(status, {
+    return NextResponse.json(payload, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -82,7 +87,8 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         error: 'Failed to fetch pipeline status',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        dataState: 'error',
       },
       {
         status: 500,

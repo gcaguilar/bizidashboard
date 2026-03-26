@@ -56,6 +56,7 @@ describe('GET /api/status', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toContain('max-age=30');
     expect(payload.pipeline.totalRowsCollected).toBe(42);
+    expect(payload.dataState).toBe('ok');
   });
 
   it('returns 500 when status aggregation throws', async () => {
@@ -66,6 +67,7 @@ describe('GET /api/status', () => {
 
     expect(response.status).toBe(500);
     expect(payload.error).toBe('Failed to fetch pipeline status');
+    expect(payload.dataState).toBe('error');
   });
 
   it('exports status as csv when requested', async () => {

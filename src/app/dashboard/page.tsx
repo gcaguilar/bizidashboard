@@ -9,16 +9,17 @@ import {
   fetchStatus,
   type AlertsResponse,
   type RankingsResponse,
-  type SharedDatasetSnapshot,
-  type StationsResponse,
-  type StatusResponse,
 } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
-import { getSharedDataSource } from '@/services/shared-data';
+import {
+  buildFallbackDatasetSnapshot,
+  buildFallbackStatus,
+  buildFallbackStations,
+} from '@/lib/shared-data-fallbacks';
 import { BetaBanner } from './_components/BetaBanner';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
@@ -70,74 +71,10 @@ function isMissingTableError(error: unknown): boolean {
   return false;
 }
 
-function buildFallbackStatus(nowIso: string): StatusResponse {
-  return {
-    pipeline: {
-      lastSuccessfulPoll: null,
-      totalRowsCollected: 0,
-      pollsLast24Hours: 0,
-      validationErrors: 0,
-      consecutiveFailures: 0,
-      lastDataFreshness: false,
-      lastStationCount: 0,
-      averageStationsPerPoll: 0,
-      healthStatus: 'down',
-      healthReason: 'No se pudieron consultar las tablas de datos.',
-    },
-    quality: {
-      freshness: {
-        isFresh: false,
-        lastUpdated: null,
-        maxAgeSeconds: 600,
-      },
-      volume: {
-        recentStationCount: 0,
-        averageStationsPerPoll: 0,
-        expectedRange: { min: 200, max: 500 },
-      },
-      lastCheck: null,
-    },
-    system: {
-      uptime: nowIso,
-      version: process.env.npm_package_version ?? '0.1.0',
-      environment: process.env.NODE_ENV ?? 'production',
-    },
-    timestamp: nowIso,
-  };
-}
-
-function buildFallbackDatasetSnapshot(nowIso: string): SharedDatasetSnapshot {
-  return {
-    source: getSharedDataSource(),
-    coverage: {
-      firstRecordedAt: null,
-      lastRecordedAt: null,
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    lastUpdated: {
-      lastSampleAt: null,
-      generatedAt: nowIso,
-    },
-    stats: {
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    pipeline: buildFallbackStatus(nowIso),
-  };
-}
-
 export default async function DashboardPage() {
   const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
-  const fallbackStations: StationsResponse = {
-    stations: [],
-    generatedAt: nowIso,
-  };
+  const fallbackStations = buildFallbackStations(nowIso);
   const fallbackStatus = buildFallbackStatus(nowIso);
   const fallbackDataset = buildFallbackDatasetSnapshot(nowIso);
   const fallbackAlerts: AlertsResponse = {
@@ -150,12 +87,14 @@ export default async function DashboardPage() {
     limit: 50,
     rankings: [],
     generatedAt: nowIso,
+    dataState: 'no_coverage',
   };
   const fallbackAvailability: RankingsResponse = {
     type: 'availability',
     limit: 50,
     rankings: [],
     generatedAt: nowIso,
+    dataState: 'no_coverage',
   };
 
   const loadErrors: string[] = [];

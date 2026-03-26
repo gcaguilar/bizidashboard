@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationSnapshot } from '@/lib/api';
+import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
@@ -11,6 +14,7 @@ import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
 type StationsDirectoryClientProps = {
   stations: StationSnapshot[];
+  dataState: DataState;
 };
 
 function normalize(value: string): string {
@@ -21,7 +25,7 @@ function normalize(value: string): string {
     .trim();
 }
 
-export function StationsDirectoryClient({ stations }: StationsDirectoryClientProps) {
+export function StationsDirectoryClient({ stations, dataState }: StationsDirectoryClientProps) {
   const [query, setQuery] = useState('');
 
   const filteredStations = useMemo(() => {
@@ -36,6 +40,13 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
       return searchable.includes(normalized);
     });
   }, [query, stations]);
+
+  const directoryDataState = query.trim()
+    ? resolveDataState({
+        hasCoverage: dataState !== 'no_coverage',
+        hasData: filteredStations.length > 0,
+      })
+    : dataState;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
@@ -62,6 +73,7 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
             <GitHubRepoButton />
           </div>
         </div>
+        <CitySwitcher compact className="mt-3" />
         <label className="mt-3 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
           <input
             type="text"
@@ -72,6 +84,20 @@ export function StationsDirectoryClient({ stations }: StationsDirectoryClientPro
           />
         </label>
       </header>
+
+      {shouldShowDataStateNotice(directoryDataState) ? (
+        <DataStateNotice
+          state={directoryDataState}
+          subject="el directorio de estaciones"
+          description={
+            query.trim()
+              ? 'No hay estaciones que coincidan con la busqueda actual.'
+              : 'El directorio usa el mismo snapshot compartido que el dashboard principal.'
+          }
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+        />
+      ) : null}
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {filteredStations.map((station) => {

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 
@@ -70,6 +72,13 @@ export function DemandFlowCard({
 
   const maxDemand = Math.max(1, ...rows.map((row) => Number(row.demandScore) || 0));
   const daysWithSamples = dailyDemand.filter((row) => Number(row.sampleCount) > 0).length;
+  const demandDataState = resolveDataState({
+    hasCoverage: dailyDemand.length > 0,
+    hasData: rows.length > 0,
+    isPartial: daysWithSamples > 0 && daysWithSamples < requestedDays,
+  });
+  const canRenderChart =
+    demandDataState === 'ok' || demandDataState === 'partial';
   const yAxisTicks = [
     { value: maxDemand, color: 'var(--accent)' },
     { value: maxDemand / 2, color: 'var(--accent-soft)' },
@@ -102,10 +111,30 @@ export function DemandFlowCard({
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {demandDataState === 'partial' ? (
+        <DataStateNotice
+          state={demandDataState}
+          subject="la curva diaria"
+          description={`Hay datos reales en ${daysWithSamples}/${requestedDays} dias; el resto se rellena como 0 para mantener la comparativa.`}
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+          className="mt-4"
+          compact
+        />
+      ) : null}
+
+      {!canRenderChart ? (
         <WidgetEmptyState
-          title="Sin datos de demanda"
-          description="Aun no hay suficiente serie diaria para dibujar la evolucion de la demanda en esta ventana."
+          title={
+            demandDataState === 'no_coverage'
+              ? 'Sin cobertura diaria'
+              : 'Sin datos de demanda'
+          }
+          description={
+            demandDataState === 'no_coverage'
+              ? 'Aun no hay historico agregado suficiente para dibujar esta curva.'
+              : 'Aun no hay suficiente serie diaria para dibujar la evolucion de la demanda en esta ventana.'
+          }
           helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />
       ) : (
@@ -158,11 +187,6 @@ export function DemandFlowCard({
             <span>{formatDayLabel(rows[Math.floor(rows.length / 2)]?.day ?? '')}</span>
             <span>{formatDayLabel(rows[rows.length - 1]?.day ?? '')}</span>
           </div>
-          {daysWithSamples < requestedDays ? (
-            <p className="mt-2 text-[11px] text-[var(--muted)]">
-              Datos reales en {daysWithSamples}/{requestedDays} dias; el resto se completa como 0 por falta de historico.
-            </p>
-          ) : null}
         </>
       )}
     </section>

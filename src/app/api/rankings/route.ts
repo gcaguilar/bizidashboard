@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationRankings, type RankingType } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { resolveRankingsDataState } from '@/lib/data-state';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getSharedDatasetSnapshot } from '@/services/shared-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,14 +44,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (typeParam !== 'turnover' && typeParam !== 'availability') {
     return NextResponse.json(
-      { error: 'Invalid type. Use turnover or availability.' },
+      { error: 'Invalid type. Use turnover or availability.', dataState: 'error' },
       { status: 400 }
     );
   }
 
   if (limit === null) {
     return NextResponse.json(
-      { error: 'Invalid limit. Provide a positive integer.' },
+      { error: 'Invalid limit. Provide a positive integer.', dataState: 'error' },
       { status: 400 }
     );
   }
@@ -57,12 +59,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const cacheKey = `rankings:type=${typeParam}:limit=${limit}`;
     const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-      const rankings = await getStationRankings(typeParam as RankingType, limit);
+      const [rankings, dataset] = await Promise.all([
+        getStationRankings(typeParam as RankingType, limit),
+        getSharedDatasetSnapshot().catch(() => null),
+      ]);
       return {
         type: typeParam,
         limit,
         rankings,
         generatedAt: new Date().toISOString(),
+        dataState: resolveRankingsDataState({
+          count: rankings.length,
+          coverage: dataset?.coverage,
+          status: dataset?.pipeline,
+          requestedLimit: limit,
+        }),
       };
     });
 
@@ -100,6 +111,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         error: 'Failed to fetch rankings',
         timestamp: new Date().toISOString(),
+        dataState: 'error',
       },
       { status: 500 }
     );

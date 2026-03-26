@@ -12,8 +12,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { ChartWrapper } from './ChartWrapper';
 import type { StationSnapshot } from '@/lib/api';
+import {
+  resolveMobilityDataState,
+  shouldShowDataStateNotice,
+  type DataState,
+} from '@/lib/data-state';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -57,6 +63,7 @@ type MobilityResponse = {
   hourlySignals: MobilitySignalRow[];
   dailyDemand: DailyDemandRow[];
   generatedAt: string;
+  dataState?: DataState;
 };
 
 type DistrictTotals = {
@@ -478,6 +485,20 @@ export function MobilityInsights({
       .filter((route) => nodeNames.has(route.origin) && nodeNames.has(route.destination))
       .slice(0, 12);
   }, [activeInsights, chordNodes, topRoutes]);
+  const mobilityDataState = resolveMobilityDataState({
+    dailyDemandCount: mobilityData?.dailyDemand.length ?? 0,
+    hourlySignalCount: mobilityData?.hourlySignals.length ?? 0,
+    requestedDemandDays: demandDays,
+  });
+  const resolvedMobilityState = isLoading
+    ? 'loading'
+    : errorMessage
+      ? 'error'
+      : mobilityData?.dataState ?? mobilityDataState;
+  const canRenderInsights =
+    resolvedMobilityState === 'ok' ||
+    resolvedMobilityState === 'partial' ||
+    resolvedMobilityState === 'stale';
 
   return (
     <section className="space-y-6">
@@ -509,19 +530,26 @@ export function MobilityInsights({
         </div>
       </header>
 
-      {isLoading ? (
-        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-          Cargando insights de movilidad...
-        </p>
-      ) : errorMessage ? (
-        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-          {errorMessage}
-        </p>
-      ) : !mobilityData || !activeInsights ? (
-        <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-          Sin datos de movilidad disponibles.
-        </p>
-      ) : (
+      {shouldShowDataStateNotice(resolvedMobilityState) ? (
+        <DataStateNotice
+          state={resolvedMobilityState}
+          subject="los insights de movilidad"
+          description={
+            errorMessage ??
+            (isLoading
+              ? 'Estamos calculando flujo, rutas y demanda agregada.'
+              : resolvedMobilityState === 'partial'
+                ? 'Hay datos suficientes para analizar movilidad, pero la ventana disponible es parcial.'
+                : resolvedMobilityState === 'stale'
+                  ? 'Las curvas estan disponibles, pero el dataset actual no esta fresco.'
+                  : 'No hay datos de movilidad suficientes para esta ventana.')
+          }
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+        />
+      ) : null}
+
+      {canRenderInsights && mobilityData && activeInsights ? (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -862,7 +890,7 @@ export function MobilityInsights({
             )}
           </article>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

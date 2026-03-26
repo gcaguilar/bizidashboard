@@ -2,6 +2,7 @@
 import dynamic from 'next/dynamic';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
   AlertsResponse,
   RankingsResponse,
@@ -9,6 +10,7 @@ import type {
   StationsResponse,
   StatusResponse,
 } from '@/lib/api';
+import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -906,6 +908,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       ),
     [rankingsData.availability.rankings]
   );
+  const dashboardDataState = combineDataStates([
+    initialData.dataset.dataState,
+    stationsData.dataState,
+    statusData.dataState,
+    rankingsData.turnover.dataState,
+    rankingsData.availability.dataState,
+  ]);
 
   return (
     <DashboardLayout mode={viewMode}>
@@ -944,6 +953,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         refreshCountdownLabel={formatCountdown(refreshCountdownMs)}
         refreshProgress={refreshProgress}
       />
+
+      {shouldShowDataStateNotice(dashboardDataState) ? (
+        <DataStateNotice
+          state={dashboardDataState}
+          subject="el dashboard"
+          description="Todos los paneles comparten el mismo snapshot de cobertura, estado y rankings. Si este banner marca cobertura parcial o dataset antiguo, el resto de widgets heredan esa misma limitacion."
+          href={appRoutes.status()}
+          actionLabel="Abrir estado"
+        />
+      ) : null}
 
       <ModeHeader activeMode={viewMode} onChangeMode={setViewMode} />
 

@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
+import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
@@ -95,6 +97,17 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
 
   const maxTurnover = Math.max(1, ...rows.map((row) => row.turnoverScore));
   const maxProblemRate = Math.max(1, ...rows.map((row) => row.problemRate));
+  const activeRankings = rankings[activeTab];
+  const rankingsState = search.trim()
+    ? resolveDataState({
+        hasCoverage: activeRankings.dataState !== 'no_coverage',
+        hasData: visibleRows.length > 0,
+      })
+    : activeRankings.dataState;
+  const canRenderRows =
+    rankingsState === 'ok' ||
+    rankingsState === 'partial' ||
+    rankingsState === 'stale';
   const itemClass =
     density === 'compact'
       ? 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2'
@@ -168,8 +181,35 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
         />
       </div>
 
-      {visibleRows.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">Sin datos para este ranking.</p>
+      {rankingsState === 'partial' || rankingsState === 'stale' ? (
+        <DataStateNotice
+          state={rankingsState}
+          subject={`el ranking de ${activeTab === 'turnover' ? 'rotacion' : 'criticidad'}`}
+          description={
+            rankingsState === 'partial'
+              ? 'El ranking tiene datos utiles, pero la cobertura disponible no llena toda la ventana ideal.'
+              : 'El ranking se ha calculado con datos antiguos y puede no reflejar el estado actual.'
+          }
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+          className="mb-3"
+          compact
+        />
+      ) : null}
+
+      {!canRenderRows ? (
+        <DataStateNotice
+          state={rankingsState}
+          subject={`el ranking de ${activeTab === 'turnover' ? 'rotacion' : 'criticidad'}`}
+          description={
+            search.trim()
+              ? 'No hay estaciones que coincidan con la busqueda actual.'
+              : 'Todavia no hay datos suficientes para calcular este ranking.'
+          }
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+          compact
+        />
       ) : (
         <ul className="space-y-2">
           {visibleRows.map((row) => {

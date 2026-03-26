@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { ChartWrapper } from './ChartWrapper';
@@ -18,6 +20,7 @@ type HistoryRow = {
 type HistoryResponse = {
   history?: HistoryRow[];
   generatedAt?: string;
+  dataState?: DataState;
 };
 
 function formatDayLabel(value: string): string {
@@ -33,6 +36,7 @@ export function DataHistoryCard() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [responseState, setResponseState] = useState<DataState | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,6 +46,7 @@ export function DataHistoryCard() {
       try {
         setIsLoading(true);
         setError(null);
+        setResponseState(null);
         const response = await fetch(appRoutes.api.history(), { signal: controller.signal });
 
         if (!response.ok) {
@@ -54,6 +59,7 @@ export function DataHistoryCard() {
         }
 
         setRows(Array.isArray(payload.history) ? payload.history.slice(-30) : []);
+        setResponseState(payload.dataState ?? null);
       } catch (fetchError) {
         if ((fetchError as Error).name === 'AbortError') {
           return;
@@ -62,6 +68,7 @@ export function DataHistoryCard() {
         if (isActive) {
           setError('No se pudo cargar el historico de balance.');
           setRows([]);
+          setResponseState('error');
         }
       } finally {
         if (isActive) {
@@ -82,6 +89,15 @@ export function DataHistoryCard() {
     () => rows.map((row) => ({ ...row, label: formatDayLabel(row.day) })),
     [rows]
   );
+  const historyDataState = resolveDataState({
+    isLoading,
+    error: error ?? (responseState === 'error' ? 'error' : null),
+    hasCoverage: responseState === 'no_coverage' ? false : rows.length > 0,
+    hasData: chartData.length > 0,
+    isPartial: responseState === 'partial',
+    isStale: responseState === 'stale',
+  });
+  const showChart = historyDataState === 'ok' || historyDataState === 'partial' || historyDataState === 'stale';
 
   return (
     <section className="dashboard-card">
@@ -107,13 +123,28 @@ export function DataHistoryCard() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="mt-4 h-[280px] animate-pulse rounded-xl bg-[var(--surface-soft)]" />
-      ) : error ? (
-        <p className="mt-4 text-sm text-[var(--muted)]">{error}</p>
-      ) : chartData.length === 0 ? (
-        <p className="mt-4 text-sm text-[var(--muted)]">Sin historico suficiente todavia.</p>
-      ) : (
+      {shouldShowDataStateNotice(historyDataState) ? (
+        <DataStateNotice
+          state={historyDataState}
+          subject="el historico agregado"
+          description={
+            error ??
+            (isLoading
+              ? 'Estamos cargando la serie agregada de balance y demanda.'
+              : historyDataState === 'partial'
+                ? 'La serie historica existe, pero no cubre toda la ventana ideal todavia.'
+                : historyDataState === 'stale'
+                  ? 'La serie historica esta disponible, pero el dataset no esta fresco.'
+                  : 'Todavia no hay historico suficiente para pintar esta serie.')
+          }
+          href={appRoutes.status()}
+          actionLabel="Ver estado"
+          className="mt-4"
+          compact
+        />
+      ) : null}
+
+      {showChart ? (
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
           <ChartWrapper height="h-[280px]">
             <div className="h-[280px]">
@@ -146,7 +177,7 @@ export function DataHistoryCard() {
             Balance index cerca de 1 significa una red mas equilibrada. Cerca de 0 indica muchas estaciones alejadas del 50% de ocupacion.
           </p>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
