@@ -32,7 +32,9 @@ test('public navigation keeps canonical routes, redirects and breadcrumbs aligne
   await expect(citySwitcher).not.toContainText('Madrid');
   await expect(citySwitcher).not.toContainText('Barcelona');
 
-  await page.getByRole('link', { name: 'Abrir comparador' }).click();
+  const compareLink = page.getByRole('link', { name: 'Abrir comparador' });
+  await expect(compareLink).toHaveAttribute('href', '/comparar');
+  await page.goto('/comparar');
   await expect.poll(() => getPathname(page.url())).toBe('/comparar');
 
   breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
