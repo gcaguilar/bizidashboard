@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   InteractiveComparisonData,
   InteractiveComparisonDimension,
@@ -112,6 +112,7 @@ export function InteractiveComparePanel({
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchParamsKey = searchParams.toString();
+  const hasHandledInitialUrlSync = useRef(false);
   const [activeDimensionId, setActiveDimensionId] = useState(() =>
     resolveDimension(data, initialQuery?.dimensionId)?.id ??
     data.defaultDimensionId ??
@@ -207,6 +208,17 @@ export function InteractiveComparePanel({
     const currentDimension = searchParams.get('dimension');
     const currentLeft = searchParams.get('left');
     const currentRight = searchParams.get('right');
+
+    // Keep the clean canonical URL on first load when no explicit comparison
+    // has been requested yet. We only write query params after user changes or
+    // when we need to normalize an existing partial/invalid query.
+    if (!hasHandledInitialUrlSync.current) {
+      hasHandledInitialUrlSync.current = true;
+
+      if (!currentDimension && !currentLeft && !currentRight) {
+        return;
+      }
+    }
 
     if (
       currentDimension === activeDimension.id &&
