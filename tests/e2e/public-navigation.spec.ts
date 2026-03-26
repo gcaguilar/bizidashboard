@@ -34,7 +34,7 @@ test('public navigation keeps canonical routes, redirects and breadcrumbs aligne
 
   const compareLink = page.getByRole('link', { name: 'Abrir comparador' });
   await expect(compareLink).toHaveAttribute('href', '/comparar');
-  await page.goto('/comparar');
+  await page.goto('/comparar', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => getPathname(page.url())).toBe('/comparar');
 
   breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
