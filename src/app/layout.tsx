@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
+import Script from "next/script";
 import { appRoutes, toAbsoluteRouteUrl } from "@/lib/routes";
 import {
   getGoogleSiteVerificationToken,
@@ -24,6 +25,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 const siteUrl = getSiteUrl();
 const googleSiteVerificationToken = getGoogleSiteVerificationToken();
+const UMAMI_SCRIPT_SRC = "https://cloud.umami.is/script.js";
+const UMAMI_WEBSITE_ID = "1f4de3f2-8f9e-4d77-a5a9-f92599058648";
+const shouldLoadAnalytics = process.env.NODE_ENV === "production";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -157,6 +161,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://raw.githubusercontent.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
         <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
+        {shouldLoadAnalytics ? (
+          <Script
+            defer
+            src={UMAMI_SCRIPT_SRC}
+            data-website-id={UMAMI_WEBSITE_ID}
+            strategy="afterInteractive"
+          />
+        ) : null}
       </head>
       <body
         className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
