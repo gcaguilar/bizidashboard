@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-25T21:40:03.416Z",
+  "generated_at": "2026-03-26T10:57:03.315Z",
   "base_url": "https://datosbizi.com",
   "summary": {
     "crawled_pages": 289,
-    "checked_urls": 321,
+    "checked_urls": 325,
     "sitemap_entries": 299
   },
   "broken_links": [
@@ -68,6 +68,21 @@
       "sources": [
         "__seed__",
         "__sitemap__"
+      ]
+    },
+    {
+      "url": "https://datosbizi.com/comparar",
+      "finalUrl": "https://datosbizi.com/",
+      "finalStatus": 200,
+      "redirects": [
+        {
+          "url": "https://datosbizi.com/comparar",
+          "status": 307,
+          "location": "https://datosbizi.com/"
+        }
+      ],
+      "sources": [
+        "__seed__"
       ]
     },
     {
@@ -6430,6 +6445,21 @@
       ]
     },
     {
+      "url": "https://datosbizi.com/developers",
+      "finalUrl": "https://datosbizi.com/",
+      "finalStatus": 200,
+      "redirects": [
+        {
+          "url": "https://datosbizi.com/developers",
+          "status": 307,
+          "location": "https://datosbizi.com/"
+        }
+      ],
+      "sources": [
+        "__seed__"
+      ]
+    },
+    {
       "url": "https://datosbizi.com/estaciones-con-mas-bicis",
       "finalUrl": "https://datosbizi.com/",
       "finalStatus": 200,
@@ -6460,6 +6490,36 @@
         "__seed__",
         "__sitemap__",
         "https://datosbizi.com/zaragoza/informes/2026-03"
+      ]
+    },
+    {
+      "url": "https://datosbizi.com/estado",
+      "finalUrl": "https://datosbizi.com/",
+      "finalStatus": 200,
+      "redirects": [
+        {
+          "url": "https://datosbizi.com/estado",
+          "status": 307,
+          "location": "https://datosbizi.com/"
+        }
+      ],
+      "sources": [
+        "__seed__"
+      ]
+    },
+    {
+      "url": "https://datosbizi.com/explorar",
+      "finalUrl": "https://datosbizi.com/",
+      "finalStatus": 200,
+      "redirects": [
+        {
+          "url": "https://datosbizi.com/explorar",
+          "status": 307,
+          "location": "https://datosbizi.com/"
+        }
+      ],
+      "sources": [
+        "__seed__"
       ]
     },
     {
@@ -11224,5 +11284,6 @@
       "reason": "Coincide con el patron \"sin datos\"."
     }
   ],
-  "api_vs_frontend_diff": []
+  "api_vs_frontend_diff": [],
+  "api_errors": []
 }

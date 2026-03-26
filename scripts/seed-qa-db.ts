@@ -362,6 +362,7 @@ async function main() {
   assertDatabaseUrl();
 
   const latestPollAt = roundToFiveMinutes(new Date());
+  const seededAt = new Date();
   const statusRows = buildStatusRows(latestPollAt);
   const hourlyRows = buildHourlyRows(latestPollAt);
   const dailyRows = buildDailyRows(latestPollAt);
@@ -370,8 +371,10 @@ async function main() {
   const heatmapRows = buildHeatmapRows();
   const alertRows = buildAlertRows(latestPollAt);
 
+  console.log('[seed-qa-db] Resetting QA schema');
   await resetDatabase();
 
+  console.log('[seed-qa-db] Creating stations');
   await prisma.station.createMany({
     data: STATIONS.map((station) => ({
       id: station.id,
@@ -380,19 +383,39 @@ async function main() {
       lon: station.lon,
       capacity: station.capacity,
       isActive: true,
+      updatedAt: seededAt,
     })),
   });
 
+  console.log('[seed-qa-db] Creating status snapshots');
   await createInBatches(statusRows, (batch) =>
     prisma.stationStatus.createMany({ data: batch })
   );
+  console.log('[seed-qa-db] Creating hourly aggregates');
   await createInBatches(hourlyRows, (batch) =>
-    prisma.hourlyStationStat.createMany({ data: batch })
+    prisma.hourlyStationStat.createMany({
+      data: batch.map((row) => ({
+        ...row,
+        updatedAt: seededAt,
+      })),
+    })
   );
+  console.log('[seed-qa-db] Creating daily aggregates');
   await createInBatches(dailyRows, (batch) =>
-    prisma.dailyStationStat.createMany({ data: batch })
+    prisma.dailyStationStat.createMany({
+      data: batch.map((row) => ({
+        ...row,
+        updatedAt: seededAt,
+      })),
+    })
   );
-  await prisma.stationRanking.createMany({ data: rankingRows });
+  console.log('[seed-qa-db] Creating rankings, patterns, heatmap and alerts');
+  await prisma.stationRanking.createMany({
+    data: rankingRows.map((row) => ({
+      ...row,
+      updatedAt: seededAt,
+    })),
+  });
   await createInBatches(patternRows, (batch) =>
     prisma.stationPattern.createMany({ data: batch })
   );
@@ -400,10 +423,11 @@ async function main() {
     prisma.stationHeatmapCell.createMany({ data: batch })
   );
   await prisma.stationAlert.createMany({ data: alertRows });
+  console.log('[seed-qa-db] Creating analytics watermarks');
   await prisma.analyticsWatermark.createMany({
     data: [
-      { name: 'hourly', lastAggregatedAt: latestPollAt },
-      { name: 'daily', lastAggregatedAt: latestPollAt },
+      { name: 'hourly', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
+      { name: 'daily', lastAggregatedAt: latestPollAt, updatedAt: seededAt },
     ],
   });
 
