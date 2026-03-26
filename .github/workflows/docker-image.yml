@@ -74,7 +74,7 @@ jobs:
         run: bunx playwright install --with-deps chromium
 
       - name: Start production server
-        run: bun run start -- --hostname 127.0.0.1 --port 3100 > /tmp/bizidashboard-docker-quality.log 2>&1 &
+        run: HOSTNAME=127.0.0.1 PORT=3100 bun run start:bun > /tmp/bizidashboard-docker-quality.log 2>&1 &
 
       - name: Wait for production server
         run: |
