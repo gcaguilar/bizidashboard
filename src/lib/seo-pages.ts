@@ -120,7 +120,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['estaciones con mas bicis', 'bizi zaragoza disponibilidad actual', 'donde hay bicis bizi', 'bicis disponibles zaragoza'],
     cadenceLabel: 'Actualizacion horaria',
     heroKicker: 'Disponibilidad actual',
-    dashboardHref: appRoutes.dashboardStatus(),
+    dashboardHref: appRoutes.status(),
     dashboardLabel: 'Consultar estado del sistema y estaciones en vivo',
   },
   'informes-mensuales-bizi-zaragoza': {

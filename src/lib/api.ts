@@ -11,13 +11,21 @@ import {
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import {
+  resolveDatasetDataState,
+  resolveHistoryDataState,
+  resolveRankingsDataState,
+  resolveStationsDataState,
+  resolveStatusDataState,
+  type DataState,
+} from '@/lib/data-state';
+import {
   getHistoryMetadata,
   getPipelineStatusSummary,
   getSharedDatasetSnapshot,
   type CoverageSummary,
-  type HistoryMetadata,
+  type HistoryMetadata as HistoryMetadataBase,
   type PipelineStatusSummary,
-  type SharedDatasetSnapshot,
+  type SharedDatasetSnapshot as SharedDatasetSnapshotBase,
 } from '@/services/shared-data';
 
 export type StationSnapshot = {
@@ -34,6 +42,7 @@ export type StationSnapshot = {
 export type StationsResponse = {
   stations: StationSnapshot[];
   generatedAt: string;
+  dataState: DataState;
 };
 
 export type RankingRow = {
@@ -52,6 +61,7 @@ export type RankingsResponse = {
   limit: number;
   rankings: RankingRow[];
   generatedAt: string;
+  dataState: DataState;
 };
 
 export type StationPatternRow = {
@@ -96,8 +106,19 @@ export type AvailableMonthsResponse = {
   generatedAt: string;
 };
 
-export type StatusResponse = PipelineStatusSummary;
-export type { CoverageSummary, HistoryMetadata, SharedDatasetSnapshot };
+export type StatusResponse = PipelineStatusSummary & {
+  dataState: DataState;
+};
+
+export type HistoryMetadata = HistoryMetadataBase & {
+  dataState: DataState;
+};
+
+export type SharedDatasetSnapshot = SharedDatasetSnapshotBase & {
+  dataState: DataState;
+};
+
+export type { CoverageSummary };
 
 const LIVE_CACHE_TTL_SECONDS = 60;
 const ANALYTICS_CACHE_TTL_SECONDS = 300;
@@ -110,10 +131,18 @@ function assertArray(value: unknown, label: string): asserts value is unknown[] 
 
 export async function fetchStations(): Promise<StationsResponse> {
   const payload = await withCache('stations:current', LIVE_CACHE_TTL_SECONDS, async () => {
-    const stations = await getStationsWithLatestStatus();
+    const [stations, dataset] = await Promise.all([
+      getStationsWithLatestStatus(),
+      getSharedDatasetSnapshot().catch(() => null),
+    ]);
     return {
       stations,
       generatedAt: new Date().toISOString(),
+      dataState: resolveStationsDataState({
+        count: stations.length,
+        coverage: dataset?.coverage,
+        status: dataset?.pipeline,
+      }),
     };
   });
 
@@ -135,12 +164,21 @@ export async function fetchRankings(
 
   const cacheKey = `rankings:type=${type}:limit=${limit}`;
   const payload = await withCache(cacheKey, ANALYTICS_CACHE_TTL_SECONDS, async () => {
-    const rankings = await getStationRankings(type, limit);
+    const [rankings, dataset] = await Promise.all([
+      getStationRankings(type, limit),
+      getSharedDatasetSnapshot().catch(() => null),
+    ]);
     return {
       type,
       limit,
       rankings,
       generatedAt: new Date().toISOString(),
+      dataState: resolveRankingsDataState({
+        count: rankings.length,
+        coverage: dataset?.coverage,
+        status: dataset?.pipeline,
+        requestedLimit: limit,
+      }),
     };
   });
 
@@ -175,7 +213,10 @@ export async function fetchStatus(): Promise<StatusResponse> {
       throw new Error('Respuesta invalida al consultar el estado del sistema.');
     }
 
-    return data;
+    return {
+      ...data,
+      dataState: resolveStatusDataState(data),
+    };
   });
 
   return payload;
@@ -225,17 +266,38 @@ export async function fetchAvailableDataMonths(): Promise<AvailableMonthsRespons
 }
 
 export async function fetchHistoryMetadata(): Promise<HistoryMetadata> {
-  const payload = await withCache('history:metadata', ANALYTICS_CACHE_TTL_SECONDS, async () =>
-    getHistoryMetadata()
-  );
+  const payload = await withCache('history:metadata', ANALYTICS_CACHE_TTL_SECONDS, async () => {
+    const [historyMetadata, status] = await Promise.all([
+      getHistoryMetadata(),
+      getPipelineStatusSummary().catch(() => null),
+    ]);
+
+    return {
+      ...historyMetadata,
+      dataState: resolveHistoryDataState({
+        count: historyMetadata.coverage.totalDays,
+        coverage: historyMetadata.coverage,
+        status,
+        expectedDays: 30,
+      }),
+    };
+  });
 
   return payload;
 }
 
 export async function fetchSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot> {
-  const payload = await withCache('shared-dataset:snapshot', LIVE_CACHE_TTL_SECONDS, async () =>
-    getSharedDatasetSnapshot()
-  );
+  const payload = await withCache('shared-dataset:snapshot', LIVE_CACHE_TTL_SECONDS, async () => {
+    const snapshot = await getSharedDatasetSnapshot();
+
+    return {
+      ...snapshot,
+      dataState: resolveDatasetDataState({
+        coverage: snapshot.coverage,
+        status: snapshot.pipeline,
+      }),
+    };
+  });
 
   return payload;
 }

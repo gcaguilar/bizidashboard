@@ -69,11 +69,15 @@ export const appRoutes = {
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
   biciradar: () => '/biciradar',
+  compare: () => '/comparar',
+  developers: () => '/developers',
   developersAlias: () => '/developers',
   helpAlias: () => '/ayuda',
   methodologyAlias: () => '/metodologia',
+  explore: () => '/explorar',
   reports: () => '/informes',
   reportMonth: (month: string) => `/informes/${encodeSegment(month)}`,
+  status: () => '/estado',
   dashboard: () => '/dashboard',
   dashboardAlerts: () => '/dashboard/alertas',
   dashboardHelp: (hash?: string | null) => buildHash('/dashboard/ayuda', hash),
@@ -188,12 +192,39 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
+    id: 'compare',
+    href: appRoutes.compare(),
+    label: 'Comparar',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.78,
+    },
+  },
+  {
+    id: 'developers',
+    href: appRoutes.developers(),
+    label: 'Developers',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.72,
+    },
+  },
+  {
     id: 'reports',
     href: appRoutes.reports(),
     label: 'Informes',
     sitemap: {
       changeFrequency: 'daily',
       priority: 0.82,
+    },
+  },
+  {
+    id: 'explore',
+    href: appRoutes.explore(),
+    label: 'Explorar',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.84,
     },
   },
   {
@@ -242,21 +273,21 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
+    id: 'status',
+    href: appRoutes.status(),
+    label: 'Estado',
+    sitemap: {
+      changeFrequency: 'hourly',
+      priority: 0.68,
+    },
+  },
+  {
     id: 'dashboard-help',
     href: appRoutes.dashboardHelp(),
     label: 'Ayuda',
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.5,
-    },
-  },
-  {
-    id: 'dashboard-status',
-    href: appRoutes.dashboardStatus(),
-    label: 'Estado',
-    sitemap: {
-      changeFrequency: 'hourly',
-      priority: 0.65,
     },
   },
   {
@@ -291,10 +322,6 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     source: appRoutes.methodologyAlias(),
     destination: appRoutes.dashboardHelp(),
   },
-  {
-    source: appRoutes.developersAlias(),
-    destination: appRoutes.api.docs(),
-  },
   ...CITY_SEGMENTS.flatMap((city) => [
     {
       source: appRoutes.cityRootAlias(city),
@@ -306,7 +333,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     },
     {
       source: appRoutes.cityExploreAlias(city),
-      destination: appRoutes.dashboardStations(),
+      destination: appRoutes.explore(),
     },
     {
       source: appRoutes.cityReportsAlias(city),
@@ -314,7 +341,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     },
     {
       source: appRoutes.cityStatusAlias(city),
-      destination: appRoutes.dashboardStatus(),
+      destination: appRoutes.status(),
     },
     {
       source: appRoutes.cityHelpAlias(city),

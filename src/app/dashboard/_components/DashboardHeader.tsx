@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { appRoutes } from '@/lib/routes';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
@@ -79,6 +80,10 @@ export function DashboardHeader({
             <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Bizi Zaragoza</h1>
           </div>
 
+          <div className="hidden xl:block">
+            <CitySwitcher compact className="min-w-[320px]" />
+          </div>
+
           <div className="hidden items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:flex">
             {timeWindows.map((window) => (
               <button
@@ -108,6 +113,10 @@ export function DashboardHeader({
           <ThemeToggleButton />
           <GitHubRepoButton />
         </div>
+      </div>
+
+      <div className="mt-3 xl:hidden">
+        <CitySwitcher compact />
       </div>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">

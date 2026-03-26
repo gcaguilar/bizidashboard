@@ -1,13 +1,8 @@
-import { NextResponse } from 'next/server'
-import { openApiDocument } from '@/lib/openapi-document'
+import { NextRequest, NextResponse } from 'next/server'
+import { appRoutes } from '@/lib/routes'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(): Promise<NextResponse> {
-  return NextResponse.json(openApiDocument, {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return NextResponse.redirect(new URL(appRoutes.developers(), request.url), 308)
 }

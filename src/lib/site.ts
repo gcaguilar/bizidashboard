@@ -5,12 +5,13 @@ function getCity(): string {
   return city.toLowerCase();
 }
 
-function getCityName(): string {
+export function getCurrentCityKey() {
   const cityKey = getCity();
-  if (isValidCity(cityKey)) {
-    return CITY_CONFIGS[cityKey].name;
-  }
-  return 'Zaragoza';
+  return isValidCity(cityKey) ? cityKey : DEFAULT_CITY;
+}
+
+export function getCityName(): string {
+  return CITY_CONFIGS[getCurrentCityKey()].name;
 }
 
 export const SITE_NAME = 'BiziDashboard';

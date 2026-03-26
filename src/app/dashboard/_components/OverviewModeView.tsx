@@ -117,7 +117,7 @@ export function OverviewModeView({
           </div>
 
           <Link
-            href={appRoutes.dashboardStatus()}
+            href={appRoutes.status()}
             className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
           >
             Abrir pagina de estado

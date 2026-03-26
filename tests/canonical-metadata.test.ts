@@ -32,10 +32,13 @@ afterEach(() => {
 describe('canonical metadata', () => {
   it('keeps canonical URLs aligned with route helpers on representative pages', async () => {
     const { appRoutes, toAbsoluteRouteUrl } = await import('@/lib/routes');
+    const comparePage = await import('@/app/comparar/page');
     const dashboardPage = await import('@/app/dashboard/page');
+    const developersPage = await import('@/app/developers/page');
+    const explorePage = await import('@/app/explorar/page');
     const reportsPage = await import('@/app/informes/page');
     const helpPage = await import('@/app/dashboard/ayuda/page');
-    const statusPage = await import('@/app/dashboard/status/page');
+    const statusPage = await import('@/app/estado/page');
     const flowPage = await import('@/app/dashboard/flujo/page');
     const conclusionsPage = await import('@/app/dashboard/conclusiones/page');
     const alertsPage = await import('@/app/dashboard/alertas/page');
@@ -43,10 +46,15 @@ describe('canonical metadata', () => {
     const betaPage = await import('@/app/beta/page');
     const biciradarPage = await import('@/app/biciradar/page');
 
+    expect(resolveCanonical(comparePage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.compare()));
     expect(resolveCanonical(dashboardPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboard()));
+    expect(resolveCanonical(developersPage.metadata)).toBe(
+      toAbsoluteRouteUrl(appRoutes.developers())
+    );
+    expect(resolveCanonical(explorePage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.explore()));
     expect(resolveCanonical(reportsPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.reports()));
     expect(resolveCanonical(helpPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardHelp()));
-    expect(resolveCanonical(statusPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardStatus()));
+    expect(resolveCanonical(statusPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.status()));
     expect(resolveCanonical(flowPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardFlow()));
     expect(resolveCanonical(conclusionsPage.metadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.dashboardConclusions())

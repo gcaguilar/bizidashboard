@@ -1,0 +1,413 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import {
+  fetchAvailableDataMonths,
+  fetchSharedDatasetSnapshot,
+  fetchStatus,
+} from '@/lib/api';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
+import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { openApiDocument } from '@/lib/openapi-document';
+import { appRoutes } from '@/lib/routes';
+import { buildPageMetadata } from '@/lib/seo';
+import {
+  buildFallbackAvailableMonths,
+  buildFallbackDatasetSnapshot,
+  buildFallbackStatus,
+} from '@/lib/shared-data-fallbacks';
+import { getCityName, getSiteUrl } from '@/lib/site';
+import {
+  formatStatusDateTime,
+  getApiVersionLabel,
+  getDatasetVersionLabel,
+} from '@/lib/system-status';
+
+type EndpointDoc = {
+  path: string;
+  method: string;
+  summary: string;
+  params: string[];
+};
+
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Developers y API',
+  description:
+    'Portal visible para la API de BiziDashboard con OpenAPI, ejemplos curl, Python y JS, endpoints, CSV, dataset historico, changelog y licencia.',
+  path: appRoutes.developers(),
+});
+
+function getEndpointDocs(): EndpointDoc[] {
+  return Object.entries(openApiDocument.paths)
+    .filter(([path]) => path !== '/api/docs')
+    .flatMap(([path, operations]) =>
+      Object.entries(operations).map(([method, operation]) => {
+        const operationRecord = operation as {
+          summary?: string;
+          parameters?: Array<{ name?: string }>;
+        };
+
+        return {
+          path,
+          method: method.toUpperCase(),
+          summary: operationRecord.summary ?? 'Operacion disponible',
+          params: Array.isArray(operationRecord.parameters)
+            ? operationRecord.parameters.map((param: { name?: string }) => String(param.name ?? ''))
+            : [],
+        };
+      })
+    )
+    .sort((left, right) => left.path.localeCompare(right.path, 'es'));
+}
+
+export default async function DevelopersPage() {
+  const nowIso = new Date().toISOString();
+  const siteUrl = getSiteUrl();
+  const cityName = getCityName();
+  const breadcrumbs = createRootBreadcrumbs({
+    label: 'Developers',
+    href: appRoutes.developers(),
+  });
+
+  const [dataset, availableMonths, status] = await Promise.all([
+    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+    fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
+    fetchStatus().catch(() => buildFallbackStatus(nowIso)),
+  ]);
+
+  const latestMonth = availableMonths.months.filter(isValidMonthKey)[0] ?? null;
+  const endpointDocs = getEndpointDocs();
+  const datasetVersion = getDatasetVersionLabel(dataset);
+  const apiVersion = getApiVersionLabel();
+  const codeLicense = process.env.npm_package_license ?? 'GPL-3.0-only';
+  const developersDataState = combineDataStates([dataset.dataState, status.dataState]);
+  const curlExamples = [
+    `curl -s ${siteUrl}${appRoutes.api.status()}`,
+    `curl -sG ${siteUrl}${appRoutes.api.rankings({ type: 'turnover', limit: 20 })}`,
+    `curl -L ${siteUrl}${appRoutes.api.historyCsv()}`,
+  ];
+  const pythonExample = `import requests\n\nbase_url = "${siteUrl}"\nresponse = requests.get(f"{base_url}${appRoutes.api.status()}", timeout=15)\nresponse.raise_for_status()\npayload = response.json()\nprint(payload["pipeline"]["healthStatus"])`;
+  const jsExample = `const response = await fetch("${siteUrl}${appRoutes.api.stations()}");\nif (!response.ok) throw new Error(\`HTTP \${response.status}\`);\nconst payload = await response.json();\nconsole.log(payload.stations.length);`;
+  const csvDownloads = [
+    {
+      label: 'Estado actual de estaciones',
+      href: appRoutes.api.stations({ format: 'csv' }),
+      detail: 'Snapshot actual en CSV con bicis, anclajes y capacidad.',
+    },
+    {
+      label: 'Historico agregado',
+      href: appRoutes.api.historyCsv(),
+      detail: 'Serie diaria con demanda, ocupacion, balance y muestras.',
+    },
+    {
+      label: 'Alertas historicas',
+      href: appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 }),
+      detail: 'Incidencias activas y resueltas con exportacion tabular.',
+    },
+    {
+      label: 'Ranking de friccion',
+      href: appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' }),
+      detail: 'Horas problema y riesgo de disponibilidad por estacion.',
+    },
+    {
+      label: 'Resumen del sistema',
+      href: appRoutes.api.status({ format: 'csv' }),
+      detail: 'Estado del pipeline, frescura y volumen reciente.',
+    },
+  ] as const;
+  const useCases = [
+    'Supervision operativa del sistema y cuadros de mando internos.',
+    'Periodismo de datos y storytelling sobre movilidad urbana.',
+    'Investigacion sobre demanda, equilibrio y comportamiento horario.',
+    'Integraciones con apps moviles, paneles de ciudad o herramientas GIS.',
+  ] as const;
+  const changelog = [
+    `v${apiVersion}: especificacion OpenAPI publicada y accesible para tooling.`,
+    'Version actual: endpoints de estado, estaciones, rankings, alertas, historico, movilidad, patrones, heatmap y predicciones disponibles.',
+    `Dataset ${datasetVersion}: cobertura compartida con ${dataset.coverage.totalDays} dias y ${dataset.stats.totalSamples} muestras agregadas.`,
+  ] as const;
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              buildBreadcrumbStructuredData(breadcrumbs),
+              {
+                '@type': 'TechArticle',
+                name: `Developers y API ${cityName}`,
+                description:
+                  'Portal de acceso para desarrolladores con documentacion, versiones, ejemplos y descargas.',
+                url: `${siteUrl}${appRoutes.developers()}`,
+              },
+            ],
+          }),
+        }}
+      />
+
+      <header className="hero-card">
+        <SiteBreadcrumbs items={breadcrumbs} />
+        <PublicSectionNav activeHref={appRoutes.developers()} className="mt-1" />
+
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-4xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
+              API como producto
+            </p>
+            <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+              Developers y API {cityName}
+            </h1>
+            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+              Superficie visible para consumir el proyecto como producto: documentacion, OpenAPI,
+              ejemplos, endpoints, descargas CSV, versiones de dataset, changelog, licencia y
+              pautas de cita.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+            <span className="kpi-chip">OpenAPI {openApiDocument.openapi}</span>
+            <span className="kpi-chip">API v{apiVersion}</span>
+            <span className="kpi-chip">Dataset {datasetVersion}</span>
+            <span className="kpi-chip">{endpointDocs.length} endpoints publicados</span>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={appRoutes.api.openApi()}
+              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            >
+              Descargar OpenAPI JSON
+            </Link>
+            <Link
+              href={appRoutes.status()}
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Ver estado del sistema
+            </Link>
+          </div>
+          <PublicSearchForm />
+        </div>
+      </header>
+
+      {shouldShowDataStateNotice(developersDataState) ? (
+        <DataStateNotice
+          state={developersDataState}
+          subject="la API publica"
+          description="La documentacion sigue visible, pero la disponibilidad real de snapshots, historico y exportaciones depende del mismo estado compartido que consume el dashboard."
+          href={appRoutes.status()}
+          actionLabel="Ver estado API"
+        />
+      ) : null}
+
+      <section className="grid gap-4 md:grid-cols-4">
+        <article className="dashboard-card">
+          <p className="stat-label">Version API</p>
+          <p className="stat-value">{apiVersion}</p>
+          <p className="text-xs text-[var(--muted)]">Version declarada en la especificacion OpenAPI.</p>
+        </article>
+        <article className="dashboard-card">
+          <p className="stat-label">Version dataset</p>
+          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{datasetVersion}</p>
+          <p className="text-xs text-[var(--muted)]">Derivada de la ultima muestra util y del historico agregado.</p>
+        </article>
+        <article className="dashboard-card">
+          <p className="stat-label">Cobertura historica</p>
+          <p className="stat-value">{dataset.coverage.totalDays}</p>
+          <p className="text-xs text-[var(--muted)]">{dataset.stats.totalSamples} muestras y {dataset.stats.totalStations} estaciones.</p>
+        </article>
+        <article className="dashboard-card">
+          <p className="stat-label">Ultima generacion</p>
+          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
+            {formatStatusDateTime(dataset.coverage.generatedAt)}
+          </p>
+          <p className="text-xs text-[var(--muted)]">
+            {latestMonth ? `Ultimo mes publicado ${formatMonthLabel(latestMonth)}.` : 'Sin archivo mensual publicado.'}
+          </p>
+        </article>
+      </section>
+
+      <section className="dashboard-card">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Quick start
+          </p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Ejemplos de consumo</h2>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-3">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+            <p className="stat-label">curl</p>
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
+              <code>{curlExamples.join('\n\n')}</code>
+            </pre>
+          </article>
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+            <p className="stat-label">Python</p>
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
+              <code>{pythonExample}</code>
+            </pre>
+          </article>
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+            <p className="stat-label">JavaScript</p>
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
+              <code>{jsExample}</code>
+            </pre>
+          </article>
+        </div>
+      </section>
+
+      <section className="dashboard-card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Superficie disponible
+            </p>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Endpoints publicados</h2>
+          </div>
+          <Link href={appRoutes.api.openApi()} className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
+            Ver JSON OpenAPI
+          </Link>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {endpointDocs.map((endpoint) => (
+            <article key={`${endpoint.method}-${endpoint.path}`} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+                {endpoint.method}
+              </p>
+              <p className="mt-2 font-mono text-sm font-semibold text-[var(--foreground)]">{endpoint.path}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">{endpoint.summary}</p>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                {endpoint.params.length > 0 ? `Params: ${endpoint.params.join(', ')}` : 'Sin parametros obligatorios o query destacados.'}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <article className="dashboard-card">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Dataset y descargas
+            </p>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Historico, CSV y versiones</h2>
+          </div>
+          <div className="space-y-3">
+            {csvDownloads.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
+                </div>
+                <span className="text-xs font-bold text-[var(--accent)]">Descargar</span>
+              </Link>
+            ))}
+          </div>
+        </article>
+
+        <article className="dashboard-card">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Rate limits y politicas
+            </p>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Consumo responsable</h2>
+          </div>
+          <div className="space-y-3 text-sm text-[var(--muted)]">
+            <div className="stat-card">
+              <p className="stat-label">Lectura publica</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Sin throttle dedicado expuesto en GET</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Los endpoints de lectura estan cacheados y tienen limites de paginacion o `limit` por endpoint.</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Ingesta protegida</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">POST /api/collect aplica rate limit</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Configuracion por defecto: 6 solicitudes por 60 segundos y cabecera `x-collect-api-key` en produccion.</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Licencia del codigo</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{codeLicense}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">La app esta licenciada como software libre; para redistribuir datos derivados revisa tambien los terminos del proveedor GBFS.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <article className="dashboard-card">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Changelog actual
+            </p>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Versiones y cambios visibles</h2>
+          </div>
+          <div className="space-y-3">
+            {changelog.map((item) => (
+              <div key={item} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[var(--muted)]">
+                {item}
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="dashboard-card">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Cita y licencia de datos
+            </p>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Como citar y reutilizar</h2>
+          </div>
+          <div className="space-y-3 text-sm text-[var(--muted)]">
+            <div className="stat-card">
+              <p className="stat-label">Cita sugerida</p>
+              <p className="text-sm leading-relaxed text-[var(--foreground)]">
+                {`BiziDashboard ${cityName}, dataset historico agregado (version ${datasetVersion}), consultado el ${new Date().toLocaleDateString('es-ES')}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
+              </p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Fuente primaria</p>
+              <Link href={dataset.source.gbfsDiscoveryUrl} className="break-all text-sm font-semibold text-[var(--accent)] transition hover:opacity-80">
+                {dataset.source.gbfsDiscoveryUrl}
+              </Link>
+            </div>
+            <div className="stat-card">
+              <p className="stat-label">Ultima generacion compartida</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">{formatStatusDateTime(dataset.coverage.generatedAt)}</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="dashboard-card">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Casos de uso
+          </p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Para que sirve esta API hoy</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {useCases.map((item) => (
+            <article key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-sm text-[var(--muted)]">
+              {item}
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}

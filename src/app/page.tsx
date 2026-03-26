@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { appRoutes } from '@/lib/routes';
-import { CITY_CONFIGS, DEFAULT_CITY, isValidCity } from '@/lib/constants';
 import { getSeoPageConfig, SEO_PAGE_SLUGS } from '@/lib/seo-pages';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { getCityName, SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 
 const QUICK_LINKS = [
   {
@@ -11,42 +13,40 @@ const QUICK_LINKS = [
     description: 'Mapa, alertas, flujo y lecturas operativas del sistema actual.',
   },
   {
+    href: appRoutes.explore(),
+    title: 'Hub Explorar',
+    description: 'Todas las herramientas de analisis agrupadas en un unico punto.',
+  },
+  {
+    href: appRoutes.compare(),
+    title: 'Comparador',
+    description: 'Comparativas activas entre estaciones, barrios, meses, anos y periodos.',
+  },
+  {
     href: appRoutes.reports(),
     title: 'Archivo mensual',
     description: 'Informes indexables por mes con enlaces persistentes y contexto historico.',
   },
   {
-    href: appRoutes.dashboardStatus(),
+    href: appRoutes.status(),
     title: 'Estado del sistema',
     description: 'Frescura de datos, volumen reciente y diagnostico rapido.',
   },
   {
-    href: appRoutes.biciradar(),
-    title: 'Bici Radar',
-    description: 'App movil vinculada al proyecto con seguimiento de bicis compartidas.',
-  },
-  {
-    href: appRoutes.beta(),
-    title: 'Vista beta',
-    description: 'Exploracion del producto y acceso a los modulos en desarrollo.',
+    href: appRoutes.developers(),
+    title: 'Developers y API',
+    description: 'OpenAPI, ejemplos de consumo, CSV y documentacion reutilizable.',
   },
 ] as const;
 
-function getCurrentCityName(): string {
-  const candidate = process.env.CITY?.toLowerCase() ?? DEFAULT_CITY;
-  if (isValidCity(candidate)) {
-    return CITY_CONFIGS[candidate].name;
-  }
-
-  return CITY_CONFIGS[DEFAULT_CITY].name;
-}
-
 export default function Home() {
-  const currentCityName = getCurrentCityName();
+  const currentCityName = getCityName();
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
       <header className="hero-card">
+        <PublicSectionNav activeHref={appRoutes.home()} />
+        <CitySwitcher className="mt-3" compact />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -57,12 +57,13 @@ export default function Home() {
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
               {SITE_DESCRIPTION} Esta instalacion publica esta enfocada en {currentCityName} y
-              enlaza al dashboard, informes y landings SEO con rutas estables.
+              enlaza al dashboard, explorar, comparar, informes, API y landings SEO con rutas estables.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="kpi-chip">Ciudad activa {currentCityName}</span>
             <span className="kpi-chip">Navegacion canonica sin prefijo</span>
+            <span className="kpi-chip">API y comparador visibles</span>
           </div>
         </div>
 
@@ -74,12 +75,20 @@ export default function Home() {
             Abrir dashboard principal
           </Link>
           <Link
-            href={appRoutes.reports()}
+            href={appRoutes.explore()}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
-            Abrir informes
+            Abrir hub Explorar
+          </Link>
+          <Link
+            href={appRoutes.developers()}
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          >
+            Abrir Developers
           </Link>
         </div>
+
+        <PublicSearchForm />
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

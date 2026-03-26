@@ -42,7 +42,7 @@ const ROUTE_PATTERNS: RoutePattern[] = [
   {
     label: 'literal route constant',
     regex:
-      /\bconst\s+\w+(?:Href|Url|Path|Route)\w*\s*=\s*['"`](\/(dashboard|informes|beta|biciradar|barrios|ayuda|developers|metodologia|inicio|ciudades|api)[^'"`]*)['"`]/g,
+      /\bconst\s+\w+(?:Href|Url|Path|Route)\w*\s*=\s*['"`](\/(dashboard|informes|beta|biciradar|barrios|ayuda|developers|metodologia|inicio|ciudades|api|comparar|explorar|estado)[^'"`]*)['"`]/g,
   },
 ];
 

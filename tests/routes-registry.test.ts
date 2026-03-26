@@ -61,13 +61,9 @@ describe('route registry', () => {
     for (const city of CITY_SEGMENTS) {
       expect(resolveRedirectTarget(appRoutes.cityRootAlias(city))).toBe(appRoutes.dashboard());
       expect(resolveRedirectTarget(appRoutes.cityDashboardAlias(city))).toBe(appRoutes.dashboard());
-      expect(resolveRedirectTarget(appRoutes.cityExploreAlias(city))).toBe(
-        appRoutes.dashboardStations()
-      );
+      expect(resolveRedirectTarget(appRoutes.cityExploreAlias(city))).toBe(appRoutes.explore());
       expect(resolveRedirectTarget(appRoutes.cityReportsAlias(city))).toBe(appRoutes.reports());
-      expect(resolveRedirectTarget(appRoutes.cityStatusAlias(city))).toBe(
-        appRoutes.dashboardStatus()
-      );
+      expect(resolveRedirectTarget(appRoutes.cityStatusAlias(city))).toBe(appRoutes.status());
       expect(resolveRedirectTarget(appRoutes.cityHelpAlias(city))).toBe(appRoutes.dashboardHelp());
       expect(resolveRedirectTarget(appRoutes.cityFlowAlias(city))).toBe(appRoutes.dashboardFlow());
     }

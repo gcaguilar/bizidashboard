@@ -8,36 +8,35 @@ test('public navigation keeps canonical routes, redirects and breadcrumbs aligne
   await page.goto('/inicio');
   await expect.poll(() => getPathname(page.url())).toBe('/');
 
-  await page
-    .getByRole('link', { name: 'Uso de Bizi por hora en Zaragoza' })
-    .first()
-    .click();
-  await expect.poll(() => getPathname(page.url())).toBe('/uso-bizi-por-hora');
+  await page.getByRole('link', { name: 'Abrir hub Explorar' }).click();
+  await expect.poll(() => getPathname(page.url())).toBe('/explorar');
 
   let breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(breadcrumbs).toBeVisible();
-  await expect(breadcrumbs).toContainText('Uso de Bizi por hora en Zaragoza');
+  await expect(breadcrumbs).toContainText('Explorar');
+  await expect(page.getByLabel('Selector de ciudad')).toBeVisible();
 
-  await page.getByRole('link', { name: 'Abrir archivo mensual' }).click();
-  await expect.poll(() => getPathname(page.url())).toBe('/informes');
-
-  breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
-  await expect(breadcrumbs).toContainText('Informes');
-
-  await breadcrumbs.getByRole('link', { name: 'Inicio' }).click();
-  await expect.poll(() => getPathname(page.url())).toBe('/');
-
-  await page.goto('/zaragoza/flujo');
-  await expect.poll(() => getPathname(page.url())).toBe('/dashboard/flujo');
+  await page.getByRole('link', { name: /Comparador/ }).first().click();
+  await expect.poll(() => getPathname(page.url())).toBe('/comparar');
 
   breadcrumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
-  await expect(breadcrumbs).toContainText('Flujo');
+  await expect(breadcrumbs).toContainText('Comparar');
+  await expect(page.getByText('Elige dos lados y comparalos manualmente')).toBeVisible();
 
-  await page
-    .getByRole('navigation', { name: 'Secciones del dashboard' })
-    .getByRole('link', { name: 'Ayuda' })
-    .first()
-    .click();
-  await expect.poll(() => getPathname(page.url())).toBe('/dashboard/ayuda');
-  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('Ayuda');
+  await page.getByRole('link', { name: 'API' }).first().click();
+  await expect.poll(() => getPathname(page.url())).toBe('/developers');
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('Developers');
+
+  await page.goto('/api/docs');
+  await expect.poll(() => getPathname(page.url())).toBe('/developers');
+
+  await page.goto('/dashboard/status');
+  await expect.poll(() => getPathname(page.url())).toBe('/estado');
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('Estado');
+
+  await page.goto('/zaragoza/explorar');
+  await expect.poll(() => getPathname(page.url())).toBe('/explorar');
+
+  await page.goto('/zaragoza/estado');
+  await expect.poll(() => getPathname(page.url())).toBe('/estado');
 });

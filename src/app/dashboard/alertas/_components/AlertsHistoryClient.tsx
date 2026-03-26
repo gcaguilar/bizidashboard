@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -442,6 +443,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             <GitHubRepoButton />
           </div>
         </div>
+
+        <CitySwitcher compact className="mt-3" />
 
         <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-6">
           <select
