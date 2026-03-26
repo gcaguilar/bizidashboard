@@ -18,6 +18,22 @@ function toValidDate(value: string | null | undefined, fallback: Date): Date {
   return Number.isNaN(parsed.getTime()) ? fallback : parsed;
 }
 
+function dedupeSitemapEntries(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
+  const seen = new Set<string>();
+  const uniqueEntries: MetadataRoute.Sitemap = [];
+
+  for (const entry of entries) {
+    if (seen.has(entry.url)) {
+      continue;
+    }
+
+    seen.add(entry.url);
+    uniqueEntries.push(entry);
+  }
+
+  return uniqueEntries;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getRobotsBaseUrl();
   if (isFallbackSiteUrl(siteUrl)) {
@@ -73,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.68,
   }));
 
-  return [
+  return dedupeSitemapEntries([
     ...STATIC_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
       url: `${siteUrl}${entry.href}`,
       lastModified,
@@ -85,5 +101,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...seoEntries,
     ...reportEntries,
     ...districtEntries,
-  ];
+  ]);
 }

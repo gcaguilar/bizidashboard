@@ -18,7 +18,10 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",
-    "db:health": "bun x tsx scripts/db-health-check.ts"
+    "db:health": "bun x tsx scripts/db-health-check.ts",
+    "qa:seed": "bun x tsx scripts/seed-qa-db.ts",
+    "qa:audit": "bun x tsx scripts/site-audit.ts",
+    "qa:audit:check": "bun x tsx scripts/check-site-audit.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",

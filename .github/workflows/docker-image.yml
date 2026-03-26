@@ -13,7 +13,91 @@ on:
     branches: [main]
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: bizidashboard
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bizidashboard"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+    permissions:
+      contents: read
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/bizidashboard?schema=zaragoza
+      CITY: zaragoza
+      APP_URL: http://127.0.0.1:3100
+      ROBOTS_BASE_URL: http://127.0.0.1:3100
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
+      JWT_SECRET: ci-jwt-secret
+      SIGNATURE_SECRET: ci-signature-secret
+      NODE_ENV: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.10'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: bunx prisma generate
+
+      - name: Run database migrations
+        run: bunx prisma migrate deploy
+
+      - name: Seed QA database
+        run: bun run qa:seed
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Build
+        run: bun run build
+
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps chromium
+
+      - name: Start production server
+        run: bun run start -- --hostname 127.0.0.1 --port 3100 > /tmp/bizidashboard-docker-quality.log 2>&1 &
+
+      - name: Wait for production server
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3100/dashboard > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/bizidashboard-docker-quality.log
+          exit 1
+
+      - name: Navigation E2E
+        run: bun run test:e2e -- tests/e2e/public-navigation.spec.ts tests/e2e/dashboard-navigation-and-filters.spec.ts
+
+      - name: Crawl internal routes
+        run: bun run qa:audit -- --base-url http://127.0.0.1:3100 --output ops/site-audit-report-docker.json
+
+      - name: Enforce QA gate
+        run: bun run qa:audit:check -- --input ops/site-audit-report-docker.json
+
   build:
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read

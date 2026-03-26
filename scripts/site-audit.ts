@@ -1,11 +1,18 @@
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
-
-type RedirectHop = {
-  url: string;
-  status: number;
-  location: string;
-};
+import type {
+  ApiErrorEntry,
+  AuditReport,
+  BrokenLinkEntry,
+  InconsistentDataEntry,
+  NoDataPageEntry,
+  OrphanPageEntry,
+  RedirectEntry,
+  RedirectHop,
+  SitemapMismatchEntry,
+  StalePageEntry,
+  ApiVsFrontendDiffEntry,
+} from '../src/lib/site-audit-report';
 
 type UrlCheck = {
   requestedUrl: string;
@@ -30,80 +37,6 @@ type CrawledPage = {
   links: InternalLink[];
 };
 
-type BrokenLinkEntry = {
-  source: string;
-  href: string;
-  target: string;
-  finalUrl: string;
-  status: number;
-  redirects: RedirectHop[];
-  reason: string;
-};
-
-type RedirectEntry = {
-  url: string;
-  finalUrl: string;
-  finalStatus: number;
-  redirects: RedirectHop[];
-  sources: string[];
-};
-
-type OrphanPageEntry = {
-  url: string;
-  reason: string;
-};
-
-type SitemapMismatchEntry = {
-  url: string;
-  reason: string;
-};
-
-type InconsistentDataEntry = {
-  page: string;
-  issue: string;
-  details: string;
-};
-
-type StalePageEntry = {
-  page: string;
-  reason: string;
-  lastUpdated: string | null;
-};
-
-type NoDataPageEntry = {
-  page: string;
-  reason: string;
-};
-
-type ApiVsFrontendDiffEntry = {
-  page: string;
-  metric: string;
-  frontend: number | string | null;
-  api: number | string | null;
-  details: string;
-};
-
-type AuditReport = {
-  generated_at: string;
-  base_url: string;
-  summary: {
-    crawled_pages: number;
-    checked_urls: number;
-    sitemap_entries: number;
-  };
-  broken_links: BrokenLinkEntry[];
-  redirects: RedirectEntry[];
-  orphan_pages: OrphanPageEntry[];
-  sitemap_mismatch: {
-    broken_entries: SitemapMismatchEntry[];
-    redirected_entries: SitemapMismatchEntry[];
-    missing_from_sitemap: SitemapMismatchEntry[];
-  };
-  inconsistent_data_pages: InconsistentDataEntry[];
-  stale_pages: StalePageEntry[];
-  pages_with_no_data: NoDataPageEntry[];
-  api_vs_frontend_diff: ApiVsFrontendDiffEntry[];
-};
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:3000';
 const DEFAULT_OUTPUT_PATH = 'ops/site-audit-report.json';
@@ -133,6 +66,81 @@ const NO_DATA_PATTERNS = [
   /0 meses indexables/iu,
   /0 estaciones/iu,
 ];
+const CRITICAL_API_CHECKS = [
+  {
+    endpoint: '/api/status',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'pipeline' in payload &&
+          'quality' in payload
+      ),
+  },
+  {
+    endpoint: '/api/stations',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'stations' in payload &&
+          Array.isArray((payload as { stations?: unknown[] }).stations)
+      ),
+  },
+  {
+    endpoint: '/api/history',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'history' in payload &&
+          Array.isArray((payload as { history?: unknown[] }).history) &&
+          'coverage' in payload
+      ),
+  },
+  {
+    endpoint: '/api/mobility',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'hourlySignals' in payload &&
+          Array.isArray((payload as { hourlySignals?: unknown[] }).hourlySignals) &&
+          'dailyDemand' in payload &&
+          Array.isArray((payload as { dailyDemand?: unknown[] }).dailyDemand)
+      ),
+  },
+  {
+    endpoint: '/api/rankings?type=turnover&limit=10',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'rankings' in payload &&
+          Array.isArray((payload as { rankings?: unknown[] }).rankings)
+      ),
+  },
+  {
+    endpoint: '/api/alerts?limit=10',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'alerts' in payload &&
+          Array.isArray((payload as { alerts?: unknown[] }).alerts)
+      ),
+  },
+  {
+    endpoint: '/api/openapi.json',
+    validate: (payload: unknown) =>
+      Boolean(
+        payload &&
+          typeof payload === 'object' &&
+          'openapi' in payload &&
+          typeof (payload as { openapi?: unknown }).openapi === 'string'
+      ),
+  },
+] as const;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -549,6 +557,14 @@ function buildSummary<T>(items: T[]): T[] {
   );
 }
 
+function safeJsonParse(value: string): unknown {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const rootDirectory = process.cwd();
@@ -686,6 +702,7 @@ async function main() {
   const stalePages: StalePageEntry[] = [];
   const pagesWithNoData: NoDataPageEntry[] = [];
   const apiVsFrontendDiff: ApiVsFrontendDiffEntry[] = [];
+  const apiErrors: ApiErrorEntry[] = [];
   const inboundPageLinks = new Map<string, Set<string>>();
   const sitemapSet = new Set(sitemapUrls.map((url) => normalizePagePath(url)));
 
@@ -815,14 +832,56 @@ async function main() {
 
   const statusApiPayload =
     statusApiCheck.status === 200 && statusApiCheck.body
-      ? (JSON.parse(statusApiCheck.body) as {
+      ? (safeJsonParse(statusApiCheck.body) as {
           quality?: { freshness?: { isFresh?: boolean; lastUpdated?: string | null }; volume?: { averageStationsPerPoll?: number } };
         })
       : null;
   const stationsApiPayload =
     stationsApiCheck.status === 200 && stationsApiCheck.body
-      ? (JSON.parse(stationsApiCheck.body) as { stations?: Array<unknown> })
+      ? (safeJsonParse(stationsApiCheck.body) as { stations?: Array<unknown> })
       : null;
+
+  const apiCheckResults = await Promise.all(
+    CRITICAL_API_CHECKS.map(async (definition) => ({
+      endpoint: normalizeRequestedUrl(baseUrl, definition.endpoint),
+      validate: definition.validate,
+      result: await checkUrl(normalizeRequestedUrl(baseUrl, definition.endpoint)),
+    }))
+  );
+
+  for (const apiCheck of apiCheckResults) {
+    const payload = apiCheck.result.body ? safeJsonParse(apiCheck.result.body) : null;
+    const dataState =
+      payload && typeof payload === 'object' && 'dataState' in payload
+        ? (payload as { dataState?: unknown }).dataState
+        : null;
+
+    if (apiCheck.result.error || apiCheck.result.status !== 200) {
+      apiErrors.push({
+        endpoint: apiCheck.endpoint,
+        status: apiCheck.result.status,
+        reason: apiCheck.result.error ?? `HTTP ${apiCheck.result.status}`,
+      });
+      continue;
+    }
+
+    if (dataState === 'error') {
+      apiErrors.push({
+        endpoint: apiCheck.endpoint,
+        status: apiCheck.result.status,
+        reason: 'El endpoint responde con dataState=error.',
+      });
+      continue;
+    }
+
+    if (!apiCheck.validate(payload)) {
+      apiErrors.push({
+        endpoint: apiCheck.endpoint,
+        status: apiCheck.result.status,
+        reason: 'La respuesta no cumple el contrato minimo esperado.',
+      });
+    }
+  }
 
   for (const page of statusPageCandidates) {
     const frontendStationCount = extractNumberAfterLabel(
@@ -976,6 +1035,7 @@ async function main() {
     stale_pages: buildSummary(stalePages),
     pages_with_no_data: buildSummary(pagesWithNoData),
     api_vs_frontend_diff: buildSummary(apiVsFrontendDiff),
+    api_errors: buildSummary(apiErrors),
   };
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -997,6 +1057,7 @@ async function main() {
           stale_pages: report.stale_pages.length,
           pages_with_no_data: report.pages_with_no_data.length,
           api_vs_frontend_diff: report.api_vs_frontend_diff.length,
+          api_errors: report.api_errors?.length ?? 0,
         },
       },
       null,
