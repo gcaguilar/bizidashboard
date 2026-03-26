@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
 import { appRoutes } from '@/lib/routes';
@@ -540,18 +540,12 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
   const showFilteredCount = normalizedQuery.length > 0 || activeCategory !== null;
 
-  useEffect(() => {
-    if (filteredItems.length === 0) {
-      setOpenItemId('');
-      return;
-    }
-
-    if (filteredItems.some((item) => item.id === openItemId)) {
-      return;
-    }
-
-    setOpenItemId(filteredItems[0]?.id ?? '');
-  }, [filteredItems, openItemId]);
+  const resolvedOpenItemId =
+    filteredItems.length === 0
+      ? ''
+      : filteredItems.some((item) => item.id === openItemId)
+        ? openItemId
+        : (filteredItems[0]?.id ?? '');
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
@@ -753,7 +747,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
                 <div className="space-y-3">
                   {items.map((item) => {
-                    const isOpen = openItemId === item.id;
+                    const isOpen = resolvedOpenItemId === item.id;
                     const buttonId = `faq-button-${item.id}`;
                     const panelId = `faq-panel-${item.id}`;
 

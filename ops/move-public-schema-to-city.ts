@@ -1,4 +1,5 @@
 import pg from 'pg'
+import { createClient } from 'redis'
 
 const VALID_SCHEMA_NAME = /^[a-z][a-z0-9_]{0,62}$/
 const SOURCE_SCHEMA = 'public'
@@ -302,6 +303,38 @@ function shouldApply(): boolean {
   return process.argv.includes('--apply')
 }
 
+async function clearCityCache(targetSchema: string): Promise<number | null> {
+  const redisUrl = process.env.REDIS_URL
+
+  if (!redisUrl) {
+    console.log('[Move] REDIS_URL is not set; skipping cache invalidation.')
+    return null
+  }
+
+  const client = createClient({
+    url: redisUrl,
+    socket: {
+      connectTimeout: 1000,
+      reconnectStrategy: () => false,
+    },
+  })
+
+  await client.connect()
+
+  let deleted = 0
+
+  try {
+    const pattern = `${targetSchema}:*`
+    for await (const key of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+      deleted += await client.del(key)
+    }
+  } finally {
+    await client.quit()
+  }
+
+  return deleted
+}
+
 async function tableExists(
   client: pg.Client,
   schema: string,
@@ -449,6 +482,11 @@ async function main() {
     insertedByTable.forEach((row) => {
       console.log(`  - ${row.table}: ${row.inserted}`)
     })
+
+    const deletedCacheKeys = await clearCityCache(targetSchema)
+    if (deletedCacheKeys !== null) {
+      console.log(`[Move] Cleared ${deletedCacheKeys} Redis cache keys for ${targetSchema}.`)
+    }
 
     console.log('[Move] Copy completed successfully. Source rows in public were not deleted.')
   } catch (error) {
