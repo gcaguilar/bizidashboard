@@ -1,0 +1,159 @@
+{
+  "generated_at": "2026-03-25T21:36:57.978Z",
+  "base_url": "http://127.0.0.1:3000",
+  "summary": {
+    "crawled_pages": 24,
+    "checked_urls": 36,
+    "sitemap_entries": 24
+  },
+  "broken_links": [],
+  "redirects": [],
+  "orphan_pages": [],
+  "sitemap_mismatch": {
+    "broken_entries": [],
+    "redirected_entries": [],
+    "missing_from_sitemap": []
+  },
+  "inconsistent_data_pages": [],
+  "stale_pages": [
+    {
+      "page": "http://127.0.0.1:3000/dashboard",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/alertas",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/ayuda",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/conclusiones",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/estaciones",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/flujo",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/status",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/views/data",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/views/operations",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/views/overview",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/views/research",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    },
+    {
+      "page": "http://127.0.0.1:3000/informes",
+      "reason": "La API marca los datos como no frescos",
+      "lastUpdated": null
+    }
+  ],
+  "pages_with_no_data": [
+    {
+      "page": "http://127.0.0.1:3000/barrios-bizi-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard",
+      "reason": "Coincide con el patron \"no se pudieron cargar\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/ayuda",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/conclusiones",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/conclusiones",
+      "reason": "Coincide con el patron \"todavia no hay historico suficiente\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/status",
+      "reason": "Coincide con el patron \"0 estaciones\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/status",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/dashboard/status",
+      "reason": "La pagina de estado muestra 0 estaciones en el snapshot actual."
+    },
+    {
+      "page": "http://127.0.0.1:3000/estaciones-con-mas-bicis",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/estaciones-mas-usadas-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/informes-mensuales-bizi-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/informes",
+      "reason": "Coincide con el patron \"0 meses indexables\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/informes",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/informes",
+      "reason": "El archivo mensual muestra 0 meses publicados."
+    },
+    {
+      "page": "http://127.0.0.1:3000/ranking-estaciones-bizi",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/uso-bizi-por-estacion",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/uso-bizi-por-hora",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/viajes-por-dia-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    },
+    {
+      "page": "http://127.0.0.1:3000/viajes-por-mes-zaragoza",
+      "reason": "Coincide con el patron \"sin datos\"."
+    }
+  ],
+  "api_vs_frontend_diff": []
+}
