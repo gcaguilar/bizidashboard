@@ -7,6 +7,8 @@ import {
   buildStationDistrictMap,
   fetchDistrictCollection,
   type DistrictCollection,
+  DISTRICTS_GEOJSON_URL,
+  isDistrictCollection,
 } from '@/lib/districts';
 
 export type DistrictSeoStation = {
@@ -162,4 +164,36 @@ export const getDistrictSeoRows = cache(async (): Promise<DistrictSeoRow[]> => {
 export const getDistrictSeoRowBySlug = cache(async (slug: string): Promise<DistrictSeoRow | null> => {
   const rows = await getDistrictSeoRows();
   return rows.find((row) => row.slug === slug) ?? null;
+});
+
+export const getDistrictSlugsFromGeoJson = cache(async (): Promise<string[]> => {
+  if (typeof window !== 'undefined') {
+    return [];
+  }
+
+  const [{ readFile }, path] = await Promise.all([
+    import('node:fs/promises'),
+    import('node:path'),
+  ]);
+
+  const geoJsonPath = path.join(
+    process.cwd(),
+    'public',
+    DISTRICTS_GEOJSON_URL.replace(/^\/+/, '')
+  );
+
+  try {
+    const payload = JSON.parse(await readFile(geoJsonPath, 'utf8')) as unknown;
+
+    if (!isDistrictCollection(payload)) {
+      return [];
+    }
+
+    return payload.features
+      .map((feature) => feature.properties?.distrito)
+      .filter((name): name is string => typeof name === 'string' && name.length > 0)
+      .map((name) => slugifyDistrictName(name));
+  } catch {
+    return [];
+  }
 });

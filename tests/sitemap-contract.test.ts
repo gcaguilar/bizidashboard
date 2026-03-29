@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
-const { fetchStationsMock, fetchAvailableDataMonthsMock, getDistrictSeoRowsMock } = vi.hoisted(
+const { fetchStationsMock, fetchAvailableDataMonthsMock, getDistrictSeoRowsMock, getDistrictSlugsFromGeoJsonMock } = vi.hoisted(
   () => ({
     fetchStationsMock: vi.fn(),
     fetchAvailableDataMonthsMock: vi.fn(),
     getDistrictSeoRowsMock: vi.fn(),
+    getDistrictSlugsFromGeoJsonMock: vi.fn(),
   })
 );
 
@@ -16,6 +17,7 @@ vi.mock('@/lib/api', () => ({
 
 vi.mock('@/lib/seo-districts', () => ({
   getDistrictSeoRows: getDistrictSeoRowsMock,
+  getDistrictSlugsFromGeoJson: getDistrictSlugsFromGeoJsonMock,
 }));
 
 beforeEach(() => {
@@ -25,6 +27,7 @@ beforeEach(() => {
   fetchStationsMock.mockReset();
   fetchAvailableDataMonthsMock.mockReset();
   getDistrictSeoRowsMock.mockReset();
+  getDistrictSlugsFromGeoJsonMock.mockReset();
 });
 
 afterEach(() => {
@@ -43,7 +46,7 @@ describe('sitemap contract', () => {
     fetchAvailableDataMonthsMock.mockResolvedValue({
       months: ['2026-03', '2026-02'],
     });
-    getDistrictSeoRowsMock.mockResolvedValue([{ slug: 'centro' }, { slug: 'delicias' }]);
+    getDistrictSlugsFromGeoJsonMock.mockResolvedValue(['centro', 'delicias']);
 
     const { default: sitemap } = await import('@/app/sitemap');
     const { STATIC_PUBLIC_ROUTE_REGISTRY, resolveRedirectTarget } = await import('@/lib/routes');

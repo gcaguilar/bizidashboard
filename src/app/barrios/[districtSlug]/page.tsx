@@ -4,12 +4,12 @@ import { notFound } from 'next/navigation';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
-import { getDistrictSeoRowBySlug, getDistrictSeoRows } from '@/lib/seo-districts';
+import { getDistrictSeoRowBySlug, getDistrictSeoRows, getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
+export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
-export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ districtSlug: string }>;
@@ -24,8 +24,8 @@ function formatDecimal(value: number): string {
 }
 
 export async function generateStaticParams() {
-  const rows = await getDistrictSeoRows().catch(() => []);
-  return rows.map((row) => ({ districtSlug: row.slug }));
+  const slugs = await getDistrictSlugsFromGeoJson().catch(() => []);
+  return slugs.map((districtSlug) => ({ districtSlug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -56,8 +56,43 @@ export default async function DistrictSeoPage({ params }: PageProps) {
     getDistrictSeoRows().catch(() => []),
   ]);
 
-  if (!district) {
+  if (!district && districts.length > 0) {
     notFound();
+  }
+
+  if (!district) {
+    const displayName = districtSlug
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+        <header className="hero-card">
+          <SiteBreadcrumbs items={createRootBreadcrumbs(
+            { label: 'Barrios Bizi Zaragoza', href: appRoutes.districtLanding() },
+            { label: displayName, href: appRoutes.districtDetail(districtSlug) }
+          )} />
+          <div className="max-w-4xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha SEO por barrio</p>
+            <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+              Bizi en {displayName}
+            </h1>
+            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+              Informacion sobre el uso de Bizi en {displayName}, Zaragoza. Estaciones, disponibilidad de bicicletas y datos operativos del servicio de bicicleta publica.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={appRoutes.districtLanding()}
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Ver comparativa de barrios
+            </Link>
+          </div>
+        </header>
+      </main>
+    );
   }
 
   const siteUrl = getSiteUrl();
