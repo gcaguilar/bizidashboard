@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
-const { fetchStationsMock, fetchAvailableDataMonthsMock, getDistrictSeoRowsMock } = vi.hoisted(
+const { fetchStationsMock, fetchAvailableDataMonthsMock, getDistrictSeoRowsMock, getDistrictSlugsFromGeoJsonMock } = vi.hoisted(
   () => ({
     fetchStationsMock: vi.fn(),
     fetchAvailableDataMonthsMock: vi.fn(),
     getDistrictSeoRowsMock: vi.fn(),
+    getDistrictSlugsFromGeoJsonMock: vi.fn(),
   })
 );
 
@@ -16,6 +17,7 @@ vi.mock('@/lib/api', () => ({
 
 vi.mock('@/lib/seo-districts', () => ({
   getDistrictSeoRows: getDistrictSeoRowsMock,
+  getDistrictSlugsFromGeoJson: getDistrictSlugsFromGeoJsonMock,
 }));
 
 beforeEach(() => {
@@ -25,6 +27,7 @@ beforeEach(() => {
   fetchStationsMock.mockReset();
   fetchAvailableDataMonthsMock.mockReset();
   getDistrictSeoRowsMock.mockReset();
+  getDistrictSlugsFromGeoJsonMock.mockReset();
 });
 
 afterEach(() => {
@@ -81,7 +84,7 @@ describe('route registry', () => {
     fetchAvailableDataMonthsMock.mockResolvedValue({
       months: ['2026-03', '2026-02', 'bad-month'],
     });
-    getDistrictSeoRowsMock.mockResolvedValue([{ slug: 'centro' }]);
+    getDistrictSlugsFromGeoJsonMock.mockResolvedValue(['centro']);
 
     const { DASHBOARD_VIEW_MODES } = await import('@/lib/dashboard-modes');
     const { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } = await import('@/lib/routes');

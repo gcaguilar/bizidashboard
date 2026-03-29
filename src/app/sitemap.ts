@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
-import { getDistrictSeoRows } from '@/lib/seo-districts';
+import { getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
 import { SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
-  const districtRows = await getDistrictSeoRows().catch(() => []);
+  const districtSlugs = await getDistrictSlugsFromGeoJson().catch(() => []);
 
   const stationEntries: MetadataRoute.Sitemap = stations.map((station) => ({
     url: `${siteUrl}${appRoutes.dashboardStation(station.id)}`,
@@ -82,8 +82,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.74,
   }));
 
-  const districtEntries: MetadataRoute.Sitemap = districtRows.map((district) => ({
-    url: `${siteUrl}${appRoutes.districtDetail(district.slug)}`,
+  const districtEntries: MetadataRoute.Sitemap = districtSlugs.map((slug) => ({
+    url: `${siteUrl}${appRoutes.districtDetail(slug)}`,
     lastModified,
     changeFrequency: 'daily',
     priority: 0.68,
