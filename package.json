@@ -57,7 +57,7 @@
     "proj4": "^2.20.4",
     "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
-    "typescript": "5.9.3",
+    "typescript": "6.0.2",
     "vitest": "^4.0.18"
   },
   "overrides": {
