@@ -28,7 +28,7 @@ type ResearchModeViewProps = {
     availability: import('@/lib/api').RankingsResponse;
   };
   dailyDemand: Array<{ day: string; demandScore: number; avgOccupancy: number; sampleCount: number }>;
-  systemHourlyProfile: Array<{ hour: number; avgOccupancy: number; bikesInCirculation: number; sampleCount: number }>;
+  systemHourlyProfile: Array<{ hour: number; avgOccupancy: number; avgBikesAvailable: number; sampleCount: number }>;
   hourlySignals: Array<{ stationId: string; hour: number; departures: number; arrivals: number; sampleCount: number }>;
   windowLabel: string;
   requestedDays: number;

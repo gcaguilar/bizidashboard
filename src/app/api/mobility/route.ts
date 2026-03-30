@@ -96,7 +96,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         systemHourlyProfile: systemHourlyProfile.map((row) => ({
           hour: Number(row.hour),
           avgOccupancy: Number(row.avgOccupancy),
-          bikesInCirculation: Number(row.bikesInCirculation),
+          avgBikesAvailable: Number(row.avgBikesAvailable),
           sampleCount: Number(row.sampleCount),
         })),
         generatedAt: new Date().toISOString(),

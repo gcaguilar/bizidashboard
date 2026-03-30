@@ -204,7 +204,6 @@ async function getRecentHistoryRows(): Promise<HistoryCompareRow[]> {
       SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
       AVG("occupancyAvg") AS "avgOccupancy",
       AVG(CASE
-        WHEN "occupancyAvg" IS NULL THEN 0.5
         WHEN ABS("occupancyAvg" - 0.5) >= 0.5 THEN 0
         ELSE 1 - (2 * ABS("occupancyAvg" - 0.5))
       END) AS "balanceIndex",
@@ -384,8 +383,8 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
   const weekdayWeekendProfile = recentConclusions?.payload.weekdayWeekendProfile ?? null;
   const sortedHoursByDemand = [...hourlyProfile].sort(
     (left, right) =>
-      Number(right.bikesInCirculation) - Number(left.bikesInCirculation) ||
-      Number(right.avgOccupancy) - Number(left.avgOccupancy)
+      Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable) ||
+      Number(left.avgOccupancy) - Number(right.avgOccupancy)
   );
   const peakHour = sortedHoursByDemand[0] ?? null;
   const quietHour = sortedHoursByDemand[sortedHoursByDemand.length - 1] ?? null;
@@ -418,9 +417,9 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
 
   if (hourlyProfile.length >= 2) {
     const hourGap =
-      peakHour && quietHour && Number(quietHour.bikesInCirculation) > 0
-        ? (Number(peakHour.bikesInCirculation) - Number(quietHour.bikesInCirculation)) /
-          Number(quietHour.bikesInCirculation)
+      peakHour && quietHour && Number(quietHour.avgBikesAvailable) > 0
+        ? (Number(quietHour.avgBikesAvailable) - Number(peakHour.avgBikesAvailable)) /
+          Number(quietHour.avgBikesAvailable)
         : null;
 
     currentCards.push({
@@ -428,8 +427,8 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
       title: 'Hora vs hora',
       eyebrow: 'Ritmo intradia',
       summary: `La hora ${peakHour?.hour ?? '--'}:00 concentra el mayor movimiento medio del sistema, frente a la franja mas tranquila.`,
-      metricA: `${peakHour?.hour ?? '--'}:00 · ${formatDecimal(Number(peakHour?.bikesInCirculation ?? 0))} bicis medias · ocupacion ${formatPercent(Number(peakHour?.avgOccupancy ?? 0))}`,
-      metricB: `${quietHour?.hour ?? '--'}:00 · ${formatDecimal(Number(quietHour?.bikesInCirculation ?? 0))} bicis medias · ocupacion ${formatPercent(Number(quietHour?.avgOccupancy ?? 0))}`,
+      metricA: `${peakHour?.hour ?? '--'}:00 · ${formatDecimal(Number(peakHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupacion ${formatPercent(Number(peakHour?.avgOccupancy ?? 0))}`,
+      metricB: `${quietHour?.hour ?? '--'}:00 · ${formatDecimal(Number(quietHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupacion ${formatPercent(Number(quietHour?.avgOccupancy ?? 0))}`,
       delta: `Brecha horaria ${formatDelta(hourGap)}`,
       href: appRoutes.dashboardView('research'),
       note: `${formatInteger(Number(peakHour?.sampleCount ?? 0))} muestras agregadas en la hora pico.`,
@@ -896,9 +895,9 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
           id: String(row.hour),
           label: `${row.hour}:00`,
           href: appRoutes.dashboardView('research'),
-          primaryLabel: 'Bicis en circulacion',
-          primaryValue: Number(row.bikesInCirculation),
-          primaryDisplay: `${formatDecimal(Number(row.bikesInCirculation))} bicis`,
+          primaryLabel: 'Bicis disponibles',
+          primaryValue: Number(row.avgBikesAvailable),
+          primaryDisplay: `${formatDecimal(Number(row.avgBikesAvailable))} bicis`,
           secondaryLabel: 'Ocupacion media',
           secondaryDisplay: formatPercent(Number(row.avgOccupancy)),
           tertiaryLabel: 'Muestras',

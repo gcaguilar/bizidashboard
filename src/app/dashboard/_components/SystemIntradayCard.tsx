@@ -21,7 +21,7 @@ import { ChartWrapper } from './ChartWrapper';
 type SystemHourlyProfileRow = {
   hour: number;
   avgOccupancy: number;
-  bikesInCirculation: number;
+  avgBikesAvailable: number;
   sampleCount: number;
 };
 
@@ -86,7 +86,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
             Evolucion del sistema durante el dia
           </h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Media por hora de ocupacion y bicis en circulacion para la ventana {windowLabel.toLowerCase()}.
+            Media por hora de ocupacion y bicis disponibles para la ventana {windowLabel.toLowerCase()}.
           </p>
         </div>
         <Link
@@ -137,8 +137,8 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                   <Line
                     yAxisId="bikes"
                     type="monotone"
-                    dataKey="bikesInCirculation"
-                    name="Bicis en circulacion"
+                    dataKey="avgBikesAvailable"
+                    name="Bicis disponibles"
                     stroke="#0f766e"
                     strokeWidth={2}
                     dot={false}
@@ -148,7 +148,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
             </div>
           </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
-            La ocupacion mide el porcentaje medio de bicis sobre capacidad. Bicis en circulacion refleja la media de bicis disponibles por estacion y hora, no un conteo unico de viajes.
+            La ocupacion mide el porcentaje medio de bicis sobre capacidad. Bicis disponibles refleja la media de bicis ancladas por estacion y hora, no un conteo unico de viajes.
           </p>
         </div>
       )}
