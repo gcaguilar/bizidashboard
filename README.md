@@ -154,8 +154,20 @@ Adding a new compatible city is easy:
 
 Sentry is used for real-time error monitoring across both client and server.
 
-- **Setup**: Set `NEXT_PUBLIC_SENTRY_DSN` in your environment.
+- **Setup**:
+  - `NEXT_PUBLIC_SENTRY_DSN` for browser events.
+  - `SENTRY_DSN` for server/edge events (falls back to `NEXT_PUBLIC_SENTRY_DSN` if not set).
 - **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
+- **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
+
+## 📈 Analytics (Umami)
+
+Umami is loaded only in production and only when both variables are configured:
+
+- `NEXT_PUBLIC_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID`
+
+If you enforce CSP, allow Umami domains in `script-src` and `connect-src`.
 
 ---
 

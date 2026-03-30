@@ -11,7 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_UMAMI_SCRIPT_SRC
+ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
+
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_UMAMI_SCRIPT_SRC=$NEXT_PUBLIC_UMAMI_SCRIPT_SRC
+ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID
 
 RUN bunx prisma generate
 RUN bun run build
@@ -33,6 +40,9 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SENTRY_DSN=
+ENV NEXT_PUBLIC_UMAMI_SCRIPT_SRC=
+ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 

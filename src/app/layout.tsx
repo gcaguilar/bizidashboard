@@ -25,9 +25,12 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 const siteUrl = getSiteUrl();
 const googleSiteVerificationToken = getGoogleSiteVerificationToken();
-const UMAMI_SCRIPT_SRC = "https://cloud.umami.is/script.js";
-const UMAMI_WEBSITE_ID = "1f4de3f2-8f9e-4d77-a5a9-f92599058648";
-const shouldLoadAnalytics = process.env.NODE_ENV === "production";
+const UMAMI_SCRIPT_SRC = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_SRC ?? "";
+const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ?? "";
+const shouldLoadAnalytics =
+  process.env.NODE_ENV === "production" &&
+  Boolean(UMAMI_SCRIPT_SRC) &&
+  Boolean(UMAMI_WEBSITE_ID);
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
