@@ -123,14 +123,14 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
         "occupancyAvg" = excluded."occupancyAvg",
         "sampleCount" = excluded."sampleCount";
     `;
-
-    await setWatermark(PATTERN_WATERMARK, windowEnd);
   }
+
+  await setWatermark(PATTERN_WATERMARK, windowEnd);
 
   return {
     processedCount: hourlyStats.length,
     upsertedCount: rows.length,
-    watermark: rows.length > 0 ? windowEnd : watermark,
+    watermark: windowEnd,
     cutoff,
   };
 }
