@@ -207,8 +207,20 @@ export async function fetchRankings(
   });
 
   assertArray(payload.rankings, 'rankings');
-  assertArray(payload.districtSpotlight, 'districtSpotlight');
-  return payload;
+  const districtSpotlight = Array.isArray(payload.districtSpotlight)
+    ? payload.districtSpotlight
+    : [];
+
+  if (!Array.isArray(payload.districtSpotlight)) {
+    console.warn(
+      '[Rankings] Payload legacy sin districtSpotlight como lista; se normaliza a [].'
+    );
+  }
+
+  return {
+    ...payload,
+    districtSpotlight,
+  };
 }
 
 export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
