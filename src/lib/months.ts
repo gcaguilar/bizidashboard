@@ -16,8 +16,8 @@ export function normalizeMonthSearchParam(value: string | string[] | undefined):
 
 export function getMonthBounds(monthKey: string): { start: string; endExclusive: string } {
   const [year, month] = monthKey.split('-').map(Number);
-  const start = new Date(Date.UTC(year, (month ?? 1) - 1, 1));
-  const end = new Date(Date.UTC(year, month ?? 1, 1));
+  const start = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, 1));
+  const end = new Date(Date.UTC(year ?? 1970, month ?? 1, 1));
 
   return {
     start: start.toISOString(),
