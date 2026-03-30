@@ -15,8 +15,9 @@
   --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
+/* Solo si el SO prefiere oscuro y el usuario no eligio tema claro (data-theme lo fija el toggle / script inline). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --background: #230f11;
     --background-2: #18090a;
     --foreground: #f8fafc;

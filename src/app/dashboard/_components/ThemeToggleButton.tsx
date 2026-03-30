@@ -32,8 +32,17 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const resolved: Theme =
+      stored === 'light' || stored === 'dark'
+        ? stored
+        : root.classList.contains('dark')
+          ? 'dark'
+          : 'light';
+    // DOM ya alineado por script en layout; solo sincronizamos estado del boton
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    setTheme(resolved);
   }, []);
 
   if (theme === null) {

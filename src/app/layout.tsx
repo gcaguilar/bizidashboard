@@ -161,6 +161,11 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k='bizidashboard-theme';var t=localStorage.getItem(k);var r=document.documentElement;if(t==='light'){r.classList.remove('dark');r.dataset.theme='light';}else if(t==='dark'){r.classList.add('dark');r.dataset.theme='dark';}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){r.classList.add('dark');r.dataset.theme='dark';}else{r.classList.remove('dark');r.dataset.theme='light';}}catch(e){}})();`,
+          }}
+        />
         <link rel="preconnect" href="https://basemaps.cartocdn.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://raw.githubusercontent.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
