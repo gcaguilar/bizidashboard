@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
@@ -132,10 +132,12 @@ function parseViewStateFromSearchParams(
   stations: StationSnapshot[]
 ): ViewFilterState {
   const stationIdCandidate = (params.get('stationId') ?? '').trim();
-  const hasStation = stations.some((station) => station.id === stationIdCandidate);
+  const hasStation =
+    Boolean(stationIdCandidate) &&
+    (stations.length === 0 || stations.some((station) => station.id === stationIdCandidate));
 
   return {
-    stationId: stationIdCandidate && hasStation ? stationIdCandidate : '',
+    stationId: hasStation ? stationIdCandidate : '',
     alertType: parseAlertTypeFilter(params.get('alertType')),
     stateFilter: parseStateFilter(params.get('state')),
     severityFilter: parseSeverityFilter(params.get('severity')),
@@ -192,6 +194,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const [toDate, setToDate] = useState('');
   const [page, setPage] = useState(0);
   const [isUrlReady, setIsUrlReady] = useState(false);
+  const lastSyncedUrlRef = useRef<string | null>(null);
+  const prevStationsLengthRef = useRef(-1);
   const [rows, setRows] = useState<AlertHistoryRow[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -244,20 +248,34 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   );
 
   useEffect(() => {
+    const serialized = searchParams.toString();
+    const urlChanged = lastSyncedUrlRef.current === null || serialized !== lastSyncedUrlRef.current;
+    const stationsJustHydrated =
+      prevStationsLengthRef.current === 0 && stations.length > 0 && !urlChanged;
+
+    if (!urlChanged && !stationsJustHydrated) {
+      prevStationsLengthRef.current = stations.length;
+      setIsUrlReady(true);
+      return;
+    }
+
     const parsedState = parseViewStateFromSearchParams(
-      new URLSearchParams(searchParams.toString()),
+      new URLSearchParams(serialized),
       stations
     );
 
-    setStationId((current) => (current === parsedState.stationId ? current : parsedState.stationId));
-    setAlertType((current) => (current === parsedState.alertType ? current : parsedState.alertType));
-    setStateFilter((current) => (current === parsedState.stateFilter ? current : parsedState.stateFilter));
-    setSeverityFilter((current) =>
-      current === parsedState.severityFilter ? current : parsedState.severityFilter
-    );
-    setFromDate((current) => (current === parsedState.fromDate ? current : parsedState.fromDate));
-    setToDate((current) => (current === parsedState.toDate ? current : parsedState.toDate));
-    setPage((current) => (current === parsedState.page ? current : parsedState.page));
+    setStationId(parsedState.stationId);
+    setAlertType(parsedState.alertType);
+    setStateFilter(parsedState.stateFilter);
+    setSeverityFilter(parsedState.severityFilter);
+    setFromDate(parsedState.fromDate);
+    setToDate(parsedState.toDate);
+    setPage(parsedState.page);
+
+    if (urlChanged) {
+      lastSyncedUrlRef.current = serialized;
+    }
+    prevStationsLengthRef.current = stations.length;
     setIsUrlReady(true);
   }, [searchParams, stations]);
 
