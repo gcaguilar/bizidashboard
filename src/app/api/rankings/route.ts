@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStationRankings, type RankingType } from '@/analytics/queries/read';
+import {
+  getStationPatternsBulk,
+  getStationRankings,
+  getStationsWithLatestStatus,
+  type RankingType,
+} from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { resolveRankingsDataState } from '@/lib/data-state';
+import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import {
+  attachPeakFullHours,
+  buildDistrictSpotlight,
+  buildPeakFullHoursByStation,
+  enrichRankingRows,
+  type EnrichedRankingRow,
+} from '@/lib/ranking-enrichment';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getSharedDatasetSnapshot } from '@/services/shared-data';
 
@@ -18,19 +31,37 @@ function parseLimit(value: string | null, fallback: number): number | null {
   return parsed;
 }
 
-function toCsv(
-  rows: Array<{
-    stationId: string;
-    turnoverScore: number;
-    emptyHours: number;
-    fullHours: number;
-    totalHours: number;
-    windowStart: string;
-    windowEnd: string;
-  }>
-): string {
-  const headers = ['stationId', 'turnoverScore', 'emptyHours', 'fullHours', 'problemHours', 'totalHours', 'windowStart', 'windowEnd'];
-  const values = rows.map((row) => [row.stationId, row.turnoverScore, row.emptyHours, row.fullHours, row.emptyHours + row.fullHours, row.totalHours, row.windowStart, row.windowEnd]);
+function toCsv(rows: EnrichedRankingRow[]): string {
+  const headers = [
+    'stationId',
+    'stationName',
+    'districtName',
+    'turnoverScore',
+    'emptyHours',
+    'fullHours',
+    'problemHours',
+    'emptyHourShare',
+    'demandVsStressedHint',
+    'peakFullHoursJson',
+    'totalHours',
+    'windowStart',
+    'windowEnd',
+  ];
+  const values = rows.map((row) => [
+    row.stationId,
+    row.stationName,
+    row.districtName ?? '',
+    row.turnoverScore,
+    row.emptyHours,
+    row.fullHours,
+    row.problemHours,
+    row.emptyHourShare,
+    row.demandVsStressedHint,
+    JSON.stringify(row.peakFullHours),
+    row.totalHours,
+    row.windowStart,
+    row.windowEnd,
+  ]);
   return [headers, ...values]
     .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
     .join('\n');
@@ -59,17 +90,42 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const cacheKey = `rankings:type=${typeParam}:limit=${limit}`;
     const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-      const [rankings, dataset] = await Promise.all([
+      const [rankings, stations, districtCollection, dataset] = await Promise.all([
         getStationRankings(typeParam as RankingType, limit),
+        getStationsWithLatestStatus(),
+        fetchDistrictCollection().catch(() => null),
         getSharedDatasetSnapshot().catch(() => null),
       ]);
+
+      const stationNameById = new Map(stations.map((s) => [s.id, s.name]));
+      const districtNameById =
+        districtCollection !== null
+          ? buildStationDistrictMap(
+              stations.map((s) => ({ id: s.id, lon: s.lon, lat: s.lat })),
+              districtCollection
+            )
+          : new Map<string, string>();
+
+      let enrichedRankings = enrichRankingRows(rankings, stationNameById, districtNameById);
+      const patternRows = await getStationPatternsBulk(
+        enrichedRankings.map((r) => r.stationId)
+      );
+      const peakMap = buildPeakFullHoursByStation(patternRows);
+      enrichedRankings = attachPeakFullHours(enrichedRankings, peakMap);
+
+      const districtSpotlight = buildDistrictSpotlight(
+        enrichedRankings,
+        typeParam as RankingType
+      );
+
       return {
         type: typeParam,
         limit,
-        rankings,
+        rankings: enrichedRankings,
+        districtSpotlight,
         generatedAt: new Date().toISOString(),
         dataState: resolveRankingsDataState({
-          count: rankings.length,
+          count: enrichedRankings.length,
           coverage: dataset?.coverage,
           status: dataset?.pipeline,
           requestedLimit: limit,

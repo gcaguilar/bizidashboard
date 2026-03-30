@@ -2,16 +2,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   getSharedDatasetSnapshotMock,
+  getStationPatternsBulkMock,
   getStationRankingsMock,
+  getStationsWithLatestStatusMock,
   withCacheMock,
 } = vi.hoisted(() => ({
   getSharedDatasetSnapshotMock: vi.fn(),
+  getStationPatternsBulkMock: vi.fn(),
   getStationRankingsMock: vi.fn(),
+  getStationsWithLatestStatusMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
 
 vi.mock('@/analytics/queries/read', () => ({
   getStationRankings: getStationRankingsMock,
+  getStationsWithLatestStatus: getStationsWithLatestStatusMock,
+  getStationPatternsBulk: getStationPatternsBulkMock,
+}));
+
+vi.mock('@/lib/districts', () => ({
+  fetchDistrictCollection: vi.fn().mockResolvedValue(null),
+  buildStationDistrictMap: vi.fn(() => new Map<string, string>()),
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
@@ -27,8 +38,25 @@ import { GET } from '@/app/api/rankings/route';
 describe('GET /api/rankings', () => {
   beforeEach(() => {
     getSharedDatasetSnapshotMock.mockReset();
+    getStationPatternsBulkMock.mockReset();
     getStationRankingsMock.mockReset();
+    getStationsWithLatestStatusMock.mockReset();
     withCacheMock.mockReset();
+
+    getStationPatternsBulkMock.mockResolvedValue([]);
+
+    getStationsWithLatestStatusMock.mockResolvedValue([
+      {
+        id: '101',
+        name: 'Estación prueba',
+        lat: 41.65,
+        lon: -0.88,
+        capacity: 20,
+        bikesAvailable: 10,
+        anchorsFree: 10,
+        recordedAt: '2026-03-02T00:00:00.000Z',
+      },
+    ]);
 
     getSharedDatasetSnapshotMock.mockResolvedValue({
       coverage: {
@@ -75,6 +103,10 @@ describe('GET /api/rankings', () => {
 
     expect(response.status).toBe(200);
     expect(payload.rankings).toHaveLength(1);
+    expect(payload.rankings[0].stationName).toBe('Estación prueba');
+    expect(payload.rankings[0].peakFullHours).toEqual([]);
+    expect(payload.districtSpotlight).toBeDefined();
+    expect(Array.isArray(payload.districtSpotlight)).toBe(true);
     expect(payload.dataState).toBe('ok');
   });
 
