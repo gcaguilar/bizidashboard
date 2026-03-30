@@ -32,7 +32,7 @@ jobs:
 
       - name: Upload production audit artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-audit-report
           path: ops/site-audit-report-prod-ci.json
