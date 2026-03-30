@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: `pnpm dev --port ${DEV_SERVER_PORT}`,
+        command: `bun dev --port ${DEV_SERVER_PORT}`,
         url: `${baseURL}/dashboard`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
