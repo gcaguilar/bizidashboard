@@ -111,9 +111,9 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
     }
   }
 
-  if (alerts.length > 0) {
-    await deactivateActiveAlerts();
+  await deactivateActiveAlerts();
 
+  if (alerts.length > 0) {
     const values = alerts.map((alert) =>
       Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
     );
