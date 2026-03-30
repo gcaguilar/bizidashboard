@@ -1,6 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -324,6 +324,7 @@ function formatCountdown(valueMs: number): string {
 
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
@@ -603,8 +604,19 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    window.history.replaceState(window.history.state, '', nextUrl);
-  }, [activeWindowId, mapViewState, onlyWithAnchors, onlyWithBikes, pathname, searchParams, searchQuery, selectedStationId, viewMode]);
+    router.replace(nextUrl, { scroll: false });
+  }, [
+    activeWindowId,
+    mapViewState,
+    onlyWithAnchors,
+    onlyWithBikes,
+    pathname,
+    router,
+    searchParams,
+    searchQuery,
+    selectedStationId,
+    viewMode,
+  ]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
