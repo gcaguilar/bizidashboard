@@ -219,7 +219,7 @@ export default async function DashboardPage() {
           </p>
           <p className="mt-1 text-xs text-amber-200/80">
             {isSchemaMissing
-              ? 'La base de datos parece no estar inicializada. Ejecuta `pnpm prisma migrate deploy` con la misma DATABASE_URL del servidor.'
+              ? 'La base de datos parece no estar inicializada. Ejecuta `bun prisma migrate deploy` con la misma DATABASE_URL del servidor.'
               : 'Revisa los logs del servidor para mas detalles.'}
           </p>
         </section>
