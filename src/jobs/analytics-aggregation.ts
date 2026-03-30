@@ -178,16 +178,16 @@ async function runAnalyticsAggregation(): Promise<void> {
       console.log(
         `[Analytics] Heatmap rollup upserted ${heatmapResult.upsertedCount} cells in ${heatmapDuration}ms (window end ${hourlyCutoff.toISOString()})`
       );
-
-      await lock.refresh();
-      const alertStart = Date.now();
-      const alertResult = await runAlertRollup(hourlyCutoff);
-      const alertDuration = Date.now() - alertStart;
-
-      console.log(
-        `[Analytics] Alert rollup upserted ${alertResult.upsertedCount} alerts in ${alertDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
     }
+
+    await lock.refresh();
+    const alertStart = Date.now();
+    const alertResult = await runAlertRollup(hourlyCutoff);
+    const alertDuration = Date.now() - alertStart;
+
+    console.log(
+      `[Analytics] Alert rollup upserted ${alertResult.upsertedCount} alerts in ${alertDuration}ms (window end ${hourlyCutoff.toISOString()})`
+    );
 
     await lock.refresh();
     const dailyCutoff = getDailyCutoff(now);
