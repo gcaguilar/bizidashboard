@@ -208,6 +208,39 @@ export async function getStationRankings(
   `;
 }
 
+/** Patrones agregados (laborable/fin de semana × hora) para varias estaciones en una sola consulta. */
+export type StationPatternBulkRow = {
+  stationId: string;
+  dayType: string;
+  hour: number;
+  occupancyAvg: number;
+  sampleCount: number;
+};
+
+export async function getStationPatternsBulk(stationIds: string[]): Promise<StationPatternBulkRow[]> {
+  if (stationIds.length === 0) {
+    return [];
+  }
+  const unique = [...new Set(stationIds)];
+  const rows = await prisma.stationPattern.findMany({
+    where: { stationId: { in: unique } },
+    select: {
+      stationId: true,
+      dayType: true,
+      hour: true,
+      occupancyAvg: true,
+      sampleCount: true,
+    },
+  });
+  return rows.map((r) => ({
+    stationId: r.stationId,
+    dayType: String(r.dayType),
+    hour: r.hour,
+    occupancyAvg: r.occupancyAvg,
+    sampleCount: r.sampleCount,
+  }));
+}
+
 export async function getStationsWithLatestStatus(): Promise<
   {
     id: string;

@@ -6,6 +6,7 @@ import {
   getAvailableDataMonths,
   getHeatmap,
   getStationPatterns,
+  getStationPatternsBulk,
   getStationRankings,
   getStationsWithLatestStatus,
 } from '@/analytics/queries/read';
@@ -18,6 +19,15 @@ import {
   resolveStatusDataState,
   type DataState,
 } from '@/lib/data-state';
+import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import {
+  attachPeakFullHours,
+  buildDistrictSpotlight,
+  buildPeakFullHoursByStation,
+  enrichRankingRows,
+  type DistrictSpotlightRow,
+  type EnrichedRankingRow,
+} from '@/lib/ranking-enrichment';
 import {
   getHistoryMetadata,
   getPipelineStatusSummary,
@@ -45,21 +55,16 @@ export type StationsResponse = {
   dataState: DataState;
 };
 
-export type RankingRow = {
-  id: number;
-  stationId: string;
-  turnoverScore: number;
-  emptyHours: number;
-  fullHours: number;
-  totalHours: number;
-  windowStart: string;
-  windowEnd: string;
-};
+/** Fila de ranking con nombre, barrio y lectura demanda vs huecos (API /api/rankings). */
+export type RankingRow = EnrichedRankingRow;
+
+export type { DistrictSpotlightRow, PeakFullHourSlot } from '@/lib/ranking-enrichment';
 
 export type RankingsResponse = {
   type: 'turnover' | 'availability';
   limit: number;
-  rankings: RankingRow[];
+  rankings: EnrichedRankingRow[];
+  districtSpotlight: DistrictSpotlightRow[];
   generatedAt: string;
   dataState: DataState;
 };
@@ -164,17 +169,36 @@ export async function fetchRankings(
 
   const cacheKey = `rankings:type=${type}:limit=${limit}`;
   const payload = await withCache(cacheKey, ANALYTICS_CACHE_TTL_SECONDS, async () => {
-    const [rankings, dataset] = await Promise.all([
+    const [rankings, stations, districtCollection, dataset] = await Promise.all([
       getStationRankings(type, limit),
+      getStationsWithLatestStatus(),
+      fetchDistrictCollection().catch(() => null),
       getSharedDatasetSnapshot().catch(() => null),
     ]);
+
+    const stationNameById = new Map(stations.map((s) => [s.id, s.name]));
+    const districtNameById =
+      districtCollection !== null
+        ? buildStationDistrictMap(
+            stations.map((s) => ({ id: s.id, lon: s.lon, lat: s.lat })),
+            districtCollection
+          )
+        : new Map<string, string>();
+
+    let enrichedRankings = enrichRankingRows(rankings, stationNameById, districtNameById);
+    const patternRows = await getStationPatternsBulk(enrichedRankings.map((r) => r.stationId));
+    const peakMap = buildPeakFullHoursByStation(patternRows);
+    enrichedRankings = attachPeakFullHours(enrichedRankings, peakMap);
+    const districtSpotlight = buildDistrictSpotlight(enrichedRankings, type);
+
     return {
       type,
       limit,
-      rankings,
+      rankings: enrichedRankings,
+      districtSpotlight,
       generatedAt: new Date().toISOString(),
       dataState: resolveRankingsDataState({
-        count: rankings.length,
+        count: enrichedRankings.length,
         coverage: dataset?.coverage,
         status: dataset?.pipeline,
         requestedLimit: limit,
@@ -183,6 +207,7 @@ export async function fetchRankings(
   });
 
   assertArray(payload.rankings, 'rankings');
+  assertArray(payload.districtSpotlight, 'districtSpotlight');
   return payload;
 }
 
