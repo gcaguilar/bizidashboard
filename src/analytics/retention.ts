@@ -4,12 +4,15 @@ import { getWatermark, setWatermark } from '@/analytics/watermarks';
 const RAW_RETENTION_DAYS = 30;
 const HOURLY_RETENTION_DAYS = 365;
 const ALERT_RETENTION_DAYS = 14;
+/** Rankings store one row per station per hourly windowEnd; keep recent snapshots only. */
+const RANKING_SNAPSHOT_RETENTION_DAYS = 7;
 const VACUUM_INTERVAL_DAYS = 7;
 
 export interface RetentionResult {
   stationStatusDeleted: number;
   hourlyStatsDeleted: number;
   stationAlertsDeleted: number;
+  stationRankingsDeleted: number;
 }
 
 export async function runRetentionCleanup(): Promise<RetentionResult> {
@@ -36,14 +39,22 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     WHERE "generatedAt" < ${alertCutoff};
   `;
 
+  const stationRankingsDeleted = await prisma.$executeRaw`
+    DELETE FROM "StationRanking"
+    WHERE "windowEnd" < (
+      (SELECT MAX("windowEnd") FROM "StationRanking") - ${RANKING_SNAPSHOT_RETENTION_DAYS} * INTERVAL '1 day'
+    );
+  `;
+
   console.log(
-    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsDeleted} hourly rows, ${stationAlertsDeleted} alert rows`
+    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsDeleted} hourly rows, ${stationAlertsDeleted} alert rows, ${stationRankingsDeleted} ranking snapshots`
   );
 
   return {
     stationStatusDeleted: stationStatusResult.count,
     hourlyStatsDeleted: Number(hourlyStatsDeleted),
     stationAlertsDeleted: Number(stationAlertsDeleted),
+    stationRankingsDeleted: Number(stationRankingsDeleted),
   };
 }
 
