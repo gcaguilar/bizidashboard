@@ -72,6 +72,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
     type: 'turnover',
     limit: 50,
     rankings: [],
+    districtSpotlight: [],
     generatedAt: nowIso,
     dataState: 'no_coverage',
   };
@@ -79,6 +80,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
     type: 'availability',
     limit: 50,
     rankings: [],
+    districtSpotlight: [],
     generatedAt: nowIso,
     dataState: 'no_coverage',
   };

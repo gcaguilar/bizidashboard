@@ -86,6 +86,7 @@ export default async function DashboardPage() {
     type: 'turnover',
     limit: 50,
     rankings: [],
+    districtSpotlight: [],
     generatedAt: nowIso,
     dataState: 'no_coverage',
   };
@@ -93,6 +94,7 @@ export default async function DashboardPage() {
     type: 'availability',
     limit: 50,
     rankings: [],
+    districtSpotlight: [],
     generatedAt: nowIso,
     dataState: 'no_coverage',
   };
