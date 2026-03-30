@@ -265,6 +265,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
       type: 'turnover' as const,
       limit: 10,
       rankings: [],
+      districtSpotlight: [],
       generatedAt: nowIso,
       dataState: 'no_coverage' as const,
     })),
@@ -272,6 +273,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
       type: 'availability' as const,
       limit: 10,
       rankings: [],
+      districtSpotlight: [],
       generatedAt: nowIso,
       dataState: 'no_coverage' as const,
     })),
@@ -955,8 +957,12 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
   };
 }
 
+/**
+ * Muchas lecturas en paralelo (API cacheada, Prisma, conclusiones diarias).
+ * Un tope de pocos segundos devolvía siempre el fallback vacío en producción (p. ej. cold start / DB remota).
+ */
 export async function getComparisonHubDataWithTimeout(
-  timeoutMs = 4000
+  timeoutMs = 28_000
 ): Promise<ComparisonHubData> {
   const nowIso = new Date().toISOString();
 
