@@ -9,11 +9,12 @@ const securityHeaders = [
       "object-src 'none'",
       "frame-ancestors 'none'",
       "form-action 'self'",
+      // Umami Cloud: script from cloud.umami.is; tracker beacons use api-gateway.umami.dev (not *.umami.is).
       "script-src 'self' 'unsafe-inline' https://cloud.umami.is",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data: https://basemaps.cartocdn.com https://fonts.gstatic.com",
-      "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.sentry.io https://*.umami.is",
+      "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.sentry.io https://*.umami.is https://cloud.umami.is https://api-gateway.umami.dev",
       "worker-src 'self' blob:",
       "frame-src 'none'",
       "manifest-src 'self'",
