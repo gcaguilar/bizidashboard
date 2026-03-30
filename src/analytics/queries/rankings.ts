@@ -85,14 +85,14 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
         "totalHours" = excluded."totalHours",
         "updatedAt" = CURRENT_TIMESTAMP;
     `;
-
-    await setWatermark(RANKING_WATERMARK, windowEnd);
   }
+
+  await setWatermark(RANKING_WATERMARK, windowEnd);
 
   return {
     processedCount: Number(processedCount),
     upsertedCount: Number(upsertedCount),
-    watermark: upsertedCount > 0 ? windowEnd : watermark,
+    watermark: windowEnd,
     cutoff,
   };
 }
