@@ -313,7 +313,7 @@ export function StationDetailPanel({
   }, [heatmap, patterns, station]);
 
   const estimatedDestinations = useMemo(() => {
-    if (!mobility || !selectedDistrict) {
+    if (!mobility || !selectedDistrict || !station) {
       return [] as Array<{ district: string; flow: number }>;
     }
 
@@ -332,9 +332,15 @@ export function StationDetailPanel({
       districtTotals.set(district, current);
     }
 
-    const selected = districtTotals.get(selectedDistrict);
+    const stationOutbound = mobility.hourlySignals
+      .filter((row) => row.stationId === station.id)
+      .reduce((sum, row) => sum + Math.max(0, Number(row.departures)), 0);
 
-    if (!selected || selected.outbound <= 0) {
+    const districtOutbound = districtTotals.get(selectedDistrict)?.outbound ?? 0;
+    const outboundBasis =
+      stationOutbound > 0 ? stationOutbound : districtOutbound > 0 ? districtOutbound : 0;
+
+    if (outboundBasis <= 0) {
       return [];
     }
 
@@ -351,11 +357,11 @@ export function StationDetailPanel({
       .filter(([district]) => district !== selectedDistrict)
       .map(([district, districtRow]) => ({
         district,
-        flow: selected.outbound * (districtRow.inbound / totalInbound),
+        flow: outboundBasis * (districtRow.inbound / totalInbound),
       }))
       .sort((left, right) => right.flow - left.flow)
       .slice(0, 4);
-  }, [mobility, selectedDistrict, stationDistrictMap]);
+  }, [mobility, selectedDistrict, station, stationDistrictMap]);
 
   const selectedDistrictNet = useMemo(() => {
     if (!mobility || !selectedDistrict) {
