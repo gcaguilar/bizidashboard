@@ -250,7 +250,14 @@ export function MobilityInsights({
       return [];
     }
 
-    const periodMaps = new Map<PeriodKey, Map<string, { outbound: number; inbound: number }>>();
+    type HourlySignal = { departures: number; arrivals: number };
+    type DistrictAccumulator = {
+      outbound: number;
+      inbound: number;
+      hourly: Map<number, HourlySignal>;
+    };
+
+    const periodMaps = new Map<PeriodKey, Map<string, DistrictAccumulator>>();
 
     PERIODS.forEach((period) => {
       periodMaps.set(period.key, new Map());
@@ -264,6 +271,8 @@ export function MobilityInsights({
       }
 
       const hour = Number(row.hour);
+      const departures = Math.max(0, Number(row.departures));
+      const arrivals = Math.max(0, Number(row.arrivals));
       const periodsToUpdate: PeriodKey[] = ['all'];
 
       if (Number.isFinite(hour)) {
@@ -277,9 +286,21 @@ export function MobilityInsights({
           continue;
         }
 
-        const current = districtMap.get(district) ?? { outbound: 0, inbound: 0 };
-        current.outbound += Math.max(0, Number(row.departures));
-        current.inbound += Math.max(0, Number(row.arrivals));
+        const current = districtMap.get(district) ?? {
+          outbound: 0,
+          inbound: 0,
+          hourly: new Map<number, HourlySignal>(),
+        };
+        current.outbound += departures;
+        current.inbound += arrivals;
+
+        if (Number.isFinite(hour)) {
+          const hourSignal = current.hourly.get(hour) ?? { departures: 0, arrivals: 0 };
+          hourSignal.departures += departures;
+          hourSignal.arrivals += arrivals;
+          current.hourly.set(hour, hourSignal);
+        }
+
         districtMap.set(district, current);
       }
     }
@@ -296,16 +317,31 @@ export function MobilityInsights({
         }))
         .sort((left, right) => right.volume - left.volume);
 
-      const totalInbound = districtRows.reduce((sum, row) => sum + row.inbound, 0);
-      const matrix = districtRows.map((origin) =>
-        districtRows.map((destination) => {
-          if (totalInbound <= 0) {
+      // Temporal affinity: for each (i,j) pair, sum min(departures_i_h, arrivals_j_h)
+      // across all hours. This produces an asymmetric matrix that genuinely varies
+      // per district pair, unlike the previous gravity model which was proportional.
+      const matrix = districtRows.map((origin) => {
+        const originHourly = districtMap.get(origin.district)?.hourly;
+        return districtRows.map((destination) => {
+          if (origin.district === destination.district) {
+            return 0;
+          }
+          const destHourly = districtMap.get(destination.district)?.hourly;
+          if (!originHourly || !destHourly) {
             return 0;
           }
 
-          return origin.outbound * (destination.inbound / totalInbound);
-        })
-      );
+          let affinity = 0;
+          for (const [hour, originSignal] of originHourly.entries()) {
+            const destSignal = destHourly.get(hour);
+            if (!destSignal) {
+              continue;
+            }
+            affinity += Math.min(originSignal.departures, destSignal.arrivals);
+          }
+          return affinity;
+        });
+      });
 
       const maxFlow = matrix.reduce(
         (max, values) =>

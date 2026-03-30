@@ -218,7 +218,7 @@ async function buildHourlyUsageContent(
     .map((row, index) => ({
       title: `${index + 1}. ${formatHourRange(row.hour)}`,
       detail: `${formatDecimal(Number(row.avgBikesAvailable))} bicis disponibles · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
-      href: appRoutes.dashboardFlow(),
+      href: appRoutes.dashboardView('research'),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
 
