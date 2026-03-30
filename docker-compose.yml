@@ -30,6 +30,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_UMAMI_SCRIPT_SRC: ${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     environment:
       - CITY=${CITY:-zaragoza}
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
@@ -40,6 +44,10 @@ services:
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+      - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
       - "3000:3000"
     depends_on:
@@ -58,6 +66,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_UMAMI_SCRIPT_SRC: ${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     environment:
       - CITY=madrid
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
@@ -68,6 +80,10 @@ services:
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+      - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
       - "3001:3000"
     depends_on:
@@ -86,6 +102,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_UMAMI_SCRIPT_SRC: ${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     environment:
       - CITY=barcelona
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
@@ -96,6 +116,10 @@ services:
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-production}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
+      - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
       - "3002:3000"
     depends_on:
