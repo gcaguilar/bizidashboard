@@ -66,7 +66,7 @@ async function warmCache(): Promise<void> {
       systemHourlyProfile: systemHourlyProfile.map((row) => ({
         hour: Number(row.hour),
         avgOccupancy: Number(row.avgOccupancy),
-        bikesInCirculation: Number(row.bikesInCirculation),
+        avgBikesAvailable: Number(row.avgBikesAvailable),
         sampleCount: Number(row.sampleCount),
       })),
       generatedAt: new Date().toISOString(),
@@ -95,7 +95,6 @@ interface CronOptions {
 }
 
 let cronJob: ScheduledTask | null = null;
-let isScheduled = false;
 
 function getHourlyCutoff(now: Date): Date {
   const delayMs = ANALYTICS_WINDOWS.rollupHourlyDelayMinutes * 60 * 1000;
@@ -256,7 +255,6 @@ export function startAnalyticsAggregationJob(): void {
     } as CronOptions
   );
 
-  isScheduled = true;
   console.log('[Cron] Analytics aggregation scheduled (hourly, UTC)');
 }
 
@@ -267,7 +265,6 @@ export function stopAnalyticsAggregationJob(): void {
   if (cronJob) {
     cronJob.stop();
     cronJob = null;
-    isScheduled = false;
     console.log('[Cron] Analytics aggregation stopped');
   }
 }
@@ -276,5 +273,5 @@ export function stopAnalyticsAggregationJob(): void {
  * Check if the analytics aggregation job is currently scheduled
  */
 export function isAnalyticsAggregationScheduled(): boolean {
-  return isScheduled;
+  return cronJob !== null;
 }

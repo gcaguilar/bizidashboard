@@ -114,7 +114,7 @@ type MobilityPreviewData = {
   systemHourlyProfile: Array<{
     hour: number;
     avgOccupancy: number;
-    bikesInCirculation: number;
+    avgBikesAvailable: number;
     sampleCount: number;
   }>;
 };

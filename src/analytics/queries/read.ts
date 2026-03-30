@@ -106,7 +106,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
         AVG("occupancyAvg") AS "avgOccupancy",
         SUM("sampleCount") AS "sampleCount"
       FROM "HourlyStationStat"
-      WHERE "bucketStart" >= NOW() - INTERVAL '1 day' * ${startOffsetDays}
+      WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${startOffsetDays}
       GROUP BY 1
     )
     SELECT
@@ -170,7 +170,7 @@ type MonthlyDemandRow = {
 type SystemHourlyProfileRow = {
   hour: number;
   avgOccupancy: number;
-  bikesInCirculation: number;
+  avgBikesAvailable: number;
   sampleCount: number;
 };
 
@@ -467,7 +467,7 @@ export async function getSystemHourlyProfile(
     SELECT
       EXTRACT(HOUR FROM "bucketStart")::int AS hour,
       AVG("occupancyAvg") AS "avgOccupancy",
-      AVG("bikesAvg") AS "bikesInCirculation",
+      AVG("bikesAvg") AS "avgBikesAvailable",
       SUM("sampleCount") AS "sampleCount"
     FROM "HourlyStationStat"
     WHERE ${rangeFilter}

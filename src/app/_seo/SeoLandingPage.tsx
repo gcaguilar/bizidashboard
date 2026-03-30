@@ -213,11 +213,11 @@ async function buildHourlyUsageContent(
 ): Promise<SeoLandingContent> {
   const profile = await getSystemHourlyProfile(14).catch(() => []);
   const items = [...profile]
-    .sort((left, right) => Number(right.bikesInCirculation) - Number(left.bikesInCirculation))
+    .sort((left, right) => Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable))
     .slice(0, 8)
     .map((row, index) => ({
       title: `${index + 1}. ${formatHourRange(row.hour)}`,
-      detail: `${formatDecimal(Number(row.bikesInCirculation))} bicis medias en circulacion · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
+      detail: `${formatDecimal(Number(row.avgBikesAvailable))} bicis disponibles · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
       href: appRoutes.dashboardFlow(),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
@@ -227,7 +227,7 @@ async function buildHourlyUsageContent(
   }
 
   const busiestHour = [...profile].sort(
-    (left, right) => Number(right.bikesInCirculation) - Number(left.bikesInCirculation)
+    (left, right) => Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable)
   )[0];
 
   return {

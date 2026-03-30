@@ -13,7 +13,7 @@ type DailyDemandRow = {
 type SystemHourlyProfileRow = {
   hour: number;
   avgOccupancy: number;
-  bikesInCirculation: number;
+  avgBikesAvailable: number;
   sampleCount: number;
 };
 
@@ -38,7 +38,7 @@ export function ResearchSummaryCard({
   }, null);
 
   const topHour = systemHourlyProfile.reduce<SystemHourlyProfileRow | null>((best, row) => {
-    if (!best || row.bikesInCirculation > best.bikesInCirculation) {
+    if (!best || row.avgBikesAvailable > best.avgBikesAvailable) {
       return row;
     }
     return best;
@@ -101,7 +101,7 @@ export function ResearchSummaryCard({
             {topHour ? `${String(topHour.hour).padStart(2, '0')}:00` : 'Sin datos'}
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            {topHour ? `${topHour.bikesInCirculation.toFixed(1)} bicis medias por estacion` : 'Todavia no hay perfil horario suficiente.'}
+            {topHour ? `${topHour.avgBikesAvailable.toFixed(1)} bicis medias por estacion` : 'Todavia no hay perfil horario suficiente.'}
           </p>
         </div>
       </div>
