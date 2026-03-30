@@ -47,15 +47,10 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
     )
   `;
 
-  const [{ count: upsertedCount = 0 } = {}] = await prisma.$queryRaw<
-    { count: number }[]
-  >`
-    ${rollupCte}
-    SELECT COUNT(*) as count FROM rollup;
-  `;
+  let upsertedCount = 0;
 
-  if (Number(upsertedCount) > 0) {
-    await prisma.$executeRaw`
+  if (Number(processedCount) > 0) {
+    upsertedCount = await prisma.$executeRaw`
       ${rollupCte}
       INSERT INTO "StationRanking" (
         "stationId",
@@ -77,7 +72,6 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
         ${windowEnd},
         CURRENT_TIMESTAMP
       FROM rollup
-      WHERE true
       ON CONFLICT("stationId", "windowStart", "windowEnd") DO UPDATE SET
         "turnoverScore" = excluded."turnoverScore",
         "emptyHours" = excluded."emptyHours",
