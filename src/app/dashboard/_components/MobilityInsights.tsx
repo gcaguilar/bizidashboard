@@ -385,25 +385,71 @@ export function MobilityInsights({
     (district) => district.district === selectedDistrictName
   );
 
-  const topExporter = useMemo(() => {
-    if (!activeInsights) {
+  /** Barrio distinto del de referencia con mayor flujo estimado matrix[i][ref] (aportes hacia el referencia). */
+  const topEmitterTowardRef = useMemo(() => {
+    if (!activeInsights || !selectedDistrictName) {
+      return null as { district: string; flow: number } | null;
+    }
+
+    const refIndex = activeInsights.districts.findIndex((d) => d.district === selectedDistrictName);
+    if (refIndex < 0) {
       return null;
     }
 
-    return [...activeInsights.districts].sort(
-      (left, right) => right.outbound - right.inbound - (left.outbound - left.inbound)
-    )[0] ?? null;
-  }, [activeInsights]);
+    const { matrix, districts } = activeInsights;
+    let bestIndex = -1;
+    let bestFlow = 0;
 
-  const topImporter = useMemo(() => {
-    if (!activeInsights) {
+    for (let i = 0; i < matrix.length; i += 1) {
+      if (i === refIndex) {
+        continue;
+      }
+      const value = matrix[i]?.[refIndex] ?? 0;
+      if (value > bestFlow) {
+        bestFlow = value;
+        bestIndex = i;
+      }
+    }
+
+    if (bestIndex < 0 || bestFlow <= 0) {
       return null;
     }
 
-    return [...activeInsights.districts].sort(
-      (left, right) => right.inbound - right.outbound - (left.inbound - left.outbound)
-    )[0] ?? null;
-  }, [activeInsights]);
+    return { district: districts[bestIndex]!.district, flow: bestFlow };
+  }, [activeInsights, selectedDistrictName]);
+
+  /** Barrio distinto con mayor flujo estimado matrix[ref][j] (recibe salidas del referencia). */
+  const topReceiverFromRef = useMemo(() => {
+    if (!activeInsights || !selectedDistrictName) {
+      return null as { district: string; flow: number } | null;
+    }
+
+    const refIndex = activeInsights.districts.findIndex((d) => d.district === selectedDistrictName);
+    if (refIndex < 0) {
+      return null;
+    }
+
+    const { matrix, districts } = activeInsights;
+    let bestIndex = -1;
+    let bestFlow = 0;
+
+    for (let j = 0; j < matrix.length; j += 1) {
+      if (j === refIndex) {
+        continue;
+      }
+      const value = matrix[refIndex]?.[j] ?? 0;
+      if (value > bestFlow) {
+        bestFlow = value;
+        bestIndex = j;
+      }
+    }
+
+    if (bestIndex < 0 || bestFlow <= 0) {
+      return null;
+    }
+
+    return { district: districts[bestIndex]!.district, flow: bestFlow };
+  }, [activeInsights, selectedDistrictName]);
 
   const dailyCurveData = useMemo(() => {
     if (!mobilityData) {
@@ -640,32 +686,36 @@ export function MobilityInsights({
                   ))}
                 </select>
                 <p className="mt-2 text-xs text-[var(--muted)]">
-                  Cambia el barrio para revisar su saldo neto sin depender de la estacion seleccionada.
+                  Cambia el barrio para revisar su saldo neto y los barrios con mas flujo estimado hacia el y desde el.
                 </p>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">Mayor emisor</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">
+                    Mayor aporte hacia referencia
+                  </p>
+                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-rose-500/80">
+                    Emisor hacia {selectedDistrictName || '…'}
+                  </p>
                   <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
-                    {topExporter?.district ?? 'N/D'}
+                    {topEmitterTowardRef?.district ?? 'N/D'}
                   </p>
                   <p className="text-xl font-black text-rose-500">
-                    {topExporter
-                      ? `-${Math.max(0, topExporter.outbound - topExporter.inbound).toFixed(0)}`
-                      : '0'}
+                    {topEmitterTowardRef ? topEmitterTowardRef.flow.toFixed(0) : '—'}
                   </p>
                 </div>
                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
                   <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-500">
-                    Mayor receptor
+                    Mayor destino desde referencia
+                  </p>
+                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-emerald-500/80">
+                    Receptor desde {selectedDistrictName || '…'}
                   </p>
                   <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
-                    {topImporter?.district ?? 'N/D'}
+                    {topReceiverFromRef?.district ?? 'N/D'}
                   </p>
                   <p className="text-xl font-black text-emerald-500">
-                    {topImporter
-                      ? `+${Math.max(0, topImporter.inbound - topImporter.outbound).toFixed(0)}`
-                      : '0'}
+                    {topReceiverFromRef ? topReceiverFromRef.flow.toFixed(0) : '—'}
                   </p>
                 </div>
               </div>
