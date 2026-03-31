@@ -58,6 +58,7 @@ next-env.d.ts
 # editor settings
 .idea/
 .vscode/
+.cursor/
 
 # local profiling and traces
 *.heapsnapshot
