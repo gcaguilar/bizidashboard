@@ -26,11 +26,12 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
   const fetchReport = useCallback(
     (district: string, days: number) => {
       startTransition(async () => {
-        const params = new URLSearchParams();
-        if (district) params.set('district', district);
-        params.set('days', String(days));
-
-        const res = await fetch(`/api/rebalancing-report?${params.toString()}`);
+        const res = await fetch(
+          appRoutes.api.rebalancingReport({
+            district: district || null,
+            days,
+          })
+        );
         if (res.ok) {
           const data = (await res.json()) as RebalancingReport;
           setReport(data);
