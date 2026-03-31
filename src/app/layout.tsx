@@ -31,7 +31,9 @@ const UMAMI_SCRIPT_SRC =
 const UMAMI_WEBSITE_ID =
   process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ??
   "1f4de3f2-8f9e-4d77-a5a9-f92599058648";
-const shouldLoadAnalytics = process.env.NODE_ENV === "production";
+const shouldLoadAnalytics =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -170,6 +172,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://raw.githubusercontent.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
         <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
+      </head>
+      <body
+        className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
+      >
         {shouldLoadAnalytics ? (
           <Script
             defer
@@ -178,10 +184,6 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         ) : null}
-      </head>
-      <body
-        className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
-      >
         <ServiceWorkerRegister />
         {children}
         <script
