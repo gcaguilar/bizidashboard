@@ -354,7 +354,7 @@ export function computeRotationPercentiles(
 export function buildDistanceMatrix(
   stations: RawStationPoint[],
   currentMetrics: Map<string, StationBaseMetrics & { sampleCount: number }>,
-  currentBikes: Map<string, { bikesAvailable: number; capacity: number }>,
+  currentBikes: Map<string, { bikesAvailable: number; anchorsFree: number }>,
   maxDistanceMeters = 500
 ): Map<string, NearbyStation[]> {
   const matrix = new Map<string, NearbyStation[]>();
@@ -376,8 +376,8 @@ export function buildDistanceMatrix(
       const otherMetrics = currentMetrics.get(other.id);
       const otherStatus = currentBikes.get(other.id);
       const currentOccupancy =
-        otherStatus && other.capacity > 0
-          ? otherStatus.bikesAvailable / other.capacity
+        otherStatus && otherStatus.bikesAvailable + otherStatus.anchorsFree > 0
+          ? otherStatus.bikesAvailable / (otherStatus.bikesAvailable + otherStatus.anchorsFree)
           : 0;
       const historicalRobustness = otherMetrics
         ? Math.max(0, 1 - otherMetrics.pctTimeEmpty - otherMetrics.pctTimeFull)

@@ -42,7 +42,7 @@ function checkDataReview(
   rotationPercentile: number
 ): string | null {
   // Frozen sensor: almost no variability but many samples suggest high activity
-  if (metrics.variability < 0.02 && rotationPercentile > 50 && metrics.sampleCount > 20) {
+  if (metrics.variability < 0.02 && rotationPercentile > 50 && (metrics.sampleCount ?? 0) > 20) {
     return (
       `Sensor sospechoso: variabilidad de ocupacion casi nula (${(metrics.variability * 100).toFixed(2)}%) ` +
       `con rotacion en percentil ${rotationPercentile} — posible sensor congelado.`
