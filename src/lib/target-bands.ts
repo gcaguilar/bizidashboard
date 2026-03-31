@@ -1,5 +1,4 @@
 import type { StationType, TimeBand, TargetBand } from '@/types/rebalancing';
-import { hourToTimeBand } from '@/analytics/queries/rebalancing';
 
 // ─── Band configuration ──────────────────────────────────────────────────────
 

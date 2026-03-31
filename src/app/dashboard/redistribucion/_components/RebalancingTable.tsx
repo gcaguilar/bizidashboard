@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
 type SortKey =
@@ -14,6 +14,14 @@ type SortKey =
 
 type Props = {
   diagnostics: StationDiagnostic[];
+};
+
+type SortHeaderProps = {
+  label: string;
+  k: SortKey;
+  active: boolean;
+  sortDir: 'asc' | 'desc';
+  onSort: (key: SortKey) => void;
 };
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
@@ -99,6 +107,18 @@ function OccupancyBar({
   );
 }
 
+function SortHeader({ label, k, active, sortDir, onSort }: SortHeaderProps) {
+  return (
+    <th
+      className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
+      onClick={() => onSort(k)}
+    >
+      {label}
+      {active && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+    </th>
+  );
+}
+
 // ─── Expandable row detail ────────────────────────────────────────────────────
 
 function RowDetail({ diagnostic }: { diagnostic: StationDiagnostic }) {
@@ -176,32 +196,19 @@ export function RebalancingTable({ diagnostics }: Props) {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
-  function SortHeader({ label, k }: { label: string; k: SortKey }) {
-    const active = sortKey === k;
-    return (
-      <th
-        className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
-        onClick={() => handleSort(k)}
-      >
-        {label}
-        {active && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
-      </th>
-    );
-  }
-
   return (
     <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
       <table className="w-full text-sm">
         <thead className="border-b border-[var(--border)] bg-[var(--surface)]">
           <tr>
-            <SortHeader label="Estación" k="stationName" />
-            <SortHeader label="Barrio" k="districtName" />
+            <SortHeader label="Estación" k="stationName" active={sortKey === 'stationName'} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Barrio" k="districtName" active={sortKey === 'districtName'} sortDir={sortDir} onSort={handleSort} />
             <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--muted)]">Tipo</th>
-            <SortHeader label="Clasificación" k="classification" />
-            <SortHeader label="Ocupación / Banda" k="currentOccupancy" />
-            <SortHeader label="Acción" k="actionGroup" />
-            <SortHeader label="Urgencia" k="urgency" />
-            <SortHeader label="Score" k="priorityScore" />
+            <SortHeader label="Clasificación" k="classification" active={sortKey === 'classification'} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Ocupación / Banda" k="currentOccupancy" active={sortKey === 'currentOccupancy'} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Acción" k="actionGroup" active={sortKey === 'actionGroup'} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Urgencia" k="urgency" active={sortKey === 'urgency'} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Score" k="priorityScore" active={sortKey === 'priorityScore'} sortDir={sortDir} onSort={handleSort} />
             <th className="px-3 py-2 text-left text-xs font-semibold text-[var(--muted)]" />
           </tr>
         </thead>
@@ -209,9 +216,8 @@ export function RebalancingTable({ diagnostics }: Props) {
           {sorted.map((d) => {
             const isExpanded = expandedId === d.stationId;
             return (
-              <>
+              <Fragment key={d.stationId}>
                 <tr
-                  key={d.stationId}
                   className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
                   onClick={() => setExpandedId(isExpanded ? null : d.stationId)}
                 >
@@ -252,8 +258,8 @@ export function RebalancingTable({ diagnostics }: Props) {
                     {isExpanded ? '▲' : '▼'}
                   </td>
                 </tr>
-                {isExpanded && <RowDetail key={`${d.stationId}-detail`} diagnostic={d} />}
-              </>
+                {isExpanded && <RowDetail diagnostic={d} />}
+              </Fragment>
             );
           })}
         </tbody>
