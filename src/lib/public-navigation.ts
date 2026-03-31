@@ -20,7 +20,8 @@ export type ExploreHubItem = {
     | 'districts'
     | 'time-series'
     | 'maps'
-    | 'system-kpis';
+    | 'system-kpis'
+    | 'redistribucion';
   title: string;
   eyebrow: string;
   description: string;
@@ -94,6 +95,15 @@ export function getExploreHubSections(options?: {
             'Mide cobertura, lag, volumen y estado general del sistema desde una pagina publica.',
           href: appRoutes.status(),
           destinationLabel: 'Pagina publica',
+        },
+        {
+          id: 'redistribucion',
+          title: 'Redistribucion',
+          eyebrow: 'Logistica y equilibrio',
+          description:
+            'Diagnostico de redistribucion con clasificacion de estaciones, predicciones y transferencias origen-destino sugeridas.',
+          href: appRoutes.seoPage('redistribucion-bizi-zaragoza'),
+          destinationLabel: 'Landing publica',
         },
       ],
     },

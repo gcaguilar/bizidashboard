@@ -581,6 +581,78 @@ async function buildMonthlyReportsContent(
   };
 }
 
+async function buildRedistribucionContent(
+  config: SeoPageConfig,
+  nowIso: string
+): Promise<SeoLandingContent> {
+  // Fetch a lightweight summary (uses cached report assembler)
+  let stationCount = 0;
+  let pctTimeEmpty = 0;
+  let pctTimeFull = 0;
+
+  try {
+    const { buildRebalancingReport } = await import('@/lib/rebalancing-report');
+    const report = await buildRebalancingReport({ days: 15 });
+    stationCount = report.summary.totalStations;
+    pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
+    pctTimeFull = report.kpis.service.systemPctTimeFull;
+  } catch {
+    // fallback to static content
+  }
+
+  const items: SeoItem[] = [
+    {
+      title: 'Clasificacion A: Sobrestock estructural',
+      detail: 'Estaciones cronicamente llenas, baja rotacion e inmovilidad elevada. Candidatas a donar bicis.',
+    },
+    {
+      title: 'Clasificacion B: Deficit estructural',
+      detail: 'Ocupacion media baja y alta presion de salida. Necesitan reposicion periodica.',
+    },
+    {
+      title: 'Clasificacion C: Saturacion puntual',
+      detail: 'Solo se saturan en hora punta de manana o tarde. Intervencion preventiva recomendada.',
+    },
+    {
+      title: 'Clasificacion D: Vaciado puntual',
+      detail: 'Se vacias en hora punta pero se recuperan solas. El sistema evalua si actuar o esperar.',
+    },
+    {
+      title: 'Clasificacion E: Equilibrada',
+      detail: 'Estaciones que se autoregeulan dentro de la banda objetivo. No requieren intervencion.',
+    },
+    {
+      title: 'Clasificacion F: Revisar dato',
+      detail: 'Sensores anomalos o datos inconsistentes. Excluidas de decisiones logisticas.',
+    },
+  ];
+
+  return {
+    generatedAt: nowIso,
+    summary:
+      'Metodologia y datos del sistema de redistribucion de Bizi Zaragoza: como se clasifican las estaciones, que reglas deciden cuando intervenir y como se calculan los movimientos sugeridos.',
+    stats: [
+      {
+        label: 'Estaciones monitorizadas',
+        value: stationCount > 0 ? formatInteger(stationCount) : 'Sin datos',
+        detail: 'Estaciones incluidas en el ultimo diagnostico de redistribucion.',
+      },
+      {
+        label: '% tiempo vacias',
+        value: pctTimeEmpty > 0 ? formatPercent(pctTimeEmpty) : 'Sin datos',
+        detail: 'Fraccion del tiempo que el sistema promedio esta sin bicis disponibles (ultimos 15 dias).',
+      },
+      {
+        label: '% tiempo llenas',
+        value: pctTimeFull > 0 ? formatPercent(pctTimeFull) : 'Sin datos',
+        detail: 'Fraccion del tiempo que el sistema promedio esta sin anclajes libres (ultimos 15 dias).',
+      },
+    ],
+    sectionTitle: 'Sistema de clasificacion A-F',
+    sectionItems: items,
+  };
+}
+
 async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingContent> {
   const config = getSeoPageConfig(slug);
   const nowIso = new Date().toISOString();
@@ -604,6 +676,8 @@ async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingCont
       return buildMostBikesContent(config, nowIso);
     case 'informes-mensuales-bizi-zaragoza':
       return buildMonthlyReportsContent(config, nowIso);
+    case 'redistribucion-bizi-zaragoza':
+      return buildRedistribucionContent(config, nowIso);
     default:
       return fallbackContent(config, nowIso);
   }

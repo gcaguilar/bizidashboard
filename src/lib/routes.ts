@@ -101,6 +101,7 @@ export const appRoutes = {
   dashboardStatus: () => '/dashboard/status',
   dashboardView: (mode: DashboardViewMode | string) =>
     `/dashboard/views/${encodeSegment(mode)}`,
+  dashboardRedistribucion: () => '/dashboard/redistribucion',
   districtLanding: () => '/barrios-bizi-zaragoza',
   districtDetail: (districtSlug: string) => `/barrios/${encodeSegment(districtSlug)}`,
   seoPage: (slug: string) => `/${encodeSegment(slug)}`,
@@ -147,6 +148,16 @@ export const appRoutes = {
         limit: params?.limit,
       }),
     predictions: (stationId = '101') => buildQuery('/api/predictions', { stationId }),
+    rebalancingReport: (params?: {
+      district?: string | null;
+      days?: number | null;
+      format?: 'csv' | null;
+    }) =>
+      buildQuery('/api/rebalancing-report', {
+        district: params?.district,
+        days: params?.days,
+        format: params?.format,
+      }),
   },
 } as const;
 
@@ -166,6 +177,10 @@ export const DASHBOARD_ROUTE_CONFIG = {
   conclusions: {
     href: appRoutes.dashboardConclusions(),
     label: 'Conclusiones',
+  },
+  redistribucion: {
+    href: appRoutes.dashboardRedistribucion(),
+    label: 'Redistribución',
   },
   help: {
     href: appRoutes.dashboardHelp(),
