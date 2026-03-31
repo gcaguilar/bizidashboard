@@ -361,6 +361,47 @@ export const openApiDocument = {
         }
       }
     },
+    '/api/rebalancing-report': {
+      get: {
+        operationId: 'get_rebalancing_report',
+        summary: 'Station rebalancing diagnostic report with classification, predictions, and transfer recommendations',
+        description: 'Returns a full rebalancing report: station diagnostics classified A-F (overstock, deficit, peak_saturation, peak_emptying, balanced, data_review), risk predictions at 1h/3h, network elasticity context, origin-destination transfer recommendations, KPIs, and baseline comparison. Filterable by barrio/district.',
+        parameters: [
+          {
+            name: 'district',
+            in: 'query',
+            required: false,
+            description: 'Filter results by barrio/district name (e.g. "Centro", "Delicias")',
+            schema: { type: 'string' }
+          },
+          {
+            name: 'days',
+            in: 'query',
+            required: false,
+            description: 'Analysis window in days (default 15, max 90)',
+            schema: { type: 'integer', minimum: 1, maximum: 90, default: 15 }
+          },
+          {
+            name: 'format',
+            in: 'query',
+            required: false,
+            description: 'Response format: json (default) or csv',
+            schema: { type: 'string', enum: ['json', 'csv'] }
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Rebalancing report with station diagnostics (classification A-F), transfer recommendations, KPIs, and baseline comparison'
+          },
+          400: {
+            description: 'Invalid query parameters'
+          },
+          500: {
+            description: 'Internal server error'
+          }
+        }
+      }
+    },
     '/api/docs': {
       get: {
         operationId: 'get_api_docs',

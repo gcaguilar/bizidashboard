@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { DASHBOARD_ROUTE_CONFIG } from '@/lib/routes';
 
-export type DashboardRoute = 'dashboard' | 'stations' | 'flow' | 'conclusions' | 'help';
+export type DashboardRoute = 'dashboard' | 'stations' | 'flow' | 'conclusions' | 'redistribucion' | 'help';
 
 type DashboardRouteLinksProps = {
   activeRoute?: DashboardRoute;
@@ -10,7 +10,7 @@ type DashboardRouteLinksProps = {
   className?: string;
 };
 
-const DEFAULT_ROUTES: DashboardRoute[] = ['dashboard', 'stations', 'flow', 'conclusions', 'help'];
+const DEFAULT_ROUTES: DashboardRoute[] = ['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help'];
 
 export function DashboardRouteLinks({
   activeRoute,

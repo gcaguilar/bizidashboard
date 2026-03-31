@@ -10,6 +10,7 @@ export const SEO_PAGE_SLUGS = [
   'uso-bizi-por-estacion',
   'estaciones-con-mas-bicis',
   'informes-mensuales-bizi-zaragoza',
+  'redistribucion-bizi-zaragoza',
 ] as const;
 
 export type SeoPageSlug = (typeof SEO_PAGE_SLUGS)[number];
@@ -134,6 +135,24 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     heroKicker: 'Archivo de informes',
     dashboardHref: appRoutes.reports(),
     dashboardLabel: 'Abrir archivo mensual completo',
+  },
+  'redistribucion-bizi-zaragoza': {
+    slug: 'redistribucion-bizi-zaragoza',
+    title: 'Redistribucion de bicis Bizi Zaragoza',
+    metadataTitle: 'Como se redistribuyen las bicis Bizi en Zaragoza: metodologia y datos',
+    description:
+      'Sistema de diagnostico y redistribucion de estaciones Bizi Zaragoza: clasificacion A-F, prediccion de riesgo, transferencias origen-destino y comparativa de escenarios de intervencion.',
+    keywords: [
+      'redistribucion bizi zaragoza',
+      'rebalanceo bici publica zaragoza',
+      'como funciona redistribucion bizi',
+      'estaciones vacias llenas bizi',
+      'logistica bizi zaragoza',
+    ],
+    cadenceLabel: 'Actualizacion diaria',
+    heroKicker: 'Diagnostico de equilibrio',
+    dashboardHref: appRoutes.dashboardRedistribucion(),
+    dashboardLabel: 'Abrir panel operativo de redistribucion',
   },
 };
 
