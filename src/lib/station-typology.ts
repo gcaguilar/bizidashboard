@@ -63,7 +63,6 @@ export function inferStationType(patterns: PatternRow[]): TypologyResult {
 
   const wdMorningOcc = avgOccupancy(patterns, 'WEEKDAY', MORNING_HOURS);
   const wdEveningOcc = avgOccupancy(patterns, 'WEEKDAY', EVENING_HOURS);
-  const wdNightOcc = avgOccupancy(patterns, 'WEEKDAY', NIGHT_HOURS);
   const wdMiddayOcc = avgOccupancy(patterns, 'WEEKDAY', MIDDAY_HOURS);
 
   const wdTotalActivity = totalRotation(patterns, 'WEEKDAY', ALL_DAY_HOURS);

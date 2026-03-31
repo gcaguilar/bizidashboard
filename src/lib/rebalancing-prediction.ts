@@ -17,8 +17,7 @@ export type PatternRow = {
 
 // ─── Extended prediction horizons ────────────────────────────────────────────
 
-const EXTENDED_HORIZONS = [30, 60, 120, 180] as const;
-type ExtendedHorizon = (typeof EXTENDED_HORIZONS)[number];
+type ExtendedHorizon = 30 | 60 | 120 | 180;
 
 // Recency weights per horizon: at 3h, pattern dominates over current state
 const RECENCY_WEIGHTS: Record<ExtendedHorizon, number> = {

@@ -115,7 +115,6 @@ export function DataHistoryCard() {
             </Link>
           </div>
           <div>
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href={appRoutes.api.historyCsv()} className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline" rel="noopener noreferrer">
               Descargar CSV
             </a>

@@ -333,11 +333,8 @@ describe('decideAction', () => {
 
   it('urgency is reduced when network has robust alternatives', () => {
     const networkWithAlternatives = makeNetwork({ urgencyAdjustment: 0.5 });
-    const result = decideAction(
-      'balanced', 0.42, targetBand, 'morning_peak',
-      makeRisk(), networkWithAlternatives, 100
-    );
-    // With alternatives and moderate deviation, urgency should be reduced
+    // With alternatives and moderate deviation, urgency should be reduced.
+    decideAction('balanced', 0.42, targetBand, 'morning_peak', makeRisk(), networkWithAlternatives, 100);
     const noNetworkResult = decideAction(
       'deficit', 0.15, targetBand, 'morning_peak',
       makeRisk({ riskEmptyAt1h: 0.90 }), makeNetwork(), 100
