@@ -324,6 +324,15 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
       priority: 0.75,
     },
   },
+  {
+    id: 'dashboard-redistribucion',
+    href: appRoutes.dashboardRedistribucion(),
+    label: 'Redistribucion',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.75,
+    },
+  },
 ];
 
 const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
