@@ -155,6 +155,51 @@ export async function fetchStations(): Promise<StationsResponse> {
   return payload;
 }
 
+export type LiteRankingRow = {
+  id: number;
+  stationId: string;
+  turnoverScore: number;
+  emptyHours: number;
+  fullHours: number;
+  totalHours: number;
+  windowStart: string;
+  windowEnd: string;
+};
+
+export type LiteRankingsResponse = {
+  type: 'turnover' | 'availability';
+  limit: number;
+  rankings: LiteRankingRow[];
+  generatedAt: string;
+  dataState: DataState;
+};
+
+export async function fetchRankingsLite(
+  type: LiteRankingsResponse['type'],
+  limit = 20
+): Promise<LiteRankingsResponse> {
+  const cacheKey = `rankings-lite:type=${type}:limit=${limit}`;
+  return withCache(cacheKey, ANALYTICS_CACHE_TTL_SECONDS, async () => {
+    const [rankings, dataset] = await Promise.all([
+      getStationRankings(type, limit),
+      getSharedDatasetSnapshot().catch(() => null),
+    ]);
+
+    return {
+      type,
+      limit,
+      rankings,
+      generatedAt: new Date().toISOString(),
+      dataState: resolveRankingsDataState({
+        count: rankings.length,
+        coverage: dataset?.coverage,
+        status: dataset?.pipeline,
+        requestedLimit: limit,
+      }),
+    };
+  });
+}
+
 export async function fetchRankings(
   type: RankingsResponse['type'],
   limit = 20

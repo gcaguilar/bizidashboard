@@ -10,7 +10,7 @@ import { buildDistrictSeoRows } from '@/lib/seo-districts';
 import { getDailyDemandCurve, getMonthlyDemandCurve, getSystemHourlyProfile } from '@/analytics/queries/read';
 import {
   fetchAvailableDataMonths,
-  fetchRankings,
+  fetchRankingsLite,
   fetchSharedDatasetSnapshot,
   fetchStations,
 } from '@/lib/api';
@@ -101,6 +101,19 @@ export type ComparisonHubData = {
   interactive: InteractiveComparisonData;
   sections: ComparisonSection[];
 };
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  fallbackValue: T
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => resolve(fallbackValue), timeoutMs);
+    }),
+  ]);
+}
 
 function buildFallbackComparisonSections(): ComparisonSection[] {
   return [
@@ -247,6 +260,7 @@ function buildInteractiveDimension(config: {
 
 export async function getComparisonHubData(): Promise<ComparisonHubData> {
   const nowIso = new Date().toISOString();
+  const sourceTimeoutMs = 8_000;
   const [
     stationsResponse,
     turnoverResponse,
@@ -259,30 +273,60 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
     historyRows,
     dataset,
   ] = await Promise.all([
-    fetchStations().catch(() => buildFallbackStations(nowIso)),
-    fetchRankings('turnover', 10).catch(() => ({
-      type: 'turnover' as const,
-      limit: 10,
-      rankings: [],
-      districtSpotlight: [],
-      generatedAt: nowIso,
-      dataState: 'no_coverage' as const,
-    })),
-    fetchRankings('availability', 10).catch(() => ({
-      type: 'availability' as const,
-      limit: 10,
-      rankings: [],
-      districtSpotlight: [],
-      generatedAt: nowIso,
-      dataState: 'no_coverage' as const,
-    })),
-    fetchDistrictCollection().catch(() => null),
-    fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
-    getMonthlyDemandCurve(24).catch(() => []),
-    getDailyDemandCurve(90).catch(() => []),
-    getSystemHourlyProfile(30).catch(() => []),
-    getRecentHistoryRows().catch(() => []),
-    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+    withTimeout(
+      fetchStations().catch(() => buildFallbackStations(nowIso)),
+      sourceTimeoutMs,
+      buildFallbackStations(nowIso)
+    ),
+    withTimeout(
+      fetchRankingsLite('turnover', 10).catch(() => ({
+        type: 'turnover' as const,
+        limit: 10,
+        rankings: [],
+        generatedAt: nowIso,
+        dataState: 'no_coverage' as const,
+      })),
+      sourceTimeoutMs,
+      {
+        type: 'turnover' as const,
+        limit: 10,
+        rankings: [],
+        generatedAt: nowIso,
+        dataState: 'no_coverage' as const,
+      }
+    ),
+    withTimeout(
+      fetchRankingsLite('availability', 10).catch(() => ({
+        type: 'availability' as const,
+        limit: 10,
+        rankings: [],
+        generatedAt: nowIso,
+        dataState: 'no_coverage' as const,
+      })),
+      sourceTimeoutMs,
+      {
+        type: 'availability' as const,
+        limit: 10,
+        rankings: [],
+        generatedAt: nowIso,
+        dataState: 'no_coverage' as const,
+      }
+    ),
+    withTimeout(fetchDistrictCollection().catch(() => null), sourceTimeoutMs, null),
+    withTimeout(
+      fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
+      sourceTimeoutMs,
+      { months: [], generatedAt: nowIso }
+    ),
+    withTimeout(getMonthlyDemandCurve(24).catch(() => []), sourceTimeoutMs, []),
+    withTimeout(getDailyDemandCurve(90).catch(() => []), sourceTimeoutMs, []),
+    withTimeout(getSystemHourlyProfile(30).catch(() => []), sourceTimeoutMs, []),
+    withTimeout(getRecentHistoryRows().catch(() => []), sourceTimeoutMs, []),
+    withTimeout(
+      fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+      sourceTimeoutMs,
+      buildFallbackDatasetSnapshot(nowIso)
+    ),
   ]);
   const districtRows = buildDistrictSeoRows({
     stations: stationsResponse.stations,
@@ -295,9 +339,13 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
   const latestMonth = validMonths[0] ?? monthlySeries[monthlySeries.length - 1]?.monthKey ?? null;
   const previousMonth = validMonths[1] ?? monthlySeries[monthlySeries.length - 2]?.monthKey ?? null;
   const [recentConclusions, latestMonthConclusions, previousMonthConclusions] = await Promise.all([
-    getDailyMobilityConclusions().catch(() => null),
-    latestMonth ? getDailyMobilityConclusions(latestMonth).catch(() => null) : Promise.resolve(null),
-    previousMonth ? getDailyMobilityConclusions(previousMonth).catch(() => null) : Promise.resolve(null),
+    withTimeout(getDailyMobilityConclusions().catch(() => null), sourceTimeoutMs, null),
+    latestMonth
+      ? withTimeout(getDailyMobilityConclusions(latestMonth).catch(() => null), sourceTimeoutMs, null)
+      : Promise.resolve(null),
+    previousMonth
+      ? withTimeout(getDailyMobilityConclusions(previousMonth).catch(() => null), sourceTimeoutMs, null)
+      : Promise.resolve(null),
   ]);
 
   const stationMap = new Map(stationsResponse.stations.map((station) => [station.id, station]));
@@ -961,7 +1009,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
  * Un tope de pocos segundos devolvía siempre el fallback vacío en producción (p. ej. cold start / DB remota).
  */
 export async function getComparisonHubDataWithTimeout(
-  timeoutMs = 28_000
+  timeoutMs = 35_000
 ): Promise<ComparisonHubData> {
   const nowIso = new Date().toISOString();
 
