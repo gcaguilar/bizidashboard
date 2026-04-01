@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   {
@@ -52,7 +53,8 @@ const securityHeaders = [
   },
 ];
 
-import { withSentryConfig } from "@sentry/nextjs";
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN?.trim();
+const hasSentryAuthToken = Boolean(sentryAuthToken);
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -85,15 +87,25 @@ export default withSentryConfig(nextConfig, {
 
   org: "bizidashboard",
   project: "javascript-nextjs",
+  authToken: sentryAuthToken,
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+  telemetry: false,
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Upload a larger set of source maps for prettier stack traces (can increase build time)
-  widenClientFileUpload: true,
+  // Only upload and widen sourcemaps when release management is actually enabled.
+  widenClientFileUpload: hasSentryAuthToken,
+  sourcemaps: {
+    disable: !hasSentryAuthToken,
+  },
+  release: {
+    create: hasSentryAuthToken,
+    finalize: hasSentryAuthToken,
+    setCommits: hasSentryAuthToken ? undefined : false,
+  },
 
   // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // This can increase your server load as well as your Sentry bill.
