@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isRecord, tryParseJson } from '@/lib/json';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 export const dynamic = 'force-dynamic';
@@ -21,24 +22,49 @@ const DEFAULT_APP_VERSIONS: AppVersionsResponse = {
   versions: [],
 };
 
+function isAppVersion(value: unknown): value is AppVersion {
+  return (
+    isRecord(value) &&
+    typeof value.version === 'string' &&
+    typeof value.allowed === 'boolean' &&
+    (value.reason === undefined || typeof value.reason === 'string')
+  );
+}
+
+function isAppVersionsResponse(value: unknown): value is AppVersionsResponse {
+  return (
+    isRecord(value) &&
+    typeof value.minVersion === 'string' &&
+    typeof value.maxVersion === 'string' &&
+    Array.isArray(value.versions) &&
+    value.versions.every(isAppVersion)
+  );
+}
+
 function parseAppVersions(): AppVersionsResponse {
   const env = process.env.APP_VERSIONS;
-  
+
   if (!env) {
     return DEFAULT_APP_VERSIONS;
   }
 
-  try {
-    const parsed = JSON.parse(env) as AppVersionsResponse;
-    return parsed;
-  } catch (error) {
-    captureExceptionWithContext(error, {
+  const parsed = tryParseJson(env);
+
+  if (parsed.ok && isAppVersionsResponse(parsed.value)) {
+    return parsed.value;
+  }
+
+  captureExceptionWithContext(
+    parsed.ok
+      ? new Error('APP_VERSIONS must match the expected response shape.')
+      : parsed.error,
+    {
       area: 'api.app-versions',
       operation: 'parseAppVersions',
-    });
-    console.warn('[API App Versions] Invalid APP_VERSIONS JSON, using defaults');
-    return DEFAULT_APP_VERSIONS;
-  }
+    }
+  );
+  console.warn('[API App Versions] Invalid APP_VERSIONS config, using defaults');
+  return DEFAULT_APP_VERSIONS;
 }
 
 const APP_VERSIONS = parseAppVersions();

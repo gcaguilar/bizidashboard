@@ -18,10 +18,8 @@ import type { StationSnapshot } from '@/lib/api';
 import {
   resolveMobilityDataState,
   shouldShowDataStateNotice,
-  type DataState,
 } from '@/lib/data-state';
 import {
-  buildStationDistrictMap,
   fetchDistrictCollection,
   type DistrictCollection,
   isDistrictCollection,
@@ -29,59 +27,23 @@ import {
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-
-const PERIODS = [
-  { key: 'all', label: 'Todo el dia', from: 0, to: 23 },
-  { key: 'morning', label: 'Mañana', from: 6, to: 11 },
-  { key: 'midday', label: 'Mediodia', from: 12, to: 16 },
-  { key: 'evening', label: 'Tarde', from: 17, to: 21 },
-  { key: 'night', label: 'Noche', from: 22, to: 5 },
-] as const;
-
-type PeriodKey = (typeof PERIODS)[number]['key'];
-
-type MobilitySignalRow = {
-  stationId: string;
-  hour: number;
-  departures: number;
-  arrivals: number;
-  sampleCount: number;
-};
-
-type DailyDemandRow = {
-  day: string;
-  demandScore: number;
-  avgOccupancy: number;
-  sampleCount: number;
-};
-
-type MobilityResponse = {
-  mobilityDays: number;
-  demandDays: number;
-  selectedMonth?: string | null;
-  methodology: string;
-  hourlySignals: MobilitySignalRow[];
-  dailyDemand: DailyDemandRow[];
-  generatedAt: string;
-  dataState?: DataState;
-};
-
-type DistrictTotals = {
-  district: string;
-  outbound: number;
-  inbound: number;
-  volume: number;
-  net: number;
-};
-
-type PeriodInsights = {
-  key: PeriodKey;
-  label: string;
-  districts: DistrictTotals[];
-  matrix: number[][];
-  maxFlow: number;
-  totalFlow: number;
-};
+import {
+  buildChordLinks,
+  buildChordNodes,
+  buildDailyCurveData,
+  buildPeriodInsights,
+  buildStationDistrictLookup,
+  buildTopEmitterTowardReference,
+  buildTopReceiverFromReference,
+  buildTopRoutes,
+  getMatrixCellColor,
+  isMobilityResponse,
+  PERIODS,
+  resolvePeriod,
+  resolveSelectedDistrictName,
+  type MobilityResponse,
+  type PeriodInsights,
+} from './mobility-insights-model';
 
 type MobilityInsightsProps = {
   stations: StationSnapshot[];
@@ -89,53 +51,6 @@ type MobilityInsightsProps = {
   mobilityDays?: number;
   demandDays?: number;
 };
-
-function getPeriodByHour(hour: number): PeriodKey {
-  if (hour >= 6 && hour <= 11) {
-    return 'morning';
-  }
-
-  if (hour >= 12 && hour <= 16) {
-    return 'midday';
-  }
-
-  if (hour >= 17 && hour <= 21) {
-    return 'evening';
-  }
-
-  return 'night';
-}
-
-function isPeriodKey(value: string | null): value is PeriodKey {
-  if (!value) {
-    return false;
-  }
-
-  return PERIODS.some((period) => period.key === value);
-}
-
-function resolvePeriod(value: string | null): PeriodKey {
-  return isPeriodKey(value) ? value : 'all';
-}
-
-function getDayLabel(day: string): string {
-  if (typeof day !== 'string' || day.length < 10) {
-    return day;
-  }
-
-  const month = day.slice(5, 7);
-  const date = day.slice(8, 10);
-  return `${date}/${month}`;
-}
-
-function getMatrixCellColor(value: number, maxValue: number): string {
-  if (!Number.isFinite(value) || value <= 0 || maxValue <= 0) {
-    return 'rgba(176, 129, 135, 0.16)';
-  }
-
-  const ratio = Math.min(1, Math.max(0, value / maxValue));
-  return `rgba(234, 6, 21, ${0.2 + ratio * 0.72})`;
-}
 
 export function MobilityInsights({
   stations,
@@ -188,13 +103,7 @@ export function MobilityInsights({
           return;
         }
 
-        const typedMobility = mobilityPayload as MobilityResponse;
-
-        if (
-          !typedMobility ||
-          !Array.isArray(typedMobility.hourlySignals) ||
-          !Array.isArray(typedMobility.dailyDemand)
-        ) {
+        if (!isMobilityResponse(mobilityPayload)) {
           throw new Error('Respuesta de movilidad invalida.');
         }
 
@@ -202,7 +111,7 @@ export function MobilityInsights({
           throw new Error('GeoJSON de distritos invalido.');
         }
 
-        setMobilityData(typedMobility);
+        setMobilityData(mobilityPayload);
         setDistricts(districtsPayload);
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
@@ -238,182 +147,25 @@ export function MobilityInsights({
   }, [demandDays, mobilityDays, selectedMonth]);
 
   const stationDistrictMap = useMemo(() => {
-    if (!districts) {
-      return new Map<string, string>();
-    }
-
-    return buildStationDistrictMap(stations, districts);
+    return buildStationDistrictLookup(stations, districts);
   }, [districts, stations]);
 
   const periodInsights = useMemo<PeriodInsights[]>(() => {
-    if (!mobilityData) {
-      return [];
-    }
-
-    type HourlySignal = { departures: number; arrivals: number };
-    type DistrictAccumulator = {
-      outbound: number;
-      inbound: number;
-      hourly: Map<number, HourlySignal>;
-    };
-
-    const periodMaps = new Map<PeriodKey, Map<string, DistrictAccumulator>>();
-
-    PERIODS.forEach((period) => {
-      periodMaps.set(period.key, new Map());
-    });
-
-    for (const row of mobilityData.hourlySignals) {
-      const district = stationDistrictMap.get(row.stationId);
-
-      if (!district) {
-        continue;
-      }
-
-      const hour = Number(row.hour);
-      const departures = Math.max(0, Number(row.departures));
-      const arrivals = Math.max(0, Number(row.arrivals));
-      const periodsToUpdate: PeriodKey[] = ['all'];
-
-      if (Number.isFinite(hour)) {
-        periodsToUpdate.push(getPeriodByHour(hour));
-      }
-
-      for (const periodKey of periodsToUpdate) {
-        const districtMap = periodMaps.get(periodKey);
-
-        if (!districtMap) {
-          continue;
-        }
-
-        const current = districtMap.get(district) ?? {
-          outbound: 0,
-          inbound: 0,
-          hourly: new Map<number, HourlySignal>(),
-        };
-        current.outbound += departures;
-        current.inbound += arrivals;
-
-        if (Number.isFinite(hour)) {
-          const hourSignal = current.hourly.get(hour) ?? { departures: 0, arrivals: 0 };
-          hourSignal.departures += departures;
-          hourSignal.arrivals += arrivals;
-          current.hourly.set(hour, hourSignal);
-        }
-
-        districtMap.set(district, current);
-      }
-    }
-
-    return PERIODS.map((period) => {
-      const districtMap = periodMaps.get(period.key) ?? new Map();
-      const districtRows = Array.from(districtMap.entries())
-        .map(([district, values]) => ({
-          district,
-          outbound: values.outbound,
-          inbound: values.inbound,
-          volume: values.outbound + values.inbound,
-          net: values.inbound - values.outbound,
-        }))
-        .sort((left, right) => right.volume - left.volume);
-
-      // Temporal affinity: for each (i,j) pair, sum min(departures_i_h, arrivals_j_h)
-      // across all hours. This produces an asymmetric matrix that genuinely varies
-      // per district pair, unlike the previous gravity model which was proportional.
-      const matrix = districtRows.map((origin) => {
-        const originHourly = districtMap.get(origin.district)?.hourly;
-        return districtRows.map((destination) => {
-          if (origin.district === destination.district) {
-            return 0;
-          }
-          const destHourly = districtMap.get(destination.district)?.hourly;
-          if (!originHourly || !destHourly) {
-            return 0;
-          }
-
-          let affinity = 0;
-          for (const [hour, originSignal] of originHourly.entries()) {
-            const destSignal = destHourly.get(hour);
-            if (!destSignal) {
-              continue;
-            }
-            affinity += Math.min(originSignal.departures, destSignal.arrivals);
-          }
-          return affinity;
-        });
-      });
-
-      const maxFlow = matrix.reduce(
-        (max, values) =>
-          Math.max(max, values.reduce((innerMax, value) => Math.max(innerMax, value), 0)),
-        0
-      );
-
-      const totalFlow = districtRows.reduce((sum, row) => sum + row.outbound, 0);
-
-      return {
-        key: period.key,
-        label: period.label,
-        districts: districtRows,
-        matrix,
-        maxFlow,
-        totalFlow,
-      };
-    });
+    return buildPeriodInsights(mobilityData, stationDistrictMap);
   }, [mobilityData, stationDistrictMap]);
 
   const activeInsights =
     periodInsights.find((insights) => insights.key === activePeriod) ?? periodInsights[0];
 
-  const topRoutes = useMemo(() => {
-    if (!activeInsights) {
-      return [] as Array<{ origin: string; destination: string; flow: number }>;
-    }
-
-    const candidates: Array<{ origin: string; destination: string; flow: number }> = [];
-
-    activeInsights.matrix.forEach((originRow, originIndex) => {
-      originRow.forEach((value, destinationIndex) => {
-        if (value <= 0 || originIndex === destinationIndex) {
-          return;
-        }
-
-        const origin = activeInsights.districts[originIndex]?.district;
-        const destination = activeInsights.districts[destinationIndex]?.district;
-
-        if (!origin || !destination) {
-          return;
-        }
-
-        candidates.push({
-          origin,
-          destination,
-          flow: value,
-        });
-      });
-    });
-
-    return candidates.sort((left, right) => right.flow - left.flow).slice(0, 12);
-  }, [activeInsights]);
+  const topRoutes = useMemo(() => buildTopRoutes(activeInsights), [activeInsights]);
 
   const selectedDistrict = selectedStationId
     ? stationDistrictMap.get(selectedStationId) ?? null
     : null;
 
   useEffect(() => {
-    if (!activeInsights || activeInsights.districts.length === 0) {
-      setSelectedDistrictName('');
-      return;
-    }
-
-    const preferredDistrict = selectedDistrict ?? activeInsights.districts[0]?.district ?? '';
-
     setSelectedDistrictName((current) => {
-      if (current && activeInsights.districts.some((district) => district.district === current)) {
-        return current;
-      }
-
-      return preferredDistrict;
+      return resolveSelectedDistrictName(activeInsights, selectedDistrict, current);
     });
   }, [activeInsights, selectedDistrict]);
 
@@ -422,119 +174,25 @@ export function MobilityInsights({
   );
 
   /** Barrio distinto del de referencia con mayor flujo estimado matrix[i][ref] (aportes hacia el referencia). */
-  const topEmitterTowardRef = useMemo(() => {
-    if (!activeInsights || !selectedDistrictName) {
-      return null as { district: string; flow: number } | null;
-    }
-
-    const refIndex = activeInsights.districts.findIndex((d) => d.district === selectedDistrictName);
-    if (refIndex < 0) {
-      return null;
-    }
-
-    const { matrix, districts } = activeInsights;
-    let bestIndex = -1;
-    let bestFlow = 0;
-
-    for (let i = 0; i < matrix.length; i += 1) {
-      if (i === refIndex) {
-        continue;
-      }
-      const value = matrix[i]?.[refIndex] ?? 0;
-      if (value > bestFlow) {
-        bestFlow = value;
-        bestIndex = i;
-      }
-    }
-
-    if (bestIndex < 0 || bestFlow <= 0) {
-      return null;
-    }
-
-    return { district: districts[bestIndex]!.district, flow: bestFlow };
-  }, [activeInsights, selectedDistrictName]);
+  const topEmitterTowardRef = useMemo(
+    () => buildTopEmitterTowardReference(activeInsights, selectedDistrictName),
+    [activeInsights, selectedDistrictName]
+  );
 
   /** Barrio distinto con mayor flujo estimado matrix[ref][j] (recibe salidas del referencia). */
-  const topReceiverFromRef = useMemo(() => {
-    if (!activeInsights || !selectedDistrictName) {
-      return null as { district: string; flow: number } | null;
-    }
+  const topReceiverFromRef = useMemo(
+    () => buildTopReceiverFromReference(activeInsights, selectedDistrictName),
+    [activeInsights, selectedDistrictName]
+  );
 
-    const refIndex = activeInsights.districts.findIndex((d) => d.district === selectedDistrictName);
-    if (refIndex < 0) {
-      return null;
-    }
+  const dailyCurveData = useMemo(() => buildDailyCurveData(mobilityData), [mobilityData]);
 
-    const { matrix, districts } = activeInsights;
-    let bestIndex = -1;
-    let bestFlow = 0;
+  const chordNodes = useMemo(() => buildChordNodes(activeInsights), [activeInsights]);
 
-    for (let j = 0; j < matrix.length; j += 1) {
-      if (j === refIndex) {
-        continue;
-      }
-      const value = matrix[refIndex]?.[j] ?? 0;
-      if (value > bestFlow) {
-        bestFlow = value;
-        bestIndex = j;
-      }
-    }
-
-    if (bestIndex < 0 || bestFlow <= 0) {
-      return null;
-    }
-
-    return { district: districts[bestIndex]!.district, flow: bestFlow };
-  }, [activeInsights, selectedDistrictName]);
-
-  const dailyCurveData = useMemo(() => {
-    if (!mobilityData) {
-      return [] as Array<{
-        day: string;
-        label: string;
-        demandScore: number;
-        avgOccupancyRatio: number;
-      }>;
-    }
-
-    return mobilityData.dailyDemand.map((row) => ({
-      day: row.day,
-      label: getDayLabel(row.day),
-      demandScore: Number(row.demandScore),
-      avgOccupancyRatio: Number(row.avgOccupancy),
-    }));
-  }, [mobilityData]);
-
-  const chordNodes = useMemo(() => {
-    if (!activeInsights || activeInsights.districts.length === 0) {
-      return [] as Array<{ district: string; x: number; y: number }>;
-    }
-
-    const nodes = activeInsights.districts;
-    const radius = 115;
-    const center = 140;
-
-    return nodes.map((node, index) => {
-      const angle = (Math.PI * 2 * index) / nodes.length - Math.PI / 2;
-      return {
-        district: node.district,
-        x: center + radius * Math.cos(angle),
-        y: center + radius * Math.sin(angle),
-      };
-    });
-  }, [activeInsights]);
-
-  const chordLinks = useMemo(() => {
-    if (!activeInsights || chordNodes.length === 0) {
-      return [] as Array<{ origin: string; destination: string; flow: number }>;
-    }
-
-    const nodeNames = new Set(chordNodes.map((node) => node.district));
-
-    return topRoutes
-      .filter((route) => nodeNames.has(route.origin) && nodeNames.has(route.destination))
-      .slice(0, 12);
-  }, [activeInsights, chordNodes, topRoutes]);
+  const chordLinks = useMemo(
+    () => buildChordLinks(chordNodes, topRoutes),
+    [chordNodes, topRoutes]
+  );
   const mobilityDataState = resolveMobilityDataState({
     dailyDemandCount: mobilityData?.dailyDemand.length ?? 0,
     hourlySignalCount: mobilityData?.hourlySignals.length ?? 0,

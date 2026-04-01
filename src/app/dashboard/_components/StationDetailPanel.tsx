@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   AlertsResponse,
   HeatmapCell,
@@ -18,6 +18,7 @@ import { formatPercent } from '@/lib/format';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type MobilitySignalRow = {
   stationId: string;
@@ -91,51 +92,41 @@ export function StationDetailPanel({
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
+      const params = new URLSearchParams({
+        mobilityDays: String(mobilityDays),
+        demandDays: String(demandDays),
+      });
 
-    const loadExtraData = async () => {
-      try {
-        const params = new URLSearchParams({
-          mobilityDays: String(mobilityDays),
-          demandDays: String(demandDays),
-        });
+      if (selectedMonth) {
+        params.set('month', selectedMonth);
+      }
 
-        if (selectedMonth) {
-          params.set('month', selectedMonth);
-        }
+      const [districtPayload, mobilityPayload] = await Promise.all([
+        fetchDistrictCollection(signal),
+        fetchJson<MobilityResponse>(`${appRoutes.api.mobility()}?${params.toString()}`, {
+          signal,
+        }),
+      ]);
 
-        const [districtPayload, mobilityResponse] = await Promise.all([
-          fetchDistrictCollection(controller.signal),
-          fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
-            signal: controller.signal,
-          }),
-        ]);
+      if (!districtPayload || !Array.isArray(mobilityPayload.hourlySignals)) {
+        throw new Error('No se pudieron cargar datos auxiliares de estacion.');
+      }
 
-        if (!districtPayload || !mobilityResponse.ok) {
-          throw new Error('No se pudieron cargar datos auxiliares de estacion.');
-        }
+      if (!isActive()) {
+        return;
+      }
 
-        const mobilityPayload = (await mobilityResponse.json()) as unknown;
+      if (isDistrictCollection(districtPayload)) {
+        setDistricts(districtPayload);
+      }
 
-        if (!isActive) {
-          return;
-        }
-
-        if (isDistrictCollection(districtPayload)) {
-          setDistricts(districtPayload);
-        }
-
-        const typedMobility = mobilityPayload as MobilityResponse;
-        if (Array.isArray(typedMobility.hourlySignals)) {
-          setMobility(typedMobility);
-        }
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') {
-          return;
-        }
-
+      setMobility(mobilityPayload);
+    },
+    [demandDays, mobilityDays, selectedMonth],
+    {
+      onError: (error) => {
         captureExceptionWithContext(error, {
           area: 'dashboard.station-detail',
           operation: 'loadExtraData',
@@ -146,16 +137,9 @@ export function StationDetailPanel({
           },
         });
         console.error('[Dashboard] Error cargando detalle de estacion', error);
-      }
-    };
-
-    void loadExtraData();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [demandDays, mobilityDays, selectedMonth]);
+      },
+    }
+  );
 
   useEffect(() => {
     if (!isGeolocationEnabled) {

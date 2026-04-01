@@ -1,8 +1,15 @@
+import { isRecord, parseJsonValue } from '@/lib/json';
+
 export type StationSnapshotMap = Record<string, number>;
 
 export type RecentStationSnapshot = {
   recordedAt: string;
   snapshot: StationSnapshotMap;
+};
+
+type SnapshotSource = {
+  id: string;
+  bikesAvailable: number;
 };
 
 const MAX_RECENT_SNAPSHOTS = 20;
@@ -11,39 +18,23 @@ export function trimRecentSnapshots(snapshots: RecentStationSnapshot[]): RecentS
   return snapshots.slice(-MAX_RECENT_SNAPSHOTS);
 }
 
-export function parseRecentSnapshots(rawValue: string | null): RecentStationSnapshot[] {
-  if (!rawValue) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return trimRecentSnapshots(
-      parsed
-        .filter((item): item is { recordedAt?: unknown; snapshot?: unknown } => Boolean(item && typeof item === 'object'))
-        .map((item) => ({
-          recordedAt: typeof item.recordedAt === 'string' ? item.recordedAt : new Date(0).toISOString(),
-          snapshot: normalizeSnapshot(item.snapshot),
-        }))
-    );
-  } catch {
-    return [];
-  }
+export function buildStationSnapshotMap<T extends SnapshotSource>(
+  stations: readonly T[]
+): StationSnapshotMap {
+  return stations.reduce<StationSnapshotMap>((accumulator, station) => {
+    accumulator[station.id] = Number(station.bikesAvailable);
+    return accumulator;
+  }, {});
 }
 
-function normalizeSnapshot(value: unknown): StationSnapshotMap {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+export function normalizeStationSnapshot(value: unknown): StationSnapshotMap {
+  if (!isRecord(value)) {
     return {};
   }
 
   const snapshot: StationSnapshotMap = {};
 
-  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+  for (const [key, entry] of Object.entries(value)) {
     if (!Number.isFinite(entry)) {
       continue;
     }
@@ -52,6 +43,32 @@ function normalizeSnapshot(value: unknown): StationSnapshotMap {
   }
 
   return snapshot;
+}
+
+export function parseStationSnapshot(rawValue: string | null): StationSnapshotMap | null {
+  const parsed = parseJsonValue(rawValue);
+
+  if (parsed === null) {
+    return null;
+  }
+
+  return normalizeStationSnapshot(parsed);
+}
+
+export function parseRecentSnapshots(rawValue: string | null): RecentStationSnapshot[] {
+  const parsed = parseJsonValue(rawValue);
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return trimRecentSnapshots(
+    parsed.filter(isRecord).map((item) => ({
+      recordedAt:
+        typeof item.recordedAt === 'string' ? item.recordedAt : new Date(0).toISOString(),
+      snapshot: normalizeStationSnapshot(item.snapshot),
+    }))
+  );
 }
 
 export function pushRecentSnapshot(

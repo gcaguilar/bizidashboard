@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 const {
   getStationsWithLatestStatusMock,
   getSharedDatasetSnapshotMock,
@@ -23,6 +25,7 @@ vi.mock('@/services/shared-data', () => ({
 }));
 
 import { GET } from '@/app/api/stations/route';
+import { fetchStations } from '@/lib/api';
 
 describe('GET /api/stations', () => {
   beforeEach(() => {
@@ -79,6 +82,31 @@ describe('GET /api/stations', () => {
     expect(payload.stations).toHaveLength(1);
     expect(payload.generatedAt).toBeTypeOf('string');
     expect(payload.dataState).toBe('ok');
+  });
+
+  it('normalizes Date timestamps before exposing station snapshots', async () => {
+    const recordedAt = new Date('2026-01-01T00:00:00.000Z');
+
+    getStationsWithLatestStatusMock.mockResolvedValue([
+      {
+        id: '101',
+        name: 'Plaza Espana',
+        lat: 41.6488,
+        lon: -0.8891,
+        capacity: 20,
+        bikesAvailable: 9,
+        anchorsFree: 11,
+        recordedAt,
+      },
+    ]);
+
+    withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
+      return fetcher();
+    });
+
+    const payload = await fetchStations();
+
+    expect(payload.stations[0]?.recordedAt).toBe(recordedAt.toISOString());
   });
 
   it('returns 500 when station retrieval fails', async () => {
