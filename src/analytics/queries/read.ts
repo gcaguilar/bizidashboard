@@ -253,7 +253,18 @@ export async function getStationsWithLatestStatus(): Promise<
     recordedAt: string;
   }[]
 > {
-  return prisma.$queryRaw`
+  const rows = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      name: string;
+      lat: number;
+      lon: number;
+      capacity: number;
+      bikesAvailable: number;
+      anchorsFree: number;
+      recordedAt: string | Date;
+    }>
+  >`
     WITH latest AS (
       SELECT "stationId", MAX("recordedAt") AS "recordedAt"
       FROM "StationStatus"
@@ -269,6 +280,12 @@ export async function getStationsWithLatestStatus(): Promise<
     WHERE "Station"."isActive" = true
     ORDER BY "Station".name ASC;
   `;
+
+  return rows.map((row) => ({
+    ...row,
+    recordedAt:
+      row.recordedAt instanceof Date ? row.recordedAt.toISOString() : row.recordedAt,
+  }));
 }
 
 export async function getStationPatterns(stationId: string, monthKey?: string): Promise<StationPatternRow[]> {

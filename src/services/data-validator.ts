@@ -37,7 +37,7 @@ export type GBFSStatusResponse = {
 export type ValidationResult = {
   success: boolean
   stored: boolean
-  metrics: DataObservabilityMetrics
+  metrics: DataObservabilityMetrics | null
   storageResult?: {
     count: number
     duplicateCount: number
@@ -68,6 +68,33 @@ function generateCollectionId(): string {
   return `col-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 }
 
+function toValidationInput(
+  response: GBFSStatusResponse,
+  sourceUrl: string,
+  collectionId: string
+): ValidationInput {
+  return {
+    lastUpdated: response.last_updated,
+    stations: response.data.stations.map((station) => ({
+      station_id: station.station_id,
+      num_bikes_available: station.num_bikes_available,
+      num_docks_available: station.num_docks_available,
+    })),
+    gbfsVersion: response.version,
+    sourceUrl,
+    collectionId,
+  }
+}
+
+function toStationStatuses(response: GBFSStatusResponse): GBFSStationStatus[] {
+  return response.data.stations.map((station) => ({
+    station_id: station.station_id,
+    num_bikes_available: station.num_bikes_available,
+    num_docks_available: station.num_docks_available,
+    recorded_at: response.last_updated,
+  }))
+}
+
 /**
  * Orchestrates the complete validation and storage pipeline:
  * 1. Validate data quality (Five Pillars)
@@ -87,24 +114,14 @@ export async function validateAndStore(
   const result: ValidationResult = {
     success: true,
     stored: false,
-    metrics: null as unknown as DataObservabilityMetrics,
+    metrics: null,
     errors: [],
     warnings: []
   }
 
   try {
     // Step 1: Prepare validation input
-    const validationInput: ValidationInput = {
-      lastUpdated: response.last_updated,
-      stations: response.data.stations.map(s => ({
-        station_id: s.station_id,
-        num_bikes_available: s.num_bikes_available,
-        num_docks_available: s.num_docks_available
-      })),
-      gbfsVersion: response.version,
-      sourceUrl: options.sourceUrl,
-      collectionId
-    }
+    const validationInput = toValidationInput(response, options.sourceUrl, collectionId)
 
     // Step 2: Run Five Pillars quality validation
     const metrics = await validateDataQuality(
@@ -138,12 +155,7 @@ export async function validateAndStore(
     // Step 5: Convert GBFS data to storage format. We use the feed-level
     // last_updated as the snapshot timestamp so every station in the same
     // upstream snapshot shares the same recordedAt value.
-    const stationStatuses: GBFSStationStatus[] = response.data.stations.map(station => ({
-      station_id: station.station_id,
-      num_bikes_available: station.num_bikes_available,
-      num_docks_available: station.num_docks_available,
-      recorded_at: response.last_updated
-    }))
+    const stationStatuses = toStationStatuses(response)
 
     // Step 6: Store in database
     const storageResult = await storeStationStatuses(stationStatuses)
@@ -228,17 +240,7 @@ export async function validateOnly(
   response: GBFSStatusResponse,
   sourceUrl: string
 ): Promise<DataObservabilityMetrics> {
-  const validationInput: ValidationInput = {
-    lastUpdated: response.last_updated,
-    stations: response.data.stations.map(s => ({
-      station_id: s.station_id,
-      num_bikes_available: s.num_bikes_available,
-      num_docks_available: s.num_docks_available
-    })),
-    gbfsVersion: response.version,
-    sourceUrl,
-    collectionId: generateCollectionId()
-  }
+  const validationInput = toValidationInput(response, sourceUrl, generateCollectionId())
 
   const metrics = await validateDataQuality(validationInput, [])
   logObservabilityMetrics(metrics)
