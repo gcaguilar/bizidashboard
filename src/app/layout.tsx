@@ -134,7 +134,7 @@ export default function RootLayout({
         description: SITE_DESCRIPTION,
         potentialAction: {
           "@type": "SearchAction",
-          target: `${toAbsoluteRouteUrl(appRoutes.dashboard())}?q={search_term_string}`,
+          target: `${toAbsoluteRouteUrl(appRoutes.explore())}?q={search_term_string}`,
           "query-input": 'required name=search_term_string',
         },
       },

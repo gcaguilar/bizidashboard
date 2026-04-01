@@ -46,6 +46,38 @@ type SeoLandingContent = {
 const EMPTY_STATE_MESSAGE =
   'Todavia no hay suficiente historico o cobertura para publicar esta landing con datos consistentes.';
 
+function buildSeoFaqStructuredData(config: SeoPageConfig) {
+  return {
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `Que ofrece la pagina ${config.title}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: config.description,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Cada cuanto se actualiza esta informacion?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${config.cadenceLabel}. La fecha visible en la pagina indica la ultima actualizacion publicada.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Donde puedo ver el detalle operativo completo?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Desde esta landing puedes abrir ${config.dashboardLabel.toLowerCase()} para consultar el detalle en tiempo real.`,
+        },
+      },
+    ],
+  };
+}
+
 function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
 }
@@ -705,6 +737,14 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
   const relatedPages = SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
     .map((pageSlug) => getSeoPageConfig(pageSlug));
+  const itemListElements = content.sectionItems
+    .filter((item): item is SeoItem & { href: string } => typeof item.href === 'string')
+    .map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.title,
+      url: toAbsoluteRouteUrl(item.href),
+    }));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -715,12 +755,23 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         description: config.description,
         inLanguage: 'es',
         url: toAbsoluteRouteUrl(canonicalPath),
+        dateModified: content.generatedAt,
         publisher: {
           '@type': 'Organization',
           name: SITE_NAME,
           url: siteUrl,
         },
       },
+      ...(itemListElements.length > 0
+        ? [
+            {
+              '@type': 'ItemList',
+              name: content.sectionTitle,
+              itemListElement: itemListElements,
+            },
+          ]
+        : []),
+      buildSeoFaqStructuredData(config),
     ],
   };
 

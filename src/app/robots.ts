@@ -12,7 +12,13 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/api/'],
       },
+      {
+        userAgent: ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'PerplexityBot'],
+        allow: '/',
+        disallow: ['/api/'],
+      },
     ],
+    host: hasPublicHost ? host : undefined,
     sitemap: hasPublicHost ? getRobotsSitemapUrl() : undefined,
   };
 }
