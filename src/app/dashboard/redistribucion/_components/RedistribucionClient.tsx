@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { appRoutes } from '@/lib/routes';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import type { RebalancingReport } from '@/types/rebalancing';
 import { ClassificationLegend } from './ClassificationLegend';
 import { RebalancingSummaryCards } from './RebalancingSummaryCards';
@@ -16,40 +17,101 @@ type Props = {
   districtNames: string[];
 };
 
+const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
+
 export function RedistribucionClient({ initialReport, districtNames }: Props) {
   const [report, setReport] = useState<RebalancingReport>(initialReport);
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
-  const [selectedDays, setSelectedDays] = useState<number>(15);
-  const [isPending, startTransition] = useTransition();
-
-  const fetchReport = useCallback(
-    (district: string, days: number) => {
-      startTransition(async () => {
-        const res = await fetch(
-          appRoutes.api.rebalancingReport({
-            district: district || null,
-            days,
-          })
-        );
-        if (res.ok) {
-          const data = (await res.json()) as RebalancingReport;
-          setReport(data);
-        }
-      });
-    },
-    []
+  const [selectedDistrict, setSelectedDistrict] = useState<string>(
+    initialReport.districtFilter ?? ''
   );
+  const [selectedDays, setSelectedDays] = useState<number>(initialReport.analysisWindowDays);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isReportLoading, setIsReportLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
+    const controller = new AbortController();
+    let isActive = true;
+
+    const refreshReport = async () => {
+      setLoadError(null);
+      setIsReportLoading(true);
+
+      try {
+        const response = await fetch(
+          appRoutes.api.rebalancingReport({
+            district: selectedDistrict || null,
+            days: selectedDays,
+          }),
+          {
+            cache: 'no-store',
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const nextReport: RebalancingReport = await response.json();
+
+        if (!isActive) {
+          return;
+        }
+
+        startTransition(() => {
+          setReport(nextReport);
+        });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+
+        captureExceptionWithContext(error, {
+          area: 'dashboard.redistribucion',
+          operation: 'refreshReport',
+          extra: {
+            days: selectedDays,
+            district: selectedDistrict || null,
+          },
+        });
+
+        if (!isActive) {
+          return;
+        }
+
+        setLoadError('No se pudo actualizar el informe. Mostramos la ultima version disponible.');
+      } finally {
+        if (isActive) {
+          setIsReportLoading(false);
+        }
+      }
+    };
+
+    void refreshReport();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [selectedDays, selectedDistrict, startTransition]);
 
   function handleDistrictChange(value: string) {
     setSelectedDistrict(value);
-    fetchReport(value, selectedDays);
   }
 
   function handleDaysChange(value: number) {
     setSelectedDays(value);
-    fetchReport(selectedDistrict, value);
   }
+
+  const isUpdatingReport = isReportLoading || isPending;
 
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: 'estaciones', label: `Estaciones (${report.summary.totalStations})` },
@@ -91,6 +153,7 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
         {/* Filters */}
         <div className="mt-4 flex flex-wrap gap-3">
           <select
+            aria-label="Filtrar redistribucion por barrio"
             className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
             value={selectedDistrict}
             onChange={(e) => handleDistrictChange(e.target.value)}
@@ -104,23 +167,30 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
           </select>
 
           <select
+            aria-label="Cambiar ventana temporal del informe"
             className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
             value={selectedDays}
             onChange={(e) => handleDaysChange(Number(e.target.value))}
           >
-            {[7, 15, 30, 60].map((d) => (
+            {ANALYSIS_WINDOWS.map((d) => (
               <option key={d} value={d}>
                 Últimos {d} días
               </option>
             ))}
           </select>
 
-          {isPending && (
+          {isUpdatingReport && (
             <span className="self-center text-xs text-[var(--muted)] animate-pulse">
               Actualizando…
             </span>
           )}
         </div>
+
+        {loadError ? (
+          <p className="mt-3 rounded-lg border border-amber-300/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-950 dark:text-amber-100">
+            {loadError}
+          </p>
+        ) : null}
       </div>
 
       {/* Summary cards */}
@@ -129,11 +199,20 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-1 border-b border-[var(--border)]">
+      <div
+        className="mb-4 flex gap-1 border-b border-[var(--border)]"
+        role="tablist"
+        aria-label="Secciones del informe de redistribucion"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
             onClick={() => setActiveTab(tab.id)}
+            role="tab"
+            id={`redistribucion-tab-${tab.id}`}
+            aria-selected={activeTab === tab.id}
+            aria-controls={`redistribucion-panel-${tab.id}`}
             className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'border border-b-0 border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]'
@@ -146,7 +225,12 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
       </div>
 
       {/* Tab content */}
-      <div className="space-y-6">
+      <div
+        className="space-y-6"
+        role="tabpanel"
+        id={`redistribucion-panel-${activeTab}`}
+        aria-labelledby={`redistribucion-tab-${activeTab}`}
+      >
         {activeTab === 'estaciones' && (
           <>
             <ClassificationLegend />

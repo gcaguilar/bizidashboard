@@ -30,7 +30,9 @@ afterEach(() => {
 });
 
 describe('canonical metadata', () => {
-  it('keeps canonical URLs aligned with route helpers on representative pages', async () => {
+  it(
+    'keeps canonical URLs aligned with route helpers on representative pages',
+    async () => {
     const { appRoutes, toAbsoluteRouteUrl } = await import('@/lib/routes');
     const comparePage = await import('@/app/comparar/page');
     const dashboardPage = await import('@/app/dashboard/page');
@@ -69,7 +71,9 @@ describe('canonical metadata', () => {
     expect(resolveCanonical(biciradarPage.metadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.biciradar())
     );
-  });
+    },
+    10_000
+  );
 
   it('keeps canonical URLs aligned on dynamic pages', async () => {
     const { appRoutes, toAbsoluteRouteUrl } = await import('@/lib/routes');

@@ -134,6 +134,19 @@ function assertArray(value: unknown, label: string): asserts value is unknown[] 
   }
 }
 
+function normalizeRecordedAt(recordedAt: string | Date): string {
+  return recordedAt instanceof Date ? recordedAt.toISOString() : recordedAt;
+}
+
+function normalizeStations(
+  stations: Array<Omit<StationSnapshot, 'recordedAt'> & { recordedAt: string | Date }>
+): StationSnapshot[] {
+  return stations.map((station) => ({
+    ...station,
+    recordedAt: normalizeRecordedAt(station.recordedAt),
+  }));
+}
+
 export async function fetchStations(): Promise<StationsResponse> {
   const payload = await withCache('stations:current', LIVE_CACHE_TTL_SECONDS, async () => {
     const [stations, dataset] = await Promise.all([
@@ -152,7 +165,14 @@ export async function fetchStations(): Promise<StationsResponse> {
   });
 
   assertArray(payload.stations, 'stations');
-  return payload;
+  return {
+    ...payload,
+    stations: normalizeStations(
+      payload.stations as Array<
+        Omit<StationSnapshot, 'recordedAt'> & { recordedAt: string | Date }
+      >
+    ),
+  };
 }
 
 export type LiteRankingRow = {

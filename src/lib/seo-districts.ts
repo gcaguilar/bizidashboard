@@ -10,6 +10,7 @@ import {
   DISTRICTS_GEOJSON_URL,
   isDistrictCollection,
 } from '@/lib/districts';
+import { parseJsonWithGuard } from '@/lib/json';
 
 export type DistrictSeoStation = {
   stationId: string;
@@ -190,9 +191,9 @@ export const getDistrictSlugsFromGeoJson = cache(async (): Promise<string[]> => 
   );
 
   try {
-    const payload = JSON.parse(await readFile(geoJsonPath, 'utf8')) as unknown;
+    const payload = parseJsonWithGuard(await readFile(geoJsonPath, 'utf8'), isDistrictCollection);
 
-    if (!isDistrictCollection(payload)) {
+    if (!payload) {
       return [];
     }
 

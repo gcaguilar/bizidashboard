@@ -33,11 +33,14 @@ import {
   type DashboardMapViewState,
 } from '@/lib/map-view-state';
 import {
+  buildStationSnapshotMap,
   parseRecentSnapshots,
+  parseStationSnapshot,
   pushRecentSnapshot,
   type RecentStationSnapshot,
   type StationSnapshotMap,
 } from '@/lib/recent-station-history';
+import { parseJsonValue } from '@/lib/json';
 
 const OverviewModeView = dynamic(
   () => import('./OverviewModeView').then((module) => module.OverviewModeView),
@@ -177,41 +180,6 @@ function resolveStationId(stations: StationsResponse['stations'], value: string 
   return stations[0]?.id ?? '';
 }
 
-function toStationSnapshot(stations: StationsResponse['stations']): StationSnapshotMap {
-  return stations.reduce<StationSnapshotMap>((accumulator, station) => {
-    accumulator[station.id] = Number(station.bikesAvailable);
-    return accumulator;
-  }, {});
-}
-
-function parseStationSnapshot(rawValue: string | null): StationSnapshotMap | null {
-  if (!rawValue) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      return null;
-    }
-
-    const snapshot: StationSnapshotMap = {};
-
-    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (!Number.isFinite(value)) {
-        continue;
-      }
-
-      snapshot[key] = Number(value);
-    }
-
-    return snapshot;
-  } catch {
-    return null;
-  }
-}
-
 function computeStationTrends(
   previousSnapshot: StationSnapshotMap,
   currentStations: StationsResponse['stations']
@@ -239,23 +207,23 @@ function computeStationTrends(
 }
 
 function parseFavoriteIds(rawValue: string | null): string[] {
-  if (!rawValue) {
+  const parsed = parseJsonValue(rawValue);
+
+  if (!Array.isArray(parsed)) {
     return [];
   }
 
+  return parsed
+    .filter((value): value is string => typeof value === 'string')
+    .map((value) => value.trim())
+    .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+}
+
+function writeJsonStorageItem(storage: Storage, key: string, value: unknown): void {
   try {
-    const parsed = JSON.parse(rawValue) as unknown;
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .filter((value): value is string => typeof value === 'string')
-      .map((value) => value.trim())
-      .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+    storage.setItem(key, JSON.stringify(value));
   } catch {
-    return [];
+    // Ignore quota exceeded and private browsing failures.
   }
 }
 
@@ -472,6 +440,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       return;
     }
 
+    const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
     const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
     setFavoriteStationIds(parsedFavorites);
 
@@ -487,19 +456,22 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
       {
         recordedAt: initialData.stations.generatedAt,
-        snapshot: toStationSnapshot(initialData.stations.stations),
+        snapshot: currentSnapshot,
       }
     );
 
     setRecentSnapshots(nextRecentSnapshots);
 
-    try {
-      window.sessionStorage.setItem(
-        TREND_SNAPSHOT_STORAGE_KEY,
-        JSON.stringify(toStationSnapshot(initialData.stations.stations))
-      );
-      window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
-    } catch { /* quota exceeded or private browsing */ }
+    writeJsonStorageItem(
+      window.sessionStorage,
+      TREND_SNAPSHOT_STORAGE_KEY,
+      currentSnapshot
+    );
+    writeJsonStorageItem(
+      window.sessionStorage,
+      RECENT_SNAPSHOTS_STORAGE_KEY,
+      nextRecentSnapshots
+    );
   }, [initialData.stations]);
 
   useEffect(() => {
@@ -507,7 +479,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       return;
     }
 
-    window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoriteStationIds));
+    writeJsonStorageItem(window.localStorage, FAVORITES_STORAGE_KEY, favoriteStationIds);
   }, [favoriteStationIds]);
 
   useEffect(() => {
@@ -717,33 +689,35 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         ]);
 
       if (stationsResult.ok) {
+        const nextStationSnapshot = buildStationSnapshotMap(stationsResult.data.stations);
         const previousSnapshot = parseStationSnapshot(
           window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
         );
-        const fallbackSnapshot = toStationSnapshot(stationsData.stations);
+        const fallbackSnapshot = buildStationSnapshotMap(stationsData.stations);
         const trendSource = previousSnapshot ?? fallbackSnapshot;
 
         setStationTrendById(computeStationTrends(trendSource, stationsResult.data.stations));
 
-        try {
-          window.sessionStorage.setItem(
-            TREND_SNAPSHOT_STORAGE_KEY,
-            JSON.stringify(toStationSnapshot(stationsResult.data.stations))
-          );
-        } catch { /* quota exceeded or private browsing */ }
+        writeJsonStorageItem(
+          window.sessionStorage,
+          TREND_SNAPSHOT_STORAGE_KEY,
+          nextStationSnapshot
+        );
 
         const nextRecentSnapshots = pushRecentSnapshot(
           parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
           {
             recordedAt: stationsResult.data.generatedAt,
-            snapshot: toStationSnapshot(stationsResult.data.stations),
+            snapshot: nextStationSnapshot,
           }
         );
 
         setRecentSnapshots(nextRecentSnapshots);
-        try {
-          window.sessionStorage.setItem(RECENT_SNAPSHOTS_STORAGE_KEY, JSON.stringify(nextRecentSnapshots));
-        } catch { /* quota exceeded or private browsing */ }
+        writeJsonStorageItem(
+          window.sessionStorage,
+          RECENT_SNAPSHOTS_STORAGE_KEY,
+          nextRecentSnapshots
+        );
 
         setStationsData(stationsResult.data);
       }

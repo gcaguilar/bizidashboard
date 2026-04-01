@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { ChartWrapper } from './ChartWrapper';
+import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type HistoryRow = {
   day: string;
@@ -38,52 +39,42 @@ export function DataHistoryCard() {
   const [error, setError] = useState<string | null>(null);
   const [responseState, setResponseState] = useState<DataState | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadHistory = async () => {
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
       try {
-        setIsLoading(true);
-        setError(null);
-        setResponseState(null);
-        const response = await fetch(appRoutes.api.history(), { signal: controller.signal });
+        const payload = await fetchJson<HistoryResponse>(appRoutes.api.history(), {
+          signal,
+          errorMessage: 'No se pudo cargar el historico agregado.',
+        });
 
-        if (!response.ok) {
-          throw new Error('No se pudo cargar el historico agregado.');
-        }
-
-        const payload = (await response.json()) as HistoryResponse;
-        if (!isActive) {
+        if (!isActive()) {
           return;
         }
 
         setRows(Array.isArray(payload.history) ? payload.history.slice(-30) : []);
         setResponseState(payload.dataState ?? null);
-      } catch (fetchError) {
-        if ((fetchError as Error).name === 'AbortError') {
+      } catch {
+        if (!isActive()) {
           return;
         }
 
-        if (isActive) {
-          setError('No se pudo cargar el historico de balance.');
-          setRows([]);
-          setResponseState('error');
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
+        setError('No se pudo cargar el historico de balance.');
+        setRows([]);
+        setResponseState('error');
       }
-    };
-
-    void loadHistory();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, []);
+    },
+    [],
+    {
+      onStart: () => {
+        setIsLoading(true);
+        setError(null);
+        setResponseState(null);
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    }
+  );
 
   const chartData = useMemo(
     () => rows.map((row) => ({ ...row, label: formatDayLabel(row.day) })),

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationSnapshot } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
@@ -12,6 +12,7 @@ import {
 } from '@/lib/districts';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type HourlySignalRow = {
   stationId: string;
@@ -37,48 +38,35 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(true);
   const [districtError, setDistrictError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
+      const payload = await fetchDistrictCollection(signal);
 
-    const loadDistricts = async () => {
-      try {
+      if (!payload || !isActive()) {
+        return;
+      }
+
+      setDistricts(payload);
+    },
+    [],
+    {
+      onStart: () => {
         setIsLoadingDistricts(true);
         setDistrictError(null);
-        const payload = await fetchDistrictCollection(controller.signal);
-
-        if (!payload || !isActive) {
-          return;
-        }
-
-        setDistricts(payload);
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') {
-          return;
-        }
-
+      },
+      onError: (error) => {
         captureExceptionWithContext(error, {
           area: 'dashboard.flow-preview',
           operation: 'loadDistricts',
         });
         console.error('[Dashboard] No se pudo cargar distritos para preview de flujo.', error);
-        if (isActive) {
-          setDistrictError('No se pudieron cargar los distritos para el resumen de flujo.');
-        }
-      } finally {
-        if (isActive) {
-          setIsLoadingDistricts(false);
-        }
-      }
-    };
-
-    void loadDistricts();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, []);
+        setDistrictError('No se pudieron cargar los distritos para el resumen de flujo.');
+      },
+      onSettled: () => {
+        setIsLoadingDistricts(false);
+      },
+    }
+  );
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
