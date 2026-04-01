@@ -8,6 +8,7 @@ import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { fetchJson, useAbortableAsyncEffect } from '../../_components/useAbortableAsyncEffect';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -255,6 +256,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
     if (!urlChanged && !stationsJustHydrated) {
       prevStationsLengthRef.current = stations.length;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsUrlReady(true);
       return;
     }
@@ -296,36 +298,26 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     router.replace(nextUrl, { scroll: false });
   }, [isUrlReady, pathname, router, stations, viewQueryString]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadHistory = async () => {
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
       try {
-        if (isActive) {
-          setIsLoading(true);
-          setErrorMessage(null);
-        }
+        const payload = await fetchJson<AlertsHistoryApiResponse>(
+          `${appRoutes.api.alertsHistory()}?${apiQueryString}`,
+          {
+            signal,
+            cache: 'no-store',
+            errorMessage: 'No se pudo cargar el historial de alertas.',
+          }
+        );
 
-        const response = await fetch(`${appRoutes.api.alertsHistory()}?${apiQueryString}`, {
-          signal: controller.signal,
-          cache: 'no-store',
-        });
-
-        if (!response.ok) {
-          throw new Error('No se pudo cargar el historial de alertas.');
-        }
-
-        const payload = (await response.json()) as AlertsHistoryApiResponse;
-
-        if (!isActive) {
+        if (!isActive()) {
           return;
         }
 
         setRows(Array.isArray(payload.alerts) ? payload.alerts : []);
         setTotalRows(Number(payload.pagination?.total ?? 0));
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (!isActive()) {
           return;
         }
 
@@ -337,26 +329,22 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           },
         });
         console.error('[Dashboard] Error cargando historial de alertas.', error);
-
-        if (isActive) {
-          setRows([]);
-          setTotalRows(0);
-          setErrorMessage('No se pudo cargar el historial de alertas.');
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
+        setRows([]);
+        setTotalRows(0);
+        setErrorMessage('No se pudo cargar el historial de alertas.');
       }
-    };
-
-    void loadHistory();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [apiQueryString]);
+    },
+    [apiQueryString],
+    {
+      onStart: () => {
+        setIsLoading(true);
+        setErrorMessage(null);
+      },
+      onSettled: () => {
+        setIsLoading(false);
+      },
+    }
+  );
 
   const pageCount = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
   const hasNextPage = page + 1 < pageCount;
