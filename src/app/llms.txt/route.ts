@@ -25,6 +25,7 @@ export function GET() {
     '',
     '## Structured Discovery',
     `- ${siteUrl}/sitemap.xml`,
+    `- ${siteUrl}${appRoutes.llmsFull()}`,
     `- ${siteUrl}${appRoutes.api.openApi()}`,
     '',
     '## Public API Endpoints',
