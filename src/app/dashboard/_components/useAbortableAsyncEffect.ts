@@ -19,12 +19,15 @@ type FetchJsonOptions = RequestInit & {
 };
 
 export function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException
-    ? error.name === 'AbortError'
-    : Boolean(error) &&
-        typeof error === 'object' &&
-        'name' in error &&
-        (error as { name?: unknown }).name === 'AbortError';
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  return (
+    'name' in error && (error as { name?: unknown }).name === 'AbortError'
+  );
 }
 
 export async function fetchJson<T>(
