@@ -21,9 +21,17 @@ export const SITE_DESCRIPTION =
 
 const FALLBACK_SITE_URL = 'http://localhost:3000';
 
+function ensureProtocol(value: string): string {
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `https://${value}`;
+}
+
 function normalizeHttpOrigin(candidate: string, fallback: string): string {
   try {
-    const parsed = new URL(candidate);
+    const parsed = new URL(ensureProtocol(candidate.trim()));
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       return fallback;
     }
@@ -38,6 +46,8 @@ export function getSiteUrl(): string {
   const candidate =
     process.env.APP_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
+    process.env.VERCEL_URL?.trim() ||
     FALLBACK_SITE_URL;
 
   return normalizeHttpOrigin(candidate, FALLBACK_SITE_URL);
