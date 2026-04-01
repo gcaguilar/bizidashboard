@@ -40,6 +40,7 @@ import type {
 const MODEL_VERSION = 'rebalancing-v1-historical-baseline';
 const CACHE_TTL_SECONDS = 300;
 const DEFAULT_DAYS = 15;
+const BASE_REPORT_CACHE_KEY = 'rebalancing-report';
 
 // ─── Summary builder ─────────────────────────────────────────────────────────
 
@@ -81,6 +82,35 @@ function buildSummary(diagnostics: StationDiagnostic[], transfers: number): Repo
   };
 }
 
+function filterReportByDistrict(
+  report: RebalancingReport,
+  districtFilter: string | null
+): RebalancingReport {
+  if (!districtFilter) {
+    return {
+      ...report,
+      districtFilter: null,
+    };
+  }
+
+  const filteredDiagnostics = report.diagnostics.filter(
+    (diagnostic) => diagnostic.districtName === districtFilter
+  );
+  const stationIds = new Set(filteredDiagnostics.map((diagnostic) => diagnostic.stationId));
+  const filteredTransfers = report.transfers.filter(
+    (transfer) =>
+      stationIds.has(transfer.originStationId) || stationIds.has(transfer.destinationStationId)
+  );
+
+  return {
+    ...report,
+    districtFilter,
+    summary: buildSummary(filteredDiagnostics, filteredTransfers.length),
+    diagnostics: filteredDiagnostics,
+    transfers: filteredTransfers,
+  };
+}
+
 // ─── Main report builder ──────────────────────────────────────────────────────
 
 export type RebalancingReportOptions = {
@@ -104,9 +134,9 @@ export async function buildRebalancingReport(
 ): Promise<RebalancingReport> {
   const days = Math.max(1, Math.min(90, Math.floor(options.days ?? DEFAULT_DAYS)));
   const districtFilter = options.district?.trim() || null;
-  const cacheKey = `rebalancing-report:days=${days}:district=${districtFilter ?? 'all'}`;
+  const cacheKey = `${BASE_REPORT_CACHE_KEY}:days=${days}:base`;
 
-  return withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
+  const baseReport = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
     const now = new Date();
     const currentHour = getLocalHour(now);
     const currentTimeBand = hourToTimeBand(currentHour);
@@ -297,31 +327,18 @@ export async function buildRebalancingReport(
     const kpis = computeReportKPIs(diagnostics, transfers);
     const baselineComparison = computeBaselineComparison(diagnostics, transfers);
 
-    // ── Step 11: District filter ─────────────────────────────────────────────
-    const filteredDiagnostics = districtFilter
-      ? diagnostics.filter((d) => d.districtName === districtFilter)
-      : diagnostics;
-
-    const filteredTransfers = districtFilter
-      ? transfers.filter(
-          (t) =>
-            filteredDiagnostics.some((d) => d.stationId === t.originStationId) ||
-            filteredDiagnostics.some((d) => d.stationId === t.destinationStationId)
-        )
-      : transfers;
-
-    const summary = buildSummary(filteredDiagnostics, filteredTransfers.length);
-
     return {
       generatedAt: now.toISOString(),
       modelVersion: MODEL_VERSION,
       analysisWindowDays: days,
-      districtFilter,
-      summary,
-      diagnostics: filteredDiagnostics,
-      transfers: filteredTransfers,
+      districtFilter: null,
+      summary: buildSummary(diagnostics, transfers.length),
+      diagnostics,
+      transfers,
       kpis,
       baselineComparison,
     } satisfies RebalancingReport;
   });
+
+  return filterReportByDistrict(baseReport, districtFilter);
 }
