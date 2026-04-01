@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import {
-  getDailyDemandCurve,
-  getMonthlyDemandCurve,
-  getSystemHourlyProfile,
-} from '@/analytics/queries/read';
+  fetchCachedDailyDemandCurve,
+  fetchCachedMonthlyDemandCurve,
+  fetchCachedSystemHourlyProfile,
+} from '@/lib/analytics-series';
 import { fetchAvailableDataMonths, fetchRankings, fetchStations } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
@@ -243,7 +243,7 @@ async function buildHourlyUsageContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  const profile = await getSystemHourlyProfile(14).catch(() => []);
+  const profile = await fetchCachedSystemHourlyProfile(14).catch(() => []);
   const items = [...profile]
     .sort((left, right) => Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable))
     .slice(0, 8)
@@ -361,7 +361,7 @@ async function buildDailyTripsContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  const dailySeries = await getDailyDemandCurve(30).catch(() => []);
+  const dailySeries = await fetchCachedDailyDemandCurve(30).catch(() => []);
   const nonEmptyRows = dailySeries.filter(
     (row) => Number(row.sampleCount) > 0 || Number(row.demandScore) > 0
   );
@@ -410,7 +410,7 @@ async function buildMonthlyTripsContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  const monthlySeries = await getMonthlyDemandCurve(12).catch(() => []);
+  const monthlySeries = await fetchCachedMonthlyDemandCurve(12).catch(() => []);
   const items = [...monthlySeries]
     .reverse()
     .slice(0, 8)
@@ -567,7 +567,7 @@ async function buildMonthlyReportsContent(
 ): Promise<SeoLandingContent> {
   const [monthsResponse, monthlySeries] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
-    getMonthlyDemandCurve(18).catch(() => []),
+    fetchCachedMonthlyDemandCurve(18).catch(() => []),
   ]);
   const validMonths = monthsResponse.months.filter(isValidMonthKey);
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));

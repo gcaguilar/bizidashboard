@@ -1,19 +1,20 @@
 import 'server-only';
 
 import { prisma } from '@/lib/db';
+import { withCache } from '@/lib/cache/cache';
+import {
+  fetchCachedDailyDemandCurve,
+  fetchCachedMonthlyDemandCurve,
+  fetchCachedSystemHourlyProfile,
+} from '@/lib/analytics-series';
 import { combineDataStates, type DataState } from '@/lib/data-state';
 import { fetchDistrictCollection } from '@/lib/districts';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { isValidMonthKey } from '@/lib/months';
 import { buildDistrictSeoRows } from '@/lib/seo-districts';
 import {
-  getDailyDemandCurve,
-  getMonthlyDemandCurve,
-  getSystemHourlyProfile,
-} from '@/analytics/queries/read';
-import {
   fetchAvailableDataMonths,
-  fetchRankings,
+  fetchRankingsLite,
   fetchSharedDatasetSnapshot,
   fetchStations,
 } from '@/lib/api';
@@ -25,6 +26,8 @@ import {
   buildComparisonHubViewModel,
   buildFallbackComparisonSections,
 } from '@/lib/comparison-hub-builders';
+
+const COMPARISON_HUB_CACHE_TTL_SECONDS = 300;
 
 type HistoryCompareRow = {
   day: string;
@@ -157,169 +160,171 @@ async function getRecentHistoryRows(): Promise<HistoryCompareRow[]> {
 }
 
 export async function getComparisonHubData(): Promise<ComparisonHubData> {
-  const nowIso = new Date().toISOString();
-  const sourceTimeoutMs = 8_000;
-  const [
-    stationsResponse,
-    turnoverResponse,
-    availabilityResponse,
-    districtCollection,
-    monthsResponse,
-    monthlySeries,
-    recentDemand,
-    hourlyProfile,
-    historyRows,
-    dataset,
-  ] = await Promise.all([
-    withTimeout(
-      fetchStations().catch(() => buildFallbackStations(nowIso)),
-      sourceTimeoutMs,
-      buildFallbackStations(nowIso)
-    ),
-    withTimeout(
-      fetchRankings('turnover', 10).catch(() => ({
-        type: 'turnover' as const,
-        limit: 10,
-        rankings: [],
-        districtSpotlight: [],
-        generatedAt: nowIso,
-        dataState: 'no_coverage' as const,
-      })),
-      sourceTimeoutMs,
-      {
-        type: 'turnover' as const,
-        limit: 10,
-        rankings: [],
-        districtSpotlight: [],
-        generatedAt: nowIso,
-        dataState: 'no_coverage' as const,
-      }
-    ),
-    withTimeout(
-      fetchRankings('availability', 10).catch(() => ({
-        type: 'availability' as const,
-        limit: 10,
-        rankings: [],
-        districtSpotlight: [],
-        generatedAt: nowIso,
-        dataState: 'no_coverage' as const,
-      })),
-      sourceTimeoutMs,
-      {
-        type: 'availability' as const,
-        limit: 10,
-        rankings: [],
-        districtSpotlight: [],
-        generatedAt: nowIso,
-        dataState: 'no_coverage' as const,
-      }
-    ),
-    withTimeout(fetchDistrictCollection().catch(() => null), sourceTimeoutMs, null),
-    withTimeout(
-      fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
-      sourceTimeoutMs,
-      { months: [], generatedAt: nowIso }
-    ),
-    withTimeout(getMonthlyDemandCurve(24).catch(() => []), sourceTimeoutMs, []),
-    withTimeout(getDailyDemandCurve(90).catch(() => []), sourceTimeoutMs, []),
-    withTimeout(getSystemHourlyProfile(30).catch(() => []), sourceTimeoutMs, []),
-    withTimeout(getRecentHistoryRows().catch(() => []), sourceTimeoutMs, []),
-    withTimeout(
-      fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
-      sourceTimeoutMs,
-      buildFallbackDatasetSnapshot(nowIso)
-    ),
-  ]);
+  return withCache(
+    'comparison-hub:snapshot',
+    COMPARISON_HUB_CACHE_TTL_SECONDS,
+    async () => {
+      const nowIso = new Date().toISOString();
+      const sourceTimeoutMs = 8_000;
+      const [
+        stationsResponse,
+        turnoverResponse,
+        availabilityResponse,
+        districtCollection,
+        monthsResponse,
+        monthlySeries,
+        recentDemand,
+        hourlyProfile,
+        historyRows,
+        dataset,
+      ] = await Promise.all([
+        withTimeout(
+          fetchStations().catch(() => buildFallbackStations(nowIso)),
+          sourceTimeoutMs,
+          buildFallbackStations(nowIso)
+        ),
+        withTimeout(
+          fetchRankingsLite('turnover', 10).catch(() => ({
+            type: 'turnover' as const,
+            limit: 10,
+            rankings: [],
+            generatedAt: nowIso,
+            dataState: 'no_coverage' as const,
+          })),
+          sourceTimeoutMs,
+          {
+            type: 'turnover' as const,
+            limit: 10,
+            rankings: [],
+            generatedAt: nowIso,
+            dataState: 'no_coverage' as const,
+          }
+        ),
+        withTimeout(
+          fetchRankingsLite('availability', 10).catch(() => ({
+            type: 'availability' as const,
+            limit: 10,
+            rankings: [],
+            generatedAt: nowIso,
+            dataState: 'no_coverage' as const,
+          })),
+          sourceTimeoutMs,
+          {
+            type: 'availability' as const,
+            limit: 10,
+            rankings: [],
+            generatedAt: nowIso,
+            dataState: 'no_coverage' as const,
+          }
+        ),
+        withTimeout(fetchDistrictCollection().catch(() => null), sourceTimeoutMs, null),
+        withTimeout(
+          fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
+          sourceTimeoutMs,
+          { months: [], generatedAt: nowIso }
+        ),
+        withTimeout(fetchCachedMonthlyDemandCurve(24).catch(() => []), sourceTimeoutMs, []),
+        withTimeout(fetchCachedDailyDemandCurve(90).catch(() => []), sourceTimeoutMs, []),
+        withTimeout(fetchCachedSystemHourlyProfile(30).catch(() => []), sourceTimeoutMs, []),
+        withTimeout(getRecentHistoryRows().catch(() => []), sourceTimeoutMs, []),
+        withTimeout(
+          fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+          sourceTimeoutMs,
+          buildFallbackDatasetSnapshot(nowIso)
+        ),
+      ]);
 
-  const districtRows = buildDistrictSeoRows({
-    stations: stationsResponse.stations,
-    districtCollection,
-    turnoverRankings: turnoverResponse.rankings,
-    availabilityRankings: availabilityResponse.rankings,
-  });
+      const districtRows = buildDistrictSeoRows({
+        stations: stationsResponse.stations,
+        districtCollection,
+        turnoverRankings: turnoverResponse.rankings,
+        availabilityRankings: availabilityResponse.rankings,
+      });
 
-  const validMonths = monthsResponse.months.filter(isValidMonthKey);
-  const latestMonth =
-    validMonths[0] ?? monthlySeries[monthlySeries.length - 1]?.monthKey ?? null;
-  const previousMonth =
-    validMonths[1] ?? monthlySeries[monthlySeries.length - 2]?.monthKey ?? null;
-  const [recentConclusions, latestMonthConclusions, previousMonthConclusions] =
-    await Promise.all([
-      withTimeout(getDailyMobilityConclusions().catch(() => null), sourceTimeoutMs, null),
-      latestMonth
-        ? withTimeout(
-            getDailyMobilityConclusions(latestMonth).catch(() => null),
-            sourceTimeoutMs,
-            null
-          )
-        : Promise.resolve(null),
-      previousMonth
-        ? withTimeout(
-            getDailyMobilityConclusions(previousMonth).catch(() => null),
-            sourceTimeoutMs,
-            null
-          )
-        : Promise.resolve(null),
-    ]);
+      const validMonths = monthsResponse.months.filter(isValidMonthKey);
+      const latestMonth =
+        validMonths[0] ?? monthlySeries[monthlySeries.length - 1]?.monthKey ?? null;
+      const previousMonth =
+        validMonths[1] ?? monthlySeries[monthlySeries.length - 2]?.monthKey ?? null;
+      const [recentConclusions, latestMonthConclusions, previousMonthConclusions] =
+        await Promise.all([
+          withTimeout(getDailyMobilityConclusions().catch(() => null), sourceTimeoutMs, null),
+          latestMonth
+            ? withTimeout(
+                getDailyMobilityConclusions(latestMonth).catch(() => null),
+                sourceTimeoutMs,
+                null
+              )
+            : Promise.resolve(null),
+          previousMonth
+            ? withTimeout(
+                getDailyMobilityConclusions(previousMonth).catch(() => null),
+                sourceTimeoutMs,
+                null
+              )
+            : Promise.resolve(null),
+        ]);
 
-  const { interactive, sections } = buildComparisonHubViewModel({
-    stations: stationsResponse.stations,
-    turnoverRankings: turnoverResponse.rankings.map((row) => ({
-      stationId: row.stationId,
-      turnoverScore: Number(row.turnoverScore),
-    })),
-    availabilityRankings: availabilityResponse.rankings.map((row) => ({
-      stationId: row.stationId,
-      emptyHours: Number(row.emptyHours),
-      fullHours: Number(row.fullHours),
-    })),
-    districtRows,
-    monthlySeries: monthlySeries.map((row) => ({
-      monthKey: row.monthKey,
-      demandScore: Number(row.demandScore),
-      avgOccupancy: Number(row.avgOccupancy),
-      activeStations: Number(row.activeStations),
-      sampleCount: Number(row.sampleCount),
-    })),
-    recentDemand: recentDemand.map((row) => ({
-      day: row.day,
-      demandScore: Number(row.demandScore),
-      avgOccupancy: Number(row.avgOccupancy),
-      sampleCount: Number(row.sampleCount),
-    })),
-    hourlyProfile: hourlyProfile.map((row) => ({
-      hour: Number(row.hour),
-      avgOccupancy: Number(row.avgOccupancy),
-      avgBikesAvailable: Number(row.avgBikesAvailable),
-      sampleCount: Number(row.sampleCount),
-    })),
-    historyRows: historyRows.map((row) => ({
-      day: row.day,
-      demandScore: Number(row.demandScore),
-      avgOccupancy: Number(row.avgOccupancy),
-      balanceIndex: Number(row.balanceIndex),
-      sampleCount: Number(row.sampleCount),
-    })),
-    datasetCoverageDays: dataset.coverage.totalDays,
-    latestMonth,
-    previousMonth,
-    recentPayload: recentConclusions?.payload ?? null,
-    latestMonthPayload: latestMonthConclusions?.payload ?? null,
-    previousMonthPayload: previousMonthConclusions?.payload ?? null,
-  });
+      const { interactive, sections } = buildComparisonHubViewModel({
+        stations: stationsResponse.stations,
+        turnoverRankings: turnoverResponse.rankings.map((row) => ({
+          stationId: row.stationId,
+          turnoverScore: Number(row.turnoverScore),
+        })),
+        availabilityRankings: availabilityResponse.rankings.map((row) => ({
+          stationId: row.stationId,
+          emptyHours: Number(row.emptyHours),
+          fullHours: Number(row.fullHours),
+        })),
+        districtRows,
+        monthlySeries: monthlySeries.map((row) => ({
+          monthKey: row.monthKey,
+          demandScore: Number(row.demandScore),
+          avgOccupancy: Number(row.avgOccupancy),
+          activeStations: Number(row.activeStations),
+          sampleCount: Number(row.sampleCount),
+        })),
+        recentDemand: recentDemand.map((row) => ({
+          day: row.day,
+          demandScore: Number(row.demandScore),
+          avgOccupancy: Number(row.avgOccupancy),
+          sampleCount: Number(row.sampleCount),
+        })),
+        hourlyProfile: hourlyProfile.map((row) => ({
+          hour: Number(row.hour),
+          avgOccupancy: Number(row.avgOccupancy),
+          avgBikesAvailable: Number(row.avgBikesAvailable),
+          sampleCount: Number(row.sampleCount),
+        })),
+        historyRows: historyRows.map((row) => ({
+          day: row.day,
+          demandScore: Number(row.demandScore),
+          avgOccupancy: Number(row.avgOccupancy),
+          balanceIndex: Number(row.balanceIndex),
+          sampleCount: Number(row.sampleCount),
+        })),
+        datasetCoverageDays: dataset.coverage.totalDays,
+        latestMonth,
+        previousMonth,
+        recentPayload: recentConclusions?.payload ?? null,
+        latestMonthPayload: latestMonthConclusions?.payload ?? null,
+        previousMonthPayload: previousMonthConclusions?.payload ?? null,
+      });
 
-  return {
-    latestMonth,
-    generatedAt: nowIso,
-    dataState: combineDataStates([
-      dataset.dataState,
-      stationsResponse.dataState,
-      turnoverResponse.dataState,
-      availabilityResponse.dataState,
-    ]),
-    interactive,
-    sections,
-  };
+      return {
+        latestMonth,
+        generatedAt: nowIso,
+        dataState: combineDataStates([
+          dataset.dataState,
+          stationsResponse.dataState,
+          turnoverResponse.dataState,
+          availabilityResponse.dataState,
+        ]),
+        interactive,
+        sections,
+      };
+    }
+  );
 }
 
 /**

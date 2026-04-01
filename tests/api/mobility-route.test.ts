@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
-  getDailyDemandCurveMock,
+  fetchCachedDailyDemandCurveMock,
   getSharedDatasetSnapshotMock,
-  getHourlyMobilitySignalsMock,
-  getSystemHourlyProfileMock,
+  fetchCachedHourlyMobilitySignalsMock,
+  fetchCachedSystemHourlyProfileMock,
   withCacheMock,
 } = vi.hoisted(() => ({
-  getDailyDemandCurveMock: vi.fn(),
+  fetchCachedDailyDemandCurveMock: vi.fn(),
   getSharedDatasetSnapshotMock: vi.fn(),
-  getHourlyMobilitySignalsMock: vi.fn(),
-  getSystemHourlyProfileMock: vi.fn(),
+  fetchCachedHourlyMobilitySignalsMock: vi.fn(),
+  fetchCachedSystemHourlyProfileMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
 
-vi.mock('@/analytics/queries/read', () => ({
-  getDailyDemandCurve: getDailyDemandCurveMock,
-  getHourlyMobilitySignals: getHourlyMobilitySignalsMock,
-  getSystemHourlyProfile: getSystemHourlyProfileMock,
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedDailyDemandCurve: fetchCachedDailyDemandCurveMock,
+  fetchCachedHourlyMobilitySignals: fetchCachedHourlyMobilitySignalsMock,
+  fetchCachedSystemHourlyProfile: fetchCachedSystemHourlyProfileMock,
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
@@ -32,10 +32,10 @@ import { GET } from '@/app/api/mobility/route';
 
 describe('GET /api/mobility', () => {
   beforeEach(() => {
-    getDailyDemandCurveMock.mockReset();
+    fetchCachedDailyDemandCurveMock.mockReset();
     getSharedDatasetSnapshotMock.mockReset();
-    getHourlyMobilitySignalsMock.mockReset();
-    getSystemHourlyProfileMock.mockReset();
+    fetchCachedHourlyMobilitySignalsMock.mockReset();
+    fetchCachedSystemHourlyProfileMock.mockReset();
     withCacheMock.mockReset();
 
     getSharedDatasetSnapshotMock.mockResolvedValue({
@@ -59,7 +59,7 @@ describe('GET /api/mobility', () => {
   });
 
   it('returns mobility payload with hourly signals', async () => {
-    getHourlyMobilitySignalsMock.mockResolvedValue([
+    fetchCachedHourlyMobilitySignalsMock.mockResolvedValue([
       {
         stationId: '101',
         hour: 8,
@@ -68,7 +68,7 @@ describe('GET /api/mobility', () => {
         sampleCount: 4,
       },
     ]);
-    getDailyDemandCurveMock.mockResolvedValue([
+    fetchCachedDailyDemandCurveMock.mockResolvedValue([
       {
         day: '2026-03-08',
         demandScore: 120,
@@ -76,7 +76,7 @@ describe('GET /api/mobility', () => {
         sampleCount: 320,
       },
     ]);
-    getSystemHourlyProfileMock.mockResolvedValue([
+    fetchCachedSystemHourlyProfileMock.mockResolvedValue([
       {
         hour: 8,
         avgOccupancy: 0.41,
@@ -99,9 +99,9 @@ describe('GET /api/mobility', () => {
       300,
       expect.any(Function)
     );
-    expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, undefined);
-    expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, undefined);
-    expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, undefined);
+    expect(fetchCachedHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, null);
+    expect(fetchCachedDailyDemandCurveMock).toHaveBeenCalledWith(30, null);
+    expect(fetchCachedSystemHourlyProfileMock).toHaveBeenCalledWith(14, null);
     expect(payload.hourlySignals).toHaveLength(1);
     expect(payload.dailyDemand).toHaveLength(1);
     expect(payload.systemHourlyProfile).toHaveLength(1);
@@ -109,9 +109,9 @@ describe('GET /api/mobility', () => {
   });
 
   it('passes selected month through cache key and query calls', async () => {
-    getHourlyMobilitySignalsMock.mockResolvedValue([]);
-    getDailyDemandCurveMock.mockResolvedValue([]);
-    getSystemHourlyProfileMock.mockResolvedValue([]);
+    fetchCachedHourlyMobilitySignalsMock.mockResolvedValue([]);
+    fetchCachedDailyDemandCurveMock.mockResolvedValue([]);
+    fetchCachedSystemHourlyProfileMock.mockResolvedValue([]);
     withCacheMock.mockImplementation(
       async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
     );
@@ -127,9 +127,9 @@ describe('GET /api/mobility', () => {
       300,
       expect.any(Function)
     );
-    expect(getHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, '2026-03');
-    expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
-    expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(14, '2026-03');
+    expect(fetchCachedHourlyMobilitySignalsMock).toHaveBeenCalledWith(14, '2026-03');
+    expect(fetchCachedDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
+    expect(fetchCachedSystemHourlyProfileMock).toHaveBeenCalledWith(14, '2026-03');
     expect(payload.selectedMonth).toBe('2026-03');
     expect(payload.dataState).toBe('empty');
   });
