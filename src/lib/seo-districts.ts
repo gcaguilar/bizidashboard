@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cache } from 'react';
-import type { RankingRow, StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api';
 import { fetchRankings, fetchStations } from '@/lib/api';
 import {
   buildStationDistrictMap,
@@ -43,6 +43,13 @@ export function slugifyDistrictName(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+type MinimalRankingRow = {
+  stationId: string;
+  turnoverScore: number;
+  emptyHours: number;
+  fullHours: number;
+};
+
 export function buildDistrictSeoRows({
   stations,
   districtCollection,
@@ -51,8 +58,8 @@ export function buildDistrictSeoRows({
 }: {
   stations: StationSnapshot[];
   districtCollection: DistrictCollection | null;
-  turnoverRankings: RankingRow[];
-  availabilityRankings: RankingRow[];
+  turnoverRankings: MinimalRankingRow[];
+  availabilityRankings: MinimalRankingRow[];
 }): DistrictSeoRow[] {
   if (!districtCollection) {
     return [];

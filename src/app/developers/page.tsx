@@ -191,6 +191,18 @@ export default async function DevelopersPage() {
               Descargar OpenAPI JSON
             </Link>
             <Link
+              href={appRoutes.llms()}
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Ver llms.txt
+            </Link>
+            <Link
+              href={appRoutes.llmsFull()}
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Ver llms-full.txt
+            </Link>
+            <Link
               href={appRoutes.status()}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >

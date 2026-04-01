@@ -55,6 +55,8 @@ function buildHash(pathname: string, hash?: string | null): string {
 
 export const appRoutes = {
   home: () => '/',
+  llms: () => '/llms.txt',
+  llmsFull: () => '/llms-full.txt',
   homeAlias: () => '/inicio',
   citiesAlias: () => '/ciudades',
   cityRootAlias: (city: string) => `/${encodeSegment(city)}`,
