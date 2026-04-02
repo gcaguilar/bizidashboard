@@ -9,6 +9,7 @@ import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRowBySlug, getDistrictSeoRows, getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -160,12 +161,16 @@ export default async function DistrictSeoPage({ params }: PageProps) {
       href: appRoutes.districtDetail(district.slug),
     }
   );
+  const topStationEntries = district.topStations.map((station) => ({
+    name: station.stationName,
+    url: `${siteUrl}${appRoutes.stationDetail(station.stationId)}`,
+  }));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
       buildBreadcrumbStructuredData(breadcrumbs),
       {
-        '@type': 'Dataset',
+        '@type': 'CollectionPage',
         name: `Bizi en ${district.name}`,
         description: `Comparativa de estaciones Bizi en ${district.name} con disponibilidad y actividad reciente.`,
         url: `${siteUrl}${appRoutes.districtDetail(district.slug)}`,
@@ -176,6 +181,9 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           url: siteUrl,
         },
       },
+      ...(topStationEntries.length > 0
+        ? [buildItemListStructuredData(`Estaciones destacadas en ${district.name}`, topStationEntries)]
+        : []),
     ],
   };
 

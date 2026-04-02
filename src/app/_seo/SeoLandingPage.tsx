@@ -22,6 +22,7 @@ import {
   type SeoPageSlug,
 } from '@/lib/seo-pages';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 type SeoStat = {
@@ -807,11 +808,9 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
   const relatedPages = PRIMARY_SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
     .map((pageSlug) => getSeoPageConfig(pageSlug));
-  const itemListElements = content.sectionItems
+  const itemListEntries = content.sectionItems
     .filter((item): item is SeoItem & { href: string } => typeof item.href === 'string')
-    .map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
+    .map((item) => ({
       name: item.title,
       url: toAbsoluteRouteUrl(item.href),
     }));
@@ -832,14 +831,8 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
           url: siteUrl,
         },
       },
-      ...(itemListElements.length > 0
-        ? [
-            {
-              '@type': 'ItemList',
-              name: content.sectionTitle,
-              itemListElement: itemListElements,
-            },
-          ]
+      ...(itemListEntries.length > 0
+        ? [buildItemListStructuredData(content.sectionTitle, itemListEntries)]
         : []),
       buildSeoFaqStructuredData(config),
     ],
