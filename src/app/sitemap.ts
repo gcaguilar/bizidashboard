@@ -1,5 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { getSeoLandingPageData } from '@/app/_seo/SeoLandingPage';
+import {
+  getInsightsLandingData,
+  getUtilityLandingData,
+} from '@/lib/acquisition-landings';
 import { fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
@@ -53,12 +57,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
-  const [dataset, status, districtRows, stationRows, seoLandingData, reportIndexability] = await Promise.all([
+  const [dataset, status, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => null),
     fetchStatus().catch(() => null),
     getDistrictSeoRows().catch(() => []),
     getStationSeoRows().catch(() => []),
     Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
+    getUtilityLandingData().catch(() => null),
+    getInsightsLandingData().catch(() => null),
     Promise.resolve(
       evaluatePageIndexability({
         path: appRoutes.reports(),
@@ -102,6 +108,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           Boolean(dataset?.lastUpdated.lastSampleAt) ||
           Number(dataset?.coverage.totalDays ?? 0) > 0,
       }).includeInSitemap;
+    }
+
+    if (entry.href === appRoutes.utilityLanding()) {
+      return utilityLanding?.indexability.includeInSitemap ?? false;
+    }
+
+    if (entry.href === appRoutes.insightsLanding()) {
+      return insightsLanding?.indexability.includeInSitemap ?? false;
     }
 
     return evaluatePageIndexability({
