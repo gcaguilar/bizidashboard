@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRowBySlug, getDistrictSeoRows, getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
@@ -21,6 +22,14 @@ function formatInteger(value: number): string {
 
 function formatDecimal(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(value);
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 export async function generateStaticParams() {
@@ -126,6 +135,10 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
   const siteUrl = getSiteUrl();
   const siblingDistricts = districts.filter((row) => row.slug !== district.slug).slice(0, 4);
+  const cityAverageTurnover = average(districts.map((row) => row.avgTurnover));
+  const cityAverageAvailabilityRisk = average(
+    districts.map((row) => row.avgAvailabilityRisk)
+  );
   const breadcrumbs = createRootBreadcrumbs(
     {
       label: 'Barrios Bizi Zaragoza',
@@ -178,20 +191,49 @@ export default async function DistrictSeoPage({ params }: PageProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link
+          <TrackedLink
             href={appRoutes.dashboardFlow()}
+            eventName="related_module_click"
+            eventData={{ source: 'district_hero', destination: 'dashboard_flow', district: district.slug }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir flujo por barrios en el dashboard
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             href={appRoutes.districtLanding()}
+            eventName="related_module_click"
+            eventData={{ source: 'district_hero', destination: 'district_hub', district: district.slug }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Ver comparativa de barrios
-          </Link>
+          </TrackedLink>
         </div>
       </header>
+
+      <section className="dashboard-card">
+        <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Como leer este barrio
+            </p>
+            <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
+              Hub intermedio entre estaciones, rankings e informes
+            </h2>
+          </div>
+          <p>
+            Esta ficha resume cuantas estaciones activas tiene {district.name}, cuantas bicis y
+            plazas concentra ahora mismo y que nivel de rotacion registra frente al resto de
+            Zaragoza. Sirve para detectar si el barrio funciona como zona estable, como area muy
+            demandada o como punto con mas friccion operativa.
+          </p>
+          <p>
+            En la ventana reciente, {district.name} marca {formatDecimal(district.avgTurnover)} puntos de
+            rotacion media frente a {formatDecimal(cityAverageTurnover)} en la ciudad. Su riesgo operativo
+            medio es de {formatDecimal(district.avgAvailabilityRisk)} horas, comparado con {formatDecimal(cityAverageAvailabilityRisk)} de promedio.
+            Desde aqui tiene sentido bajar al detalle de cada estacion o saltar a rankings e informes.
+          </p>
+        </div>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         <article className="dashboard-card">
@@ -220,9 +262,11 @@ export default async function DistrictSeoPage({ params }: PageProps) {
         </div>
         <div className="mt-2 space-y-3">
           {district.topStations.map((station, index) => (
-            <Link
+            <TrackedLink
               key={station.stationId}
-              href={appRoutes.dashboardStation(station.stationId)}
+              href={appRoutes.stationDetail(station.stationId)}
+              eventName="station_card_click"
+              eventData={{ source: 'district_top_stations', district: district.slug, station_id: station.stationId }}
               className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <div className="min-w-0">
@@ -234,25 +278,49 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               <span className="rounded-full bg-[var(--accent)]/12 px-3 py-1 text-xs font-bold text-[var(--accent)]">
                 {formatDecimal(station.turnoverScore)} pts
               </span>
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>
 
       <section className="dashboard-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Barrios relacionados</h2>
+        <h2 className="text-xl font-black text-[var(--foreground)]">Barrios y rutas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <TrackedLink
+            href={appRoutes.reports()}
+            eventName="report_open_click"
+            eventData={{ source: 'district_related', district: district.slug }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Informes indexables para conectar este barrio con el contexto historico.
+            </p>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.seoPage('ranking-estaciones-bizi')}
+            eventName="related_module_click"
+            eventData={{ source: 'district_related', destination: 'ranking', district: district.slug }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Contrasta las estaciones del barrio con las mas activas de Zaragoza.
+            </p>
+          </TrackedLink>
           {siblingDistricts.map((row) => (
-            <Link
+            <TrackedLink
               key={row.slug}
               href={appRoutes.districtDetail(row.slug)}
+              eventName="related_module_click"
+              eventData={{ source: 'district_related', destination: row.slug, district: district.slug }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 {row.stationCount} estaciones · {formatDecimal(row.avgTurnover)} pts medios
               </p>
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>

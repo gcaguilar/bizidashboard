@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -15,6 +14,7 @@ import {
 } from '@/lib/mobility-conclusions';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig } from '@/lib/seo-pages';
+import { slugifyDistrictName } from '@/lib/seo-districts';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -199,7 +199,6 @@ export default async function MonthlyReportPage({ params }: PageProps) {
 
   const monthLabel = formatMonthLabel(month);
   const siteUrl = getSiteUrl();
-  const archiveConfig = getSeoPageConfig('informes-mensuales-bizi-zaragoza');
   const relatedPages = [
     getSeoPageConfig('viajes-por-mes-zaragoza'),
     getSeoPageConfig('estaciones-mas-usadas-zaragoza'),
@@ -226,7 +225,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
   const breadcrumbs = createRootBreadcrumbs(
     {
       label: 'Informes mensuales',
-      href: appRoutes.seoPage('informes-mensuales-bizi-zaragoza'),
+      href: appRoutes.reports(),
     },
     {
       label: monthLabel,
@@ -307,6 +306,29 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         />
       ) : null}
 
+      <section className="dashboard-card">
+        <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Resumen ejecutivo
+            </p>
+            <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
+              Que explica este mes y como seguir investigando
+            </h2>
+          </div>
+          <p>
+            Este informe fija una fotografia editorial de {monthLabel}: resume la demanda agregada,
+            destaca estaciones y barrios relevantes y deja enlaces permanentes hacia otras capas del
+            sitio. La idea es que el mes tenga entidad propia y no dependa solo del dashboard.
+          </p>
+          <p>
+            Si detectas un barrio o una estacion especialmente activa en este periodo, puedes saltar
+            desde aqui a su ficha publica para entender mejor el contexto actual. Si quieres ampliar
+            la lectura historica, el archivo mensual mantiene la navegacion ordenada por meses.
+          </p>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         <article className="dashboard-card">
           <p className="stat-label">Demanda del mes</p>
@@ -358,7 +380,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
             {payload.topStationsByDemand.map((station, index) => (
               <TrackedLink
                 key={station.stationId}
-                href={appRoutes.dashboardStation(station.stationId)}
+                href={appRoutes.stationDetail(station.stationId)}
                 eventName="station_card_click"
                 eventData={{ source: 'monthly_report_top_stations', station_id: station.stationId, month }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
@@ -406,10 +428,16 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           <h2 className="text-xl font-black text-[var(--foreground)]">Barrios destacados</h2>
           <div className="mt-2 space-y-3">
             {payload.topDistrictsByDemand.map((district) => (
-              <div key={district.district} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+              <TrackedLink
+                key={district.district}
+                href={appRoutes.districtDetail(slugifyDistrictName(district.district))}
+                eventName="related_module_click"
+                eventData={{ source: 'monthly_report_top_districts', district: district.district, month }}
+                className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{formatInteger(district.demandScore)} pts de demanda agregada</p>
-              </div>
+              </TrackedLink>
             ))}
           </div>
         </article>
@@ -460,12 +488,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas paginas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
-            href={appRoutes.seoPage(archiveConfig.slug)}
+            href={appRoutes.reports()}
             eventName="related_module_click"
-            eventData={{ source: 'monthly_report_related', destination: archiveConfig.slug, month }}
+            eventData={{ source: 'monthly_report_related', destination: 'reports_archive', month }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">{archiveConfig.title}</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Archivo de informes</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo completo de informes y comparativas.</p>
           </TrackedLink>
           {relatedPages.map((page) => (

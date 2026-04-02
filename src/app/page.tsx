@@ -6,6 +6,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
+import { getStationSeoRows } from '@/lib/seo-stations';
 import { getCityName, SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 
 const QUICK_LINKS = [
@@ -56,8 +57,18 @@ export const metadata: Metadata = buildPageMetadata({
   ],
 });
 
-export default function Home() {
+function formatPercent(value: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export default async function Home() {
   const currentCityName = getCityName();
+  const featuredStations = (await getStationSeoRows())
+    .filter((station) => station.indexability.indexable)
+    .slice(0, 4);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
@@ -114,6 +125,31 @@ export default function Home() {
         <PublicSearchForm eventSource="home_hero" />
       </header>
 
+      <section className="dashboard-card">
+        <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Como usar la capa publica
+            </p>
+            <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
+              Mejor pocas rutas utiles que muchas paginas vacias
+            </h2>
+          </div>
+          <p>
+            DatosBizi combina lectura rapida para usuarios y estructura clara para buscadores.
+            La home concentra los accesos fuertes: dashboard para operativa, informes para lectura
+            historica, barrios para contexto local y fichas publicas de estacion cuando hay datos
+            suficientes para sostener una landing real.
+          </p>
+          <p>
+            Si vienes con una necesidad practica, lo normal es abrir una estacion o el mapa en vivo.
+            Si buscas contexto, conviene empezar por rankings, barrios o el archivo mensual. Esa
+            separacion ayuda a que el producto principal siga siendo rapido mientras las paginas
+            indexables ganan semantica, enlazado interno y mejor CTR.
+          </p>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {QUICK_LINKS.map((link) => (
           <TrackedLink
@@ -131,6 +167,47 @@ export default function Home() {
           </TrackedLink>
         ))}
       </section>
+
+      {featuredStations.length > 0 ? (
+        <section className="dashboard-card">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-black text-[var(--foreground)]">
+                Estaciones publicas destacadas
+              </h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Fichas con contexto real, comparacion frente a la ciudad y acceso al detalle operativo.
+              </p>
+            </div>
+            <TrackedLink
+              href={appRoutes.seoPage('uso-bizi-por-estacion')}
+              eventName="related_module_click"
+              eventData={{ source: 'home_featured_stations', destination: 'station_hub' }}
+              className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
+            >
+              Ver mas estaciones
+            </TrackedLink>
+          </div>
+
+          <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {featuredStations.map((station) => (
+              <TrackedLink
+                key={station.station.id}
+                href={appRoutes.stationDetail(station.station.id)}
+                eventName="station_card_click"
+                eventData={{ source: 'home_featured_stations', station_id: station.station.id }}
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              >
+                <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">
+                  {station.districtName ?? currentCityName} · {station.station.bikesAvailable} bicis · ocupacion{' '}
+                  {formatPercent(station.currentOccupancy)}
+                </p>
+              </TrackedLink>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="dashboard-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
