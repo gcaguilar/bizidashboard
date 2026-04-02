@@ -21,6 +21,7 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  preload: false,
 });
 
 const siteUrl = getSiteUrl();
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
   creator: 'BiziDashboard',
   publisher: 'BiziDashboard',
   category: 'technology',
-  referrer: 'origin-when-cross-origin',
+  referrer: 'strict-origin-when-cross-origin',
   alternates: {
     canonical: appRoutes.home(),
   },
