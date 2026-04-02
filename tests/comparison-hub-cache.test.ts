@@ -36,12 +36,17 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
-vi.mock('@/lib/api', () => ({
-  fetchAvailableDataMonths: fetchAvailableDataMonthsMock,
-  fetchRankingsLite: fetchRankingsLiteMock,
-  fetchSharedDatasetSnapshot: fetchSharedDatasetSnapshotMock,
-  fetchStations: fetchStationsMock,
-}));
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>();
+
+  return {
+    ...actual,
+    fetchAvailableDataMonths: fetchAvailableDataMonthsMock,
+    fetchRankingsLite: fetchRankingsLiteMock,
+    fetchSharedDatasetSnapshot: fetchSharedDatasetSnapshotMock,
+    fetchStations: fetchStationsMock,
+  };
+});
 
 vi.mock('@/lib/analytics-series', () => ({
   fetchCachedDailyDemandCurve: fetchCachedDailyDemandCurveMock,
