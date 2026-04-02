@@ -188,10 +188,8 @@ Sentry is used for real-time error monitoring across both client and server.
   - `NEXT_PUBLIC_SENTRY_DSN` for browser events.
   - `SENTRY_DSN` for server/edge events (falls back to `NEXT_PUBLIC_SENTRY_DSN` if not set).
 - **Sampling**:
-  - `SENTRY_TRACES_SAMPLE_RATE`
-  - `SENTRY_SERVER_TRACES_SAMPLE_RATE`
-  - `SENTRY_EDGE_TRACES_SAMPLE_RATE`
-  - `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE`
+  - `SENTRY_TRACE_SAMPLE_RATE`
+  - `NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE`
 - **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
 - **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
 
