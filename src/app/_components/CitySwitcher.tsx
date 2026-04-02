@@ -31,7 +31,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
 
   return (
     <section
-      aria-label="Selector de ciudad"
+      aria-label="Ciudad activa en esta instalacion"
       className={`rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3 ${className ?? ''}`.trim()}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -51,7 +51,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
           {items.map((item) => (
             <div
               key={item.city}
-              aria-current={item.isActive ? 'true' : undefined}
+              aria-label={item.isActive ? `${item.label} activa en esta instalacion` : item.label}
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                 item.isActive
                   ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
