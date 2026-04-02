@@ -1,11 +1,12 @@
 import { createHmac, timingSafeEqual } from 'crypto';
+import { logger } from '@/lib/logger';
 
 if (!process.env.SIGNATURE_SECRET && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
   throw new Error('SIGNATURE_SECRET is required in production');
 }
 
 if (!process.env.SIGNATURE_SECRET) {
-  console.warn('[WARNING] SIGNATURE_SECRET not set - using insecure default. Set SIGNATURE_SECRET in production!');
+  logger.warn('signature.using_insecure_default');
 }
 
 const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'dev-secret-do-not-use-in-production';
@@ -16,11 +17,25 @@ export interface SignedRequest {
   signature: string;
 }
 
+function normalizeSignedPayload(body: unknown): string {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return JSON.stringify(body);
+  }
+
+  const clone = { ...(body as Record<string, unknown>) };
+  delete clone.signature;
+  return JSON.stringify(clone);
+}
+
 export function signRequest(body: unknown): SignedRequest {
   const timestamp = Date.now();
-  const bodyString = JSON.stringify(body);
+  const payload =
+    body && typeof body === 'object' && !Array.isArray(body)
+      ? { ...(body as Record<string, unknown>), timestamp }
+      : { body, timestamp };
+  const bodyString = JSON.stringify(payload);
   const signature = createHmac('sha256', SIGNATURE_SECRET)
-    .update(`${timestamp}.${bodyString}`)
+    .update(`${timestamp}.${normalizeSignedPayload(payload)}`)
     .digest('hex');
 
   return {
@@ -31,7 +46,7 @@ export function signRequest(body: unknown): SignedRequest {
 }
 
 export function verifySignature(body: unknown, timestamp: number, signature: string): boolean {
-  const bodyString = JSON.stringify(body);
+  const bodyString = normalizeSignedPayload(body);
   const expectedSignature = createHmac('sha256', SIGNATURE_SECRET)
     .update(`${timestamp}.${bodyString}`)
     .digest('hex');
@@ -51,5 +66,5 @@ export function verifySignature(body: unknown, timestamp: number, signature: str
 }
 
 export function isSignatureExpired(timestamp: number, maxAgeMs = 60000): boolean {
-  return Date.now() - timestamp > maxAgeMs;
+  return Math.abs(Date.now() - timestamp) > maxAgeMs;
 }

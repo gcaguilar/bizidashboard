@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildRebalancingReport } from '@/lib/rebalancing-report';
+import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { withApiRequest } from '@/lib/security/http';
+import { enforcePublicApiAccess } from '@/lib/security/public-api';
 import type { StationDiagnostic, TransferRecommendation } from '@/types/rebalancing';
 
 export const dynamic = 'force-dynamic';
 
 const MAX_DAYS = 90;
 const DEFAULT_DAYS = 15;
+const PUBLIC_ROUTE_RATE_LIMIT = {
+  limit: 20,
+  windowMs: 60_000,
+};
 
 // ─── Parameter validation ────────────────────────────────────────────────────
 
@@ -127,64 +134,91 @@ function toCsvTransfers(rows: TransferRecommendation[]): string {
 
 // ─── Route handler ───────────────────────────────────────────────────────────
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { searchParams } = new URL(request.url);
+export async function GET(request: NextRequest): Promise<Response> {
+  return withApiRequest(
+    request,
+    {
+      route: '/api/rebalancing-report',
+      routeGroup: 'public.api',
+    },
+    async ({ requestId, clientIp, userAgent }) => {
+      const { searchParams } = new URL(request.url);
 
-  const district = searchParams.get('district')?.trim() || null;
-  const format = searchParams.get('format');
-  const daysParam = searchParams.get('days');
+      const district = searchParams.get('district')?.trim() || null;
+      const format = searchParams.get('format');
+      const daysParam = searchParams.get('days');
 
-  const days = parseDays(daysParam);
-  if (days === null) {
-    return NextResponse.json(
-      { error: `Invalid days parameter. Must be an integer between 1 and ${MAX_DAYS}.`, dataState: 'error' },
-      { status: 400 }
-    );
-  }
+      const days = parseDays(daysParam);
+      if (days === null) {
+        return NextResponse.json(
+          { error: `Invalid days parameter. Must be an integer between 1 and ${MAX_DAYS}.`, dataState: 'error' },
+          { status: 400 }
+        );
+      }
 
-  if (format !== null && format !== 'json' && format !== 'csv') {
-    return NextResponse.json(
-      { error: 'Invalid format. Use json or csv.', dataState: 'error' },
-      { status: 400 }
-    );
-  }
+      if (format !== null && format !== 'json' && format !== 'csv') {
+        return NextResponse.json(
+          { error: 'Invalid format. Use json or csv.', dataState: 'error' },
+          { status: 400 }
+        );
+      }
 
-  try {
-    const report = await buildRebalancingReport({ days, district });
-
-    if (format === 'csv') {
-      const diagCsv = toCsvDiagnostics(report.diagnostics);
-      const transfersCsv = toCsvTransfers(report.transfers);
-      const combined = `# DIAGNOSTICOS\n${diagCsv}\n\n# TRANSFERENCIAS\n${transfersCsv}`;
-
-      return new NextResponse(combined, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="rebalancing-report-${days}d.csv"`,
-          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
-        },
+      const access = await enforcePublicApiAccess({
+        route: '/api/rebalancing-report',
+        request,
+        requestId,
+        clientIp,
+        userAgent,
+        namespace: 'public-rebalancing',
+        limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
+        windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
+        requireApiKey: format === 'csv' || days > 30,
       });
+
+      if (!access.ok) {
+        return access.response;
+      }
+
+      try {
+        const report = await buildRebalancingReport({ days, district });
+
+        if (format === 'csv') {
+          const diagCsv = toCsvDiagnostics(report.diagnostics);
+          const transfersCsv = toCsvTransfers(report.transfers);
+          const combined = `# DIAGNOSTICOS\n${diagCsv}\n\n# TRANSFERENCIAS\n${transfersCsv}`;
+
+          return new NextResponse(combined, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/csv; charset=utf-8',
+              'Content-Disposition': `attachment; filename="rebalancing-report-${days}d.csv"`,
+              'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+              ...access.headers,
+            },
+          });
+        }
+
+        return NextResponse.json(report, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+            ...access.headers,
+          },
+        });
+      } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'api.rebalancing-report',
+          operation: 'GET /api/rebalancing-report',
+          extra: { days, district, format },
+        });
+        logger.error('api.rebalancing_report.failed', { error });
+
+        return NextResponse.json(
+          { error: 'Failed to build rebalancing report', timestamp: new Date().toISOString(), dataState: 'error' },
+          { status: 500 }
+        );
+      }
     }
-
-    return NextResponse.json(report, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
-      },
-    });
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'api.rebalancing-report',
-      operation: 'GET /api/rebalancing-report',
-      extra: { days, district, format },
-    });
-    console.error('[API Rebalancing] Error building report:', error);
-
-    return NextResponse.json(
-      { error: 'Failed to build rebalancing report', timestamp: new Date().toISOString(), dataState: 'error' },
-      { status: 500 }
-    );
-  }
+  );
 }

@@ -1,113 +1,173 @@
+import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth/jwt';
-import { verifySignature, isSignatureExpired } from '@/lib/auth/signature';
 import { searchLocations, type GeoSearchResult } from '@/lib/geo/nominatim';
-import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { recordSecurityEvent } from '@/lib/security/audit';
+import {
+  buildMobileCorsHeaders,
+  rejectDisallowedMobileOrigin,
+  withApiRequest,
+} from '@/lib/security/http';
+import { verifyMobileRequest } from '@/lib/security/mobile-auth';
+import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
-type GeoSearchRequest = {
-  query: string;
-  limit?: number;
-  timestamp?: number;
-  signature?: string;
+const GEO_SEARCH_RATE_LIMIT = {
+  limit: 60,
+  windowMs: 60_000,
 };
+
+const geoSearchSchema = z.object({
+  query: z.string().trim().min(2).max(200),
+  limit: z.number().int().min(1).max(20).optional(),
+  timestamp: z.number().int().positive().optional(),
+  signature: z.string().trim().min(10).max(512).optional(),
+});
 
 type GeoSearchResponse = {
   results: GeoSearchResult[];
 };
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Installation-Id',
-};
+export async function POST(request: NextRequest): Promise<Response> {
+  return withApiRequest(
+    request,
+    {
+      route: '/api/geo/search',
+      routeGroup: 'mobile.geo',
+    },
+    async ({ requestId, clientIp, userAgent }) => {
+      const originRejection = rejectDisallowedMobileOrigin(request);
+      if (originRejection) {
+        return originRejection;
+      }
 
-async function verifyAuth(request: NextRequest, body: GeoSearchRequest): Promise<{ valid: boolean; installId?: string; error?: string }> {
-  const authHeader = request.headers.get('authorization');
-  const installId = request.headers.get('x-installation-id');
+      const rawBody = await request.json().catch(() => null);
+      const parsed = geoSearchSchema.safeParse(rawBody);
+      const baseHeaders = buildMobileCorsHeaders(request);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { valid: false, error: 'Missing or invalid Authorization header' };
-  }
+      if (!parsed.success) {
+        return NextResponse.json(
+          {
+            error: 'Invalid request payload',
+            details: parsed.error.flatten(),
+          },
+          { status: 400, headers: baseHeaders }
+        );
+      }
 
-  if (!installId) {
-    return { valid: false, error: 'Missing X-Installation-Id header' };
-  }
+      const authResult = await verifyMobileRequest({
+        body: parsed.data,
+        route: '/api/geo/search',
+        request,
+        requestId,
+        clientIp,
+        userAgent,
+        headers: baseHeaders,
+      });
 
-  const token = authHeader.substring(7);
-  const payload = await verifyAccessToken(token);
+      if (!authResult.ok) {
+        return authResult.response;
+      }
 
-  if (!payload || payload.installId !== installId) {
-    return { valid: false, error: 'Invalid or expired token' };
-  }
+      const [ipDecision, installDecision] = await Promise.all([
+        consumeRateLimit({
+          namespace: 'geo-search:ip',
+          identifierParts: [clientIp],
+          limit: GEO_SEARCH_RATE_LIMIT.limit,
+          windowMs: GEO_SEARCH_RATE_LIMIT.windowMs,
+        }),
+        consumeRateLimit({
+          namespace: 'geo-search:install',
+          identifierParts: [authResult.installId],
+          limit: GEO_SEARCH_RATE_LIMIT.limit,
+          windowMs: GEO_SEARCH_RATE_LIMIT.windowMs,
+        }),
+      ]);
+      const rateLimitDecision = !ipDecision.allowed ? ipDecision : installDecision;
+      const headers = {
+        ...baseHeaders,
+        ...getRateLimitHeaders(rateLimitDecision),
+      };
 
-  const install = await prisma.install.findUnique({
-    where: { installId },
-  });
+      if (rateLimitDecision.backend === 'unavailable') {
+        return NextResponse.json(
+          { error: 'Rate limiting backend unavailable' },
+          { status: 503, headers }
+        );
+      }
 
-  if (!install || !install.isActive) {
-    return { valid: false, error: 'Installation not found or inactive' };
-  }
+      if (!rateLimitDecision.allowed) {
+        await recordSecurityEvent({
+          eventType: 'rate_limit_exceeded',
+          route: '/api/geo/search',
+          requestId,
+          installId: authResult.installId,
+          ip: clientIp,
+          userAgent,
+          outcome: 'denied',
+          reasonCode: 'rate_limit',
+        });
 
-  if (body.timestamp && body.signature) {
-    if (isSignatureExpired(body.timestamp, 60000)) {
-      return { valid: false, error: 'Request timestamp expired' };
+        return NextResponse.json(
+          { error: 'Too many geo search requests' },
+          {
+            status: 429,
+            headers: {
+              ...headers,
+              'Retry-After': String(rateLimitDecision.retryAfterSeconds),
+            },
+          }
+        );
+      }
+
+      try {
+        const results = await searchLocations(
+          parsed.data.query,
+          parsed.data.limit ?? 10
+        );
+
+        const response: GeoSearchResponse = { results };
+
+        return NextResponse.json(response, {
+          headers: {
+            ...headers,
+            'Cache-Control': 'public, max-age=3600, s-maxage=2592000',
+          },
+        });
+      } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'api.geo-search',
+          operation: 'POST /api/geo/search',
+        });
+        logger.error('api.geo_search.failed', { error });
+        return NextResponse.json(
+          { error: 'Failed to search locations' },
+          { status: 500, headers }
+        );
+      }
     }
-    if (!verifySignature(body, body.timestamp, body.signature)) {
-      return { valid: false, error: 'Invalid signature' };
-    }
-  }
-
-  return { valid: true, installId };
+  );
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  try {
-    const body = (await request.json()) as GeoSearchRequest;
+export async function OPTIONS(request: NextRequest): Promise<Response> {
+  return withApiRequest(
+    request,
+    {
+      route: '/api/geo/search',
+      routeGroup: 'mobile.geo',
+    },
+    async () => {
+      const rejection = rejectDisallowedMobileOrigin(request);
+      if (rejection) {
+        return rejection;
+      }
 
-    const authResult = await verifyAuth(request, body);
-    if (!authResult.valid) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: 401, headers: CORS_HEADERS }
-      );
+      return new NextResponse(null, {
+        status: 204,
+        headers: buildMobileCorsHeaders(request),
+      });
     }
-
-    if (!body.query || body.query.trim().length < 2) {
-      return NextResponse.json(
-        { error: 'Query must be at least 2 characters' },
-        { status: 400, headers: CORS_HEADERS }
-      );
-    }
-
-    const results = await searchLocations(
-      body.query.trim(),
-      Math.min(Math.max(body.limit || 10, 1), 20)
-    );
-
-    const response: GeoSearchResponse = { results };
-
-    return NextResponse.json(response, {
-      headers: {
-        ...CORS_HEADERS,
-        'Cache-Control': 'public, max-age=3600, s-maxage=2592000',
-      },
-    });
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'api.geo-search',
-      operation: 'POST /api/geo/search',
-    });
-    console.error('[API Geo Search] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to search locations' },
-      { status: 500, headers: CORS_HEADERS }
-    );
-  }
-}
-
-export async function OPTIONS(): Promise<NextResponse> {
-  return NextResponse.json({}, { status: 200, headers: CORS_HEADERS });
+  );
 }

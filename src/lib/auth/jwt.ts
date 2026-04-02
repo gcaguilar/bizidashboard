@@ -1,11 +1,14 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import { logger } from '@/lib/logger';
 
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
   throw new Error('JWT_SECRET is required in production');
 }
 
 if (!process.env.JWT_SECRET) {
-  console.warn('[WARNING] JWT_SECRET not set - using insecure default. Set JWT_SECRET in production!');
+  logger.warn('jwt.using_insecure_default');
 }
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -24,10 +27,24 @@ export interface RefreshTokenPayload extends JWTPayload {
   type: 'refresh';
 }
 
+export type IssuedRefreshToken = {
+  token: string;
+  issuedAt: Date;
+};
+
+export function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+export function hashPublicKey(publicKey: string): string {
+  return createHash('sha256').update(publicKey).digest('hex');
+}
+
 export async function generateAccessToken(installId: string): Promise<string> {
   const token = await new SignJWT({ installId })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
+    .setJti(randomUUID())
     .setExpirationTime(ACCESS_TOKEN_EXPIRY)
     .sign(JWT_SECRET);
 
@@ -35,13 +52,23 @@ export async function generateAccessToken(installId: string): Promise<string> {
 }
 
 export async function generateRefreshToken(installId: string): Promise<string> {
+  const issued = await issueRefreshToken(installId);
+  return issued.token;
+}
+
+export async function issueRefreshToken(installId: string): Promise<IssuedRefreshToken> {
+  const issuedAt = new Date();
   const token = await new SignJWT({ installId, type: 'refresh' })
     .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
+    .setIssuedAt(Math.floor(issuedAt.getTime() / 1000))
+    .setJti(randomUUID())
     .setExpirationTime(REFRESH_TOKEN_EXPIRY)
     .sign(JWT_SECRET);
 
-  return token;
+  return {
+    token,
+    issuedAt,
+  };
 }
 
 export async function verifyAccessToken(token: string): Promise<AccessTokenPayload | null> {
