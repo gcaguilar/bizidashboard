@@ -7,12 +7,34 @@ const { withCacheMock, getStatusMock } = vi.hoisted(() => ({
   getStatusMock: vi.fn(),
 }));
 
+const {
+  getRedisHealthSummaryMock,
+  getRecentCollectionRunsMock,
+  getSecurityEventSummaryMock,
+} = vi.hoisted(() => ({
+  getRedisHealthSummaryMock: vi.fn(),
+  getRecentCollectionRunsMock: vi.fn(),
+  getSecurityEventSummaryMock: vi.fn(),
+}));
+
 vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
 vi.mock('@/lib/metrics', () => ({
   getStatus: getStatusMock,
+}));
+
+vi.mock('@/lib/cache/redis', () => ({
+  getRedisHealthSummary: getRedisHealthSummaryMock,
+}));
+
+vi.mock('@/lib/collection-runs', () => ({
+  getRecentCollectionRuns: getRecentCollectionRunsMock,
+}));
+
+vi.mock('@/lib/security/audit', () => ({
+  getSecurityEventSummary: getSecurityEventSummaryMock,
 }));
 
 import { getPipelineStatusSummary } from '@/services/shared-data/pipeline-status-service';
@@ -24,6 +46,17 @@ describe('pipeline status service', () => {
 
     withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
       return fetcher();
+    });
+    getRedisHealthSummaryMock.mockResolvedValue({
+      configured: true,
+      available: true,
+      backend: 'redis',
+    });
+    getRecentCollectionRunsMock.mockResolvedValue([]);
+    getSecurityEventSummaryMock.mockResolvedValue({
+      failedAuthLast24Hours: 0,
+      rateLimitedLast24Hours: 0,
+      refreshTokenReuseLast24Hours: 0,
     });
   });
 
@@ -68,6 +101,7 @@ describe('pipeline status service', () => {
     expect(summary.quality.freshness.lastUpdated).toBe('2026-04-01T14:35:00.000Z');
     expect(summary.quality.lastCheck).toBe('2026-04-01T14:35:30.000Z');
     expect(summary.system.uptime).toBe('2026-04-01T00:00:00.000Z');
+    expect(summary.operations.cache.backend).toBe('redis');
     expect(summary.timestamp).toBe('2026-04-01T14:36:00.000Z');
   });
 });

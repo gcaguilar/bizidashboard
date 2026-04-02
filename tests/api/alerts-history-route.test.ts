@@ -5,6 +5,10 @@ const { countMock, findManyMock } = vi.hoisted(() => ({
   findManyMock: vi.fn(),
 }));
 
+const { enforcePublicApiAccessMock } = vi.hoisted(() => ({
+  enforcePublicApiAccessMock: vi.fn(),
+}));
+
 vi.mock('@/lib/db', () => ({
   prisma: {
     stationAlert: {
@@ -12,6 +16,11 @@ vi.mock('@/lib/db', () => ({
       findMany: findManyMock,
     },
   },
+  getCity: () => 'zaragoza',
+}));
+
+vi.mock('@/lib/security/public-api', () => ({
+  enforcePublicApiAccess: enforcePublicApiAccessMock,
 }));
 
 import { GET } from '@/app/api/alerts/history/route';
@@ -20,6 +29,11 @@ describe('GET /api/alerts/history', () => {
   beforeEach(() => {
     countMock.mockReset();
     findManyMock.mockReset();
+    enforcePublicApiAccessMock.mockReset();
+    enforcePublicApiAccessMock.mockResolvedValue({
+      ok: true,
+      headers: {},
+    });
   });
 
   it('applies filters and pagination for JSON responses', async () => {

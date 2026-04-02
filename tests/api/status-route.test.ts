@@ -47,6 +47,33 @@ describe('GET /api/status', () => {
         version: '1.0.0',
         environment: 'test',
       },
+      operations: {
+        cache: {
+          configured: true,
+          available: true,
+          backend: 'redis',
+        },
+        recentCollections: [
+          {
+            collectionId: 'col-1',
+            trigger: 'manual',
+            status: 'succeeded',
+            requestId: 'req-1',
+            snapshotRecordedAt: '2026-01-01T00:00:00.000Z',
+            insertedCount: 42,
+            duplicateCount: 0,
+            warningCount: 0,
+            errorCount: 0,
+            startedAt: '2026-01-01T00:00:00.000Z',
+            finishedAt: '2026-01-01T00:05:00.000Z',
+          },
+        ],
+        security: {
+          failedAuthLast24Hours: 0,
+          rateLimitedLast24Hours: 0,
+          refreshTokenReuseLast24Hours: 0,
+        },
+      },
       timestamp: new Date('2026-01-01T00:05:00.000Z'),
     });
 
@@ -56,6 +83,8 @@ describe('GET /api/status', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toContain('max-age=30');
     expect(payload.pipeline.totalRowsCollected).toBe(42);
+    expect(payload.operations.cache.available).toBe(true);
+    expect(payload.operations.recentCollections[0].warnings).toBeUndefined();
     expect(payload.dataState).toBe('ok');
   });
 
@@ -101,6 +130,19 @@ describe('GET /api/status', () => {
         uptime: new Date('2026-01-01T00:00:00.000Z'),
         version: '1.0.0',
         environment: 'test',
+      },
+      operations: {
+        cache: {
+          configured: false,
+          available: false,
+          backend: 'disabled',
+        },
+        recentCollections: [],
+        security: {
+          failedAuthLast24Hours: 2,
+          rateLimitedLast24Hours: 3,
+          refreshTokenReuseLast24Hours: 1,
+        },
       },
       timestamp: new Date('2026-01-01T00:05:00.000Z'),
     });

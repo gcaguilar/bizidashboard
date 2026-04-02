@@ -10,7 +10,7 @@ Originally built for Zaragoza, it is now a generic, multi-tenant engine capable 
 
 The system is built on four core pillars:
 
-1. **Ingestion Engine**: Light, standalone cron tasks (via Bun or Alpine/curl) that trigger periodic GBFS snapshots via the `POST /api/collect` endpoint.
+1. **Ingestion Engine**: Light, standalone cron tasks (via Bun or Alpine/curl) that trigger periodic GBFS snapshots via the protected `GET/POST /api/collect` endpoint.
 2. **Storage Layer**: PostgreSQL with **Multi-Tenant by Schema** capability. Isolation is handled at the database level: each city has its own schema and tables.
 3. **Analytics Core**: Specialized SQL aggregations (Rankings, Trends, Alerts, Heatmaps, Mobility Signals) optimized for time-series bike availability data.
 4. **Visual Dashboard**: A Next.js (App Router) interface with real-time station statuses, historical graphs, and mobility reports.
@@ -20,6 +20,36 @@ The system is built on four core pillars:
 ## 📱 Mobile App Integration
 
 This project exposes specialized analytical APIs that power the **[BiziMobile](https://github.com/gcaguilar/bizimobile)** application. When a station is empty, the mobile app uses our predictions and mobility signals to help users find the nearest available bike with high confidence using historical occupancy patterns.
+
+Mobile clients must keep sending `Authorization: Bearer <accessToken>` together with `X-Installation-Id` on authenticated endpoints. The geo endpoints (`POST /api/geo/search` and `POST /api/geo/reverse`) now also support signed requests with `timestamp` + `signature`; the server can enforce them in production with `REQUIRE_SIGNED_MOBILE_REQUESTS=true`, so the app should implement this flow before the flag is enabled.
+
+Refresh tokens are no longer stored in plaintext in the database. The backend persists only `refreshTokenHash`, rotates refresh tokens on every successful refresh, and revokes the installation if it detects refresh token reuse. Mobile clients should avoid parallel refresh flows that may replay an already-rotated token.
+
+---
+
+## 🔐 Operational Security & API Access
+
+- Every API response includes `X-Request-Id`. Clients may send their own `X-Request-Id` to correlate calls, logs, Sentry traces, and persisted security events.
+- `GET /api/collect` and `POST /api/collect` require `X-Ops-Api-Key`. `x-collect-api-key` is still accepted as a temporary compatibility alias for existing cron jobs.
+- Low-cost read endpoints remain anonymous: `GET /api/status`, `GET /api/stations`, `GET /api/rankings`, `GET /api/alerts`, `GET /api/patterns`, `GET /api/heatmap`, `GET /api/openapi.json`, `GET /api/docs`, and `GET /api/app-versions`.
+- Elevated public access requires `X-Public-Api-Key` on:
+  - `GET /api/history?format=csv`
+  - `GET /api/rebalancing-report?format=csv`
+  - `GET /api/rebalancing-report` when `days > 30`
+  - `GET /api/alerts/history` when `format=csv` or `limit > 500`
+  - `GET /api/mobility` when `mobilityDays > 30` or `demandDays > 60`
+- `GET /api/health/live` and `GET /api/health/ready` stay unauthenticated for orchestration probes, but only expose probe-safe payloads. Use `GET /api/status` for richer operational visibility.
+- Sensitive routes (`/api/install/register`, `/api/token/refresh`, `/api/geo/*`, `/api/collect`, and elevated public routes) use shared Redis-backed rate limiting, structured audit events, and explicit CORS allowlists for mobile/auth surfaces.
+
+---
+
+## 🧾 Traceability & Observability
+
+- `Install` now stores `refreshTokenHash`, `refreshTokenIssuedAt`, `lastSeenAt`, `lastAuthAt`, `revokedAt`, and `publicKeyFingerprint`.
+- `CollectionRun` persists each ingestion lifecycle with `collectionId`, trigger (`cron` or `manual`), `requestId`, snapshot metadata, counters, warnings, errors, and timestamps.
+- `SecurityEvent` stores operational audit events such as auth failures, token reuse, invalid signatures, rate-limit denials, and manual collection triggers. IP and user-agent are stored as hashes, not plaintext.
+- Server logs are emitted as structured JSON to stdout and Sentry sampling is configurable per runtime through env vars instead of fixed `1.0` sampling.
+- Production startup validates critical runtime configuration, including `JWT_SECRET`, `SIGNATURE_SECRET`, `OPS_API_KEY`/`COLLECT_API_KEY`, `REDIS_URL`, and a valid `APP_URL`.
 
 ---
 
@@ -132,7 +162,7 @@ Adding a new compatible city is easy:
 
 1. Update `CITIES` and `CITY_CONFIGS` in `src/lib/constants.ts`.
 2. Find the system's `gbfs.json` URL.
-3. Deploy a new Docker service instance with the corresponding `CITY` and `GBFS_DISCOVERY_URL`.
+3. Deploy a new Docker service instance with the corresponding `CITY`, `GBFS_DISCOVERY_URL`, `REDIS_URL`, `APP_URL`, and operational secrets.
 4. Run migrations for the new schema:
    ```bash
    DATABASE_URL="postgresql://user:pass@host:5432/db?schema=newcity" npx prisma migrate deploy
@@ -157,6 +187,11 @@ Sentry is used for real-time error monitoring across both client and server.
 - **Setup**:
   - `NEXT_PUBLIC_SENTRY_DSN` for browser events.
   - `SENTRY_DSN` for server/edge events (falls back to `NEXT_PUBLIC_SENTRY_DSN` if not set).
+- **Sampling**:
+  - `SENTRY_TRACES_SAMPLE_RATE`
+  - `SENTRY_SERVER_TRACES_SAMPLE_RATE`
+  - `SENTRY_EDGE_TRACES_SAMPLE_RATE`
+  - `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE`
 - **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
 - **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
 

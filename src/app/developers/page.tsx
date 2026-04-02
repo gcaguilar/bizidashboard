@@ -89,9 +89,9 @@ export default async function DevelopersPage() {
   const codeLicense = process.env.npm_package_license ?? 'GPL-3.0-only';
   const developersDataState = combineDataStates([dataset.dataState, status.dataState]);
   const curlExamples = [
-    `curl -s ${siteUrl}${appRoutes.api.status()}`,
+    `curl -s -H "X-Request-Id: docs-example-status" ${siteUrl}${appRoutes.api.status()}`,
     `curl -sG ${siteUrl}${appRoutes.api.rankings({ type: 'turnover', limit: 20 })}`,
-    `curl -L ${siteUrl}${appRoutes.api.historyCsv()}`,
+    `curl -L -H "x-public-api-key: $PUBLIC_API_KEY" ${siteUrl}${appRoutes.api.historyCsv()}`,
   ];
   const pythonExample = `import requests\n\nbase_url = "${siteUrl}"\nresponse = requests.get(f"{base_url}${appRoutes.api.status()}", timeout=15)\nresponse.raise_for_status()\npayload = response.json()\nprint(payload["pipeline"]["healthStatus"])`;
   const jsExample = `const response = await fetch("${siteUrl}${appRoutes.api.stations()}");\nif (!response.ok) throw new Error(\`HTTP \${response.status}\`);\nconst payload = await response.json();\nconsole.log(payload.stations.length);`;
@@ -99,27 +99,53 @@ export default async function DevelopersPage() {
     {
       label: 'Estado actual de estaciones',
       href: appRoutes.api.stations({ format: 'csv' }),
-      detail: 'Snapshot actual en CSV con bicis, anclajes y capacidad.',
+      detail: 'Snapshot actual en CSV con bicis, anclajes y capacidad. Acceso anonimo.',
     },
     {
       label: 'Historico agregado',
       href: appRoutes.api.historyCsv(),
-      detail: 'Serie diaria con demanda, ocupacion, balance y muestras.',
+      detail: 'Serie diaria con demanda, ocupacion, balance y muestras. Requiere `X-Public-Api-Key`.',
     },
     {
       label: 'Alertas historicas',
       href: appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 }),
-      detail: 'Incidencias activas y resueltas con exportacion tabular.',
+      detail: 'Incidencias activas y resueltas con exportacion tabular. Requiere `X-Public-Api-Key`.',
     },
     {
       label: 'Ranking de friccion',
       href: appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' }),
-      detail: 'Horas problema y riesgo de disponibilidad por estacion.',
+      detail: 'Horas problema y riesgo de disponibilidad por estacion. Acceso anonimo.',
     },
     {
       label: 'Resumen del sistema',
       href: appRoutes.api.status({ format: 'csv' }),
-      detail: 'Estado del pipeline, frescura y volumen reciente.',
+      detail: 'Estado del pipeline, frescura y volumen reciente. Acceso anonimo.',
+    },
+  ] as const;
+  const accessPolicies = [
+    {
+      label: 'Correlacion',
+      title: 'Todas las respuestas API devuelven `X-Request-Id`',
+      detail:
+        'Si el cliente envia su propio identificador se reutiliza en logs, Sentry, auditoria y ejecuciones operativas.',
+    },
+    {
+      label: 'Ops',
+      title: '`GET/POST /api/collect` requieren `X-Ops-Api-Key`',
+      detail:
+        'La cabecera `x-collect-api-key` sigue aceptandose temporalmente como alias de compatibilidad para cron antiguos.',
+    },
+    {
+      label: 'Elevated public',
+      title: 'CSV costosos y ventanas amplias requieren `X-Public-Api-Key`',
+      detail:
+        'Afecta a historico CSV, alertas historicas CSV, movilidad extendida y rebalancing con ventanas o exportaciones amplias.',
+    },
+    {
+      label: 'Mobile',
+      title: '`Authorization` + `X-Installation-Id` en auth movil',
+      detail:
+        'Geo search y geo reverse soportan firma HMAC (`timestamp` + `signature`) y el backend puede volverla obligatoria por feature flag.',
     },
   ] as const;
   const useCases = [
@@ -130,7 +156,7 @@ export default async function DevelopersPage() {
   ] as const;
   const changelog = [
     `v${apiVersion}: especificacion OpenAPI publicada y accesible para tooling.`,
-    'Version actual: endpoints de estado, estaciones, rankings, alertas, historico, movilidad, patrones, heatmap y predicciones disponibles.',
+    'Version actual: request tracing con `X-Request-Id`, collect protegido por clave operativa y auditoria persistente para auth, rate limits y ejecuciones.',
     `Dataset ${datasetVersion}: cobertura compartida con ${dataset.coverage.totalDays} dias y ${dataset.stats.totalSamples} muestras agregadas.`,
   ] as const;
 
@@ -281,6 +307,28 @@ export default async function DevelopersPage() {
       </section>
 
       <section className="dashboard-card">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Acceso y seguridad
+          </p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Contrato operativo actual</h2>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {accessPolicies.map((policy) => (
+            <article
+              key={policy.label}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4"
+            >
+              <p className="stat-label">{policy.label}</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{policy.title}</p>
+              <p className="mt-2 text-xs text-[var(--muted)]">{policy.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="dashboard-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -348,13 +396,13 @@ export default async function DevelopersPage() {
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="stat-card">
               <p className="stat-label">Lectura publica</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">Sin throttle dedicado expuesto en GET</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Los endpoints de lectura estan cacheados y tienen limites de paginacion o `limit` por endpoint.</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Modelo mixto: anonimo para lectura barata, clave para acceso elevado</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Las lecturas ligeras siguen abiertas; CSV costosos y ventanas amplias pasan por `X-Public-Api-Key` y rate limit compartido.</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Ingesta protegida</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">POST /api/collect aplica rate limit</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Configuracion por defecto: 6 solicitudes por 60 segundos y cabecera `x-collect-api-key` en produccion.</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">GET y POST /api/collect aplican auth operativa + Redis rate limit</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Configuracion por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`; `x-collect-api-key` queda como alias temporal.</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Licencia del codigo</p>

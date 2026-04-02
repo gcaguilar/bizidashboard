@@ -24,6 +24,7 @@ const {
   getCoverageSummaryMock,
   queryRawMock,
   stationFindManyMock,
+  enforcePublicApiAccessMock,
 } = vi.hoisted(() => ({
   withCacheMock: vi.fn(),
   getSharedDatasetSnapshotMock: vi.fn(),
@@ -32,6 +33,7 @@ const {
   getCoverageSummaryMock: vi.fn(),
   queryRawMock: vi.fn(),
   stationFindManyMock: vi.fn(),
+  enforcePublicApiAccessMock: vi.fn(),
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
@@ -57,6 +59,11 @@ vi.mock('@/lib/db', () => ({
       findMany: stationFindManyMock,
     },
   },
+  getCity: () => 'zaragoza',
+}));
+
+vi.mock('@/lib/security/public-api', () => ({
+  enforcePublicApiAccess: enforcePublicApiAccessMock,
 }));
 
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot } from '@/lib/api';
@@ -83,9 +90,14 @@ describe('shared data consistency', () => {
     getCoverageSummaryMock.mockReset();
     queryRawMock.mockReset();
     stationFindManyMock.mockReset();
+    enforcePublicApiAccessMock.mockReset();
 
     withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
       return fetcher();
+    });
+    enforcePublicApiAccessMock.mockResolvedValue({
+      ok: true,
+      headers: {},
     });
 
     getSharedDatasetSnapshotMock.mockResolvedValue({

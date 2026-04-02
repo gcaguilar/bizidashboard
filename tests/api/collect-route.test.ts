@@ -6,10 +6,31 @@ const { runCollectionMock, getJobStateMock, isCollectionScheduledMock } = vi.hoi
   isCollectionScheduledMock: vi.fn(),
 }));
 
+const {
+  consumeRateLimitMock,
+  recordSecurityEventMock,
+} = vi.hoisted(() => ({
+  consumeRateLimitMock: vi.fn(),
+  recordSecurityEventMock: vi.fn(),
+}));
+
 vi.mock('@/jobs/bizi-collection', () => ({
   runCollection: runCollectionMock,
   getJobState: getJobStateMock,
   isCollectionScheduled: isCollectionScheduledMock,
+}));
+
+vi.mock('@/lib/security/rate-limit', () => ({
+  consumeRateLimit: consumeRateLimitMock,
+  getRateLimitHeaders: (decision: { limit: number; remaining: number; resetAt: number }) => ({
+    'X-RateLimit-Limit': String(decision.limit),
+    'X-RateLimit-Remaining': String(decision.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(decision.resetAt / 1000)),
+  }),
+}));
+
+vi.mock('@/lib/security/audit', () => ({
+  recordSecurityEvent: recordSecurityEventMock,
 }));
 
 import { GET, POST } from '@/app/api/collect/route';
@@ -17,12 +38,14 @@ import { GET, POST } from '@/app/api/collect/route';
 type EnvKey =
   | 'NODE_ENV'
   | 'COLLECT_API_KEY'
+  | 'OPS_API_KEY'
   | 'COLLECT_RATE_LIMIT_MAX'
   | 'COLLECT_RATE_LIMIT_WINDOW_MS';
 
 const originalEnv: Record<EnvKey, string | undefined> = {
   NODE_ENV: process.env.NODE_ENV,
   COLLECT_API_KEY: process.env.COLLECT_API_KEY,
+  OPS_API_KEY: process.env.OPS_API_KEY,
   COLLECT_RATE_LIMIT_MAX: process.env.COLLECT_RATE_LIMIT_MAX,
   COLLECT_RATE_LIMIT_WINDOW_MS: process.env.COLLECT_RATE_LIMIT_WINDOW_MS,
 };
@@ -42,6 +65,16 @@ describe('GET /api/collect', () => {
   beforeEach(() => {
     getJobStateMock.mockReset();
     isCollectionScheduledMock.mockReset();
+    consumeRateLimitMock.mockReset();
+    recordSecurityEventMock.mockReset();
+    consumeRateLimitMock.mockResolvedValue({
+      allowed: true,
+      limit: 6,
+      remaining: 5,
+      resetAt: Date.now() + 60000,
+      retryAfterSeconds: 0,
+      backend: 'bypass',
+    });
   });
 
   it('returns collector state snapshot', async () => {
@@ -54,34 +87,56 @@ describe('GET /api/collect', () => {
     });
     isCollectionScheduledMock.mockReturnValue(true);
 
-    const response = await GET();
+    process.env.OPS_API_KEY = 'top-secret';
+
+    const response = await GET(
+      new Request('http://localhost/api/collect', {
+        headers: {
+          'x-ops-api-key': 'top-secret',
+        },
+      })
+    );
     const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(payload.totalRuns).toBe(10);
     expect(payload.isScheduled).toBe(true);
+    expect(response.headers.get('x-request-id')).toBeTruthy();
   });
 });
 
 describe('POST /api/collect', () => {
   beforeEach(() => {
     runCollectionMock.mockReset();
+    consumeRateLimitMock.mockReset();
+    recordSecurityEventMock.mockReset();
 
     restoreEnvValue('NODE_ENV', 'test');
     delete process.env.COLLECT_API_KEY;
+    delete process.env.OPS_API_KEY;
     delete process.env.COLLECT_RATE_LIMIT_MAX;
     delete process.env.COLLECT_RATE_LIMIT_WINDOW_MS;
+
+    consumeRateLimitMock.mockResolvedValue({
+      allowed: true,
+      limit: 6,
+      remaining: 5,
+      resetAt: Date.now() + 60000,
+      retryAfterSeconds: 0,
+      backend: 'bypass',
+    });
   });
 
   afterAll(() => {
     restoreEnvValue('NODE_ENV', originalEnv.NODE_ENV);
     restoreEnvValue('COLLECT_API_KEY', originalEnv.COLLECT_API_KEY);
+    restoreEnvValue('OPS_API_KEY', originalEnv.OPS_API_KEY);
     restoreEnvValue('COLLECT_RATE_LIMIT_MAX', originalEnv.COLLECT_RATE_LIMIT_MAX);
     restoreEnvValue('COLLECT_RATE_LIMIT_WINDOW_MS', originalEnv.COLLECT_RATE_LIMIT_WINDOW_MS);
   });
 
   it('rejects request when API key is required and missing', async () => {
-    process.env.COLLECT_API_KEY = 'top-secret';
+    process.env.OPS_API_KEY = 'top-secret';
 
     const response = await POST(
       new Request('http://localhost/api/collect', {
@@ -112,15 +167,16 @@ describe('POST /api/collect', () => {
     const payload = await response.json();
 
     expect(response.status).toBe(503);
-    expect(payload.error).toContain('COLLECT_API_KEY');
+    expect(payload.error).toContain('OPS_API_KEY');
     expect(runCollectionMock).not.toHaveBeenCalled();
   });
 
   it('runs collection when API key is valid', async () => {
-    process.env.COLLECT_API_KEY = 'top-secret';
+    process.env.OPS_API_KEY = 'top-secret';
 
     runCollectionMock.mockResolvedValue({
       success: true,
+      collectionId: 'col-1',
       stationCount: 88,
       recordedAt: new Date('2026-01-01T01:00:00.000Z'),
       quality: null,
@@ -133,7 +189,7 @@ describe('POST /api/collect', () => {
       new Request('http://localhost/api/collect', {
         method: 'POST',
         headers: {
-          'x-collect-api-key': 'top-secret',
+          'x-ops-api-key': 'top-secret',
           'x-forwarded-for': '198.51.100.30',
         },
       })
@@ -143,17 +199,20 @@ describe('POST /api/collect', () => {
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
     expect(payload.stationCount).toBe(88);
+    expect(payload.collectionId).toBe('col-1');
     expect(runCollectionMock).toHaveBeenCalledTimes(1);
     expect(response.headers.get('x-ratelimit-limit')).toBe('6');
+    expect(response.headers.get('x-request-id')).toBeTruthy();
   });
 
   it('rate limits repeated requests from the same client', async () => {
-    process.env.COLLECT_API_KEY = 'top-secret';
+    process.env.OPS_API_KEY = 'top-secret';
     process.env.COLLECT_RATE_LIMIT_MAX = '2';
     process.env.COLLECT_RATE_LIMIT_WINDOW_MS = '60000';
 
     runCollectionMock.mockResolvedValue({
       success: true,
+      collectionId: 'col-test',
       stationCount: 10,
       recordedAt: new Date('2026-01-01T01:00:00.000Z'),
       quality: null,
@@ -163,9 +222,23 @@ describe('POST /api/collect', () => {
     });
 
     const headers = {
-      'x-collect-api-key': 'top-secret',
+      'x-ops-api-key': 'top-secret',
       'x-forwarded-for': '198.51.100.40',
     };
+
+    let callCount = 0;
+    consumeRateLimitMock.mockImplementation(async () => {
+      callCount += 1;
+      const denied = callCount >= 5;
+      return {
+        allowed: !denied,
+        limit: 2,
+        remaining: denied ? 0 : Math.max(0, 2 - Math.ceil(callCount / 2)),
+        resetAt: Date.now() + 60000,
+        retryAfterSeconds: denied ? 60 : 0,
+        backend: 'redis',
+      };
+    });
 
     const first = await POST(new Request('http://localhost/api/collect', { method: 'POST', headers }));
     const second = await POST(new Request('http://localhost/api/collect', { method: 'POST', headers }));

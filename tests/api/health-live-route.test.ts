@@ -12,6 +12,7 @@ vi.mock('@/lib/db', () => ({
       findFirst: findFirstMock,
     },
   },
+  getCity: () => 'zaragoza',
 }));
 
 import { GET } from '@/app/api/health/live/route';
@@ -35,7 +36,8 @@ describe('GET /api/health/live', () => {
     expect(payload.ready).toBe(true);
     expect(payload.checks.process).toBe('ok');
     expect(payload.checks.database).toBe('ok');
-    expect(payload.checks.collectionLagSeconds).toBeDefined();
+    expect(payload.checks.pipeline).toBe('ok');
+    expect(response.headers.get('x-request-id')).toBeTruthy();
   });
 
   it('returns 503 when database is down', async () => {

@@ -8,6 +8,7 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     $queryRaw: queryRawMock,
   },
+  getCity: () => 'zaragoza',
 }));
 
 import { GET } from '@/app/api/health/ready/route';
@@ -25,6 +26,7 @@ describe('GET /api/health/ready', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(response.headers.get('x-request-id')).toBeTruthy();
     expect(payload.status).toBe('ok');
     expect(payload.ready).toBe(true);
     expect(payload.checks.database).toBe('ok');

@@ -5,11 +5,13 @@ const {
   getHistoryMetadataMock,
   getPipelineStatusSummaryMock,
   queryRawMock,
+  enforcePublicApiAccessMock,
 } = vi.hoisted(() => ({
   withCacheMock: vi.fn(),
   getHistoryMetadataMock: vi.fn(),
   getPipelineStatusSummaryMock: vi.fn(),
   queryRawMock: vi.fn(),
+  enforcePublicApiAccessMock: vi.fn(),
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
@@ -25,6 +27,11 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     $queryRaw: queryRawMock,
   },
+  getCity: () => 'zaragoza',
+}));
+
+vi.mock('@/lib/security/public-api', () => ({
+  enforcePublicApiAccess: enforcePublicApiAccessMock,
 }));
 
 import { GET } from '@/app/api/history/route';
@@ -35,9 +42,14 @@ describe('GET /api/history', () => {
     getHistoryMetadataMock.mockReset();
     getPipelineStatusSummaryMock.mockReset();
     queryRawMock.mockReset();
+    enforcePublicApiAccessMock.mockReset();
 
     withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
       return fetcher();
+    });
+    enforcePublicApiAccessMock.mockResolvedValue({
+      ok: true,
+      headers: {},
     });
 
     getPipelineStatusSummaryMock.mockResolvedValue({
