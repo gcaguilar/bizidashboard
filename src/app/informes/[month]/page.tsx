@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
@@ -264,6 +265,8 @@ export default async function MonthlyReportPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PublicPageViewTracker pageType="report" template="monthly_report" pageSlug={month} />
+
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       <header className="hero-card">

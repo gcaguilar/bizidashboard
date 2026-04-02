@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
@@ -846,6 +847,8 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PublicPageViewTracker pageType="seo_hub" template="seo_landing" pageSlug={slug} />
+
       <script
         type="application/ld+json"
         suppressHydrationWarning

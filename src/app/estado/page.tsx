@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   fetchAvailableDataMonths,
   fetchSharedDatasetSnapshot,
@@ -146,6 +148,8 @@ export default async function SystemStatusPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PublicPageViewTracker pageType="status" template="system_status" pageSlug="estado" />
+
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -196,18 +200,22 @@ export default async function SystemStatusPage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
-            <Link
+            <TrackedLink
               href={appRoutes.dashboard()}
+              eventName="related_module_click"
+              eventData={{ source: 'status_hero', destination: 'dashboard' }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir dashboard en vivo
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={appRoutes.developers()}
+              eventName="api_cta_click"
+              eventData={{ source: 'status_hero', destination: 'developers' }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver API y developers
-            </Link>
+            </TrackedLink>
           </div>
 
           <PublicSearchForm />
