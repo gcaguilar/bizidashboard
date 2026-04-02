@@ -7,6 +7,7 @@ import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
 import { evaluatePageIndexability } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
+import { getStationSeoRows } from '@/lib/seo-stations';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 
@@ -52,10 +53,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
-  const [dataset, status, districtRows, seoLandingData, reportIndexability] = await Promise.all([
+  const [dataset, status, districtRows, stationRows, seoLandingData, reportIndexability] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => null),
     fetchStatus().catch(() => null),
     getDistrictSeoRows().catch(() => []),
+    getStationSeoRows().catch(() => []),
     Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
     Promise.resolve(
       evaluatePageIndexability({
@@ -210,10 +212,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.68,
     }));
 
+  const stationEntries: MetadataRoute.Sitemap = stationRows
+    .filter((station) => station.indexability.includeInSitemap)
+    .map((station) => ({
+      url: `${siteUrl}${station.indexability.canonicalPath}`,
+      lastModified: toValidDate(station.station.recordedAt, lastModified),
+      changeFrequency: 'hourly' as const,
+      priority: 0.66,
+    }));
+
   return dedupeSitemapEntries([
     ...staticEntries,
     ...seoEntries,
     ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
     ...districtEntries,
+    ...stationEntries,
   ]);
 }

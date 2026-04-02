@@ -108,6 +108,18 @@ export function inferSeoPageType(path: string): SeoPageType {
     return 'tool';
   }
 
+  if (/^\/estaciones\/[^/]+$/u.test(normalized)) {
+    return 'station';
+  }
+
+  if (/^\/barrios\/[^/]+$/u.test(normalized)) {
+    return 'district';
+  }
+
+  if (/^\/informes\/[^/]+$/u.test(normalized)) {
+    return 'report';
+  }
+
   return 'marketing';
 }
 

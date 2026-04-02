@@ -224,7 +224,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
     group: 'stations',
     title: station.name,
     description: `Estacion ${station.id} · ${station.bikesAvailable}/${station.capacity} bicis · ${station.anchorsFree} huecos libres.`,
-    href: appRoutes.dashboardStation(station.id),
+    href: appRoutes.stationDetail(station.id),
     badge: 'Estacion',
     keywords: [
       station.id,
