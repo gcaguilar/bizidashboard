@@ -1,6 +1,7 @@
 import { getExecutionContext } from '@/lib/request-context';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogRecord = Record<string, unknown>;
 
 function normalizeValue(value: unknown): unknown {
   if (value instanceof Error) {
@@ -26,13 +27,21 @@ function normalizeValue(value: unknown): unknown {
   return value;
 }
 
+function toLogRecord(value: unknown): LogRecord {
+  const normalized = normalizeValue(value);
+  if (normalized && typeof normalized === 'object' && !Array.isArray(normalized)) {
+    return normalized as LogRecord;
+  }
+  return {};
+}
+
 function emit(level: LogLevel, message: string, extra?: Record<string, unknown>): void {
   const entry = {
     timestamp: new Date().toISOString(),
     level,
     message,
-    ...normalizeValue(getExecutionContext()),
-    ...normalizeValue(extra),
+    ...toLogRecord(getExecutionContext()),
+    ...toLogRecord(extra),
   };
 
   const payload = JSON.stringify(entry);

@@ -77,7 +77,7 @@ function applyContext(
   }
 
   if (typeof executionContext?.rateLimited === 'boolean') {
-    scope.setTag('rate_limited', executionContext.rateLimited);
+    scope.setTag('rate_limited', String(executionContext.rateLimited));
   }
 
   if (executionContext?.cacheBackend) {

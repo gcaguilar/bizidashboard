@@ -1,5 +1,3 @@
-import { URL } from 'node:url';
-
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const DEFAULT_MOBILE_ALLOWED_HEADERS = [
   'Content-Type',

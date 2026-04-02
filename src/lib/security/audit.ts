@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { hashSensitiveValue } from '@/lib/security/http';
 
@@ -12,7 +13,7 @@ export type SecurityEventInput = {
   collectionId?: string | null;
   ip?: string | null;
   userAgent?: string | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Prisma.InputJsonValue | null;
 };
 
 export async function recordSecurityEvent(input: SecurityEventInput): Promise<void> {
@@ -28,7 +29,7 @@ export async function recordSecurityEvent(input: SecurityEventInput): Promise<vo
         userAgentHash: hashSensitiveValue(input.userAgent),
         outcome: input.outcome,
         reasonCode: input.reasonCode ?? null,
-        metadata: input.metadata ?? null,
+        metadata: input.metadata ?? Prisma.JsonNull,
       },
     });
   } catch (error) {

@@ -43,6 +43,19 @@ export function buildFallbackStatus(nowIso: string): StatusResponse {
       version: process.env.npm_package_version ?? '0.1.0',
       environment: process.env.NODE_ENV ?? 'production',
     },
+    operations: {
+      cache: {
+        configured: false,
+        available: false,
+        backend: 'disabled' as const,
+      },
+      recentCollections: [],
+      security: {
+        failedAuthLast24Hours: 0,
+        rateLimitedLast24Hours: 0,
+        refreshTokenReuseLast24Hours: 0,
+      },
+    },
     timestamp: nowIso,
   };
 

@@ -18,7 +18,9 @@ function toIsoString(value: string | Date | null | undefined): string | null {
   return value instanceof Date ? value.toISOString() : value;
 }
 
-function serializeStatus(status: Awaited<ReturnType<typeof getStatus>>): PipelineStatusSummary {
+function serializeStatus(
+  status: Awaited<ReturnType<typeof getStatus>>
+): Omit<PipelineStatusSummary, 'operations'> {
   return {
     pipeline: {
       ...status.pipeline,

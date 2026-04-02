@@ -1,6 +1,3 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { randomUUID } from 'node:crypto';
-
 export type ExecutionContext = {
   requestId: string;
   route?: string;
@@ -18,7 +15,57 @@ export type ExecutionContext = {
   userAgentHash?: string | null;
 };
 
-const contextStore = new AsyncLocalStorage<ExecutionContext>();
+type ContextStoreLike = {
+  getStore(): ExecutionContext | undefined;
+  run<T>(context: ExecutionContext, callback: () => T): T;
+  enterWith(context: ExecutionContext): void;
+};
+
+function createFallbackStore(): ContextStoreLike {
+  let current: ExecutionContext | undefined;
+  return {
+    getStore: () => current,
+    run: <T>(context: ExecutionContext, callback: () => T): T => {
+      const previous = current;
+      current = context;
+      try {
+        return callback();
+      } finally {
+        current = previous;
+      }
+    },
+    enterWith: (context: ExecutionContext): void => {
+      current = context;
+    },
+  };
+}
+
+function createContextStore(): ContextStoreLike {
+  if (typeof window !== 'undefined') {
+    return createFallbackStore();
+  }
+
+  try {
+    // Lazy runtime import so browser/edge bundles never include node:async_hooks.
+    const req = (0, eval)('require') as (id: string) => {
+      AsyncLocalStorage: new () => ContextStoreLike;
+    };
+    const { AsyncLocalStorage } = req('node:async_hooks');
+    return new AsyncLocalStorage();
+  } catch {
+    return createFallbackStore();
+  }
+}
+
+const contextStore = createContextStore();
+
+function createRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 export function getExecutionContext(): ExecutionContext | undefined {
   return contextStore.getStore();
@@ -26,7 +73,7 @@ export function getExecutionContext(): ExecutionContext | undefined {
 
 export function resolveRequestId(headers?: Headers | null): string {
   const incomingId = headers?.get('x-request-id')?.trim();
-  return incomingId && incomingId.length > 0 ? incomingId : randomUUID();
+  return incomingId && incomingId.length > 0 ? incomingId : createRequestId();
 }
 
 export function runWithExecutionContext<T>(
