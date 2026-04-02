@@ -20,6 +20,7 @@ import {
   type SeoPageConfig,
   type SeoPageSlug,
 } from '@/lib/seo-pages';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 type SeoStat = {
@@ -775,7 +776,7 @@ export async function getSeoLandingPageData(slug: SeoPageSlug) {
 }
 
 export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Metadata> {
-  const { config, path, indexabilityInput } = await getSeoLandingPageData(slug);
+  const { config, content, path, indexabilityInput } = await getSeoLandingPageData(slug);
 
   return buildPageMetadata({
     title: config.metadataTitle,
@@ -783,6 +784,13 @@ export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Met
     path,
     canonicalPath: config.canonicalPath,
     keywords: config.keywords,
+    socialImagePath: buildSocialImagePath({
+      kind: 'landing',
+      title: config.title,
+      subtitle: content.summary,
+      eyebrow: config.heroKicker,
+      badges: [config.cadenceLabel, 'Landing SEO'],
+    }),
     indexability: indexabilityInput,
   });
 }

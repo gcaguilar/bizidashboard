@@ -17,6 +17,7 @@ import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import {
   buildFallbackAvailableMonths,
   buildFallbackDatasetSnapshot,
@@ -43,6 +44,13 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.',
   path: appRoutes.developers(),
+  socialImagePath: buildSocialImagePath({
+    kind: 'api',
+    title: 'API y datos abiertos de Bizi Zaragoza',
+    subtitle: 'OpenAPI, CSV, ejemplos de uso y trazabilidad del dataset',
+    eyebrow: 'API como producto',
+    badges: ['OpenAPI', 'CSV', 'Developers'],
+  }),
 });
 
 function getEndpointDocs(): EndpointDoc[] {

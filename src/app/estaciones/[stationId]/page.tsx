@@ -6,6 +6,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getStationSeoPageData } from '@/lib/seo-stations';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 
 export const revalidate = 300;
@@ -94,6 +95,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `bicis ${summary.districtName ?? 'zaragoza'}`,
       'bizi zaragoza estaciones',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'station',
+      title: summary.station.name,
+      subtitle: `${summary.station.bikesAvailable} bicis · ${summary.station.anchorsFree} anclajes libres · ${summary.districtName ?? 'Zaragoza'}`,
+      eyebrow: 'Ficha publica por estacion',
+      badges: [
+        `${summary.station.bikesAvailable} bicis`,
+        `ocupacion ${formatPercent(summary.currentOccupancy)}`,
+      ],
+    }),
     indexability: summary.indexabilityInput,
   });
 }
