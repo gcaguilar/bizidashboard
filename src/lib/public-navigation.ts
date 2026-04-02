@@ -42,7 +42,7 @@ export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
   { id: 'explore', label: 'Explorar', href: appRoutes.explore() },
   { id: 'reports', label: 'Informes', href: appRoutes.reports() },
   { id: 'api', label: 'API', href: appRoutes.developers() },
-  { id: 'help', label: 'Ayuda', href: appRoutes.dashboardHelp() },
+  { id: 'help', label: 'Metodologia', href: appRoutes.methodology() },
   { id: 'status', label: 'Estado', href: appRoutes.status() },
 ];
 
