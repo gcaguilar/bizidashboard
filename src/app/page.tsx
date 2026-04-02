@@ -42,6 +42,11 @@ const QUICK_LINKS = [
     title: 'Developers y API',
     description: 'OpenAPI, ejemplos de consumo, CSV y documentacion reutilizable.',
   },
+  {
+    href: appRoutes.methodology(),
+    title: 'Metodologia y calidad',
+    description: 'Fuente GBFS, cobertura, limites de interpretacion y criterios de publicacion SEO.',
+  },
 ] as const;
 
 export const metadata: Metadata = buildPageMetadata({
