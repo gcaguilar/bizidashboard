@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -80,6 +81,8 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
+      <PublicPageViewTracker pageType="home" template="home" pageSlug="home" />
+
       <header className="hero-card">
         <PublicSectionNav activeHref={appRoutes.home()} />
         <CitySwitcher className="mt-3" compact />

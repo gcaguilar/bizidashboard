@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -171,6 +172,8 @@ export default async function DevelopersPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PublicPageViewTracker pageType="developers" template="developers_hub" pageSlug="developers" />
+
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -353,9 +356,14 @@ export default async function DevelopersPage() {
             </p>
             <h2 className="text-xl font-black text-[var(--foreground)]">Endpoints publicados</h2>
           </div>
-          <Link href={appRoutes.api.openApi()} className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
+          <TrackedLink
+            href={appRoutes.api.openApi()}
+            eventName="api_cta_click"
+            eventData={{ source: 'developers_endpoints', destination: 'openapi_json' }}
+            className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
+          >
             Ver JSON OpenAPI
-          </Link>
+          </TrackedLink>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -388,9 +396,11 @@ export default async function DevelopersPage() {
           </div>
           <div className="space-y-3">
             {csvDownloads.map((item) => (
-              <Link
+              <TrackedLink
                 key={item.label}
                 href={item.href}
+                eventName="dataset_download_click"
+                eventData={{ source: 'developers_dataset', destination: item.href, label: item.label }}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <div>
@@ -398,7 +408,7 @@ export default async function DevelopersPage() {
                   <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
                 </div>
                 <span className="text-xs font-bold text-[var(--accent)]">Descargar</span>
-              </Link>
+              </TrackedLink>
             ))}
           </div>
         </article>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -160,6 +161,8 @@ export default function BiciRadarPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
+      <PublicPageViewTracker pageType="product" template="biciradar" pageSlug="biciradar" />
+
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <SiteBreadcrumbs items={breadcrumbs} />
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -114,6 +115,8 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+        <PublicPageViewTracker pageType="district" template="district_detail" pageSlug={districtSlug} />
+
         <header className="hero-card">
           <SiteBreadcrumbs items={createRootBreadcrumbs(
             { label: 'Barrios Bizi Zaragoza', href: appRoutes.districtLanding() },
@@ -178,6 +181,8 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PublicPageViewTracker pageType="district" template="district_detail" pageSlug={district.slug} />
+
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
       <header className="hero-card">
