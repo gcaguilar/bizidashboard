@@ -8,13 +8,20 @@ export const openApiDocument = {
   },
   components: {
     securitySchemes: {
-      CollectApiKey: {
+      OpsApiKey: {
         type: 'apiKey',
         in: 'header',
-        name: 'x-collect-api-key',
+        name: 'x-ops-api-key',
         description:
-          'Required for POST /api/collect when COLLECT_API_KEY is configured (always required in production).'
-      }
+          'Required for GET/POST /api/collect. x-collect-api-key is accepted temporarily as a compatibility alias.'
+      },
+      PublicApiKey: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-public-api-key',
+        description:
+          'Required for elevated access to expensive public endpoints and CSV exports.'
+      },
     }
   },
   paths: {
@@ -331,6 +338,11 @@ export const openApiDocument = {
       get: {
         operationId: 'get_collect',
         summary: 'Get collection job state',
+        security: [
+          {
+            OpsApiKey: []
+          }
+        ],
         responses: {
           200: {
             description: 'Collector state payload'
@@ -342,7 +354,7 @@ export const openApiDocument = {
         summary: 'Trigger one data collection run',
         security: [
           {
-            CollectApiKey: []
+            OpsApiKey: []
           }
         ],
         responses: {

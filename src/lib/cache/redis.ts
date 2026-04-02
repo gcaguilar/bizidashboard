@@ -1,5 +1,6 @@
 import { createClient } from 'redis'
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
+import { logger } from '@/lib/logger'
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -9,6 +10,20 @@ let warnedMissingUrl = false
 let connectionFailures = 0
 const MAX_CONNECTION_RETRIES = 3
 let warnedConnectionFailure = false
+
+export async function getRedisHealthSummary(): Promise<{
+  configured: boolean
+  available: boolean
+  backend: 'redis' | 'disabled'
+}> {
+  const client = await getRedisClient()
+
+  return {
+    configured: Boolean(process.env.REDIS_URL?.trim()),
+    available: client !== null,
+    backend: client !== null ? 'redis' : 'disabled',
+  }
+}
 
 export async function getRedisClient(): Promise<RedisClient | null> {
   if (connectionFailures >= MAX_CONNECTION_RETRIES) return null
@@ -27,7 +42,7 @@ export async function getRedisClient(): Promise<RedisClient | null> {
           dedupeKey: 'cache.redis.missing-url.production',
         })
       }
-      console.warn('REDIS_URL is not set; skipping Redis cache')
+      logger.warn('redis.missing_url')
       warnedMissingUrl = true
     }
     return null
@@ -49,7 +64,7 @@ export async function getRedisClient(): Promise<RedisClient | null> {
         area: 'cache.redis',
         operation: 'client.error',
       })
-      console.warn('Redis client error; disabling Redis cache for this process', error)
+      logger.warn('redis.client_error', { error })
       warnedConnectionFailure = true
     }
   })
@@ -66,7 +81,7 @@ export async function getRedisClient(): Promise<RedisClient | null> {
           area: 'cache.redis',
           operation: 'connect',
         })
-        console.warn('Failed to connect to Redis; disabling cache', error)
+        logger.warn('redis.connect_failed', { error })
         warnedConnectionFailure = true
       }
       connectionFailures++

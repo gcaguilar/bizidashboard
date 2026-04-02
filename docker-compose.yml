@@ -40,12 +40,18 @@ services:
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
+      - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
+      - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE=${NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
       - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
@@ -76,12 +82,18 @@ services:
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
+      - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
+      - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE=${NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
       - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
@@ -112,12 +124,18 @@ services:
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
+      - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
+      - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE=${NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE:-0.2}
       - NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${NEXT_PUBLIC_UMAMI_SCRIPT_SRC:-https://cloud.umami.is/script.js}
       - NEXT_PUBLIC_UMAMI_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
     ports:
@@ -143,6 +161,7 @@ services:
       - ./ops/collect-zaragoza.cron:/etc/crontabs/root:ro
     environment:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
     command:
       [
         "/bin/sh",
@@ -159,6 +178,7 @@ services:
       - ./ops/collect-madrid.cron:/etc/crontabs/root:ro
     environment:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
     command:
       [
         "/bin/sh",
@@ -175,6 +195,7 @@ services:
       - ./ops/collect-barcelona.cron:/etc/crontabs/root:ro
     environment:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
+      - OPS_API_KEY=${OPS_API_KEY:-}
     command:
       [
         "/bin/sh",

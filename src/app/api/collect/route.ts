@@ -1,35 +1,22 @@
-import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { runCollection, getJobState, isCollectionScheduled } from '@/jobs/bizi-collection';
+import { getJobState, isCollectionScheduled, runCollection } from '@/jobs/bizi-collection';
+import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getOpsApiKey } from '@/lib/security/config';
+import { recordSecurityEvent } from '@/lib/security/audit';
+import {
+  isApiKeyValid,
+  readOpsApiKey,
+  withApiRequest,
+} from '@/lib/security/http';
+import {
+  consumeRateLimit,
+  getRateLimitHeaders,
+  type RateLimitDecision,
+} from '@/lib/security/rate-limit';
 
-const COLLECT_API_KEY_HEADER = 'x-collect-api-key';
 const DEFAULT_RATE_LIMIT_MAX = 6;
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
-
-type RateLimitState = {
-  count: number;
-  resetAt: number;
-};
-
-type RateLimitResult = {
-  allowed: boolean;
-  limit: number;
-  remaining: number;
-  resetAt: number;
-  retryAfterSeconds: number;
-};
-
-const rateLimitByClient = new Map<string, RateLimitState>();
-const RATE_LIMIT_MAX_ENTRIES = 10_000;
-
-function evictExpiredEntries(): void {
-  if (rateLimitByClient.size <= RATE_LIMIT_MAX_ENTRIES) return;
-  const now = Date.now();
-  for (const [key, state] of rateLimitByClient) {
-    if (state.resetAt <= now) rateLimitByClient.delete(key);
-  }
-}
 
 function toIsoString(value: Date | null): string | null {
   return value ? value.toISOString() : null;
@@ -49,12 +36,6 @@ function readPositiveInteger(value: string | undefined, fallback: number): numbe
   return Math.floor(parsed);
 }
 
-function getCollectApiKey(): string | null {
-  const rawKey = process.env.COLLECT_API_KEY;
-  const apiKey = rawKey?.trim();
-  return apiKey ? apiKey : null;
-}
-
 function getRateLimitConfig(): { max: number; windowMs: number } {
   return {
     max: readPositiveInteger(process.env.COLLECT_RATE_LIMIT_MAX, DEFAULT_RATE_LIMIT_MAX),
@@ -63,93 +44,6 @@ function getRateLimitConfig(): { max: number; windowMs: number } {
       DEFAULT_RATE_LIMIT_WINDOW_MS
     ),
   };
-}
-
-function getClientIdentifier(request: Request): string {
-  const forwardedFor = request.headers.get('x-forwarded-for');
-
-  if (forwardedFor) {
-    const firstIp = forwardedFor.split(',')[0]?.trim();
-
-    if (firstIp) {
-      return firstIp;
-    }
-  }
-
-  const fallbackHeaders = ['x-real-ip', 'cf-connecting-ip'];
-
-  for (const header of fallbackHeaders) {
-    const value = request.headers.get(header)?.trim();
-    if (value) {
-      return value;
-    }
-  }
-
-  return 'unknown';
-}
-
-function consumeRateLimit(request: Request): RateLimitResult {
-  evictExpiredEntries();
-  const { max, windowMs } = getRateLimitConfig();
-  const now = Date.now();
-  const clientIdentifier = getClientIdentifier(request);
-  const currentState = rateLimitByClient.get(clientIdentifier);
-
-  if (!currentState || currentState.resetAt <= now) {
-    const nextState: RateLimitState = {
-      count: 1,
-      resetAt: now + windowMs,
-    };
-    rateLimitByClient.set(clientIdentifier, nextState);
-
-    return {
-      allowed: true,
-      limit: max,
-      remaining: Math.max(0, max - nextState.count),
-      resetAt: nextState.resetAt,
-      retryAfterSeconds: 0,
-    };
-  }
-
-  currentState.count += 1;
-  rateLimitByClient.set(clientIdentifier, currentState);
-
-  if (currentState.count > max) {
-    return {
-      allowed: false,
-      limit: max,
-      remaining: 0,
-      resetAt: currentState.resetAt,
-      retryAfterSeconds: Math.max(1, Math.ceil((currentState.resetAt - now) / 1000)),
-    };
-  }
-
-  return {
-    allowed: true,
-    limit: max,
-    remaining: Math.max(0, max - currentState.count),
-    resetAt: currentState.resetAt,
-    retryAfterSeconds: 0,
-  };
-}
-
-function getRateLimitHeaders(rateLimit: RateLimitResult): Record<string, string> {
-  return {
-    'X-RateLimit-Limit': String(rateLimit.limit),
-    'X-RateLimit-Remaining': String(rateLimit.remaining),
-    'X-RateLimit-Reset': String(Math.ceil(rateLimit.resetAt / 1000)),
-  };
-}
-
-function isApiKeyValid(providedApiKey: string, expectedApiKey: string): boolean {
-  const providedBuffer = Buffer.from(providedApiKey);
-  const expectedBuffer = Buffer.from(expectedApiKey);
-
-  if (providedBuffer.length !== expectedBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(providedBuffer, expectedBuffer);
 }
 
 function errorResponse(
@@ -170,100 +64,219 @@ function errorResponse(
   );
 }
 
-export async function POST(request: Request) {
-  console.log('[API] Collection triggered via POST /api/collect');
-
-  const expectedApiKey = getCollectApiKey();
-
-  if (process.env.NODE_ENV === 'production' && expectedApiKey === null) {
-    return errorResponse(
-      503,
-      'Server misconfigured: COLLECT_API_KEY is required in production.'
-    );
-  }
-
-  const rateLimit = consumeRateLimit(request);
-  const rateLimitHeaders = getRateLimitHeaders(rateLimit);
-
-  if (!rateLimit.allowed) {
-    return errorResponse(429, 'Too many requests for /api/collect.', {
-      ...rateLimitHeaders,
-      'Retry-After': String(rateLimit.retryAfterSeconds),
-    });
-  }
-
-  if (expectedApiKey !== null) {
-    const providedApiKey = request.headers.get(COLLECT_API_KEY_HEADER)?.trim() ?? '';
-
-    if (!isApiKeyValid(providedApiKey, expectedApiKey)) {
-      return errorResponse(401, 'Unauthorized collect trigger.', rateLimitHeaders);
+async function enforceOperationalAccess(
+  request: Request,
+  clientIp: string
+): Promise<
+  | {
+      headers: Record<string, string>;
+      decision: RateLimitDecision;
+      providedKey: string;
     }
+  | { response: NextResponse }
+> {
+  const expectedApiKey = getOpsApiKey();
+
+  if (!expectedApiKey) {
+    return {
+      response: errorResponse(
+        503,
+        'Server misconfigured: OPS_API_KEY or COLLECT_API_KEY is required.'
+      ),
+    };
   }
 
-  try {
-    const result = await runCollection();
+  const { max, windowMs } = getRateLimitConfig();
+  const providedKey = readOpsApiKey(request.headers) ?? '';
+  const [ipDecision, keyDecision] = await Promise.all([
+    consumeRateLimit({
+      namespace: 'collect:ip',
+      identifierParts: [clientIp],
+      limit: max,
+      windowMs,
+    }),
+    consumeRateLimit({
+      namespace: 'collect:key',
+      identifierParts: [providedKey || 'missing'],
+      limit: max,
+      windowMs,
+    }),
+  ]);
 
-    if (!result.success) {
+  const effectiveDecision = !ipDecision.allowed ? ipDecision : keyDecision;
+  const headers = getRateLimitHeaders(effectiveDecision);
+
+  if (effectiveDecision.backend === 'unavailable') {
+    return {
+      response: errorResponse(503, 'Rate limiting backend unavailable.', headers),
+    };
+  }
+
+  if (!effectiveDecision.allowed) {
+    return {
+      response: errorResponse(429, 'Too many requests for /api/collect.', {
+        ...headers,
+        'Retry-After': String(effectiveDecision.retryAfterSeconds),
+      }),
+    };
+  }
+
+  if (!isApiKeyValid(providedKey, expectedApiKey)) {
+    return {
+      response: errorResponse(401, 'Unauthorized collect trigger.', headers),
+    };
+  }
+
+  return {
+    headers,
+    decision: effectiveDecision,
+    providedKey,
+  };
+}
+
+export async function POST(request: Request): Promise<Response> {
+  return withApiRequest(
+    request,
+    {
+      route: '/api/collect',
+      routeGroup: 'ops.collect',
+    },
+    async ({ requestId, clientIp, userAgent }) => {
+      const access = await enforceOperationalAccess(request, clientIp);
+
+      if ('response' in access) {
+        const status = access.response.status;
+        const eventType =
+          status === 429 ? 'rate_limit_exceeded' : status === 401 ? 'auth_failed' : 'ops_unavailable';
+
+        await recordSecurityEvent({
+          eventType,
+          route: '/api/collect',
+          requestId,
+          ip: clientIp,
+          userAgent,
+          outcome: status === 429 ? 'denied' : 'error',
+          reasonCode: access.response.statusText || String(status),
+        });
+
+        return access.response;
+      }
+
+      try {
+        const result = await runCollection({
+          trigger: 'manual',
+          requestId,
+        });
+
+        await recordSecurityEvent({
+          eventType: 'manual_collect_triggered',
+          route: '/api/collect',
+          requestId,
+          collectionId: result.collectionId,
+          ip: clientIp,
+          userAgent,
+          outcome: result.success ? 'success' : 'error',
+          metadata: {
+            stationCount: result.stationCount,
+            durationMs: result.duration,
+          },
+        });
+
+        if (!result.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: result.error ?? 'Collection failed',
+              collectionId: result.collectionId,
+              timestamp: new Date().toISOString(),
+            },
+            {
+              status: 500,
+              headers: access.headers,
+            }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            success: true,
+            collectionId: result.collectionId,
+            stationCount: result.stationCount,
+            recordedAt: toIsoString(result.recordedAt),
+            quality: result.quality,
+            duration: result.duration,
+            warnings: result.warnings,
+            timestamp: result.timestamp.toISOString(),
+          },
+          {
+            headers: access.headers,
+          }
+        );
+      } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'api.collect',
+          operation: 'POST /api/collect',
+          extra: {
+            clientIp,
+          },
+        });
+        logger.error('api.collect.post_failed', { error });
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Collection failed',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            status: 500,
+            headers: access.headers,
+          }
+        );
+      }
+    }
+  );
+}
+
+export async function GET(request?: Request): Promise<Response> {
+  const req = request ?? new Request('http://localhost/api/collect');
+  return withApiRequest(
+    req,
+    {
+      route: '/api/collect',
+      routeGroup: 'ops.collect',
+    },
+    async ({ requestId, clientIp, userAgent }) => {
+      const access = await enforceOperationalAccess(req, clientIp);
+
+      if ('response' in access) {
+        await recordSecurityEvent({
+          eventType: access.response.status === 429 ? 'rate_limit_exceeded' : 'auth_failed',
+          route: '/api/collect',
+          requestId,
+          ip: clientIp,
+          userAgent,
+          outcome: 'denied',
+          reasonCode: String(access.response.status),
+        });
+        return access.response;
+      }
+
+      const state = getJobState();
+
       return NextResponse.json(
         {
-          success: false,
-          error: result.error ?? 'Collection failed',
-          timestamp: new Date().toISOString(),
+          lastRun: toIsoString(state.lastRun),
+          lastSuccess: toIsoString(state.lastSuccess),
+          consecutiveFailures: state.consecutiveFailures,
+          totalRuns: state.totalRuns,
+          totalSuccesses: state.totalSuccesses,
+          isScheduled: isCollectionScheduled(),
         },
         {
-          status: 500,
-          headers: rateLimitHeaders,
+          headers: access.headers,
         }
       );
     }
-
-    return NextResponse.json(
-      {
-        success: true,
-        stationCount: result.stationCount,
-        recordedAt: toIsoString(result.recordedAt),
-        quality: result.quality,
-        duration: result.duration,
-        warnings: result.warnings,
-        timestamp: result.timestamp.toISOString(),
-      },
-      {
-        headers: rateLimitHeaders,
-      }
-    );
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'api.collect',
-      operation: 'POST /api/collect',
-      extra: {
-        clientIdentifier: getClientIdentifier(request),
-      },
-    });
-    console.error('[API] Collection failed:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Collection failed',
-        timestamp: new Date().toISOString(),
-      },
-      {
-        status: 500,
-        headers: rateLimitHeaders,
-      }
-    );
-  }
-}
-
-export async function GET() {
-  const state = getJobState();
-
-  return NextResponse.json({
-    lastRun: toIsoString(state.lastRun),
-    lastSuccess: toIsoString(state.lastSuccess),
-    consecutiveFailures: state.consecutiveFailures,
-    totalRuns: state.totalRuns,
-    totalSuccesses: state.totalSuccesses,
-    isScheduled: isCollectionScheduled(),
-  });
+  );
 }

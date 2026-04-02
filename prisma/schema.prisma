@@ -181,14 +181,70 @@ model JobLock {
 }
 
 model Install {
-  id            String   @id @default(cuid())
-  installId     String   @unique
-  platform      String   // 'ios' | 'android'
-  appVersion    String
-  osVersion     String
-  publicKey    String
-  refreshToken String   @unique
-  isActive      Boolean  @default(true)
+  id                  String   @id @default(cuid())
+  installId           String   @unique
+  platform            String
+  appVersion          String
+  osVersion           String
+  publicKey           String
+  publicKeyFingerprint String
+  refreshTokenHash    String   @unique
+  refreshTokenIssuedAt DateTime
+  lastSeenAt          DateTime?
+  lastAuthAt          DateTime?
+  revokedAt           DateTime?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([publicKeyFingerprint])
+  @@index([revokedAt])
+}
+
+model CollectionRun {
+  id                String   @id @default(cuid())
+  collectionId      String   @unique
+  requestId         String
+  city              String
+  trigger           String
+  sourceUrl         String
+  status            String
+  gbfsVersion       String?
+  snapshotRecordedAt DateTime?
+  expectedStationCount Int?
+  insertedCount     Int      @default(0)
+  duplicateCount    Int      @default(0)
+  warningCount      Int      @default(0)
+  errorCount        Int      @default(0)
+  warnings          String[] @default([])
+  errors            String[] @default([])
+  durationMs        Int?
+  startedAt         DateTime @default(now())
+  finishedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([startedAt])
+  @@index([status, startedAt])
+  @@index([city, startedAt])
+}
+
+model SecurityEvent {
+  id           String   @id @default(cuid())
+  eventType    String
+  route        String
+  requestId    String
+  installId    String?
+  collectionId String?
+  ipHash       String?
+  userAgentHash String?
+  outcome      String
+  reasonCode   String?
+  metadata     Json?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([eventType, createdAt])
+  @@index([route, createdAt])
+  @@index([installId, createdAt])
 }
