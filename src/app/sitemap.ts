@@ -4,7 +4,7 @@ import {
   getInsightsLandingData,
   getUtilityLandingData,
 } from '@/lib/acquisition-landings';
-import { fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
@@ -57,9 +57,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
-  const [dataset, status, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
+  const [dataset, status, historyMeta, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => null),
     fetchStatus().catch(() => null),
+    fetchHistoryMetadata().catch(() => null),
     getDistrictSeoRows().catch(() => []),
     getStationSeoRows().catch(() => []),
     Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
@@ -116,6 +117,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (entry.href === appRoutes.insightsLanding()) {
       return insightsLanding?.indexability.includeInSitemap ?? false;
+    }
+
+    if (entry.href === appRoutes.methodology()) {
+      return evaluatePageIndexability({
+        path: entry.href,
+        pageType: 'marketing',
+        dataState:
+          status && dataset
+            ? resolveDataState({
+                hasCoverage:
+                  dataset.coverage.totalDays > 0 ||
+                  Number(historyMeta?.coverage.totalDays ?? 0) > 0,
+                hasData:
+                  dataset.coverage.totalDays > 0 ||
+                  Number(historyMeta?.coverage.totalDays ?? 0) > 0 ||
+                  Boolean(dataset.lastUpdated.lastSampleAt),
+              })
+            : 'empty',
+        hasMeaningfulContent: true,
+        hasData:
+          Number(dataset?.coverage.totalDays ?? 0) > 0 ||
+          Number(historyMeta?.coverage.totalDays ?? 0) > 0 ||
+          Boolean(dataset?.lastUpdated.lastSampleAt),
+      }).includeInSitemap;
     }
 
     return evaluatePageIndexability({

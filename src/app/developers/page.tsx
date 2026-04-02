@@ -287,6 +287,14 @@ export default async function DevelopersPage() {
             >
               Ver estado del sistema
             </TrackedLink>
+            <TrackedLink
+              href={appRoutes.methodology()}
+              eventName="related_module_click"
+              eventData={{ source: 'developers_hero', destination: 'methodology' }}
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            >
+              Ver metodologia
+            </TrackedLink>
           </div>
           <PublicSearchForm eventSource="developers" />
         </div>

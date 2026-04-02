@@ -309,6 +309,17 @@ export default async function ReportsIndexPage() {
               Accede a OpenAPI, CSV y trazabilidad del mismo dataset que alimenta los informes.
             </p>
           </TrackedLink>
+          <TrackedLink
+            href={appRoutes.methodology()}
+            eventName="related_module_click"
+            eventData={{ source: 'reports_related', destination: 'methodology' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Revisa como leer demanda, cobertura y limites antes de interpretar la serie mensual.
+            </p>
+          </TrackedLink>
         </div>
       </section>
     </main>

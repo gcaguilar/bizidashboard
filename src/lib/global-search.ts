@@ -159,10 +159,16 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       id: `page:${item.id}`,
       group: 'pages' as const,
       title: item.label,
-      description: `Acceso publico a ${item.label.toLowerCase()}.`,
+      description:
+        item.id === 'help'
+          ? 'Guia publica sobre fuente de datos, frescura, metodologia y limites de interpretacion.'
+          : `Acceso publico a ${item.label.toLowerCase()}.`,
       href: item.href,
       badge: 'Pagina publica',
-      keywords: [item.label, item.href],
+      keywords:
+        item.id === 'help'
+          ? [item.label, item.href, 'metodologia', 'calidad datos', 'gbfs', 'faq']
+          : [item.label, item.href],
     })),
     {
       id: 'page:biciradar',
