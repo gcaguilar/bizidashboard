@@ -9,7 +9,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
+import { getSiteUrl } from '@/lib/site';
 
 function formatPercent(value: number): string {
   return new Intl.NumberFormat('es-ES', {
