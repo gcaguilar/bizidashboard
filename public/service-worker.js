@@ -1,14 +1,8 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE = `bizi-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `bizi-runtime-${CACHE_VERSION}`;
 
 const APP_SHELL = [
-  '/',
-  '/dashboard',
-  '/dashboard/estaciones',
-  '/dashboard/flujo',
-  '/dashboard/conclusiones',
-  '/dashboard/ayuda',
   '/manifest.webmanifest',
   '/icon-192.svg',
   '/icon-512.svg',
@@ -46,16 +40,20 @@ async function cacheFirst(request) {
   }
 
   const response = await fetch(request);
-  const cache = await caches.open(RUNTIME_CACHE);
-  cache.put(request, response.clone());
+  if (response.ok) {
+    const cache = await caches.open(RUNTIME_CACHE);
+    cache.put(request, response.clone());
+  }
   return response;
 }
 
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    const cache = await caches.open(RUNTIME_CACHE);
-    cache.put(request, response.clone());
+    if (response.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      cache.put(request, response.clone());
+    }
     return response;
   } catch {
     const cached = await caches.match(request);
@@ -95,6 +93,11 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(request));
+    return;
+  }
+
+  // Let Next.js manage immutable build artifacts directly.
+  if (url.pathname.startsWith('/_next/')) {
     return;
   }
 
