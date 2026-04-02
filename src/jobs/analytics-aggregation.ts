@@ -17,6 +17,7 @@ import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { logger } from '@/lib/logger';
 import { 
   getStationsWithLatestStatus, 
   getDailyDemandCurve, 
@@ -27,7 +28,7 @@ import {
 const LIVE_CACHE_TTL_SECONDS = 60;
 
 async function warmCache(): Promise<void> {
-  console.log('[Analytics] Starting proactive cache warming...');
+  logger.info('analytics.cache_warming_started');
   const start = Date.now();
 
   try {
@@ -75,13 +76,13 @@ async function warmCache(): Promise<void> {
     await setCachedJson('mobility:mobilityDays=14:demandDays=30:month=all', mobilityPayload, 300);
 
     const duration = Date.now() - start;
-    console.log(`[Analytics] Cache warming completed in ${duration}ms`);
+    logger.info('analytics.cache_warming_completed', { durationMs: duration });
   } catch (error) {
     captureExceptionWithContext(error, {
       area: 'jobs.analytics',
       operation: 'warmCache',
     });
-    console.warn('[Analytics] Cache warming failed:', error);
+    logger.warn('analytics.cache_warming_failed', { error });
   }
 }
 
@@ -133,7 +134,7 @@ async function runAnalyticsAggregation(): Promise<void> {
   const lock = await acquireJobLock('analytics-rollup');
 
   if (!lock) {
-    console.log('[Analytics] Rollup skipped - existing lock is active');
+    logger.info('analytics.rollup_skipped_existing_lock');
     return;
   }
 
@@ -146,9 +147,12 @@ async function runAnalyticsAggregation(): Promise<void> {
     const hourlyResult = await runHourlyRollup(hourlyCutoff);
     const hourlyDuration = Date.now() - hourlyStart;
 
-    console.log(
-      `[Analytics] Hourly rollup processed ${hourlyResult.processedCount} rows into ${hourlyResult.upsertedCount} buckets in ${hourlyDuration}ms (cutoff ${hourlyCutoff.toISOString()})`
-    );
+    logger.info('analytics.hourly_rollup_completed', {
+      processedCount: hourlyResult.processedCount,
+      upsertedCount: hourlyResult.upsertedCount,
+      durationMs: hourlyDuration,
+      cutoff: hourlyCutoff.toISOString(),
+    });
 
     if (hourlyResult.processedCount > 0) {
       await lock.refresh();
@@ -156,27 +160,33 @@ async function runAnalyticsAggregation(): Promise<void> {
       const rankingResult = await runRankingRollup(hourlyCutoff);
       const rankingDuration = Date.now() - rankingStart;
 
-      console.log(
-        `[Analytics] Ranking rollup upserted ${rankingResult.upsertedCount} stations in ${rankingDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
+      logger.info('analytics.ranking_rollup_completed', {
+        upsertedCount: rankingResult.upsertedCount,
+        durationMs: rankingDuration,
+        cutoff: hourlyCutoff.toISOString(),
+      });
 
       await lock.refresh();
       const patternStart = Date.now();
       const patternResult = await runPatternRollup(hourlyCutoff);
       const patternDuration = Date.now() - patternStart;
 
-      console.log(
-        `[Analytics] Pattern rollup upserted ${patternResult.upsertedCount} buckets in ${patternDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
+      logger.info('analytics.pattern_rollup_completed', {
+        upsertedCount: patternResult.upsertedCount,
+        durationMs: patternDuration,
+        cutoff: hourlyCutoff.toISOString(),
+      });
 
       await lock.refresh();
       const heatmapStart = Date.now();
       const heatmapResult = await runHeatmapRollup(hourlyCutoff);
       const heatmapDuration = Date.now() - heatmapStart;
 
-      console.log(
-        `[Analytics] Heatmap rollup upserted ${heatmapResult.upsertedCount} cells in ${heatmapDuration}ms (window end ${hourlyCutoff.toISOString()})`
-      );
+      logger.info('analytics.heatmap_rollup_completed', {
+        upsertedCount: heatmapResult.upsertedCount,
+        durationMs: heatmapDuration,
+        cutoff: hourlyCutoff.toISOString(),
+      });
     }
 
     await lock.refresh();
@@ -184,9 +194,11 @@ async function runAnalyticsAggregation(): Promise<void> {
     const alertResult = await runAlertRollup(hourlyCutoff);
     const alertDuration = Date.now() - alertStart;
 
-    console.log(
-      `[Analytics] Alert rollup upserted ${alertResult.upsertedCount} alerts in ${alertDuration}ms (window end ${hourlyCutoff.toISOString()})`
-    );
+    logger.info('analytics.alert_rollup_completed', {
+      upsertedCount: alertResult.upsertedCount,
+      durationMs: alertDuration,
+      cutoff: hourlyCutoff.toISOString(),
+    });
 
     await lock.refresh();
     const dailyCutoff = getDailyCutoff(now);
@@ -197,16 +209,19 @@ async function runAnalyticsAggregation(): Promise<void> {
       const dailyResult = await runDailyRollup(dailyCutoff);
       const dailyDuration = Date.now() - dailyStart;
 
-      console.log(
-        `[Analytics] Daily rollup processed ${dailyResult.processedCount} rows into ${dailyResult.upsertedCount} buckets in ${dailyDuration}ms (cutoff ${dailyCutoff.toISOString()})`
-      );
+      logger.info('analytics.daily_rollup_completed', {
+        processedCount: dailyResult.processedCount,
+        upsertedCount: dailyResult.upsertedCount,
+        durationMs: dailyDuration,
+        cutoff: dailyCutoff.toISOString(),
+      });
 
       await lock.refresh();
       await runRetentionCleanup();
       const vacuumed = await runVacuumIfDue();
 
       if (vacuumed) {
-        console.log('[Analytics] VACUUM completed after retention cleanup');
+        logger.info('analytics.retention_maintenance_completed');
       }
     }
 
@@ -217,7 +232,7 @@ async function runAnalyticsAggregation(): Promise<void> {
       area: 'jobs.analytics',
       operation: 'runAnalyticsAggregation',
     });
-    console.error('[Analytics] Aggregation run failed:', error);
+    logger.error('analytics.run_failed', { error });
   } finally {
     try {
       await lock.release();
@@ -226,10 +241,10 @@ async function runAnalyticsAggregation(): Promise<void> {
         area: 'jobs.analytics',
         operation: 'release analytics lock',
       });
-      console.error('[Analytics] Failed to release lock:', releaseError);
+      logger.error('analytics.lock_release_failed', { error: releaseError });
     }
     const duration = Date.now() - runStart;
-    console.log(`[Analytics] Aggregation run finished in ${duration}ms`);
+    logger.info('analytics.run_finished', { durationMs: duration });
   }
 }
 
@@ -239,7 +254,7 @@ async function runAnalyticsAggregation(): Promise<void> {
  */
 export function startAnalyticsAggregationJob(): void {
   if (cronJob) {
-    console.log('[Cron] Analytics job already running');
+    logger.info('analytics.cron_already_running');
     return;
   }
 
@@ -255,7 +270,7 @@ export function startAnalyticsAggregationJob(): void {
     } as CronOptions
   );
 
-  console.log('[Cron] Analytics aggregation scheduled (hourly, UTC)');
+  logger.info('analytics.cron_started');
 }
 
 /**
@@ -265,7 +280,7 @@ export function stopAnalyticsAggregationJob(): void {
   if (cronJob) {
     cronJob.stop();
     cronJob = null;
-    console.log('[Cron] Analytics aggregation stopped');
+    logger.info('analytics.cron_stopped');
   }
 }
 

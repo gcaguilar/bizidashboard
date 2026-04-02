@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resolveStatusDataState } from '@/lib/data-state'
+import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { withApiRequest } from '@/lib/security/http'
 import { getPipelineStatusSummary } from '@/services/shared-data'
 
 export const dynamic = 'force-dynamic'
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
-}
 
 function toCsv(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>): string {
   const rows = [
@@ -44,69 +40,61 @@ function toCsv(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>): st
  * 
  * @returns {Promise<NextResponse>} JSON response with status data
  */
-export async function GET(_request: NextRequest): Promise<NextResponse> {
-  try {
-    const format = new URL(_request.url).searchParams.get('format')
-    const status = await getPipelineStatusSummary()
-    const payload = {
-      ...status,
-      dataState: resolveStatusDataState(status),
-    }
-
-    if (format === 'csv') {
-      return new NextResponse(toCsv(status), {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': 'attachment; filename="system-status.csv"',
-          'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-          ...CORS_HEADERS,
-        },
-      })
-    }
-    
-    return NextResponse.json(payload, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        // Cache for 30 seconds - metrics update frequently but not instantly
-        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-        ...CORS_HEADERS
-      }
-    })
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'api.status',
-      operation: 'GET /api/status',
-      extra: {
-        format: new URL(_request.url).searchParams.get('format'),
-      },
-    })
-    console.error('[API Status] Error fetching status:', error)
-    
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch pipeline status',
-        timestamp: new Date().toISOString(),
-        dataState: 'error',
-      },
-      {
-        status: 500,
-        headers: {
-          ...CORS_HEADERS
+export async function GET(_request: NextRequest): Promise<Response> {
+  return withApiRequest(
+    _request,
+    {
+      route: '/api/status',
+      routeGroup: 'public.status',
+    },
+    async () => {
+      try {
+        const format = new URL(_request.url).searchParams.get('format')
+        const status = await getPipelineStatusSummary()
+        const payload = {
+          ...status,
+          dataState: resolveStatusDataState(status),
         }
-      }
-    )
-  }
-}
 
-/**
- * CORS handling for status endpoint
- * Allows dashboard clients to fetch status from different origins
- */
-export async function OPTIONS(): Promise<NextResponse> {
-  return NextResponse.json({}, {
-    status: 200,
-    headers: CORS_HEADERS
-  })
+        if (format === 'csv') {
+          return new NextResponse(toCsv(status), {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/csv; charset=utf-8',
+              'Content-Disposition': 'attachment; filename="system-status.csv"',
+              'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+            },
+          })
+        }
+
+        return NextResponse.json(payload, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+          }
+        })
+      } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'api.status',
+          operation: 'GET /api/status',
+          extra: {
+            format: new URL(_request.url).searchParams.get('format'),
+          },
+        })
+        logger.error('api.status.failed', { error })
+
+        return NextResponse.json(
+          {
+            error: 'Failed to fetch pipeline status',
+            timestamp: new Date().toISOString(),
+            dataState: 'error',
+          },
+          {
+            status: 500,
+          }
+        )
+      }
+    }
+  )
 }

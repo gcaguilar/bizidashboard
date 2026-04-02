@@ -13,6 +13,7 @@
 
 import { prisma } from '@/lib/db'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { logger } from '@/lib/logger'
 
 // In-memory cache for metrics that change frequently
 // This reduces database load for high-frequency operations
@@ -125,7 +126,7 @@ async function getTotalRowsCollected(): Promise<number> {
     return count
   } catch (error) {
     reportMetricsErrorOnce('getTotalRowsCollected', error)
-    console.error('[Metrics] Error counting total rows:', error)
+    logger.error('metrics.total_rows_failed', { error })
     return 0
   }
 }
@@ -150,7 +151,7 @@ async function getPollsLast24Hours(): Promise<number> {
     return result.length
   } catch (error) {
     reportMetricsErrorOnce('getPollsLast24Hours', error)
-    console.error('[Metrics] Error counting polls:', error)
+    logger.error('metrics.polls_last_24h_failed', { error })
     return 0
   }
 }
@@ -173,7 +174,7 @@ async function getLastSuccessfulPoll(): Promise<Date | null> {
     return latest?.recordedAt || null
   } catch (error) {
     reportMetricsErrorOnce('getLastSuccessfulPoll', error)
-    console.error('[Metrics] Error getting last poll:', error)
+    logger.error('metrics.last_successful_poll_failed', { error })
     return null
   }
 }
@@ -207,7 +208,7 @@ async function getLastStationCount(): Promise<number> {
     return count
   } catch (error) {
     reportMetricsErrorOnce('getLastStationCount', error)
-    console.error('[Metrics] Error getting station count:', error)
+    logger.error('metrics.last_station_count_failed', { error })
     return 0
   }
 }
@@ -239,7 +240,7 @@ async function getAverageStationsPerPoll(): Promise<number> {
     return Math.round(totalStations / groupedPolls.length)
   } catch (error) {
     reportMetricsErrorOnce('getAverageStationsPerPoll', error)
-    console.error('[Metrics] Error calculating average:', error)
+    logger.error('metrics.average_stations_failed', { error })
     return 0
   }
 }
@@ -347,7 +348,7 @@ export function recordCollection(result: {
     metricsCache.consecutiveFailures++
   }
   
-  console.log('[Metrics] Collection recorded:', {
+  logger.info('metrics.collection_recorded', {
     success: result.success,
     stations: result.stationsCollected,
     consecutiveFailures: metricsCache.consecutiveFailures,
@@ -362,7 +363,10 @@ export function recordCollection(result: {
 export function incrementValidationErrors(count: number = 1): void {
   metricsCache.lastValidationErrors += count
   clearMetricsSnapshotCache()
-  console.warn(`[Metrics] ${count} validation error(s) recorded. Total: ${metricsCache.lastValidationErrors}`)
+  logger.warn('metrics.validation_errors_incremented', {
+    increment: count,
+    total: metricsCache.lastValidationErrors,
+  })
 }
 
 /**
@@ -372,7 +376,7 @@ export function incrementValidationErrors(count: number = 1): void {
 export function resetValidationErrors(): void {
   metricsCache.lastValidationErrors = 0
   clearMetricsSnapshotCache()
-  console.log('[Metrics] Validation errors reset')
+  logger.info('metrics.validation_errors_reset')
 }
 
 /**

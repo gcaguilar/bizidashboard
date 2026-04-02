@@ -1,7 +1,10 @@
 import 'server-only';
 
+import { getRecentCollectionRuns } from '@/lib/collection-runs';
+import { getRedisHealthSummary } from '@/lib/cache/redis';
 import { withCache } from '@/lib/cache/cache';
 import { getStatus } from '@/lib/metrics';
+import { getSecurityEventSummary } from '@/lib/security/audit';
 import type { PipelineStatusSummary } from './types';
 
 const CACHE_KEY = 'shared-data:pipeline-status';
@@ -41,7 +44,19 @@ function serializeStatus(status: Awaited<ReturnType<typeof getStatus>>): Pipelin
 
 export async function getPipelineStatusSummary(): Promise<PipelineStatusSummary> {
   return withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
-    const status = await getStatus();
-    return serializeStatus(status);
+    const [status, cache, recentCollections, security] = await Promise.all([
+      getStatus(),
+      getRedisHealthSummary(),
+      getRecentCollectionRuns(),
+      getSecurityEventSummary(),
+    ]);
+    return {
+      ...serializeStatus(status),
+      operations: {
+        cache,
+        recentCollections,
+        security,
+      },
+    };
   });
 }

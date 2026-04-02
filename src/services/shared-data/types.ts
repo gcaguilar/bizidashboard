@@ -57,6 +57,31 @@ export type PipelineStatusSummary = {
     version: string;
     environment: string;
   };
+  operations: {
+    cache: {
+      configured: boolean;
+      available: boolean;
+      backend: 'redis' | 'disabled';
+    };
+    recentCollections: Array<{
+      collectionId: string;
+      trigger: string;
+      status: string;
+      requestId: string;
+      snapshotRecordedAt: string | null;
+      insertedCount: number;
+      duplicateCount: number;
+      warningCount: number;
+      errorCount: number;
+      startedAt: string;
+      finishedAt: string | null;
+    }>;
+    security: {
+      failedAuthLast24Hours: number;
+      rateLimitedLast24Hours: number;
+      refreshTokenReuseLast24Hours: number;
+    };
+  };
   timestamp: string;
 };
 

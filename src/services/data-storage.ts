@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { logger } from '@/lib/logger'
 
 /**
  * Station status data from GBFS API (before database storage)
@@ -101,7 +102,7 @@ export async function storeStationStatuses(
         statusCount: statuses.length,
       },
     })
-    console.error('[Storage] Failed to store station statuses:', error)
+    logger.error('storage.station_statuses_failed', { error })
   }
 
   return result

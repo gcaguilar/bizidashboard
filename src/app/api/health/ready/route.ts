@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { withApiRequest } from '@/lib/security/http';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,47 +23,58 @@ async function isDatabaseReady(): Promise<boolean> {
       area: 'api.health-ready',
       operation: 'GET /api/health/ready',
     });
-    console.error('[Health] Readiness check failed:', error);
+    logger.error('api.health_ready.check_failed', { error });
     return false;
   }
 }
 
-export async function GET(): Promise<NextResponse> {
-  const databaseReady = await isDatabaseReady();
-
-  if (!databaseReady) {
-    return NextResponse.json(
-      {
-        status: 'degraded',
-        ready: false,
-        checks: {
-          database: 'down',
-        },
-        timestamp: new Date().toISOString(),
-      },
-      {
-        status: 503,
-        headers: {
-          'Cache-Control': 'no-store',
-        },
-      }
-    );
-  }
-
-  return NextResponse.json(
+export async function GET(request?: Request): Promise<Response> {
+  const req = request ?? new Request('http://localhost/api/health/ready');
+  return withApiRequest(
+    req,
     {
-      status: 'ok',
-      ready: true,
-      checks: {
-        database: 'ok',
-      },
-      timestamp: new Date().toISOString(),
+      route: '/api/health/ready',
+      routeGroup: 'health.probe',
     },
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-store',
-      },
+    async () => {
+      const databaseReady = await isDatabaseReady();
+
+      if (!databaseReady) {
+        logger.warn('api.health_ready.degraded');
+        return NextResponse.json(
+          {
+            status: 'degraded',
+            ready: false,
+            checks: {
+              database: 'down',
+            },
+            timestamp: new Date().toISOString(),
+          },
+          {
+            status: 503,
+            headers: {
+              'Cache-Control': 'no-store',
+            },
+          }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          status: 'ok',
+          ready: true,
+          checks: {
+            database: 'ok',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'no-store',
+          },
+        }
+      );
     }
   );
 }

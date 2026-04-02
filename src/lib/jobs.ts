@@ -3,6 +3,7 @@ import {
   startAnalyticsAggregationJob,
   stopAnalyticsAggregationJob,
 } from '@/jobs/analytics-aggregation';
+import { logger } from '@/lib/logger';
 
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const ANALYTICS_START_DELAY_MS = 2 * 60 * 1000;
@@ -34,17 +35,17 @@ export function initJobs(): void {
   }
 
   if (!shouldEnableInternalJobs()) {
-    console.log('[Jobs] Internal jobs disabled (set ENABLE_INTERNAL_JOBS=true to enable)');
+    logger.info('jobs.internal_disabled');
     return;
   }
 
-  console.log('[Jobs] Initializing background jobs...');
+  logger.info('jobs.initializing');
   startCollectionJob();
 
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
     analyticsStartTimer = null;
-    console.log('[Jobs] Analytics job started after startup delay');
+    logger.info('jobs.analytics_started_after_delay');
   }, ANALYTICS_START_DELAY_MS);
 
   if (typeof analyticsStartTimer.unref === 'function') {
@@ -52,8 +53,8 @@ export function initJobs(): void {
   }
 
   jobsInitialized = true;
-  console.log('[Jobs] Collection job started');
-  console.log('[Jobs] Analytics job scheduled to start in 120 seconds');
+  logger.info('jobs.collection_started');
+  logger.info('jobs.analytics_scheduled', { delayMs: ANALYTICS_START_DELAY_MS });
 }
 
 /**
@@ -64,7 +65,7 @@ export function shutdownJobs(): void {
     return;
   }
 
-  console.log('[Jobs] Shutting down background jobs...');
+  logger.info('jobs.shutting_down');
 
   if (analyticsStartTimer) {
     clearTimeout(analyticsStartTimer);

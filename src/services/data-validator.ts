@@ -8,6 +8,7 @@ import {
 } from '@/lib/observability'
 import { incrementValidationErrors } from '@/lib/metrics'
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
+import { logger } from '@/lib/logger'
 
 /**
  * Raw GBFS status response structure
@@ -147,7 +148,9 @@ export async function validateAndStore(
     const skipStorage = options.skipStorageOnError && !metrics.allChecksPassed
 
     if (!shouldStore || skipStorage) {
-      console.log(`[Validator] Skipping storage for collection ${collectionId}`)
+      logger.warn('validator.storage_skipped', {
+        collectionId,
+      })
       result.success = metrics.allChecksPassed
       return result
     }
@@ -168,9 +171,11 @@ export async function validateAndStore(
 
     if (storageResult.success) {
       result.stored = true
-      console.log(
-        `[Validator] Stored ${storageResult.count} station statuses (duplicates skipped: ${storageResult.duplicateCount}) (collection: ${collectionId})`
-      )
+      logger.info('validator.storage_succeeded', {
+        collectionId,
+        insertedCount: storageResult.count,
+        duplicateCount: storageResult.duplicateCount,
+      })
       
       if (storageResult.duplicateCount > 0) {
         result.warnings.push(`${storageResult.duplicateCount} duplicate entries skipped`)
@@ -222,7 +227,10 @@ export async function validateAndStore(
         stationCount: response.data.stations.length,
       },
     })
-    console.error('[Validator] Pipeline error:', error)
+    logger.error('validator.pipeline_failed', {
+      collectionId,
+      error,
+    })
   }
 
   return result

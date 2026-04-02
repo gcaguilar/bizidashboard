@@ -7,6 +7,7 @@
  */
 
 import { schedule, ScheduledTask } from 'node-cron';
+import { randomUUID } from 'node:crypto';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
 import {
@@ -18,6 +19,19 @@ import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { acquireJobLock } from '@/analytics/job-lock';
+import {
+  createCollectionRun,
+  updateCollectionRun,
+  type CollectionRunTrigger,
+} from '@/lib/collection-runs';
+import { getCity } from '@/lib/db';
+import { logger } from '@/lib/logger';
+import {
+  getExecutionContext,
+  resolveRequestId,
+  runWithExecutionContext,
+  updateExecutionContext,
+} from '@/lib/request-context';
 
 // Type augmentation for node-cron 4.x options
 interface CronOptions {
@@ -33,6 +47,7 @@ interface CronOptions {
  */
 export interface CollectionResult {
   success: boolean;
+  collectionId: string;
   stationCount: number;
   recordedAt: Date | null;
   quality: DataObservabilityMetrics | null;
@@ -52,6 +67,11 @@ export interface JobState {
   totalRuns: number;
   totalSuccesses: number;
 }
+
+type RunCollectionOptions = {
+  trigger?: CollectionRunTrigger;
+  requestId?: string;
+};
 
 // Module-level state
 let cronJob: ScheduledTask | null = null;
@@ -91,16 +111,34 @@ async function shouldSyncStationInformation(): Promise<boolean> {
  * Run a single collection cycle
  * Orchestrates: fetch → validate → store
  */
-export async function runCollection(): Promise<CollectionResult> {
+async function executeCollection(
+  requestId: string,
+  trigger: CollectionRunTrigger
+): Promise<CollectionResult> {
   const startTime = Date.now();
-  console.log('[Collection] Starting Bizi data collection...');
+  const collectionId = `col-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const sourceUrl =
+    process.env.GBFS_URL ?? process.env.GBFS_DISCOVERY_URL ?? DEFAULT_GBFS_SOURCE_URL;
+
+  updateExecutionContext({
+    requestId,
+    collectionId,
+    trigger,
+    sourceUrl,
+  });
+
+  logger.info('collection.started', {
+    trigger,
+    sourceUrl,
+  });
 
   const lock = await acquireJobLock(COLLECTION_LOCK_NAME, COLLECTION_LOCK_TTL_MS);
   if (!lock) {
     const skippedAt = new Date();
-    console.log('[Collection] Skipped because another collection lock is active');
+    logger.info('collection.lock_skipped');
     return {
       success: true,
+      collectionId,
       stationCount: 0,
       recordedAt: null,
       quality: null,
@@ -116,6 +154,7 @@ export async function runCollection(): Promise<CollectionResult> {
 
   const result: CollectionResult = {
     success: false,
+    collectionId,
     stationCount: 0,
     recordedAt: null,
     quality: null,
@@ -123,6 +162,14 @@ export async function runCollection(): Promise<CollectionResult> {
     warnings: [],
     timestamp: new Date(),
   };
+
+  await createCollectionRun({
+    collectionId,
+    requestId,
+    city: getCity(),
+    trigger,
+    sourceUrl,
+  });
 
   try {
     // Step 1: Fetch discovery once and reuse for all feed requests
@@ -146,15 +193,19 @@ export async function runCollection(): Promise<CollectionResult> {
     if (stationInformation) {
       await upsertStations(stationInformation);
       hasSyncedStationInformationSinceStartup = true;
-      console.log(
-        `[Collection] Station metadata synced (${stationInformation.length} stations)`
-      );
+      logger.info('collection.station_metadata_synced', {
+        stationCount: stationInformation.length,
+      });
     }
     await lock.refresh();
 
     const snapshotRecordedAt = new Date(stationStatusResponse.last_updated * 1000);
     const existingSnapshotCount = await getSnapshotCount(snapshotRecordedAt);
     const expectedStationCount = stationStatusResponse.data.stations.length;
+
+    updateExecutionContext({
+      gbfsVersion: stationStatusResponse.version,
+    });
 
     if (existingSnapshotCount >= expectedStationCount && expectedStationCount > 0) {
       const skipMessage = `Snapshot ${snapshotRecordedAt.toISOString()} already ingested; skipping duplicate trigger (${existingSnapshotCount} stations)`;
@@ -167,21 +218,42 @@ export async function runCollection(): Promise<CollectionResult> {
       jobState.totalSuccesses++;
       jobState.consecutiveFailures = 0;
 
-      console.log(`[Collection] ${skipMessage}`);
+      await updateCollectionRun(collectionId, {
+        status: 'skipped',
+        gbfsVersion: stationStatusResponse.version,
+        snapshotRecordedAt,
+        expectedStationCount,
+        insertedCount: expectedStationCount,
+        duplicateCount: 0,
+        warningCount: 1,
+        errorCount: 0,
+        warnings: [skipMessage],
+        errors: [],
+        durationMs: Date.now() - startTime,
+        finishedAt: new Date(),
+      });
+
+      logger.info('collection.snapshot_already_ingested', {
+        snapshotRecordedAt: snapshotRecordedAt.toISOString(),
+        expectedStationCount,
+      });
       return result;
     }
 
     if (existingSnapshotCount > 0 && existingSnapshotCount < expectedStationCount) {
-      console.warn(
-        `[Collection] Completing partial snapshot ${snapshotRecordedAt.toISOString()} (${existingSnapshotCount}/${expectedStationCount} already stored)`
-      );
+      logger.warn('collection.partial_snapshot_resume', {
+        snapshotRecordedAt: snapshotRecordedAt.toISOString(),
+        existingSnapshotCount,
+        expectedStationCount,
+      });
     }
     
     // Step 4: Validate and store data
     const validationResult = await validateAndStore(
       stationStatusResponse as GBFSStatusResponse,
       {
-        sourceUrl: process.env.GBFS_URL ?? process.env.GBFS_DISCOVERY_URL ?? DEFAULT_GBFS_SOURCE_URL,
+        sourceUrl,
+        collectionId,
       }
     );
 
@@ -204,11 +276,14 @@ export async function runCollection(): Promise<CollectionResult> {
         warning.startsWith('Snapshot already stored;')
       );
       if (duplicateOnlyWarning) {
-        console.log(`[Collection] ${duplicateOnlyWarning}`);
+        logger.info('collection.snapshot_duplicate', {
+          warning: duplicateOnlyWarning,
+        });
       } else {
-        console.log(
-          `[Collection] Successfully collected ${result.stationCount} stations`
-        );
+        logger.info('collection.succeeded', {
+          stationCount: result.stationCount,
+          duplicateCount: validationResult.storageResult?.duplicateCount ?? 0,
+        });
       }
     } else {
       jobState.consecutiveFailures++;
@@ -229,7 +304,10 @@ export async function runCollection(): Promise<CollectionResult> {
           },
         }
       );
-      console.warn(`[Collection] Collection completed with errors: ${result.error}`);
+      logger.warn('collection.completed_with_errors', {
+        error: result.error,
+        warnings: result.warnings,
+      });
     }
 
   } catch (error) {
@@ -244,7 +322,11 @@ export async function runCollection(): Promise<CollectionResult> {
         warnings: result.warnings,
       },
     });
-    console.error(`[Collection] Failed: ${errorMessage}`);
+    logger.error('collection.failed', {
+      error,
+      errorMessage,
+      warnings: result.warnings,
+    });
 
     // Re-throw for upstream handling while still updating state
     throw error;
@@ -262,8 +344,25 @@ export async function runCollection(): Promise<CollectionResult> {
 
     // Warn on consecutive failures
     if (jobState.consecutiveFailures >= 3) {
-      console.warn(`[Collection] ${jobState.consecutiveFailures} consecutive failures`);
+      logger.warn('collection.consecutive_failures', {
+        consecutiveFailures: jobState.consecutiveFailures,
+      });
     }
+
+    await updateCollectionRun(collectionId, {
+      status: result.success ? 'succeeded' : result.error ? 'failed' : 'skipped',
+      snapshotRecordedAt: result.recordedAt,
+      gbfsVersion: result.quality?.lineage.gbfsVersion ?? null,
+      expectedStationCount: result.quality?.volume.stationCount ?? null,
+      insertedCount: result.stationCount,
+      duplicateCount: result.quality ? result.quality.volume.stationCount - result.stationCount : 0,
+      warningCount: result.warnings.length,
+      errorCount: result.error ? 1 : 0,
+      warnings: result.warnings,
+      errors: result.error ? [result.error] : [],
+      durationMs: result.duration,
+      finishedAt: result.timestamp,
+    });
 
     try {
       await lock.release();
@@ -272,11 +371,36 @@ export async function runCollection(): Promise<CollectionResult> {
         area: 'jobs.collection',
         operation: 'release collection lock',
       });
-      console.error('[Collection] Failed to release collection lock:', releaseError);
+      logger.error('collection.lock_release_failed', { error: releaseError });
     }
   }
 
   return result;
+}
+
+export async function runCollection(
+  options: RunCollectionOptions = {}
+): Promise<CollectionResult> {
+  const existingContext = getExecutionContext();
+  const requestId = options.requestId ?? existingContext?.requestId ?? resolveRequestId(null);
+  const trigger = options.trigger ?? 'manual';
+
+  if (existingContext) {
+    updateExecutionContext({
+      requestId,
+      trigger,
+    });
+    return executeCollection(requestId, trigger);
+  }
+
+  return runWithExecutionContext(
+    {
+      requestId,
+      trigger,
+      city: getCity(),
+    },
+    () => executeCollection(requestId, trigger)
+  );
 }
 
 /**
@@ -285,7 +409,7 @@ export async function runCollection(): Promise<CollectionResult> {
  */
 export function startCollectionJob(): void {
   if (cronJob) {
-    console.log('[Cron] Collection job already running');
+    logger.info('collection.cron_already_running');
     return;
   }
 
@@ -294,11 +418,11 @@ export function startCollectionJob(): void {
     COLLECTION_CRON_SCHEDULE,
     async () => {
       try {
-        await runCollection();
+        await runCollection({ trigger: 'cron' });
       } catch (error) {
         // Error already logged in runCollection
         // Just prevent crash
-        console.error('[Cron] Scheduled collection failed:', error);
+        logger.error('collection.cron_failed', { error });
       }
     },
     {
@@ -309,7 +433,9 @@ export function startCollectionJob(): void {
   );
 
   isScheduled = true;
-  console.log('[Cron] Bizi collection scheduled every 5 minutes');
+  logger.info('collection.cron_started', {
+    schedule: COLLECTION_CRON_SCHEDULE,
+  });
 }
 
 /**
@@ -321,7 +447,7 @@ export function stopCollectionJob(): void {
     cronJob.stop();
     cronJob = null;
     isScheduled = false;
-    console.log('[Cron] Collection job stopped');
+    logger.info('collection.cron_stopped');
   }
 }
 

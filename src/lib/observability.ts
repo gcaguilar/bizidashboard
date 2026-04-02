@@ -9,6 +9,7 @@
  */
 
 import { getRecentSnapshotSummaries } from '@/services/data-storage'
+import { logger } from '@/lib/logger'
 
 /**
  * Quality thresholds from RESEARCH.md
@@ -353,9 +354,9 @@ export function logObservabilityMetrics(metrics: DataObservabilityMetrics): void
   }
 
   if (metrics.allChecksPassed) {
-    console.log('[Observability] Data quality checks passed:', JSON.stringify(logData))
+    logger.info('observability.quality_checks_passed', logData)
   } else {
-    console.warn('[Observability] Data quality issues detected:', JSON.stringify(logData))
+    logger.warn('observability.quality_checks_failed', logData)
   }
 }
 
@@ -371,7 +372,10 @@ export function shouldStoreData(metrics: DataObservabilityMetrics): boolean {
   // Always store data - we want to see even bad data for debugging
   // But log appropriately
   if (!metrics.allChecksPassed) {
-    console.warn(`[Observability] Storing data with ${metrics.errors.length} errors and ${metrics.warnings.length} warnings`)
+    logger.warn('observability.storing_with_quality_issues', {
+      errorCount: metrics.errors.length,
+      warningCount: metrics.warnings.length,
+    })
   }
   return true
 }

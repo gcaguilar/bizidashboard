@@ -6,6 +6,7 @@
  */
 
 import { withRetry } from '@/lib/retry';
+import { logger } from '@/lib/logger';
 import {
   GBFSDiscovery,
   GBFSResponse,
@@ -82,7 +83,9 @@ async function fetchWithTimeout(
  * @throws Error if fetch or validation fails
  */
 export async function fetchDiscovery(): Promise<GBFSDiscovery> {
-  console.log('[gbfs] Fetching discovery file...');
+  logger.info('gbfs.discovery_fetch_started', {
+    discoveryUrl: DISCOVERY_URL,
+  });
   
   const response = await withRetry(
     () =>
@@ -118,9 +121,11 @@ export async function fetchDiscovery(): Promise<GBFSDiscovery> {
   const feedCount = Object.values(discovery.data).reduce((acc, locale) => {
     return acc + locale.feeds.length;
   }, 0);
-  console.log(
-    `[gbfs] Discovery fetched successfully (version: ${discovery.version}, feeds: ${feedCount})`
-  );
+  logger.info('gbfs.discovery_fetch_succeeded', {
+    discoveryUrl: DISCOVERY_URL,
+    gbfsVersion: discovery.version,
+    feedCount,
+  });
   
   return discovery;
 }
@@ -151,7 +156,9 @@ export async function fetchStationStatus(
     );
   }
   
-  console.log(`[gbfs] Fetching station status from: ${stationStatusUrl}`);
+  logger.info('gbfs.station_status_fetch_started', {
+    stationStatusUrl,
+  });
   
   const response = await withRetry(
     () =>
@@ -184,7 +191,10 @@ export async function fetchStationStatus(
   }
   
   const stations = validateStationData(data);
-  console.log(`[gbfs] Station status fetched successfully (${stations.length} stations)`);
+  logger.info('gbfs.station_status_fetch_succeeded', {
+    stationStatusUrl,
+    stationCount: stations.length,
+  });
 
   const gbfsResponse = data as GBFSResponse;
   gbfsResponse.data.stations = stations;
@@ -201,7 +211,9 @@ export async function fetchStationInformation(
     throw new Error('Station information feed not found in GBFS discovery.');
   }
 
-  console.log(`[gbfs] Fetching station information from: ${stationInformationUrl}`);
+  logger.info('gbfs.station_information_fetch_started', {
+    stationInformationUrl,
+  });
 
   const response = await withRetry(
     () =>
@@ -234,7 +246,10 @@ export async function fetchStationInformation(
   }
 
   const stations = validateStationInformation(data);
-  console.log(`[gbfs] Station information fetched successfully (${stations.length} stations)`);
+  logger.info('gbfs.station_information_fetch_succeeded', {
+    stationInformationUrl,
+    stationCount: stations.length,
+  });
   return stations;
 }
 

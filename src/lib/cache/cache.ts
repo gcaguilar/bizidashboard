@@ -1,5 +1,6 @@
 import { getRedisClient } from './redis'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { logger } from '@/lib/logger'
 
 const DEFAULT_TTL_SECONDS = 300
 
@@ -43,12 +44,18 @@ export async function getCachedJson<T>(key: string): Promise<T | null> {
       return JSON.parse(cachedValue) as T
     } catch (error) {
       reportCacheErrorOnce('getCachedJson.parse', error, { key: fullKey })
-      console.warn(`Failed to parse cached JSON for key ${fullKey}`, error)
+      logger.warn('cache.redis_parse_failed', {
+        key: fullKey,
+        error,
+      })
       return null
     }
   } catch (error) {
     reportCacheErrorOnce('getCachedJson.read', error, { key: fullKey })
-    console.warn('Failed to read from Redis cache', error)
+    logger.warn('cache.redis_read_failed', {
+      key: fullKey,
+      error,
+    })
     return null
   }
 }
@@ -69,7 +76,10 @@ export async function setCachedJson(
     await client.set(fullKey, payload, { EX: ttlSeconds })
   } catch (error) {
     reportCacheErrorOnce('setCachedJson.write', error, { key: fullKey })
-    console.warn('Failed to write to Redis cache', error)
+    logger.warn('cache.redis_write_failed', {
+      key: fullKey,
+      error,
+    })
   }
 }
 

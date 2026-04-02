@@ -5,6 +5,8 @@
  * for transient failures (network errors, 5xx, 429 rate limit).
  */
 
+import { logger } from '@/lib/logger';
+
 export interface RetryOptions {
   /** Maximum number of retry attempts (default: 5) */
   maxRetries?: number;
@@ -98,10 +100,12 @@ export async function withRetry<T>(
       const jitter = Math.random() * 1000;
       const delay = exponentialDelay + jitter;
       
-      console.warn(
-        `[retry] Attempt ${attempt + 1}/${maxRetries + 1} failed ` +
-        `(${getErrorStatus(error)}). Retrying in ${Math.round(delay)}ms...`
-      );
+      logger.warn('retry.attempt_failed', {
+        attempt: attempt + 1,
+        totalAttempts: maxRetries + 1,
+        status: getErrorStatus(error),
+        delayMs: Math.round(delay),
+      });
       
       await sleep(delay);
     }
