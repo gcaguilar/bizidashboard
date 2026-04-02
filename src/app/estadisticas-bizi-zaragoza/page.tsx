@@ -9,6 +9,7 @@ import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
 
 function formatDecimal(value: number | null): string {
@@ -58,6 +59,30 @@ export default async function InsightsLandingPage() {
     label: 'Estadisticas Bizi Zaragoza',
     href: appRoutes.insightsLanding(),
   });
+  const featuredStationEntries = landingData.featuredStations.map((station) => ({
+    name: station.station.name,
+    url: `${siteUrl}${appRoutes.stationDetail(station.station.id)}`,
+  }));
+  const discoveryEntries = [
+    landingData.latestMonth
+      ? {
+          name: `Ultimo informe ${formatMonthLabel(landingData.latestMonth)}`,
+          url: `${siteUrl}${appRoutes.reportMonth(landingData.latestMonth)}`,
+        }
+      : null,
+    {
+      name: 'Barrios',
+      url: `${siteUrl}${appRoutes.districtLanding()}`,
+    },
+    {
+      name: 'Horas punta',
+      url: `${siteUrl}${appRoutes.seoPage('uso-bizi-por-hora')}`,
+    },
+    {
+      name: 'API y datos abiertos',
+      url: `${siteUrl}${appRoutes.developers()}`,
+    },
+  ].filter((entry): entry is { name: string; url: string } => Boolean(entry));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -70,6 +95,10 @@ export default async function InsightsLandingPage() {
         url: `${siteUrl}${appRoutes.insightsLanding()}`,
         inLanguage: 'es',
       },
+      buildItemListStructuredData('Empieza por aqui', discoveryEntries),
+      ...(featuredStationEntries.length > 0
+        ? [buildItemListStructuredData('Estaciones para seguir', featuredStationEntries)]
+        : []),
     ],
   };
 
