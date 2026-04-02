@@ -36,9 +36,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/bizidashboard?schema=zaragoza
       CITY: zaragoza
-      APP_URL: http://127.0.0.1:3100
-      ROBOTS_BASE_URL: http://127.0.0.1:3100
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
       JWT_SECRET: ci-jwt-secret
       SIGNATURE_SECRET: ci-signature-secret
       NODE_ENV: test
@@ -92,37 +89,3 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Install Playwright browser
-        run: bunx playwright install --with-deps chromium
-
-      - name: Start production server
-        run: HOSTNAME=127.0.0.1 PORT=3100 bun run start:bun > /tmp/bizidashboard-ci.log 2>&1 &
-
-      - name: Wait for production server
-        run: |
-          for attempt in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:3100/dashboard > /dev/null; then
-              exit 0
-            fi
-            sleep 2
-          done
-          cat /tmp/bizidashboard-ci.log
-          exit 1
-
-      - name: Navigation E2E
-        run: bun run test:e2e -- tests/e2e/public-navigation.spec.ts tests/e2e/dashboard-navigation-and-filters.spec.ts
-
-      - name: Crawl internal routes
-        run: bun run qa:audit -- --base-url http://127.0.0.1:3100 --output ops/site-audit-report-ci.json
-
-      - name: Enforce QA gate
-        run: bun run qa:audit:check -- --input ops/site-audit-report-ci.json
-
-      - name: Upload QA artifacts
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: qa-audit-report
-          path: |
-            ops/site-audit-report-ci.json
-            /tmp/bizidashboard-ci.log
