@@ -89,7 +89,7 @@ export default async function InsightsLandingPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.home()} className="mt-1" />
+        <PublicSectionNav activeHref={appRoutes.reports()} className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

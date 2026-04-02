@@ -18,14 +18,14 @@ const QUICK_LINKS = [
     description: 'Mapa, alertas, flujo y lecturas operativas del sistema actual.',
   },
   {
-    href: appRoutes.explore(),
-    title: 'Hub Explorar',
-    description: 'Todas las herramientas de analisis agrupadas en un unico punto.',
+    href: appRoutes.seoPage('uso-bizi-por-estacion'),
+    title: 'Hub de estaciones',
+    description: 'Fichas publicas, disponibilidad, patrones y acceso al detalle operativo.',
   },
   {
-    href: appRoutes.compare(),
-    title: 'Comparador',
-    description: 'Comparativas activas entre estaciones, barrios, meses, anos y periodos.',
+    href: appRoutes.districtLanding(),
+    title: 'Barrios con cobertura',
+    description: 'Contexto territorial, estaciones destacadas y comparativa local por barrio.',
   },
   {
     href: appRoutes.reports(),
@@ -101,7 +101,8 @@ export default async function Home() {
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
               {SITE_DESCRIPTION} Esta instalacion publica esta enfocada en {currentCityName} y
-              enlaza al dashboard, explorar, comparar, informes, API y landings SEO con rutas estables.
+              enlaza al dashboard, hubs publicos de estaciones y barrios, informes, API y landings SEO
+              con rutas estables.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -121,12 +122,12 @@ export default async function Home() {
             Abrir dashboard principal
           </TrackedLink>
           <TrackedLink
-            href={appRoutes.explore()}
+            href={appRoutes.seoPage('uso-bizi-por-estacion')}
             eventName="related_module_click"
-            eventData={{ destination: 'explore', source: 'home_hero' }}
+            eventData={{ destination: 'station_hub', source: 'home_hero' }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
-            Abrir hub Explorar
+            Explorar estaciones publicas
           </TrackedLink>
           <TrackedLink
             href={appRoutes.developers()}
