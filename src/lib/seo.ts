@@ -13,6 +13,8 @@ type BuildPageMetadataOptions = {
   path: string;
   canonicalPath?: string;
   keywords?: string[];
+  socialImagePath?: string;
+  socialImageAlt?: string;
   indexability?: Omit<SeoIndexabilityInput, 'path' | 'canonicalPath'>;
 };
 
@@ -22,6 +24,8 @@ export function buildPageMetadata({
   path,
   canonicalPath,
   keywords,
+  socialImagePath,
+  socialImageAlt,
   indexability,
 }: BuildPageMetadataOptions): Metadata {
   const indexabilityDecision = evaluatePageIndexability({
@@ -30,9 +34,10 @@ export function buildPageMetadata({
     ...indexability,
   });
   const absoluteUrl = toAbsoluteRouteUrl(indexabilityDecision.canonicalPath);
-  const ogImageUrl = toAbsoluteRouteUrl('/opengraph-image');
-  const twitterImageUrl = toAbsoluteRouteUrl('/twitter-image');
+  const ogImageUrl = toAbsoluteRouteUrl(socialImagePath ?? '/opengraph-image');
+  const twitterImageUrl = toAbsoluteRouteUrl(socialImagePath ?? '/twitter-image');
   const fullTitle = buildSeoTitle(title);
+  const imageAlt = socialImageAlt ?? fullTitle;
 
   return {
     title: {
@@ -68,7 +73,7 @@ export function buildPageMetadata({
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: fullTitle,
+          alt: imageAlt,
         },
       ],
     },
