@@ -213,6 +213,44 @@ export default async function Home() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">
+              Rutas preparadas para captacion
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Dos entradas distintas segun la intencion: resolver algo rapido o descubrir insights.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
+          <TrackedLink
+            href={appRoutes.utilityLanding()}
+            eventName="related_module_click"
+            eventData={{ source: 'home_acquisition_routes', destination: 'utility_landing' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones en tiempo real</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Pensada para quien quiere comprobar disponibilidad, encontrar una estacion y decidir rapido.
+            </p>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.insightsLanding()}
+            eventName="related_module_click"
+            eventData={{ source: 'home_acquisition_routes', destination: 'insights_landing' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas y ranking</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Orientada a curiosidad, comparacion y salto hacia informes, barrios y rankings fuertes.
+            </p>
+          </TrackedLink>
+        </div>
+      </section>
+
+      <section className="dashboard-card">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black text-[var(--foreground)]">
               Rutas SEO disponibles
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">

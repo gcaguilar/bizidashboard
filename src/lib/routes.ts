@@ -71,6 +71,8 @@ export const appRoutes = {
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
   biciradar: () => '/biciradar',
+  utilityLanding: () => '/mapa-estaciones-bizi-zaragoza',
+  insightsLanding: () => '/estadisticas-bizi-zaragoza',
   compare: (params?: {
     dimension?: string | null;
     left?: string | null;
@@ -235,6 +237,24 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.72,
+    },
+  },
+  {
+    id: 'utility-landing',
+    href: appRoutes.utilityLanding(),
+    label: 'Mapa estaciones',
+    sitemap: {
+      changeFrequency: 'hourly',
+      priority: 0.79,
+    },
+  },
+  {
+    id: 'insights-landing',
+    href: appRoutes.insightsLanding(),
+    label: 'Estadisticas',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.75,
     },
   },
   {

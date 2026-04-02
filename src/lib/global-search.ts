@@ -175,6 +175,26 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       keywords: ['biciradar', 'app', 'movil', 'descarga'],
     },
     {
+      id: 'page:utility-landing',
+      group: 'pages',
+      title: 'Mapa y estaciones Bizi Zaragoza en tiempo real',
+      description:
+        'Landing de utilidad inmediata para revisar disponibilidad y abrir el mapa en vivo.',
+      href: appRoutes.utilityLanding(),
+      badge: 'Landing captacion',
+      keywords: ['mapa bizi zaragoza', 'estaciones en tiempo real', 'disponibilidad bizi'],
+    },
+    {
+      id: 'page:insights-landing',
+      group: 'pages',
+      title: 'Estadisticas y ranking de Bizi Zaragoza',
+      description:
+        'Landing de descubrimiento para entrar por informes, rankings y barrios.',
+      href: appRoutes.insightsLanding(),
+      badge: 'Landing captacion',
+      keywords: ['estadisticas bizi zaragoza', 'ranking bizi', 'informes bizi'],
+    },
+    {
       id: 'page:compare-stations',
       group: 'pages',
       title: 'Comparador de estaciones',
