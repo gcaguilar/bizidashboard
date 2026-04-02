@@ -163,6 +163,30 @@ export default async function ReportsIndexPage() {
         />
       ) : null}
 
+      <section className="dashboard-card">
+        <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Que aporta este archivo
+            </p>
+            <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
+              Una capa editorial estable para buscar meses, comparar y enlazar
+            </h2>
+          </div>
+          <p>
+            El archivo mensual concentra las URLs persistentes con mejor potencial de indexacion
+            para consultas historicas sobre Bizi Zaragoza. Cada informe resume un periodo concreto,
+            conserva su propio contexto y permite navegar a barrios, estaciones y rankings sin
+            pasar por superficies interactivas o con query strings.
+          </p>
+          <p>
+            Si vienes desde buscadores, esta pagina es el mejor punto para localizar el ultimo mes
+            publicado o revisar la secuencia historica. Si buscas operativa en tiempo real, desde
+            aqui puedes saltar al dashboard de conclusiones sin perder el enlace editorial.
+          </p>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         <article className="dashboard-card">
           <p className="stat-label">Ultimo mes con informe</p>
@@ -216,6 +240,56 @@ export default async function ReportsIndexPage() {
               </TrackedLink>
             );
           })}
+        </div>
+      </section>
+
+      <section className="dashboard-card">
+        <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas para seguir explorando</h2>
+        <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <TrackedLink
+            href={appRoutes.seoPage('viajes-por-mes-zaragoza')}
+            eventName="related_module_click"
+            eventData={{ source: 'reports_related', destination: 'monthly_series' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Evolucion agregada para complementar el archivo editorial por mes.
+            </p>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.districtLanding()}
+            eventName="related_module_click"
+            eventData={{ source: 'reports_related', destination: 'district_hub' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Descubre que zonas destacan en uso y que estaciones concentran mas actividad.
+            </p>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.seoPage('ranking-estaciones-bizi')}
+            eventName="related_module_click"
+            eventData={{ source: 'reports_related', destination: 'station_ranking' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Da el salto del contexto mensual al ranking actual de estaciones.
+            </p>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.developers()}
+            eventName="api_cta_click"
+            eventData={{ source: 'reports_related' }}
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">
+              Accede a OpenAPI, CSV y trazabilidad del mismo dataset que alimenta los informes.
+            </p>
+          </TrackedLink>
         </div>
       </section>
     </main>
