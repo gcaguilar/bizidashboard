@@ -19,6 +19,20 @@ function resolveCanonical(metadata: Metadata): string | null {
   return canonical.toString();
 }
 
+async function getResolvedMetadata(modulePath: string): Promise<Metadata> {
+  const pageModule = await import(modulePath);
+
+  if ('metadata' in pageModule && pageModule.metadata) {
+    return pageModule.metadata as Metadata;
+  }
+
+  if ('generateMetadata' in pageModule && typeof pageModule.generateMetadata === 'function') {
+    return pageModule.generateMetadata();
+  }
+
+  throw new Error(`No metadata export found for ${modulePath}`);
+}
+
 beforeEach(() => {
   vi.resetModules();
   vi.stubEnv('APP_URL', SITE_URL);
@@ -34,41 +48,41 @@ describe('canonical metadata', () => {
     'keeps canonical URLs aligned with route helpers on representative pages',
     async () => {
     const { appRoutes, toAbsoluteRouteUrl } = await import('@/lib/routes');
-    const comparePage = await import('@/app/comparar/page');
-    const dashboardPage = await import('@/app/dashboard/page');
-    const developersPage = await import('@/app/developers/page');
-    const explorePage = await import('@/app/explorar/page');
-    const reportsPage = await import('@/app/informes/page');
-    const helpPage = await import('@/app/dashboard/ayuda/page');
-    const statusPage = await import('@/app/estado/page');
-    const flowPage = await import('@/app/dashboard/flujo/page');
-    const conclusionsPage = await import('@/app/dashboard/conclusiones/page');
-    const alertsPage = await import('@/app/dashboard/alertas/page');
-    const stationsPage = await import('@/app/dashboard/estaciones/page');
-    const betaPage = await import('@/app/beta/page');
-    const biciradarPage = await import('@/app/biciradar/page');
+    const compareMetadata = await getResolvedMetadata('@/app/comparar/page');
+    const dashboardMetadata = await getResolvedMetadata('@/app/dashboard/page');
+    const developersMetadata = await getResolvedMetadata('@/app/developers/page');
+    const exploreMetadata = await getResolvedMetadata('@/app/explorar/page');
+    const reportsMetadata = await getResolvedMetadata('@/app/informes/page');
+    const helpMetadata = await getResolvedMetadata('@/app/dashboard/ayuda/page');
+    const statusMetadata = await getResolvedMetadata('@/app/estado/page');
+    const flowMetadata = await getResolvedMetadata('@/app/dashboard/flujo/page');
+    const conclusionsMetadata = await getResolvedMetadata('@/app/dashboard/conclusiones/page');
+    const alertsMetadata = await getResolvedMetadata('@/app/dashboard/alertas/page');
+    const stationsMetadata = await getResolvedMetadata('@/app/dashboard/estaciones/page');
+    const betaMetadata = await getResolvedMetadata('@/app/beta/page');
+    const biciradarMetadata = await getResolvedMetadata('@/app/biciradar/page');
 
-    expect(resolveCanonical(comparePage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.compare()));
-    expect(resolveCanonical(dashboardPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboard()));
-    expect(resolveCanonical(developersPage.metadata)).toBe(
+    expect(resolveCanonical(compareMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.compare()));
+    expect(resolveCanonical(dashboardMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboard()));
+    expect(resolveCanonical(developersMetadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.developers())
     );
-    expect(resolveCanonical(explorePage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.explore()));
-    expect(resolveCanonical(reportsPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.reports()));
-    expect(resolveCanonical(helpPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardHelp()));
-    expect(resolveCanonical(statusPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.status()));
-    expect(resolveCanonical(flowPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardFlow()));
-    expect(resolveCanonical(conclusionsPage.metadata)).toBe(
+    expect(resolveCanonical(exploreMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.explore()));
+    expect(resolveCanonical(reportsMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.reports()));
+    expect(resolveCanonical(helpMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardHelp()));
+    expect(resolveCanonical(statusMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.status()));
+    expect(resolveCanonical(flowMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardFlow()));
+    expect(resolveCanonical(conclusionsMetadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.dashboardConclusions())
     );
-    expect(resolveCanonical(alertsPage.metadata)).toBe(
+    expect(resolveCanonical(alertsMetadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.dashboardAlerts())
     );
-    expect(resolveCanonical(stationsPage.metadata)).toBe(
+    expect(resolveCanonical(stationsMetadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.dashboardStations())
     );
-    expect(resolveCanonical(betaPage.metadata)).toBe(toAbsoluteRouteUrl(appRoutes.beta()));
-    expect(resolveCanonical(biciradarPage.metadata)).toBe(
+    expect(resolveCanonical(betaMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.biciradar()));
+    expect(resolveCanonical(biciradarMetadata)).toBe(
       toAbsoluteRouteUrl(appRoutes.biciradar())
     );
     },
