@@ -23,7 +23,13 @@ export function ServiceWorkerRegister() {
       }
     };
 
-    void registerServiceWorker();
+    const timeoutId = window.setTimeout(() => {
+      void registerServiceWorker();
+    }, 1500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   return null;
