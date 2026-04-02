@@ -7,7 +7,7 @@ import {
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
-import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
+import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
 import { evaluatePageIndexability } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
@@ -84,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ),
   ]);
 
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PUBLIC_ROUTE_REGISTRY.filter((entry) => {
+  const staticEntries: MetadataRoute.Sitemap = INDEXABLE_PUBLIC_ROUTE_REGISTRY.filter((entry) => {
     if (entry.href === appRoutes.reports()) {
       return reportIndexability.includeInSitemap;
     }
