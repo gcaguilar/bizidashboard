@@ -1,10 +1,14 @@
+'use client';
+
 import { appRoutes } from '@/lib/routes';
+import { trackUmamiEvent } from '@/lib/umami';
 
 type PublicSearchFormProps = {
   className?: string;
   placeholder?: string;
   defaultQuery?: string;
   buttonLabel?: string;
+  eventSource?: string;
 };
 
 export function PublicSearchForm({
@@ -12,11 +16,20 @@ export function PublicSearchForm({
   placeholder = 'Busca estaciones, barrios, informes o endpoints API',
   defaultQuery = '',
   buttonLabel = 'Buscar',
+  eventSource = 'public_search',
 }: PublicSearchFormProps) {
   return (
     <form
       action={appRoutes.explore()}
       method="get"
+      onSubmit={(event) => {
+        const query = String(new FormData(event.currentTarget).get('q') ?? '').trim();
+        trackUmamiEvent('search_submit', {
+          source: eventSource,
+          has_query: query.length > 0,
+          query_length: query.length,
+        });
+      }}
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3 ${className ?? ''}`.trim()}
     >
       <label htmlFor="public-search" className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
