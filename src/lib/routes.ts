@@ -113,6 +113,7 @@ export const appRoutes = {
   api: {
     docs: () => '/api/docs',
     openApi: () => '/api/openapi.json',
+    socialImage: () => '/api/social-image',
     stations: (params?: { format?: 'csv' | null }) =>
       buildQuery('/api/stations', { format: params?.format }),
     rankings: (params?: {
