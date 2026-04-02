@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import Script from "next/script";
-import { appRoutes, toAbsoluteRouteUrl } from "@/lib/routes";
+import { appRoutes } from "@/lib/routes";
 import {
   SEO_SITE_DESCRIPTION,
   SEO_SITE_NAME,
@@ -9,7 +9,6 @@ import {
   getGoogleSiteVerificationToken,
   getSiteUrl,
 } from "@/lib/site";
-import { ServiceWorkerRegister } from "./_components/ServiceWorkerRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -138,11 +137,6 @@ export default function RootLayout({
         url: siteUrl,
         inLanguage: "es",
         description: SEO_SITE_DESCRIPTION,
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${toAbsoluteRouteUrl(appRoutes.explore())}?q={search_term_string}`,
-          "query-input": 'required name=search_term_string',
-        },
       },
       {
         "@type": "Organization",
@@ -174,10 +168,6 @@ export default function RootLayout({
             __html: `(function(){try{var k='bizidashboard-theme';var t=localStorage.getItem(k);var r=document.documentElement;if(t==='light'){r.classList.remove('dark');r.dataset.theme='light';}else if(t==='dark'){r.classList.add('dark');r.dataset.theme='dark';}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){r.classList.add('dark');r.dataset.theme='dark';}else{r.classList.remove('dark');r.dataset.theme='light';}}catch(e){}})();`,
           }}
         />
-        <link rel="preconnect" href="https://basemaps.cartocdn.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://raw.githubusercontent.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
-        <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
       </head>
       <body
         className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}
@@ -190,7 +180,6 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         ) : null}
-        <ServiceWorkerRegister />
         {children}
         <script
           type="application/ld+json"
