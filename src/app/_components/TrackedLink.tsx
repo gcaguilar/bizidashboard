@@ -16,6 +16,7 @@ export function TrackedLink({
   eventName,
   eventData,
   onClick,
+  className,
   ...linkProps
 }: TrackedLinkProps) {
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -27,7 +28,13 @@ export function TrackedLink({
   }
 
   return (
-    <Link {...linkProps} onClick={handleClick}>
+    <Link
+      {...linkProps}
+      onClick={handleClick}
+      className={`${
+        className ?? ''
+      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim()}
+    >
       {children}
     </Link>
   );

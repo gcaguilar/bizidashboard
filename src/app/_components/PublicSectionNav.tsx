@@ -22,7 +22,7 @@ export function PublicSectionNav({ activeHref, className }: PublicSectionNavProp
                 isActive
                   ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                   : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
-              }`}
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`}
             >
               {item.label}
             </Link>
