@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  getDailyDemandCurve,
-  getHourlyMobilitySignals,
-  getSystemHourlyProfile,
-} from '@/analytics/queries/read';
+  fetchCachedDailyDemandCurve,
+  fetchCachedHourlyMobilitySignals,
+  fetchCachedSystemHourlyProfile,
+} from '@/lib/analytics-series';
 import { withCache } from '@/lib/cache/cache';
 import { resolveMobilityDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
@@ -98,9 +98,9 @@ export async function GET(request: NextRequest): Promise<Response> {
         const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}:month=${monthKey ?? 'all'}`;
         const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
           const [hourlySignals, dailyDemand, systemHourlyProfile, dataset] = await Promise.all([
-            getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined),
-            getDailyDemandCurve(demandDays, monthKey ?? undefined),
-            getSystemHourlyProfile(mobilityDays, monthKey ?? undefined),
+            fetchCachedHourlyMobilitySignals(mobilityDays, monthKey),
+            fetchCachedDailyDemandCurve(demandDays, monthKey),
+            fetchCachedSystemHourlyProfile(mobilityDays, monthKey),
             getSharedDatasetSnapshot().catch(() => null),
           ]);
 

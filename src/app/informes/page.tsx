@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { getMonthlyDemandCurve } from '@/analytics/queries/read';
+import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
@@ -47,7 +47,7 @@ export default async function ReportsIndexPage() {
   const nowIso = new Date().toISOString();
   const [monthsResponse, monthlySeries, dataset] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: new Date().toISOString() })),
-    getMonthlyDemandCurve(24).catch(() => []),
+    fetchCachedMonthlyDemandCurve(24).catch(() => []),
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
 
