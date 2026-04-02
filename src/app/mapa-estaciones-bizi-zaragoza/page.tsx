@@ -8,6 +8,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 
 function formatPercent(value: number): string {
@@ -67,6 +68,28 @@ export default async function UtilityLandingPage() {
     label: 'Mapa y estaciones Bizi Zaragoza',
     href: appRoutes.utilityLanding(),
   });
+  const featuredStationEntries = landingData.featuredStations.map((station) => ({
+    name: station.station.name,
+    url: `${siteUrl}${appRoutes.stationDetail(station.station.id)}`,
+  }));
+  const relatedRouteEntries = [
+    {
+      name: 'Barrios de Zaragoza',
+      url: `${siteUrl}${appRoutes.districtLanding()}`,
+    },
+    {
+      name: 'Estado del sistema',
+      url: `${siteUrl}${appRoutes.status()}`,
+    },
+    {
+      name: 'BiciRadar',
+      url: `${siteUrl}${appRoutes.biciradar()}`,
+    },
+    {
+      name: 'Ir a estadisticas',
+      url: `${siteUrl}${appRoutes.insightsLanding()}`,
+    },
+  ];
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -90,6 +113,10 @@ export default async function UtilityLandingPage() {
           },
         })),
       },
+      ...(featuredStationEntries.length > 0
+        ? [buildItemListStructuredData('Estaciones destacadas para empezar', featuredStationEntries)]
+        : []),
+      buildItemListStructuredData('Mas rutas utiles', relatedRouteEntries),
     ],
   };
 
