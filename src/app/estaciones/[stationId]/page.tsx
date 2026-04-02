@@ -126,6 +126,24 @@ export default async function PublicStationPage({ params }: PageProps) {
       href: appRoutes.stationDetail(station.id),
     }
   );
+  const faqItems = [
+    {
+      question: '¿Cuándo suele ser más fácil encontrar bici?',
+      answer: highOccupancySlots[0]
+        ? `${formatDayTypeLabel(String(highOccupancySlots[0].dayType))} sobre ${formatHourRange(highOccupancySlots[0].hour)}, con una ocupación media del ${formatPercent(highOccupancySlots[0].occupancyAvg)}.`
+        : 'Todavía no hay un patrón histórico suficientemente estable para responderlo con precisión.',
+    },
+    {
+      question: '¿Cuándo suele haber más huecos para devolver?',
+      answer: lowOccupancySlots[0]
+        ? `${formatDayTypeLabel(String(lowOccupancySlots[0].dayType))} sobre ${formatHourRange(lowOccupancySlots[0].hour)}, cuando la ocupación media baja a ${formatPercent(lowOccupancySlots[0].occupancyAvg)}.`
+        : 'La serie disponible todavía no permite marcar una franja clara con más anclajes libres.',
+    },
+    {
+      question: '¿Está por encima o por debajo de la media de Zaragoza?',
+      answer: `La ocupación actual está ${describeOccupancyDelta(occupancyDelta)}: ${formatPercent(summary.currentOccupancy)} frente a ${formatPercent(summary.cityAverageOccupancy)} en la ciudad.`,
+    },
+  ];
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -137,6 +155,17 @@ export default async function PublicStationPage({ params }: PageProps) {
         description: `Ficha publica de ${station.name} con disponibilidad actual y patrones de uso.`,
         url: `${siteUrl}${appRoutes.stationDetail(station.id)}`,
         inLanguage: 'es',
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: faqItems.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
       },
     ],
   };
@@ -332,29 +361,19 @@ export default async function PublicStationPage({ params }: PageProps) {
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele ser más fácil encontrar bici?
               </p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                {highOccupancySlots[0]
-                  ? `${formatDayTypeLabel(String(highOccupancySlots[0].dayType))} sobre ${formatHourRange(highOccupancySlots[0].hour)}, con una ocupación media del ${formatPercent(highOccupancySlots[0].occupancyAvg)}.`
-                  : 'Todavía no hay un patrón histórico suficientemente estable para responderlo con precisión.'}
-              </p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[0].answer}</p>
             </article>
             <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele haber más huecos para devolver?
               </p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                {lowOccupancySlots[0]
-                  ? `${formatDayTypeLabel(String(lowOccupancySlots[0].dayType))} sobre ${formatHourRange(lowOccupancySlots[0].hour)}, cuando la ocupación media baja a ${formatPercent(lowOccupancySlots[0].occupancyAvg)}.`
-                  : 'La serie disponible todavía no permite marcar una franja clara con más anclajes libres.'}
-              </p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[1].answer}</p>
             </article>
             <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Está por encima o por debajo de la media de Zaragoza?
               </p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                La ocupación actual está {describeOccupancyDelta(occupancyDelta)}: {formatPercent(summary.currentOccupancy)} frente a {formatPercent(summary.cityAverageOccupancy)} en la ciudad.
-              </p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[2].answer}</p>
             </article>
           </div>
         </article>
