@@ -25,7 +25,9 @@ const securityHeaders = [
   },
   {
     key: 'Cross-Origin-Embedder-Policy',
-    value: 'require-corp',
+    // Allows third-party no-cors resources (like Umami Cloud script) without
+    // requiring them to set Cross-Origin-Resource-Policy headers.
+    value: 'credentialless',
   },
   {
     key: 'Cross-Origin-Opener-Policy',
