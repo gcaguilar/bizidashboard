@@ -109,7 +109,7 @@ export default async function UtilityLandingPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.home()} className="mt-1" />
+        <PublicSectionNav activeHref={appRoutes.seoPage('uso-bizi-por-estacion')} className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

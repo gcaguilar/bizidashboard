@@ -1,7 +1,7 @@
 import { appRoutes } from '@/lib/routes';
 
 export type PublicNavItem = {
-  id: 'home' | 'dashboard' | 'explore' | 'reports' | 'api' | 'help' | 'status';
+  id: 'home' | 'dashboard' | 'stations' | 'reports' | 'api' | 'help' | 'status';
   label: string;
   href: string;
 };
@@ -39,7 +39,7 @@ export type ExploreHubSection = {
 export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
   { id: 'home', label: 'Inicio', href: appRoutes.home() },
   { id: 'dashboard', label: 'Dashboard', href: appRoutes.dashboard() },
-  { id: 'explore', label: 'Explorar', href: appRoutes.explore() },
+  { id: 'stations', label: 'Estaciones', href: appRoutes.seoPage('uso-bizi-por-estacion') },
   { id: 'reports', label: 'Informes', href: appRoutes.reports() },
   { id: 'api', label: 'API', href: appRoutes.developers() },
   { id: 'help', label: 'Metodologia', href: appRoutes.methodology() },
