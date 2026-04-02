@@ -86,7 +86,7 @@ export const appRoutes = {
   developers: () => '/developers',
   developersAlias: () => '/developers',
   helpAlias: () => '/ayuda',
-  methodologyAlias: () => '/metodologia',
+  methodology: () => '/metodologia',
   explore: (params?: { q?: string | null }) =>
     buildQuery('/explorar', { q: params?.q }),
   reports: () => '/informes',
@@ -259,6 +259,15 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
+    id: 'methodology',
+    href: appRoutes.methodology(),
+    label: 'Metodologia',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.64,
+    },
+  },
+  {
     id: 'reports',
     href: appRoutes.reports(),
     label: 'Informes',
@@ -386,11 +395,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   },
   {
     source: appRoutes.helpAlias(),
-    destination: appRoutes.dashboardHelp(),
-  },
-  {
-    source: appRoutes.methodologyAlias(),
-    destination: appRoutes.dashboardHelp(),
+    destination: appRoutes.methodology(),
   },
   ...CITY_SEGMENTS.flatMap((city) => [
     {
@@ -415,7 +420,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     },
     {
       source: appRoutes.cityHelpAlias(city),
-      destination: appRoutes.dashboardHelp(),
+      destination: appRoutes.methodology(),
     },
     {
       source: appRoutes.cityFlowAlias(city),
