@@ -19,12 +19,13 @@ import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import {
   buildFallbackAvailableMonths,
   buildFallbackDatasetSnapshot,
   buildFallbackStatus,
 } from '@/lib/shared-data-fallbacks';
-import { getCityName, getSiteUrl } from '@/lib/site';
+import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
 import {
   formatStatusDateTime,
   getApiVersionLabel,
@@ -98,6 +99,10 @@ export default async function DevelopersPage() {
   const apiVersion = getApiVersionLabel();
   const codeLicense = process.env.npm_package_license ?? 'GPL-3.0-only';
   const developersDataState = combineDataStates([dataset.dataState, status.dataState]);
+  const datasetTemporalCoverage =
+    dataset.coverage.firstRecordedAt && dataset.coverage.lastRecordedAt
+      ? `${dataset.coverage.firstRecordedAt}/${dataset.coverage.lastRecordedAt}`
+      : undefined;
   const curlExamples = [
     `curl -s -H "X-Request-Id: docs-example-status" ${siteUrl}${appRoutes.api.status()}`,
     `curl -sG ${siteUrl}${appRoutes.api.rankings({ type: 'turnover', limit: 20 })}`,
@@ -169,6 +174,10 @@ export default async function DevelopersPage() {
     'Version actual: request tracing con `X-Request-Id`, collect protegido por clave operativa y auditoria persistente para auth, rate limits y ejecuciones.',
     `Dataset ${datasetVersion}: cobertura compartida con ${dataset.coverage.totalDays} dias y ${dataset.stats.totalSamples} muestras agregadas.`,
   ] as const;
+  const datasetDownloadEntries = csvDownloads.map((item) => ({
+    name: item.label,
+    url: `${siteUrl}${item.href}`,
+  }));
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
@@ -189,6 +198,30 @@ export default async function DevelopersPage() {
                   'Portal de acceso para desarrolladores con documentacion, versiones, ejemplos y descargas.',
                 url: `${siteUrl}${appRoutes.developers()}`,
               },
+              {
+                '@type': 'Dataset',
+                name: `Dataset Bizi ${cityName}`,
+                description:
+                  'Snapshot actual, historico agregado y descargas CSV del mismo dataset que alimenta dashboard, informes y rankings publicos.',
+                url: `${siteUrl}${appRoutes.developers()}`,
+                inLanguage: 'es',
+                isAccessibleForFree: true,
+                dateModified: dataset.coverage.generatedAt,
+                ...(datasetTemporalCoverage ? { temporalCoverage: datasetTemporalCoverage } : {}),
+                publisher: {
+                  '@type': 'Organization',
+                  name: SITE_NAME,
+                  url: siteUrl,
+                },
+                distribution: csvDownloads.map((item) => ({
+                  '@type': 'DataDownload',
+                  name: item.label,
+                  description: item.detail,
+                  encodingFormat: 'text/csv',
+                  contentUrl: `${siteUrl}${item.href}`,
+                })),
+              },
+              buildItemListStructuredData('Descargas CSV y dataset', datasetDownloadEntries),
             ],
           }),
         }}

@@ -12,6 +12,7 @@ import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -97,6 +98,10 @@ export default async function ReportsIndexPage() {
     label: 'Informes',
     href: appRoutes.reports(),
   });
+  const reportListEntries = months.map((month) => ({
+    name: `Informe ${formatMonthLabel(month)}`,
+    url: `${siteUrl}${appRoutes.reportMonth(month)}`,
+  }));
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -115,6 +120,9 @@ export default async function ReportsIndexPage() {
         name: SITE_NAME,
         url: siteUrl,
       },
+      ...(reportListEntries.length > 0
+        ? [buildItemListStructuredData('Archivo de informes mensuales', reportListEntries)]
+        : []),
     ],
   };
 
