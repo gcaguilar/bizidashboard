@@ -194,7 +194,7 @@ export const DASHBOARD_ROUTE_CONFIG = {
   },
 } as const;
 
-export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
+export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
   {
     id: 'home',
     href: appRoutes.home(),
@@ -205,30 +205,12 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
-    id: 'beta',
-    href: appRoutes.beta(),
-    label: 'Beta',
-    sitemap: {
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
-  },
-  {
     id: 'biciradar',
     href: appRoutes.biciradar(),
     label: 'Bici Radar',
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.76,
-    },
-  },
-  {
-    id: 'compare',
-    href: appRoutes.compare(),
-    label: 'Comparar',
-    sitemap: {
-      changeFrequency: 'daily',
-      priority: 0.78,
     },
   },
   {
@@ -277,21 +259,51 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
-    id: 'explore',
-    href: appRoutes.explore(),
-    label: 'Explorar',
-    sitemap: {
-      changeFrequency: 'daily',
-      priority: 0.84,
-    },
-  },
-  {
     id: 'district-landing',
     href: appRoutes.districtLanding(),
     label: 'Barrios',
     sitemap: {
       changeFrequency: 'daily',
       priority: 0.72,
+    },
+  },
+  {
+    id: 'status',
+    href: appRoutes.status(),
+    label: 'Estado',
+    sitemap: {
+      changeFrequency: 'hourly',
+      priority: 0.68,
+    },
+  },
+];
+
+export const TOOL_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
+  {
+    id: 'beta',
+    href: appRoutes.beta(),
+    label: 'Beta',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+  },
+  {
+    id: 'compare',
+    href: appRoutes.compare(),
+    label: 'Comparar',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.78,
+    },
+  },
+  {
+    id: 'explore',
+    href: appRoutes.explore(),
+    label: 'Explorar',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.84,
     },
   },
   {
@@ -331,15 +343,6 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
-    id: 'status',
-    href: appRoutes.status(),
-    label: 'Estado',
-    sitemap: {
-      changeFrequency: 'hourly',
-      priority: 0.68,
-    },
-  },
-  {
     id: 'dashboard-help',
     href: appRoutes.dashboardHelp(),
     label: 'Ayuda',
@@ -366,6 +369,11 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
       priority: 0.75,
     },
   },
+];
+
+export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
+  ...INDEXABLE_PUBLIC_ROUTE_REGISTRY,
+  ...TOOL_PUBLIC_ROUTE_REGISTRY,
 ];
 
 const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
