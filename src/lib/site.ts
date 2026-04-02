@@ -18,6 +18,10 @@ export const SITE_NAME = 'BiziDashboard';
 export const SITE_TITLE = `BiziDashboard ${getCityName()}`;
 export const SITE_DESCRIPTION =
   `Panel publico con analitica de estaciones Bizi ${getCityName()}: disponibilidad, alertas, patrones horarios y movilidad urbana.`;
+export const SEO_SITE_NAME = 'DatosBizi';
+export const SEO_SITE_TITLE = `${SEO_SITE_NAME} ${getCityName()}`;
+export const SEO_SITE_DESCRIPTION =
+  `DatosBizi centraliza estaciones Bizi ${getCityName()}, disponibilidad, analisis de uso, informes mensuales y datos abiertos en una unica capa publica.`;
 
 const FALLBACK_SITE_URL = 'http://localhost:3000';
 

@@ -7,7 +7,7 @@ import { openApiDocument } from '@/lib/openapi-document';
 import { PUBLIC_NAV_ITEMS } from '@/lib/public-navigation';
 import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
-import { SEO_PAGE_CONFIGS } from '@/lib/seo-pages';
+import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 
 type GlobalSearchGroupId = 'stations' | 'districts' | 'reports' | 'pages' | 'api';
 
@@ -165,16 +165,6 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       keywords: [item.label, item.href],
     })),
     {
-      id: 'page:beta',
-      group: 'pages',
-      title: 'Bici Radar',
-      description:
-        'Disponibilidad de la app movil, instalacion en iOS y acceso para testers Android.',
-      href: appRoutes.beta(),
-      badge: 'App movil',
-      keywords: ['beta', 'biciradar', 'ios', 'android', 'app store', 'google play'],
-    },
-    {
       id: 'page:biciradar',
       group: 'pages',
       title: 'Landing Bici Radar',
@@ -214,7 +204,10 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       badge: 'Comparador',
       keywords: ['periodos', 'mes vs mes', 'ano vs ano', 'hora vs hora'],
     },
-    ...Object.values(SEO_PAGE_CONFIGS).map((page) => ({
+    ...PRIMARY_SEO_PAGE_SLUGS.map((slug) => {
+      const page = getSeoPageConfig(slug);
+
+      return {
       id: `page:seo:${page.slug}`,
       group: 'pages' as const,
       title: page.title,
@@ -222,7 +215,8 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       href: appRoutes.seoPage(page.slug),
       badge: 'Landing SEO',
       keywords: [page.slug, page.metadataTitle, ...page.keywords],
-    })),
+      };
+    }),
   ];
 
   const stationEntries: GlobalSearchEntry[] = stations.stations.map((station) => ({

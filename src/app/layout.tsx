@@ -3,11 +3,11 @@ import { IBM_Plex_Mono, Inter } from "next/font/google";
 import Script from "next/script";
 import { appRoutes, toAbsoluteRouteUrl } from "@/lib/routes";
 import {
+  SEO_SITE_DESCRIPTION,
+  SEO_SITE_NAME,
+  SEO_SITE_TITLE,
   getGoogleSiteVerificationToken,
   getSiteUrl,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_TITLE,
 } from "@/lib/site";
 import { ServiceWorkerRegister } from "./_components/ServiceWorkerRegister";
 import "./globals.css";
@@ -44,14 +44,14 @@ const shouldLoadAnalytics =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: SITE_TITLE,
-    template: "%s | BiziDashboard",
+    default: SEO_SITE_TITLE,
+    template: "%s | DatosBizi",
   },
-  description: SITE_DESCRIPTION,
-  applicationName: SITE_NAME,
-  authors: [{ name: 'BiziDashboard' }],
-  creator: 'BiziDashboard',
-  publisher: 'BiziDashboard',
+  description: SEO_SITE_DESCRIPTION,
+  applicationName: SEO_SITE_NAME,
+  authors: [{ name: SEO_SITE_NAME }],
+  creator: SEO_SITE_NAME,
+  publisher: SEO_SITE_NAME,
   category: 'technology',
   referrer: 'strict-origin-when-cross-origin',
   alternates: {
@@ -89,27 +89,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_ES",
     url: appRoutes.home(),
-    siteName: SITE_NAME,
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    siteName: SEO_SITE_NAME,
+    title: SEO_SITE_TITLE,
+    description: SEO_SITE_DESCRIPTION,
     images: [
       {
         url: '/opengraph-image',
         width: 1200,
         height: 630,
-        alt: SITE_TITLE,
+        alt: SEO_SITE_TITLE,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
+    title: SEO_SITE_TITLE,
+    description: SEO_SITE_DESCRIPTION,
     images: ['/twitter-image'],
   },
   appleWebApp: {
     capable: true,
-    title: SITE_TITLE,
+    title: SEO_SITE_TITLE,
     statusBarStyle: 'default',
   },
   verification: googleSiteVerificationToken
@@ -134,10 +134,10 @@ export default function RootLayout({
     "@graph": [
       {
         "@type": "WebSite",
-        name: SITE_NAME,
+        name: SEO_SITE_NAME,
         url: siteUrl,
         inLanguage: "es",
-        description: SITE_DESCRIPTION,
+        description: SEO_SITE_DESCRIPTION,
         potentialAction: {
           "@type": "SearchAction",
           target: `${toAbsoluteRouteUrl(appRoutes.explore())}?q={search_term_string}`,
@@ -146,21 +146,21 @@ export default function RootLayout({
       },
       {
         "@type": "Organization",
-        name: SITE_NAME,
+        name: SEO_SITE_NAME,
         url: siteUrl,
         logo: `${siteUrl}/icon-512.svg`,
       },
       {
         "@type": "SoftwareApplication",
-        name: SITE_TITLE,
+        name: SEO_SITE_TITLE,
         applicationCategory: "TravelApplication",
         operatingSystem: "Web",
         url: siteUrl,
         inLanguage: "es",
-        description: SITE_DESCRIPTION,
+        description: SEO_SITE_DESCRIPTION,
         areaServed: {
           "@type": "City",
-          name: SITE_TITLE.includes('Zaragoza') ? 'Zaragoza' : SITE_TITLE.split(' ').pop(),
+          name: SEO_SITE_TITLE.includes('Zaragoza') ? 'Zaragoza' : SEO_SITE_TITLE.split(' ').pop(),
         },
       },
     ],
