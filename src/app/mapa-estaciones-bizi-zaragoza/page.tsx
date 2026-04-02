@@ -6,6 +6,7 @@ import { getUtilityLandingData } from '@/lib/acquisition-landings';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 
 function formatPercent(value: number): string {
@@ -47,6 +48,13 @@ export async function generateMetadata(): Promise<Metadata> {
       'disponibilidad bizi zaragoza',
       'encontrar estacion bizi',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'landing',
+      title: 'Mapa y estaciones Bizi Zaragoza en tiempo real',
+      subtitle: `Landing de utilidad inmediata con ${landingData.stationRows.length} estaciones publicas y acceso al mapa en vivo`,
+      eyebrow: 'Landing de utilidad inmediata',
+      badges: ['Mapa en vivo', `${landingData.stationRows.length} estaciones`, 'Tiempo real'],
+    }),
     indexability: landingData.indexabilityInput,
   });
 }

@@ -4,6 +4,7 @@ import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 86400;
@@ -78,6 +79,13 @@ export const metadata: Metadata = buildPageMetadata({
     'sevici',
     'bicicleta publica espana',
   ],
+  socialImagePath: buildSocialImagePath({
+    kind: 'landing',
+    title: 'Bici Radar',
+    subtitle: 'App para bicis compartidas en tiempo real en Zaragoza, Madrid, Barcelona, Valencia y Sevilla',
+    eyebrow: 'App y producto conectado',
+    badges: ['iOS', 'Android', 'Tiempo real'],
+  }),
 });
 
 function CityCard({ city }: { city: (typeof CITIES)[number] }) {

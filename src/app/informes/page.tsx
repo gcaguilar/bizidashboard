@@ -10,6 +10,7 @@ import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -33,6 +34,13 @@ export async function generateMetadata(): Promise<Metadata> {
       'informes por mes bizi',
       'estadisticas bizi zaragoza',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'report',
+      title: 'Informes mensuales de Bizi Zaragoza',
+      subtitle: `Archivo historico con ${months.length} meses publicados y URLs limpias por mes`,
+      eyebrow: 'Archivo mensual indexable',
+      badges: [months[0] ? formatMonthLabel(months[0]) : 'Sin datos', 'Informes', 'Historico'],
+    }),
     indexability: {
       pageType: 'report',
       hasMeaningfulContent: true,

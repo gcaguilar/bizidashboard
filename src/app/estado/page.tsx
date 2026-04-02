@@ -14,6 +14,7 @@ import { combineDataStates } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStations, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
 import { getCityName } from '@/lib/site';
 import {
@@ -46,6 +47,13 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza desde una unica pagina publica.',
     path: appRoutes.status(),
+    socialImagePath: buildSocialImagePath({
+      kind: 'api',
+      title: 'Cobertura y estado de datos de Bizi Zaragoza',
+      subtitle: 'Frescura del dato, cobertura historica y salud operativa del sistema',
+      eyebrow: 'Salud y cobertura',
+      badges: ['Estado', 'Cobertura', 'Pipeline'],
+    }),
     indexability: {
       pageType: 'data_hub',
       dataState: combineDataStates([status.dataState, dataset.dataState]),

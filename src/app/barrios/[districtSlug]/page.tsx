@@ -7,6 +7,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRowBySlug, getDistrictSeoRows, getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -66,6 +67,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `bicis disponibles ${district.name}`,
       'bizi zaragoza barrios',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'district',
+      title: `${district.name}: estaciones y actividad`,
+      subtitle: `${district.stationCount} estaciones · ${district.bikesAvailable} bicis visibles · rotacion media ${formatDecimal(district.avgTurnover)}`,
+      eyebrow: 'Ficha SEO por barrio',
+      badges: [`${district.stationCount} estaciones`, `${district.bikesAvailable} bicis`],
+    }),
     indexability: {
       pageType: 'district',
       hasMeaningfulContent: true,

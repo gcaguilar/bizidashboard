@@ -7,6 +7,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl } from '@/lib/site';
 
 function formatDecimal(value: number | null): string {
@@ -33,6 +34,17 @@ export async function generateMetadata(): Promise<Metadata> {
       'informes bizi zaragoza',
       'barrios bizi zaragoza',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'landing',
+      title: 'Estadisticas y ranking de Bizi Zaragoza',
+      subtitle: `Rankings, barrios e informes con ${landingData.publishedMonths.length} meses publicados`,
+      eyebrow: 'Landing de descubrimiento',
+      badges: [
+        landingData.latestMonth ? formatMonthLabel(landingData.latestMonth) : 'Sin datos',
+        'Ranking',
+        'Informes',
+      ],
+    }),
     indexability: landingData.indexabilityInput,
   });
 }

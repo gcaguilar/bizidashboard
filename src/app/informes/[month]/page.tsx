@@ -15,6 +15,7 @@ import {
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig } from '@/lib/seo-pages';
 import { slugifyDistrictName } from '@/lib/seo-districts';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -147,6 +148,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       'reporte mensual bizi zaragoza',
       'estadisticas bizi por mes',
     ],
+    socialImagePath: buildSocialImagePath({
+      kind: 'report',
+      title: `Informe Bizi Zaragoza ${monthLabel}`,
+      subtitle: payload.summary,
+      eyebrow: 'Informe mensual indexable',
+      badges: [monthLabel, `${payload.activeStations} estaciones`, 'Informe'],
+    }),
     indexability: {
       pageType: 'report',
       dataState: reportDataState,

@@ -7,6 +7,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getStationSeoRows } from '@/lib/seo-stations';
+import { buildSocialImagePath } from '@/lib/social-images';
 import { getCityName, SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 
 const QUICK_LINKS = [
@@ -55,6 +56,13 @@ export const metadata: Metadata = buildPageMetadata({
     'ranking estaciones bizi',
     'informes bizi zaragoza',
   ],
+  socialImagePath: buildSocialImagePath({
+    kind: 'home',
+    title: 'DatosBizi Zaragoza',
+    subtitle: 'Estaciones, disponibilidad, rankings e informes mensuales',
+    eyebrow: 'Datos publicos y analisis',
+    badges: ['Dashboard', 'Informes', 'API'],
+  }),
 });
 
 function formatPercent(value: number): string {
