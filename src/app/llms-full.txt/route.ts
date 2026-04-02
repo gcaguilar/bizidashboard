@@ -1,6 +1,6 @@
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
-import { getSeoPageConfig, SEO_PAGE_SLUGS } from '@/lib/seo-pages';
+import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -21,7 +21,7 @@ function buildEndpointLines(siteUrl: string): string[] {
 
 export function GET() {
   const siteUrl = getSiteUrl();
-  const seoLandingLines = SEO_PAGE_SLUGS.map((slug) => {
+  const seoLandingLines = PRIMARY_SEO_PAGE_SLUGS.map((slug) => {
     const page = getSeoPageConfig(slug);
     return `- ${siteUrl}${appRoutes.seoPage(slug)} — ${page.title}`;
   });

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   fetchCachedDailyDemandCurve,
   fetchCachedMonthlyDemandCurve,
@@ -12,10 +12,11 @@ import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import {
   getSeoPageConfig,
-  SEO_PAGE_SLUGS,
+  PRIMARY_SEO_PAGE_SLUGS,
   type SeoPageConfig,
   type SeoPageSlug,
 } from '@/lib/seo-pages';
@@ -715,26 +716,86 @@ async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingCont
   }
 }
 
-export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Metadata> {
+function buildSeoLandingIndexabilityInput(
+  config: SeoPageConfig,
+  content: SeoLandingContent
+): Omit<SeoIndexabilityInput, 'path' | 'canonicalPath'> {
+  return {
+    pageType: config.isLegacyAlias ? 'duplicate' : 'data_hub',
+    hasMeaningfulContent: true,
+    hasData: !content.emptyReason && content.sectionItems.length > 0,
+    requiresStrongCoverage: true,
+    isDuplicate: config.isLegacyAlias,
+    thresholds: config.isLegacyAlias
+      ? []
+      : [
+          {
+            label: 'section-items',
+            current: content.sectionItems.length,
+            minimum: 3,
+          },
+        ],
+  };
+}
+
+function resolveSeoLandingClickEvent(href: string) {
+  if (href.startsWith('/dashboard/estaciones/')) {
+    return 'station_card_click';
+  }
+
+  if (href.startsWith('/informes/')) {
+    return 'report_open_click';
+  }
+
+  if (href === appRoutes.developers()) {
+    return 'api_cta_click';
+  }
+
+  return 'related_module_click';
+}
+
+export async function getSeoLandingPageData(slug: SeoPageSlug) {
   const config = getSeoPageConfig(slug);
+  const content = await buildSeoLandingContent(slug);
+  const path = appRoutes.seoPage(slug);
+  const indexabilityInput = buildSeoLandingIndexabilityInput(config, content);
+  const indexability = evaluatePageIndexability({
+    path,
+    canonicalPath: config.canonicalPath,
+    ...indexabilityInput,
+  });
+
+  return {
+    path,
+    config,
+    content,
+    indexability,
+    indexabilityInput,
+  };
+}
+
+export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Metadata> {
+  const { config, path, indexabilityInput } = await getSeoLandingPageData(slug);
+
   return buildPageMetadata({
     title: config.metadataTitle,
     description: config.description,
-    path: appRoutes.seoPage(slug),
+    path,
+    canonicalPath: config.canonicalPath,
     keywords: config.keywords,
+    indexability: indexabilityInput,
   });
 }
 
 export async function renderSeoLandingPage(slug: SeoPageSlug) {
-  const config = getSeoPageConfig(slug);
-  const content = await buildSeoLandingContent(slug);
+  const { config, content, indexability } = await getSeoLandingPageData(slug);
   const siteUrl = getSiteUrl();
-  const canonicalPath = appRoutes.seoPage(slug);
+  const canonicalPath = indexability.canonicalPath;
   const breadcrumbs = createRootBreadcrumbs({
     label: config.title,
     href: canonicalPath,
   });
-  const relatedPages = SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
+  const relatedPages = PRIMARY_SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
     .map((pageSlug) => getSeoPageConfig(pageSlug));
   const itemListElements = content.sectionItems
@@ -806,18 +867,22 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link
+          <TrackedLink
             href={config.dashboardHref}
+            eventName="related_module_click"
+            eventData={{ source: 'seo_landing_hero', destination: config.dashboardHref, slug }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             {config.dashboardLabel}
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             href={appRoutes.reports()}
+            eventName="report_open_click"
+            eventData={{ source: 'seo_landing_hero', slug }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir archivo mensual
-          </Link>
+          </TrackedLink>
         </div>
       </header>
 
@@ -881,13 +946,15 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
               }
 
               return (
-                <Link
+                <TrackedLink
                   key={`${item.title}-${item.href}`}
                   href={item.href}
+                  eventName={resolveSeoLandingClickEvent(item.href)}
+                  eventData={{ source: 'seo_landing_items', destination: item.href, slug }}
                   className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
                 >
                   {body}
-                </Link>
+                </TrackedLink>
               );
             })}
           </div>
@@ -902,14 +969,16 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {relatedPages.map((page) => (
-            <Link
+            <TrackedLink
               key={page.slug}
               href={appRoutes.seoPage(page.slug)}
+              eventName="related_module_click"
+              eventData={{ source: 'seo_landing_related', destination: page.slug, slug }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>

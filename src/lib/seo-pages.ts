@@ -25,15 +25,29 @@ export type SeoPageConfig = {
   heroKicker: string;
   dashboardHref: string;
   dashboardLabel: string;
+  canonicalPath?: string;
+  isLegacyAlias?: boolean;
 };
+
+export const PRIMARY_SEO_PAGE_SLUGS = [
+  'estaciones-mas-usadas-zaragoza',
+  'barrios-bizi-zaragoza',
+  'uso-bizi-por-hora',
+  'ranking-estaciones-bizi',
+  'viajes-por-dia-zaragoza',
+  'viajes-por-mes-zaragoza',
+  'uso-bizi-por-estacion',
+  'estaciones-con-mas-bicis',
+  'redistribucion-bizi-zaragoza',
+] as const satisfies readonly SeoPageSlug[];
 
 export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'estaciones-mas-usadas-zaragoza': {
     slug: 'estaciones-mas-usadas-zaragoza',
     title: 'Estaciones Bizi mas usadas en Zaragoza',
-    metadataTitle: 'Estaciones Bizi mas usadas en Zaragoza hoy',
+    metadataTitle: 'Estaciones Bizi mas usadas en Zaragoza | Ranking y analisis',
     description:
-      'Ranking SEO de las estaciones Bizi mas usadas en Zaragoza hoy, con comparativas de demanda, estaciones lideres y acceso directo al dashboard.',
+      'Consulta que estaciones Bizi concentran mas actividad en Zaragoza, que puntos lideran el ranking reciente y como cambiar la demanda entre estaciones.',
     keywords: ['estaciones bizi mas usadas', 'ranking bizi zaragoza', 'estaciones con mas uso', 'bizi zaragoza hoy'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Ranking de demanda reciente',
@@ -43,9 +57,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'barrios-bizi-zaragoza': {
     slug: 'barrios-bizi-zaragoza',
     title: 'Barrios de Zaragoza con mas uso de Bizi',
-    metadataTitle: 'Barrios de Zaragoza con mas uso de Bizi y estaciones destacadas',
+    metadataTitle: 'Barrios de Zaragoza con mas uso de Bizi | Estaciones y actividad',
     description:
-      'Comparativa SEO de barrios de Zaragoza con mas uso de Bizi, estaciones destacadas, disponibilidad actual y enlaces al dashboard.',
+      'Explora que barrios de Zaragoza concentran mas uso de Bizi, cuantas estaciones activas tienen y que zonas merecen seguimiento por actividad o disponibilidad.',
     keywords: ['barrios bizi zaragoza', 'bizi por barrios zaragoza', 'distritos con mas uso bizi', 'estaciones bizi por barrio'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Comparativa por barrios',
@@ -55,9 +69,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'uso-bizi-por-hora': {
     slug: 'uso-bizi-por-hora',
     title: 'Uso de Bizi por hora en Zaragoza',
-    metadataTitle: 'Uso de Bizi por hora en Zaragoza hoy',
+    metadataTitle: 'Horas punta de Bizi Zaragoza | Patrones de uso y analisis',
     description:
-      'Horas pico de Bizi Zaragoza, ocupacion media y ventanas de mayor actividad por hora con comparativas intradia y acceso al dashboard.',
+      'Analiza las horas punta de Bizi Zaragoza, la ocupacion media por franja y cuando se concentran los picos de uso o de disponibilidad.',
     keywords: ['uso bizi por hora', 'horas pico bizi zaragoza', 'bizi zaragoza hora punta', 'movilidad bizi horaria'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Patrones horarios',
@@ -67,9 +81,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'ranking-estaciones-bizi': {
     slug: 'ranking-estaciones-bizi',
     title: 'Ranking de estaciones Bizi Zaragoza',
-    metadataTitle: 'Ranking de estaciones Bizi Zaragoza por uso y disponibilidad',
+    metadataTitle: 'Estaciones Bizi mas usadas en Zaragoza | Uso y disponibilidad',
     description:
-      'Clasificacion de estaciones Bizi Zaragoza por actividad, riesgo de vaciado o saturacion y enlaces al detalle operativo de cada estacion.',
+      'Ranking operativo de estaciones Bizi Zaragoza por actividad, riesgo de vaciado o saturacion y acceso rapido a los puntos que exigen atencion.',
     keywords: ['ranking estaciones bizi', 'clasificacion estaciones bizi zaragoza', 'estaciones bizi disponibilidad', 'ranking bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Clasificacion operativa',
@@ -79,9 +93,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'viajes-por-dia-zaragoza': {
     slug: 'viajes-por-dia-zaragoza',
     title: 'Viajes Bizi por dia en Zaragoza',
-    metadataTitle: 'Viajes Bizi por dia en Zaragoza y tendencia semanal',
+    metadataTitle: 'Viajes diarios estimados de Bizi Zaragoza | Tendencia y analisis',
     description:
-      'Serie diaria estimada de viajes Bizi en Zaragoza basada en la demanda agregada del sistema, con comparativa semanal y acceso al dashboard.',
+      'Sigue la tendencia diaria estimada de Bizi Zaragoza, compara demanda reciente y detecta cambios de intensidad en el uso del sistema.',
     keywords: ['viajes bizi por dia', 'bizi zaragoza viajes diarios', 'demanda bizi diaria', 'estadisticas bizi zaragoza'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Serie diaria',
@@ -91,9 +105,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'viajes-por-mes-zaragoza': {
     slug: 'viajes-por-mes-zaragoza',
     title: 'Viajes Bizi por mes en Zaragoza',
-    metadataTitle: 'Viajes Bizi por mes en Zaragoza e informe mensual',
+    metadataTitle: 'Viajes mensuales estimados de Bizi Zaragoza | Serie historica',
     description:
-      'Evolucion mensual estimada de viajes Bizi en Zaragoza con comparativa frente al mes anterior, archivo de informes y enlaces al dashboard.',
+      'Consulta la evolucion mensual estimada de Bizi Zaragoza, compara cada mes con el anterior y enlaza con el archivo historico de informes.',
     keywords: ['viajes bizi por mes', 'bizi zaragoza mensual', 'informe mensual bizi', 'estadisticas mensuales bizi'],
     cadenceLabel: 'Actualizacion mensual',
     heroKicker: 'Serie mensual',
@@ -103,9 +117,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'uso-bizi-por-estacion': {
     slug: 'uso-bizi-por-estacion',
     title: 'Uso de Bizi por estacion en Zaragoza',
-    metadataTitle: 'Uso de Bizi por estacion en Zaragoza con comparativas',
+    metadataTitle: 'Uso de Bizi por estacion en Zaragoza | Comparativa de estaciones',
     description:
-      'Comparativa entre estaciones Bizi de Zaragoza por demanda media, menor uso y acceso al detalle operativo de cada estacion.',
+      'Compara estaciones Bizi de Zaragoza por demanda media, detecta puntos con menor actividad y encuentra rapidamente los detalles operativos mas relevantes.',
     keywords: ['uso bizi por estacion', 'comparativa estaciones bizi', 'estaciones bizi zaragoza demanda', 'detalle estacion bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Comparativa entre estaciones',
@@ -115,9 +129,9 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'estaciones-con-mas-bicis': {
     slug: 'estaciones-con-mas-bicis',
     title: 'Estaciones Bizi con mas bicis disponibles',
-    metadataTitle: 'Estaciones Bizi con mas bicis disponibles en Zaragoza ahora',
+    metadataTitle: 'Donde hay mas bicis Bizi en Zaragoza ahora | Disponibilidad actual',
     description:
-      'Listado actual de estaciones Bizi con mas bicicletas disponibles en Zaragoza ahora mismo y comparativa con la media del sistema.',
+      'Encuentra las estaciones Bizi con mas bicicletas disponibles en Zaragoza en el snapshot actual y compara su disponibilidad con la media del sistema.',
     keywords: ['estaciones con mas bicis', 'bizi zaragoza disponibilidad actual', 'donde hay bicis bizi', 'bicis disponibles zaragoza'],
     cadenceLabel: 'Actualizacion horaria',
     heroKicker: 'Disponibilidad actual',
@@ -127,21 +141,23 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'informes-mensuales-bizi-zaragoza': {
     slug: 'informes-mensuales-bizi-zaragoza',
     title: 'Informes mensuales de Bizi Zaragoza',
-    metadataTitle: 'Informes mensuales de Bizi Zaragoza y archivo historico',
+    metadataTitle: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
     description:
-      'Archivo de informes mensuales de Bizi Zaragoza con demanda estimada, ocupacion media, comparativas intermensuales y enlaces al dashboard filtrado por mes.',
+      'Alias legacy del archivo mensual de Bizi Zaragoza. La version canonica concentra el historico, los informes indexables y la navegacion editorial por mes.',
     keywords: ['informes mensuales bizi', 'archivo bizi zaragoza', 'reporte mensual bizi', 'estadisticas bizi mensuales'],
     cadenceLabel: 'Actualizacion mensual',
     heroKicker: 'Archivo de informes',
     dashboardHref: appRoutes.reports(),
     dashboardLabel: 'Abrir archivo mensual completo',
+    canonicalPath: appRoutes.reports(),
+    isLegacyAlias: true,
   },
   'redistribucion-bizi-zaragoza': {
     slug: 'redistribucion-bizi-zaragoza',
     title: 'Redistribucion de bicis Bizi Zaragoza',
-    metadataTitle: 'Como se redistribuyen las bicis Bizi en Zaragoza: metodologia y datos',
+    metadataTitle: 'Redistribucion de bicis Bizi Zaragoza | Equilibrio y metodologia',
     description:
-      'Sistema de diagnostico y redistribucion de estaciones Bizi Zaragoza: clasificacion A-F, prediccion de riesgo, transferencias origen-destino y comparativa de escenarios de intervencion.',
+      'Entiende como se redistribuyen las bicis de Bizi Zaragoza, que estaciones se desequilibran antes y que reglas usa el sistema para priorizar intervenciones.',
     keywords: [
       'redistribucion bizi zaragoza',
       'rebalanceo bici publica zaragoza',

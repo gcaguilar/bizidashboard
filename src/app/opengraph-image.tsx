@@ -1,8 +1,8 @@
 import { ImageResponse } from 'next/og';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { SEO_SITE_DESCRIPTION, SEO_SITE_TITLE } from '@/lib/site';
 
 export const runtime = 'edge';
-export const alt = SITE_TITLE;
+export const alt = SEO_SITE_TITLE;
 export const size = {
   width: 1200,
   height: 630,
@@ -51,14 +51,14 @@ export default function OpenGraphImage() {
               B
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '28px', color: '#b91c1c', fontWeight: 700 }}>Analitica publica de Bizi Zaragoza</div>
+              <div style={{ fontSize: '28px', color: '#b91c1c', fontWeight: 700 }}>Datos publicos y analisis de Bizi Zaragoza</div>
               <div style={{ fontSize: '20px', color: '#6b7280' }}>Disponibilidad, alertas, patrones y movilidad urbana</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '860px' }}>
-            <div style={{ fontSize: '68px', lineHeight: 1.05, fontWeight: 800 }}>{SITE_TITLE}</div>
-            <div style={{ fontSize: '28px', lineHeight: 1.35, color: '#374151' }}>{SITE_DESCRIPTION}</div>
+            <div style={{ fontSize: '68px', lineHeight: 1.05, fontWeight: 800 }}>{SEO_SITE_TITLE}</div>
+            <div style={{ fontSize: '28px', lineHeight: 1.35, color: '#374151' }}>{SEO_SITE_DESCRIPTION}</div>
           </div>
 
           <div style={{ display: 'flex', gap: '16px' }}>

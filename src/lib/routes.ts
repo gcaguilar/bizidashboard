@@ -339,8 +339,16 @@ export const STATIC_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
 
 const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   {
+    source: appRoutes.beta(),
+    destination: appRoutes.biciradar(),
+  },
+  {
     source: '/estaciones-mas-usadas',
     destination: appRoutes.seoPage('estaciones-mas-usadas-zaragoza'),
+  },
+  {
+    source: appRoutes.seoPage('informes-mensuales-bizi-zaragoza'),
+    destination: appRoutes.reports(),
   },
   {
     source: appRoutes.dashboardStatus(),

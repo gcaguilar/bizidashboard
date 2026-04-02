@@ -1,10 +1,14 @@
 import type { MetadataRoute } from 'next';
-import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes';
+import { getSeoLandingPageData } from '@/app/_seo/SeoLandingPage';
+import { fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes, STATIC_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
-import { getDistrictSlugsFromGeoJson } from '@/lib/seo-districts';
-import { SEO_PAGE_SLUGS } from '@/lib/seo-pages';
+import { evaluatePageIndexability } from '@/lib/seo-policy';
+import { getDistrictSeoRows } from '@/lib/seo-districts';
+import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
+import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 
 export const revalidate = 3600;
 export const dynamic = 'force-dynamic';
@@ -41,10 +45,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const lastModified = new Date();
-  const stations = await import('@/lib/api')
-    .then(({ fetchStations }) => fetchStations())
-    .then((response) => response.stations)
-    .catch(() => []);
   const months = await import('@/lib/api')
     .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
     .then((response) => response.months)
@@ -52,54 +52,168 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
     right.localeCompare(left, 'es')
   );
-  const districtSlugs = await getDistrictSlugsFromGeoJson().catch(() => []);
+  const [dataset, status, districtRows, seoLandingData, reportIndexability] = await Promise.all([
+    fetchSharedDatasetSnapshot().catch(() => null),
+    fetchStatus().catch(() => null),
+    getDistrictSeoRows().catch(() => []),
+    Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
+    Promise.resolve(
+      evaluatePageIndexability({
+        path: appRoutes.reports(),
+        pageType: 'report',
+        hasMeaningfulContent: true,
+        hasData: validMonths.length > 0,
+        requiresStrongCoverage: true,
+        thresholds: [
+          {
+            label: 'published-months',
+            current: validMonths.length,
+            minimum: 1,
+          },
+        ],
+      })
+    ),
+  ]);
 
-  const stationEntries: MetadataRoute.Sitemap = stations.map((station) => ({
-    url: `${siteUrl}${appRoutes.dashboardStation(station.id)}`,
-    lastModified: toValidDate(station.recordedAt, lastModified),
-    changeFrequency: 'hourly',
-    priority: 0.6,
-  }));
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PUBLIC_ROUTE_REGISTRY.filter((entry) => {
+    if (entry.href === appRoutes.reports()) {
+      return reportIndexability.includeInSitemap;
+    }
 
-  const modeEntries: MetadataRoute.Sitemap = DASHBOARD_VIEW_MODES.map((mode) => ({
-    url: `${siteUrl}${appRoutes.dashboardView(mode)}`,
+    if (entry.href === appRoutes.status()) {
+      return evaluatePageIndexability({
+        path: entry.href,
+        pageType: 'data_hub',
+        dataState:
+          status && dataset
+            ? resolveDataState({
+                hasCoverage:
+                  dataset.coverage.totalDays > 0 ||
+                  Boolean(dataset.lastUpdated.lastSampleAt),
+                hasData:
+                  dataset.coverage.totalDays > 0 ||
+                  status.quality.volume.recentStationCount > 0,
+              })
+            : 'empty',
+        hasMeaningfulContent: true,
+        hasData:
+          Boolean(dataset?.lastUpdated.lastSampleAt) ||
+          Number(dataset?.coverage.totalDays ?? 0) > 0,
+      }).includeInSitemap;
+    }
+
+    return evaluatePageIndexability({
+      path: entry.href,
+    }).includeInSitemap;
+  }).map((entry) => ({
+    url: `${siteUrl}${entry.href}`,
     lastModified,
-    changeFrequency: 'weekly',
-    priority: 0.55,
+    changeFrequency: entry.sitemap.changeFrequency,
+    priority: entry.sitemap.priority,
   }));
 
-  const seoEntries: MetadataRoute.Sitemap = SEO_PAGE_SLUGS.map((slug) => ({
-    url: `${siteUrl}${appRoutes.seoPage(slug)}`,
-    lastModified,
-    changeFrequency: slug === 'estaciones-con-mas-bicis' ? 'hourly' : 'daily',
-    priority: slug === 'informes-mensuales-bizi-zaragoza' ? 0.78 : 0.72,
-  }));
+  const seoEntries: MetadataRoute.Sitemap = seoLandingData
+    .filter((entry): entry is NonNullable<(typeof seoLandingData)[number]> => Boolean(entry))
+    .filter((entry) => entry.indexability.includeInSitemap)
+    .map((entry) => ({
+      url: `${siteUrl}${entry.indexability.canonicalPath}`,
+      lastModified: toValidDate(entry.content.generatedAt, lastModified),
+      changeFrequency:
+        entry.config.slug === 'estaciones-con-mas-bicis' ? 'hourly' : 'daily',
+      priority: 0.72,
+    }));
 
-  const reportEntries: MetadataRoute.Sitemap = validMonths.map((month) => ({
-    url: `${siteUrl}${appRoutes.reportMonth(month)}`,
-    lastModified,
-    changeFrequency: 'monthly',
-    priority: 0.74,
-  }));
+  const reportEntries = await Promise.all(
+    validMonths.map(async (month) => {
+      const payload = await getDailyMobilityConclusions(month)
+        .then((result) => result.payload)
+        .catch(() => null);
 
-  const districtEntries: MetadataRoute.Sitemap = districtSlugs.map((slug) => ({
-    url: `${siteUrl}${appRoutes.districtDetail(slug)}`,
-    lastModified,
-    changeFrequency: 'daily',
-    priority: 0.68,
-  }));
+      const decision = evaluatePageIndexability({
+        path: appRoutes.reportMonth(month),
+        pageType: 'report',
+        dataState: resolveDataState({
+          hasCoverage:
+            Boolean(payload?.sourceFirstDay) ||
+            Boolean(payload?.sourceLastDay) ||
+            Number(payload?.totalHistoricalDays ?? 0) > 0,
+          hasData:
+            Number(payload?.activeStations ?? 0) > 0 ||
+            Number(payload?.topStationsByDemand.length ?? 0) > 0 ||
+            Number(payload?.highlights.length ?? 0) > 0,
+          isPartial:
+            Number(payload?.totalHistoricalDays ?? 0) > 0 &&
+            Number(payload?.totalHistoricalDays ?? 0) < 21,
+        }),
+        hasMeaningfulContent: true,
+        hasData:
+          Number(payload?.activeStations ?? 0) > 0 ||
+          Number(payload?.topStationsByDemand.length ?? 0) > 0 ||
+          Number(payload?.highlights.length ?? 0) > 0,
+        requiresStrongCoverage: true,
+        thresholds: [
+          {
+            label: 'active-stations',
+            current: Number(payload?.activeStations ?? 0),
+            minimum: 5,
+          },
+          {
+            label: 'report-insights',
+            current:
+              Number(payload?.highlights.length ?? 0) +
+              Number(payload?.topStationsByDemand.length ?? 0) +
+              Number(payload?.topDistrictsByDemand.length ?? 0),
+            minimum: 3,
+          },
+        ],
+      });
+
+      if (!decision.includeInSitemap) {
+        return null;
+      }
+
+      return {
+        url: `${siteUrl}${decision.canonicalPath}`,
+        lastModified: toValidDate(payload?.generatedAt, lastModified),
+        changeFrequency: 'monthly' as const,
+        priority: 0.74,
+      };
+    })
+  );
+
+  const districtEntries: MetadataRoute.Sitemap = districtRows
+    .filter((district) =>
+      evaluatePageIndexability({
+        path: appRoutes.districtDetail(district.slug),
+        pageType: 'district',
+        hasMeaningfulContent: true,
+        hasData: district.stationCount > 0 && district.topStations.length > 0,
+        requiresStrongCoverage: true,
+        thresholds: [
+          {
+            label: 'district-stations',
+            current: district.stationCount,
+            minimum: 2,
+          },
+          {
+            label: 'district-top-stations',
+            current: district.topStations.length,
+            minimum: 2,
+          },
+        ],
+      }).includeInSitemap
+    )
+    .map((district) => ({
+      url: `${siteUrl}${appRoutes.districtDetail(district.slug)}`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.68,
+    }));
 
   return dedupeSitemapEntries([
-    ...STATIC_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
-      url: `${siteUrl}${entry.href}`,
-      lastModified,
-      changeFrequency: entry.sitemap.changeFrequency,
-      priority: entry.sitemap.priority,
-    })),
-    ...modeEntries,
-    ...stationEntries,
+    ...staticEntries,
     ...seoEntries,
-    ...reportEntries,
+    ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
     ...districtEntries,
   ]);
 }
