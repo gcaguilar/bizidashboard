@@ -161,7 +161,7 @@ async function buildMostUsedStationsContent(
     return {
       title: `${index + 1}. ${station?.name ?? row.stationId}`,
       detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${station ? `${station.bikesAvailable} bicis ahora` : 'detalle operativo disponible'}`,
-      href: appRoutes.dashboardStation(row.stationId),
+      href: appRoutes.stationDetail(row.stationId),
       badge: `Top ${index + 1}`,
     };
   });
@@ -314,13 +314,13 @@ async function buildStationRankingContent(
     ...turnoverResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Uso ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
       detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${row.emptyHours + row.fullHours} horas de friccion`,
-      href: appRoutes.dashboardStation(row.stationId),
+      href: appRoutes.stationDetail(row.stationId),
       badge: 'Demanda',
     })),
     ...availabilityResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Riesgo ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
       detail: `${row.emptyHours + row.fullHours} horas entre vaciado y saturacion · ${formatDecimal(row.turnoverScore)} pts de rotacion`,
-      href: appRoutes.dashboardStation(row.stationId),
+      href: appRoutes.stationDetail(row.stationId),
       badge: 'Disponibilidad',
     })),
   ];
@@ -472,13 +472,13 @@ async function buildStationUsageContent(
     ...payload.topStationsByDemand.slice(0, 4).map((station, index) => ({
       title: `Alta demanda ${index + 1}. ${station.stationName}`,
       detail: `${formatDecimal(station.avgDemand)} pts/dia · enlace al detalle operativo`,
-      href: appRoutes.dashboardStation(station.stationId),
+      href: appRoutes.stationDetail(station.stationId),
       badge: 'Top',
     })),
     ...payload.leastUsedStations.slice(0, 4).map((station, index) => ({
       title: `Menor uso ${index + 1}. ${station.stationName}`,
       detail: `${formatDecimal(station.avgDemand)} pts/dia · seguimiento recomendado`,
-      href: appRoutes.dashboardStation(station.stationId),
+      href: appRoutes.stationDetail(station.stationId),
       badge: 'Seguimiento',
     })),
   ];
@@ -526,7 +526,7 @@ async function buildMostBikesContent(
   const items = stations.slice(0, 10).map((station, index) => ({
     title: `${index + 1}. ${station.name}`,
     detail: `${station.bikesAvailable} bicis · ${station.anchorsFree} anclajes libres · capacidad ${station.capacity}`,
-    href: appRoutes.dashboardStation(station.id),
+    href: appRoutes.stationDetail(station.id),
     badge: `${station.bikesAvailable} bicis`,
   }));
 
@@ -739,7 +739,7 @@ function buildSeoLandingIndexabilityInput(
 }
 
 function resolveSeoLandingClickEvent(href: string) {
-  if (href.startsWith('/dashboard/estaciones/')) {
+  if (href.startsWith('/estaciones/') || href.startsWith('/dashboard/estaciones/')) {
     return 'station_card_click';
   }
 

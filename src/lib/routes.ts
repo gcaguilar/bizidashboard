@@ -100,6 +100,7 @@ export const appRoutes = {
   dashboardStations: () => '/dashboard/estaciones',
   dashboardStation: (stationId: string) =>
     `/dashboard/estaciones/${encodeSegment(stationId)}`,
+  stationDetail: (stationId: string) => `/estaciones/${encodeSegment(stationId)}`,
   dashboardStatus: () => '/dashboard/status',
   dashboardView: (mode: DashboardViewMode | string) =>
     `/dashboard/views/${encodeSegment(mode)}`,
