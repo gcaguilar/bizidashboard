@@ -1,9 +1,11 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { getSeoPageConfig, SEO_PAGE_SLUGS } from '@/lib/seo-pages';
+import { buildPageMetadata } from '@/lib/seo';
+import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getCityName, SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
 
 const QUICK_LINKS = [
@@ -39,6 +41,21 @@ const QUICK_LINKS = [
   },
 ] as const;
 
+export const metadata: Metadata = buildPageMetadata({
+  title: 'DatosBizi: estaciones Bizi Zaragoza, uso, disponibilidad y analisis',
+  description:
+    'Consulta estaciones Bizi Zaragoza, disponibilidad actual, patrones de uso, barrios, rankings, informes mensuales y datos abiertos desde una unica capa publica.',
+  path: appRoutes.home(),
+  keywords: [
+    'datosbizi',
+    'bizi zaragoza',
+    'estaciones bizi zaragoza',
+    'disponibilidad bizi',
+    'ranking estaciones bizi',
+    'informes bizi zaragoza',
+  ],
+});
+
 export default function Home() {
   const currentCityName = getCityName();
 
@@ -68,34 +85,42 @@ export default function Home() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link
+          <TrackedLink
             href={appRoutes.dashboard()}
+            eventName="home_cta_primary_click"
+            eventData={{ destination: 'dashboard' }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard principal
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             href={appRoutes.explore()}
+            eventName="related_module_click"
+            eventData={{ destination: 'explore', source: 'home_hero' }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir hub Explorar
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             href={appRoutes.developers()}
+            eventName="api_cta_click"
+            eventData={{ source: 'home_hero' }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir Developers
-          </Link>
+          </TrackedLink>
         </div>
 
-        <PublicSearchForm />
+        <PublicSearchForm eventSource="home_hero" />
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {QUICK_LINKS.map((link) => (
-          <Link
+          <TrackedLink
             key={link.href}
             href={link.href}
+            eventName="related_module_click"
+            eventData={{ source: 'home_quick_links', destination: link.href }}
             className="dashboard-card transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -103,7 +128,7 @@ export default function Home() {
             </p>
             <h2 className="mt-2 text-xl font-black text-[var(--foreground)]">{link.title}</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">{link.description}</p>
-          </Link>
+          </TrackedLink>
         ))}
       </section>
 
@@ -121,18 +146,20 @@ export default function Home() {
         </div>
 
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {SEO_PAGE_SLUGS.map((slug) => {
+          {PRIMARY_SEO_PAGE_SLUGS.map((slug) => {
             const page = getSeoPageConfig(slug);
 
             return (
-              <Link
+              <TrackedLink
                 key={slug}
                 href={appRoutes.seoPage(slug)}
+                eventName="related_module_click"
+                eventData={{ source: 'home_seo_grid', destination: slug }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
-              </Link>
+              </TrackedLink>
             );
           })}
         </div>

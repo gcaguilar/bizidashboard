@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -14,18 +15,39 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Informes Bizi Zaragoza por mes',
-  description:
-    'Indice SEO de informes mensuales de Bizi Zaragoza con acceso al historico por mes, comparativas y enlaces al dashboard filtrado.',
-  path: appRoutes.reports(),
-  keywords: [
-    'informes bizi zaragoza',
-    'informes por mes bizi',
-    'archivo mensual bizi zaragoza',
-    'estadisticas bizi zaragoza',
-  ],
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const monthsResponse = await fetchAvailableDataMonths().catch(() => ({
+    months: [],
+    generatedAt: new Date().toISOString(),
+  }));
+  const months = monthsResponse.months.filter(isValidMonthKey);
+
+  return buildPageMetadata({
+    title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+    description:
+      'Archivo historico de informes mensuales de Bizi Zaragoza con URLs limpias por mes, comparativas y acceso directo a cada informe indexable.',
+    path: appRoutes.reports(),
+    keywords: [
+      'informes mensuales bizi zaragoza',
+      'archivo historico bizi zaragoza',
+      'informes por mes bizi',
+      'estadisticas bizi zaragoza',
+    ],
+    indexability: {
+      pageType: 'report',
+      hasMeaningfulContent: true,
+      hasData: months.length > 0,
+      requiresStrongCoverage: true,
+      thresholds: [
+        {
+          label: 'published-months',
+          current: months.length,
+          minimum: 1,
+        },
+      ],
+    },
+  });
+}
 
 function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
@@ -111,19 +133,23 @@ export default async function ReportsIndexPage() {
 
         <div className="flex flex-wrap gap-3">
           {latestMonth ? (
-            <Link
+            <TrackedLink
               href={appRoutes.reportMonth(latestMonth)}
+              eventName="report_open_click"
+              eventData={{ source: 'reports_hero', month: latestMonth }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
-            </Link>
+            </TrackedLink>
           ) : null}
-          <Link
+          <TrackedLink
             href={appRoutes.dashboardConclusions()}
+            eventName="related_module_click"
+            eventData={{ source: 'reports_hero', destination: 'dashboard_conclusions' }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir conclusiones del dashboard
-          </Link>
+          </TrackedLink>
         </div>
       </header>
 
@@ -171,9 +197,11 @@ export default async function ReportsIndexPage() {
             const row = monthMap.get(month);
 
             return (
-              <Link
+              <TrackedLink
                 key={month}
                 href={appRoutes.reportMonth(month)}
+                eventName="report_open_click"
+                eventData={{ source: 'reports_archive', month }}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <div>
@@ -185,7 +213,7 @@ export default async function ReportsIndexPage() {
                   </p>
                 </div>
                 <span className="text-xs font-bold text-[var(--accent)]">Abrir informe</span>
-              </Link>
+              </TrackedLink>
             );
           })}
         </div>

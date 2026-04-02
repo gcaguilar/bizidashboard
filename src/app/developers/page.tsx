@@ -4,6 +4,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   fetchAvailableDataMonths,
   fetchSharedDatasetSnapshot,
@@ -38,9 +39,9 @@ type EndpointDoc = {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'Developers y API',
+  title: 'API y datos abiertos de Bizi Zaragoza',
   description:
-    'Portal visible para la API de BiziDashboard con OpenAPI, ejemplos curl, Python y JS, endpoints, CSV, dataset historico, changelog y licencia.',
+    'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.',
   path: appRoutes.developers(),
 });
 
@@ -210,32 +211,40 @@ export default async function DevelopersPage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
-            <Link
+            <TrackedLink
               href={appRoutes.api.openApi()}
+              eventName="api_cta_click"
+              eventData={{ source: 'developers_hero', destination: 'openapi' }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Descargar OpenAPI JSON
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={appRoutes.llms()}
+              eventName="related_module_click"
+              eventData={{ source: 'developers_hero', destination: 'llms' }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver llms.txt
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={appRoutes.llmsFull()}
+              eventName="related_module_click"
+              eventData={{ source: 'developers_hero', destination: 'llms_full' }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver llms-full.txt
-            </Link>
-            <Link
+            </TrackedLink>
+            <TrackedLink
               href={appRoutes.status()}
+              eventName="related_module_click"
+              eventData={{ source: 'developers_hero', destination: 'status' }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver estado del sistema
-            </Link>
+            </TrackedLink>
           </div>
-          <PublicSearchForm />
+          <PublicSearchForm eventSource="developers" />
         </div>
       </header>
 

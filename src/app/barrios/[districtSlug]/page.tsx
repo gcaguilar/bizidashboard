@@ -33,12 +33,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const district = await getDistrictSeoRowBySlug(districtSlug).catch(() => null);
 
   if (!district) {
-    return {};
+    return buildPageMetadata({
+      title: 'Barrios de Bizi Zaragoza',
+      description:
+        'Ficha de barrio sin cobertura suficiente para publicar una landing indexable.',
+      path: appRoutes.districtDetail(districtSlug),
+      indexability: {
+        pageType: 'district',
+        hasMeaningfulContent: true,
+        hasData: false,
+        requiresStrongCoverage: true,
+      },
+    });
   }
 
   return buildPageMetadata({
-    title: `Bizi en ${district.name}`,
-    description: `Uso de Bizi en ${district.name}, con estaciones destacadas, bicicletas disponibles y acceso al dashboard de Zaragoza.`,
+    title: `${district.name}: uso de Bizi, estaciones y actividad en Zaragoza`,
+    description: `Analiza el uso de Bizi en ${district.name}, descubre sus estaciones mas activas y compara la actividad del barrio con el resto de Zaragoza.`,
     path: appRoutes.districtDetail(district.slug),
     keywords: [
       `bizi ${district.name}`,
@@ -46,6 +57,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `bicis disponibles ${district.name}`,
       'bizi zaragoza barrios',
     ],
+    indexability: {
+      pageType: 'district',
+      hasMeaningfulContent: true,
+      hasData: district.stationCount > 0 && district.topStations.length > 0,
+      requiresStrongCoverage: true,
+      thresholds: [
+        {
+          label: 'district-stations',
+          current: district.stationCount,
+          minimum: 2,
+        },
+        {
+          label: 'district-top-stations',
+          current: district.topStations.length,
+          minimum: 2,
+        },
+      ],
+    },
   });
 }
 

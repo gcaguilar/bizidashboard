@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
@@ -115,11 +116,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
 
+  const availableMonths = await getAvailableMonths();
+  const hasMonthPublished = availableMonths.includes(month);
+  const payload = hasMonthPublished
+    ? await getDailyMobilityConclusions(month)
+        .then((result) => result.payload)
+        .catch(() => buildFallbackPayload(month))
+    : buildFallbackPayload(month);
   const monthLabel = formatMonthLabel(month);
+  const reportDataState = resolveDataState({
+    hasCoverage:
+      payload.totalHistoricalDays > 0 ||
+      Boolean(payload.sourceFirstDay) ||
+      Boolean(payload.sourceLastDay),
+    hasData:
+      payload.activeStations > 0 ||
+      payload.topStationsByDemand.length > 0 ||
+      payload.highlights.length > 0,
+    isPartial:
+      payload.totalHistoricalDays > 0 && payload.totalHistoricalDays < 21,
+  });
 
   return buildPageMetadata({
-    title: `Informe mensual Bizi Zaragoza ${monthLabel}`,
-    description: `Informe mensual de Bizi Zaragoza para ${monthLabel}, con demanda estimada, ocupacion, horas pico, barrios destacados y comparativas operativas.`,
+    title: `Informe Bizi Zaragoza ${monthLabel}`,
+    description: `Informe mensual de Bizi Zaragoza para ${monthLabel}, con demanda estimada, horas punta, barrios destacados y enlaces a estaciones relevantes del periodo.`,
     path: appRoutes.reportMonth(month),
     keywords: [
       `informe mensual bizi ${month}`,
@@ -127,6 +147,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       'reporte mensual bizi zaragoza',
       'estadisticas bizi por mes',
     ],
+    indexability: {
+      pageType: 'report',
+      dataState: reportDataState,
+      hasMeaningfulContent: true,
+      hasData:
+        hasMonthPublished &&
+        (payload.activeStations > 0 ||
+          payload.topStationsByDemand.length > 0 ||
+          payload.highlights.length > 0),
+      requiresStrongCoverage: true,
+      thresholds: [
+        {
+          label: 'active-stations',
+          current: payload.activeStations,
+          minimum: 5,
+        },
+        {
+          label: 'report-insights',
+          current:
+            payload.highlights.length +
+            payload.topStationsByDemand.length +
+            payload.topDistrictsByDemand.length,
+          minimum: 3,
+        },
+      ],
+    },
   });
 }
 
@@ -232,18 +278,22 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Link
+          <TrackedLink
             href={appRoutes.dashboardConclusions({ month })}
+            eventName="related_module_click"
+            eventData={{ source: 'monthly_report_hero', destination: 'dashboard_conclusions', month }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard filtrado por mes
-          </Link>
-          <Link
+          </TrackedLink>
+          <TrackedLink
             href={appRoutes.reports()}
+            eventName="related_module_click"
+            eventData={{ source: 'monthly_report_hero', destination: 'reports_archive', month }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Volver al archivo mensual
-          </Link>
+          </TrackedLink>
         </div>
       </header>
 
@@ -306,14 +356,16 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones mas destacadas del mes</h2>
           <div className="mt-2 grid gap-3 md:grid-cols-2">
             {payload.topStationsByDemand.map((station, index) => (
-              <Link
+              <TrackedLink
                 key={station.stationId}
                 href={appRoutes.dashboardStation(station.stationId)}
+                eventName="station_card_click"
+                eventData={{ source: 'monthly_report_top_stations', station_id: station.stationId, month }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">Indice medio {station.avgDemand.toFixed(1)} pts/dia</p>
-              </Link>
+              </TrackedLink>
             ))}
           </div>
         </article>
@@ -391,14 +443,14 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             {newerMonth ? (
-              <Link href={appRoutes.reportMonth(newerMonth)} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(newerMonth)} eventName="report_open_click" eventData={{ source: 'monthly_report_navigation', month: newerMonth }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes mas reciente: {formatMonthLabel(newerMonth)}
-              </Link>
+              </TrackedLink>
             ) : null}
             {olderMonth ? (
-              <Link href={appRoutes.reportMonth(olderMonth)} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(olderMonth)} eventName="report_open_click" eventData={{ source: 'monthly_report_navigation', month: olderMonth }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes anterior: {formatMonthLabel(olderMonth)}
-              </Link>
+              </TrackedLink>
             ) : null}
           </div>
         </div>
@@ -407,22 +459,26 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       <section className="dashboard-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas paginas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <Link
+          <TrackedLink
             href={appRoutes.seoPage(archiveConfig.slug)}
+            eventName="related_module_click"
+            eventData={{ source: 'monthly_report_related', destination: archiveConfig.slug, month }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">{archiveConfig.title}</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo completo de informes y comparativas.</p>
-          </Link>
+          </TrackedLink>
           {relatedPages.map((page) => (
-            <Link
+            <TrackedLink
               key={page.slug}
               href={appRoutes.seoPage(page.slug)}
+              eventName="related_module_click"
+              eventData={{ source: 'monthly_report_related', destination: page.slug, month }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>

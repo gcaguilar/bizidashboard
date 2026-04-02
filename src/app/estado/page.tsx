@@ -10,6 +10,7 @@ import {
   fetchStatus,
 } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { combineDataStates } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
@@ -32,12 +33,30 @@ import { StatusBanner } from '@/app/dashboard/_components/StatusBanner';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Estado del sistema',
-  description:
-    'Salud publica del sistema Bizi con ultima muestra, cobertura historica, pipeline, versiones y estado de API, rankings y predicciones.',
-  path: appRoutes.status(),
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const nowIso = new Date().toISOString();
+  const [status, dataset, stations] = await Promise.all([
+    fetchStatus().catch(() => buildFallbackStatus(nowIso)),
+    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+    fetchStations().catch(() => buildFallbackStations(nowIso)),
+  ]);
+
+  return buildPageMetadata({
+    title: 'Cobertura y estado de datos de Bizi Zaragoza',
+    description:
+      'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza desde una unica pagina publica.',
+    path: appRoutes.status(),
+    indexability: {
+      pageType: 'data_hub',
+      dataState: combineDataStates([status.dataState, dataset.dataState]),
+      hasMeaningfulContent: true,
+      hasData:
+        dataset.coverage.totalDays > 0 ||
+        Boolean(dataset.lastUpdated.lastSampleAt) ||
+        stations.stations.length > 0,
+    },
+  });
+}
 
 export default async function SystemStatusPage() {
   const nowIso = new Date().toISOString();
@@ -300,4 +319,3 @@ export default async function SystemStatusPage() {
     </main>
   );
 }
-
