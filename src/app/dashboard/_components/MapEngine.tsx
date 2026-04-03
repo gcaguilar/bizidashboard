@@ -393,6 +393,7 @@ export function MapEngine({
           longitude: initialViewState?.longitude ?? DEFAULT_VIEW_STATE.longitude,
           zoom: initialViewState?.zoom ?? DEFAULT_VIEW_STATE.zoom,
         }}
+        styleDiffing={false}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
       >

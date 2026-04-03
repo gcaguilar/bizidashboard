@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { ChartWrapper } from './ChartWrapper';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type HistoryRow = {
@@ -138,7 +139,7 @@ export function DataHistoryCard() {
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
           <ChartWrapper height="h-[280px]">
             <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+              <MeasuredResponsiveContainer>
                 <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={12} />
@@ -160,7 +161,7 @@ export function DataHistoryCard() {
                   <Area yAxisId="demand" type="monotone" dataKey="demandScore" name="Demanda" stroke="#ea0615" fill="rgba(234, 6, 21, 0.2)" strokeWidth={2} />
                   <Area yAxisId="balance" type="monotone" dataKey="balanceIndex" name="Balance index" stroke="#0f766e" fill="rgba(15, 118, 110, 0.16)" strokeWidth={2} />
                 </AreaChart>
-              </ResponsiveContainer>
+              </MeasuredResponsiveContainer>
             </div>
           </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">

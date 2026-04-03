@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Legend,
   Line,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -17,6 +16,7 @@ import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { ChartWrapper } from './ChartWrapper';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
 type SystemHourlyProfileRow = {
   hour: number;
@@ -107,7 +107,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
           <ChartWrapper height="h-[280px]">
             <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+              <MeasuredResponsiveContainer>
                 <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="hourLabel" tick={{ fontSize: 11 }} minTickGap={12} />
@@ -144,7 +144,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                     dot={false}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              </MeasuredResponsiveContainer>
             </div>
           </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
