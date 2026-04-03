@@ -2,7 +2,9 @@
 FROM oven/bun:1.3.11 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+# In multi-arch builds, optional deps can differ by platform (arm64 vs amd64).
+# Avoid lockfile strictness inside image builds to keep buildx stable.
+RUN bun install
 
 # ── builder: generate prisma client & build Next.js ──────────────────
 FROM oven/bun:1.3.11 AS builder
