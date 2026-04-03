@@ -106,9 +106,7 @@ export default withSentryConfig(nextConfig, {
   release: {
     create: hasSentryAuthToken,
     finalize: hasSentryAuthToken,
-    ...(hasSentryAuthToken
-      ? { setCommits: { auto: true as const } }
-      : { setCommits: false }),
+    ...(hasSentryAuthToken ? { setCommits: { auto: true as const } } : {}),
   },
 
   // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
