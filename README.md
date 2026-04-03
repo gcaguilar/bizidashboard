@@ -33,6 +33,10 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 - `GET /api/collect` and `POST /api/collect` require `X-Ops-Api-Key`. `x-collect-api-key` is still accepted as a temporary compatibility alias for existing cron jobs.
 - Low-cost read endpoints remain anonymous: `GET /api/status`, `GET /api/stations`, `GET /api/rankings`, `GET /api/alerts`, `GET /api/patterns`, `GET /api/heatmap`, `GET /api/openapi.json`, `GET /api/docs`, and `GET /api/app-versions`.
 - Elevated public access requires `X-Public-Api-Key` on:
+  - `GET /api/stations?format=csv`
+  - `GET /api/rankings?format=csv`
+  - `GET /api/rankings` when `limit > 100`
+  - `GET /api/alerts` when `limit > 100`
   - `GET /api/history?format=csv`
   - `GET /api/rebalancing-report?format=csv`
   - `GET /api/rebalancing-report` when `days > 30`
@@ -192,6 +196,7 @@ Sentry is used for real-time error monitoring across both client and server.
   - `NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE`
 - **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
 - **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
+- **CSP compatibility**: keep Sentry delivery endpoints allowed in `connect-src` (including ingest and tunnel path `/monitoring`) when hardening CSP.
 
 ## 📈 Analytics (Umami)
 
@@ -200,7 +205,27 @@ Umami is loaded only in production and only when both variables are configured:
 - `NEXT_PUBLIC_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
 - `NEXT_PUBLIC_UMAMI_WEBSITE_ID`
 
-If you enforce CSP, allow Umami domains in `script-src` and `connect-src`.
+If you enforce CSP, allow Umami domains in `script-src` and `connect-src` (`cloud.umami.is` and `api-gateway.umami.dev` for cloud setups).
+
+## 🛡️ CSP rollout strategy
+
+To avoid telemetry regressions while tightening CSP:
+
+- Keep Sentry and Umami domains explicitly allowlisted.
+- Use `CSP_REPORT_ONLY=true` first to emit `Content-Security-Policy-Report-Only`.
+- Review violations in staging, then enable strict enforcement in production.
+
+---
+
+## ✅ CI quality gates
+
+Main CI currently runs:
+
+- lint + unit tests + build
+
+Additional QA gates are available as scripts (`qa:validate:site-env`, `qa:audit`, `qa:audit:check`, `security:audit`) and can be executed locally or in dedicated workflows.
+
+For production vitals checks, `qa:vitals:prod` captures FCP/LCP/CLS plus INP and TTFB, and `qa:vitals:check` enforces thresholds.
 
 ---
 
