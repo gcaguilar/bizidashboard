@@ -7,6 +7,8 @@ const THRESHOLDS = {
   lcpMs: 2500,
   fcpMs: 1800,
   cls: 0.1,
+  inpMs: 200,
+  ttfbMs: 800,
 };
 
 function parseArgs(argv) {
@@ -46,9 +48,11 @@ async function main() {
     const lcpMs = check?.lcpMs;
     const fcpMs = check?.fcpMs;
     const cls = check?.cls;
+    const inpMs = check?.inpMs;
+    const ttfbMs = check?.ttfbMs;
 
-    if (!isNumber(lcpMs) || !isNumber(fcpMs) || !isNumber(cls)) {
-      failures.push(`${route}: faltan metricas base (fcp/lcp/cls).`);
+    if (!isNumber(lcpMs) || !isNumber(fcpMs) || !isNumber(cls) || !isNumber(inpMs) || !isNumber(ttfbMs)) {
+      failures.push(`${route}: faltan metricas base (fcp/lcp/cls/inp/ttfb).`);
       continue;
     }
 
@@ -66,6 +70,12 @@ async function main() {
 
     if (cls > THRESHOLDS.cls) {
       failures.push(`${route}: CLS ${cls} supera umbral ${THRESHOLDS.cls}.`);
+    }
+    if (inpMs > THRESHOLDS.inpMs) {
+      failures.push(`${route}: INP ${inpMs}ms supera umbral ${THRESHOLDS.inpMs}ms.`);
+    }
+    if (ttfbMs > THRESHOLDS.ttfbMs) {
+      warnings.push(`${route}: TTFB ${ttfbMs}ms supera umbral recomendado ${THRESHOLDS.ttfbMs}ms.`);
     }
 
     if (isNumber(check?.navDurationMs) && check.navDurationMs > 1500) {

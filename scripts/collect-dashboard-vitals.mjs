@@ -18,7 +18,8 @@ function createVitalsCollector() {
   window.__vitals = {
     lcp: null,
     cls: 0,
-    fcp: null
+    fcp: null,
+    inp: null
   };
 
   try {
@@ -36,6 +37,17 @@ function createVitalsCollector() {
         window.__vitals.cls += entry.value;
       }
     }).observe({ type: 'layout-shift', buffered: true });
+  } catch {}
+
+  try {
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        const current = window.__vitals.inp;
+        if (typeof entry.duration === 'number' && (current === null || entry.duration > current)) {
+          window.__vitals.inp = entry.duration;
+        }
+      }
+    }).observe({ type: 'event', buffered: true, durationThreshold: 40 });
   } catch {}
 
   try {
@@ -78,8 +90,10 @@ async function measureRoute(context, route) {
       lcp: v.lcp ?? null,
       cls: v.cls ?? null,
       fcp: v.fcp ?? null,
+      inp: v.inp ?? null,
       domContentLoaded: nav?.domContentLoadedEventEnd ?? null,
       loadEventEnd: nav?.loadEventEnd ?? null,
+      responseStart: nav?.responseStart ?? null,
       transferSize: nav?.transferSize ?? null,
       decodedBodySize: nav?.decodedBodySize ?? null,
       duration: nav?.duration ?? null,
@@ -98,6 +112,8 @@ async function measureRoute(context, route) {
       fcpMs: roundMs(vitals.fcp),
       lcpMs: roundMs(vitals.lcp),
       cls: typeof vitals.cls === 'number' ? Number(vitals.cls.toFixed(4)) : null,
+      inpMs: roundMs(vitals.inp),
+      ttfbMs: roundMs(vitals.responseStart),
       domContentLoadedMs: roundMs(vitals.domContentLoaded),
       loadEventEndMs: roundMs(vitals.loadEventEnd),
       navDurationMs: roundMs(vitals.duration),
@@ -135,6 +151,8 @@ async function main() {
       fcpMs: entry.metrics.fcpMs,
       lcpMs: entry.metrics.lcpMs,
       cls: entry.metrics.cls,
+      inpMs: entry.metrics.inpMs,
+      ttfbMs: entry.metrics.ttfbMs,
       navDurationMs: entry.metrics.navDurationMs,
     })),
   };
