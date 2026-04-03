@@ -20,7 +20,7 @@ export const DEFAULT_LOGISTICS_CONFIG: LogisticsConfig = {
 // Let's pass the raw stations list to look up coordinates.
 export function computeTransfers(
   diagnostics: StationDiagnostic[],
-  stations: Array<{ id: string; lat: number; lon: number }>,
+  stations: Array<{ id: string; lat: number; lon: number }> = [],
   config: LogisticsConfig = DEFAULT_LOGISTICS_CONFIG
 ): TransferRecommendation[] {
   const transfers: TransferRecommendation[] = [];
@@ -50,8 +50,7 @@ export function computeTransfers(
     let deficit = needToReceive.get(receptor.stationId) ?? 0;
     if (deficit < config.minBikesToMove) continue;
 
-    const receptorCoords = stations.find((s) => s.id === receptor.stationId);
-    if (!receptorCoords) continue;
+    const receptorCoords = stations.find((s) => s.id === receptor.stationId) ?? null;
 
     // Find best donor
     let bestDonor: StationDiagnostic | null = null;
@@ -62,13 +61,15 @@ export function computeTransfers(
       const surplus = availableToDonate.get(donor.stationId) ?? 0;
       if (surplus < config.minBikesToMove) continue;
 
-      const donorCoords = stations.find((s) => s.id === donor.stationId);
-      if (!donorCoords) continue;
-
-      const distance = haversineDistanceMeters(
-        { latitude: receptorCoords.lat, longitude: receptorCoords.lon },
-        { latitude: donorCoords.lat, longitude: donorCoords.lon }
-      );
+      const donorCoords = stations.find((s) => s.id === donor.stationId) ?? null;
+      const distance =
+        receptorCoords && donorCoords
+          ? haversineDistanceMeters(
+              { latitude: receptorCoords.lat, longitude: receptorCoords.lon },
+              { latitude: donorCoords.lat, longitude: donorCoords.lon }
+            )
+          : (donor.network.nearbyStations.find((n) => n.stationId === receptor.stationId)?.distanceMeters ??
+            Number.POSITIVE_INFINITY);
 
       if (distance > config.maxTransferDistanceMeters) continue;
 
@@ -104,7 +105,9 @@ export function computeTransfers(
 
       transfers.push({
         originStationId: bestDonor.stationId,
+        originStationName: bestDonor.stationName,
         destinationStationId: receptor.stationId,
+        destinationStationName: receptor.stationName,
         bikesToMove,
         timeWindow: { start: 'Ahora', end: '+60 min' },
         expectedImpact: {
@@ -113,6 +116,7 @@ export function computeTransfers(
           usesRecovered,
           costScore,
         },
+        matchScore: Number(bestScore.toFixed(2)),
         logisticsScore: Number(logisticsScore.toFixed(2)),
         confidence: Number(((bestDonor.risk.confidence + receptor.risk.confidence) / 2).toFixed(2)),
         reasons: [

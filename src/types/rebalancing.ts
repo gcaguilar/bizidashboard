@@ -67,10 +67,13 @@ export type TransferImpact = {
 
 export type TransferRecommendation = {
   originStationId: string;
+  originStationName?: string;
   destinationStationId: string;
+  destinationStationName?: string;
   bikesToMove: number;
   timeWindow: { start: string; end: string };
   expectedImpact: TransferImpact;
+  matchScore: number;
   logisticsScore: number;
   confidence: number;
   reasons: string[];
@@ -88,6 +91,7 @@ export type StationDiagnostic = {
   capacity: number;
   currentBikes: number;
   currentAnchors: number;
+  currentOccupancy: number;
 
   inferredType: StationType;
   classification: StationClassification;
@@ -108,18 +112,33 @@ export type StationDiagnostic = {
 
 export type ReportSummary = {
   totalStations: number;
-  donors: number;
-  receptors: number;
-  interventions: number;
-  balanced: number;
-  review: number;
-  activeTransfers: number;
+  byClassification: {
+    overstock: number;
+    deficit: number;
+    peak_saturation: number;
+    peak_emptying: number;
+    balanced: number;
+    data_review: number;
+  };
+  byAction: {
+    donor: number;
+    receptor: number;
+    peak_remove: number;
+    peak_fill: number;
+    stable: number;
+    review: number;
+  };
+  criticalUrgencyCount: number;
+  highUrgencyCount: number;
+  stationsWithTransfer: number;
 };
 
 export type ReportKPIs = {
   service: {
     pctTimeEmpty: number;
     pctTimeFull: number;
+    systemPctTimeEmpty: number;
+    systemPctTimeFull: number;
     avgCriticalEpisodeMinutes: number;
     totalRotation: number;
     estimatedLostUses: number;
@@ -136,13 +155,14 @@ export type ReportKPIs = {
     totalUsesRecovered: number;
     costPerIncidentAvoided: number;
     improvementVsBaseline: number;
+    improvementVsBaselinePct: number | null;
   };
 };
 
 export type BaselineComparison = {
-  doNothing: ReportKPIs['impact'];
-  simpleRules: ReportKPIs['impact'];
-  recommended: ReportKPIs['impact'];
+  doNothing: ReportKPIs['impact'] & { label: string; totalMoves: number; emptiesAvoided: number; fullsAvoided: number };
+  simpleRules: ReportKPIs['impact'] & { label: string; totalMoves: number; emptiesAvoided: number; fullsAvoided: number };
+  recommended: ReportKPIs['impact'] & { label: string; totalMoves: number; emptiesAvoided: number; fullsAvoided: number };
 };
 
 export type RebalancingReport = {

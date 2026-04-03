@@ -26,9 +26,9 @@ export async function buildRebalancingReport(options: {
   district?: string | null;
 } = {}): Promise<RebalancingReport> {
   const days = options.days ?? 15;
-  const cacheKey = `rebalancing-report:days=${days}:district=${options.district ?? 'all'}`;
+  const cacheKey = `rebalancing-report:days=${days}:base`;
 
-  return withCache(cacheKey, 300, async () => {
+  const baseReport = await withCache(cacheKey, 300, async () => {
     // 1. Parallel fetch
     const [
       stations,
@@ -131,6 +131,7 @@ export async function buildRebalancingReport(options: {
         capacity: station.capacity,
         currentBikes: station.bikesAvailable,
         currentAnchors: station.anchorsFree,
+        currentOccupancy: station.capacity > 0 ? station.bikesAvailable / station.capacity : 0,
         inferredType,
         classification,
         classificationReasons,
@@ -153,23 +154,28 @@ export async function buildRebalancingReport(options: {
     // 5. Compute Impact & KPIs
     const { kpis, baselineComparison } = computeReportImpact(diagnostics, transfers);
 
-    // Filter by district if requested
-    let filteredDiagnostics = diagnostics;
-    if (options.district && options.district !== 'all') {
-      filteredDiagnostics = diagnostics.filter((d) => d.districtName === options.district);
-    }
-
-    // Sort default: priorityScore desc
-    filteredDiagnostics.sort((a, b) => b.priorityScore - a.priorityScore);
-
+    diagnostics.sort((a, b) => b.priorityScore - a.priorityScore);
     const summary = {
-      totalStations: filteredDiagnostics.length,
-      donors: filteredDiagnostics.filter(d => d.actionGroup === 'donor' || d.actionGroup === 'peak_remove').length,
-      receptors: filteredDiagnostics.filter(d => d.actionGroup === 'receptor' || d.actionGroup === 'peak_fill').length,
-      interventions: filteredDiagnostics.filter(d => d.actionGroup !== 'stable' && d.actionGroup !== 'review').length,
-      balanced: filteredDiagnostics.filter(d => d.actionGroup === 'stable').length,
-      review: filteredDiagnostics.filter(d => d.actionGroup === 'review').length,
-      activeTransfers: transfers.length,
+      totalStations: diagnostics.length,
+      byClassification: {
+        overstock: diagnostics.filter((d) => d.classification === 'overstock').length,
+        deficit: diagnostics.filter((d) => d.classification === 'deficit').length,
+        peak_saturation: diagnostics.filter((d) => d.classification === 'peak_saturation').length,
+        peak_emptying: diagnostics.filter((d) => d.classification === 'peak_emptying').length,
+        balanced: diagnostics.filter((d) => d.classification === 'balanced').length,
+        data_review: diagnostics.filter((d) => d.classification === 'data_review').length,
+      },
+      byAction: {
+        donor: diagnostics.filter((d) => d.actionGroup === 'donor').length,
+        receptor: diagnostics.filter((d) => d.actionGroup === 'receptor').length,
+        peak_remove: diagnostics.filter((d) => d.actionGroup === 'peak_remove').length,
+        peak_fill: diagnostics.filter((d) => d.actionGroup === 'peak_fill').length,
+        stable: diagnostics.filter((d) => d.actionGroup === 'stable').length,
+        review: diagnostics.filter((d) => d.actionGroup === 'review').length,
+      },
+      criticalUrgencyCount: diagnostics.filter((d) => d.urgency === 'critical').length,
+      highUrgencyCount: diagnostics.filter((d) => d.urgency === 'high').length,
+      stationsWithTransfer: new Set(transfers.flatMap((t) => [t.originStationId, t.destinationStationId])).size,
     };
 
     return {
@@ -178,10 +184,55 @@ export async function buildRebalancingReport(options: {
       analysisWindowDays: days,
       districtFilter: options.district ?? null,
       summary,
-      diagnostics: filteredDiagnostics,
+      diagnostics,
       transfers,
       kpis,
       baselineComparison,
     };
   });
+
+  if (!options.district || options.district === 'all') {
+    return { ...baseReport, districtFilter: null };
+  }
+
+  const diagnostics = baseReport.diagnostics.filter((d) => d.districtName === options.district);
+  const stationSet = new Set(diagnostics.map((d) => d.stationId));
+  const transfers = baseReport.transfers.filter(
+    (t) => stationSet.has(t.originStationId) || stationSet.has(t.destinationStationId)
+  );
+
+  const summary = {
+    totalStations: diagnostics.length,
+    byClassification: {
+      overstock: diagnostics.filter((d) => d.classification === 'overstock').length,
+      deficit: diagnostics.filter((d) => d.classification === 'deficit').length,
+      peak_saturation: diagnostics.filter((d) => d.classification === 'peak_saturation').length,
+      peak_emptying: diagnostics.filter((d) => d.classification === 'peak_emptying').length,
+      balanced: diagnostics.filter((d) => d.classification === 'balanced').length,
+      data_review: diagnostics.filter((d) => d.classification === 'data_review').length,
+    },
+    byAction: {
+      donor: diagnostics.filter((d) => d.actionGroup === 'donor').length,
+      receptor: diagnostics.filter((d) => d.actionGroup === 'receptor').length,
+      peak_remove: diagnostics.filter((d) => d.actionGroup === 'peak_remove').length,
+      peak_fill: diagnostics.filter((d) => d.actionGroup === 'peak_fill').length,
+      stable: diagnostics.filter((d) => d.actionGroup === 'stable').length,
+      review: diagnostics.filter((d) => d.actionGroup === 'review').length,
+    },
+    criticalUrgencyCount: diagnostics.filter((d) => d.urgency === 'critical').length,
+    highUrgencyCount: diagnostics.filter((d) => d.urgency === 'high').length,
+    stationsWithTransfer: diagnostics.filter((d) =>
+      transfers.some(
+        (t) => t.originStationId === d.stationId || t.destinationStationId === d.stationId
+      )
+    ).length,
+  };
+
+  return {
+    ...baseReport,
+    districtFilter: options.district,
+    diagnostics,
+    transfers,
+    summary,
+  };
 }

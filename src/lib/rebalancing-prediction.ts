@@ -10,12 +10,12 @@ function clamp(value: number, min: number, max: number): number {
 
 export function assessStationRisk(
   station: StationSnapshot,
-  patterns: StationPatternRow[],
+  patterns: Array<Pick<StationPatternRow, 'dayType' | 'hour' | 'occupancyAvg' | 'sampleCount'>>,
   timeBandMetrics: TimeBandMetrics[],
   targetBand: TargetBand,
   now: Date = new Date()
 ): RiskAssessment {
-  if (station.capacity <= 0 || patterns.length === 0) {
+  if (station.capacity <= 0) {
     return {
       riskEmptyAt1h: 0,
       riskEmptyAt3h: 0,
@@ -36,7 +36,11 @@ export function assessStationRisk(
       capacity: station.capacity,
       bikesAvailable: station.bikesAvailable,
       anchorsFree: station.anchorsFree,
-      patterns,
+      patterns: patterns.map((row) => ({
+        ...row,
+        bikesAvg: 0,
+        anchorsAvg: 0,
+      })),
     },
     now
   );
