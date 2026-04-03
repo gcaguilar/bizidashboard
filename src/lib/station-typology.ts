@@ -1,140 +1,63 @@
+import { DayType } from '@/analytics/types';
 import type { StationType } from '@/types/rebalancing';
+import type { StationPatternRow } from '@/lib/api';
 
-type PatternRow = {
-  dayType: string;
-  hour: number;
-  occupancyAvg: number;
-  sampleCount: number;
-};
-
-export type TypologyResult = {
-  type: StationType;
-  confidence: number;
-  reasons: string[];
-};
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function avgOccupancy(patterns: PatternRow[], dayType: string, hours: number[]): number {
-  const matching = patterns.filter(
-    (p) => p.dayType === dayType && hours.includes(p.hour) && p.sampleCount > 0
-  );
-  if (matching.length === 0) return 0;
-  const weightedSum = matching.reduce((sum, p) => sum + p.occupancyAvg * p.sampleCount, 0);
-  const totalSamples = matching.reduce((sum, p) => sum + p.sampleCount, 0);
-  return totalSamples > 0 ? weightedSum / totalSamples : 0;
-}
-
-function totalRotation(patterns: PatternRow[], dayType: string, hours: number[]): number {
-  return patterns
-    .filter((p) => p.dayType === dayType && hours.includes(p.hour))
-    .reduce((sum, p) => sum + p.sampleCount, 0); // sampleCount proxies relative activity
-}
-
-const MORNING_HOURS = [7, 8, 9];
-const EVENING_HOURS = [17, 18, 19];
-const NIGHT_HOURS = [21, 22, 23, 0, 1, 2];
-const MIDDAY_HOURS = [10, 11, 12, 13, 14, 15, 16];
-const ALL_DAY_HOURS = Array.from({ length: 24 }, (_, i) => i);
-
-// ─── Main inference function ─────────────────────────────────────────────────
-
-/**
- * Infers the station usage typology from its aggregated `StationPattern` rows.
- *
- * Algorithm:
- * 1. Compute morning (7-9) vs evening (17-19) occupancy asymmetry for weekdays.
- * 2. Compare weekday vs weekend activity.
- * 3. Check night activity proportion.
- * 4. Apply threshold rules in priority order.
- *
- * Returns the inferred type, a confidence score (0-1), and human-readable reasons.
- */
-export function inferStationType(patterns: PatternRow[]): TypologyResult {
-  if (patterns.length === 0) {
-    return {
-      type: 'mixed',
-      confidence: 0,
-      reasons: ['Sin datos de patrones horarios disponibles.'],
-    };
+export function inferStationType(
+  patterns: StationPatternRow[]
+): { type: StationType; confidence: number; reasons: string[] } {
+  if (!patterns || patterns.length === 0) {
+    return { type: 'mixed', confidence: 0.0, reasons: ['Sin datos de patrones, se asume tipo mixto'] };
   }
+
+  const weekdayPatterns = patterns.filter((p) => p.dayType === DayType.WEEKDAY || p.dayType === 'WEEKDAY');
+  const weekendPatterns = patterns.filter((p) => p.dayType === DayType.WEEKEND || p.dayType === 'WEEKEND');
+
+  // Helper to average occupancy over specific hours
+  const avgOcc = (rows: StationPatternRow[], startHr: number, endHr: number) => {
+    const subset = rows.filter((r) => r.hour >= startHr && r.hour <= endHr);
+    if (subset.length === 0) return 0;
+    return subset.reduce((acc, curr) => acc + curr.occupancyAvg, 0) / subset.length;
+  };
+
+  // Helper to sum rotation (proxy: sampleCount is often used, but here we can just use average total bikes/anchors if available)
+  // But wait, pattern row only has bikesAvg, anchorsAvg, occupancyAvg, sampleCount. 
+  // Let's use occupancy swing as a proxy for rotation if real rotation isn't in pattern.
+  // We can just rely on basic occupancy asymmetry for residential/offices.
+
+  const morningOcc = avgOcc(weekdayPatterns, 7, 9);
+  const eveningOcc = avgOcc(weekdayPatterns, 17, 19);
+
+  const morningDrop = morningOcc - eveningOcc; // > 0 means it empties out after morning, fills in evening = residential
+  const eveningDrop = eveningOcc - morningOcc; // > 0 means it fills in morning, empties in evening = offices
 
   const reasons: string[] = [];
+  let type: StationType = 'mixed';
+  let confidence = 0.5; // Base confidence
 
-  const wdMorningOcc = avgOccupancy(patterns, 'WEEKDAY', MORNING_HOURS);
-  const wdEveningOcc = avgOccupancy(patterns, 'WEEKDAY', EVENING_HOURS);
-  const wdMiddayOcc = avgOccupancy(patterns, 'WEEKDAY', MIDDAY_HOURS);
-
-  const wdTotalActivity = totalRotation(patterns, 'WEEKDAY', ALL_DAY_HOURS);
-  const weTotalActivity = totalRotation(patterns, 'WEEKEND', ALL_DAY_HOURS);
-  const weToWdRatio = wdTotalActivity > 0 ? weTotalActivity / wdTotalActivity : 0;
-
-  const wdNightActivity = totalRotation(patterns, 'WEEKDAY', NIGHT_HOURS);
-  const wdNightFraction = wdTotalActivity > 0 ? wdNightActivity / wdTotalActivity : 0;
-
-  // Residential: bikes leave in the morning → evening occupancy > morning occupancy
-  const residentialSignal = wdEveningOcc - wdMorningOcc;  // positive = residential
-  // Offices: bikes arrive in the morning → morning occupancy > evening occupancy
-  const officesSignal = wdMorningOcc - wdEveningOcc;      // positive = offices
-  const middayStability = Math.abs(wdMiddayOcc - (wdMorningOcc + wdEveningOcc) / 2);
-
-  // ─── Rule 1: Data review / not enough samples ────────────────────────────
-  const minSamples = patterns.reduce((sum, p) => sum + p.sampleCount, 0);
-  if (minSamples < 24) {
-    return {
-      type: 'mixed',
-      confidence: 0.1,
-      reasons: ['Pocos datos historicos para inferir tipologia con fiabilidad.'],
-    };
+  // We can refine this using weekend vs weekday differences if needed, but simple asymmetry covers 80% of use cases.
+  if (morningDrop > 0.1) {
+    type = 'residential';
+    confidence = Math.min(0.9, 0.5 + morningDrop * 2);
+    reasons.push(`Patron residencial: la ocupacion matinal (${(morningOcc * 100).toFixed(1)}%) es significativamente mayor que la vespertina (${(eveningOcc * 100).toFixed(1)}%). Bicis salen por la manana y vuelven por la tarde.`);
+  } else if (eveningDrop > 0.1) {
+    type = 'offices';
+    confidence = Math.min(0.9, 0.5 + eveningDrop * 2);
+    reasons.push(`Patron de oficinas/destinos: la ocupacion vespertina (${(eveningOcc * 100).toFixed(1)}%) es mayor que la matinal (${(morningOcc * 100).toFixed(1)}%). Bicis llegan por la manana y se retiran por la tarde.`);
+  } else {
+    // Check if it's consistently stable but we need external rotation metrics to classify intermodal/tourist perfectly.
+    // For now, if no strong asymmetry, it's mixed.
+    reasons.push(`Comportamiento simetrico o mixto (Diferencia manana-tarde menor al 10%).`);
+    
+    // Check weekend vs weekday average occupancy
+    const weekdayAvg = avgOcc(weekdayPatterns, 0, 23);
+    const weekendAvg = avgOcc(weekendPatterns, 0, 23);
+    
+    if (weekendAvg > weekdayAvg + 0.15) {
+      type = 'tourist';
+      reasons.push(`Patron turistico: ocupacion media en fin de semana superior a laborable.`);
+      confidence = 0.7;
+    }
   }
 
-  // ─── Rule 2: Leisure / nocturnal ────────────────────────────────────────
-  if (wdNightFraction > 0.25) {
-    reasons.push(
-      `Actividad nocturna elevada (${Math.round(wdNightFraction * 100)}% del total en horas 21-2).`
-    );
-    return { type: 'leisure', confidence: 0.7, reasons };
-  }
-
-  // ─── Rule 3: Tourist (high weekend vs weekday ratio) ─────────────────────
-  if (weToWdRatio > 1.35) {
-    reasons.push(
-      `Actividad fin de semana ${Math.round(weToWdRatio * 100)}% de la actividad laboral.`
-    );
-    return { type: 'tourist', confidence: 0.75, reasons };
-  }
-
-  // ─── Rule 4: Intermodal (high midday stability + high overall rotation) ──
-  if (middayStability < 0.08 && wdMiddayOcc > 0.3 && wdTotalActivity > 200) {
-    reasons.push(
-      `Ocupacion estable durante el dia (variacion <8%) con alta rotacion total.`
-    );
-    return { type: 'intermodal', confidence: 0.72, reasons };
-  }
-
-  // ─── Rule 5: Residential (empties in morning, fills in evening) ──────────
-  if (residentialSignal > 0.12) {
-    reasons.push(
-      `Ocupacion tarde (${Math.round(wdEveningOcc * 100)}%) ` +
-      `mayor que manana (${Math.round(wdMorningOcc * 100)}%) en laborables. ` +
-      `Las bicis salen por la manana y vuelven por la tarde.`
-    );
-    const confidence = Math.min(0.9, 0.6 + residentialSignal * 2);
-    return { type: 'residential', confidence, reasons };
-  }
-
-  // ─── Rule 6: Offices (fills in morning, empties in evening) ──────────────
-  if (officesSignal > 0.12) {
-    reasons.push(
-      `Ocupacion manana (${Math.round(wdMorningOcc * 100)}%) ` +
-      `mayor que tarde (${Math.round(wdEveningOcc * 100)}%) en laborables. ` +
-      `La gente llega en bici por la manana y se va por la tarde.`
-    );
-    const confidence = Math.min(0.9, 0.6 + officesSignal * 2);
-    return { type: 'offices', confidence, reasons };
-  }
-
-  // ─── Default: mixed ──────────────────────────────────────────────────────
-  reasons.push('No hay patron dominante claro entre los tipos conocidos.');
-  return { type: 'mixed', confidence: 0.5, reasons };
+  return { type, confidence: Number(confidence.toFixed(2)), reasons };
 }

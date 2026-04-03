@@ -1,344 +1,187 @@
 import 'server-only';
 
 import {
-  getStationPatternsBulk,
-  getStationsWithLatestStatus,
-} from '@/analytics/queries/read';
-import {
   getStationGlobalMetrics,
   getStationTimeBandMetrics,
   getCriticalEpisodes,
-  getActiveStationPoints,
-  buildDistanceMatrix,
-  computeRotationPercentiles,
-  computeUnsatisfiedDemandProxy,
+  getStationDistanceMatrix,
 } from '@/analytics/queries/rebalancing';
+import { getStationsWithLatestStatus, getStationPatternsBulk } from '@/analytics/queries/read';
+import { fetchDistrictCollection, buildStationDistrictMap } from '@/lib/districts';
 import { withCache } from '@/lib/cache/cache';
-import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
-import { hourToTimeBand } from '@/analytics/queries/rebalancing';
+
 import { inferStationType } from '@/lib/station-typology';
-import { getTargetBand } from '@/lib/target-bands';
+import { getTargetBand, getCurrentTimeBand } from '@/lib/target-bands';
 import { classifyStation } from '@/lib/station-classifier';
-import type { MetricsWithSampleCount } from '@/lib/station-classifier';
 import { assessStationRisk } from '@/lib/rebalancing-prediction';
 import { buildNetworkContext } from '@/lib/rebalancing-network';
 import { decideAction } from '@/lib/rebalancing-engine';
 import { computeTransfers, DEFAULT_LOGISTICS_CONFIG } from '@/lib/rebalancing-matching';
-import { computeReportKPIs, computeBaselineComparison } from '@/lib/rebalancing-impact';
-import { getLocalHour } from '@/analytics/time-buckets';
-import type { PatternRow } from '@/lib/rebalancing-prediction';
-import type {
-  RebalancingReport,
-  StationDiagnostic,
-  ReportSummary,
-  StationClassification,
-  ActionGroup,
-} from '@/types/rebalancing';
+import { computeReportImpact } from '@/lib/rebalancing-impact';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+import type { RebalancingReport, StationDiagnostic } from '@/types/rebalancing';
 
-const MODEL_VERSION = 'rebalancing-v1-historical-baseline';
-const CACHE_TTL_SECONDS = 300;
-const DEFAULT_DAYS = 15;
-const BASE_REPORT_CACHE_KEY = 'rebalancing-report';
-
-// ─── Summary builder ─────────────────────────────────────────────────────────
-
-function buildSummary(diagnostics: StationDiagnostic[], transfers: number): ReportSummary {
-  const classificationCounts: Record<StationClassification, number> = {
-    overstock: 0,
-    deficit: 0,
-    peak_saturation: 0,
-    peak_emptying: 0,
-    balanced: 0,
-    data_review: 0,
-  };
-  const actionCounts: Record<ActionGroup, number> = {
-    donor: 0,
-    receptor: 0,
-    peak_remove: 0,
-    peak_fill: 0,
-    stable: 0,
-    review: 0,
-  };
-
-  let criticalUrgencyCount = 0;
-  let highUrgencyCount = 0;
-
-  for (const d of diagnostics) {
-    classificationCounts[d.classification] = (classificationCounts[d.classification] ?? 0) + 1;
-    actionCounts[d.actionGroup] = (actionCounts[d.actionGroup] ?? 0) + 1;
-    if (d.urgency === 'critical') criticalUrgencyCount++;
-    if (d.urgency === 'high') highUrgencyCount++;
-  }
-
-  return {
-    totalStations: diagnostics.length,
-    byClassification: classificationCounts,
-    byAction: actionCounts,
-    criticalUrgencyCount,
-    highUrgencyCount,
-    stationsWithTransfer: transfers,
-  };
-}
-
-function filterReportByDistrict(
-  report: RebalancingReport,
-  districtFilter: string | null
-): RebalancingReport {
-  if (!districtFilter) {
-    return {
-      ...report,
-      districtFilter: null,
-    };
-  }
-
-  const filteredDiagnostics = report.diagnostics.filter(
-    (diagnostic) => diagnostic.districtName === districtFilter
-  );
-  const stationIds = new Set(filteredDiagnostics.map((diagnostic) => diagnostic.stationId));
-  const filteredTransfers = report.transfers.filter(
-    (transfer) =>
-      stationIds.has(transfer.originStationId) || stationIds.has(transfer.destinationStationId)
-  );
-
-  return {
-    ...report,
-    districtFilter,
-    summary: buildSummary(filteredDiagnostics, filteredTransfers.length),
-    diagnostics: filteredDiagnostics,
-    transfers: filteredTransfers,
-  };
-}
-
-// ─── Main report builder ──────────────────────────────────────────────────────
-
-export type RebalancingReportOptions = {
+export async function buildRebalancingReport(options: {
   days?: number;
   district?: string | null;
-};
+} = {}): Promise<RebalancingReport> {
+  const days = options.days ?? 15;
+  const cacheKey = `rebalancing-report:days=${days}:district=${options.district ?? 'all'}`;
 
-/**
- * Builds the full rebalancing report.
- *
- * Orchestration order:
- * 1. Parallel data fetch (metrics, patterns, stations, districts)
- * 2. Build distance matrix
- * 3. Per-station: typology → target band → classify → predict risk → network → decide
- * 4. Transfer matching
- * 5. KPIs and baseline comparison
- * 6. Filter by district if provided
- */
-export async function buildRebalancingReport(
-  options: RebalancingReportOptions = {}
-): Promise<RebalancingReport> {
-  const days = Math.max(1, Math.min(90, Math.floor(options.days ?? DEFAULT_DAYS)));
-  const districtFilter = options.district?.trim() || null;
-  const cacheKey = `${BASE_REPORT_CACHE_KEY}:days=${days}:base`;
-
-  const baseReport = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-    const now = new Date();
-    const currentHour = getLocalHour(now);
-    const currentTimeBand = hourToTimeBand(currentHour);
-
-    // ── Step 1: Parallel data fetch ─────────────────────────────────────────
+  return withCache(cacheKey, 300, async () => {
+    // 1. Parallel fetch
     const [
-      globalMetricsRaw,
-      timeBandMetricsRaw,
-      episodesRaw,
-      stationsWithStatus,
-      stationPoints,
-      districtCollection,
+      stations,
+      globalMetricsMap,
+      timeBandMetricsMap,
+      episodesMap,
+      districtsCollection,
     ] = await Promise.all([
+      getStationsWithLatestStatus(),
       getStationGlobalMetrics(days),
       getStationTimeBandMetrics(days),
       getCriticalEpisodes(days),
-      getStationsWithLatestStatus(),
-      getActiveStationPoints(),
       fetchDistrictCollection().catch(() => null),
     ]);
 
-    const stationIds = stationsWithStatus.map((s) => s.id);
-    const patternRows = await getStationPatternsBulk(stationIds);
+    const stationIds = stations.map((s) => s.id);
+    const patternsBulk = await getStationPatternsBulk(stationIds);
 
-    // ── Step 2: Enrich metrics with episode data and unsatisfied demand ─────
-    // Attach critical episode minutes to global metrics
-    for (const [stationId, episodes] of episodesRaw.entries()) {
-      const global = globalMetricsRaw.get(stationId);
-      if (global) {
-        global.criticalEpisodeAvgMinutes =
-          (episodes.avgEmptyEpisodeMinutes + episodes.avgFullEpisodeMinutes) / 2;
+    // Group patterns by station for faster access
+    const patternsByStation = new Map<string, typeof patternsBulk>();
+    for (const p of patternsBulk) {
+      if (!patternsByStation.has(p.stationId)) {
+        patternsByStation.set(p.stationId, []);
       }
-    }
-    const unsatisfiedDemandMap = computeUnsatisfiedDemandProxy(globalMetricsRaw, timeBandMetricsRaw);
-    for (const [stationId, proxy] of unsatisfiedDemandMap.entries()) {
-      const global = globalMetricsRaw.get(stationId);
-      if (global) global.unsatisfiedDemandProxy = proxy;
-    }
-    const timeBandMetricsWithEpisodes = timeBandMetricsRaw;
-    for (const [stationId, bands] of timeBandMetricsWithEpisodes.entries()) {
-      const episodes = episodesRaw.get(stationId);
-      if (episodes) {
-        for (const band of bands) {
-          band.criticalEpisodeAvgMinutes =
-            (episodes.avgEmptyEpisodeMinutes + episodes.avgFullEpisodeMinutes) / 2;
-        }
-      }
+      patternsByStation.get(p.stationId)!.push(p);
     }
 
-    // ── Step 3: Rotation percentiles (for classifier) ───────────────────────
-    const rotationPercentiles = computeRotationPercentiles(globalMetricsRaw);
+    const stationDistrictMap = districtsCollection
+      ? buildStationDistrictMap(
+          stations.map((s) => ({ id: s.id, lon: s.lon, lat: s.lat })),
+          districtsCollection
+        )
+      : new Map<string, string>();
 
-    // ── Step 4: District map ────────────────────────────────────────────────
-    const districtNameById =
-      districtCollection !== null
-        ? buildStationDistrictMap(
-            stationsWithStatus.map((s) => ({ id: s.id, lon: s.lon, lat: s.lat })),
-            districtCollection
-          )
-        : new Map<string, string>();
+    // 2. Build distance matrix
+    const stationCoords = stations.map(s => ({ id: s.id, lat: s.lat, lon: s.lon }));
+    const distanceMatrix = await getStationDistanceMatrix(stationCoords, DEFAULT_LOGISTICS_CONFIG.maxTransferDistanceMeters);
 
-    // ── Step 5: Current bikes map (for network context) ─────────────────────
-    const currentBikesMap = new Map(
-      stationsWithStatus.map((s) => [
-        s.id,
-        { bikesAvailable: s.bikesAvailable, anchorsFree: s.anchorsFree },
-      ])
-    );
-
-    // ── Step 6: Distance matrix ──────────────────────────────────────────────
-    const distanceMatrix = buildDistanceMatrix(
-      stationPoints,
-      globalMetricsRaw,
-      currentBikesMap,
-      500
-    );
-
-    // ── Step 7: Per-station pattern map ──────────────────────────────────────
-    const patternsByStation = new Map<string, PatternRow[]>();
-    for (const row of patternRows) {
-      const list = patternsByStation.get(row.stationId) ?? [];
-      list.push({
-        dayType: row.dayType,
-        hour: row.hour,
-        occupancyAvg: Number(row.occupancyAvg),
-        bikesAvg: 0, // not in StationPatternBulkRow, use occupancyAvg-derived proxy
-        anchorsAvg: 0,
-        sampleCount: Number(row.sampleCount),
-      });
-      patternsByStation.set(row.stationId, list);
-    }
-
-    // ── Step 8: Build per-station diagnostics ────────────────────────────────
-    const maxDemandAcrossStations = Math.max(
-      ...Array.from(globalMetricsRaw.values()).map((m) => m.rotation),
-      1
-    );
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentTimeBand = getCurrentTimeBand(currentHour);
 
     const diagnostics: StationDiagnostic[] = [];
+    const allGlobalMetrics = Object.values(globalMetricsMap);
 
-    for (const station of stationsWithStatus) {
-      const globalMetrics = globalMetricsRaw.get(station.id);
-      if (!globalMetrics) continue;
+    // 3. Process each station
+    for (const station of stations) {
+      const globalMetrics = globalMetricsMap[station.id];
+      if (!globalMetrics) continue; // Skip if no data
 
-      const timeBandMetrics = timeBandMetricsRaw.get(station.id) ?? [];
-      const rotationPercentile = rotationPercentiles.get(station.id) ?? 50;
-      const patterns = patternsByStation.get(station.id) ?? [];
-      const nearbyStations = distanceMatrix.get(station.id) ?? [];
+      const timeBandMetrics = timeBandMetricsMap[station.id] || [];
+      const episodes = episodesMap[station.id];
+      if (episodes) {
+        globalMetrics.criticalEpisodeAvgMinutes = (episodes.avgEmptyEpisodeMinutes + episodes.avgFullEpisodeMinutes) / 2;
+      }
 
-      const currentOccupancy =
-        station.capacity > 0 ? station.bikesAvailable / station.capacity : 0;
+      const patterns = patternsByStation.get(station.id) || [];
+      const districtName = stationDistrictMap.get(station.id) ?? null;
 
-      // Typology inference
-      const typologyResult = inferStationType(patterns);
-      const inferredType = typologyResult.type;
-
-      // Target band for current time
+      // Type & Band
+      const { type: inferredType } = inferStationType(patterns);
       const targetBand = getTargetBand(inferredType, currentTimeBand);
 
       // Classification
-      const metricsWithCount: MetricsWithSampleCount = {
-        ...globalMetrics,
-        sampleCount: (globalMetrics as MetricsWithSampleCount).sampleCount,
-      };
-      const classificationResult = classifyStation(
-        metricsWithCount,
-        timeBandMetrics,
-        targetBand,
-        rotationPercentile
-      );
-
-      // Risk assessment
-      const risk = assessStationRisk(
-        station.id,
+      const { classification, reasons: classificationReasons } = classifyStation(
         station.capacity,
         station.bikesAvailable,
-        patterns,
+        station.anchorsFree,
+        globalMetrics,
+        timeBandMetrics,
         targetBand,
-        now
+        globalMetricsMap
       );
 
-      // Network context
-      const network = buildNetworkContext(nearbyStations, currentBikesMap);
+      // Risk Assessment
+      const risk = assessStationRisk(station, patterns, timeBandMetrics, targetBand, now);
 
-      // Decision
-      const decision = decideAction(
-        classificationResult.classification,
-        currentOccupancy,
+      // Network Context
+      const rawNeighbors = distanceMatrix.get(station.id) || [];
+      const network = buildNetworkContext(station.id, station.capacity > 0 ? station.bikesAvailable / station.capacity : 0, rawNeighbors, globalMetricsMap);
+
+      // Action Decision
+      const partialDiag: Partial<StationDiagnostic> = {
+        stationId: station.id,
+        capacity: station.capacity,
+        currentBikes: station.bikesAvailable,
+        risk,
+        classification,
+        network,
         targetBand,
         currentTimeBand,
-        risk,
-        network,
-        maxDemandAcrossStations
-      );
+      };
+
+      const { actionGroup, urgency, reasons: actionReasons, priorityScore } = decideAction(partialDiag);
 
       diagnostics.push({
         stationId: station.id,
         stationName: station.name,
-        districtName: districtNameById.get(station.id) ?? null,
+        districtName,
         capacity: station.capacity,
         currentBikes: station.bikesAvailable,
         currentAnchors: station.anchorsFree,
-        currentOccupancy,
         inferredType,
-        inferredTypeConfidence: typologyResult.confidence,
-        classification: classificationResult.classification,
-        classificationReasons: classificationResult.reasons,
+        classification,
+        classificationReasons,
         globalMetrics,
         timeBandMetrics,
         targetBand,
         currentTimeBand,
         risk,
         network,
-        actionGroup: decision.actionGroup,
-        actionReasons: decision.reasons,
-        urgency: decision.urgency,
-        priorityScore: decision.priorityScore,
+        actionGroup,
+        actionReasons,
+        urgency,
+        priorityScore,
       });
     }
 
-    // Sort by priority score descending
-    diagnostics.sort((a, b) => b.priorityScore - a.priorityScore);
+    // 4. Match Transfers
+    const transfers = computeTransfers(diagnostics, stationCoords, DEFAULT_LOGISTICS_CONFIG);
 
-    // ── Step 9: Transfer matching ────────────────────────────────────────────
-    const transfers = computeTransfers(diagnostics, DEFAULT_LOGISTICS_CONFIG);
+    // 5. Compute Impact & KPIs
+    const { kpis, baselineComparison } = computeReportImpact(diagnostics, transfers);
 
-    // ── Step 10: KPIs and baseline comparison ────────────────────────────────
-    const kpis = computeReportKPIs(diagnostics, transfers);
-    const baselineComparison = computeBaselineComparison(diagnostics, transfers);
+    // Filter by district if requested
+    let filteredDiagnostics = diagnostics;
+    if (options.district && options.district !== 'all') {
+      filteredDiagnostics = diagnostics.filter((d) => d.districtName === options.district);
+    }
+
+    // Sort default: priorityScore desc
+    filteredDiagnostics.sort((a, b) => b.priorityScore - a.priorityScore);
+
+    const summary = {
+      totalStations: filteredDiagnostics.length,
+      donors: filteredDiagnostics.filter(d => d.actionGroup === 'donor' || d.actionGroup === 'peak_remove').length,
+      receptors: filteredDiagnostics.filter(d => d.actionGroup === 'receptor' || d.actionGroup === 'peak_fill').length,
+      interventions: filteredDiagnostics.filter(d => d.actionGroup !== 'stable' && d.actionGroup !== 'review').length,
+      balanced: filteredDiagnostics.filter(d => d.actionGroup === 'stable').length,
+      review: filteredDiagnostics.filter(d => d.actionGroup === 'review').length,
+      activeTransfers: transfers.length,
+    };
 
     return {
       generatedAt: now.toISOString(),
-      modelVersion: MODEL_VERSION,
+      modelVersion: 'historical-baseline-v1-rebalancing',
       analysisWindowDays: days,
-      districtFilter: null,
-      summary: buildSummary(diagnostics, transfers.length),
-      diagnostics,
+      districtFilter: options.district ?? null,
+      summary,
+      diagnostics: filteredDiagnostics,
       transfers,
       kpis,
       baselineComparison,
-    } satisfies RebalancingReport;
+    };
   });
-
-  return filterReportByDistrict(baseReport, districtFilter);
 }
