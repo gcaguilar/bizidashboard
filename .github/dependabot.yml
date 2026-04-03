@@ -21,6 +21,8 @@ updates:
     ignore:
       - dependency-name: 'next'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'docker'
     directory: '/'
