@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { StationSnapshot } from '@/lib/api';
 
 vi.mock('@/lib/predictions', () => ({
   estimateStationPredictions: vi.fn(() => ({
@@ -10,8 +11,19 @@ import { assessStationRisk } from '@/lib/rebalancing-prediction';
 
 describe('rebalancing-prediction', () => {
   it('assesses risk properly based on predictions', () => {
+    const station = {
+      id: '1',
+      name: 'S1',
+      bikesAvailable: 10,
+      anchorsFree: 10,
+      capacity: 20,
+      lat: 0,
+      lon: 0,
+      recordedAt: new Date().toISOString(),
+    } satisfies StationSnapshot;
+
     const risk = assessStationRisk(
-      { id: '1', capacity: 20, bikesAvailable: 10, anchorsFree: 10 } as any,
+      station,
       [],
       [],
       { min: 0.3, max: 0.6 },
@@ -23,8 +35,19 @@ describe('rebalancing-prediction', () => {
   });
 
   it('returns zero risk if capacity is zero', () => {
+    const station = {
+      id: '1',
+      name: 'S1',
+      bikesAvailable: 0,
+      anchorsFree: 0,
+      capacity: 0,
+      lat: 0,
+      lon: 0,
+      recordedAt: new Date().toISOString(),
+    } satisfies StationSnapshot;
+
     const risk = assessStationRisk(
-      { id: '1', capacity: 0, bikesAvailable: 0, anchorsFree: 0 } as any,
+      station,
       [],
       [],
       { min: 0.3, max: 0.6 },
