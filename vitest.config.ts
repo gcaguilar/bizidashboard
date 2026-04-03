@@ -12,5 +12,15 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts'],
     globals: true,
+    coverage: {
+      reporter: ['text', 'lcov'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
+      include: ['src/jobs/**/*.ts', 'src/lib/security/**/*.ts', 'src/analytics/**/*.ts'],
+    },
   },
 });

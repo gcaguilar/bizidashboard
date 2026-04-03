@@ -113,4 +113,29 @@ describe('runCollection', () => {
       })
     );
   });
+
+  it('fails when lock refresh is not extended', async () => {
+    const releaseMock = vi.fn().mockResolvedValue(undefined);
+    acquireJobLockMock.mockResolvedValue({
+      refresh: vi.fn().mockResolvedValue(false),
+      release: releaseMock,
+    });
+    getSnapshotCountMock.mockResolvedValue(0);
+    validateAndStoreMock.mockResolvedValue({
+      success: true,
+      warnings: [],
+      errors: [],
+      storageResult: { count: 2, duplicateCount: 0 },
+      metrics: {
+        freshness: { lastUpdated: new Date('2026-03-19T10:20:00.000Z') },
+        lineage: { gbfsVersion: '2.3' },
+        volume: { stationCount: 2 },
+      },
+    });
+
+    await expect(runCollection()).rejects.toThrow(
+      'Collection lock refresh failed at stage: post-station-metadata-sync'
+    );
+    expect(releaseMock).toHaveBeenCalled();
+  });
 });

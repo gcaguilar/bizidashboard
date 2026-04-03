@@ -42,6 +42,16 @@ interface CronOptions {
   recoverMissedExecutions?: boolean;
 }
 
+async function ensureLockRefreshed(
+  lock: { refresh: () => Promise<boolean> },
+  stage: string
+): Promise<void> {
+  const refreshed = await lock.refresh();
+  if (!refreshed) {
+    throw new Error(`Collection lock refresh failed at stage: ${stage}`);
+  }
+}
+
 /**
  * Result of a collection run
  */
@@ -197,7 +207,7 @@ async function executeCollection(
         stationCount: stationInformation.length,
       });
     }
-    await lock.refresh();
+    await ensureLockRefreshed(lock, 'post-station-metadata-sync');
 
     const snapshotRecordedAt = new Date(stationStatusResponse.last_updated * 1000);
     const existingSnapshotCount = await getSnapshotCount(snapshotRecordedAt);

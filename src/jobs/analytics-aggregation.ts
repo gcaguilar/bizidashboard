@@ -97,6 +97,16 @@ interface CronOptions {
 
 let cronJob: ScheduledTask | null = null;
 
+async function ensureLockRefreshed(
+  lock: { refresh: () => Promise<boolean> },
+  stage: string
+): Promise<void> {
+  const refreshed = await lock.refresh();
+  if (!refreshed) {
+    throw new Error(`Analytics lock refresh failed at stage: ${stage}`);
+  }
+}
+
 function getHourlyCutoff(now: Date): Date {
   const delayMs = ANALYTICS_WINDOWS.rollupHourlyDelayMinutes * 60 * 1000;
   const delayed = new Date(now.getTime() - delayMs);
@@ -142,7 +152,7 @@ async function runAnalyticsAggregation(): Promise<void> {
     const now = new Date();
     const hourlyCutoff = getHourlyCutoff(now);
 
-    await lock.refresh();
+    await ensureLockRefreshed(lock, 'before-hourly-rollup');
     const hourlyStart = Date.now();
     const hourlyResult = await runHourlyRollup(hourlyCutoff);
     const hourlyDuration = Date.now() - hourlyStart;
@@ -155,7 +165,7 @@ async function runAnalyticsAggregation(): Promise<void> {
     });
 
     if (hourlyResult.processedCount > 0) {
-      await lock.refresh();
+      await ensureLockRefreshed(lock, 'before-ranking-rollup');
       const rankingStart = Date.now();
       const rankingResult = await runRankingRollup(hourlyCutoff);
       const rankingDuration = Date.now() - rankingStart;
@@ -166,7 +176,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: hourlyCutoff.toISOString(),
       });
 
-      await lock.refresh();
+      await ensureLockRefreshed(lock, 'before-pattern-rollup');
       const patternStart = Date.now();
       const patternResult = await runPatternRollup(hourlyCutoff);
       const patternDuration = Date.now() - patternStart;
@@ -177,7 +187,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: hourlyCutoff.toISOString(),
       });
 
-      await lock.refresh();
+      await ensureLockRefreshed(lock, 'before-heatmap-rollup');
       const heatmapStart = Date.now();
       const heatmapResult = await runHeatmapRollup(hourlyCutoff);
       const heatmapDuration = Date.now() - heatmapStart;
@@ -189,7 +199,7 @@ async function runAnalyticsAggregation(): Promise<void> {
       });
     }
 
-    await lock.refresh();
+    await ensureLockRefreshed(lock, 'before-alert-rollup');
     const alertStart = Date.now();
     const alertResult = await runAlertRollup(hourlyCutoff);
     const alertDuration = Date.now() - alertStart;
@@ -200,7 +210,7 @@ async function runAnalyticsAggregation(): Promise<void> {
       cutoff: hourlyCutoff.toISOString(),
     });
 
-    await lock.refresh();
+    await ensureLockRefreshed(lock, 'before-daily-rollup');
     const dailyCutoff = getDailyCutoff(now);
     const dailyWatermark = await getWatermark('daily-rollup', new Date(0));
 
@@ -216,7 +226,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: dailyCutoff.toISOString(),
       });
 
-      await lock.refresh();
+      await ensureLockRefreshed(lock, 'before-retention-cleanup');
       await runRetentionCleanup();
       const vacuumed = await runVacuumIfDue();
 
