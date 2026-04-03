@@ -367,6 +367,39 @@ export default async function DevelopersPage() {
         </div>
       </section>
 
+      <section className="dashboard-card" id="rebalancing-api">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Logistica y redistribucion
+          </p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">API de reequilibrio</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            El endpoint <code>/api/rebalancing-report</code> devuelve recomendaciones origen-destino,
+            clasificacion estructural A-F y metricas de impacto operativo estimadas.
+          </p>
+        </div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+            <p className="stat-label">Ejemplo (curl)</p>
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
+              <code>{`curl -sG ${siteUrl}${appRoutes.api.rebalancingReport({ district: 'Centro', days: 15 })}`}</code>
+            </pre>
+          </article>
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+            <p className="stat-label">Ejemplo (Python)</p>
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
+              <code>{`import requests
+
+base_url = "${siteUrl}"
+params = {"days": 15, "format": "json"}
+res = requests.get(f"{base_url}${appRoutes.api.rebalancingReport()}", params=params, timeout=20)
+res.raise_for_status()
+print(len(res.json()["transfers"]))`}</code>
+            </pre>
+          </article>
+        </div>
+      </section>
+
       <section className="dashboard-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
