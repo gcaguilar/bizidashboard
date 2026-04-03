@@ -1,0 +1,111 @@
+{
+  "summary": {
+    "baseUrl": "https://datosbizi.com",
+    "measuredAt": "2026-04-03T08:33:16.583Z",
+    "routes": 4,
+    "checks": [
+      {
+        "route": "/dashboard/views/overview",
+        "status": 200,
+        "fcpMs": 641,
+        "lcpMs": 949,
+        "cls": 0.0296,
+        "navDurationMs": 548
+      },
+      {
+        "route": "/dashboard/views/operations",
+        "status": 200,
+        "fcpMs": 580,
+        "lcpMs": 897,
+        "cls": 0.0296,
+        "navDurationMs": 274
+      },
+      {
+        "route": "/dashboard/views/research",
+        "status": 200,
+        "fcpMs": 589,
+        "lcpMs": 898,
+        "cls": 0.0296,
+        "navDurationMs": 295
+      },
+      {
+        "route": "/dashboard/views/data",
+        "status": 200,
+        "fcpMs": 610,
+        "lcpMs": 925,
+        "cls": 0.0296,
+        "navDurationMs": 320
+      }
+    ]
+  },
+  "results": [
+    {
+      "route": "/dashboard/views/overview",
+      "url": "https://datosbizi.com/dashboard/views/overview",
+      "status": 200,
+      "measuredAt": "2026-04-03T08:33:04.468Z",
+      "elapsedMs": 4506,
+      "metrics": {
+        "fcpMs": 641,
+        "lcpMs": 949,
+        "cls": 0.0296,
+        "domContentLoadedMs": 547,
+        "loadEventEndMs": 548,
+        "navDurationMs": 548,
+        "transferSizeBytes": 38646,
+        "decodedBodySizeBytes": 376118
+      }
+    },
+    {
+      "route": "/dashboard/views/operations",
+      "url": "https://datosbizi.com/dashboard/views/operations",
+      "status": 200,
+      "measuredAt": "2026-04-03T08:33:08.358Z",
+      "elapsedMs": 3828,
+      "metrics": {
+        "fcpMs": 580,
+        "lcpMs": 897,
+        "cls": 0.0296,
+        "domContentLoadedMs": 274,
+        "loadEventEndMs": 274,
+        "navDurationMs": 274,
+        "transferSizeBytes": 376407,
+        "decodedBodySizeBytes": 376107
+      }
+    },
+    {
+      "route": "/dashboard/views/research",
+      "url": "https://datosbizi.com/dashboard/views/research",
+      "status": 200,
+      "measuredAt": "2026-04-03T08:33:12.282Z",
+      "elapsedMs": 3872,
+      "metrics": {
+        "fcpMs": 589,
+        "lcpMs": 898,
+        "cls": 0.0296,
+        "domContentLoadedMs": 294,
+        "loadEventEndMs": 295,
+        "navDurationMs": 295,
+        "transferSizeBytes": 376409,
+        "decodedBodySizeBytes": 376109
+      }
+    },
+    {
+      "route": "/dashboard/views/data",
+      "url": "https://datosbizi.com/dashboard/views/data",
+      "status": 200,
+      "measuredAt": "2026-04-03T08:33:16.552Z",
+      "elapsedMs": 4203,
+      "metrics": {
+        "fcpMs": 610,
+        "lcpMs": 925,
+        "cls": 0.0296,
+        "domContentLoadedMs": 320,
+        "loadEventEndMs": 320,
+        "navDurationMs": 320,
+        "transferSizeBytes": 376384,
+        "decodedBodySizeBytes": 376084
+      }
+    }
+  ]
+}

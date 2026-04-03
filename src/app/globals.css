@@ -1,18 +1,22 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f8f5f6;
-  --background-2: #efe8eb;
-  --foreground: #0f172a;
-  --muted: #64748b;
-  --surface: rgba(255, 255, 255, 0.9);
-  --surface-soft: rgba(241, 236, 239, 0.84);
-  --accent: #ea0615;
-  --accent-soft: #fb7185;
+  --background: #f7f4f5;
+  --background-2: #efe7ea;
+  --foreground: #111827;
+  --muted: #475569;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-soft: rgba(245, 240, 242, 0.9);
+  --accent: #d90a1a;
+  --accent-soft: #f97386;
   --accent-strong: #8f0812;
-  --border: rgba(234, 6, 21, 0.18);
-  --shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
-  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --border: rgba(169, 22, 34, 0.24);
+  --focus-ring: #0f4ed8;
+  --success: #1f7a47;
+  --warning: #9a5b00;
+  --danger: #b42318;
+  --shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
 /* Solo si el SO prefiere oscuro y el usuario no eligio tema claro (data-theme lo fija el toggle / script inline). */
@@ -21,13 +25,17 @@
     --background: #230f11;
     --background-2: #18090a;
     --foreground: #f8fafc;
-    --muted: #94a3b8;
+    --muted: #c2cfdd;
     --surface: rgba(35, 15, 17, 0.84);
-    --surface-soft: rgba(255, 255, 255, 0.05);
+    --surface-soft: rgba(255, 255, 255, 0.06);
     --accent: #ea0615;
     --accent-soft: #fb7185;
     --accent-strong: #ffb4ba;
-    --border: rgba(234, 6, 21, 0.24);
+    --border: rgba(255, 152, 161, 0.3);
+    --focus-ring: #7aa2ff;
+    --success: #36b16f;
+    --warning: #f7a944;
+    --danger: #ff8f85;
     --shadow: 0 24px 54px rgba(0, 0, 0, 0.35);
     --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
   }
@@ -37,15 +45,26 @@
   --background: #230f11;
   --background-2: #18090a;
   --foreground: #f8fafc;
-  --muted: #94a3b8;
+  --muted: #c2cfdd;
   --surface: rgba(35, 15, 17, 0.84);
-  --surface-soft: rgba(255, 255, 255, 0.05);
+  --surface-soft: rgba(255, 255, 255, 0.06);
   --accent: #ea0615;
   --accent-soft: #fb7185;
   --accent-strong: #ffb4ba;
-  --border: rgba(234, 6, 21, 0.24);
+  --border: rgba(255, 152, 161, 0.3);
+  --focus-ring: #7aa2ff;
+  --success: #36b16f;
+  --warning: #f7a944;
+  --danger: #ff8f85;
   --shadow: 0 24px 54px rgba(0, 0, 0, 0.35);
   --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at 10% -4%, rgba(234, 6, 21, 0.24), transparent 42%),
+    radial-gradient(circle at 86% 0%, rgba(255, 132, 148, 0.08), transparent 38%),
+    linear-gradient(135deg, var(--background), var(--background-2) 72%, var(--background-2));
 }
 
 @theme inline {
@@ -65,14 +84,46 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), 'Inter', 'Segoe UI', sans-serif;
   background:
-    radial-gradient(circle at 10% -4%, rgba(234, 6, 21, 0.22), transparent 42%),
-    radial-gradient(circle at 86% 0%, rgba(234, 6, 21, 0.08), transparent 38%),
+    radial-gradient(circle at 10% -4%, rgba(217, 10, 26, 0.2), transparent 42%),
+    radial-gradient(circle at 86% 0%, rgba(217, 10, 26, 0.08), transparent 38%),
     linear-gradient(135deg, var(--background), var(--background-2) 72%, var(--background-2));
   background-attachment: fixed;
 }
 
 a {
   color: inherit;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.dark a {
+  color: color-mix(in srgb, var(--foreground) 92%, #ffffff);
+}
+
+.dark a:hover {
+  color: #ffffff;
+  text-decoration-thickness: 1.5px;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 .hero-card {
@@ -103,6 +154,11 @@ a {
   backdrop-filter: blur(9px);
 }
 
+.dashboard-card hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
 .dashboard-shell {
   position: relative;
   isolation: isolate;
@@ -124,7 +180,7 @@ a {
   --accent: #ea0615;
   --accent-soft: #fb7185;
   --accent-strong: #8f0812;
-  --border: rgba(234, 6, 21, 0.18);
+  --border: rgba(169, 22, 34, 0.24);
   --mode-glow: rgba(234, 6, 21, 0.18);
 }
 
@@ -132,7 +188,7 @@ a {
   --accent: #c2410c;
   --accent-soft: #fb923c;
   --accent-strong: #7c2d12;
-  --border: rgba(194, 65, 12, 0.2);
+  --border: rgba(194, 65, 12, 0.24);
   --mode-glow: rgba(251, 146, 60, 0.24);
 }
 
@@ -140,7 +196,7 @@ a {
   --accent: #0f766e;
   --accent-soft: #2dd4bf;
   --accent-strong: #115e59;
-  --border: rgba(15, 118, 110, 0.2);
+  --border: rgba(15, 118, 110, 0.24);
   --mode-glow: rgba(45, 212, 191, 0.24);
 }
 
@@ -148,7 +204,7 @@ a {
   --accent: #166534;
   --accent-soft: #4ade80;
   --accent-strong: #14532d;
-  --border: rgba(22, 101, 52, 0.2);
+  --border: rgba(22, 101, 52, 0.24);
   --mode-glow: rgba(74, 222, 128, 0.24);
 }
 
@@ -162,6 +218,71 @@ a {
 
 .dark .dashboard-shell[data-mode='data'] {
   --border: rgba(74, 222, 128, 0.26);
+}
+
+/* Lightweight visual differentiation by dashboard mode. */
+.dashboard-shell[data-mode='overview'] .hero-card,
+.dashboard-shell[data-mode='overview'] .dashboard-card {
+  border-radius: 1rem;
+}
+
+.dashboard-shell[data-mode='overview'] .dashboard-card {
+  gap: 1.15rem;
+  padding: 1.18rem;
+}
+
+.dashboard-shell[data-mode='overview'] .stat-card {
+  padding: 0.9rem;
+}
+
+.dashboard-shell[data-mode='overview'] .stat-value {
+  font-size: 1.28rem;
+}
+
+.dashboard-shell[data-mode='operations'] .dashboard-card,
+.dashboard-shell[data-mode='operations'] .stat-card {
+  border-color: color-mix(in srgb, var(--accent-soft) 32%, var(--border));
+}
+
+.dashboard-shell[data-mode='operations'] .dashboard-card {
+  border-radius: 0.82rem;
+  gap: 0.85rem;
+  padding: 0.95rem;
+}
+
+.dashboard-shell[data-mode='operations'] .kpi-chip {
+  letter-spacing: 0.11em;
+}
+
+.dashboard-shell[data-mode='operations'] table thead th {
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-shell[data-mode='operations'] table tbody td {
+  padding-block: 0.43rem;
+}
+
+.dashboard-shell[data-mode='operations'] .legend-item {
+  border-style: dashed;
+}
+
+.dashboard-shell[data-mode='research'] .dashboard-card {
+  border-color: color-mix(in srgb, var(--accent-soft) 26%, var(--border));
+}
+
+.dashboard-shell[data-mode='research'] .dashboard-card,
+.dashboard-shell[data-mode='research'] .stat-card {
+  background: color-mix(in srgb, var(--surface) 90%, var(--accent) 10%);
+}
+
+.dashboard-shell[data-mode='research'] .legend-item {
+  background: color-mix(in srgb, var(--surface-soft) 86%, var(--accent) 14%);
+}
+
+.dashboard-shell[data-mode='research'] .kpi-chip {
+  background: color-mix(in srgb, var(--surface-soft) 80%, var(--accent) 20%);
 }
 
 .stat-card {
@@ -230,18 +351,82 @@ a {
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .icon-button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
 .icon-button:hover {
   border-color: var(--accent-soft);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-soft));
   color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+}
+
+.dark .icon-button {
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+}
+
+.dark .icon-button:hover {
+  background: color-mix(in srgb, var(--accent) 28%, var(--surface-soft));
+  border-color: color-mix(in srgb, var(--accent-soft) 70%, var(--border));
+}
+
+.kpi-chip[aria-live='polite'],
+.kpi-chip[data-state='success'] {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  color: var(--success);
+}
+
+.kpi-chip[data-state='warning'] {
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+  color: var(--warning);
+}
+
+.kpi-chip[data-state='error'] {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  color: var(--danger);
+}
+
+table thead th {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+table tbody tr {
+  border-top: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+}
+
+table tbody tr:hover {
+  background: color-mix(in srgb, var(--surface-soft) 72%, transparent);
+}
+
+.dark table thead th {
+  color: #f8fafc;
+}
+
+.dark table tbody tr {
+  border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+}
+
+.dark table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-soft));
+}
+
+.dark .hero-card,
+.dark .dashboard-card,
+.dark .stat-card,
+.dark .legend-item,
+.dark .kpi-chip {
+  backdrop-filter: blur(12px);
 }
 
 .station-map-popup .maplibregl-popup-content {
