@@ -1,12 +1,36 @@
 import { describe, expect, it } from 'vitest';
 import { computeTransfers, DEFAULT_LOGISTICS_CONFIG } from '@/lib/rebalancing-matching';
-import type { StationDiagnostic } from '@/types/rebalancing';
+import type { RiskAssessment, StationDiagnostic } from '@/types/rebalancing';
 
 const mockStations = [
   { id: '1', lat: 0, lon: 0 },
   { id: '2', lat: 0.01, lon: 0 },
   { id: '3', lat: 10, lon: 10 },
 ];
+
+const riskDonor: RiskAssessment = {
+  riskEmptyAt1h: 0,
+  riskEmptyAt3h: 0,
+  riskFullAt1h: 0.9,
+  riskFullAt3h: 0.5,
+  demandNextHour: 2,
+  demandNext3Hours: 6,
+  selfCorrectionProbability: 0,
+  estimatedRecoveryMinutes: null,
+  confidence: 0.8,
+};
+
+const riskReceptor: RiskAssessment = {
+  riskEmptyAt1h: 0.9,
+  riskEmptyAt3h: 0.6,
+  riskFullAt1h: 0,
+  riskFullAt3h: 0,
+  demandNextHour: 2,
+  demandNext3Hours: 6,
+  selfCorrectionProbability: 0,
+  estimatedRecoveryMinutes: null,
+  confidence: 0.8,
+};
 
 const donor: Partial<StationDiagnostic> = {
   stationId: '1',
@@ -15,7 +39,7 @@ const donor: Partial<StationDiagnostic> = {
   targetBand: { min: 0.3, max: 0.6 },
   actionGroup: 'donor',
   priorityScore: 0.8,
-  risk: { riskFullAt1h: 0.9, riskEmptyAt1h: 0, demandNextHour: 2 } as any,
+  risk: riskDonor,
 };
 
 const receptor: Partial<StationDiagnostic> = {
@@ -25,13 +49,17 @@ const receptor: Partial<StationDiagnostic> = {
   targetBand: { min: 0.3, max: 0.6 },
   actionGroup: 'receptor',
   priorityScore: 0.9,
-  risk: { riskFullAt1h: 0, riskEmptyAt1h: 0.9, demandNextHour: 2 } as any,
+  risk: riskReceptor,
 };
+
+function toDiagnostic(input: Partial<StationDiagnostic>): StationDiagnostic {
+  return input as unknown as StationDiagnostic;
+}
 
 describe('rebalancing-matching', () => {
   it('matches a donor and receptor successfully', () => {
     const transfers = computeTransfers(
-      [donor as any, receptor as any],
+      [toDiagnostic(donor), toDiagnostic(receptor)],
       mockStations,
       DEFAULT_LOGISTICS_CONFIG
     );
@@ -45,7 +73,7 @@ describe('rebalancing-matching', () => {
   it('ignores stations too far away', () => {
     const receptorFar = { ...receptor, stationId: '3' };
     const transfers = computeTransfers(
-      [donor as any, receptorFar as any],
+      [toDiagnostic(donor), toDiagnostic(receptorFar)],
       mockStations,
       DEFAULT_LOGISTICS_CONFIG
     );
