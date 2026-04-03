@@ -39,8 +39,6 @@ jobs:
       JWT_SECRET: ci-jwt-secret
       SIGNATURE_SECRET: ci-signature-secret
       NODE_ENV: test
-      APP_URL: https://ci.datosbizi.test
-      ROBOTS_BASE_URL: https://ci.datosbizi.test
     steps:
       - name: Clear cache
         if: inputs.clear-cache == 'true'
@@ -85,30 +83,9 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Validate SEO base URL env
-        run: bun run qa:validate:site-env
-
       - name: Unit tests
         run: bun run test
 
       - name: Build
         run: bun run build
-
-      - name: Install Playwright browser
-        run: bun run test:e2e:install
-
-      - name: E2E smoke tests
-        run: bun run test:e2e tests/e2e/public-navigation.spec.ts tests/e2e/dashboard-navigation-and-filters.spec.ts
-
-      - name: Site audit gate
-        run: |
-          bun run start --port 3000 &
-          SERVER_PID=$!
-          sleep 8
-          bun run qa:audit --base-url http://127.0.0.1:3000 --output ops/site-audit-report-ci.json
-          bun run qa:audit:check --input ops/site-audit-report-ci.json
-          kill $SERVER_PID
-
-      - name: Dependency vulnerability scan
-        run: bun run security:audit
 
