@@ -302,6 +302,7 @@ export function NeighborhoodMiniMap({
               longitude: -0.88,
               zoom: 10.6,
             }}
+            styleDiffing={false}
             style={{ width: '100%', height: '100%' }}
             mapStyle={MINI_MAP_STYLE}
             attributionControl={false}

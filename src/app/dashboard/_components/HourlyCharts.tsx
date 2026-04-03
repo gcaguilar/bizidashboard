@@ -10,12 +10,12 @@ import {
   Legend,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import { ChartWrapper } from './ChartWrapper';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
 type HourlyChartsProps = {
   stationId: string;
@@ -147,7 +147,7 @@ export function HourlyCharts({
         {hasData ? (
           <ChartWrapper height="h-[270px]">
             <div className="h-[270px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+              <MeasuredResponsiveContainer>
                 <LineChart data={chartData} margin={{ top: 6, right: 10, left: 0, bottom: 0 }}>
                   <XAxis
                     dataKey="hourLabel"
@@ -181,7 +181,7 @@ export function HourlyCharts({
                     connectNulls
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </MeasuredResponsiveContainer>
             </div>
           </ChartWrapper>
         ) : (

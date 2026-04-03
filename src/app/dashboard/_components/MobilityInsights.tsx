@@ -7,7 +7,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -44,6 +43,7 @@ import {
   type MobilityResponse,
   type PeriodInsights,
 } from './mobility-insights-model';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
 type MobilityInsightsProps = {
   stations: StationSnapshot[];
@@ -549,7 +549,7 @@ export function MobilityInsights({
               <>
                 <ChartWrapper height="h-[260px]">
                   <div className="mt-3 h-[260px]">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <MeasuredResponsiveContainer>
                       <AreaChart data={dailyCurveData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(234, 6, 21, 0.22)" />
                         <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={14} />
@@ -596,7 +596,7 @@ export function MobilityInsights({
                           strokeWidth={2}
                         />
                       </AreaChart>
-                    </ResponsiveContainer>
+                    </MeasuredResponsiveContainer>
                   </div>
                 </ChartWrapper>
                 <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>

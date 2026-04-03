@@ -6,7 +6,6 @@ import type { HeatmapCell } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import {
-  ResponsiveContainer,
   Scatter,
   ScatterChart,
   Tooltip,
@@ -14,6 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartWrapper } from './ChartWrapper';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
 type HeatmapProps = {
   stationId: string;
@@ -193,7 +193,7 @@ export function Heatmap({
         {hasData ? (
           <ChartWrapper height="h-[300px]">
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+              <MeasuredResponsiveContainer>
                 <ScatterChart margin={{ top: 16, right: 24, bottom: 20, left: 18 }}>
                   <XAxis
                     type="number"
@@ -249,7 +249,7 @@ export function Heatmap({
                     }}
                   />
                 </ScatterChart>
-              </ResponsiveContainer>
+              </MeasuredResponsiveContainer>
             </div>
           </ChartWrapper>
         ) : (
