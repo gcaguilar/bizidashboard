@@ -1,27 +1,30 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+const cspDirectives = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  // Keep inline scripts temporarily because the app renders JSON-LD tags server-side.
+  "script-src 'self' 'unsafe-inline' https://cloud.umami.is",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https://basemaps.cartocdn.com https://fonts.gstatic.com",
+  // Explicit Sentry + Umami endpoints to avoid telemetry regressions.
+  "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com https://o*.ingest.sentry.io https://sentry.io https://cloud.umami.is https://api-gateway.umami.dev",
+  "worker-src 'self' blob:",
+  "frame-src 'none'",
+  "manifest-src 'self'",
+  "media-src 'self' blob:",
+  'upgrade-insecure-requests',
+];
+
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "object-src 'none'",
-      "frame-ancestors 'none'",
-      "form-action 'self'",
-      // Umami Cloud: script from cloud.umami.is; tracker beacons use api-gateway.umami.dev (not *.umami.is).
-      "script-src 'self' 'unsafe-inline' https://cloud.umami.is",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data: https://basemaps.cartocdn.com https://fonts.gstatic.com",
-      "connect-src 'self' https://raw.githubusercontent.com https://basemaps.cartocdn.com https://*.cartocdn.com https://*.sentry.io https://*.umami.is https://cloud.umami.is https://api-gateway.umami.dev",
-      "worker-src 'self' blob:",
-      "frame-src 'none'",
-      "manifest-src 'self'",
-      "media-src 'self' blob:",
-      'upgrade-insecure-requests',
-    ].join('; '),
+    value: cspDirectives.join('; '),
   },
   {
     key: 'Cross-Origin-Embedder-Policy',
@@ -54,6 +57,13 @@ const securityHeaders = [
     value: 'DENY',
   },
 ];
+
+if (process.env.CSP_REPORT_ONLY === 'true') {
+  securityHeaders.push({
+    key: 'Content-Security-Policy-Report-Only',
+    value: cspDirectives.join('; '),
+  });
+}
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN?.trim();
 const hasSentryAuthToken = Boolean(sentryAuthToken);

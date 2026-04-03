@@ -7,6 +7,11 @@ import {
 import { toAbsoluteRouteUrl } from '@/lib/routes';
 import { SEO_SITE_NAME } from '@/lib/site';
 
+const SEO_LANGUAGE_ALTERNATES: Record<string, string> = {
+  'es-ES': '/',
+  'x-default': '/',
+};
+
 type BuildPageMetadataOptions = {
   title: string;
   description: string;
@@ -47,6 +52,7 @@ export function buildPageMetadata({
     keywords,
     alternates: {
       canonical: absoluteUrl,
+      languages: SEO_LANGUAGE_ALTERNATES,
     },
     robots: {
       index: indexabilityDecision.indexable,

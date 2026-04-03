@@ -13,7 +13,7 @@ import {
   getComparisonHubDataWithTimeout,
 } from '@/lib/comparison-hub';
 import { formatMonthLabel } from '@/lib/months';
-import { appRoutes } from '@/lib/routes';
+import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getCityName } from '@/lib/site';
 
@@ -193,7 +193,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
                 name: `Comparador ${cityName}`,
                 description:
                   'Comparativas activas entre estaciones, barrios, periodos y cambios del sistema.',
-                url: appRoutes.compare(),
+                url: toAbsoluteRouteUrl(appRoutes.compare()),
               },
             ],
           }),

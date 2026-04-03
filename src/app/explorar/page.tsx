@@ -12,7 +12,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { searchGlobalContent } from '@/lib/global-search';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
-import { appRoutes } from '@/lib/routes';
+import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
 import { getCityName } from '@/lib/site';
@@ -82,12 +82,12 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
                 name: `Hub Explorar ${cityName}`,
                 description:
                   'Indice publico de herramientas de analisis, comparativa, mapas, historico y movilidad.',
-                url: appRoutes.explore(),
+                url: toAbsoluteRouteUrl(appRoutes.explore()),
                 hasPart: itemList.map((item, index) => ({
                   '@type': 'ListItem',
                   position: index + 1,
                   name: item.title,
-                  url: item.href,
+                  url: toAbsoluteRouteUrl(item.href),
                 })),
               },
             ],

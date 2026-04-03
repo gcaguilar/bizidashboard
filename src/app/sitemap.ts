@@ -16,7 +16,6 @@ import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 
 export const revalidate = 3600;
-export const dynamic = 'force-dynamic';
 
 function toValidDate(value: string | null | undefined, fallback: Date): Date {
   if (!value) {
@@ -152,6 +151,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: entry.sitemap.changeFrequency,
     priority: entry.sitemap.priority,
   }));
+  const llmsEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${siteUrl}/llms.txt`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.6,
+    },
+    {
+      url: `${siteUrl}/llms-full.txt`,
+      lastModified,
+      changeFrequency: 'daily',
+      priority: 0.58,
+    },
+  ];
 
   const seoEntries: MetadataRoute.Sitemap = seoLandingData
     .filter((entry): entry is NonNullable<(typeof seoLandingData)[number]> => Boolean(entry))
@@ -262,6 +275,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return dedupeSitemapEntries([
     ...staticEntries,
+    ...llmsEntries,
     ...seoEntries,
     ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
     ...districtEntries,

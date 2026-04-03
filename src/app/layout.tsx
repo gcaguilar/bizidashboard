@@ -55,6 +55,10 @@ export const metadata: Metadata = {
   referrer: 'strict-origin-when-cross-origin',
   alternates: {
     canonical: appRoutes.home(),
+    languages: {
+      'es-ES': appRoutes.home(),
+      'x-default': appRoutes.home(),
+    },
   },
   icons: {
     icon: [
