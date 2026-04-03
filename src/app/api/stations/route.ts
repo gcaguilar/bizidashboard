@@ -38,14 +38,45 @@ function toCsv(
 
 export async function GET(request?: NextRequest): Promise<NextResponse> {
   if (!request) {
-    return NextResponse.json(
-      {
-        error: 'Request context required',
-        timestamp: new Date().toISOString(),
-        dataState: 'error',
-      },
-      { status: 500 }
-    );
+    try {
+      const payload = await withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
+        const [stations, dataset] = await Promise.all([
+          getStationsWithLatestStatus(),
+          getSharedDatasetSnapshot().catch(() => null),
+        ]);
+        return {
+          stations,
+          generatedAt: new Date().toISOString(),
+          dataState: resolveStationsDataState({
+            count: stations.length,
+            coverage: dataset?.coverage,
+            status: dataset?.pipeline,
+          }),
+        };
+      });
+
+      return NextResponse.json(payload, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=60',
+        },
+      });
+    } catch (error) {
+      captureExceptionWithContext(error, {
+        area: 'api.stations',
+        operation: 'GET /api/stations',
+      });
+      logger.error('api.stations.failed', { error });
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch stations',
+          timestamp: new Date().toISOString(),
+          dataState: 'error',
+        },
+        { status: 500 }
+      );
+    }
   }
 
   return withApiRequest(

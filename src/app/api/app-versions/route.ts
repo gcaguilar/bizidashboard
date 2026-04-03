@@ -76,7 +76,15 @@ function parseAppVersions(): AppVersionsResponse {
 
 const APP_VERSIONS = parseAppVersions();
 
-export async function GET(request: Request): Promise<NextResponse<AppVersionsResponse>> {
+export async function GET(request?: Request): Promise<NextResponse<AppVersionsResponse>> {
+  if (!request) {
+    return NextResponse.json(APP_VERSIONS, {
+      headers: {
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+      },
+    });
+  }
+
   return withApiRequest(
     request,
     {
