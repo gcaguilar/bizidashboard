@@ -9,19 +9,37 @@ function getPercentile(value: number, allValues: number[]): number {
 }
 
 export function classifyStation(
-  capacity: number,
-  currentBikes: number,
-  currentAnchors: number,
-  globalMetrics: StationBaseMetrics,
-  timeBandMetrics: TimeBandMetrics[],
-  targetBand: TargetBand,
-  allGlobalMetrics: Record<string, StationBaseMetrics>
+  capacityOrGlobalMetrics: number | StationBaseMetrics,
+  currentBikesOrTimeBandMetrics: number | TimeBandMetrics[],
+  currentAnchorsOrTargetBand: number | TargetBand,
+  globalMetricsOrRotationPercentile: StationBaseMetrics | number,
+  timeBandMetricsArg?: TimeBandMetrics[],
+  targetBandArg?: TargetBand,
+  allGlobalMetricsArg?: Record<string, StationBaseMetrics>
 ): { classification: StationClassification; reasons: string[] } {
+  const legacyCall = typeof capacityOrGlobalMetrics !== 'number';
+  const capacity = legacyCall ? 0 : capacityOrGlobalMetrics;
+  const currentBikes = legacyCall ? 0 : (currentBikesOrTimeBandMetrics as number);
+  const currentAnchors = legacyCall ? 0 : (currentAnchorsOrTargetBand as number);
+  const globalMetrics = legacyCall
+    ? (capacityOrGlobalMetrics as StationBaseMetrics)
+    : (globalMetricsOrRotationPercentile as StationBaseMetrics);
+  const timeBandMetrics = legacyCall
+    ? (currentBikesOrTimeBandMetrics as TimeBandMetrics[])
+    : (timeBandMetricsArg ?? []);
+  const targetBand = legacyCall
+    ? (currentAnchorsOrTargetBand as TargetBand)
+    : (targetBandArg as TargetBand);
+  const rotationPercentileLegacy = legacyCall
+    ? Math.max(0, Math.min(1, (globalMetricsOrRotationPercentile as number) / 100))
+    : null;
+  const allGlobalMetrics = legacyCall ? {} : (allGlobalMetricsArg ?? {});
+
   const reasons: string[] = [];
   
   // Rule F: Data review (Check first to ignore bad data)
   // Suspiciously stable with high movement, or capacity changes detected
-  const isAnomalousCapacity = currentBikes + currentAnchors !== capacity;
+  const isAnomalousCapacity = !legacyCall && currentBikes + currentAnchors !== capacity;
   if (isAnomalousCapacity) {
     reasons.push(`Revisar datos: la suma de bicis (${currentBikes}) y anclajes libres (${currentAnchors}) no coincide con la capacidad (${capacity})`);
     return { classification: 'data_review', reasons };
@@ -34,7 +52,8 @@ export function classifyStation(
 
   // Calculate percentiles
   const allRotations = Object.values(allGlobalMetrics).map((m) => m.rotationPerBike);
-  const rotationPercentile = getPercentile(globalMetrics.rotationPerBike, allRotations);
+  const rotationPercentile =
+    rotationPercentileLegacy ?? getPercentile(globalMetrics.rotationPerBike, allRotations);
 
   // Peak bands
   const peakBands = timeBandMetrics.filter((m) => m.timeBand === 'morning_peak' || m.timeBand === 'evening_peak');

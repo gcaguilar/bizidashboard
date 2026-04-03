@@ -2,7 +2,7 @@ import type { StationType, TargetBand, TimeBand } from '@/types/rebalancing';
 
 export const DEFAULT_TARGET_BANDS: Record<StationType, Record<TimeBand, TargetBand>> = {
   residential: {
-    morning_peak: { min: 0.30, max: 0.60 },
+    morning_peak: { min: 0.25, max: 0.55 },
     valley: { min: 0.35, max: 0.65 },
     evening_peak: { min: 0.40, max: 0.70 },
     night: { min: 0.50, max: 0.80 },
@@ -41,6 +41,20 @@ export const DEFAULT_TARGET_BANDS: Record<StationType, Record<TimeBand, TargetBa
 
 export function getTargetBand(type: StationType, timeBand: TimeBand): TargetBand {
   return DEFAULT_TARGET_BANDS[type]?.[timeBand] ?? DEFAULT_TARGET_BANDS.mixed[timeBand];
+}
+
+export function isWithinBand(occupancy: number, band: TargetBand): boolean {
+  return occupancy >= band.min && occupancy <= band.max;
+}
+
+export function bandDeviation(occupancy: number, band: TargetBand): number {
+  if (occupancy < band.min) {
+    return occupancy - band.min;
+  }
+  if (occupancy > band.max) {
+    return occupancy - band.max;
+  }
+  return 0;
 }
 
 export function getCurrentTimeBand(hour: number): TimeBand {

@@ -2,8 +2,10 @@ import { DayType } from '@/analytics/types';
 import type { StationType } from '@/types/rebalancing';
 import type { StationPatternRow } from '@/lib/api';
 
+type PatternInput = Pick<StationPatternRow, 'dayType' | 'hour' | 'occupancyAvg' | 'sampleCount'>;
+
 export function inferStationType(
-  patterns: StationPatternRow[]
+  patterns: PatternInput[]
 ): { type: StationType; confidence: number; reasons: string[] } {
   if (!patterns || patterns.length === 0) {
     return { type: 'mixed', confidence: 0.0, reasons: ['Sin datos de patrones, se asume tipo mixto'] };
@@ -13,7 +15,7 @@ export function inferStationType(
   const weekendPatterns = patterns.filter((p) => p.dayType === DayType.WEEKEND || p.dayType === 'WEEKEND');
 
   // Helper to average occupancy over specific hours
-  const avgOcc = (rows: StationPatternRow[], startHr: number, endHr: number) => {
+  const avgOcc = (rows: PatternInput[], startHr: number, endHr: number) => {
     const subset = rows.filter((r) => r.hour >= startHr && r.hour <= endHr);
     if (subset.length === 0) return 0;
     return subset.reduce((acc, curr) => acc + curr.occupancyAvg, 0) / subset.length;
@@ -27,8 +29,8 @@ export function inferStationType(
   const morningOcc = avgOcc(weekdayPatterns, 7, 9);
   const eveningOcc = avgOcc(weekdayPatterns, 17, 19);
 
-  const morningDrop = morningOcc - eveningOcc; // > 0 means it empties out after morning, fills in evening = residential
-  const eveningDrop = eveningOcc - morningOcc; // > 0 means it fills in morning, empties in evening = offices
+  const morningDrop = morningOcc - eveningOcc;
+  const eveningDrop = eveningOcc - morningOcc;
 
   const reasons: string[] = [];
   let type: StationType = 'mixed';
@@ -36,13 +38,13 @@ export function inferStationType(
 
   // We can refine this using weekend vs weekday differences if needed, but simple asymmetry covers 80% of use cases.
   if (morningDrop > 0.1) {
-    type = 'residential';
-    confidence = Math.min(0.9, 0.5 + morningDrop * 2);
-    reasons.push(`Patron residencial: la ocupacion matinal (${(morningOcc * 100).toFixed(1)}%) es significativamente mayor que la vespertina (${(eveningOcc * 100).toFixed(1)}%). Bicis salen por la manana y vuelven por la tarde.`);
-  } else if (eveningDrop > 0.1) {
     type = 'offices';
-    confidence = Math.min(0.9, 0.5 + eveningDrop * 2);
-    reasons.push(`Patron de oficinas/destinos: la ocupacion vespertina (${(eveningOcc * 100).toFixed(1)}%) es mayor que la matinal (${(morningOcc * 100).toFixed(1)}%). Bicis llegan por la manana y se retiran por la tarde.`);
+    confidence = Math.min(0.95, 0.55 + morningDrop * 2);
+    reasons.push(`Patron de oficinas: alta ocupacion por la manana y vaciado por la tarde.`);
+  } else if (eveningDrop > 0.1) {
+    type = 'residential';
+    confidence = Math.min(0.95, 0.55 + eveningDrop * 2);
+    reasons.push(`Patron residencial: baja ocupacion por la manana y recuperacion por la tarde.`);
   } else {
     // Check if it's consistently stable but we need external rotation metrics to classify intermodal/tourist perfectly.
     // For now, if no strong asymmetry, it's mixed.
@@ -52,10 +54,23 @@ export function inferStationType(
     const weekdayAvg = avgOcc(weekdayPatterns, 0, 23);
     const weekendAvg = avgOcc(weekendPatterns, 0, 23);
     
-    if (weekendAvg > weekdayAvg + 0.15) {
+    const weekendSample = weekendPatterns.reduce((acc, row) => acc + row.sampleCount, 0);
+    const weekdaySample = weekdayPatterns.reduce((acc, row) => acc + row.sampleCount, 0);
+    const nightRows = patterns.filter((p) => p.hour >= 21 || p.hour <= 2);
+    const totalSample = Math.max(
+      1,
+      patterns.reduce((acc, row) => acc + row.sampleCount, 0)
+    );
+    const nightShare = nightRows.reduce((acc, row) => acc + row.sampleCount, 0) / totalSample;
+
+    if (nightShare >= 0.35) {
+      type = 'leisure';
+      confidence = Math.max(confidence, 0.7);
+      reasons.push('Franja nocturna dominante en volumen de muestras.');
+    } else if (weekendSample > weekdaySample * 1.4 || weekendAvg > weekdayAvg + 0.15) {
       type = 'tourist';
-      reasons.push(`Patron turistico: ocupacion media en fin de semana superior a laborable.`);
-      confidence = 0.7;
+      reasons.push('Mayor demanda relativa en fin de semana frente a laborable.');
+      confidence = Math.max(confidence, 0.72);
     }
   }
 

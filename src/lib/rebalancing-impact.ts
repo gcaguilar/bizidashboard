@@ -24,6 +24,8 @@ export function computeReportImpact(
   const service = {
     pctTimeEmpty: Number((sumPctEmpty / stationCount).toFixed(4)),
     pctTimeFull: Number((sumPctFull / stationCount).toFixed(4)),
+    systemPctTimeEmpty: Number((sumPctEmpty / stationCount).toFixed(4)),
+    systemPctTimeFull: Number((sumPctFull / stationCount).toFixed(4)),
     avgCriticalEpisodeMinutes: Number((sumCriticalDuration / stationCount).toFixed(1)),
     totalRotation: Math.round(totalRotation),
     estimatedLostUses: Math.round(estimatedLostUses),
@@ -54,15 +56,21 @@ export function computeReportImpact(
     totalUsesRecovered,
     costPerIncidentAvoided: Number(costPerIncidentAvoided.toFixed(2)),
     improvementVsBaseline: 0, // Computed below
+    improvementVsBaselinePct: null as number | null,
   };
 
   // Baseline A: Do Nothing
   const doNothing = {
+    label: 'Sin intervención',
+    totalMoves: 0,
+    emptiesAvoided: 0,
+    fullsAvoided: 0,
     totalEmptiesAvoided: 0,
     totalFullsAvoided: 0,
     totalUsesRecovered: 0,
     costPerIncidentAvoided: 0,
     improvementVsBaseline: 0,
+    improvementVsBaselinePct: 0,
   };
 
   // Baseline B: Simple Rules (e.g. naive heuristic moving bikes if > 80% or < 20%)
@@ -83,11 +91,16 @@ export function computeReportImpact(
   const simpleCost = (simpleEmptiesAvoided + simpleFullsAvoided) * 1.5; // Guessed average cost
 
   const simpleRules = {
+    label: 'Reglas simples',
+    totalMoves: Math.round((simpleEmptiesAvoided + simpleFullsAvoided) / 2),
+    emptiesAvoided: simpleEmptiesAvoided,
+    fullsAvoided: simpleFullsAvoided,
     totalEmptiesAvoided: simpleEmptiesAvoided,
     totalFullsAvoided: simpleFullsAvoided,
     totalUsesRecovered: Math.round(simpleEmptiesAvoided * 2), // Rough estimate
     costPerIncidentAvoided: Number((simpleCost / Math.max(1, simpleEmptiesAvoided + simpleFullsAvoided)).toFixed(2)),
     improvementVsBaseline: 0,
+    improvementVsBaselinePct: 0,
   };
 
   // Relative improvement vs simple rules
@@ -99,9 +112,73 @@ export function computeReportImpact(
   } else if (ourIncidents > 0) {
     impact.improvementVsBaseline = 1.0;
   }
+  impact.improvementVsBaselinePct = Number((impact.improvementVsBaseline * 100).toFixed(1));
 
   return {
     kpis: { service, operation, impact },
-    baselineComparison: { doNothing, simpleRules, recommended: impact },
+    baselineComparison: {
+      doNothing,
+      simpleRules,
+      recommended: {
+        label: 'Sistema recomendado',
+        totalMoves: transfers.length,
+        emptiesAvoided: impact.totalEmptiesAvoided,
+        fullsAvoided: impact.totalFullsAvoided,
+        ...impact,
+      },
+    },
+  };
+}
+
+export function computeReportKPIs(
+  diagnostics: StationDiagnostic[],
+  transfers: TransferRecommendation[]
+) {
+  const { kpis } = computeReportImpact(diagnostics, transfers);
+  return {
+    ...kpis,
+    service: {
+      ...kpis.service,
+      systemPctTimeEmpty: kpis.service.pctTimeEmpty,
+      systemPctTimeFull: kpis.service.pctTimeFull,
+    },
+  };
+}
+
+export function computeBaselineComparison(
+  diagnostics: StationDiagnostic[],
+  transfers: TransferRecommendation[]
+) {
+  const { baselineComparison } = computeReportImpact(diagnostics, transfers);
+  return {
+    doNothing: {
+      ...baselineComparison.doNothing,
+      label: baselineComparison.doNothing.label ?? 'Do nothing',
+      totalMoves: baselineComparison.doNothing.totalMoves ?? 0,
+      emptiesAvoided: baselineComparison.doNothing.emptiesAvoided ?? 0,
+      fullsAvoided: baselineComparison.doNothing.fullsAvoided ?? 0,
+    },
+    simpleRules: {
+      ...baselineComparison.simpleRules,
+      label: baselineComparison.simpleRules.label ?? 'Simple rules',
+      totalMoves: baselineComparison.simpleRules.totalMoves ?? transfers.length,
+      emptiesAvoided:
+        baselineComparison.simpleRules.emptiesAvoided ??
+        baselineComparison.simpleRules.totalEmptiesAvoided,
+      fullsAvoided:
+        baselineComparison.simpleRules.fullsAvoided ??
+        baselineComparison.simpleRules.totalFullsAvoided,
+    },
+    recommended: {
+      ...baselineComparison.recommended,
+      label: baselineComparison.recommended.label ?? 'Recommended',
+      totalMoves: baselineComparison.recommended.totalMoves ?? transfers.length,
+      emptiesAvoided:
+        baselineComparison.recommended.emptiesAvoided ??
+        baselineComparison.recommended.totalEmptiesAvoided,
+      fullsAvoided:
+        baselineComparison.recommended.fullsAvoided ??
+        baselineComparison.recommended.totalFullsAvoided,
+    },
   };
 }

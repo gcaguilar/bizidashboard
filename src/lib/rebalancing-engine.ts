@@ -1,14 +1,37 @@
 import type { ActionGroup, Urgency, StationDiagnostic } from '@/types/rebalancing';
 
 export function decideAction(
-  diagnostic: Partial<StationDiagnostic>
+  diagnosticOrClassification: Partial<StationDiagnostic> | StationDiagnostic['classification'],
+  occupancyArg?: number,
+  targetBandArg?: StationDiagnostic['targetBand'],
+  _timeBandArg?: StationDiagnostic['currentTimeBand'],
+  riskArg?: StationDiagnostic['risk'],
+  networkArg?: StationDiagnostic['network'],
+  _capacityArg?: number
 ): { actionGroup: ActionGroup; urgency: Urgency; reasons: string[]; priorityScore: number } {
   const reasons: string[] = [];
+  const diagnostic: Partial<StationDiagnostic> =
+    typeof diagnosticOrClassification === 'string'
+      ? {
+          classification: diagnosticOrClassification,
+          risk: riskArg,
+          network: networkArg,
+          targetBand: targetBandArg,
+          currentBikes: occupancyArg ?? 0,
+          capacity: 1,
+        }
+      : diagnosticOrClassification;
+
   const risk = diagnostic.risk!;
   const classification = diagnostic.classification!;
   const network = diagnostic.network!;
   const targetBand = diagnostic.targetBand!;
-  const currentRatio = diagnostic.capacity! > 0 ? diagnostic.currentBikes! / diagnostic.capacity! : 0;
+  const currentRatio =
+    typeof occupancyArg === 'number'
+      ? occupancyArg
+      : diagnostic.capacity! > 0
+        ? diagnostic.currentBikes! / diagnostic.capacity!
+        : 0;
   
   const calculatePriority = (urgencyWeight: number, demandWeightBase: number) => {
     // Normalizing demand between 0 and 1 roughly (say max 20 rotations per hour)
