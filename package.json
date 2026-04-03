@@ -22,6 +22,8 @@
     "qa:seed": "tsx scripts/seed-qa-db.ts",
     "qa:audit": "tsx scripts/site-audit.ts",
     "qa:audit:check": "tsx scripts/check-site-audit.ts",
+    "qa:vitals:prod": "node scripts/collect-dashboard-vitals.mjs",
+    "qa:vitals:check": "node scripts/check-dashboard-vitals.mjs",
     "qa:ci:local": "./scripts/run-local-ci.sh",
     "qa:audit:prod": "tsx scripts/site-audit.ts --base-url https://datosbizi.com --output ops/site-audit-report-prod.json"
   },
