@@ -285,7 +285,7 @@ export const TOOL_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     label: 'Beta',
     sitemap: {
       changeFrequency: 'weekly',
-      priority: 0.85,
+      priority: 0.4,
     },
   },
   {

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local backups are intentionally kept as raw snapshots.
+    "ops/worktree-backups/**",
   ]),
 ]);
 

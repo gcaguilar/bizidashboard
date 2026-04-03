@@ -1,3 +1,33 @@
+# Worktrees Cleanup And Main Sync (2026-04-03)
+
+## Inventario de worktrees
+
+- `~/bizidashboard` -> rama `main`, **con cambios locales** (preservar).
+- `~/.cursor/worktrees/bizidashboard/bqe` -> rama `fix/umami-sentry-delivery`, **limpio**.
+- `~/.cursor/worktrees/bizidashboard/eqx` -> detached `dcc472e`, **limpio**.
+- `~/.cursor/worktrees/bizidashboard/qmn` -> detached `dcc472e`, **limpio**.
+- `~/.cursor/worktrees/bizidashboard/wlk` -> detached `dcc472e`, **limpio**.
+- `~/.cursor/worktrees/bizidashboard/wtb` -> detached `dcc472e`, **limpio**.
+- `~/.cursor/worktrees/bizidashboard/hgd` -> detached `ab24415`, **WIP sin commit** (rebalancing + tests).
+- `~/.cursor/worktrees/bizidashboard/uuh` -> detached `ab24415`, **WIP sin commit** (rebalancing core).
+- `~/.cursor/worktrees/bizidashboard/xfh` -> detached `ab24415`, **WIP sin commit** (rebalancing + docs/tests).
+- `~/.cursor/worktrees/bizidashboard/xke` -> detached `ab24415`, **WIP sin commit** (rebalancing + api/tests).
+- `~/.cursor/worktrees/bizidashboard/ysg` -> detached `ab24415`, **WIP sin commit** (rebalancing + README/tests).
+- Entrada prunable detectada: `~/bizidashboard/.worktrees/ci-check`.
+
+## Tareas pendientes detectadas
+
+- **Observabilidad:** rama `fix/umami-sentry-delivery` con 3 commits pendientes respecto de `main`.
+- **Refactor/perf:** rama `codex-solid-parallel-refactors` con 13 commits pendientes respecto de `main`.
+- **Rebalancing WIP detached:** varias implementaciones sin commit (API, paginas, motor, matching, tipologias, tests).
+
+## Criterios y decisiones aplicadas
+
+- "Completado" = worktree limpio.
+- WIP detached sin commit = respaldo en `.patch` antes de eliminar worktree.
+- Integracion a `main` = `cherry-pick` selectivo de commits pendientes.
+- Limpieza final = eliminar worktrees completados y ramas locales completadas.
+
 # 📑 Master Implementation Plan: Bizi Dashboard v2
 
 **Objetivo:** Evolucionar el dashboard de Bizi hacia una herramienta multi-rol con métricas analíticas avanzadas, manteniendo el rendimiento y la estabilidad.
@@ -20,7 +50,7 @@
 
 - [x] Conectar un modelo real al endpoint `/api/predictions`
 - [x] Afinar más la diferencia visual entre modos sin penalizar rendimiento
-- [ ] Medir en producción TTI/PageSpeed tras despliegue y ajustar según métricas reales
+- [x] Medir en producción TTI/PageSpeed tras despliegue y ajustar según métricas reales
 - [x] Valorar una separación mayor de `MapEngine` si el mapa sigue creciendo
 
 ---
@@ -186,7 +216,7 @@ $$Balance = 1 - \frac{2}{n} \sum_{i=1}^{n} | \text{occupancy}_i - 0.5 |$$
 
 ### [TASK-8.1] Adaptación de Estilos por Modo
 
-* [ ] **Acción:** Aplicar temas visuales ligeros:
+* [x] **Acción:** Aplicar temas visuales ligeros:
 * **Overview:** Minimalista, fuentes grandes, mucho espacio en blanco.
 * **Operations:** Dark mode (opcional) o alto contraste, tablas densas, alertas con parpadeo suave.
 * **Research:** Enfoque en visualización de datos, ejes de gráficos claros, leyendas interactivas.
