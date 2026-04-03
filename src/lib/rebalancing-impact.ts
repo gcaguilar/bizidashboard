@@ -1,213 +1,107 @@
-import type {
-  StationDiagnostic,
-  TransferRecommendation,
-  ReportKPIs,
-  BaselineComparison,
-  BaselineScenario,
-  ServiceKPIs,
-  OperationKPIs,
-  ImpactKPIs,
-} from '@/types/rebalancing';
+import type { StationDiagnostic, TransferRecommendation, BaselineComparison, ReportKPIs } from '@/types/rebalancing';
 
-// ─── Service KPIs ────────────────────────────────────────────────────────────
+export function computeReportImpact(
+  diagnostics: StationDiagnostic[],
+  transfers: TransferRecommendation[]
+): { kpis: ReportKPIs; baselineComparison: BaselineComparison } {
+  // Service KPIs
+  let sumPctEmpty = 0;
+  let sumPctFull = 0;
+  let sumCriticalDuration = 0;
+  let totalRotation = 0;
+  let estimatedLostUses = 0;
 
-function computeServiceKPIs(diagnostics: StationDiagnostic[]): ServiceKPIs {
-  if (diagnostics.length === 0) {
-    return {
-      systemPctTimeEmpty: 0,
-      systemPctTimeFull: 0,
-      avgCriticalEpisodeMinutes: 0,
-      totalRotation: 0,
-      estimatedLostUses: 0,
-    };
+  for (const d of diagnostics) {
+    sumPctEmpty += d.globalMetrics.pctTimeEmpty;
+    sumPctFull += d.globalMetrics.pctTimeFull;
+    sumCriticalDuration += d.globalMetrics.criticalEpisodeAvgMinutes;
+    totalRotation += d.globalMetrics.rotation;
+    estimatedLostUses += d.globalMetrics.unsatisfiedDemandProxy;
   }
 
-  const systemPctTimeEmpty =
-    diagnostics.reduce((sum, d) => sum + d.globalMetrics.pctTimeEmpty, 0) / diagnostics.length;
+  const stationCount = Math.max(1, diagnostics.length);
 
-  const systemPctTimeFull =
-    diagnostics.reduce((sum, d) => sum + d.globalMetrics.pctTimeFull, 0) / diagnostics.length;
-
-  const avgCriticalEpisodeMinutes =
-    diagnostics.reduce((sum, d) => sum + d.globalMetrics.criticalEpisodeAvgMinutes, 0) /
-    diagnostics.length;
-
-  const totalRotation = diagnostics.reduce((sum, d) => sum + d.globalMetrics.rotation, 0);
-
-  const estimatedLostUses = diagnostics.reduce(
-    (sum, d) => sum + d.globalMetrics.unsatisfiedDemandProxy,
-    0
-  );
-
-  return {
-    systemPctTimeEmpty,
-    systemPctTimeFull,
-    avgCriticalEpisodeMinutes,
-    totalRotation,
-    estimatedLostUses,
+  const service = {
+    pctTimeEmpty: Number((sumPctEmpty / stationCount).toFixed(4)),
+    pctTimeFull: Number((sumPctFull / stationCount).toFixed(4)),
+    avgCriticalEpisodeMinutes: Number((sumCriticalDuration / stationCount).toFixed(1)),
+    totalRotation: Math.round(totalRotation),
+    estimatedLostUses: Math.round(estimatedLostUses),
   };
-}
 
-// ─── Operation KPIs ──────────────────────────────────────────────────────────
+  // Operation KPIs
+  const totalBikesMoved = transfers.reduce((acc, t) => acc + t.bikesToMove, 0);
+  const totalCostScore = transfers.reduce((acc, t) => acc + t.expectedImpact.costScore, 0);
+  const avgCostPerTransfer = transfers.length > 0 ? totalCostScore / transfers.length : 0;
 
-function computeOperationKPIs(transfers: TransferRecommendation[]): OperationKPIs {
-  if (transfers.length === 0) {
-    return { suggestedTransfers: 0, totalBikesMoved: 0, totalCostScore: 0, avgCostPerTransfer: 0 };
-  }
-
-  const totalBikesMoved = transfers.reduce((sum, t) => sum + t.bikesToMove, 0);
-  const totalCostScore = transfers.reduce(
-    (sum, t) => sum + (1 - t.expectedImpact.costScore) * t.bikesToMove,
-    0
-  );
-
-  return {
+  const operation = {
     suggestedTransfers: transfers.length,
     totalBikesMoved,
-    totalCostScore,
-    avgCostPerTransfer: transfers.length > 0 ? totalCostScore / transfers.length : 0,
+    totalCostScore: Number(totalCostScore.toFixed(2)),
+    avgCostPerTransfer: Number(avgCostPerTransfer.toFixed(2)),
   };
-}
 
-// ─── Impact KPIs ─────────────────────────────────────────────────────────────
+  // Impact KPIs (recommended)
+  const totalEmptiesAvoided = transfers.reduce((acc, t) => acc + t.expectedImpact.emptiesAvoided, 0);
+  const totalFullsAvoided = transfers.reduce((acc, t) => acc + t.expectedImpact.fullsAvoided, 0);
+  const totalUsesRecovered = transfers.reduce((acc, t) => acc + t.expectedImpact.usesRecovered, 0);
+  const totalIncidents = totalEmptiesAvoided + totalFullsAvoided;
+  const costPerIncidentAvoided = totalIncidents > 0 ? totalCostScore / totalIncidents : 0;
 
-function computeImpactKPIs(
-  transfers: TransferRecommendation[],
-  service: ServiceKPIs
-): ImpactKPIs {
-  const totalEmptiesAvoided = transfers.reduce(
-    (sum, t) => sum + t.expectedImpact.emptiesAvoided,
-    0
-  );
-  const totalFullsAvoided = transfers.reduce(
-    (sum, t) => sum + t.expectedImpact.fullsAvoided,
-    0
-  );
-  const totalUsesRecovered = transfers.reduce(
-    (sum, t) => sum + t.expectedImpact.usesRecovered,
-    0
-  );
-
-  const totalIncidentsAvoided = totalEmptiesAvoided + totalFullsAvoided;
-  const totalCostScore = transfers.reduce(
-    (sum, t) => sum + (1 - t.expectedImpact.costScore) * t.bikesToMove,
-    0
-  );
-
-  const costPerIncidentAvoided =
-    totalIncidentsAvoided > 0 ? totalCostScore / totalIncidentsAvoided : null;
-
-  // Improvement vs baseline (do-nothing): percentage of estimated lost uses recovered
-  const improvementVsBaselinePct =
-    service.estimatedLostUses > 0
-      ? Math.min(100, (totalUsesRecovered / service.estimatedLostUses) * 100)
-      : null;
-
-  return {
+  const impact = {
     totalEmptiesAvoided,
     totalFullsAvoided,
     totalUsesRecovered,
-    costPerIncidentAvoided,
-    improvementVsBaselinePct,
+    costPerIncidentAvoided: Number(costPerIncidentAvoided.toFixed(2)),
+    improvementVsBaseline: 0, // Computed below
   };
-}
 
-// ─── Baseline comparison ─────────────────────────────────────────────────────
-
-function buildDoNothingBaseline(): BaselineScenario {
-  return {
-    label: 'Sin intervención',
-    emptiesAvoided: 0,
-    fullsAvoided: 0,
-    totalMoves: 0,
-    totalCostScore: 0,
-    costPerIncidentAvoided: null,
+  // Baseline A: Do Nothing
+  const doNothing = {
+    totalEmptiesAvoided: 0,
+    totalFullsAvoided: 0,
+    totalUsesRecovered: 0,
+    costPerIncidentAvoided: 0,
+    improvementVsBaseline: 0,
   };
-}
 
-/**
- * Simulates a naive "simple fixed rules" baseline:
- * Move bikes to any station outside 20-80% occupancy, no prediction or network check.
- * Assumes 50% effectiveness.
- */
-function buildSimpleRulesBaseline(diagnostics: StationDiagnostic[]): BaselineScenario {
-  const candidates = diagnostics.filter(
-    (d) =>
-      d.classification !== 'data_review' &&
-      (d.currentOccupancy < 0.20 || d.currentOccupancy > 0.80)
-  );
+  // Baseline B: Simple Rules (e.g. naive heuristic moving bikes if > 80% or < 20%)
+  // Estimation: say simple rules only catch 50% of the true predictive risk
+  let simpleEmptiesAvoided = 0;
+  let simpleFullsAvoided = 0;
 
-  const totalMoves = candidates.reduce((sum, d) => {
-    const deficit = d.currentOccupancy < 0.20
-      ? Math.max(2, Math.round((0.20 - d.currentOccupancy) * d.capacity))
-      : Math.max(2, Math.round((d.currentOccupancy - 0.80) * d.capacity));
-    return sum + deficit;
-  }, 0);
+  for (const d of diagnostics) {
+    const ratio = d.capacity > 0 ? d.currentBikes / d.capacity : 0;
+    if (ratio < 0.20) {
+      simpleEmptiesAvoided += Math.round(d.risk.riskEmptyAt1h * 2); // Assume naive moves 2 bikes
+    }
+    if (ratio > 0.80) {
+      simpleFullsAvoided += Math.round(d.risk.riskFullAt1h * 2);
+    }
+  }
 
-  // 50% effectiveness assumed
-  const effectiveness = 0.5;
-  const totalEmptiesAvoided =
-    candidates.filter((d) => d.currentOccupancy < 0.20).length * effectiveness;
-  const totalFullsAvoided =
-    candidates.filter((d) => d.currentOccupancy > 0.80).length * effectiveness;
-  const totalIncidents = totalEmptiesAvoided + totalFullsAvoided;
-  const costScore = totalMoves * 0.7; // fixed rules are less efficient, higher cost
+  const simpleCost = (simpleEmptiesAvoided + simpleFullsAvoided) * 1.5; // Guessed average cost
 
-  return {
-    label: 'Reglas fijas simples (20/80%)',
-    emptiesAvoided: totalEmptiesAvoided,
-    fullsAvoided: totalFullsAvoided,
-    totalMoves,
-    totalCostScore: costScore,
-    costPerIncidentAvoided: totalIncidents > 0 ? costScore / totalIncidents : null,
+  const simpleRules = {
+    totalEmptiesAvoided: simpleEmptiesAvoided,
+    totalFullsAvoided: simpleFullsAvoided,
+    totalUsesRecovered: Math.round(simpleEmptiesAvoided * 2), // Rough estimate
+    costPerIncidentAvoided: Number((simpleCost / Math.max(1, simpleEmptiesAvoided + simpleFullsAvoided)).toFixed(2)),
+    improvementVsBaseline: 0,
   };
-}
 
-function buildRecommendedBaseline(transfers: TransferRecommendation[]): BaselineScenario {
-  const totalEmptiesAvoided = transfers.reduce(
-    (sum, t) => sum + t.expectedImpact.emptiesAvoided,
-    0
-  );
-  const totalFullsAvoided = transfers.reduce(
-    (sum, t) => sum + t.expectedImpact.fullsAvoided,
-    0
-  );
-  const totalMoves = transfers.reduce((sum, t) => sum + t.bikesToMove, 0);
-  const totalCostScore = transfers.reduce(
-    (sum, t) => sum + (1 - t.expectedImpact.costScore) * t.bikesToMove,
-    0
-  );
-  const totalIncidents = totalEmptiesAvoided + totalFullsAvoided;
+  // Relative improvement vs simple rules
+  const ourIncidents = impact.totalEmptiesAvoided + impact.totalFullsAvoided;
+  const simpleIncidents = simpleRules.totalEmptiesAvoided + simpleRules.totalFullsAvoided;
+  
+  if (simpleIncidents > 0) {
+    impact.improvementVsBaseline = Number(((ourIncidents - simpleIncidents) / simpleIncidents).toFixed(2));
+  } else if (ourIncidents > 0) {
+    impact.improvementVsBaseline = 1.0;
+  }
 
   return {
-    label: 'Sistema recomendado',
-    emptiesAvoided: totalEmptiesAvoided,
-    fullsAvoided: totalFullsAvoided,
-    totalMoves,
-    totalCostScore,
-    costPerIncidentAvoided: totalIncidents > 0 ? totalCostScore / totalIncidents : null,
-  };
-}
-
-// ─── Public API ──────────────────────────────────────────────────────────────
-
-export function computeReportKPIs(
-  diagnostics: StationDiagnostic[],
-  transfers: TransferRecommendation[]
-): ReportKPIs {
-  const service = computeServiceKPIs(diagnostics);
-  const operation = computeOperationKPIs(transfers);
-  const impact = computeImpactKPIs(transfers, service);
-  return { service, operation, impact };
-}
-
-export function computeBaselineComparison(
-  diagnostics: StationDiagnostic[],
-  transfers: TransferRecommendation[]
-): BaselineComparison {
-  return {
-    doNothing: buildDoNothingBaseline(),
-    simpleRules: buildSimpleRulesBaseline(diagnostics),
-    recommended: buildRecommendedBaseline(transfers),
+    kpis: { service, operation, impact },
+    baselineComparison: { doNothing, simpleRules, recommended: impact },
   };
 }
