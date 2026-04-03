@@ -1,53 +1,86 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationPredictions } from '@/lib/predictions';
+import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { withApiRequest } from '@/lib/security/http';
+import { enforcePublicApiAccess } from '@/lib/security/public-api';
 
 export const dynamic = 'force-dynamic';
+const PUBLIC_ROUTE_RATE_LIMIT = {
+  limit: 30,
+  windowMs: 60_000,
+};
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const stationId = new URL(request.url).searchParams.get('stationId')?.trim() ?? '';
+  return withApiRequest(
+    request,
+    {
+      route: '/api/predictions',
+      routeGroup: 'public.api',
+    },
+    async ({ requestId, clientIp, userAgent }) => {
+      const stationId = new URL(request.url).searchParams.get('stationId')?.trim() ?? '';
 
-  if (!stationId) {
-    return NextResponse.json(
-      {
-        error: 'stationId is required',
-      },
-      { status: 400 }
-    );
-  }
+      if (!stationId) {
+        return NextResponse.json(
+          {
+            error: 'stationId is required',
+          },
+          { status: 400 }
+        );
+      }
 
-  try {
-    const payload = await getStationPredictions(stationId);
+      const access = await enforcePublicApiAccess({
+        route: '/api/predictions',
+        request,
+        requestId,
+        clientIp,
+        userAgent,
+        namespace: 'public-predictions',
+        limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
+        windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
+        requireApiKey: false,
+      });
 
-    if (!payload) {
-      return NextResponse.json(
-        {
-          error: 'station not found',
-        },
-        { status: 404 }
-      );
+      if (!access.ok) {
+        return access.response;
+      }
+
+      try {
+        const payload = await getStationPredictions(stationId);
+
+        if (!payload) {
+          return NextResponse.json(
+            {
+              error: 'station not found',
+            },
+            { status: 404, headers: access.headers }
+          );
+        }
+
+        return NextResponse.json(payload, {
+          status: 200,
+          headers: {
+            'Cache-Control': 'public, max-age=60, stale-while-revalidate=60',
+            ...access.headers,
+          },
+        });
+      } catch (error) {
+        captureExceptionWithContext(error, {
+          area: 'api.predictions',
+          operation: 'GET /api/predictions',
+          extra: { stationId },
+        });
+        logger.error('api.predictions.failed', { error });
+
+        return NextResponse.json(
+          {
+            error: 'Failed to generate predictions',
+            timestamp: new Date().toISOString(),
+          },
+          { status: 500, headers: access.headers }
+        );
+      }
     }
-
-    return NextResponse.json(payload, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=60',
-      },
-    });
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'api.predictions',
-      operation: 'GET /api/predictions',
-      extra: { stationId },
-    });
-    console.error('[API Predictions] Error generating predictions:', error);
-
-    return NextResponse.json(
-      {
-        error: 'Failed to generate predictions',
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
-    );
-  }
+  );
 }
