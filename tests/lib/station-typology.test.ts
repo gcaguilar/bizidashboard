@@ -4,7 +4,7 @@ import { DayType } from '@/analytics/types';
 import type { StationPatternRow } from '@/lib/api';
 
 describe('station-typology', () => {
-  it('infers residential pattern when morning occupancy > evening occupancy', () => {
+  it('infers offices pattern when morning occupancy > evening occupancy', () => {
     const patterns: StationPatternRow[] = [
       {
         stationId: '1',
@@ -22,34 +22,6 @@ describe('station-typology', () => {
         occupancyAvg: 0.2,
         bikesAvg: 4,
         anchorsAvg: 16,
-        sampleCount: 10,
-      },
-    ];
-
-    const { type, reasons } = inferStationType(patterns);
-
-    expect(type).toBe('residential');
-    expect(reasons[0]).toContain('Patron residencial');
-  });
-
-  it('infers offices pattern when evening occupancy > morning occupancy', () => {
-    const patterns: StationPatternRow[] = [
-      {
-        stationId: '1',
-        dayType: DayType.WEEKDAY,
-        hour: 8,
-        occupancyAvg: 0.2,
-        bikesAvg: 4,
-        anchorsAvg: 16,
-        sampleCount: 10,
-      },
-      {
-        stationId: '1',
-        dayType: DayType.WEEKDAY,
-        hour: 18,
-        occupancyAvg: 0.8,
-        bikesAvg: 16,
-        anchorsAvg: 4,
         sampleCount: 10,
       },
     ];
@@ -58,6 +30,34 @@ describe('station-typology', () => {
 
     expect(type).toBe('offices');
     expect(reasons[0]).toContain('Patron de oficinas');
+  });
+
+  it('infers residential pattern when evening occupancy > morning occupancy', () => {
+    const patterns: StationPatternRow[] = [
+      {
+        stationId: '1',
+        dayType: DayType.WEEKDAY,
+        hour: 8,
+        occupancyAvg: 0.2,
+        bikesAvg: 4,
+        anchorsAvg: 16,
+        sampleCount: 10,
+      },
+      {
+        stationId: '1',
+        dayType: DayType.WEEKDAY,
+        hour: 18,
+        occupancyAvg: 0.8,
+        bikesAvg: 16,
+        anchorsAvg: 4,
+        sampleCount: 10,
+      },
+    ];
+
+    const { type, reasons } = inferStationType(patterns);
+
+    expect(type).toBe('residential');
+    expect(reasons[0]).toContain('Patron residencial');
   });
 
   it('infers mixed pattern when no strong asymmetry exists', () => {

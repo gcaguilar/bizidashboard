@@ -8,6 +8,13 @@ vi.mock('@/lib/rebalancing-report', () => ({
   }),
 }));
 
+vi.mock('@/lib/security/public-api', () => ({
+  enforcePublicApiAccess: vi.fn().mockResolvedValue({
+    ok: true,
+    headers: {},
+  }),
+}));
+
 import { GET } from '@/app/api/rebalancing-report/route';
 
 describe('API rebalancing-report', () => {
