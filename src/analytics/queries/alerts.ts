@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS, AlertType } from '@/analytics/types';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
+import { chunkRowsForBulkQuery } from '@/analytics/queries/bulk-upsert';
 
 export interface RollupResult {
   processedCount: number;
@@ -114,26 +115,28 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
   await deactivateActiveAlerts();
 
   if (alerts.length > 0) {
-    const values = alerts.map((alert) =>
-      Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
-    );
+    for (const chunk of chunkRowsForBulkQuery(alerts, 7)) {
+      const values = chunk.map((alert) =>
+        Prisma.sql`(${alert.stationId}, ${alert.alertType}, ${alert.severity}, ${alert.metricValue}, ${alert.windowHours}, ${alert.generatedAt}, ${alert.isActive})`
+      );
 
-    await prisma.$executeRaw`
-      INSERT INTO "StationAlert" (
-        "stationId",
-        "alertType",
-        severity,
-        "metricValue",
-        "windowHours",
-        "generatedAt",
-        "isActive"
-      )
-      VALUES ${Prisma.join(values)}
-      ON CONFLICT("stationId", "alertType", "windowHours", "generatedAt") DO UPDATE SET
-        severity = excluded.severity,
-        "metricValue" = excluded."metricValue",
-        "isActive" = excluded."isActive";
-    `;
+      await prisma.$executeRaw`
+        INSERT INTO "StationAlert" (
+          "stationId",
+          "alertType",
+          severity,
+          "metricValue",
+          "windowHours",
+          "generatedAt",
+          "isActive"
+        )
+        VALUES ${Prisma.join(values)}
+        ON CONFLICT("stationId", "alertType", "windowHours", "generatedAt") DO UPDATE SET
+          severity = excluded.severity,
+          "metricValue" = excluded."metricValue",
+          "isActive" = excluded."isActive";
+      `;
+    }
   }
 
   await setWatermark(ALERT_WATERMARK, windowEnd);
