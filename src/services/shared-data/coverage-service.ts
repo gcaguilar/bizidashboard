@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { cache } from 'react';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
 import type { CoverageSummary, HistoryMetadata, SharedDataSource } from './types';
@@ -54,7 +55,7 @@ export function getSharedDataSource(): SharedDataSource {
   };
 }
 
-export async function getCoverageSummary(): Promise<CoverageSummary> {
+export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
   return withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
     const generatedAt = new Date().toISOString();
     const [coverageRows, stationRows, hourlyDaysRows, dailyDaysRows] = await Promise.all([
@@ -109,9 +110,9 @@ export async function getCoverageSummary(): Promise<CoverageSummary> {
       generatedAt,
     };
   });
-}
+});
 
-export async function getHistoryMetadata(): Promise<HistoryMetadata> {
+export const getHistoryMetadata = cache(async (): Promise<HistoryMetadata> => {
   const coverage = await getCoverageSummary();
 
   return {
@@ -119,4 +120,4 @@ export async function getHistoryMetadata(): Promise<HistoryMetadata> {
     coverage,
     generatedAt: coverage.generatedAt,
   };
-}
+});

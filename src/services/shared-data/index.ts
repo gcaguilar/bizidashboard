@@ -1,51 +1,36 @@
 import 'server-only';
 
+import { cache } from 'react';
 import { getCoverageSummary, getSharedDataSource, getHistoryMetadata } from './coverage-service';
-import { getDatasetStatsSummary } from './dataset-stats-service';
-import { getLastUpdatedSummary } from './last-updated-service';
 import { getPipelineStatusSummary } from './pipeline-status-service';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
-import type { SharedDatasetSnapshot } from './types';
+import type { CoverageSummary, SharedDatasetSnapshot } from './types';
 
 export * from './types';
-export { getCoverageSummary, getDatasetStatsSummary, getHistoryMetadata, getLastUpdatedSummary, getPipelineStatusSummary, getSharedDataSource };
+export { getCoverageSummary, getHistoryMetadata, getPipelineStatusSummary, getSharedDataSource };
 
-export async function getSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot> {
+function buildFallbackCoverage(nowIso: string): CoverageSummary {
+  return {
+    firstRecordedAt: null,
+    lastRecordedAt: null,
+    totalSamples: 0,
+    totalStations: 0,
+    totalDays: 0,
+    generatedAt: nowIso,
+  };
+}
+
+export const getSharedDatasetSnapshot = cache(async (): Promise<SharedDatasetSnapshot> => {
   const nowIso = new Date().toISOString();
-  const [coverageResult, lastUpdatedResult, statsResult, pipelineResult] = await Promise.allSettled([
+  const [coverageResult, pipelineResult] = await Promise.allSettled([
     getCoverageSummary(),
-    getLastUpdatedSummary(),
-    getDatasetStatsSummary(),
     getPipelineStatusSummary(),
   ]);
 
   const coverage =
     coverageResult.status === 'fulfilled'
       ? coverageResult.value
-      : {
-          firstRecordedAt: null,
-          lastRecordedAt: null,
-          totalSamples: 0,
-          totalStations: 0,
-          totalDays: 0,
-          generatedAt: nowIso,
-        };
-  const lastUpdated =
-    lastUpdatedResult.status === 'fulfilled'
-      ? lastUpdatedResult.value
-      : {
-          lastSampleAt: null,
-          generatedAt: nowIso,
-        };
-  const stats =
-    statsResult.status === 'fulfilled'
-      ? statsResult.value
-      : {
-          totalSamples: 0,
-          totalStations: 0,
-          totalDays: 0,
-          generatedAt: nowIso,
-        };
+      : buildFallbackCoverage(nowIso);
   const pipeline =
     pipelineResult.status === 'fulfilled'
       ? pipelineResult.value
@@ -104,22 +89,6 @@ export async function getSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot>
       extra: { reason: String(coverageResult.reason) },
     });
   }
-  if (lastUpdatedResult.status === 'rejected') {
-    captureWarningWithContext('Shared dataset snapshot degraded: lastUpdated fallback applied.', {
-      area: 'shared-data.snapshot',
-      operation: 'getSharedDatasetSnapshot',
-      dedupeKey: 'shared-data.snapshot.lastUpdated-fallback',
-      extra: { reason: String(lastUpdatedResult.reason) },
-    });
-  }
-  if (statsResult.status === 'rejected') {
-    captureWarningWithContext('Shared dataset snapshot degraded: stats fallback applied.', {
-      area: 'shared-data.snapshot',
-      operation: 'getSharedDatasetSnapshot',
-      dedupeKey: 'shared-data.snapshot.stats-fallback',
-      extra: { reason: String(statsResult.reason) },
-    });
-  }
   if (pipelineResult.status === 'rejected') {
     captureWarningWithContext('Shared dataset snapshot degraded: pipeline fallback applied.', {
       area: 'shared-data.snapshot',
@@ -132,8 +101,16 @@ export async function getSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot>
   return {
     source: getSharedDataSource(),
     coverage,
-    lastUpdated,
-    stats,
+    lastUpdated: {
+      lastSampleAt: coverage.lastRecordedAt,
+      generatedAt: coverage.generatedAt,
+    },
+    stats: {
+      totalSamples: coverage.totalSamples,
+      totalStations: coverage.totalStations,
+      totalDays: coverage.totalDays,
+      generatedAt: coverage.generatedAt,
+    },
     pipeline,
   };
-}
+});
