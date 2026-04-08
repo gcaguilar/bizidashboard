@@ -20,7 +20,6 @@ import {
   buildFallbackStatus,
   buildFallbackStations,
 } from '@/lib/shared-data-fallbacks';
-import { BetaBanner } from './_components/BetaBanner';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -208,7 +207,6 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <BetaBanner />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

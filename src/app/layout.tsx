@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Inter } from "next/font/google";
 import Script from "next/script";
+import { BetaBanner } from "@/app/dashboard/_components/BetaBanner";
 import { appRoutes } from "@/lib/routes";
 import {
   SEO_SITE_DESCRIPTION,
@@ -184,6 +185,7 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         ) : null}
+        <BetaBanner />
         {children}
         <script
           type="application/ld+json"
