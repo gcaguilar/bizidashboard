@@ -108,6 +108,10 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+            NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${{ vars.NEXT_PUBLIC_UMAMI_SCRIPT_SRC }}
+            NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
           cache-from: type=gha,scope=${{ runner.os }}-docker
           cache-to: type=gha,mode=max,scope=${{ runner.os }}-docker
           provenance: false
