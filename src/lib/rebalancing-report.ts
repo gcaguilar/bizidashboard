@@ -72,7 +72,6 @@ export async function buildRebalancingReport(options: {
     const currentTimeBand = getCurrentTimeBand(currentHour);
 
     const diagnostics: StationDiagnostic[] = [];
-    const allGlobalMetrics = Object.values(globalMetricsMap);
 
     // 3. Process each station
     for (const station of stations) {
