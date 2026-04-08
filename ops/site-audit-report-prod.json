@@ -1,12 +1,40 @@
 {
-  "generated_at": "2026-04-08T11:59:24.829Z",
+  "generated_at": "2026-04-08T12:32:41.945Z",
   "base_url": "https://datosbizi.com",
   "summary": {
-    "crawled_pages": 410,
-    "checked_urls": 443,
+    "crawled_pages": 398,
+    "checked_urls": 431,
     "sitemap_entries": 0
   },
-  "broken_links": [],
+  "broken_links": [
+    {
+      "source": "https://datosbizi.com/dashboard/conclusiones",
+      "href": "/informes/2026-03",
+      "target": "https://datosbizi.com/informes/2026-03",
+      "finalUrl": "https://datosbizi.com/informes/2026-03",
+      "status": 524,
+      "redirects": [],
+      "reason": "HTTP 524"
+    },
+    {
+      "source": "https://datosbizi.com/dashboard/conclusiones",
+      "href": "/informes/2026-04",
+      "target": "https://datosbizi.com/informes/2026-04",
+      "finalUrl": "https://datosbizi.com/informes/2026-04",
+      "status": 524,
+      "redirects": [],
+      "reason": "HTTP 524"
+    },
+    {
+      "source": "https://datosbizi.com/explorar",
+      "href": "/informes/2026-04",
+      "target": "https://datosbizi.com/informes/2026-04",
+      "finalUrl": "https://datosbizi.com/informes/2026-04",
+      "status": 524,
+      "redirects": [],
+      "reason": "HTTP 524"
+    }
+  ],
   "redirects": [
     {
       "url": "https://datosbizi.com/beta",
@@ -116,10 +144,6 @@
       },
       {
         "url": "https://datosbizi.com/barrios/oliver-valdefierro",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/barrios/san-jose",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1319,19 +1343,19 @@
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/124",
+        "url": "https://datosbizi.com/estaciones/13",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/126",
+        "url": "https://datosbizi.com/estaciones/132",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/128",
+        "url": "https://datosbizi.com/estaciones/137",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/14",
+        "url": "https://datosbizi.com/estaciones/139",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1343,15 +1367,7 @@
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/16",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
         "url": "https://datosbizi.com/estaciones/163",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/164",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1387,7 +1403,7 @@
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/198",
+        "url": "https://datosbizi.com/estaciones/196",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1396,10 +1412,6 @@
       },
       {
         "url": "https://datosbizi.com/estaciones/20",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/204",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1448,6 +1460,10 @@
       },
       {
         "url": "https://datosbizi.com/estaciones/230",
+        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
+      },
+      {
+        "url": "https://datosbizi.com/estaciones/24",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1519,10 +1535,6 @@
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/38",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
         "url": "https://datosbizi.com/estaciones/39",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
@@ -1532,14 +1544,6 @@
       },
       {
         "url": "https://datosbizi.com/estaciones/40",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/43",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/47",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1579,15 +1583,7 @@
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
-        "url": "https://datosbizi.com/estaciones/60",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
         "url": "https://datosbizi.com/estaciones/61",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/68",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1620,14 +1616,6 @@
       },
       {
         "url": "https://datosbizi.com/estaciones/8",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/81",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/estaciones/82",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
@@ -1672,14 +1660,6 @@
       },
       {
         "url": "https://datosbizi.com/informes",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/informes/2026-03",
-        "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
-      },
-      {
-        "url": "https://datosbizi.com/informes/2026-04",
         "reason": "La ruta responde con HTML 200, pero no aparece en el sitemap."
       },
       {
