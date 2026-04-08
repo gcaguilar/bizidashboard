@@ -5,7 +5,12 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
-import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
+import {
+  fetchAvailableDataMonths,
+  fetchHistoryMetadata,
+  fetchSharedDatasetSnapshot,
+  fetchStatus,
+} from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
@@ -18,6 +23,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { getSeoPageConfig } from '@/lib/seo-pages';
 import { slugifyDistrictName } from '@/lib/seo-districts';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -103,27 +109,33 @@ function buildFallbackPayload(month: string): MobilityConclusionsPayload {
   };
 }
 
+function mergeMonthCandidates(months: string[]): string[] {
+  const monthSet = new Set<string>();
+  for (const month of months) {
+    if (isValidMonthKey(month)) {
+      monthSet.add(month);
+    }
+  }
+  return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
+}
+
 async function getAvailableMonths(): Promise<string[]> {
-  const [monthsResponse, monthlySeries] = await Promise.all([
+  const [monthsResponse, monthlySeries, historyMeta, status] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({
       months: [],
       generatedAt: new Date().toISOString(),
     })),
     fetchCachedMonthlyDemandCurve(36).catch(() => []),
+    fetchHistoryMetadata().catch(() => null),
+    fetchStatus().catch(() => null),
   ]);
 
-  const monthSet = new Set<string>();
-
-  for (const month of [
+  return mergeMonthCandidates([
     ...monthsResponse.months,
     ...monthlySeries.map((row) => row.monthKey),
-  ]) {
-    if (isValidMonthKey(month)) {
-      monthSet.add(month);
-    }
-  }
-
-  return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
+    ...(historyMeta?.coverage.lastRecordedAt ? [historyMeta.coverage.lastRecordedAt.slice(0, 7)] : []),
+    ...(status?.pipeline.lastSuccessfulPoll ? [status.pipeline.lastSuccessfulPoll.slice(0, 7)] : []),
+  ]);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -138,7 +150,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const payload = hasMonthPublished
     ? await getDailyMobilityConclusions(month)
         .then((result) => result.payload)
-        .catch(() => buildFallbackPayload(month))
+        .catch((error) => {
+          captureExceptionWithContext(error, {
+            area: 'reports.monthly',
+            operation: 'generateMetadata.getDailyMobilityConclusions',
+            dedupeKey: `reports.monthly.metadata.conclusions.failed.${month}`,
+            extra: { month },
+          });
+          return buildFallbackPayload(month);
+        })
     : buildFallbackPayload(month);
   const monthLabel = formatMonthLabel(month);
   const reportDataState = resolveDataState({
@@ -217,8 +237,24 @@ export default async function MonthlyReportPage({ params }: PageProps) {
   const [payload, dataset] = await Promise.all([
     getDailyMobilityConclusions(month)
       .then((result) => result.payload)
-      .catch(() => buildFallbackPayload(month)),
-    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+      .catch((error) => {
+        captureExceptionWithContext(error, {
+          area: 'reports.monthly',
+          operation: 'page.getDailyMobilityConclusions',
+          dedupeKey: `reports.monthly.page.conclusions.failed.${month}`,
+          extra: { month },
+        });
+        return buildFallbackPayload(month);
+      }),
+    fetchSharedDatasetSnapshot().catch((error) => {
+      captureExceptionWithContext(error, {
+        area: 'reports.monthly',
+        operation: 'page.fetchSharedDatasetSnapshot',
+        dedupeKey: 'reports.monthly.page.fetchSharedDatasetSnapshot.failed',
+        extra: { month },
+      });
+      return buildFallbackDatasetSnapshot(nowIso);
+    }),
   ]);
 
   const monthLabel = formatMonthLabel(month);

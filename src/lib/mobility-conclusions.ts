@@ -2,6 +2,7 @@ import 'server-only';
 
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
@@ -14,6 +15,7 @@ const madridDateFormatter = new Intl.DateTimeFormat('en-CA', {
   month: '2-digit',
   day: '2-digit',
 });
+const MONTHLY_CONCLUSIONS_CACHE_TTL_SECONDS = 900;
 let hasReportedMissingMobilityBriefingCacheTable = false;
 
 type CoverageRow = {
@@ -721,8 +723,14 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
   const dateKey = getMadridDateKey();
 
   if (monthKey && isValidMonthKey(monthKey)) {
+    const cacheKey = `mobility:conclusions:month=${monthKey}`;
+    const payload = await withCache(
+      cacheKey,
+      MONTHLY_CONCLUSIONS_CACHE_TTL_SECONDS,
+      async () => buildMobilityConclusionsPayload(dateKey, monthKey)
+    );
     return {
-      payload: await buildMobilityConclusionsPayload(dateKey, monthKey),
+      payload,
       fromCache: false,
     };
   }

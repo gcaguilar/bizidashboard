@@ -13,8 +13,8 @@ import { evaluatePageIndexability } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getStationSeoRows } from '@/lib/seo-stations';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
-import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 
 export const revalidate = 3600;
 
@@ -194,63 +194,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.72,
     }));
 
-  const reportEntries = await Promise.all(
-    validMonths.map(async (month) => {
-      const payload = await getDailyMobilityConclusions(month)
-        .then((result) => result.payload)
-        .catch(() => null);
-
-      const decision = evaluatePageIndexability({
-        path: appRoutes.reportMonth(month),
-        pageType: 'report',
-        dataState: resolveDataState({
-          hasCoverage:
-            Boolean(payload?.sourceFirstDay) ||
-            Boolean(payload?.sourceLastDay) ||
-            Number(payload?.totalHistoricalDays ?? 0) > 0,
-          hasData:
-            Number(payload?.activeStations ?? 0) > 0 ||
-            Number(payload?.topStationsByDemand.length ?? 0) > 0 ||
-            Number(payload?.highlights.length ?? 0) > 0,
-          isPartial:
-            Number(payload?.totalHistoricalDays ?? 0) > 0 &&
-            Number(payload?.totalHistoricalDays ?? 0) < 21,
-        }),
-        hasMeaningfulContent: true,
-        hasData:
-          Number(payload?.activeStations ?? 0) > 0 ||
-          Number(payload?.topStationsByDemand.length ?? 0) > 0 ||
-          Number(payload?.highlights.length ?? 0) > 0,
-        requiresStrongCoverage: true,
-        thresholds: [
-          {
-            label: 'active-stations',
-            current: Number(payload?.activeStations ?? 0),
-            minimum: 5,
-          },
-          {
-            label: 'report-insights',
-            current:
-              Number(payload?.highlights.length ?? 0) +
-              Number(payload?.topStationsByDemand.length ?? 0) +
-              Number(payload?.topDistrictsByDemand.length ?? 0),
-            minimum: 3,
-          },
-        ],
-      });
-
-      if (!decision.includeInSitemap) {
-        return null;
-      }
-
-      return {
-        url: `${siteUrl}${decision.canonicalPath}`,
-        lastModified: toValidDate(payload?.generatedAt, lastModified),
-        changeFrequency: 'monthly' as const,
-        priority: 0.74,
-      };
-    })
-  );
+  const reportEntries: MetadataRoute.Sitemap = validMonths.map((month) => ({
+    url: `${siteUrl}${appRoutes.reportMonth(month)}`,
+    lastModified,
+    changeFrequency: 'monthly',
+    priority: 0.74,
+  }));
 
   const districtEntries: MetadataRoute.Sitemap = districtRows
     .filter((district) =>
@@ -294,11 +243,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...staticEntries,
       ...llmsEntries,
       ...seoEntries,
-      ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
+      ...reportEntries,
       ...districtEntries,
       ...stationEntries,
     ]);
-  } catch {
+  } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'sitemap',
+      operation: 'generateSitemap',
+      dedupeKey: 'sitemap.generate.failed',
+      extra: {
+        siteUrl,
+      },
+    });
     // Never fail sitemap generation entirely: return a safe static subset.
     return dedupeSitemapEntries(buildFallbackStaticEntries(siteUrl, lastModified));
   }

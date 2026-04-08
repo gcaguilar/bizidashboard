@@ -5,13 +5,19 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
-import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
+import {
+  fetchAvailableDataMonths,
+  fetchHistoryMetadata,
+  fetchSharedDatasetSnapshot,
+  fetchStatus,
+} from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
@@ -45,6 +51,16 @@ function resolveSnapshotMonthFallback(lastSampleAt: string | null): string[] {
 
   const monthKey = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}`;
   return isValidMonthKey(monthKey) ? [monthKey] : [];
+}
+
+function mergeMonthCandidates(months: string[]): string[] {
+  const set = new Set<string>();
+  for (const month of months) {
+    if (isValidMonthKey(month)) {
+      set.add(month);
+    }
+  }
+  return Array.from(set).sort((left, right) => right.localeCompare(left));
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -112,20 +128,44 @@ function formatPercent(value: number | null): string {
 export default async function ReportsIndexPage() {
   const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
-  const [monthsResponse, monthlySeries, dataset] = await Promise.all([
-    fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: new Date().toISOString() })),
+  const [monthsResponse, monthlySeries, dataset, historyMeta, status] = await Promise.all([
+    fetchAvailableDataMonths().catch((error) => {
+      captureExceptionWithContext(error, {
+        area: 'reports.index',
+        operation: 'fetchAvailableDataMonths',
+        dedupeKey: 'reports.index.fetchAvailableDataMonths.failed',
+      });
+      return { months: [], generatedAt: new Date().toISOString() };
+    }),
     fetchCachedMonthlyDemandCurve(24).catch(() => []),
-    fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
+    fetchSharedDatasetSnapshot().catch((error) => {
+      captureExceptionWithContext(error, {
+        area: 'reports.index',
+        operation: 'fetchSharedDatasetSnapshot',
+        dedupeKey: 'reports.index.fetchSharedDatasetSnapshot.failed',
+      });
+      return buildFallbackDatasetSnapshot(nowIso);
+    }),
+    fetchHistoryMetadata().catch(() => null),
+    fetchStatus().catch(() => null),
   ]);
 
-  const discoveredMonths = resolvePublishedMonths(
+  const discoveredMonths = mergeMonthCandidates(resolvePublishedMonths(
     monthsResponse.months,
     monthlySeries.map((row) => row.monthKey)
+  ));
+  const historyFallbackMonths = mergeMonthCandidates(
+    [historyMeta?.coverage.lastRecordedAt, status?.pipeline.lastSuccessfulPoll]
+      .filter((value): value is string => Boolean(value))
+      .map((value) => value.slice(0, 7))
   );
   const months =
     discoveredMonths.length > 0
       ? discoveredMonths
-      : resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt);
+      : mergeMonthCandidates([
+          ...historyFallbackMonths,
+          ...resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt),
+        ]);
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
   const reportsDataState = combineDataStates([
