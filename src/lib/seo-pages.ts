@@ -63,8 +63,8 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['barrios bizi zaragoza', 'bizi por barrios zaragoza', 'distritos con mas uso bizi', 'estaciones bizi por barrio'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Comparativa por barrios',
-    dashboardHref: appRoutes.districtLanding(),
-    dashboardLabel: 'Abrir comparativa publica por barrios',
+    dashboardHref: appRoutes.dashboardFlow(),
+    dashboardLabel: 'Abrir flujo operativo por barrios',
   },
   'uso-bizi-por-hora': {
     slug: 'uso-bizi-por-hora',
@@ -87,8 +87,8 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     keywords: ['ranking estaciones bizi', 'clasificacion estaciones bizi zaragoza', 'estaciones bizi disponibilidad', 'ranking bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Clasificacion operativa',
-    dashboardHref: appRoutes.dashboard(),
-    dashboardLabel: 'Ir al panel principal y ver el mapa en tiempo real',
+    dashboardHref: appRoutes.dashboardStations(),
+    dashboardLabel: 'Abrir ranking y directorio de estaciones',
   },
   'viajes-por-dia-zaragoza': {
     slug: 'viajes-por-dia-zaragoza',
