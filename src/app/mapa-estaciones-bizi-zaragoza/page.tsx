@@ -32,7 +32,7 @@ const FAQ_ITEMS = [
   {
     question: '¿Qué hago si busco una lectura rápida y no un análisis completo?',
     answer:
-      'Lo más útil es abrir el dashboard principal o la ficha pública de una estación concreta. Si buscas contexto adicional, usa después el hub de barrios o el archivo mensual.',
+      'Lo más útil es abrir el dashboard en vista resumen o la ficha pública de una estación concreta. Si buscas contexto adicional, usa después el hub de barrios o el archivo mensual.',
   },
 ] as const;
 
@@ -149,8 +149,8 @@ export default async function UtilityLandingPage() {
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
               Esta landing esta pensada para quien quiere resolver algo practico rapido: encontrar una
               estacion, comprobar si hay bicis o anclajes libres y decidir si merece la pena abrir el
-              dashboard completo. Desde aqui puedes saltar al mapa en vivo, a fichas publicas de
-              estacion y al hub territorial por barrios.
+              dashboard en vista resumen. Desde aqui puedes saltar al mapa en vivo, a fichas publicas
+              de estacion y al hub territorial por barrios.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -162,12 +162,12 @@ export default async function UtilityLandingPage() {
 
         <div className="flex flex-wrap gap-3">
           <TrackedLink
-            href={appRoutes.dashboard()}
+            href={appRoutes.dashboardView('overview')}
             eventName="ad_landing_primary_click"
-            eventData={{ landing: 'utility', destination: 'dashboard_map' }}
+            eventData={{ landing: 'utility', destination: 'dashboard_overview' }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
-            Abrir mapa en vivo
+            Abrir dashboard en vista resumen
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('uso-bizi-por-estacion')}
