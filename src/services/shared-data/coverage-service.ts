@@ -57,7 +57,7 @@ export function getSharedDataSource(): SharedDataSource {
 export async function getCoverageSummary(): Promise<CoverageSummary> {
   return withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
     const generatedAt = new Date().toISOString();
-    const [coverageRows, stationRows, daysRows] = await Promise.all([
+    const [coverageRows, stationRows, hourlyDaysRows, dailyDaysRows] = await Promise.all([
       prisma.$queryRaw<CoverageRow[]>`
         SELECT
           MIN("recordedAt") AS "firstRecordedAt",
@@ -69,12 +69,26 @@ export async function getCoverageSummary(): Promise<CoverageSummary> {
         SELECT COUNT(*) AS "totalStations"
         FROM "Station"
         WHERE "isActive" = true;
-      `,
+      `.catch((error) => {
+        console.warn('[SharedData] Unable to read active stations summary:', error);
+        return [];
+      }),
       prisma.$queryRaw<DaysRow[]>`
         SELECT COUNT(DISTINCT TO_CHAR("bucketStart", 'YYYY-MM-DD')) AS "totalDays"
         FROM "HourlyStationStat"
         WHERE "occupancyAvg" IS NOT NULL;
-      `,
+      `.catch((error) => {
+        console.warn('[SharedData] Unable to read day coverage from HourlyStationStat:', error);
+        return [];
+      }),
+      prisma.$queryRaw<DaysRow[]>`
+        SELECT COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays"
+        FROM "DailyStationStat"
+        WHERE "bucketDate" IS NOT NULL;
+      `.catch((error) => {
+        console.warn('[SharedData] Unable to read day coverage from DailyStationStat:', error);
+        return [];
+      }),
     ]);
 
     const coverage = coverageRows[0] ?? {
@@ -88,7 +102,10 @@ export async function getCoverageSummary(): Promise<CoverageSummary> {
       lastRecordedAt: toIsoString(coverage.lastRecordedAt),
       totalSamples: toNumber(coverage.totalSamples),
       totalStations: toNumber(stationRows[0]?.totalStations),
-      totalDays: toNumber(daysRows[0]?.totalDays),
+      totalDays: Math.max(
+        toNumber(hourlyDaysRows[0]?.totalDays),
+        toNumber(dailyDaysRows[0]?.totalDays)
+      ),
       generatedAt,
     };
   });

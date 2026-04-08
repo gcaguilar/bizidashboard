@@ -30,7 +30,7 @@ function normalizeDays(days: number): number {
 }
 
 function normalizeMonthLimit(limitMonths: number): number {
-  return Math.max(1, Math.min(36, Math.floor(limitMonths)));
+  return Math.max(1, Math.min(240, Math.floor(limitMonths)));
 }
 
 export async function fetchCachedDailyDemandCurve(

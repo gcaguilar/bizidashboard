@@ -134,22 +134,37 @@ async function getHourlyStatsForMonth(stationId: string, monthKey: string): Prom
 }
 
 export async function getAvailableDataMonths(): Promise<string[]> {
-  const rows = await prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-    WITH month_candidates AS (
-      SELECT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
+  const monthKeys = new Set<string>();
+
+  // Query each source independently so one missing/invalid table does not zero-out SEO reports.
+  const [hourlyRows, dailyRows] = await Promise.all([
+    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
+      SELECT DISTINCT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
       FROM "HourlyStationStat"
       WHERE "bucketStart" IS NOT NULL
-      UNION
-      SELECT TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey"
+      ORDER BY "monthKey" DESC;
+    `.catch((error) => {
+      console.warn('[Analytics] Unable to read monthly keys from HourlyStationStat:', error);
+      return [];
+    }),
+    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
+      SELECT DISTINCT TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey"
       FROM "DailyStationStat"
       WHERE "bucketDate" IS NOT NULL
-    )
-    SELECT DISTINCT "monthKey"
-    FROM month_candidates
-    ORDER BY "monthKey" DESC;
-  `;
+      ORDER BY "monthKey" DESC;
+    `.catch((error) => {
+      console.warn('[Analytics] Unable to read monthly keys from DailyStationStat:', error);
+      return [];
+    }),
+  ]);
 
-  return rows.map((row: { monthKey: string | null }) => row.monthKey).filter(isValidMonthKey);
+  for (const row of [...hourlyRows, ...dailyRows]) {
+    if (isValidMonthKey(row.monthKey)) {
+      monthKeys.add(row.monthKey);
+    }
+  }
+
+  return Array.from(monthKeys).sort((left, right) => right.localeCompare(left));
 }
 
 type HourlyMobilitySignalRow = {
@@ -458,9 +473,8 @@ export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise
 }
 
 export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDemandRow[]> {
-  const safeLimit = Math.max(1, Math.min(36, Math.floor(limitMonths)));
-
-  const rows = await prisma.$queryRaw<MonthlyDemandRow[]>`
+  const safeLimit = Math.max(1, Math.min(240, Math.floor(limitMonths)));
+  const fromDaily = await prisma.$queryRaw<MonthlyDemandRow[]>`
     WITH monthly AS (
       SELECT
         TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey",
@@ -477,9 +491,38 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     SELECT "monthKey", "demandScore", "avgOccupancy", "activeStations", "sampleCount"
     FROM monthly
     ORDER BY "monthKey" ASC;
-  `;
+  `.catch((error) => {
+    console.warn('[Analytics] Unable to build monthly series from DailyStationStat:', error);
+    return [];
+  });
 
-  return rows;
+  if (fromDaily.length > 0) {
+    return fromDaily;
+  }
+
+  const fromHourly = await prisma.$queryRaw<MonthlyDemandRow[]>`
+    WITH monthly AS (
+      SELECT
+        TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey",
+        COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore",
+        COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
+        COUNT(DISTINCT "stationId") AS "activeStations",
+        COALESCE(SUM("sampleCount"), 0) AS "sampleCount"
+      FROM "HourlyStationStat"
+      WHERE "bucketStart" IS NOT NULL
+      GROUP BY TO_CHAR("bucketStart", 'YYYY-MM')
+      ORDER BY "monthKey" DESC
+      LIMIT ${safeLimit}
+    )
+    SELECT "monthKey", "demandScore", "avgOccupancy", "activeStations", "sampleCount"
+    FROM monthly
+    ORDER BY "monthKey" ASC;
+  `.catch((error) => {
+    console.warn('[Analytics] Unable to build monthly series from HourlyStationStat:', error);
+    return [];
+  });
+
+  return fromHourly;
 }
 
 export async function getSystemHourlyProfile(
