@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from 'react';
 const STORAGE_KEY = 'bizidashboard-beta-banner-dismissed';
 const WELCOME_MODAL_STORAGE_KEY = 'bizidashboard-biciradar-welcome-dismissed';
 const BICIRADAR_URL = 'https://biciradar.es';
+const DISABLE_WELCOME_MODAL =
+  process.env.NEXT_PUBLIC_DISABLE_BETA_WELCOME_MODAL === '1';
 
 function getInitialVisible(): boolean {
   if (typeof window === 'undefined') {
@@ -18,6 +20,9 @@ function getInitialVisible(): boolean {
 }
 
 function getInitialWelcomeModalOpen(): boolean {
+  if (DISABLE_WELCOME_MODAL) {
+    return false;
+  }
   if (typeof window === 'undefined') {
     return false;
   }

@@ -19,7 +19,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: `bun dev --port ${DEV_SERVER_PORT}`,
+        command: `NEXT_PUBLIC_DISABLE_BETA_WELCOME_MODAL=1 bun dev --port ${DEV_SERVER_PORT}`,
         url: `${baseURL}/dashboard`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

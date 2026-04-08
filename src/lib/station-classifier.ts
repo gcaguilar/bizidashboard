@@ -30,6 +30,7 @@ export function classifyStation(
   const targetBand = legacyCall
     ? (currentAnchorsOrTargetBand as TargetBand)
     : (targetBandArg as TargetBand);
+  void targetBand;
   const rotationPercentileLegacy = legacyCall
     ? Math.max(0, Math.min(1, (globalMetricsOrRotationPercentile as number) / 100))
     : null;

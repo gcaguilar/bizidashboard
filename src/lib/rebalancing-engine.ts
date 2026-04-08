@@ -9,6 +9,8 @@ export function decideAction(
   networkArg?: StationDiagnostic['network'],
   _capacityArg?: number
 ): { actionGroup: ActionGroup; urgency: Urgency; reasons: string[]; priorityScore: number } {
+  void _timeBandArg;
+  void _capacityArg;
   const reasons: string[] = [];
   const diagnostic: Partial<StationDiagnostic> =
     typeof diagnosticOrClassification === 'string'

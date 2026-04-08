@@ -1,7 +1,7 @@
 import type { StationSnapshot, StationPatternRow } from '@/lib/api';
 import type { RiskAssessment, TimeBandMetrics, TargetBand } from '@/types/rebalancing';
 import { estimateStationPredictions } from '@/lib/predictions';
-import { getTargetBand, getCurrentTimeBand } from '@/lib/target-bands';
+import { getCurrentTimeBand } from '@/lib/target-bands';
 import { getLocalBucket } from '@/analytics/time-buckets';
 
 function clamp(value: number, min: number, max: number): number {

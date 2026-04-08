@@ -79,7 +79,7 @@ describe('analytics series cache wrappers', () => {
 
     expect(withCacheMock).toHaveBeenNthCalledWith(
       1,
-      'analytics:monthly-demand:limit=36',
+      'analytics:monthly-demand:limit=99',
       1800,
       expect.any(Function)
     );
@@ -89,7 +89,20 @@ describe('analytics series cache wrappers', () => {
       300,
       expect.any(Function)
     );
-    expect(getMonthlyDemandCurveMock).toHaveBeenCalledWith(36);
+    expect(getMonthlyDemandCurveMock).toHaveBeenCalledWith(99);
     expect(getSystemHourlyProfileMock).toHaveBeenCalledWith(1, undefined);
+  });
+
+  it('caps monthly limit to hard maximum', async () => {
+    getMonthlyDemandCurveMock.mockResolvedValue([]);
+
+    await fetchCachedMonthlyDemandCurve(999);
+
+    expect(withCacheMock).toHaveBeenCalledWith(
+      'analytics:monthly-demand:limit=240',
+      1800,
+      expect.any(Function)
+    );
+    expect(getMonthlyDemandCurveMock).toHaveBeenCalledWith(240);
   });
 });
