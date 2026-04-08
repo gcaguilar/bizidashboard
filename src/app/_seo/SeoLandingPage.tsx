@@ -740,6 +740,64 @@ async function buildStationUsageContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
+  async function buildSnapshotFallbackContent(referenceIso: string): Promise<SeoLandingContent | null> {
+    const stationsResponse = await fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: referenceIso,
+    }));
+    if (stationsResponse.stations.length === 0) {
+      return null;
+    }
+
+    const sortedByBikes = [...stationsResponse.stations].sort(
+      (left, right) => right.bikesAvailable - left.bikesAvailable
+    );
+    const leastByBikes = [...stationsResponse.stations].sort(
+      (left, right) => left.bikesAvailable - right.bikesAvailable
+    );
+    const fallbackItems = [
+      ...sortedByBikes.slice(0, 4).map((station, index) => ({
+        title: `Alta disponibilidad ${index + 1}. ${station.name}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres`,
+        href: appRoutes.stationDetail(station.id),
+        badge: 'Snapshot',
+      })),
+      ...leastByBikes.slice(0, 4).map((station, index) => ({
+        title: `Baja disponibilidad ${index + 1}. ${station.name}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis · capacidad ${formatInteger(station.capacity)}`,
+        href: appRoutes.stationDetail(station.id),
+        badge: 'Snapshot',
+      })),
+    ];
+
+    return {
+      generatedAt: stationsResponse.generatedAt,
+      summary:
+        'Comparativa fallback por estacion basada en el snapshot actual cuando las conclusiones historicas no estan disponibles.',
+      stats: [
+        {
+          label: 'Estaciones activas',
+          value: formatInteger(stationsResponse.stations.length),
+          detail: 'Estaciones disponibles en la fotografia actual del sistema.',
+        },
+        {
+          label: 'Bicis visibles',
+          value: formatInteger(
+            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
+          ),
+          detail: 'Bicicletas disponibles en el snapshot usado como respaldo.',
+        },
+        {
+          label: 'Modo',
+          value: 'Snapshot',
+          detail: 'Fallback activo por falta de serie historica consolidada.',
+        },
+      ],
+      sectionTitle: 'Comparativa de estaciones con snapshot actual',
+      sectionItems: fallbackItems,
+    };
+  }
+
   const payload = await getDailyMobilityConclusions()
     .then((result) => result.payload)
     .catch((error) => {
@@ -753,6 +811,10 @@ async function buildStationUsageContent(
     });
 
   if (!payload) {
+    const snapshotFallback = await buildSnapshotFallbackContent(nowIso);
+    if (snapshotFallback) {
+      return snapshotFallback;
+    }
     return fallbackContent(config, nowIso);
   }
 
@@ -772,57 +834,9 @@ async function buildStationUsageContent(
   ];
 
   if (items.length === 0) {
-    const stationsResponse = await fetchStations().catch(() => ({
-      stations: [],
-      generatedAt: nowIso,
-    }));
-    if (stationsResponse.stations.length > 0) {
-      const sortedByBikes = [...stationsResponse.stations].sort(
-        (left, right) => right.bikesAvailable - left.bikesAvailable
-      );
-      const leastByBikes = [...stationsResponse.stations].sort(
-        (left, right) => left.bikesAvailable - right.bikesAvailable
-      );
-      const fallbackItems = [
-        ...sortedByBikes.slice(0, 4).map((station, index) => ({
-          title: `Alta disponibilidad ${index + 1}. ${station.name}`,
-          detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres`,
-          href: appRoutes.stationDetail(station.id),
-          badge: 'Snapshot',
-        })),
-        ...leastByBikes.slice(0, 4).map((station, index) => ({
-          title: `Baja disponibilidad ${index + 1}. ${station.name}`,
-          detail: `${formatInteger(station.bikesAvailable)} bicis · capacidad ${formatInteger(station.capacity)}`,
-          href: appRoutes.stationDetail(station.id),
-          badge: 'Snapshot',
-        })),
-      ];
-      return {
-        generatedAt: stationsResponse.generatedAt,
-        summary:
-          'Comparativa fallback por estacion basada en el snapshot actual cuando las conclusiones historicas no estan disponibles.',
-        stats: [
-          {
-            label: 'Estaciones activas',
-            value: formatInteger(stationsResponse.stations.length),
-            detail: 'Estaciones disponibles en la fotografia actual del sistema.',
-          },
-          {
-            label: 'Bicis visibles',
-            value: formatInteger(
-              stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-            ),
-            detail: 'Bicicletas disponibles en el snapshot usado como respaldo.',
-          },
-          {
-            label: 'Modo',
-            value: 'Snapshot',
-            detail: 'Fallback activo por falta de serie historica consolidada.',
-          },
-        ],
-        sectionTitle: 'Comparativa de estaciones con snapshot actual',
-        sectionItems: fallbackItems,
-      };
+    const snapshotFallback = await buildSnapshotFallbackContent(payload.generatedAt);
+    if (snapshotFallback) {
+      return snapshotFallback;
     }
     return fallbackContent(config, payload.generatedAt);
   }
