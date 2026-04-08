@@ -18,12 +18,33 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 3600;
 
+function resolvePublishedMonths(
+  availableMonths: string[],
+  monthlySeriesKeys: string[]
+): string[] {
+  const monthSet = new Set<string>();
+
+  for (const month of [...availableMonths, ...monthlySeriesKeys]) {
+    if (isValidMonthKey(month)) {
+      monthSet.add(month);
+    }
+  }
+
+  return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const monthsResponse = await fetchAvailableDataMonths().catch(() => ({
-    months: [],
-    generatedAt: new Date().toISOString(),
-  }));
-  const months = monthsResponse.months.filter(isValidMonthKey);
+  const [monthsResponse, monthlySeries] = await Promise.all([
+    fetchAvailableDataMonths().catch(() => ({
+      months: [],
+      generatedAt: new Date().toISOString(),
+    })),
+    fetchCachedMonthlyDemandCurve(36).catch(() => []),
+  ]);
+  const months = resolvePublishedMonths(
+    monthsResponse.months,
+    monthlySeries.map((row) => row.monthKey)
+  );
 
   return buildPageMetadata({
     title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
@@ -83,7 +104,10 @@ export default async function ReportsIndexPage() {
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
 
-  const months = monthsResponse.months.filter(isValidMonthKey);
+  const months = resolvePublishedMonths(
+    monthsResponse.months,
+    monthlySeries.map((row) => row.monthKey)
+  );
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
   const reportsDataState = combineDataStates([

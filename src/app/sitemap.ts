@@ -4,6 +4,7 @@ import {
   getInsightsLandingData,
   getUtilityLandingData,
 } from '@/lib/acquisition-landings';
+import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
@@ -49,13 +50,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const lastModified = new Date();
-  const months = await import('@/lib/api')
-    .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
-    .then((response) => response.months)
-    .catch(() => []);
-  const validMonths = Array.from(new Set(months.filter(isValidMonthKey))).sort((left, right) =>
-    right.localeCompare(left, 'es')
-  );
+  const [months, monthlySeries] = await Promise.all([
+    import('@/lib/api')
+      .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
+      .then((response) => response.months)
+      .catch(() => []),
+    fetchCachedMonthlyDemandCurve(36).catch(() => []),
+  ]);
+  const validMonths = Array.from(
+    new Set(
+      [...months, ...monthlySeries.map((row) => row.monthKey)].filter(isValidMonthKey)
+    )
+  ).sort((left, right) => right.localeCompare(left, 'es'));
   const [dataset, status, historyMeta, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => null),
     fetchStatus().catch(() => null),

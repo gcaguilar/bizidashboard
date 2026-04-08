@@ -4,6 +4,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { fetchAvailableDataMonths, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
@@ -103,12 +104,26 @@ function buildFallbackPayload(month: string): MobilityConclusionsPayload {
 }
 
 async function getAvailableMonths(): Promise<string[]> {
-  const response = await fetchAvailableDataMonths().catch(() => ({
-    months: [],
-    generatedAt: new Date().toISOString(),
-  }));
+  const [monthsResponse, monthlySeries] = await Promise.all([
+    fetchAvailableDataMonths().catch(() => ({
+      months: [],
+      generatedAt: new Date().toISOString(),
+    })),
+    fetchCachedMonthlyDemandCurve(36).catch(() => []),
+  ]);
 
-  return response.months.filter(isValidMonthKey);
+  const monthSet = new Set<string>();
+
+  for (const month of [
+    ...monthsResponse.months,
+    ...monthlySeries.map((row) => row.monthKey),
+  ]) {
+    if (isValidMonthKey(month)) {
+      monthSet.add(month);
+    }
+  }
+
+  return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

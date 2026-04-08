@@ -571,9 +571,20 @@ async function buildMonthlyReportsContent(
 ): Promise<SeoLandingContent> {
   const [monthsResponse, monthlySeries] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
-    fetchCachedMonthlyDemandCurve(18).catch(() => []),
+    fetchCachedMonthlyDemandCurve(36).catch(() => []),
   ]);
-  const validMonths = monthsResponse.months.filter(isValidMonthKey);
+  const monthSet = new Set<string>();
+  for (const month of [
+    ...monthsResponse.months,
+    ...monthlySeries.map((row) => row.monthKey),
+  ]) {
+    if (isValidMonthKey(month)) {
+      monthSet.add(month);
+    }
+  }
+  const validMonths = Array.from(monthSet).sort((left, right) =>
+    right.localeCompare(left)
+  );
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const items = validMonths.slice(0, 8).map((month) => {
     const row = monthMap.get(month);
