@@ -356,27 +356,34 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     stationDemandRows,
     districts,
   ] = await Promise.all([
-      getCoverageSummary(),
+      getCoverageSummary().catch(() => ({
+        firstRecordedAt: null,
+        lastRecordedAt: null,
+        totalSamples: 0,
+        totalStations: 0,
+        totalDays: 0,
+        generatedAt: new Date().toISOString(),
+      })),
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
         FROM "DailyStationStat"
         WHERE ${range.currentDaily};
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
         FROM "DailyStationStat"
         WHERE ${range.previousDaily};
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(AVG("occupancyAvg"), 0) AS value
         FROM "DailyStationStat"
         WHERE ${range.currentDaily};
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<NumericRow[]>`
         SELECT COALESCE(AVG("occupancyAvg"), 0) AS value
         FROM "DailyStationStat"
         WHERE ${range.previousDaily};
-      `,
+      `.catch(() => []),
       prisma.station.findMany({
         where: { isActive: true },
         select: {
@@ -384,7 +391,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
           lat: true,
           lon: true,
         },
-      }),
+      }).catch(() => []),
       prisma.$queryRaw<TopStationRow[]>`
         SELECT
           "DailyStationStat"."stationId" AS "stationId",
@@ -396,7 +403,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         GROUP BY "DailyStationStat"."stationId", "Station".name
         ORDER BY "avgDemand" DESC
         LIMIT 5;
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<TopStationRow[]>`
         SELECT
           "DailyStationStat"."stationId" AS "stationId",
@@ -409,7 +416,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         HAVING COUNT(*) > 0
         ORDER BY "avgDemand" ASC, "Station".name ASC
         LIMIT 5;
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<DayTypeProfileRow[]>`
         WITH daily_totals AS (
           SELECT
@@ -430,7 +437,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
           COUNT(*) AS "daysCount"
         FROM daily_totals
         GROUP BY "dayType";
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
           EXTRACT(HOUR FROM "bucketStart")::int AS hour,
@@ -440,7 +447,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
         ORDER BY "demandScore" DESC, hour ASC
         LIMIT 3;
-      `,
+      `.catch(() => []),
       prisma.$queryRaw<StationDemandRow[]>`
         SELECT
           "stationId",
@@ -449,7 +456,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         WHERE ${range.currentDaily}
         GROUP BY "stationId"
         ORDER BY "demandScore" DESC;
-      `,
+      `.catch(() => []),
       getDistrictCollection(),
     ]);
 
@@ -753,15 +760,30 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
 
   if (cached) {
     const parsed = parseCachedPayload(cached.payload);
+    if (parsed) {
+      const coverage = await getCoverageSignature().catch((error) => {
+        captureWarningWithContext('Mobility conclusions cache validation degraded: coverage signature unavailable.', {
+          area: 'mobility.conclusions',
+          operation: 'getDailyMobilityConclusions',
+          dedupeKey: 'mobility-conclusions.coverage-signature-fallback',
+          extra: { reason: String(error) },
+        });
+        return null;
+      });
+      if (!coverage) {
+        return {
+          payload: parsed,
+          fromCache: true,
+        };
+      }
+      const sourceLastDay = toDateOrNull(coverage.lastDay);
 
-    const coverage = await getCoverageSignature();
-    const sourceLastDay = toDateOrNull(coverage.lastDay);
-
-    if (parsed && hasSameCoverageSignature(parsed, coverage, sourceLastDay)) {
-      return {
-        payload: parsed,
-        fromCache: true,
-      };
+      if (hasSameCoverageSignature(parsed, coverage, sourceLastDay)) {
+        return {
+          payload: parsed,
+          fromCache: true,
+        };
+      }
     }
   }
 

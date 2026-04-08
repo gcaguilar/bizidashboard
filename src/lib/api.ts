@@ -11,6 +11,7 @@ import {
   getStationsWithLatestStatus,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import {
   resolveDatasetDataState,
   resolveHistoryDataState,
@@ -147,15 +148,59 @@ function normalizeStations(
   }));
 }
 
+async function fetchLiveStationsFallback(): Promise<StationSnapshot[]> {
+  try {
+    const [{ fetchDiscovery, fetchStationInformation, fetchStationStatus }] = await Promise.all([
+      import('@/services/gbfs-client'),
+    ]);
+    const discovery = await fetchDiscovery();
+    const [stationStatus, stationInformation] = await Promise.all([
+      fetchStationStatus(discovery),
+      fetchStationInformation(discovery),
+    ]);
+    const infoMap = new Map(
+      stationInformation.map((station) => [station.station_id, station])
+    );
+    const recordedAt = new Date(stationStatus.last_updated * 1000).toISOString();
+
+    return stationStatus.data.stations
+      .map((status) => {
+        const info = infoMap.get(status.station_id);
+        return {
+          id: status.station_id,
+          name: info?.name ?? `Estacion ${status.station_id}`,
+          lat: Number(info?.lat ?? 0),
+          lon: Number(info?.lon ?? 0),
+          capacity: Number(info?.capacity ?? status.num_bikes_available + status.num_docks_available),
+          bikesAvailable: Number(status.num_bikes_available ?? 0),
+          anchorsFree: Number(status.num_docks_available ?? 0),
+          recordedAt,
+        };
+      })
+      .filter((station) => Number.isFinite(station.lat) && Number.isFinite(station.lon));
+  } catch (error) {
+    captureWarningWithContext('Live GBFS stations fallback failed.', {
+      area: 'api.fetchStations',
+      operation: 'fetchLiveStationsFallback',
+      dedupeKey: 'api.fetchStations.live-fallback-failed',
+      extra: { reason: String(error) },
+    });
+    return [];
+  }
+}
+
 export async function fetchStations(): Promise<StationsResponse> {
   const payload = await withCache('stations:current', LIVE_CACHE_TTL_SECONDS, async () => {
-    const [stations, dataset] = await Promise.all([
-      getStationsWithLatestStatus(),
+    const [dbStations, dataset] = await Promise.all([
+      getStationsWithLatestStatus().catch(() => []),
       getSharedDatasetSnapshot().catch(() => null),
     ]);
+    const nowIso = new Date().toISOString();
+    const stations =
+      dbStations.length > 0 ? dbStations : await fetchLiveStationsFallback();
     return {
       stations,
-      generatedAt: new Date().toISOString(),
+      generatedAt: nowIso,
       dataState: resolveStationsDataState({
         count: stations.length,
         coverage: dataset?.coverage,
@@ -251,7 +296,17 @@ export async function fetchRankings(
         : new Map<string, string>();
 
     let enrichedRankings = enrichRankingRows(rankings, stationNameById, districtNameById);
-    const patternRows = await getStationPatternsBulk(enrichedRankings.map((r) => r.stationId));
+    const patternRows = await getStationPatternsBulk(
+      enrichedRankings.map((r) => r.stationId)
+    ).catch((error) => {
+      captureWarningWithContext('Rankings enrichment degraded: station patterns unavailable.', {
+        area: 'api.fetchRankings',
+        operation: 'fetchRankings',
+        dedupeKey: 'api.fetchRankings.station-patterns-fallback',
+        extra: { type, limit, reason: String(error) },
+      });
+      return [];
+    });
     const peakMap = buildPeakFullHoursByStation(patternRows);
     enrichedRankings = attachPeakFullHours(enrichedRankings, peakMap);
     const districtSpotlight = buildDistrictSpotlight(enrichedRankings, type);

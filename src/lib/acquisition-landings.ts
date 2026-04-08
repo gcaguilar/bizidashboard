@@ -2,6 +2,7 @@ import 'server-only';
 
 import { cache } from 'react';
 import { fetchAvailableDataMonths } from '@/lib/api';
+import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import {
@@ -116,15 +117,22 @@ export const getUtilityLandingData = cache(async (): Promise<AcquisitionLandingD
 });
 
 export const getInsightsLandingData = cache(async (): Promise<AcquisitionLandingData> => {
-  const [stationRows, districtRows, monthsResponse] = await Promise.all([
+  const [stationRows, districtRows, monthsResponse, monthlySeries] = await Promise.all([
     getStationSeoRows().catch(() => []),
     getDistrictSeoRows().catch(() => []),
     fetchAvailableDataMonths().catch(() => ({
       months: [],
       generatedAt: new Date().toISOString(),
     })),
+    fetchCachedMonthlyDemandCurve(36).catch(() => []),
   ]);
-  const publishedMonths = monthsResponse.months.filter(isValidMonthKey);
+  const monthSet = new Set<string>();
+  for (const month of [...monthsResponse.months, ...monthlySeries.map((row) => row.monthKey)]) {
+    if (isValidMonthKey(month)) {
+      monthSet.add(month);
+    }
+  }
+  const publishedMonths = Array.from(monthSet).sort((left, right) => right.localeCompare(left));
   const indexableStations = stationRows.filter((row) => row.indexability.indexable);
   const featuredStations = indexableStations.slice(0, 4);
   const bikesAvailable = indexableStations.reduce(

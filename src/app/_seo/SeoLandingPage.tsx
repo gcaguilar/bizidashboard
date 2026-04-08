@@ -22,6 +22,7 @@ import {
   type SeoPageSlug,
 } from '@/lib/seo-pages';
 import { buildSocialImagePath } from '@/lib/social-images';
+import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
@@ -149,13 +150,29 @@ async function buildMostUsedStationsContent(
   nowIso: string
 ): Promise<SeoLandingContent> {
   const [stationsResponse, rankingsResponse] = await Promise.all([
-    fetchStations().catch(() => ({ stations: [], generatedAt: nowIso })),
-    fetchRankings('turnover', 12).catch(() => ({
+    fetchStations().catch((error) => {
+      captureWarningWithContext('SEO landing degraded: fetchStations failed in most-used stations.', {
+        area: 'seo.landing',
+        operation: 'buildMostUsedStationsContent',
+        dedupeKey: 'seo.landing.most-used.fetch-stations-fallback',
+        extra: { reason: String(error) },
+      });
+      return { stations: [], generatedAt: nowIso };
+    }),
+    fetchRankings('turnover', 12).catch((error) => {
+      captureWarningWithContext('SEO landing degraded: turnover rankings unavailable in most-used stations.', {
+        area: 'seo.landing',
+        operation: 'buildMostUsedStationsContent',
+        dedupeKey: 'seo.landing.most-used.rankings-fallback',
+        extra: { reason: String(error) },
+      });
+      return {
       type: 'turnover' as const,
       limit: 12,
       rankings: [],
       generatedAt: nowIso,
-    })),
+    };
+    }),
   ]);
 
   const stationMap = new Map(stationsResponse.stations.map((station) => [station.id, station]));
@@ -168,6 +185,49 @@ async function buildMostUsedStationsContent(
       badge: `Top ${index + 1}`,
     };
   });
+
+  if (items.length === 0 && stationsResponse.stations.length > 0) {
+    const fallbackItems = [...stationsResponse.stations]
+      .sort((left, right) => {
+        const rightOccupancy = right.capacity > 0 ? right.bikesAvailable / right.capacity : 0;
+        const leftOccupancy = left.capacity > 0 ? left.bikesAvailable / left.capacity : 0;
+        return rightOccupancy - leftOccupancy || right.bikesAvailable - left.bikesAvailable;
+      })
+      .slice(0, 8)
+      .map((station, index) => ({
+        title: `${index + 1}. ${station.name}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis disponibles · capacidad ${formatInteger(station.capacity)} · ocupacion ${formatPercent(station.capacity > 0 ? station.bikesAvailable / station.capacity : 0)}`,
+        href: appRoutes.stationDetail(station.id),
+        badge: 'Snapshot',
+      }));
+
+    return {
+      generatedAt: stationsResponse.generatedAt,
+      summary:
+        'Vista indexable basada en el snapshot actual de estaciones cuando el ranking historico no esta disponible.',
+      stats: [
+        {
+          label: 'Estaciones activas',
+          value: formatInteger(stationsResponse.stations.length),
+          detail: 'Total de estaciones presentes en el snapshot actual.',
+        },
+        {
+          label: 'Bicis visibles',
+          value: formatInteger(
+            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
+          ),
+          detail: 'Bicicletas disponibles sumadas en el snapshot servido.',
+        },
+        {
+          label: 'Modo',
+          value: 'Snapshot',
+          detail: 'Fallback activo al no disponer de ranking agregado reciente.',
+        },
+      ],
+      sectionTitle: 'Estaciones destacadas por snapshot',
+      sectionItems: fallbackItems,
+    };
+  }
 
   if (items.length === 0) {
     return fallbackContent(config, rankingsResponse.generatedAt);
@@ -205,7 +265,15 @@ async function buildDistrictOverviewContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  const rows = await getDistrictSeoRows().catch(() => []);
+  const rows = await getDistrictSeoRows().catch((error) => {
+    captureWarningWithContext('SEO landing degraded: district rows unavailable.', {
+      area: 'seo.landing',
+      operation: 'buildDistrictOverviewContent',
+      dedupeKey: 'seo.landing.district-overview.rows-fallback',
+      extra: { reason: String(error) },
+    });
+    return [];
+  });
   const items = rows.slice(0, 8).map((district, index) => ({
     title: `${index + 1}. ${district.name}`,
     detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} pts medios · ${district.bikesAvailable} bicis disponibles`,
@@ -247,7 +315,15 @@ async function buildHourlyUsageContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  const profile = await fetchCachedSystemHourlyProfile(14).catch(() => []);
+  const profile = await fetchCachedSystemHourlyProfile(14).catch((error) => {
+    captureWarningWithContext('SEO landing degraded: hourly profile unavailable.', {
+      area: 'seo.landing',
+      operation: 'buildHourlyUsageContent',
+      dedupeKey: 'seo.landing.hourly-usage.profile-fallback',
+      extra: { reason: String(error) },
+    });
+    return [];
+  });
   const items = [...profile]
     .sort((left, right) => Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable))
     .slice(0, 8)
@@ -257,6 +333,70 @@ async function buildHourlyUsageContent(
       href: appRoutes.dashboardView('research'),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
+
+  if (items.length === 0) {
+    const stationsResponse = await fetchStations().catch((error) => {
+      captureWarningWithContext('SEO landing degraded: stations snapshot unavailable in hourly usage fallback.', {
+        area: 'seo.landing',
+        operation: 'buildHourlyUsageContent',
+        dedupeKey: 'seo.landing.hourly-usage.stations-fallback',
+        extra: { reason: String(error) },
+      });
+      return {
+        stations: [],
+        generatedAt: nowIso,
+      };
+    });
+    const liveItems = [...stationsResponse.stations]
+      .sort((left, right) => {
+        const leftOccupancy = left.capacity > 0 ? left.bikesAvailable / left.capacity : 0;
+        const rightOccupancy = right.capacity > 0 ? right.bikesAvailable / right.capacity : 0;
+        return rightOccupancy - leftOccupancy || right.bikesAvailable - left.bikesAvailable;
+      })
+      .slice(0, 8)
+      .map((station, index) => ({
+        title: `${index + 1}. ${station.name}`,
+        detail: `${station.bikesAvailable} bicis · ocupacion ${formatPercent(
+          station.capacity > 0 ? station.bikesAvailable / station.capacity : 0
+        )} · capacidad ${station.capacity}`,
+        href: appRoutes.stationDetail(station.id),
+        badge: 'Snapshot',
+      }));
+
+    if (liveItems.length > 0) {
+      const avgOccupancy =
+        stationsResponse.stations.reduce(
+          (sum, station) =>
+            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
+          0
+        ) / stationsResponse.stations.length;
+      const now = new Date(stationsResponse.generatedAt);
+      return {
+        generatedAt: stationsResponse.generatedAt,
+        summary:
+          'Fallback indexable con snapshot actual de disponibilidad por estacion cuando no hay perfil horario agregado suficiente.',
+        stats: [
+          {
+            label: 'Estaciones visibles',
+            value: formatInteger(stationsResponse.stations.length),
+            detail: 'Estaciones activas incluidas en el snapshot actual del sistema.',
+          },
+          {
+            label: 'Hora de referencia',
+            value: formatHourRange(now.getHours()),
+            detail: 'Franja horaria correspondiente al ultimo snapshot publicado.',
+          },
+          {
+            label: 'Ocupacion media',
+            value: formatPercent(avgOccupancy),
+            detail: 'Promedio de ocupacion estimado con la fotografia actual.',
+          },
+        ],
+        sectionTitle: 'Estaciones con mayor ocupacion en el snapshot actual',
+        sectionItems: liveItems,
+      };
+    }
+  }
 
   if (items.length === 0) {
     return fallbackContent(config, nowIso);
@@ -327,6 +467,45 @@ async function buildStationRankingContent(
       badge: 'Disponibilidad',
     })),
   ];
+
+  if (items.length === 0 && stationsResponse.stations.length > 0) {
+    const fallbackItems = [...stationsResponse.stations]
+      .sort((left, right) => right.bikesAvailable - left.bikesAvailable)
+      .slice(0, 8)
+      .map((station, index) => ({
+        title: `${index + 1}. ${station.name}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres · capacidad ${formatInteger(station.capacity)}`,
+        href: appRoutes.stationDetail(station.id),
+        badge: 'Snapshot',
+      }));
+
+    return {
+      generatedAt: stationsResponse.generatedAt,
+      summary:
+        'Clasificacion indexable basada en disponibilidad actual cuando los rankings historicos no estan disponibles.',
+      stats: [
+        {
+          label: 'Estaciones visibles',
+          value: formatInteger(stationsResponse.stations.length),
+          detail: 'Estaciones activas incluidas en la fotografia actual del sistema.',
+        },
+        {
+          label: 'Bicis totales',
+          value: formatInteger(
+            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
+          ),
+          detail: 'Suma de bicicletas visibles en el snapshot publico actual.',
+        },
+        {
+          label: 'Modo',
+          value: 'Snapshot',
+          detail: 'Fallback activo al no disponer de rankings de uso/disponibilidad.',
+        },
+      ],
+      sectionTitle: 'Estaciones ordenadas por disponibilidad actual',
+      sectionItems: fallbackItems,
+    };
+  }
 
   if (items.length === 0) {
     return fallbackContent(config, turnoverResponse.generatedAt);
@@ -465,7 +644,15 @@ async function buildStationUsageContent(
 ): Promise<SeoLandingContent> {
   const payload = await getDailyMobilityConclusions()
     .then((result) => result.payload)
-    .catch(() => null);
+    .catch((error) => {
+      captureWarningWithContext('SEO landing degraded: daily mobility conclusions unavailable.', {
+        area: 'seo.landing',
+        operation: 'buildStationUsageContent',
+        dedupeKey: 'seo.landing.station-usage.mobility-conclusions-fallback',
+        extra: { reason: String(error) },
+      });
+      return null;
+    });
 
   if (!payload) {
     return fallbackContent(config, nowIso);
@@ -570,8 +757,24 @@ async function buildMonthlyReportsContent(
   nowIso: string
 ): Promise<SeoLandingContent> {
   const [monthsResponse, monthlySeries] = await Promise.all([
-    fetchAvailableDataMonths().catch(() => ({ months: [], generatedAt: nowIso })),
-    fetchCachedMonthlyDemandCurve(36).catch(() => []),
+    fetchAvailableDataMonths().catch((error) => {
+      captureWarningWithContext('SEO landing degraded: available months unavailable in monthly reports.', {
+        area: 'seo.landing',
+        operation: 'buildMonthlyReportsContent',
+        dedupeKey: 'seo.landing.monthly-reports.available-months-fallback',
+        extra: { reason: String(error) },
+      });
+      return { months: [], generatedAt: nowIso };
+    }),
+    fetchCachedMonthlyDemandCurve(36).catch((error) => {
+      captureWarningWithContext('SEO landing degraded: monthly demand series unavailable in monthly reports.', {
+        area: 'seo.landing',
+        operation: 'buildMonthlyReportsContent',
+        dedupeKey: 'seo.landing.monthly-reports.monthly-series-fallback',
+        extra: { reason: String(error) },
+      });
+      return [];
+    }),
   ]);
   const monthSet = new Set<string>();
   for (const month of [

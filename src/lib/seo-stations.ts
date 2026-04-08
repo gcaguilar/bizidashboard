@@ -94,25 +94,28 @@ function buildStationIndexabilityInput({
   availability: RankingRow | null;
   peakHours: PeakFullHourSlot[];
 }): Omit<SeoIndexabilityInput, 'path' | 'canonicalPath'> {
+  const signalHours = getStationSignalHours(turnover, availability);
+  const hasLiveSnapshotSignal = station.bikesAvailable > 0 || station.anchorsFree > 0;
   return {
     pageType: 'station',
     hasMeaningfulContent: station.capacity > 0,
     hasData:
-      getStationSignalHours(turnover, availability) > 0 &&
-      (Number(turnover?.turnoverScore ?? 0) > 0 ||
-        Number(availability?.problemHours ?? 0) > 0 ||
-        peakHours.length > 0),
+      (signalHours > 0 &&
+        (Number(turnover?.turnoverScore ?? 0) > 0 ||
+          Number(availability?.problemHours ?? 0) > 0 ||
+          peakHours.length > 0)) ||
+      hasLiveSnapshotSignal,
     requiresStrongCoverage: true,
     thresholds: [
       {
         label: 'station-signal-hours',
-        current: getStationSignalHours(turnover, availability),
-        minimum: 24,
+        current: signalHours,
+        minimum: hasLiveSnapshotSignal ? 0 : 24,
       },
       {
         label: 'station-peak-hours',
         current: peakHours.length,
-        minimum: 2,
+        minimum: hasLiveSnapshotSignal ? 0 : 2,
       },
     ],
   };
