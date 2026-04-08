@@ -560,6 +560,53 @@ async function buildDailyTripsContent(
     }));
 
   if (items.length === 0) {
+    const stationsResponse = await fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: nowIso,
+    }));
+    if (stationsResponse.stations.length > 0) {
+      const totalBikes = stationsResponse.stations.reduce(
+        (sum, station) => sum + station.bikesAvailable,
+        0
+      );
+      const avgOccupancy =
+        stationsResponse.stations.reduce(
+          (sum, station) =>
+            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
+          0
+        ) / stationsResponse.stations.length;
+      return {
+        generatedAt: stationsResponse.generatedAt,
+        summary:
+          'Fallback indexable basado en snapshot actual cuando la serie diaria agregada no esta disponible.',
+        stats: [
+          {
+            label: 'Dia de referencia',
+            value: new Date(stationsResponse.generatedAt).toLocaleDateString('es-ES'),
+            detail: 'Fecha del snapshot usado como respaldo de la vista diaria.',
+          },
+          {
+            label: 'Bicis visibles',
+            value: formatInteger(totalBikes),
+            detail: 'Bicicletas disponibles en el snapshot de referencia.',
+          },
+          {
+            label: 'Ocupacion media',
+            value: formatPercent(avgOccupancy),
+            detail: 'Ocupacion media estimada del sistema en el snapshot actual.',
+          },
+        ],
+        sectionTitle: 'Referencia diaria basada en snapshot',
+        sectionItems: [
+          {
+            title: new Date(stationsResponse.generatedAt).toLocaleDateString('es-ES'),
+            detail: `${formatInteger(totalBikes)} bicis visibles · ocupacion media ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
+            href: appRoutes.dashboardConclusions(),
+            badge: 'Snapshot',
+          },
+        ],
+      };
+    }
     return fallbackContent(config, nowIso);
   }
 
@@ -606,6 +653,57 @@ async function buildMonthlyTripsContent(
 
   const latestRow = monthlySeries[monthlySeries.length - 1] ?? null;
   if (items.length === 0) {
+    const stationsResponse = await fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: nowIso,
+    }));
+    if (stationsResponse.stations.length > 0) {
+      const snapshotDate = new Date(stationsResponse.generatedAt);
+      const monthKey = `${snapshotDate.getUTCFullYear()}-${String(
+        snapshotDate.getUTCMonth() + 1
+      ).padStart(2, '0')}`;
+      const totalBikes = stationsResponse.stations.reduce(
+        (sum, station) => sum + station.bikesAvailable,
+        0
+      );
+      const avgOccupancy =
+        stationsResponse.stations.reduce(
+          (sum, station) =>
+            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
+          0
+        ) / stationsResponse.stations.length;
+      return {
+        generatedAt: stationsResponse.generatedAt,
+        summary:
+          'Fallback indexable mensual basado en snapshot actual cuando la serie historica no esta disponible.',
+        stats: [
+          {
+            label: 'Mes visible',
+            value: isValidMonthKey(monthKey) ? formatMonthLabel(monthKey) : monthKey,
+            detail: 'Mes inferido desde la ultima fecha disponible del snapshot.',
+          },
+          {
+            label: 'Estaciones activas',
+            value: formatInteger(stationsResponse.stations.length),
+            detail: 'Estaciones presentes en el snapshot de respaldo.',
+          },
+          {
+            label: 'Ocupacion media',
+            value: formatPercent(avgOccupancy),
+            detail: 'Estimacion de ocupacion media en el snapshot actual.',
+          },
+        ],
+        sectionTitle: 'Mes de referencia basado en snapshot',
+        sectionItems: [
+          {
+            title: isValidMonthKey(monthKey) ? formatMonthLabel(monthKey) : monthKey,
+            detail: `${formatInteger(totalBikes)} bicis visibles · ocupacion ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
+            href: appRoutes.reports(),
+            badge: 'Snapshot',
+          },
+        ],
+      };
+    }
     return fallbackContent(config, nowIso);
   }
 
@@ -674,6 +772,58 @@ async function buildStationUsageContent(
   ];
 
   if (items.length === 0) {
+    const stationsResponse = await fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: nowIso,
+    }));
+    if (stationsResponse.stations.length > 0) {
+      const sortedByBikes = [...stationsResponse.stations].sort(
+        (left, right) => right.bikesAvailable - left.bikesAvailable
+      );
+      const leastByBikes = [...stationsResponse.stations].sort(
+        (left, right) => left.bikesAvailable - right.bikesAvailable
+      );
+      const fallbackItems = [
+        ...sortedByBikes.slice(0, 4).map((station, index) => ({
+          title: `Alta disponibilidad ${index + 1}. ${station.name}`,
+          detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres`,
+          href: appRoutes.stationDetail(station.id),
+          badge: 'Snapshot',
+        })),
+        ...leastByBikes.slice(0, 4).map((station, index) => ({
+          title: `Baja disponibilidad ${index + 1}. ${station.name}`,
+          detail: `${formatInteger(station.bikesAvailable)} bicis · capacidad ${formatInteger(station.capacity)}`,
+          href: appRoutes.stationDetail(station.id),
+          badge: 'Snapshot',
+        })),
+      ];
+      return {
+        generatedAt: stationsResponse.generatedAt,
+        summary:
+          'Comparativa fallback por estacion basada en el snapshot actual cuando las conclusiones historicas no estan disponibles.',
+        stats: [
+          {
+            label: 'Estaciones activas',
+            value: formatInteger(stationsResponse.stations.length),
+            detail: 'Estaciones disponibles en la fotografia actual del sistema.',
+          },
+          {
+            label: 'Bicis visibles',
+            value: formatInteger(
+              stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
+            ),
+            detail: 'Bicicletas disponibles en el snapshot usado como respaldo.',
+          },
+          {
+            label: 'Modo',
+            value: 'Snapshot',
+            detail: 'Fallback activo por falta de serie historica consolidada.',
+          },
+        ],
+        sectionTitle: 'Comparativa de estaciones con snapshot actual',
+        sectionItems: fallbackItems,
+      };
+    }
     return fallbackContent(config, payload.generatedAt);
   }
 
@@ -847,7 +997,20 @@ async function buildRedistribucionContent(
     pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
     pctTimeFull = report.kpis.service.systemPctTimeFull;
   } catch {
-    // fallback to static content
+    const stationsResponse = await fetchStations().catch(() => ({
+      stations: [],
+      generatedAt: nowIso,
+    }));
+    if (stationsResponse.stations.length > 0) {
+      stationCount = stationsResponse.stations.length;
+      const occupancyValues = stationsResponse.stations
+        .filter((station) => station.capacity > 0)
+        .map((station) => station.bikesAvailable / station.capacity);
+      const avgOccupancy = average(occupancyValues);
+      // Proxy signals from live snapshot to avoid all "Sin datos".
+      pctTimeEmpty = Math.max(0, 1 - avgOccupancy);
+      pctTimeFull = Math.max(0, avgOccupancy);
+    }
   }
 
   const items: SeoItem[] = [

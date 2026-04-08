@@ -137,7 +137,7 @@ export async function getAvailableDataMonths(): Promise<string[]> {
   const monthKeys = new Set<string>();
 
   // Query each source independently so one missing/invalid table does not zero-out SEO reports.
-  const [hourlyRows, dailyRows] = await Promise.all([
+  const [hourlyRows, dailyRows, snapshotRows] = await Promise.all([
     prisma.$queryRaw<Array<{ monthKey: string | null }>>`
       SELECT DISTINCT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
       FROM "HourlyStationStat"
@@ -156,9 +156,18 @@ export async function getAvailableDataMonths(): Promise<string[]> {
       console.warn('[Analytics] Unable to read monthly keys from DailyStationStat:', error);
       return [];
     }),
+    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
+      SELECT DISTINCT TO_CHAR("recordedAt", 'YYYY-MM') AS "monthKey"
+      FROM "StationStatus"
+      WHERE "recordedAt" IS NOT NULL
+      ORDER BY "monthKey" DESC;
+    `.catch((error) => {
+      console.warn('[Analytics] Unable to read monthly keys from StationStatus:', error);
+      return [];
+    }),
   ]);
 
-  for (const row of [...hourlyRows, ...dailyRows]) {
+  for (const row of [...hourlyRows, ...dailyRows, ...snapshotRows]) {
     if (isValidMonthKey(row.monthKey)) {
       monthKeys.add(row.monthKey);
     }
