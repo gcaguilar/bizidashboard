@@ -135,9 +135,17 @@ async function getHourlyStatsForMonth(stationId: string, monthKey: string): Prom
 
 export async function getAvailableDataMonths(): Promise<string[]> {
   const rows = await prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-    SELECT DISTINCT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
-    FROM "HourlyStationStat"
-    WHERE "bucketStart" IS NOT NULL
+    WITH month_candidates AS (
+      SELECT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
+      FROM "HourlyStationStat"
+      WHERE "bucketStart" IS NOT NULL
+      UNION
+      SELECT TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey"
+      FROM "DailyStationStat"
+      WHERE "bucketDate" IS NOT NULL
+    )
+    SELECT DISTINCT "monthKey"
+    FROM month_candidates
     ORDER BY "monthKey" DESC;
   `;
 
