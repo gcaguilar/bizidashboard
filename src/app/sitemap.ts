@@ -13,10 +13,13 @@ import { evaluatePageIndexability } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getStationSeoRows } from '@/lib/seo-stations';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting';
 import { getRobotsBaseUrl, isFallbackSiteUrl } from '@/lib/site';
 
 export const revalidate = 3600;
+// Keep sitemap generation in runtime so it reflects live coverage instead of build-time database fallbacks.
+export const dynamic = 'force-dynamic';
+const EMERGENCY_PRODUCTION_SITEMAP_URL = 'https://datosbizi.com';
 
 function toValidDate(value: string | null | undefined, fallback: Date): Date {
   if (!value) {
@@ -53,9 +56,21 @@ function buildFallbackStaticEntries(siteUrl: string, lastModified: Date): Metada
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = getRobotsBaseUrl();
-  if (isFallbackSiteUrl(siteUrl)) {
-    return [];
+  const configuredSiteUrl = getRobotsBaseUrl();
+  const siteUrl = isFallbackSiteUrl(configuredSiteUrl)
+    ? EMERGENCY_PRODUCTION_SITEMAP_URL
+    : configuredSiteUrl;
+
+  if (isFallbackSiteUrl(configuredSiteUrl)) {
+    captureWarningWithContext('Sitemap is using emergency production base URL.', {
+      area: 'sitemap',
+      operation: 'resolveBaseUrl',
+      dedupeKey: 'sitemap.base-url.emergency-fallback',
+      extra: {
+        configuredSiteUrl,
+        emergencySiteUrl: EMERGENCY_PRODUCTION_SITEMAP_URL,
+      },
+    });
   }
 
   const lastModified = new Date();

@@ -23,6 +23,8 @@ import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 export const revalidate = 3600;
+// Prisma is intentionally unavailable during build, so prerendering would freeze empty SEO fallbacks.
+export const dynamic = 'force-dynamic';
 
 function resolvePublishedMonths(
   availableMonths: string[],
