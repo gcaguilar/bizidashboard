@@ -43,6 +43,15 @@ function dedupeSitemapEntries(entries: MetadataRoute.Sitemap): MetadataRoute.Sit
   return uniqueEntries;
 }
 
+function buildFallbackStaticEntries(siteUrl: string, lastModified: Date): MetadataRoute.Sitemap {
+  return INDEXABLE_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
+    url: `${siteUrl}${entry.href}`,
+    lastModified,
+    changeFrequency: entry.sitemap.changeFrequency,
+    priority: entry.sitemap.priority,
+  }));
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getRobotsBaseUrl();
   if (isFallbackSiteUrl(siteUrl)) {
@@ -50,44 +59,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const lastModified = new Date();
-  const [months, monthlySeries] = await Promise.all([
-    import('@/lib/api')
-      .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
-      .then((response) => response.months)
-      .catch(() => []),
-    fetchCachedMonthlyDemandCurve(36).catch(() => []),
-  ]);
-  const validMonths = Array.from(
-    new Set(
-      [...months, ...monthlySeries.map((row) => row.monthKey)].filter(isValidMonthKey)
-    )
-  ).sort((left, right) => right.localeCompare(left, 'es'));
-  const [dataset, status, historyMeta, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
-    fetchSharedDatasetSnapshot().catch(() => null),
-    fetchStatus().catch(() => null),
-    fetchHistoryMetadata().catch(() => null),
-    getDistrictSeoRows().catch(() => []),
-    getStationSeoRows().catch(() => []),
-    Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
-    getUtilityLandingData().catch(() => null),
-    getInsightsLandingData().catch(() => null),
-    Promise.resolve(
-      evaluatePageIndexability({
-        path: appRoutes.reports(),
-        pageType: 'report',
-        hasMeaningfulContent: true,
-        hasData: validMonths.length > 0,
-        requiresStrongCoverage: true,
-        thresholds: [
-          {
-            label: 'published-months',
-            current: validMonths.length,
-            minimum: 1,
-          },
-        ],
-      })
-    ),
-  ]);
+
+  try {
+    const [months, monthlySeries] = await Promise.all([
+      import('@/lib/api')
+        .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
+        .then((response) => response.months)
+        .catch(() => []),
+      fetchCachedMonthlyDemandCurve(36).catch(() => []),
+    ]);
+    const validMonths = Array.from(
+      new Set(
+        [...months, ...monthlySeries.map((row) => row.monthKey)].filter(isValidMonthKey)
+      )
+    ).sort((left, right) => right.localeCompare(left, 'es'));
+    const [dataset, status, historyMeta, districtRows, stationRows, seoLandingData, utilityLanding, insightsLanding, reportIndexability] = await Promise.all([
+      fetchSharedDatasetSnapshot().catch(() => null),
+      fetchStatus().catch(() => null),
+      fetchHistoryMetadata().catch(() => null),
+      getDistrictSeoRows().catch(() => []),
+      getStationSeoRows().catch(() => []),
+      Promise.all(PRIMARY_SEO_PAGE_SLUGS.map((slug) => getSeoLandingPageData(slug).catch(() => null))),
+      getUtilityLandingData().catch(() => null),
+      getInsightsLandingData().catch(() => null),
+      Promise.resolve(
+        evaluatePageIndexability({
+          path: appRoutes.reports(),
+          pageType: 'report',
+          hasMeaningfulContent: true,
+          hasData: validMonths.length > 0,
+          requiresStrongCoverage: true,
+          thresholds: [
+            {
+              label: 'published-months',
+              current: validMonths.length,
+              minimum: 1,
+            },
+          ],
+        })
+      ),
+    ]);
 
   const staticEntries: MetadataRoute.Sitemap = INDEXABLE_PUBLIC_ROUTE_REGISTRY.filter((entry) => {
     if (entry.href === appRoutes.reports()) {
@@ -279,12 +290,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.66,
     }));
 
-  return dedupeSitemapEntries([
-    ...staticEntries,
-    ...llmsEntries,
-    ...seoEntries,
-    ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
-    ...districtEntries,
-    ...stationEntries,
-  ]);
+    return dedupeSitemapEntries([
+      ...staticEntries,
+      ...llmsEntries,
+      ...seoEntries,
+      ...reportEntries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)),
+      ...districtEntries,
+      ...stationEntries,
+    ]);
+  } catch {
+    // Never fail sitemap generation entirely: return a safe static subset.
+    return dedupeSitemapEntries(buildFallbackStaticEntries(siteUrl, lastModified));
+  }
 }

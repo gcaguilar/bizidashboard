@@ -58,13 +58,13 @@ const DATA_DRIVEN_PAGE_PATTERNS = [
   /^\/(?:zaragoza|madrid|barcelona)\/barrios(?:\/|$)/,
 ];
 const NO_DATA_PATTERNS = [
-  /sin datos/iu,
   /todavia no hay historico suficiente/iu,
   /sin hallazgos disponibles/iu,
   /sin recomendaciones registradas/iu,
   /no se pudieron cargar/iu,
   /0 meses indexables/iu,
-  /0 estaciones/iu,
+  /sin cobertura/iu,
+  /cobertura no disponible/iu,
 ];
 const CRITICAL_API_CHECKS = [
   {
@@ -527,6 +527,7 @@ function getCityFromPath(pathname: string): string | null {
 
 function collectPageReasonsWithoutData(page: CrawledPage): string[] {
   const reasons = new Set<string>();
+  const pagePath = normalizePagePath(page.url);
 
   for (const pattern of NO_DATA_PATTERNS) {
     if (pattern.test(page.text)) {
@@ -534,14 +535,14 @@ function collectPageReasonsWithoutData(page: CrawledPage): string[] {
     }
   }
 
-  if (/\/dashboard\/status$/u.test(page.url)) {
+  if (pagePath === '/dashboard/status') {
     const stationCount = extractNumberAfterLabel(page.text, 'Estaciones en snapshot actual');
     if (stationCount === 0) {
       reasons.add('La pagina de estado muestra 0 estaciones en el snapshot actual.');
     }
   }
 
-  if (/\/informes$/u.test(page.url)) {
+  if (pagePath === '/informes') {
     const monthCount = extractNumberAfterLabel(page.text, 'Meses publicados');
     if (monthCount === 0) {
       reasons.add('El archivo mensual muestra 0 meses publicados.');

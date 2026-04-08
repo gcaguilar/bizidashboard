@@ -33,6 +33,20 @@ function resolvePublishedMonths(
   return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
 }
 
+function resolveSnapshotMonthFallback(lastSampleAt: string | null): string[] {
+  if (!lastSampleAt) {
+    return [];
+  }
+
+  const parsed = new Date(lastSampleAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return [];
+  }
+
+  const monthKey = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}`;
+  return isValidMonthKey(monthKey) ? [monthKey] : [];
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const [monthsResponse, monthlySeries] = await Promise.all([
     fetchAvailableDataMonths().catch(() => ({
@@ -104,10 +118,14 @@ export default async function ReportsIndexPage() {
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
   ]);
 
-  const months = resolvePublishedMonths(
+  const discoveredMonths = resolvePublishedMonths(
     monthsResponse.months,
     monthlySeries.map((row) => row.monthKey)
   );
+  const months =
+    discoveredMonths.length > 0
+      ? discoveredMonths
+      : resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt);
   const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
   const reportsDataState = combineDataStates([
