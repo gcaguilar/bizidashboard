@@ -2,18 +2,9 @@ import { NextResponse } from 'next/server';
 import { getJobState, isCollectionScheduled, runCollection } from '@/jobs/bizi-collection';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { getOpsApiKey } from '@/lib/security/config';
 import { recordSecurityEvent } from '@/lib/security/audit';
-import {
-  isApiKeyValid,
-  readOpsApiKey,
-  withApiRequest,
-} from '@/lib/security/http';
-import {
-  consumeRateLimit,
-  getRateLimitHeaders,
-  type RateLimitDecision,
-} from '@/lib/security/rate-limit';
+import { withApiRequest } from '@/lib/security/http';
+import { enforceOperationalAccess } from '@/lib/security/ops-api';
 
 const DEFAULT_RATE_LIMIT_MAX = 6;
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
@@ -46,94 +37,6 @@ function getRateLimitConfig(): { max: number; windowMs: number } {
   };
 }
 
-function errorResponse(
-  status: number,
-  error: string,
-  headers?: Record<string, string>
-): NextResponse {
-  return NextResponse.json(
-    {
-      success: false,
-      error,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      status,
-      headers,
-    }
-  );
-}
-
-async function enforceOperationalAccess(
-  request: Request,
-  clientIp: string
-): Promise<
-  | {
-      headers: Record<string, string>;
-      decision: RateLimitDecision;
-      providedKey: string;
-    }
-  | { response: NextResponse }
-> {
-  const expectedApiKey = getOpsApiKey();
-
-  if (!expectedApiKey) {
-    return {
-      response: errorResponse(
-        503,
-        'Server misconfigured: OPS_API_KEY or COLLECT_API_KEY is required.'
-      ),
-    };
-  }
-
-  const { max, windowMs } = getRateLimitConfig();
-  const providedKey = readOpsApiKey(request.headers) ?? '';
-  const [ipDecision, keyDecision] = await Promise.all([
-    consumeRateLimit({
-      namespace: 'collect:ip',
-      identifierParts: [clientIp],
-      limit: max,
-      windowMs,
-    }),
-    consumeRateLimit({
-      namespace: 'collect:key',
-      identifierParts: [providedKey || 'missing'],
-      limit: max,
-      windowMs,
-    }),
-  ]);
-
-  const effectiveDecision = !ipDecision.allowed ? ipDecision : keyDecision;
-  const headers = getRateLimitHeaders(effectiveDecision);
-
-  if (effectiveDecision.backend === 'unavailable') {
-    return {
-      response: errorResponse(503, 'Rate limiting backend unavailable.', headers),
-    };
-  }
-
-  if (!effectiveDecision.allowed) {
-    return {
-      response: errorResponse(429, 'Too many requests for /api/collect.', {
-        ...headers,
-        'Retry-After': String(effectiveDecision.retryAfterSeconds),
-      }),
-    };
-  }
-
-  if (!isApiKeyValid(providedKey, expectedApiKey)) {
-    return {
-      response: errorResponse(401, 'Unauthorized collect trigger.', headers),
-    };
-  }
-
-  return {
-    headers,
-    decision: effectiveDecision,
-    providedKey,
-  };
-}
-
 export async function POST(request: Request): Promise<Response> {
   return withApiRequest(
     request,
@@ -142,7 +45,18 @@ export async function POST(request: Request): Promise<Response> {
       routeGroup: 'ops.collect',
     },
     async ({ requestId, clientIp, userAgent }) => {
-      const access = await enforceOperationalAccess(request, clientIp);
+      const { max, windowMs } = getRateLimitConfig();
+      const access = await enforceOperationalAccess({
+        request,
+        clientIp,
+        namespace: 'collect',
+        limit: max,
+        windowMs,
+        unauthorizedError: 'Unauthorized collect trigger.',
+        rateLimitError: 'Too many requests for /api/collect.',
+        misconfiguredError:
+          'Server misconfigured: OPS_API_KEY or COLLECT_API_KEY is required.',
+      });
 
       if ('response' in access) {
         const status = access.response.status;
@@ -247,7 +161,18 @@ export async function GET(request?: Request): Promise<Response> {
       routeGroup: 'ops.collect',
     },
     async ({ requestId, clientIp, userAgent }) => {
-      const access = await enforceOperationalAccess(req, clientIp);
+      const { max, windowMs } = getRateLimitConfig();
+      const access = await enforceOperationalAccess({
+        request: req,
+        clientIp,
+        namespace: 'collect',
+        limit: max,
+        windowMs,
+        unauthorizedError: 'Unauthorized collect trigger.',
+        rateLimitError: 'Too many requests for /api/collect.',
+        misconfiguredError:
+          'Server misconfigured: OPS_API_KEY or COLLECT_API_KEY is required.',
+      });
 
       if ('response' in access) {
         await recordSecurityEvent({

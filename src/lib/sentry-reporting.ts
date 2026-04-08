@@ -128,12 +128,12 @@ function shouldSkipMessageCapture(dedupeKey?: string): boolean {
 export function captureExceptionWithContext(
   error: unknown,
   context: CaptureContext
-): void {
+): string {
   const exception = toError(error);
 
-  Sentry.withScope((scope) => {
+  return Sentry.withScope((scope) => {
     applyContext(scope, context);
-    Sentry.captureException(exception);
+    return Sentry.captureException(exception);
   });
 }
 
