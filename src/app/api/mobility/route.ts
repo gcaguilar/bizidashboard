@@ -8,7 +8,7 @@ import { withCache } from '@/lib/cache/cache';
 import { resolveMobilityDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { isValidMonthKey } from '@/lib/months';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
 import { enforcePublicApiAccess } from '@/lib/security/public-api';
 import { getSharedDatasetSnapshot } from '@/services/shared-data';
@@ -98,9 +98,33 @@ export async function GET(request: NextRequest): Promise<Response> {
         const cacheKey = `mobility:mobilityDays=${mobilityDays}:demandDays=${demandDays}:month=${monthKey ?? 'all'}`;
         const payload = await withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
           const [hourlySignals, dailyDemand, systemHourlyProfile, dataset] = await Promise.all([
-            fetchCachedHourlyMobilitySignals(mobilityDays, monthKey),
-            fetchCachedDailyDemandCurve(demandDays, monthKey),
-            fetchCachedSystemHourlyProfile(mobilityDays, monthKey),
+            fetchCachedHourlyMobilitySignals(mobilityDays, monthKey).catch((error) => {
+              captureWarningWithContext('Mobility API degraded: hourly signals fallback applied.', {
+                area: 'api.mobility',
+                operation: 'GET /api/mobility',
+                dedupeKey: 'api.mobility.hourly-signals-fallback',
+                extra: { mobilityDays, monthKey, reason: String(error) },
+              });
+              return [];
+            }),
+            fetchCachedDailyDemandCurve(demandDays, monthKey).catch((error) => {
+              captureWarningWithContext('Mobility API degraded: daily demand fallback applied.', {
+                area: 'api.mobility',
+                operation: 'GET /api/mobility',
+                dedupeKey: 'api.mobility.daily-demand-fallback',
+                extra: { demandDays, monthKey, reason: String(error) },
+              });
+              return [];
+            }),
+            fetchCachedSystemHourlyProfile(mobilityDays, monthKey).catch((error) => {
+              captureWarningWithContext('Mobility API degraded: system hourly profile fallback applied.', {
+                area: 'api.mobility',
+                operation: 'GET /api/mobility',
+                dedupeKey: 'api.mobility.system-hourly-fallback',
+                extra: { mobilityDays, monthKey, reason: String(error) },
+              });
+              return [];
+            }),
             getSharedDatasetSnapshot().catch(() => null),
           ]);
 

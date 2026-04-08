@@ -16,7 +16,7 @@ import {
   enrichRankingRows,
   type EnrichedRankingRow,
 } from '@/lib/ranking-enrichment';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
 import { enforcePublicApiAccess } from '@/lib/security/public-api';
 import { getSharedDatasetSnapshot } from '@/services/shared-data';
@@ -139,7 +139,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           let enrichedRankings = enrichRankingRows(rankings, stationNameById, districtNameById);
           const patternRows = await getStationPatternsBulk(
             enrichedRankings.map((r) => r.stationId)
-          );
+          ).catch((error) => {
+            captureWarningWithContext('Rankings API degraded: station pattern enrichment fallback applied.', {
+              area: 'api.rankings',
+              operation: 'GET /api/rankings',
+              dedupeKey: 'api.rankings.station-patterns-fallback',
+              extra: { type: typeParam, limit, reason: String(error) },
+            });
+            return [];
+          });
           const peakMap = buildPeakFullHoursByStation(patternRows);
           enrichedRankings = attachPeakFullHours(enrichedRankings, peakMap);
 
