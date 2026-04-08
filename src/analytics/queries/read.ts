@@ -206,6 +206,31 @@ type SystemHourlyProfileRow = {
   sampleCount: number;
 };
 
+function toSerializableNumber(value: unknown): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+
+  if (typeof value === 'string') {
+    return Number(value);
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    'toString' in value &&
+    typeof value.toString === 'function'
+  ) {
+    return Number(value.toString());
+  }
+
+  return 0;
+}
+
 export async function getStationRankings(
   type: RankingType,
   limit = 20
@@ -447,7 +472,7 @@ export async function getHourlyMobilitySignals(
 ): Promise<HourlyMobilitySignalRow[]> {
   const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
-  return prisma.$queryRaw<HourlyMobilitySignalRow[]>`
+  const rows = await prisma.$queryRaw<HourlyMobilitySignalRow[]>`
     WITH with_lag AS (
       SELECT
         "stationId",
@@ -474,11 +499,26 @@ export async function getHourlyMobilitySignals(
     FROM hourly
     ORDER BY "stationId" ASC, hour ASC;
   `;
+
+  return rows.map((row) => ({
+    ...row,
+    hour: toSerializableNumber(row.hour),
+    departures: toSerializableNumber(row.departures),
+    arrivals: toSerializableNumber(row.arrivals),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
 }
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
   const query = buildDemandSeriesQuery(days, monthKey)
-  return prisma.$queryRaw<DailyDemandRow[]>(query)
+  const rows = await prisma.$queryRaw<DailyDemandRow[]>(query)
+
+  return rows.map((row) => ({
+    ...row,
+    demandScore: toSerializableNumber(row.demandScore),
+    avgOccupancy: toSerializableNumber(row.avgOccupancy),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }))
 }
 
 export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDemandRow[]> {
@@ -506,7 +546,13 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
   });
 
   if (fromDaily.length > 0) {
-    return fromDaily;
+    return fromDaily.map((row) => ({
+      ...row,
+      demandScore: toSerializableNumber(row.demandScore),
+      avgOccupancy: toSerializableNumber(row.avgOccupancy),
+      activeStations: toSerializableNumber(row.activeStations),
+      sampleCount: toSerializableNumber(row.sampleCount),
+    }));
   }
 
   const fromHourly = await prisma.$queryRaw<MonthlyDemandRow[]>`
@@ -531,7 +577,13 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     return [];
   });
 
-  return fromHourly;
+  return fromHourly.map((row) => ({
+    ...row,
+    demandScore: toSerializableNumber(row.demandScore),
+    avgOccupancy: toSerializableNumber(row.avgOccupancy),
+    activeStations: toSerializableNumber(row.activeStations),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
 }
 
 export async function getSystemHourlyProfile(
@@ -540,7 +592,7 @@ export async function getSystemHourlyProfile(
 ): Promise<SystemHourlyProfileRow[]> {
   const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
-  return prisma.$queryRaw<SystemHourlyProfileRow[]>`
+  const rows = await prisma.$queryRaw<SystemHourlyProfileRow[]>`
     SELECT
       EXTRACT(HOUR FROM "bucketStart")::int AS hour,
       AVG("occupancyAvg") AS "avgOccupancy",
@@ -551,4 +603,12 @@ export async function getSystemHourlyProfile(
     GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
     ORDER BY hour ASC;
   `;
+
+  return rows.map((row) => ({
+    ...row,
+    hour: toSerializableNumber(row.hour),
+    avgOccupancy: toSerializableNumber(row.avgOccupancy),
+    avgBikesAvailable: toSerializableNumber(row.avgBikesAvailable),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
 }
