@@ -1,5 +1,5 @@
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.3.11 AS deps
+FROM oven/bun:1.3.12 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 # In multi-arch builds, optional deps can differ by platform (arm64 vs amd64).
@@ -7,7 +7,7 @@ COPY package.json bun.lock ./
 RUN bun install
 
 # ── builder: generate prisma client & build Next.js ──────────────────
-FROM oven/bun:1.3.11 AS builder
+FROM oven/bun:1.3.12 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -26,7 +26,7 @@ RUN bunx prisma generate
 RUN bun run build
 
 # ── prodeps: production dependencies + prisma CLI for migrations ─────
-FROM oven/bun:1.3.11 AS prodeps
+FROM oven/bun:1.3.12 AS prodeps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --production
@@ -36,7 +36,7 @@ COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # ── runner: minimal production image ─────────────────────────────────
-FROM oven/bun:1.3.11-slim AS runner
+FROM oven/bun:1.3.12-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
