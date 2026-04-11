@@ -26,10 +26,10 @@ describe('analytics read-series normalization', () => {
     queryRawMock.mockResolvedValueOnce([
       {
         monthKey: '2026-04',
-        demandScore: 123n,
+        demandScore: BigInt(123),
         avgOccupancy: '0.42',
-        activeStations: 275n,
-        sampleCount: 3300n,
+        activeStations: BigInt(275),
+        sampleCount: BigInt(3300),
       },
     ]);
 
@@ -53,10 +53,10 @@ describe('analytics read-series normalization', () => {
       .mockResolvedValueOnce([
         {
           monthKey: '2026-03',
-          demandScore: 456n,
-          avgOccupancy: '0.37',
-          activeStations: 240n,
-          sampleCount: 7200n,
+demandScore: BigInt(456),
+        avgOccupancy: '0.37',
+        activeStations: BigInt(240),
+        sampleCount: BigInt(7200),
         },
       ]);
 
@@ -79,26 +79,26 @@ describe('analytics read-series normalization', () => {
       .mockResolvedValueOnce([
         {
           day: '2026-04-08',
-          demandScore: 32n,
+          demandScore: BigInt(32),
           avgOccupancy: '0.61',
-          sampleCount: 48n,
+          sampleCount: BigInt(48),
         },
       ])
       .mockResolvedValueOnce([
         {
           stationId: 'station-1',
-          hour: 7n,
-          departures: 12n,
-          arrivals: 15n,
-          sampleCount: 18n,
+          hour: BigInt(7),
+          departures: BigInt(12),
+          arrivals: BigInt(15),
+          sampleCount: BigInt(18),
         },
       ])
       .mockResolvedValueOnce([
         {
-          hour: 9n,
+          hour: BigInt(9),
           avgOccupancy: '0.54',
           avgBikesAvailable: '6.5',
-          sampleCount: 96n,
+          sampleCount: BigInt(96),
         },
       ]);
 
