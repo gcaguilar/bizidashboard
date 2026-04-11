@@ -1,5 +1,6 @@
-import Link from 'next/link';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import { buildPanelOpenEvent } from '@/lib/umami';
 
 type DashboardQuickLinksProps = {
   selectedStationDetailUrl: string;
@@ -13,12 +14,18 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         <p className="text-sm text-[var(--muted)]">
           Abre la vista completa de la estacion seleccionada para ver prediccion, mapa por barrios y comparativas.
         </p>
-        <Link
+        <TrackedLink
           href={selectedStationDetailUrl}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'station_detail',
+            source: 'dashboard_quick_links',
+          })}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Abrir detalle completo
-        </Link>
+        </TrackedLink>
       </article>
 
       <article className="dashboard-card">
@@ -26,12 +33,18 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         <p className="text-sm text-[var(--muted)]">
           Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
         </p>
-        <Link
+        <TrackedLink
           href={appRoutes.dashboardFlow()}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'flow',
+            source: 'dashboard_quick_links',
+          })}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ir a analisis de flujo
-        </Link>
+        </TrackedLink>
       </article>
 
       <article className="dashboard-card">
@@ -39,12 +52,18 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         <p className="text-sm text-[var(--muted)]">
           Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
         </p>
-        <Link
+        <TrackedLink
           href={appRoutes.dashboardConclusions()}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'conclusions',
+            source: 'dashboard_quick_links',
+          })}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ver conclusiones
-        </Link>
+        </TrackedLink>
       </article>
 
       <article className="dashboard-card">
@@ -52,12 +71,18 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         <p className="text-sm text-[var(--muted)]">
           Metodologia, criterios de alertas y documentacion en una pagina independiente.
         </p>
-        <Link
+        <TrackedLink
           href={appRoutes.dashboardHelp()}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'help',
+            source: 'dashboard_quick_links',
+          })}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Abrir ayuda
-        </Link>
+        </TrackedLink>
       </article>
 
       <article className="dashboard-card">
@@ -65,12 +90,19 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         <p className="text-sm text-[var(--muted)]">
           Rankings indexables, series temporales e informes mensuales enlazados al dashboard.
         </p>
-        <Link
+        <TrackedLink
           href={appRoutes.reports()}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'reports',
+            source: 'dashboard_quick_links',
+            destination: 'report_archive',
+          })}
           className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
         >
           Ver informes y rankings
-        </Link>
+        </TrackedLink>
       </article>
     </section>
   );

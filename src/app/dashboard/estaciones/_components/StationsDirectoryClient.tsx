@@ -1,13 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationSnapshot } from '@/lib/api';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
+import { buildEntitySelectEvent } from '@/lib/umami';
+import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -50,6 +52,11 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <DashboardPageViewTracker
+        routeKey="dashboard_stations"
+        pageType="dashboard"
+        template="stations_directory"
+      />
       <header className="sticky top-0 z-40 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -124,12 +131,19 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   <p className="text-sm font-semibold text-[var(--foreground)]">{formatPercent(occupancy)}</p>
                 </div>
               </div>
-              <Link
+              <TrackedLink
                 href={appRoutes.dashboardStation(station.id)}
+                trackingEvent={buildEntitySelectEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_stations',
+                  entityType: 'station',
+                  source: 'stations_directory',
+                  module: 'station_card',
+                })}
                 className="mt-3 inline-flex rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
               >
                 Ver detalle
-              </Link>
+              </TrackedLink>
             </article>
           );
         })}

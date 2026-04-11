@@ -33,6 +33,12 @@ import {
   type DashboardMapViewState,
 } from '@/lib/map-view-state';
 import {
+  buildDashboardModeChangeEvent,
+  buildEntitySelectEvent,
+  buildFilterChangeEvent,
+  trackUmamiEvent,
+} from '@/lib/umami';
+import {
   buildStationSnapshotMap,
   parseRecentSnapshots,
   parseStationSnapshot,
@@ -41,6 +47,7 @@ import {
   type StationSnapshotMap,
 } from '@/lib/recent-station-history';
 import { parseJsonValue } from '@/lib/json';
+import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 
 const OverviewModeView = dynamic(
   () => import('./OverviewModeView').then((module) => module.OverviewModeView),
@@ -291,6 +298,7 @@ function formatCountdown(valueMs: number): string {
 }
 
 export function DashboardClient({ initialData }: DashboardClientProps) {
+  const dashboardRouteKey = 'dashboard_home';
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -643,6 +651,104 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     });
   }, []);
 
+  const selectStationWithTracking = useCallback(
+    (stationId: string, source: string, module = 'station_selector') => {
+      if (!stationId || stationId === selectedStationId) {
+        return;
+      }
+
+      trackUmamiEvent(
+        buildEntitySelectEvent({
+          surface: 'dashboard',
+          routeKey: dashboardRouteKey,
+          entityType: 'station',
+          source,
+          module,
+        })
+      );
+      setSelectedStationId(stationId);
+    },
+    [dashboardRouteKey, selectedStationId]
+  );
+
+  const handleChangeMode = useCallback(
+    (mode: DashboardViewMode) => {
+      if (mode === viewMode) {
+        return;
+      }
+
+      trackUmamiEvent(
+        buildDashboardModeChangeEvent({
+          routeKey: dashboardRouteKey,
+          mode,
+          source: 'mode_header',
+        })
+      );
+      setViewMode(mode);
+    },
+    [dashboardRouteKey, viewMode]
+  );
+
+  const handleChangeWindow = useCallback(
+    (windowId: string) => {
+      if (windowId === activeWindowId) {
+        return;
+      }
+
+      trackUmamiEvent(
+        buildFilterChangeEvent({
+          surface: 'dashboard',
+          routeKey: dashboardRouteKey,
+          module: 'time_window',
+          source: 'dashboard_header',
+          timeWindow: windowId,
+        })
+      );
+      setActiveWindowId(windowId);
+    },
+    [activeWindowId, dashboardRouteKey]
+  );
+
+  const handleToggleOnlyWithBikes = useCallback(
+    (value: boolean) => {
+      if (value === onlyWithBikes) {
+        return;
+      }
+
+      trackUmamiEvent(
+        buildFilterChangeEvent({
+          surface: 'dashboard',
+          routeKey: dashboardRouteKey,
+          module: 'only_with_bikes',
+          source: 'dashboard_header',
+          destination: value ? 'enabled' : 'disabled',
+        })
+      );
+      setOnlyWithBikes(value);
+    },
+    [dashboardRouteKey, onlyWithBikes]
+  );
+
+  const handleToggleOnlyWithAnchors = useCallback(
+    (value: boolean) => {
+      if (value === onlyWithAnchors) {
+        return;
+      }
+
+      trackUmamiEvent(
+        buildFilterChangeEvent({
+          surface: 'dashboard',
+          routeKey: dashboardRouteKey,
+          module: 'only_with_anchors',
+          source: 'dashboard_header',
+          destination: value ? 'enabled' : 'disabled',
+        })
+      );
+      setOnlyWithAnchors(value);
+    },
+    [dashboardRouteKey, onlyWithAnchors]
+  );
+
   const enableGeolocation = useCallback(() => {
     setIsGeolocationEnabled(true);
     setGeolocationError(null);
@@ -904,16 +1010,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
   return (
     <DashboardLayout mode={viewMode}>
+      <DashboardPageViewTracker
+        routeKey={dashboardRouteKey}
+        pageType="dashboard"
+        template="dashboard_home"
+      />
       <DashboardHeader
         timeWindows={TIME_WINDOWS}
         activeWindowId={activeWindowId}
-        onChangeWindow={setActiveWindowId}
+        onChangeWindow={handleChangeWindow}
         searchQuery={searchQuery}
         onChangeSearch={setSearchQuery}
         onlyWithBikes={onlyWithBikes}
         onlyWithAnchors={onlyWithAnchors}
-        onToggleOnlyWithBikes={setOnlyWithBikes}
-        onToggleOnlyWithAnchors={setOnlyWithAnchors}
+        onToggleOnlyWithBikes={handleToggleOnlyWithBikes}
+        onToggleOnlyWithAnchors={handleToggleOnlyWithAnchors}
         filteredStationsCount={filteredStations.length}
         totalStationsCount={totalStationsCount}
         filteredOutCount={hasAvailabilityFilter ? filteredOutCount : 0}
@@ -933,7 +1044,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
           setOnlyWithBikes(false);
           setOnlyWithAnchors(false);
-          setSelectedStationId(nearestStationInfo.id);
+          selectStationWithTracking(nearestStationInfo.id, 'nearest_station', 'geolocation');
         }}
         canJumpToNearest={Boolean(nearestStationInfo && nearestStation)}
         refreshCountdownLabel={formatCountdown(refreshCountdownMs)}
@@ -950,7 +1061,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         />
       ) : null}
 
-      <ModeHeader activeMode={viewMode} onChangeMode={setViewMode} />
+      <ModeHeader activeMode={viewMode} onChangeMode={handleChangeMode} />
 
       <ModeIntroBanner mode={viewMode} />
 
@@ -962,7 +1073,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           stations={stationsData.stations}
           filteredStations={filteredStations}
           selectedStationId={selectedStationId}
-          onSelectStation={setSelectedStationId}
+          onSelectStation={(stationId) =>
+            selectStationWithTracking(stationId, 'overview_mode', 'overview')
+          }
           favoriteStationIds={favoriteStationIds}
           onToggleFavorite={toggleFavoriteStation}
           trendByStationId={stationTrendById}
@@ -987,7 +1100,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           filteredStations={filteredStations}
           totalStations={totalStationsCount}
           selectedStationId={selectedStationId}
-          onSelectStation={setSelectedStationId}
+          onSelectStation={(stationId) =>
+            selectStationWithTracking(stationId, 'operations_mode', 'operations')
+          }
           favoriteStationIds={favoriteStationIds}
           onToggleFavorite={toggleFavoriteStation}
           trendByStationId={stationTrendById}
@@ -1012,7 +1127,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           stations={stationsData.stations}
           filteredStations={filteredStations}
           selectedStationId={selectedStationId}
-          onSelectStation={setSelectedStationId}
+          onSelectStation={(stationId) =>
+            selectStationWithTracking(stationId, 'research_mode', 'research')
+          }
           favoriteStationIds={favoriteStationIds}
           onToggleFavorite={toggleFavoriteStation}
           trendByStationId={stationTrendById}

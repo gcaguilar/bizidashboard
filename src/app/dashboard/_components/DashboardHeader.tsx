@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import { buildPanelOpenEvent } from '@/lib/umami';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -104,12 +105,30 @@ export function DashboardHeader({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-          <Link href={appRoutes.dashboardConclusions()} className="icon-button hidden sm:inline-flex">
+          <TrackedLink
+            href={appRoutes.dashboardConclusions()}
+            trackingEvent={buildPanelOpenEvent({
+              surface: 'dashboard',
+              routeKey: 'dashboard_home',
+              module: 'conclusions',
+              source: 'dashboard_header',
+            })}
+            className="icon-button hidden sm:inline-flex"
+          >
             Conclusiones
-          </Link>
-          <Link href={appRoutes.dashboardHelp()} className="icon-button hidden sm:inline-flex">
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.dashboardHelp()}
+            trackingEvent={buildPanelOpenEvent({
+              surface: 'dashboard',
+              routeKey: 'dashboard_home',
+              module: 'help',
+              source: 'dashboard_header',
+            })}
+            className="icon-button hidden sm:inline-flex"
+          >
             Ayuda
-          </Link>
+          </TrackedLink>
           <ThemeToggleButton />
           <GitHubRepoButton />
         </div>

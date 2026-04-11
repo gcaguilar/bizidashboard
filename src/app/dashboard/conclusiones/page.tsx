@@ -11,6 +11,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { DashboardRouteLinks } from '../_components/DashboardRouteLinks';
+import { DashboardPageViewTracker } from '../_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
@@ -190,6 +191,11 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <DashboardPageViewTracker
+        routeKey="dashboard_conclusions"
+        pageType="dashboard"
+        template="conclusions_report"
+      />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
@@ -223,7 +229,12 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       </header>
 
       <Suspense>
-        <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+        <MonthFilter
+          months={availableMonths.months}
+          activeMonth={activeMonth}
+          routeKey="dashboard_conclusions"
+          source="dashboard_conclusions"
+        />
       </Suspense>
 
       <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)]">

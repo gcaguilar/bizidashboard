@@ -1,11 +1,19 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
-import { trackUmamiEvent, type UmamiEventValue } from '@/lib/umami';
+import {
+  buildLegacyInteractionEvent,
+  trackUmamiEvent,
+  type LegacyUmamiInteractionName,
+  type UmamiEventValue,
+  type UmamiTrackedEvent,
+} from '@/lib/umami';
 
 type TrackedAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   children: ReactNode;
-  eventName?: string;
+  trackingEvent?: UmamiTrackedEvent;
+  eventName?: LegacyUmamiInteractionName;
   eventData?: Record<string, UmamiEventValue>;
 };
 
@@ -13,13 +21,24 @@ export function TrackedAnchor({
   children,
   eventName,
   eventData,
+  trackingEvent,
   onClick,
   className,
   ...anchorProps
 }: TrackedAnchorProps) {
+  const pathname = usePathname();
+
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (eventName) {
-      trackUmamiEvent(eventName, eventData);
+    if (trackingEvent) {
+      trackUmamiEvent(trackingEvent);
+    } else if (eventName) {
+      trackUmamiEvent(
+        buildLegacyInteractionEvent({
+          eventName,
+          eventData,
+          pathname,
+        })
+      );
     }
 
     onClick?.(event);

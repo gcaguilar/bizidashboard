@@ -1,10 +1,18 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import type { HistoryMetadata } from '@/services/shared-data/types';
+import {
+  buildCtaClickEvent,
+  buildExportClickEvent,
+  buildPanelOpenEvent,
+  trackUmamiEvent,
+} from '@/lib/umami';
+import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
@@ -75,6 +83,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+      <DashboardPageViewTracker routeKey="dashboard_help" pageType="dashboard" template="help_center" />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/95 px-6 py-4 backdrop-blur-md md:px-10">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
@@ -111,9 +120,20 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href={appRoutes.api.history()} className="icon-button">
+            <TrackedLink
+              href={appRoutes.api.history()}
+              trackingEvent={buildExportClickEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_help',
+                source: 'help_header',
+                ctaId: 'history_json',
+                entityType: 'api',
+                module: 'help_header',
+              })}
+              className="icon-button"
+            >
               Historico
-            </Link>
+            </TrackedLink>
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
@@ -188,28 +208,52 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             <p className="mt-3 text-xs text-[var(--muted)]">
               Fuente: {historyMeta?.source?.provider ?? 'Bizi Zaragoza GBFS'}
             </p>
-            <a
+            <TrackedAnchor
               href={historyMeta?.source?.gbfsDiscoveryUrl ?? 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json'}
               target="_blank"
               rel="noreferrer"
+              trackingEvent={buildCtaClickEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_help',
+                source: 'help_coverage',
+                ctaId: 'source_feed_open',
+                destination: 'gbfs_feed',
+                isExternal: true,
+              })}
               className="mt-1 inline-flex text-xs font-semibold text-[var(--accent)] underline decoration-[var(--accent)]/40 underline-offset-2"
             >
               Ver feed de origen
-            </a>
+            </TrackedAnchor>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link
+              <TrackedLink
                 href={appRoutes.api.history()}
+                trackingEvent={buildExportClickEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_help',
+                  source: 'help_coverage',
+                  ctaId: 'history_json',
+                  entityType: 'api',
+                  module: 'help_coverage',
+                })}
                 className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white"
               >
                 Ver historico completo
-              </Link>
-              <Link
+              </TrackedLink>
+              <TrackedLink
                 href={appRoutes.api.openApi()}
+                trackingEvent={buildCtaClickEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_help',
+                  source: 'help_coverage',
+                  ctaId: 'api_open',
+                  destination: 'openapi',
+                  entityType: 'api',
+                })}
                 className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
               >
                 Definicion API
-              </Link>
+              </TrackedLink>
             </div>
           </aside>
         </div>
@@ -224,7 +268,18 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               <button
                 key={category}
                 type="button"
-                onClick={() => setActiveCategory((currentCategory) => (currentCategory === category ? null : category))}
+                onClick={() => {
+                  const nextCategory = activeCategory === category ? null : category;
+                  trackUmamiEvent(
+                    buildPanelOpenEvent({
+                      surface: 'dashboard',
+                      routeKey: 'dashboard_help',
+                      module: nextCategory ? 'faq_category' : 'faq_category_reset',
+                      source: category,
+                    })
+                  );
+                  setActiveCategory(nextCategory);
+                }}
                 aria-pressed={isCategoryFilterActive}
                 className={`rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
                   isCategoryFilterActive

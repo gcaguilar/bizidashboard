@@ -1,12 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
+import { buildExportClickEvent, buildPanelOpenEvent } from '@/lib/umami';
 import { ChartWrapper } from './ChartWrapper';
 import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
@@ -102,14 +104,35 @@ export function DataHistoryCard() {
         </div>
         <div className="text-right text-xs text-[var(--muted)]">
           <div>
-            <Link href={appRoutes.dashboardHelp('balance-index')} className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+            <TrackedLink
+              href={appRoutes.dashboardHelp('balance-index')}
+              trackingEvent={buildPanelOpenEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_home',
+                module: 'balance_help',
+                source: 'data_history',
+              })}
+              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            >
               Entender balance
-            </Link>
+            </TrackedLink>
           </div>
           <div>
-            <a href={appRoutes.api.historyCsv()} className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline" rel="noopener noreferrer">
+            <TrackedAnchor
+              href={appRoutes.api.historyCsv()}
+              trackingEvent={buildExportClickEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_home',
+                source: 'data_history',
+                ctaId: 'history_csv',
+                entityType: 'api',
+                module: 'data_history',
+              })}
+              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              rel="noopener noreferrer"
+            >
               Descargar CSV
-            </a>
+            </TrackedAnchor>
           </div>
         </div>
       </div>

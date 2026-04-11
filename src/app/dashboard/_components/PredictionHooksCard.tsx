@@ -1,5 +1,6 @@
-import Link from 'next/link';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import { buildPanelOpenEvent } from '@/lib/umami';
 
 export function PredictionHooksCard() {
   const predictionExamplePath = `${appRoutes.api.predictions().replace('101', '')}...`;
@@ -19,12 +20,18 @@ export function PredictionHooksCard() {
       <p className="mt-3 text-xs text-[var(--muted)]">
         Es un primer modelo interpretable pensado para exponer una senal util sin introducir infraestructura extra de ML en esta fase.
       </p>
-      <Link
+      <TrackedLink
         href={appRoutes.dashboardHelp('prediccion-dashboard')}
+        trackingEvent={buildPanelOpenEvent({
+          surface: 'dashboard',
+          routeKey: 'dashboard_home',
+          module: 'prediction_help',
+          source: 'prediction_hooks',
+        })}
         className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
       >
         Ver contexto metodologico
-      </Link>
+      </TrackedLink>
     </article>
   );
 }

@@ -2,24 +2,26 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { trackUmamiEvent, type UmamiEventValue } from '@/lib/umami';
+import {
+  buildPublicPageViewEvent,
+  resolveRouteKeyFromPathname,
+  trackUmamiEvent,
+} from '@/lib/umami';
 
 type PublicPageViewTrackerProps = {
+  routeKey?: string;
   pageType: string;
   template: string;
   pageSlug?: string;
   entityId?: string;
-  extra?: Record<string, UmamiEventValue>;
-  eventName?: string;
 };
 
 export function PublicPageViewTracker({
+  routeKey,
   pageType,
   template,
   pageSlug,
   entityId,
-  extra,
-  eventName = 'public_page_view',
 }: PublicPageViewTrackerProps) {
   const pathname = usePathname();
   const lastTrackedKey = useRef<string | null>(null);
@@ -29,7 +31,15 @@ export function PublicPageViewTracker({
       return;
     }
 
-    const trackingKey = [pathname, pageType, template, pageSlug ?? '', entityId ?? ''].join('|');
+    const resolvedRouteKey = routeKey ?? resolveRouteKeyFromPathname(pathname);
+    const trackingKey = [
+      pathname,
+      resolvedRouteKey,
+      pageType,
+      template,
+      pageSlug ?? '',
+      entityId ?? '',
+    ].join('|');
 
     if (lastTrackedKey.current === trackingKey) {
       return;
@@ -37,15 +47,14 @@ export function PublicPageViewTracker({
 
     lastTrackedKey.current = trackingKey;
 
-    trackUmamiEvent(eventName, {
-      path: pathname,
-      page_type: pageType,
-      template,
-      page_slug: pageSlug,
-      entity_id: entityId,
-      ...extra,
-    });
-  }, [entityId, eventName, extra, pageSlug, pageType, pathname, template]);
+    trackUmamiEvent(
+      buildPublicPageViewEvent({
+        routeKey: resolvedRouteKey,
+        pageType,
+        template,
+      })
+    );
+  }, [entityId, pageSlug, pageType, pathname, routeKey, template]);
 
   return null;
 }
