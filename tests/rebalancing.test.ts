@@ -275,7 +275,7 @@ describe('classifyStation', () => {
 
   it('classifies data_review for frozen sensor', () => {
     const result = classifyStation(
-      { ...makeBaseMetrics({ variability: 0.005, persistenceProxy: 0.10 }), sampleCount: 30 },
+      makeBaseMetrics({ variability: 0.005, persistenceProxy: 0.10 }),
       makeTimeBandMetrics(),
       targetBand,
       75 // high rotation percentile with frozen sensor
@@ -426,7 +426,6 @@ describe('computeTransfers', () => {
       currentAnchors: cap - bikes,
       currentOccupancy,
       inferredType: 'mixed',
-      inferredTypeConfidence: 0.5,
       classification: action === 'donor' ? 'overstock' : action === 'receptor' ? 'deficit' : 'balanced',
       classificationReasons: ['test'],
       globalMetrics: makeBaseMetrics(),
@@ -495,7 +494,7 @@ describe('computeReportKPIs', () => {
         bikesToMove: 5,
         timeWindow: { start: '07:00', end: '10:00' },
         expectedImpact: { emptiesAvoided: 2, fullsAvoided: 1, usesRecovered: 3, costScore: 0.8 },
-        matchScore: 0.7, confidence: 0.65, reasons: [],
+        matchScore: 0.7, logisticsScore: 0.6, confidence: 0.65, reasons: [],
       },
       {
         originStationId: 'c', originStationName: 'C',
@@ -503,7 +502,7 @@ describe('computeReportKPIs', () => {
         bikesToMove: 3,
         timeWindow: { start: '07:00', end: '10:00' },
         expectedImpact: { emptiesAvoided: 1, fullsAvoided: 0.5, usesRecovered: 1.5, costScore: 0.7 },
-        matchScore: 0.5, confidence: 0.60, reasons: [],
+        matchScore: 0.5, logisticsScore: 0.4, confidence: 0.60, reasons: [],
       },
     ];
     const kpis = computeReportKPIs([], mockTransfers);
