@@ -136,6 +136,30 @@ export async function getStationMetadataCount(): Promise<number> {
   return prisma.station.count()
 }
 
+export async function getMissingStationIds(
+  stationIds: string[]
+): Promise<string[]> {
+  const uniqueStationIds = Array.from(new Set(stationIds))
+
+  if (uniqueStationIds.length === 0) {
+    return []
+  }
+
+  const existingStations = await prisma.station.findMany({
+    where: {
+      id: {
+        in: uniqueStationIds,
+      },
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  const existingStationIds = new Set(existingStations.map((station) => station.id))
+  return uniqueStationIds.filter((stationId) => !existingStationIds.has(stationId))
+}
+
 export async function getSnapshotCount(recordedAt: Date): Promise<number> {
   return prisma.stationStatus.count({
     where: {

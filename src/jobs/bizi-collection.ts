@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
 import {
+  getMissingStationIds,
   getSnapshotCount,
   getStationMetadataCount,
   upsertStations,
@@ -193,10 +194,26 @@ async function executeCollection(
       ? fetchStationInformation(discovery)
       : Promise.resolve(null);
 
-    const [stationStatusResponse, stationInformation] = await Promise.all([
+    const [stationStatusResponse, initialStationInformation] = await Promise.all([
       stationStatusPromise,
       stationInformationPromise,
     ]);
+
+    let stationInformation = initialStationInformation;
+
+    if (!stationInformation) {
+      const missingStationIds = await getMissingStationIds(
+        stationStatusResponse.data.stations.map((station) => station.station_id)
+      );
+
+      if (missingStationIds.length > 0) {
+        logger.warn('collection.station_metadata_missing', {
+          missingStationCount: missingStationIds.length,
+          missingStationIdsSample: missingStationIds.slice(0, 10),
+        });
+        stationInformation = await fetchStationInformation(discovery);
+      }
+    }
 
     // Step 3: Refresh station metadata sparingly. Station names/coords/capacity
     // change infrequently, so we only sync them on deploy/startup or bootstrap.
@@ -205,6 +222,7 @@ async function executeCollection(
       hasSyncedStationInformationSinceStartup = true;
       logger.info('collection.station_metadata_synced', {
         stationCount: stationInformation.length,
+        reason: syncStationInformation ? 'startup_or_bootstrap' : 'missing_station_ids',
       });
     }
     await ensureLockRefreshed(lock, 'post-station-metadata-sync');

@@ -5,6 +5,7 @@ const {
   fetchStationInformationMock,
   fetchStationStatusMock,
   validateAndStoreMock,
+  getMissingStationIdsMock,
   getSnapshotCountMock,
   getStationMetadataCountMock,
   upsertStationsMock,
@@ -16,6 +17,7 @@ const {
   fetchStationInformationMock: vi.fn(),
   fetchStationStatusMock: vi.fn(),
   validateAndStoreMock: vi.fn(),
+  getMissingStationIdsMock: vi.fn(),
   getSnapshotCountMock: vi.fn(),
   getStationMetadataCountMock: vi.fn(),
   upsertStationsMock: vi.fn(),
@@ -35,6 +37,7 @@ vi.mock('@/services/data-validator', () => ({
 }));
 
 vi.mock('@/services/data-storage', () => ({
+  getMissingStationIds: getMissingStationIdsMock,
   getSnapshotCount: getSnapshotCountMock,
   getStationMetadataCount: getStationMetadataCountMock,
   upsertStations: upsertStationsMock,
@@ -60,6 +63,7 @@ describe('runCollection', () => {
     fetchStationInformationMock.mockReset();
     fetchStationStatusMock.mockReset();
     validateAndStoreMock.mockReset();
+    getMissingStationIdsMock.mockReset();
     getSnapshotCountMock.mockReset();
     getStationMetadataCountMock.mockReset();
     upsertStationsMock.mockReset();
@@ -72,7 +76,24 @@ describe('runCollection', () => {
       release: vi.fn().mockResolvedValue(undefined),
     });
     fetchDiscoveryMock.mockResolvedValue({ version: '2.3' });
+    fetchStationInformationMock.mockResolvedValue([
+      {
+        station_id: '1',
+        name: 'Station 1',
+        lat: 41.6488,
+        lon: -0.8891,
+        capacity: 18,
+      },
+      {
+        station_id: '2',
+        name: 'Station 2',
+        lat: 41.6491,
+        lon: -0.8884,
+        capacity: 20,
+      },
+    ]);
     getStationMetadataCountMock.mockResolvedValue(275);
+    getMissingStationIdsMock.mockResolvedValue([]);
     fetchStationStatusMock.mockResolvedValue({
       last_updated: 1773915600,
       ttl: 0,
@@ -137,5 +158,33 @@ describe('runCollection', () => {
       'Collection lock refresh failed at stage: post-station-metadata-sync'
     );
     expect(releaseMock).toHaveBeenCalled();
+  });
+
+  it('refreshes station metadata when the status feed references missing station ids', async () => {
+    getSnapshotCountMock.mockResolvedValue(0);
+    getMissingStationIdsMock.mockResolvedValue(['2']);
+    validateAndStoreMock.mockResolvedValue({
+      success: true,
+      warnings: [],
+      errors: [],
+      storageResult: { count: 2, duplicateCount: 0 },
+      metrics: {
+        freshness: { lastUpdated: new Date('2026-03-19T10:20:00.000Z') },
+        lineage: { gbfsVersion: '2.3' },
+        volume: { stationCount: 2 },
+      },
+    });
+
+    const result = await runCollection();
+
+    expect(result.success).toBe(true);
+    expect(getMissingStationIdsMock).toHaveBeenCalledWith(['1', '2']);
+    expect(fetchStationInformationMock).toHaveBeenCalledTimes(1);
+    expect(upsertStationsMock).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ station_id: '2' }),
+      ])
+    );
+    expect(validateAndStoreMock).toHaveBeenCalledTimes(1);
   });
 });
