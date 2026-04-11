@@ -175,7 +175,14 @@ export async function validateAndStore(
         collectionId,
         insertedCount: storageResult.count,
         duplicateCount: storageResult.duplicateCount,
+        skippedMissingStationCount: storageResult.skippedMissingStationIds.length,
       })
+
+      if (storageResult.skippedMissingStationIds.length > 0) {
+        result.warnings.push(
+          `Skipped ${storageResult.skippedMissingStationIds.length} station statuses because station metadata is still unavailable after refresh.`
+        )
+      }
       
       if (storageResult.duplicateCount > 0) {
         result.warnings.push(`${storageResult.duplicateCount} duplicate entries skipped`)

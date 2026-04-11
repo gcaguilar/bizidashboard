@@ -82,6 +82,7 @@ describe('validateAndStore', () => {
       success: true,
       count: 2,
       duplicateCount: 0,
+      skippedMissingStationIds: [],
       errors: [],
     });
   });
@@ -127,5 +128,50 @@ describe('validateAndStore', () => {
         recorded_at: 1773912900,
       },
     ]);
+  });
+
+  it('surfaces skipped missing stations as warnings instead of failing the batch', async () => {
+    storeStationStatusesMock.mockResolvedValue({
+      success: true,
+      count: 1,
+      duplicateCount: 0,
+      skippedMissingStationIds: ['2'],
+      errors: [],
+    });
+
+    const response: GBFSStatusResponse = {
+      last_updated: 1773912900,
+      ttl: 0,
+      version: '2.3',
+      data: {
+        stations: [
+          {
+            station_id: '1',
+            num_bikes_available: 7,
+            num_docks_available: 11,
+          },
+          {
+            station_id: '2',
+            num_bikes_available: 3,
+            num_docks_available: 9,
+          },
+        ],
+      },
+    };
+
+    const result = await validateAndStore(response, {
+      sourceUrl: 'https://example.com/gbfs.json',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toContain(
+      'Skipped 1 station statuses because station metadata is still unavailable after refresh.'
+    );
+    expect(result.storageResult).toEqual({
+      count: 1,
+      duplicateCount: 0,
+      errors: [],
+    });
   });
 });

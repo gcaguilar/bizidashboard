@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import {
+  captureExceptionWithContext,
+  captureWarningWithContext,
+} from '@/lib/sentry-reporting'
 import { logger } from '@/lib/logger'
 
 /**
@@ -27,6 +30,7 @@ export type GBFSStationInformation = {
 export type StorageResult = {
   success: boolean
   count: number
+  skippedMissingStationIds: string[]
   errors: Array<{
     stationId: string
     error: string
@@ -62,16 +66,51 @@ export async function storeStationStatuses(
     success: true,
     count: 0,
     duplicateCount: 0,
+    skippedMissingStationIds: [],
     errors: []
   }
 
   try {
-    const data = statuses.map(status => ({
+    const missingStationIds = await getMissingStationIds(
+      statuses.map((status) => status.station_id)
+    )
+
+    if (missingStationIds.length > 0) {
+      result.skippedMissingStationIds = missingStationIds
+
+      captureWarningWithContext(
+        'Station status rows skipped because station metadata is unavailable.',
+        {
+          area: 'services.data-storage',
+          operation: 'storeStationStatuses',
+          dedupeKey: `data-storage:missing-stations:${missingStationIds.sort().join(',')}`,
+          extra: {
+            statusCount: statuses.length,
+            missingStationCount: missingStationIds.length,
+            missingStationIdsSample: missingStationIds.slice(0, 10),
+          },
+        }
+      )
+      logger.warn('storage.station_statuses_missing_station_metadata', {
+        statusCount: statuses.length,
+        missingStationCount: missingStationIds.length,
+        missingStationIdsSample: missingStationIds.slice(0, 10),
+      })
+    }
+
+    const missingStationIdSet = new Set(missingStationIds)
+    const data = statuses
+      .filter((status) => !missingStationIdSet.has(status.station_id))
+      .map(status => ({
       stationId: status.station_id,
       bikesAvailable: status.num_bikes_available,
       anchorsFree: status.num_docks_available,
       recordedAt: new Date(status.recorded_at * 1000)
-    }))
+      }))
+
+    if (data.length === 0) {
+      return result
+    }
 
     const { count } = await prisma.stationStatus.createMany({
       data,
