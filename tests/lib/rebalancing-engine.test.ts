@@ -9,10 +9,14 @@ const baseDiag = {
   classification: 'balanced' as const,
   risk: {
     riskEmptyAt1h: 0,
+    riskEmptyAt3h: 0,
     riskFullAt1h: 0,
+    riskFullAt3h: 0,
     demandNextHour: 5,
+    demandNext3Hours: 12,
     selfCorrectionProbability: 0,
     estimatedRecoveryMinutes: null,
+    confidence: 0.5,
   },
   network: {
     urgencyAdjustment: 1.0,
