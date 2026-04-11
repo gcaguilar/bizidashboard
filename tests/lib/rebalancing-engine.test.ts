@@ -21,6 +21,8 @@ const baseDiag = {
   network: {
     urgencyAdjustment: 1.0,
     nearbyStations: [],
+    clusterCapacity: 0,
+    clusterAvailability: 0,
   },
 } as Partial<StationDiagnostic>;
 
