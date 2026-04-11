@@ -1,5 +1,6 @@
-import Link from 'next/link';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import { buildPanelOpenEvent } from '@/lib/umami';
 
 type ApiCatalogCardProps = {
   items: Array<{
@@ -20,12 +21,18 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
             Resumen rapido de las rutas utiles para integrar datos del dashboard desde otras herramientas.
           </p>
         </div>
-        <Link
+        <TrackedLink
           href={appRoutes.dashboardHelp('api-documentacion')}
+          trackingEvent={buildPanelOpenEvent({
+            surface: 'dashboard',
+            routeKey: 'dashboard_home',
+            module: 'api_documentation',
+            source: 'api_catalog',
+          })}
           className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Ver ayuda
-        </Link>
+        </TrackedLink>
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">

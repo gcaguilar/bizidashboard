@@ -55,6 +55,11 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 - Server logs are emitted as structured JSON to stdout and Sentry sampling is configurable per runtime through env vars instead of fixed `1.0` sampling.
 - Production startup validates critical runtime configuration, including `JWT_SECRET`, `SIGNATURE_SECRET`, `OPS_API_KEY`/`COLLECT_API_KEY`, `REDIS_URL`, and a valid `APP_URL`.
 
+### Web analytics
+
+- Public web analytics uses Umami with a GDPR-minimal event contract: no free-text queries, no raw route params, no station or district IDs in custom dashboard events, and no session replay/fingerprinting.
+- Keep the deployed Umami instance in cookieless mode and avoid storing identifiable IP data. If legal or security cannot validate that setup, audit the current tracking first and do not expand event coverage.
+
 ---
 
 ## 🌍 Supported Cities

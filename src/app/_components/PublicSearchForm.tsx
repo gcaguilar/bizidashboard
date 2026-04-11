@@ -1,7 +1,12 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { appRoutes } from '@/lib/routes';
-import { trackUmamiEvent } from '@/lib/umami';
+import {
+  buildSearchSubmitEvent,
+  resolveRouteKeyFromPathname,
+  trackUmamiEvent,
+} from '@/lib/umami';
 
 type PublicSearchFormProps = {
   className?: string;
@@ -18,17 +23,22 @@ export function PublicSearchForm({
   buttonLabel = 'Buscar',
   eventSource = 'public_search',
 }: PublicSearchFormProps) {
+  const pathname = usePathname();
+
   return (
     <form
       action={appRoutes.explore()}
       method="get"
       onSubmit={(event) => {
         const query = String(new FormData(event.currentTarget).get('q') ?? '').trim();
-        trackUmamiEvent('search_submit', {
-          source: eventSource,
-          has_query: query.length > 0,
-          query_length: query.length,
-        });
+        trackUmamiEvent(
+          buildSearchSubmitEvent({
+            surface: 'public',
+            routeKey: resolveRouteKeyFromPathname(pathname),
+            source: eventSource,
+            queryLength: query.length,
+          })
+        );
       }}
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3 ${className ?? ''}`.trim()}
     >

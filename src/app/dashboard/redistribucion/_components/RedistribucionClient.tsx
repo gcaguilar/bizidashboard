@@ -1,9 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
+import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import type { RebalancingReport } from '@/types/rebalancing';
+import {
+  buildExportClickEvent,
+  buildFilterChangeEvent,
+  buildPanelOpenEvent,
+  trackUmamiEvent,
+} from '@/lib/umami';
+import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
 import { ClassificationLegend } from './ClassificationLegend';
 import { RebalancingSummaryCards } from './RebalancingSummaryCards';
 import { RebalancingTable } from './RebalancingTable';
@@ -122,6 +130,11 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
 
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-6 sm:px-6">
+      <DashboardPageViewTracker
+        routeKey="dashboard_redistribucion"
+        pageType="dashboard"
+        template="redistribucion_report"
+      />
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -137,17 +150,25 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
               </time>
             </p>
           </div>
-          <a
+          <TrackedAnchor
             href={appRoutes.api.rebalancingReport({
               district: selectedDistrict || null,
               days: selectedDays,
               format: 'csv',
             })}
             download
+            trackingEvent={buildExportClickEvent({
+              surface: 'dashboard',
+              routeKey: 'dashboard_redistribucion',
+              source: 'redistribucion_header',
+              ctaId: 'rebalancing_csv',
+              entityType: 'api',
+              module: 'redistribucion_export',
+            })}
             className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--surface))]"
           >
             Descargar CSV
-          </a>
+          </TrackedAnchor>
         </div>
 
         {/* Filters */}
@@ -156,7 +177,19 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
             aria-label="Filtrar redistribucion por barrio"
             className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
             value={selectedDistrict}
-            onChange={(e) => handleDistrictChange(e.target.value)}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              trackUmamiEvent(
+                buildFilterChangeEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  module: 'district_filter',
+                  source: 'redistribucion_filters',
+                  destination: nextValue ? 'filtered' : 'all',
+                })
+              );
+              handleDistrictChange(nextValue);
+            }}
           >
             <option value="">Todos los barrios</option>
             {districtNames.map((d) => (
@@ -170,7 +203,19 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
             aria-label="Cambiar ventana temporal del informe"
             className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
             value={selectedDays}
-            onChange={(e) => handleDaysChange(Number(e.target.value))}
+            onChange={(e) => {
+              const nextValue = Number(e.target.value);
+              trackUmamiEvent(
+                buildFilterChangeEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  module: 'analysis_window',
+                  source: 'redistribucion_filters',
+                  period: `${nextValue}_days`,
+                })
+              );
+              handleDaysChange(nextValue);
+            }}
           >
             {ANALYSIS_WINDOWS.map((d) => (
               <option key={d} value={d}>
@@ -208,7 +253,17 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
           <button
             key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              trackUmamiEvent(
+                buildPanelOpenEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  module: tab.id,
+                  source: 'redistribucion_tabs',
+                })
+              );
+              setActiveTab(tab.id);
+            }}
             role="tab"
             id={`redistribucion-tab-${tab.id}`}
             aria-selected={activeTab === tab.id}

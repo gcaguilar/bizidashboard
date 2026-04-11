@@ -2,27 +2,26 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import {
-  buildPublicPageViewEvent,
+  buildDashboardPageViewEvent,
   resolveRouteKeyFromPathname,
   trackUmamiEvent,
 } from '@/lib/umami';
 
-type PublicPageViewTrackerProps = {
+type DashboardPageViewTrackerProps = {
   routeKey?: string;
   pageType: string;
   template: string;
-  pageSlug?: string;
-  entityId?: string;
+  mode?: DashboardViewMode;
 };
 
-export function PublicPageViewTracker({
+export function DashboardPageViewTracker({
   routeKey,
   pageType,
   template,
-  pageSlug,
-  entityId,
-}: PublicPageViewTrackerProps) {
+  mode,
+}: DashboardPageViewTrackerProps) {
   const pathname = usePathname();
   const lastTrackedKey = useRef<string | null>(null);
 
@@ -32,14 +31,7 @@ export function PublicPageViewTracker({
     }
 
     const resolvedRouteKey = routeKey ?? resolveRouteKeyFromPathname(pathname);
-    const trackingKey = [
-      pathname,
-      resolvedRouteKey,
-      pageType,
-      template,
-      pageSlug ?? '',
-      entityId ?? '',
-    ].join('|');
+    const trackingKey = [pathname, resolvedRouteKey, pageType, template, mode ?? ''].join('|');
 
     if (lastTrackedKey.current === trackingKey) {
       return;
@@ -48,13 +40,14 @@ export function PublicPageViewTracker({
     lastTrackedKey.current = trackingKey;
 
     trackUmamiEvent(
-      buildPublicPageViewEvent({
+      buildDashboardPageViewEvent({
         routeKey: resolvedRouteKey,
         pageType,
         template,
+        mode,
       })
     );
-  }, [entityId, pageSlug, pageType, pathname, routeKey, template]);
+  }, [mode, pageType, pathname, routeKey, template]);
 
   return null;
 }

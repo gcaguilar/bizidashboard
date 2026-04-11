@@ -2,14 +2,23 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { toMonthOptions } from '@/lib/months';
+import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
 
 type MonthFilterProps = {
   months: string[];
   activeMonth: string | null;
   className?: string;
+  routeKey?: string;
+  source?: string;
 };
 
-export function MonthFilter({ months, activeMonth, className }: MonthFilterProps) {
+export function MonthFilter({
+  months,
+  activeMonth,
+  className,
+  routeKey = 'dashboard_unknown',
+  source = 'month_filter',
+}: MonthFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -21,6 +30,16 @@ export function MonthFilter({ months, activeMonth, className }: MonthFilterProps
 
   const updateMonth = (nextMonth: string | null) => {
     const nextParams = new URLSearchParams(searchParams.toString());
+
+    trackUmamiEvent(
+      buildFilterChangeEvent({
+        surface: 'dashboard',
+        routeKey,
+        module: 'month_filter',
+        source,
+        monthPresent: Boolean(nextMonth),
+      })
+    );
 
     if (nextMonth) {
       nextParams.set('month', nextMonth);

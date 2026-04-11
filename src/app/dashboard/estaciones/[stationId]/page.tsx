@@ -18,6 +18,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
+import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { Heatmap } from '../../_components/Heatmap';
 import { HourlyCharts } from '../../_components/HourlyCharts';
@@ -134,6 +135,11 @@ export default async function StationDetailPage({ params, searchParams }: Statio
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <DashboardPageViewTracker
+        routeKey="dashboard_station_detail"
+        pageType="dashboard"
+        template="station_detail"
+      />
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -176,7 +182,12 @@ export default async function StationDetailPage({ params, searchParams }: Statio
       </header>
 
       <Suspense>
-        <MonthFilter months={availableMonths.months} activeMonth={activeMonth} />
+        <MonthFilter
+          months={availableMonths.months}
+          activeMonth={activeMonth}
+          routeKey="dashboard_station_detail"
+          source="dashboard_station_detail"
+        />
       </Suspense>
 
       <StationDetailPanel
