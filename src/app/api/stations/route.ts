@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { rowsToCsv } from '@/lib/csv';
+import { errorResponse } from '@/lib/api-response';
 import { resolveStationsDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -135,14 +136,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
         });
         logger.error('api.stations.failed', { error });
 
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch stations',
-            timestamp: new Date().toISOString(),
-            dataState: 'error',
-          },
-          { status: 500 }
-        );
+        return errorResponse('Failed to fetch stations', 500);
       }
     }
   );

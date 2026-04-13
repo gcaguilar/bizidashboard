@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rowsToCsv } from '@/lib/csv'
+import { errorResponse } from '@/lib/api-response'
 import { resolveStatusDataState } from '@/lib/data-state'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
@@ -86,16 +87,7 @@ export async function GET(_request: NextRequest): Promise<Response> {
         })
         logger.error('api.status.failed', { error })
 
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch pipeline status',
-            timestamp: new Date().toISOString(),
-            dataState: 'error',
-          },
-          {
-            status: 500,
-          }
-        )
+        return errorResponse('Failed to fetch pipeline status', 500)
       }
     }
   )

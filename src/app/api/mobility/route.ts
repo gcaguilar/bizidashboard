@@ -5,6 +5,7 @@ import {
   fetchCachedSystemHourlyProfile,
 } from '@/lib/analytics-series';
 import { withCache } from '@/lib/cache/cache';
+import { errorResponse } from '@/lib/api-response';
 import { resolveMobilityDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { isValidMonthKey } from '@/lib/months';
@@ -184,14 +185,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         });
         logger.error('api.mobility.failed', { error });
 
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch mobility insights',
-            timestamp: new Date().toISOString(),
-            dataState: 'error',
-          },
-          { status: 500, headers: access.headers }
-        );
+        return errorResponse('Failed to fetch mobility insights', 500);
       }
     }
   );

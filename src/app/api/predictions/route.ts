@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationPredictions } from '@/lib/predictions';
+import { errorResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
@@ -73,13 +74,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
         logger.error('api.predictions.failed', { error });
 
-        return NextResponse.json(
-          {
-            error: 'Failed to generate predictions',
-            timestamp: new Date().toISOString(),
-          },
-          { status: 500, headers: access.headers }
-        );
+        return errorResponse('Failed to generate predictions', 500);
       }
     }
   );

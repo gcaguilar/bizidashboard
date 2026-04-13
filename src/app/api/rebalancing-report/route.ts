@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildRebalancingReport } from '@/lib/rebalancing-report';
+import { errorResponse } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
@@ -157,10 +158,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
 
       if (format !== null && format !== 'json' && format !== 'csv') {
-        return NextResponse.json(
-          { error: 'Invalid format. Use json or csv.', dataState: 'error' },
-          { status: 400 }
-        );
+        return errorResponse('Invalid format. Use json or csv.', 400);
       }
 
       const access = await enforcePublicApiAccess({
@@ -214,10 +212,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         });
         logger.error('api.rebalancing_report.failed', { error });
 
-        return NextResponse.json(
-          { error: 'Failed to build rebalancing report', timestamp: new Date().toISOString(), dataState: 'error' },
-          { status: 500 }
-        );
+        return errorResponse('Failed to build rebalancing report', 500);
       }
     }
   );

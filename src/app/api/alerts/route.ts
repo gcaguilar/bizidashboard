@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveAlerts } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { errorResponse } from '@/lib/api-response';
+import { resolveAlertsDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
@@ -84,13 +86,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           extra: { limit },
         });
         logger.error('api.alerts.failed', { error });
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch alerts',
-            timestamp: new Date().toISOString(),
-          },
-          { status: 500, headers: access.headers }
-        );
+        return errorResponse('Failed to fetch alerts', 500);
       }
     }
   );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
 import { rowsToCsv } from '@/lib/csv';
+import { errorResponse } from '@/lib/api-response';
 import { resolveHistoryDataState } from '@/lib/data-state';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -137,14 +138,7 @@ export async function GET(request?: NextRequest): Promise<Response> {
         });
         logger.error('api.history.failed', { error });
 
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch historical data',
-            timestamp: new Date().toISOString(),
-            dataState: 'error',
-          },
-          { status: 500 }
-        );
+        return errorResponse('Failed to fetch historical data', 500);
       }
     }
   );
