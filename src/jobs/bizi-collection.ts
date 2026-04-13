@@ -9,7 +9,7 @@
 import { schedule, ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
-import { validateAndStore, GBFSStatusResponse } from '@/services/data-validator';
+import { validateAndStore } from '@/services/data-validator';
 import {
   getMissingStationIds,
   getSnapshotCount,
@@ -33,15 +33,7 @@ import {
   runWithExecutionContext,
   updateExecutionContext,
 } from '@/lib/request-context';
-
-// Type augmentation for node-cron 4.x options
-interface CronOptions {
-  scheduled?: boolean;
-  timezone?: string;
-  runOnInit?: boolean;
-  name?: string;
-  recoverMissedExecutions?: boolean;
-}
+import type { CronOptions } from './types';
 
 async function ensureLockRefreshed(
   lock: { refresh: () => Promise<boolean> },
@@ -278,7 +270,7 @@ async function executeCollection(
     
     // Step 4: Validate and store data
     const validationResult = await validateAndStore(
-      stationStatusResponse as GBFSStatusResponse,
+      stationStatusResponse,
       {
         sourceUrl,
         collectionId,

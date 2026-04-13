@@ -18,14 +18,16 @@ import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
-import { 
-  getStationsWithLatestStatus, 
-  getDailyDemandCurve, 
-  getHourlyMobilitySignals, 
-  getSystemHourlyProfile 
+import { CacheTTL } from '@/lib/cache/config';
+import type { CronOptions } from './types';
+import {
+  getStationsWithLatestStatus,
+  getDailyDemandCurve,
+  getHourlyMobilitySignals,
+  getSystemHourlyProfile
 } from '@/analytics/queries/read';
 
-const LIVE_CACHE_TTL_SECONDS = 60;
+const LIVE_CACHE_TTL_SECONDS = CacheTTL.LIVE;
 
 async function warmCache(): Promise<void> {
   logger.info('analytics.cache_warming_started');
@@ -84,15 +86,6 @@ async function warmCache(): Promise<void> {
     });
     logger.warn('analytics.cache_warming_failed', { error });
   }
-}
-
-// Type augmentation for node-cron 4.x options
-interface CronOptions {
-  scheduled?: boolean;
-  timezone?: string;
-  runOnInit?: boolean;
-  name?: string;
-  recoverMissedExecutions?: boolean;
 }
 
 let cronJob: ScheduledTask | null = null;
