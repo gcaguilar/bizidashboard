@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 
 const RAW_RETENTION_DAYS = 30;
 const HOURLY_RETENTION_DAYS = 365;
 const ALERT_RETENTION_DAYS = 14;
-/** Rankings store one row per station per hourly windowEnd; keep recent snapshots only. */
 const RANKING_SNAPSHOT_RETENTION_DAYS = 7;
 const VACUUM_INTERVAL_DAYS = 7;
 
@@ -46,9 +46,12 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     );
   `;
 
-  console.log(
-    `[Retention] Deleted ${stationStatusResult.count} raw rows, ${hourlyStatsDeleted} hourly rows, ${stationAlertsDeleted} alert rows, ${stationRankingsDeleted} ranking snapshots`
-  );
+  logger.info('analytics.retention.completed', {
+    stationStatusDeleted: stationStatusResult.count,
+    hourlyStatsDeleted: Number(hourlyStatsDeleted),
+    stationAlertsDeleted: Number(stationAlertsDeleted),
+    stationRankingsDeleted: Number(stationRankingsDeleted),
+  });
 
   return {
     stationStatusDeleted: stationStatusResult.count,
@@ -73,7 +76,7 @@ export async function runVacuumIfDue(): Promise<boolean> {
   // and Autovacuum usually handles this. ANALYZE is safer and helps the planner.
   await prisma.$executeRawUnsafe('ANALYZE');
   await setWatermark('vacuum', now);
-  console.log('[Retention] ANALYZE executed');
+  logger.info('analytics.retention.analyze_completed');
 
   return true;
 }
