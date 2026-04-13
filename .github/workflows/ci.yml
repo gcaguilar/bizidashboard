@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Clear cache
         if: inputs.clear-cache == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const caches = await github.rest.actions.listCaches({
