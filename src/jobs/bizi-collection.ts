@@ -1,7 +1,7 @@
 /**
  * Bizi Data Collection Job
  * 
- * Scheduled collection job that runs every 5 minutes to fetch,
+ * Scheduled collection job that runs every 2 minutes to fetch,
  * validate, and store Bizi station data from the GBFS API.
  * Also provides manual trigger capability via runCollection().
  */
@@ -89,7 +89,7 @@ let cronJob: ScheduledTask | null = null;
 let isScheduled = false;
 const COLLECTION_LOCK_TTL_MS = 10 * 60 * 1000;
 const COLLECTION_LOCK_NAME = 'gbfs-collection';
-const COLLECTION_CRON_SCHEDULE = '*/5 * * * *';
+const COLLECTION_CRON_SCHEDULE = '*/2 * * * *';
 const DEFAULT_GBFS_SOURCE_URL = 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
 let hasSyncedStationInformationSinceStartup = false;
 
@@ -433,7 +433,7 @@ export async function runCollection(
 
 /**
  * Start the scheduled collection job
- * Runs every 5 minutes in Europe/Madrid timezone
+ * Runs every 2 minutes in Europe/Madrid timezone
  */
 export function startCollectionJob(): void {
   if (cronJob) {
@@ -441,7 +441,7 @@ export function startCollectionJob(): void {
     return;
   }
 
-  // Schedule: every 5 minutes
+  // Schedule: every 2 minutes
   cronJob = schedule(
     COLLECTION_CRON_SCHEDULE,
     async () => {
