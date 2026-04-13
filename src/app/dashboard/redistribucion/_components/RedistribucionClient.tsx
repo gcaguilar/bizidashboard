@@ -20,14 +20,23 @@ import { KpiCards } from './KpiCards';
 
 type Tab = 'estaciones' | 'transferencias' | 'kpis' | 'metodologia';
 
+type TableParams = {
+  sort?: string;
+  filter?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
 type Props = {
   initialReport: RebalancingReport;
   districtNames: string[];
+  tableParams?: TableParams;
 };
 
 const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
 
-export function RedistribucionClient({ initialReport, districtNames }: Props) {
+export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
   const [report, setReport] = useState<RebalancingReport>(initialReport);
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
   const [selectedDistrict, setSelectedDistrict] = useState<string>(
@@ -289,7 +298,7 @@ export function RedistribucionClient({ initialReport, districtNames }: Props) {
         {activeTab === 'estaciones' && (
           <>
             <ClassificationLegend />
-            <RebalancingTable diagnostics={report.diagnostics} />
+            <RebalancingTable diagnostics={report.diagnostics} initialParams={tableParams} />
           </>
         )}
 

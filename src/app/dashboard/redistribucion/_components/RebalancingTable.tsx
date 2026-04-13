@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState, useCallback } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,8 +14,17 @@ import {
 } from '@tanstack/react-table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
+type TableParams = {
+  sort?: string;
+  filter?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
 type Props = {
   diagnostics: StationDiagnostic[];
+  initialParams?: TableParams;
 };
 
 const PAGE_SIZE = 20;
@@ -286,12 +295,27 @@ function FilterSelect({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function RebalancingTable({ diagnostics }: Props) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'priorityScore', desc: true }]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+export function RebalancingTable({ diagnostics, initialParams }: Props) {
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    if (initialParams?.sort) {
+      const [id, desc] = initialParams.sort.split(':');
+      return [{ id, desc: desc === 'desc' }];
+    }
+    return [{ id: 'priorityScore', desc: true }];
+  });
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
+    if (initialParams?.filter) {
+      const [id, value] = initialParams.filter.split(':');
+      return [{ id, value }];
+    }
+    return [];
+  });
+  const [globalFilter, setGlobalFilter] = useState(initialParams?.search ?? '');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
+  const [pagination, setPagination] = useState({
+    pageIndex: initialParams?.page ?? 0,
+    pageSize: initialParams?.pageSize ?? PAGE_SIZE,
+  });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     select: true,
     stationName: true,
@@ -317,6 +341,26 @@ export function RebalancingTable({ diagnostics }: Props) {
       handleToggle(stationId);
     }
   }, [handleToggle]);
+
+  const updateURL = useCallback(() => {
+    const params = new URLSearchParams();
+    if (sorting.length > 0) {
+      params.set('sort', `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}`);
+    }
+    if (globalFilter) params.set('search', globalFilter);
+    if (columnFilters.length > 0) {
+      params.set('filter', `${columnFilters[0].id}:${columnFilters[0].value}`);
+    }
+    if (pagination.pageIndex > 0) params.set('page', String(pagination.pageIndex));
+    if (pagination.pageSize !== PAGE_SIZE) params.set('pageSize', String(pagination.pageSize));
+
+    const url = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.replaceState(null, '', url);
+  }, [sorting, globalFilter, columnFilters, pagination]);
+
+  useEffect(() => {
+    updateURL();
+  }, [updateURL]);
 
   const table = useReactTable({
     data: diagnostics,

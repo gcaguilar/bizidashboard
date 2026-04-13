@@ -5,12 +5,32 @@ import { RedistribucionClient } from './_components/RedistribucionClient';
 
 export const dynamic = 'force-dynamic';
 
-// Minimal metadata for browser tab — no SEO optimisation (internal operational page)
 export const metadata: Metadata = {
   title: 'Redistribución | Dashboard Bizi',
 };
 
-export default async function RedistribucionPage() {
+function getTableParams(params: { [key: string]: string | string[] | undefined }) {
+  const getFirst = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : v;
+  const sort = getFirst(params.sort);
+  const filter = getFirst(params.filter);
+  const search = getFirst(params.search);
+  const page = getFirst(params.page);
+  const pageSize = getFirst(params.pageSize);
+  return {
+    sort: sort?.includes(':') ? sort : undefined,
+    filter: filter?.includes(':') ? filter : undefined,
+    search,
+    page: page ? Number(page) : undefined,
+    pageSize: pageSize ? Number(pageSize) : undefined,
+  };
+}
+
+export default async function RedistribucionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
   const [report, districtCollection] = await Promise.all([
     buildRebalancingReport({ days: 15 }),
     fetchDistrictCollection().catch(() => null),
@@ -27,6 +47,7 @@ export default async function RedistribucionPage() {
     <RedistribucionClient
       initialReport={report}
       districtNames={districtNames}
+      tableParams={getTableParams(params)}
     />
   );
 }
