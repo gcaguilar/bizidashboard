@@ -16,6 +16,8 @@ import {
 } from '@/lib/security/api-keys';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const CreateApiKeySchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
@@ -23,21 +25,6 @@ const CreateApiKeySchema = z.object({
   customRateLimit: z.number().int().min(1).max(10000).optional(),
   customRateWindow: z.number().int().min(1000).max(3600000).optional(),
 });
-
-const RATE_LIMIT = { limit: 10, windowMs: 60_000 };
-
-async function checkOpsAccess(request: Request, clientIp: string) {
-  return enforceOperationalAccess({
-    request,
-    clientIp,
-    namespace: 'admin.keys',
-    limit: RATE_LIMIT.limit,
-    windowMs: RATE_LIMIT.windowMs,
-    unauthorizedError: 'Unauthorized. Valid OPS_API_KEY required.',
-    rateLimitError: 'Too many requests.',
-    misconfiguredError: 'Server misconfigured: OPS_API_KEY is required.',
-  });
-}
 
 /**
  * GET /api/admin/keys
@@ -49,7 +36,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     request,
     { route: '/api/admin/keys', routeGroup: 'admin' },
     async ({ clientIp, userAgent, requestId }) => {
-      const access = await checkOpsAccess(request, clientIp);
+      const access = await enforceOperationalAccess({
+        request,
+        clientIp,
+        namespace: 'admin.keys',
+      });
 
       if ('response' in access) {
         const status = access.response.status;
@@ -90,7 +81,11 @@ export async function POST(request: NextRequest): Promise<Response> {
     request,
     { route: '/api/admin/keys', routeGroup: 'admin' },
     async ({ clientIp }) => {
-      const access = await checkOpsAccess(request, clientIp);
+      const access = await enforceOperationalAccess({
+        request,
+        clientIp,
+        namespace: 'admin.keys',
+      });
 
       if ('response' in access) {
         return access.response;

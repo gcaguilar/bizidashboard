@@ -7,15 +7,17 @@ import {
   type RateLimitDecision,
 } from '@/lib/security/rate-limit';
 
-type OperationalAccessOptions = {
+const DEFAULT_OPS_RATE_LIMIT = { limit: 10, windowMs: 60_000 };
+
+export type OperationalAccessOptions = {
   request: Request;
   clientIp: string;
   namespace: string;
-  limit: number;
-  windowMs: number;
-  unauthorizedError: string;
-  rateLimitError: string;
-  misconfiguredError: string;
+  limit?: number;
+  windowMs?: number;
+  unauthorizedError?: string;
+  rateLimitError?: string;
+  misconfiguredError?: string;
 };
 
 export type OperationalAccessResult =
@@ -50,10 +52,12 @@ export async function enforceOperationalAccess(
   options: OperationalAccessOptions
 ): Promise<OperationalAccessResult> {
   const expectedApiKey = getOpsApiKey();
+  const limit = options.limit ?? DEFAULT_OPS_RATE_LIMIT.limit;
+  const windowMs = options.windowMs ?? DEFAULT_OPS_RATE_LIMIT.windowMs;
 
   if (!expectedApiKey) {
     return {
-      response: errorResponse(503, options.misconfiguredError),
+      response: errorResponse(503, options.misconfiguredError ?? 'Server misconfigured: OPS_API_KEY is required.'),
     };
   }
 
@@ -62,14 +66,14 @@ export async function enforceOperationalAccess(
     consumeRateLimit({
       namespace: `${options.namespace}:ip`,
       identifierParts: [options.clientIp],
-      limit: options.limit,
-      windowMs: options.windowMs,
+      limit,
+      windowMs,
     }),
     consumeRateLimit({
       namespace: `${options.namespace}:key`,
       identifierParts: [providedKey || 'missing'],
-      limit: options.limit,
-      windowMs: options.windowMs,
+      limit,
+      windowMs,
     }),
   ]);
 
@@ -84,7 +88,7 @@ export async function enforceOperationalAccess(
 
   if (!effectiveDecision.allowed) {
     return {
-      response: errorResponse(429, options.rateLimitError, {
+      response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', {
         ...headers,
         'Retry-After': String(effectiveDecision.retryAfterSeconds),
       }),
@@ -93,7 +97,7 @@ export async function enforceOperationalAccess(
 
   if (!isApiKeyValid(providedKey, expectedApiKey)) {
     return {
-      response: errorResponse(401, options.unauthorizedError, headers),
+      response: errorResponse(401, options.unauthorizedError ?? 'Unauthorized. Valid OPS_API_KEY required.', headers),
     };
   }
 
