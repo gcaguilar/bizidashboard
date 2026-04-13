@@ -248,3 +248,34 @@ model SecurityEvent {
   @@index([route, createdAt])
   @@index([installId, createdAt])
 }
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String
+  keyHash     String   @unique
+  keyPrefix   String   // First 8 chars of key for identification
+  description String?
+  ownerEmail  String?
+  
+  // Rate limiting (null = use defaults)
+  customRateLimit   Int?     // requests per window
+  customRateWindow  Int?     // window in milliseconds
+  
+  // Usage tracking
+  lastUsedAt        DateTime?
+  requestCount      Int      @default(0)
+  
+  // Status
+  isActive          Boolean  @default(true)
+  revokedAt         DateTime?
+  revokedReason     String?
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdBy         String?  // User/Admin who created this key
+
+  @@index([isActive, revokedAt])
+  @@index([keyPrefix])
+  @@index([createdAt])
+}

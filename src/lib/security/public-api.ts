@@ -3,6 +3,12 @@ import { getPublicApiKey } from '@/lib/security/config';
 import { recordSecurityEvent } from '@/lib/security/audit';
 import { isApiKeyValid, readPublicApiKey } from '@/lib/security/http';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
+import {
+  validateApiKey,
+  getApiKeyRateLimits,
+  isMultiKeySystemEnabled,
+  type ApiKeyInfo,
+} from '@/lib/security/api-keys';
 
 type PublicApiAccessOptions = {
   route: string;
@@ -21,19 +27,45 @@ type PublicApiAccessResult =
       ok: true;
       headers: Record<string, string>;
       providedKey: string | null;
+      apiKeyInfo: ApiKeyInfo | null;
     }
   | {
       ok: false;
       response: NextResponse;
     };
 
+/**
+ * Validate API key using either multi-key system or legacy single-key
+ */
+async function validatePublicApiKey(
+  providedKey: string | null
+): Promise<{ valid: boolean; info: ApiKeyInfo | null }> {
+  // Legacy single-key mode
+  if (!isMultiKeySystemEnabled()) {
+    const configuredKey = getPublicApiKey();
+    if (!configuredKey) {
+      return { valid: false, info: null };
+    }
+    const valid = isApiKeyValid(providedKey, configuredKey);
+    return { valid, info: null };
+  }
+
+  // Multi-key system
+  if (!providedKey) {
+    return { valid: false, info: null };
+  }
+
+  const info = await validateApiKey(providedKey);
+  return { valid: info !== null, info };
+}
+
 export async function enforcePublicApiAccess(
   options: PublicApiAccessOptions
 ): Promise<PublicApiAccessResult> {
   const publicApiKey = readPublicApiKey(options.request.headers);
-  const configuredApiKey = getPublicApiKey();
 
-  if (options.requireApiKey && !configuredApiKey) {
+  // Check if API key system is configured
+  if (options.requireApiKey && !isMultiKeySystemEnabled() && !getPublicApiKey()) {
     return {
       ok: false,
       response: NextResponse.json(
@@ -43,25 +75,46 @@ export async function enforcePublicApiAccess(
     };
   }
 
-  const [ipDecision, keyDecision] = await Promise.all([
-    consumeRateLimit({
-      namespace: `${options.namespace}:ip`,
-      identifierParts: [options.clientIp],
-      limit: options.limit,
-      windowMs: options.windowMs,
-    }),
-    consumeRateLimit({
-      namespace: `${options.namespace}:key`,
-      identifierParts: [publicApiKey ?? 'anonymous'],
-      limit: options.limit,
-      windowMs: options.windowMs,
-    }),
-  ]);
+  // Validate the API key
+  const validation = await validatePublicApiKey(publicApiKey);
 
-  const decision = !ipDecision.allowed ? ipDecision : keyDecision;
-  const headers = getRateLimitHeaders(decision);
+  if (options.requireApiKey && !validation.valid) {
+    await recordSecurityEvent({
+      eventType: 'auth_failed',
+      route: options.route,
+      requestId: options.requestId,
+      ip: options.clientIp,
+      userAgent: options.userAgent,
+      outcome: 'denied',
+      reasonCode: 'public_api_key_invalid',
+    });
 
-  if (decision.backend === 'unavailable') {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: 'Valid X-Public-Api-Key required for this route.' },
+        { status: 401 }
+      ),
+    };
+  }
+
+  // Get rate limits (custom per key or defaults)
+  const rateLimits = validation.info
+    ? getApiKeyRateLimits(validation.info)
+    : { limit: options.limit, windowMs: options.windowMs };
+
+  // Apply rate limiting per key (or IP if no key)
+  const rateLimitKey = validation.info?.id ?? publicApiKey ?? options.clientIp;
+  const keyDecision = await consumeRateLimit({
+    namespace: `${options.namespace}:key`,
+    identifierParts: [rateLimitKey],
+    limit: rateLimits.limit,
+    windowMs: rateLimits.windowMs,
+  });
+
+  const headers = getRateLimitHeaders(keyDecision);
+
+  if (keyDecision.backend === 'unavailable') {
     return {
       ok: false,
       response: NextResponse.json(
@@ -71,7 +124,7 @@ export async function enforcePublicApiAccess(
     };
   }
 
-  if (!decision.allowed) {
+  if (!keyDecision.allowed) {
     await recordSecurityEvent({
       eventType: 'rate_limit_exceeded',
       route: options.route,
@@ -90,29 +143,9 @@ export async function enforcePublicApiAccess(
           status: 429,
           headers: {
             ...headers,
-            'Retry-After': String(decision.retryAfterSeconds),
+            'Retry-After': String(keyDecision.retryAfterSeconds),
           },
         }
-      ),
-    };
-  }
-
-  if (options.requireApiKey && !isApiKeyValid(publicApiKey, configuredApiKey!)) {
-    await recordSecurityEvent({
-      eventType: 'auth_failed',
-      route: options.route,
-      requestId: options.requestId,
-      ip: options.clientIp,
-      userAgent: options.userAgent,
-      outcome: 'denied',
-      reasonCode: 'public_api_key_invalid',
-    });
-
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: 'Valid X-Public-Api-Key required for this route.' },
-        { status: 401, headers }
       ),
     };
   }
@@ -121,5 +154,6 @@ export async function enforcePublicApiAccess(
     ok: true,
     headers,
     providedKey: publicApiKey,
+    apiKeyInfo: validation.info,
   };
 }
