@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useMemo, useCallback, memo } from 'react';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
 type SortKey =
@@ -71,7 +71,7 @@ const URGENCY_LABEL: Record<Urgency, string> = {
 
 // ─── Occupancy bar ────────────────────────────────────────────────────────────
 
-function OccupancyBar({
+const OccupancyBar = memo(function OccupancyBar({
   occupancy,
   bandMin,
   bandMax,
@@ -105,9 +105,9 @@ function OccupancyBar({
       <span className="tabular-nums text-xs">{pct}%</span>
     </div>
   );
-}
+});
 
-function SortHeader({ label, k, active, sortDir, onSort }: SortHeaderProps) {
+const SortHeader = memo(function SortHeader({ label, k, active, sortDir, onSort }: SortHeaderProps) {
   return (
     <th
       className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -117,11 +117,68 @@ function SortHeader({ label, k, active, sortDir, onSort }: SortHeaderProps) {
       {active && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
     </th>
   );
-}
+});
+
+// ─── Table row ────────────────────────────────────────────────────────────────
+
+type RowProps = {
+  diagnostic: StationDiagnostic;
+  isExpanded: boolean;
+  onToggle: () => void;
+};
+
+const TableRow = memo(function TableRow({ diagnostic, isExpanded, onToggle }: RowProps) {
+  return (
+    <Fragment key={diagnostic.stationId}>
+      <tr
+        className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
+        onClick={onToggle}
+      >
+        <td className="px-3 py-2.5">
+          <p className="font-medium text-[var(--foreground)]">{diagnostic.stationName}</p>
+          <p className="text-xs text-[var(--muted)]">#{diagnostic.stationId}</p>
+        </td>
+        <td className="px-3 py-2.5 text-xs text-[var(--muted)]">
+          {diagnostic.districtName ?? '—'}
+        </td>
+        <td className="px-3 py-2.5 text-xs text-[var(--muted)] capitalize">
+          {diagnostic.inferredType}
+        </td>
+        <td className="px-3 py-2.5">
+          <span
+            className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${CLASSIFICATION_STYLE[diagnostic.classification]}`}
+          >
+            {CLASSIFICATION_LABEL[diagnostic.classification]}
+          </span>
+        </td>
+        <td className="px-3 py-2.5">
+          <OccupancyBar
+            occupancy={diagnostic.currentOccupancy}
+            bandMin={diagnostic.targetBand.min}
+            bandMax={diagnostic.targetBand.max}
+          />
+        </td>
+        <td className="px-3 py-2.5 text-xs font-medium text-[var(--foreground)]">
+          {ACTION_LABEL[diagnostic.actionGroup]}
+        </td>
+        <td className={`px-3 py-2.5 text-xs ${URGENCY_STYLE[diagnostic.urgency]}`}>
+          {URGENCY_LABEL[diagnostic.urgency]}
+        </td>
+        <td className="px-3 py-2.5 text-xs tabular-nums text-[var(--muted)]">
+          {(diagnostic.priorityScore * 100).toFixed(0)}
+        </td>
+        <td className="px-3 py-2.5 text-xs text-[var(--muted)]">
+          {isExpanded ? '▲' : '▼'}
+        </td>
+      </tr>
+      {isExpanded && <RowDetail diagnostic={diagnostic} />}
+    </Fragment>
+  );
+});
 
 // ─── Expandable row detail ────────────────────────────────────────────────────
 
-function RowDetail({ diagnostic }: { diagnostic: StationDiagnostic }) {
+const RowDetail = memo(function RowDetail({ diagnostic }: { diagnostic: StationDiagnostic }) {
   return (
     <tr>
       <td colSpan={9} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
@@ -169,7 +226,7 @@ function RowDetail({ diagnostic }: { diagnostic: StationDiagnostic }) {
       </td>
     </tr>
   );
-}
+});
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -178,23 +235,27 @@ export function RebalancingTable({ diagnostics }: Props) {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  function handleSort(key: SortKey) {
+  const handleSort = useCallback((key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
       setSortDir('desc');
     }
-  }
+  }, [sortKey]);
 
-  const sorted = [...diagnostics].sort((a, b) => {
+  const handleToggle = useCallback((stationId: string) => {
+    setExpandedId((id) => (id === stationId ? null : stationId));
+  }, []);
+
+  const sorted = useMemo(() => [...diagnostics].sort((a, b) => {
     const aVal = a[sortKey] ?? '';
     const bVal = b[sortKey] ?? '';
     const cmp = typeof aVal === 'string'
       ? aVal.localeCompare(String(bVal), 'es')
       : Number(aVal) - Number(bVal);
     return sortDir === 'asc' ? cmp : -cmp;
-  });
+  }), [diagnostics, sortKey, sortDir]);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
@@ -213,55 +274,14 @@ export function RebalancingTable({ diagnostics }: Props) {
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--border)]">
-          {sorted.map((d) => {
-            const isExpanded = expandedId === d.stationId;
-            return (
-              <Fragment key={d.stationId}>
-                <tr
-                  className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
-                  onClick={() => setExpandedId(isExpanded ? null : d.stationId)}
-                >
-                  <td className="px-3 py-2.5">
-                    <p className="font-medium text-[var(--foreground)]">{d.stationName}</p>
-                    <p className="text-xs text-[var(--muted)]">#{d.stationId}</p>
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-[var(--muted)]">
-                    {d.districtName ?? '—'}
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-[var(--muted)] capitalize">
-                    {d.inferredType}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <span
-                      className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${CLASSIFICATION_STYLE[d.classification]}`}
-                    >
-                      {CLASSIFICATION_LABEL[d.classification]}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <OccupancyBar
-                      occupancy={d.currentOccupancy}
-                      bandMin={d.targetBand.min}
-                      bandMax={d.targetBand.max}
-                    />
-                  </td>
-                  <td className="px-3 py-2.5 text-xs font-medium text-[var(--foreground)]">
-                    {ACTION_LABEL[d.actionGroup]}
-                  </td>
-                  <td className={`px-3 py-2.5 text-xs ${URGENCY_STYLE[d.urgency]}`}>
-                    {URGENCY_LABEL[d.urgency]}
-                  </td>
-                  <td className="px-3 py-2.5 text-xs tabular-nums text-[var(--muted)]">
-                    {(d.priorityScore * 100).toFixed(0)}
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-[var(--muted)]">
-                    {isExpanded ? '▲' : '▼'}
-                  </td>
-                </tr>
-                {isExpanded && <RowDetail diagnostic={d} />}
-              </Fragment>
-            );
-          })}
+          {sorted.map((d) => (
+            <TableRow
+              key={d.stationId}
+              diagnostic={d}
+              isExpanded={expandedId === d.stationId}
+              onToggle={() => handleToggle(d.stationId)}
+            />
+          ))}
         </tbody>
       </table>
       {sorted.length === 0 && (
