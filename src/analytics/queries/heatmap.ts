@@ -1,17 +1,11 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
+import type { RollupResult } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 import { chunkRowsForBulkQuery } from '@/analytics/queries/bulk-upsert';
 import { parseBucketStart } from './date-utils';
-
-export interface RollupResult {
-  processedCount: number;
-  upsertedCount: number;
-  watermark: Date;
-  cutoff: Date;
-}
 
 interface HeatmapAccumulator {
   stationId: string;
