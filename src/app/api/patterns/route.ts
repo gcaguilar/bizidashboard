@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStationPatterns } from '@/analytics/queries/read'
+import { getPatterns } from '@/analytics/queries/read'
 import { withCache } from '@/lib/cache/cache'
+import { errorResponse } from '@/lib/api-response'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { withApiRequest } from '@/lib/security/http'
@@ -68,10 +69,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         })
         logger.error('api.patterns.failed', { error })
 
-        return NextResponse.json(
-          { error: 'Failed to fetch station patterns' },
-          { status: 500, headers: access.headers }
-        )
+        return errorResponse('Failed to fetch station patterns', 500)
       }
     }
   )
