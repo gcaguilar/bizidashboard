@@ -103,9 +103,10 @@ export function useDistrictData(options?: {
     }
   }, [options?.enabled]);
 
+  const shouldLoadDistricts = options?.immediate !== false;
+
   useEffect(() => {
-    const shouldLoad = options?.immediate !== false;
-    if (shouldLoad) {
+    if (shouldLoadDistricts) {
       loadDistricts();
     }
 
@@ -113,7 +114,7 @@ export function useDistrictData(options?: {
       isActiveRef.current = false;
       controllerRef.current?.abort();
     };
-  }, [options?.immediate === false ? 'skip' : 'load', loadDistricts]);
+  }, [shouldLoadDistricts, loadDistricts]);
 
   const refetch = useCallback(() => {
     sessionStorage.removeItem(DISTRICT_CACHE_KEY);
