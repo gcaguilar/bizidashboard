@@ -23,9 +23,9 @@ describe('RebalancingTable', () => {
     expect(typeof RebalancingTable).toBe('function');
   });
 
-  it('exports required constants', async () => {
-    const module = await import('../../src/app/dashboard/redistribucion/_components/RebalancingTable');
-    expect(module).toBeDefined();
+  it('exports component can be imported', async () => {
+    const result = await import('../../src/app/dashboard/redistribucion/_components/RebalancingTable');
+    expect(result).toBeDefined();
   });
 });
 
