@@ -5,14 +5,19 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   type ColumnDef,
   type SortingState,
+  type ColumnFiltersState,
 } from '@tanstack/react-table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
 type Props = {
   diagnostics: StationDiagnostic[];
 };
+
+const PAGE_SIZE = 20;
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
@@ -58,6 +63,21 @@ const URGENCY_LABEL: Record<Urgency, string> = {
   low: 'Baja',
   none: '—',
 };
+
+const CLASSIFICATION_OPTIONS = [
+  { value: '', label: 'Todas' },
+  ...Object.entries(CLASSIFICATION_LABEL).map(([value, label]) => ({ value, label })),
+];
+
+const ACTION_OPTIONS = [
+  { value: '', label: 'Todas' },
+  ...Object.entries(ACTION_LABEL).map(([value, label]) => ({ value, label })),
+];
+
+const URGENCY_OPTIONS = [
+  { value: '', label: 'Todas' },
+  ...Object.entries(URGENCY_LABEL).map(([value, label]) => ({ value, label })),
+];
 
 // ─── Occupancy bar ────────────────────────────────────────────────────────────
 
@@ -176,11 +196,40 @@ const columns: ColumnDef<StationDiagnostic>[] = [
   },
 ];
 
+// ─── Filter controls ────────────────────────────────────────────────────────
+
+function FilterSelect({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-8 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 text-xs text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function RebalancingTable({ diagnostics }: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'priorityScore', desc: true }]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
 
   const handleToggle = useCallback((stationId: string) => {
     setExpandedId((id) => (id === stationId ? null : stationId));
@@ -189,126 +238,249 @@ export function RebalancingTable({ diagnostics }: Props) {
   const table = useReactTable({
     data: diagnostics,
     columns,
-    state: { sorting },
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      pagination,
+    },
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => row.stationId,
   });
 
-  const sortedData = table.getSortedRowModel().rows;
+  const totalRows = table.getFilteredRowModel().rows.length;
+  const pageCount = table.getPageCount();
+  const pageIndex = pagination.pageIndex;
+  const pageSize = pagination.pageSize;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-      <table className="w-full text-sm">
-        <thead className="border-b border-[var(--border)] bg-[var(--surface)]">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : typeof header.column.columnDef.header === 'function'
-                    ? header.column.columnDef.header(header.getContext())
-                    : header.column.columnDef.header}
-                  {{
-                    asc: ' ↑',
-                    desc: ' ↓',
-                  }[header.column.getIsSorted() as string] ?? null}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody className="divide-y divide-[var(--border)]">
-          {sortedData.map((row) => {
-            const isExpanded = expandedId === row.original.stationId;
-            const diagnostic = row.original;
-            return (
-              <Fragment key={row.id}>
-                <tr
-                  className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
-                  onClick={() => handleToggle(diagnostic.stationId)}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const colId = cell.column.id;
-                    if (colId === 'expand') {
+    <div className="space-y-3">
+      {/* Filters toolbar */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Buscar estación o barrio..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="h-8 w-40 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 text-xs text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
+          />
+        </div>
+        <FilterSelect
+          value={(columnFilters.find((f) => f.id === 'classification')?.value as string) ?? ''}
+          onChange={(value) =>
+            setColumnFilters((prev) => [
+              ...prev.filter((f) => f.id !== 'classification'),
+              ...(value ? [{ id: 'classification', value }] : []),
+            ])
+          }
+          options={CLASSIFICATION_OPTIONS}
+        />
+        <FilterSelect
+          value={(columnFilters.find((f) => f.id === 'actionGroup')?.value as string) ?? ''}
+          onChange={(value) =>
+            setColumnFilters((prev) => [
+              ...prev.filter((f) => f.id !== 'actionGroup'),
+              ...(value ? [{ id: 'actionGroup', value }] : []),
+            ])
+          }
+          options={ACTION_OPTIONS}
+        />
+        <FilterSelect
+          value={(columnFilters.find((f) => f.id === 'urgency')?.value as string) ?? ''}
+          onChange={(value) =>
+            setColumnFilters((prev) => [
+              ...prev.filter((f) => f.id !== 'urgency'),
+              ...(value ? [{ id: 'urgency', value }] : []),
+            ])
+          }
+          options={URGENCY_OPTIONS}
+        />
+        {(globalFilter || columnFilters.length > 0) && (
+          <button
+            onClick={() => {
+              setGlobalFilter('');
+              setColumnFilters([]);
+            }}
+            className="text-xs text-[var(--accent)] hover:underline"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead className="border-b border-[var(--border)] bg-[var(--surface)]">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : typeof header.column.columnDef.header === 'function'
+                      ? header.column.columnDef.header(header.getContext())
+                      : header.column.columnDef.header}
+                    {{
+                      asc: ' ↑',
+                      desc: ' ↓',
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className="divide-y divide-[var(--border)]">
+            {table.getRowModel().rows.map((row) => {
+              const isExpanded = expandedId === row.original.stationId;
+              const diagnostic = row.original;
+              return (
+                <Fragment key={row.id}>
+                  <tr
+                    className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
+                    onClick={() => handleToggle(diagnostic.stationId)}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const colId = cell.column.id;
+                      if (colId === 'expand') {
+                        return (
+                          <td key={colId} className="px-3 py-2.5 text-xs text-[var(--muted)]">
+                            {isExpanded ? '▲' : '▼'}
+                          </td>
+                        );
+                      }
                       return (
-                        <td key={colId} className="px-3 py-2.5 text-xs text-[var(--muted)]">
-                          {isExpanded ? '▲' : '▼'}
+                        <td key={colId} className="px-3 py-2.5">
+                          {typeof cell.column.columnDef.cell === 'function'
+                            ? cell.column.columnDef.cell(cell.getContext())
+                            : null}
                         </td>
                       );
-                    }
-                    return (
-                      <td key={colId} className="px-3 py-2.5">
-                        {typeof cell.column.columnDef.cell === 'function'
-                          ? cell.column.columnDef.cell(cell.getContext())
-                          : null}
-                      </td>
-                    );
-                  })}
-                </tr>
-                {isExpanded && (
-                  <tr>
-                    <td colSpan={9} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
-                      <div className="grid gap-4 text-xs sm:grid-cols-2">
-                        <div>
-                          <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de clasificación</p>
-                          <ul className="space-y-1 text-[var(--muted)]">
-                            {diagnostic.classificationReasons.map((r, i) => (
-                              <li key={i} className="flex gap-1">
-                                <span className="shrink-0 text-[var(--accent)]">›</span>
-                                {r}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de acción</p>
-                          <ul className="space-y-1 text-[var(--muted)]">
-                            {diagnostic.actionReasons.map((r, i) => (
-                              <li key={i} className="flex gap-1">
-                                <span className="shrink-0 text-[var(--accent)]">›</span>
-                                {r}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="mb-1 font-semibold text-[var(--foreground)]">Predicción</p>
-                          <p className="text-[var(--muted)]">
-                            Riesgo vacío 1h: <strong>{Math.round(diagnostic.risk.riskEmptyAt1h * 100)}%</strong>{' '}
-                            · Riesgo lleno 1h: <strong>{Math.round(diagnostic.risk.riskFullAt1h * 100)}%</strong>{' '}
-                            · Autocorrección:{' '}
-                            <strong>{Math.round(diagnostic.risk.selfCorrectionProbability * 100)}%</strong>
-                            {diagnostic.risk.estimatedRecoveryMinutes !== null &&
-                              ` · Recuperación: ~${diagnostic.risk.estimatedRecoveryMinutes} min`}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="mb-1 font-semibold text-[var(--foreground)]">Red cercana</p>
-                          <p className="text-[var(--muted)]">
-                            {diagnostic.network.nearbyStations.length} estaciones en radio 500m · Ajuste urgencia:{' '}
-                            {Math.round(diagnostic.network.urgencyAdjustment * 100)}%
-                          </p>
-                        </div>
-                      </div>
-                    </td>
+                    })}
                   </tr>
-                )}
-              </Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-      {sortedData.length === 0 && (
-        <p className="py-8 text-center text-sm text-[var(--muted)]">
-          No hay estaciones que mostrar con los filtros actuales.
-        </p>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={9} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
+                        <div className="grid gap-4 text-xs sm:grid-cols-2">
+                          <div>
+                            <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de clasificación</p>
+                            <ul className="space-y-1 text-[var(--muted)]">
+                              {diagnostic.classificationReasons.map((r, i) => (
+                                <li key={i} className="flex gap-1">
+                                  <span className="shrink-0 text-[var(--accent)]">›</span>
+                                  {r}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de acción</p>
+                            <ul className="space-y-1 text-[var(--muted)]">
+                              {diagnostic.actionReasons.map((r, i) => (
+                                <li key={i} className="flex gap-1">
+                                  <span className="shrink-0 text-[var(--accent)]">›</span>
+                                  {r}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="mb-1 font-semibold text-[var(--foreground)]">Predicción</p>
+                            <p className="text-[var(--muted)]">
+                              Riesgo vacío 1h: <strong>{Math.round(diagnostic.risk.riskEmptyAt1h * 100)}%</strong>{' '}
+                              · Riesgo lleno 1h: <strong>{Math.round(diagnostic.risk.riskFullAt1h * 100)}%</strong>{' '}
+                              · Autocorrección:{' '}
+                              <strong>{Math.round(diagnostic.risk.selfCorrectionProbability * 100)}%</strong>
+                              {diagnostic.risk.estimatedRecoveryMinutes !== null &&
+                                ` · Recuperación: ~${diagnostic.risk.estimatedRecoveryMinutes} min`}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="mb-1 font-semibold text-[var(--foreground)]">Red cercana</p>
+                            <p className="text-[var(--muted)]">
+                              {diagnostic.network.nearbyStations.length} estaciones en radio 500m · Ajuste urgencia:{' '}
+                              {Math.round(diagnostic.network.urgencyAdjustment * 100)}%
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+        {totalRows === 0 && (
+          <p className="py-8 text-center text-sm text-[var(--muted)]">
+            No hay estaciones que mostrar con los filtros actuales.
+          </p>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+          <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+            <span>
+              {pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, totalRows)} de {totalRows}
+            </span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPagination({ ...pagination, pageSize: Number(e.target.value), pageIndex: 0 })}
+              className="rounded border border-[var(--border)] bg-[var(--background)] px-1 text-[var(--foreground)]"
+            >
+              {[10, 20, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span>por página</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPagination({ ...pagination, pageIndex: 0 })}
+              disabled={pageIndex === 0}
+              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+            >
+              ««
+            </button>
+            <button
+              onClick={() => setPagination({ ...pagination, pageIndex: Math.max(0, pageIndex - 1) })}
+              disabled={pageIndex === 0}
+              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+            >
+              «
+            </button>
+            <button
+              onClick={() => setPagination({ ...pagination, pageIndex: Math.min(pageCount - 1, pageIndex + 1) })}
+              disabled={pageIndex >= pageCount - 1}
+              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+            >
+              »
+            </button>
+            <button
+              onClick={() => setPagination({ ...pagination, pageIndex: pageCount - 1 })}
+              disabled={pageIndex >= pageCount - 1}
+              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+            >
+              »»
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
