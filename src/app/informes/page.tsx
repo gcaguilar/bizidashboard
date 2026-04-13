@@ -21,6 +21,7 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { formatInteger, formatPercent } from '@/lib/format';
 
 export const revalidate = 3600;
 // Prisma is intentionally unavailable during build, so prerendering would freeze empty SEO fallbacks.
@@ -110,21 +111,6 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
     },
   });
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
-}
-
-function formatPercent(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 export default async function ReportsIndexPage() {

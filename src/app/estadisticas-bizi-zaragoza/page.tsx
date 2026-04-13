@@ -11,16 +11,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
-
-function formatDecimal(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    maximumFractionDigits: 1,
-  }).format(value);
-}
+import { formatDecimal } from '@/lib/format';
 
 export async function generateMetadata(): Promise<Metadata> {
   const landingData = await getInsightsLandingData();

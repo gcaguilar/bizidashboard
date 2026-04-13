@@ -9,37 +9,13 @@ import { buildPageMetadata } from '@/lib/seo';
 import { getStationSeoPageData } from '@/lib/seo-stations';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
+import { formatDecimal, formatHourRange, formatPercent } from '@/lib/format';
 
 export const revalidate = 300;
 
 type PageProps = {
   params: Promise<{ stationId: string }>;
 };
-
-function formatPercent(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatDecimal(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
-function formatHourRange(hour: number): string {
-  return `${String(hour).padStart(2, '0')}:00-${String((hour + 1) % 24).padStart(2, '0')}:00`;
-}
 
 function formatDayTypeLabel(dayType: string): string {
   return dayType === 'WEEKEND' ? 'Fin de semana' : 'Laborable';

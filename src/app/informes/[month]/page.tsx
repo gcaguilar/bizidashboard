@@ -26,27 +26,13 @@ import { buildSocialImagePath } from '@/lib/social-images';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { formatInteger, formatPercent } from '@/lib/format';
 
 export const revalidate = 3600;
 
 type PageProps = {
   params: Promise<{ month: string }>;
 };
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
-}
-
-function formatPercent(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function formatDelta(value: number | null): string {
   if (value === null || !Number.isFinite(value)) {
