@@ -158,6 +158,7 @@ Un cambio en `selectedStation` requiere tocar 6 archivos.
 - [ ] Unificar `NextRequest` vs `Request` en las rutas API
 - [x] Añadir `force-dynamic` a rutas admin
 - [ ] Estandarizar respuestas de error (siempre incluir `timestamp` y `dataState`)
-- [ ] Centralizar rate-limit config en vez de redefinir en cada archivo
+- [x] Centralizar rate-limit config en vez de redefinir en cada archivo
 - [x] Migrar `console.warn`/`console.log` a `logger` estructurado
 - [ ] Unificar `Response.json` → `NextResponse.json`
+- [x] Unificar `extractStationStatusUrl` en `extractFeedUrl`
