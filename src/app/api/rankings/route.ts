@@ -6,6 +6,7 @@ import {
   type RankingType,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { rowsToCsv } from '@/lib/csv';
 import { resolveRankingsDataState } from '@/lib/data-state';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
 import { logger } from '@/lib/logger';
@@ -14,7 +15,6 @@ import {
   buildDistrictSpotlight,
   buildPeakFullHoursByStation,
   enrichRankingRows,
-  type EnrichedRankingRow,
 } from '@/lib/ranking-enrichment';
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';
@@ -38,41 +38,21 @@ function parseLimit(value: string | null, fallback: number): number | null {
   return parsed;
 }
 
-function toCsv(rows: EnrichedRankingRow[]): string {
-  const headers = [
-    'stationId',
-    'stationName',
-    'districtName',
-    'turnoverScore',
-    'emptyHours',
-    'fullHours',
-    'problemHours',
-    'emptyHourShare',
-    'demandVsStressedHint',
-    'peakFullHoursJson',
-    'totalHours',
-    'windowStart',
-    'windowEnd',
-  ];
-  const values = rows.map((row) => [
-    row.stationId,
-    row.stationName,
-    row.districtName ?? '',
-    row.turnoverScore,
-    row.emptyHours,
-    row.fullHours,
-    row.problemHours,
-    row.emptyHourShare,
-    row.demandVsStressedHint,
-    JSON.stringify(row.peakFullHours),
-    row.totalHours,
-    row.windowStart,
-    row.windowEnd,
-  ]);
-  return [headers, ...values]
-    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
-    .join('\n');
-}
+const RANKING_CSV_HEADERS = [
+  'stationId',
+  'stationName',
+  'districtName',
+  'turnoverScore',
+  'emptyHours',
+  'fullHours',
+  'problemHours',
+  'emptyHourShare',
+  'demandVsStressedHint',
+  'peakFullHoursJson',
+  'totalHours',
+  'windowStart',
+  'windowEnd',
+];
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   return withApiRequest(
@@ -172,7 +152,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
 
         if (format === 'csv') {
-          const csv = toCsv(payload.rankings);
+          const csvData = payload.rankings.map((row) => ({
+            stationId: row.stationId,
+            stationName: row.stationName,
+            districtName: row.districtName ?? '',
+            turnoverScore: row.turnoverScore,
+            emptyHours: row.emptyHours,
+            fullHours: row.fullHours,
+            problemHours: row.problemHours,
+            emptyHourShare: row.emptyHourShare,
+            demandVsStressedHint: row.demandVsStressedHint,
+            peakFullHoursJson: JSON.stringify(row.peakFullHours),
+            totalHours: row.totalHours,
+            windowStart: row.windowStart,
+            windowEnd: row.windowEnd,
+          }));
+          const csv = rowsToCsv(RANKING_CSV_HEADERS, csvData);
           return new NextResponse(csv, {
             status: 200,
             headers: {
