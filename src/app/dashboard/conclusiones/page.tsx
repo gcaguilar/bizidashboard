@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { formatPercent } from '@/lib/format';
+import { formatInteger, formatPercent } from '@/lib/format';
 import { normalizeMonthSearchParam, resolveActiveMonth, toMonthOptions } from '@/lib/months';
 import { getDailyMobilityConclusions, type MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
@@ -46,10 +46,6 @@ function formatDate(value: string | null): string {
   }
 
   return parsed.toLocaleDateString('es-ES');
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
 }
 
 function formatHourLabel(hour: number): string {

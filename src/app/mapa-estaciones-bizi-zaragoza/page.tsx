@@ -10,13 +10,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
-
-function formatPercent(value: number): string {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatPercent } from '@/lib/format';
 
 const FAQ_ITEMS = [
   {

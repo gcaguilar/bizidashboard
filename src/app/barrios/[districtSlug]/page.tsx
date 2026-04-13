@@ -11,6 +11,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { average, formatDecimal, formatInteger } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
@@ -18,22 +19,6 @@ export const dynamicParams = false;
 type PageProps = {
   params: Promise<{ districtSlug: string }>;
 };
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
-}
-
-function formatDecimal(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(value);
-}
-
-function average(values: number[]): number {
-  if (values.length === 0) {
-    return 0;
-  }
-
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
 
 export async function generateStaticParams() {
   const slugs = await getDistrictSlugsFromGeoJson().catch(() => []);

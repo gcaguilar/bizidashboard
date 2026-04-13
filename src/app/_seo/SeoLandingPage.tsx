@@ -13,6 +13,7 @@ import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { average, formatDecimal, formatInteger, formatPercent } from '@/lib/format';
 import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import {
@@ -81,41 +82,6 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
       },
     ],
   };
-}
-
-function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
-}
-
-function formatDecimal(value: number): string {
-  return new Intl.NumberFormat('es-ES', {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: value < 10 && value > 0 ? 1 : 0,
-  }).format(value);
-}
-
-function formatPercent(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'Sin datos';
-  }
-
-  return new Intl.NumberFormat('es-ES', {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatHourRange(hour: number): string {
-  const nextHour = (hour + 1) % 24;
-  return `${String(hour).padStart(2, '0')}:00-${String(nextHour).padStart(2, '0')}:00`;
-}
-
-function average(values: number[]): number {
-  if (values.length === 0) {
-    return 0;
-  }
-
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 function fallbackContent(config: SeoPageConfig, nowIso: string): SeoLandingContent {

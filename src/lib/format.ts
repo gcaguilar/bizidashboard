@@ -1,5 +1,16 @@
 import { AlertType, DayType } from '@/analytics/types';
 
+export function formatInteger(value: number): string {
+  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
+}
+
+export function formatDecimal(value: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: value < 10 && value > 0 ? 1 : 0,
+  }).format(value);
+}
+
 export function formatRelativeMinutes(minutes?: number | null): string {
   if (minutes === null || minutes === undefined || Number.isNaN(minutes)) {
     return 'sin datos';
@@ -50,4 +61,16 @@ export function formatPercent(value?: number | null): string {
   const clamped = Math.min(100, Math.max(0, normalized));
   const rounded = Math.round(clamped);
   return `${rounded}%`;
+}
+
+export function formatHourRange(hour: number): string {
+  const nextHour = (hour + 1) % 24;
+  return `${String(hour).padStart(2, '0')}:00-${String(nextHour).padStart(2, '0')}:00`;
+}
+
+export function average(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
