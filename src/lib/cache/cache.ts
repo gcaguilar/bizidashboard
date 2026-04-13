@@ -1,8 +1,9 @@
 import { getRedisClient } from './redis'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { logger } from '@/lib/logger'
+import { CacheTTL } from './config'
 
-const DEFAULT_TTL_SECONDS = 300
+const DEFAULT_TTL_SECONDS = CacheTTL.DEFAULT
 
 const CITY = process.env.CITY ?? 'default'
 const reportedCacheErrors = new Set<string>()
