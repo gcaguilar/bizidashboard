@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DashboardViewMode } from './DashboardContext';
 
 const FAVORITES_STORAGE_KEY = 'dashboard-favorite-stations';
 
@@ -293,13 +294,13 @@ export function useGeolocation(options: UseGeolocationOptions = {}): UseGeolocat
 }
 
 export interface UseDashboardUrlStateOptions {
-  initialViewMode?: 'overview' | 'operations' | 'research' | 'data';
+  initialViewMode?: DashboardViewMode;
   initialSearch?: string;
 }
 
 export interface UseDashboardUrlStateResult {
-  viewMode: string;
-  setViewMode: (mode: string) => void;
+  viewMode: DashboardViewMode;
+  setViewMode: (mode: DashboardViewMode) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedStationId: string | null;
@@ -311,7 +312,7 @@ export function useDashboardUrlState(options: UseDashboardUrlStateOptions = {}):
   const [searchQuery, setSearchQueryState] = useState(options.initialSearch ?? '');
   const [selectedStationId, setSelectedStationIdState] = useState<string | null>(null);
 
-  const setViewMode = useCallback((mode: string) => {
+  const setViewMode = useCallback((mode: DashboardViewMode) => {
     setViewModeState(mode);
   }, []);
 

@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import type { DistrictCollection } from '@/lib/districts';
-import type { StationTrend } from './StationDetailPanel';
+
+export type StationTrend = 'up' | 'down' | 'flat';
 
 export type DashboardViewMode = 'overview' | 'operations' | 'research' | 'data';
 
