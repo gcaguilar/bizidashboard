@@ -146,14 +146,19 @@ export function validateStationInformation(data: unknown): StationInformation[] 
  * 
  * @param discovery - Validated GBFSDiscovery object
  * @returns URL string for station_status feed, or null if not found
+ * @deprecated Use extractFeedUrl(discovery, 'station_status') instead
  */
 export function extractStationStatusUrl(discovery: GBFSDiscovery): string | null {
-  const primaryFeeds =
-    discovery.data.es?.feeds ?? discovery.data.en?.feeds ?? discovery.data.fr?.feeds ?? [];
-  const feed = primaryFeeds.find((f) => f.name === 'station_status');
-  return feed?.url ?? null;
+  return extractFeedUrl(discovery, 'station_status');
 }
 
+/**
+ * Extracts a specific feed URL from GBFS discovery
+ * 
+ * @param discovery - Validated GBFSDiscovery object
+ * @param feedName - Name of the feed to extract (e.g., 'station_status', 'station_information')
+ * @returns URL string for the feed, or null if not found
+ */
 export function extractFeedUrl(discovery: GBFSDiscovery, feedName: string): string | null {
   const locales = ['es', 'en', 'fr'] as const;
 
