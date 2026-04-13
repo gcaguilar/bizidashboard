@@ -19,6 +19,34 @@ type Props = {
 
 const PAGE_SIZE = 20;
 
+// ─── CSV Export ────────────────────────────────────────────────────────────
+
+function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
+  const headers = ['Estación', 'ID', 'Barrio', 'Tipo', 'Clasificación', 'Ocupación', 'Banda', 'Acción', 'Urgencia', 'Score'];
+  const rows = diagnostics.map((d) => [
+    d.stationName,
+    d.stationId,
+    d.districtName ?? '',
+    d.inferredType,
+    CLASSIFICATION_LABEL[d.classification],
+    `${Math.round(d.currentOccupancy * 100)}%`,
+    `${Math.round(d.targetBand.min * 100)}%-${Math.round(d.targetBand.max * 100)}%`,
+    ACTION_LABEL[d.actionGroup],
+    URGENCY_LABEL[d.urgency],
+    Math.round(d.priorityScore * 100).toString(),
+  ]);
+
+  const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
 const CLASSIFICATION_STYLE: Record<StationClassification, string> = {
@@ -230,10 +258,28 @@ export function RebalancingTable({ diagnostics }: Props) {
   const [globalFilter, setGlobalFilter] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    stationName: true,
+    districtName: true,
+    inferredType: true,
+    classification: true,
+    currentOccupancy: true,
+    actionGroup: true,
+    urgency: true,
+    priorityScore: true,
+    expand: true,
+  });
 
   const handleToggle = useCallback((stationId: string) => {
     setExpandedId((id) => (id === stationId ? null : stationId));
   }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, stationId: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleToggle(stationId);
+    }
+  }, [handleToggle]);
 
   const table = useReactTable({
     data: diagnostics,
@@ -243,11 +289,13 @@ export function RebalancingTable({ diagnostics }: Props) {
       columnFilters,
       globalFilter,
       pagination,
+      columnVisibility,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -314,12 +362,46 @@ export function RebalancingTable({ diagnostics }: Props) {
             Limpiar filtros
           </button>
         )}
+        <details className="relative">
+          <summary className="cursor-pointer list-none text-xs text-[var(--accent)] hover:underline">
+            Columnas
+          </summary>
+          <div className="absolute left-0 top-full z-10 mt-1 rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 shadow-lg">
+            {table.getAllLeafColumns().map((column) => (
+              <label key={column.id} className="flex items-center gap-2 whitespace-nowrap text-xs text-[var(--foreground)]">
+                <input
+                  type="checkbox"
+                  checked={column.getIsVisible()}
+                  onChange={() => column.toggleVisibility()}
+                  className="rounded border-[var(--border)]"
+                />
+                {column.id === 'stationName' && 'Estación'}
+                {column.id === 'districtName' && 'Barrio'}
+                {column.id === 'inferredType' && 'Tipo'}
+                {column.id === 'classification' && 'Clasificación'}
+                {column.id === 'currentOccupancy' && 'Ocupación'}
+                {column.id === 'actionGroup' && 'Acción'}
+                {column.id === 'urgency' && 'Urgencia'}
+                {column.id === 'priorityScore' && 'Score'}
+                {column.id === 'expand' && 'Expand'}
+              </label>
+            ))}
+          </div>
+        </details>
+        {totalRows > 0 && (
+          <button
+            onClick={() => exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion')}
+            className="text-xs text-[var(--accent)] hover:underline"
+          >
+            Exportar CSV
+          </button>
+        )}
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
         <table className="w-full text-sm">
-          <thead className="border-b border-[var(--border)] bg-[var(--surface)]">
+          <thead className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -351,6 +433,10 @@ export function RebalancingTable({ diagnostics }: Props) {
                   <tr
                     className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
                     onClick={() => handleToggle(diagnostic.stationId)}
+                    onKeyDown={(e) => handleKeyDown(e, diagnostic.stationId)}
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={isExpanded}
                   >
                     {row.getVisibleCells().map((cell) => {
                       const colId = cell.column.id;
