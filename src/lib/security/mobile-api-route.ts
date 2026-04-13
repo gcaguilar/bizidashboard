@@ -58,12 +58,12 @@ export function withMobileApiRoute(
     const effectiveDecision = !ipDecision.allowed ? ipDecision : tokenDecision;
     const headers = getRateLimitHeaders(effectiveDecision);
 
-    if (effectiveDecision.backend === 'unavailable') {
+if (effectiveDecision.backend === 'unavailable') {
       return NextResponse.json(
         { error: 'Service temporarily unavailable' },
         {
           status: 503,
-          headers: { ...buildMobileCorsHeaders(), ...headers },
+          headers: { ...buildMobileCorsHeaders(request), ...headers },
         }
       );
     }
@@ -72,9 +72,8 @@ export function withMobileApiRoute(
       return NextResponse.json(
         { error: 'Too many requests' },
         {
-          status: 429,
           headers: {
-            ...buildMobileCorsHeaders(),
+            ...buildMobileCorsHeaders(request),
             ...headers,
             'Retry-After': String(effectiveDecision.retryAfterSeconds),
           },
@@ -87,7 +86,7 @@ export function withMobileApiRoute(
       
       if (response instanceof NextResponse) {
         const newHeaders = new Headers(response.headers);
-        buildMobileCorsHeaders().forEach((value, key) => {
+        Object.entries(buildMobileCorsHeaders(request)).forEach(([key, value]) => {
           newHeaders.set(key, value);
         });
         Object.entries(headers).forEach(([key, value]) => {
@@ -113,7 +112,7 @@ export function withMobileApiRoute(
         { error: 'Internal server error' },
         {
           status: 500,
-          headers: buildMobileCorsHeaders(),
+          headers: buildMobileCorsHeaders(request),
         }
       );
     }
@@ -121,10 +120,10 @@ export function withMobileApiRoute(
 }
 
 export function withMobileOptions() {
-  return function (): NextResponse {
+  return function (_request: NextRequest): NextResponse {
     return new NextResponse(null, {
       status: 204,
-      headers: buildMobileCorsHeaders(),
+      headers: buildMobileCorsHeaders(_request),
     });
   };
 }
