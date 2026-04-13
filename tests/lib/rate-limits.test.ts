@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RATE_LIMITS, getRateLimitPreset, type RateLimitPreset } from '@/lib/security/rate-limits';
+import { RATE_LIMITS, getRateLimitPreset } from '@/lib/security/rate-limits';
 
 describe('rate-limits', () => {
   describe('RATE_LIMITS', () => {
