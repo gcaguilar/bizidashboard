@@ -7,6 +7,7 @@ import {
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { rowsToCsv } from '@/lib/csv';
+import { errorResponse } from '@/lib/api-response';
 import { resolveRankingsDataState } from '@/lib/data-state';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
 import { logger } from '@/lib/logger';
@@ -198,14 +199,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           },
         });
         logger.error('api.rankings.failed', { error });
-        return NextResponse.json(
-          {
-            error: 'Failed to fetch rankings',
-            timestamp: new Date().toISOString(),
-            dataState: 'error',
-          },
-          { status: 500, headers: access.headers }
-        );
+        return errorResponse('Failed to fetch rankings', 500);
       }
     }
   );
