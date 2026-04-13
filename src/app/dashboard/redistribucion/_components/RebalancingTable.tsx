@@ -10,6 +10,7 @@ import {
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
+  type RowSelectionState,
 } from '@tanstack/react-table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
@@ -107,6 +108,17 @@ const URGENCY_OPTIONS = [
   ...Object.entries(URGENCY_LABEL).map(([value, label]) => ({ value, label })),
 ];
 
+// ─── Quick filters ────────────────────────────────────────────────────────────
+
+const QUICK_FILTERS = [
+  { id: 'all', label: 'Todas', filter: null },
+  { id: 'donors', label: 'Donantes', filter: { id: 'actionGroup', value: 'donor' } },
+  { id: 'receptors', label: 'Receptoras', filter: { id: 'actionGroup', value: 'receptor' } },
+  { id: 'critical', label: 'Críticas', filter: { id: 'urgency', value: 'critical' } },
+  { id: 'high', label: 'Altas', filter: { id: 'urgency', value: 'high' } },
+  { id: 'review', label: 'Revisar', filter: { id: 'actionGroup', value: 'review' } },
+];
+
 // ─── Occupancy bar ────────────────────────────────────────────────────────────
 
 function OccupancyBar({
@@ -146,6 +158,28 @@ function OccupancyBar({
 // ─── Column definitions ───────────────────────────────────────────────────────
 
 const columns: ColumnDef<StationDiagnostic>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type="checkbox"
+        checked={table.getIsAllRowsSelected()}
+        onChange={table.getToggleAllRowsSelectedHandler()}
+        className="rounded border-[var(--border)]"
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type="checkbox"
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        className="rounded border-[var(--border)]"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    size: 40,
+    enableSorting: false,
+  },
   {
     accessorKey: 'stationName',
     header: 'Estación',
@@ -259,6 +293,7 @@ export function RebalancingTable({ diagnostics }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    select: true,
     stationName: true,
     districtName: true,
     inferredType: true,
@@ -269,6 +304,8 @@ export function RebalancingTable({ diagnostics }: Props) {
     priorityScore: true,
     expand: true,
   });
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [activeQuickFilter, setActiveQuickFilter] = useState('all');
 
   const handleToggle = useCallback((stationId: string) => {
     setExpandedId((id) => (id === stationId ? null : stationId));
@@ -290,23 +327,38 @@ export function RebalancingTable({ diagnostics }: Props) {
       globalFilter,
       pagination,
       columnVisibility,
+      rowSelection,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => row.stationId,
+    enableMultiSort: true,
   });
 
   const totalRows = table.getFilteredRowModel().rows.length;
   const pageCount = table.getPageCount();
   const pageIndex = pagination.pageIndex;
   const pageSize = pagination.pageSize;
+
+  const selectedCount = Object.keys(rowSelection).length;
+
+  const applyQuickFilter = useCallback((filterId: string) => {
+    setActiveQuickFilter(filterId);
+    const qf = QUICK_FILTERS.find((f) => f.id === filterId);
+    if (!qf || !qf.filter) {
+      setColumnFilters([]);
+    } else {
+      setColumnFilters([qf.filter]);
+    }
+  }, []);
 
   return (
     <div className="space-y-3">
@@ -321,6 +373,24 @@ export function RebalancingTable({ diagnostics }: Props) {
             className="h-8 w-40 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 text-xs text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
+
+        {/* Quick filters */}
+        <div className="flex items-center gap-1">
+          {QUICK_FILTERS.map((qf) => (
+            <button
+              key={qf.id}
+              onClick={() => applyQuickFilter(qf.id)}
+              className={`rounded px-2 py-1 text-xs ${
+                activeQuickFilter === qf.id
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
+              }`}
+            >
+              {qf.label}
+            </button>
+          ))}
+        </div>
+
         <FilterSelect
           value={(columnFilters.find((f) => f.id === 'classification')?.value as string) ?? ''}
           onChange={(value) =>
@@ -356,6 +426,7 @@ export function RebalancingTable({ diagnostics }: Props) {
             onClick={() => {
               setGlobalFilter('');
               setColumnFilters([]);
+              setActiveQuickFilter('all');
             }}
             className="text-xs text-[var(--accent)] hover:underline"
           >
@@ -375,6 +446,7 @@ export function RebalancingTable({ diagnostics }: Props) {
                   onChange={() => column.toggleVisibility()}
                   className="rounded border-[var(--border)]"
                 />
+                {column.id === 'select' && '☑'}
                 {column.id === 'stationName' && 'Estación'}
                 {column.id === 'districtName' && 'Barrio'}
                 {column.id === 'inferredType' && 'Tipo'}
@@ -396,6 +468,11 @@ export function RebalancingTable({ diagnostics }: Props) {
             Exportar CSV
           </button>
         )}
+        {selectedCount > 0 && (
+          <span className="text-xs text-[var(--muted)]">
+            {selectedCount} seleccionado{selectedCount !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
       {/* Table */}
@@ -407,18 +484,19 @@ export function RebalancingTable({ diagnostics }: Props) {
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="cursor-pointer select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
+                    className={`select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] ${
+                      header.column.getCanSort() ? 'cursor-pointer hover:text-[var(--foreground)]' : ''
+                    }`}
                     onClick={header.column.getToggleSortingHandler()}
+                    style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder
                       ? null
                       : typeof header.column.columnDef.header === 'function'
                       ? header.column.columnDef.header(header.getContext())
                       : header.column.columnDef.header}
-                    {{
-                      asc: ' ↑',
-                      desc: ' ↓',
-                    }[header.column.getIsSorted() as string] ?? null}
+                    {header.column.getIsSorted() === 'asc' && ' ↑'}
+                    {header.column.getIsSorted() === 'desc' && ' ↓'}
                   </th>
                 ))}
               </tr>
@@ -458,7 +536,7 @@ export function RebalancingTable({ diagnostics }: Props) {
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={9} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
+                      <td colSpan={11} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
                         <div className="grid gap-4 text-xs sm:grid-cols-2">
                           <div>
                             <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de clasificación</p>
