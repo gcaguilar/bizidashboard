@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
@@ -360,6 +360,22 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     };
   }, [rows]);
 
+  const copyToClipboard = useCallback(() => {
+    const headers = ['Fecha', 'Estación', 'ID', 'Tipo', 'Severidad', 'Estado', 'Valor', 'Ventana'];
+    const textRows = rows.map((row) => [
+      formatDateTime(row.generatedAt),
+      row.stationName,
+      row.stationId,
+      formatAlertType(row.alertType),
+      row.severity >= 2 ? 'Crítica' : 'Media',
+      row.isActive ? 'Activa' : 'Resuelta',
+      row.metricValue.toFixed(1),
+      `${row.windowHours}h`,
+    ]);
+    const text = [headers, ...textRows].map((row) => row.join('\t')).join('\n');
+    navigator.clipboard.writeText(text);
+  }, [rows]);
+
   const downloadCsvHref = useMemo(() => {
     const params = new URLSearchParams(apiQueryString);
     params.set('offset', '0');
@@ -593,13 +609,22 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           <p className="stat-value">{stats.critical}</p>
         </article>
         <article className="dashboard-card">
-          <p className="stat-label">Exportacion</p>
-          <a
-            href={downloadCsvHref}
-            className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Descargar CSV
-          </a>
+          <p className="stat-label">Exportar</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={copyToClipboard}
+              disabled={rows.length === 0}
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--foreground)] transition hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Copiar
+            </button>
+            <a
+              href={downloadCsvHref}
+              className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            >
+              CSV
+            </a>
+          </div>
         </article>
       </section>
 
@@ -618,9 +643,9 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         ) : rows.length === 0 ? (
           <p className="px-4 py-6 text-sm text-[var(--muted)]">No hay alertas para los filtros actuales.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[600px]">
             <table className="min-w-full border-collapse text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-[var(--surface-soft)]">
                 <tr className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
                   <th className="px-4 py-3">Fecha</th>
                   <th className="px-4 py-3">Estacion</th>
