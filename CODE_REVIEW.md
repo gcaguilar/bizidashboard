@@ -165,7 +165,7 @@ Un cambio en `selectedStation` requiere tocar 6 archivos.
 
 ---
 
-**Resumen de cambios implementados (11 commits):**
+**Resumen de cambios implementados (14 commits):**
 
 - `c2e7a17` - Centralize RollupResult in types.ts
 - `6dd7df4` - Extract formatters to lib/format.ts
@@ -179,3 +179,5 @@ Un cambio en `selectedStation` requiere tocar 6 archivos.
 - `e2acb32` - Add CODE_REVIEW.md
 - `36511f5` - Deprecate extractStationStatusUrl
 - `5f7af64` - Add centralized rate-limits config
+- `da790e6` - Add errorResponse helper
+- `349ca79` - Standardize error responses across all routes
