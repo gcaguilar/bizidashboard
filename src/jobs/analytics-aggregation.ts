@@ -19,6 +19,7 @@ import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
+import { ensureLockRefreshed } from './utils';
 import type { CronOptions } from './types';
 import {
   getStationsWithLatestStatus,
@@ -90,16 +91,6 @@ async function warmCache(): Promise<void> {
 
 let cronJob: ScheduledTask | null = null;
 
-async function ensureLockRefreshed(
-  lock: { refresh: () => Promise<boolean> },
-  stage: string
-): Promise<void> {
-  const refreshed = await lock.refresh();
-  if (!refreshed) {
-    throw new Error(`Analytics lock refresh failed at stage: ${stage}`);
-  }
-}
-
 function getHourlyCutoff(now: Date): Date {
   const delayMs = ANALYTICS_WINDOWS.rollupHourlyDelayMinutes * 60 * 1000;
   const delayed = new Date(now.getTime() - delayMs);
@@ -145,7 +136,7 @@ async function runAnalyticsAggregation(): Promise<void> {
     const now = new Date();
     const hourlyCutoff = getHourlyCutoff(now);
 
-    await ensureLockRefreshed(lock, 'before-hourly-rollup');
+    await ensureLockRefreshed(lock, 'before-hourly-rollup', 'analytics');
     const hourlyStart = Date.now();
     const hourlyResult = await runHourlyRollup(hourlyCutoff);
     const hourlyDuration = Date.now() - hourlyStart;
@@ -158,7 +149,7 @@ async function runAnalyticsAggregation(): Promise<void> {
     });
 
     if (hourlyResult.processedCount > 0) {
-      await ensureLockRefreshed(lock, 'before-ranking-rollup');
+      await ensureLockRefreshed(lock, 'before-ranking-rollup', 'analytics');
       const rankingStart = Date.now();
       const rankingResult = await runRankingRollup(hourlyCutoff);
       const rankingDuration = Date.now() - rankingStart;
@@ -169,7 +160,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: hourlyCutoff.toISOString(),
       });
 
-      await ensureLockRefreshed(lock, 'before-pattern-rollup');
+      await ensureLockRefreshed(lock, 'before-pattern-rollup', 'analytics');
       const patternStart = Date.now();
       const patternResult = await runPatternRollup(hourlyCutoff);
       const patternDuration = Date.now() - patternStart;
@@ -180,7 +171,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: hourlyCutoff.toISOString(),
       });
 
-      await ensureLockRefreshed(lock, 'before-heatmap-rollup');
+      await ensureLockRefreshed(lock, 'before-heatmap-rollup', 'analytics');
       const heatmapStart = Date.now();
       const heatmapResult = await runHeatmapRollup(hourlyCutoff);
       const heatmapDuration = Date.now() - heatmapStart;
@@ -192,7 +183,7 @@ async function runAnalyticsAggregation(): Promise<void> {
       });
     }
 
-    await ensureLockRefreshed(lock, 'before-alert-rollup');
+    await ensureLockRefreshed(lock, 'before-alert-rollup', 'analytics');
     const alertStart = Date.now();
     const alertResult = await runAlertRollup(hourlyCutoff);
     const alertDuration = Date.now() - alertStart;
@@ -203,7 +194,7 @@ async function runAnalyticsAggregation(): Promise<void> {
       cutoff: hourlyCutoff.toISOString(),
     });
 
-    await ensureLockRefreshed(lock, 'before-daily-rollup');
+    await ensureLockRefreshed(lock, 'before-daily-rollup', 'analytics');
     const dailyCutoff = getDailyCutoff(now);
     const dailyWatermark = await getWatermark('daily-rollup', new Date(0));
 
@@ -219,7 +210,7 @@ async function runAnalyticsAggregation(): Promise<void> {
         cutoff: dailyCutoff.toISOString(),
       });
 
-      await ensureLockRefreshed(lock, 'before-retention-cleanup');
+      await ensureLockRefreshed(lock, 'before-retention-cleanup', 'analytics');
       await runRetentionCleanup();
       const vacuumed = await runVacuumIfDue();
 
