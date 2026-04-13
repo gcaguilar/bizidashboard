@@ -4,6 +4,7 @@ import { ANALYTICS_WINDOWS, DayType } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 import { chunkRowsForBulkQuery } from '@/analytics/queries/bulk-upsert';
+import { parseBucketStart } from './date-utils';
 
 export interface RollupResult {
   processedCount: number;
@@ -23,18 +24,6 @@ interface PatternAccumulator {
 }
 
 const PATTERN_WATERMARK = 'pattern_rollup';
-
-function parseBucketStart(value: string | Date): Date {
-  if (value instanceof Date) {
-    return value;
-  }
-
-  if (value.includes('T')) {
-    return new Date(value);
-  }
-
-  return new Date(value.replace(' ', 'T') + 'Z');
-}
 
 export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
   const windowEnd = cutoff;
