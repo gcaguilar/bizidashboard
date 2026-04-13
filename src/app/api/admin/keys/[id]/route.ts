@@ -12,25 +12,12 @@ import { recordSecurityEvent } from '@/lib/security/audit';
 import { revokeApiKey, deleteApiKey } from '@/lib/security/api-keys';
 import { z } from 'zod';
 
-const RATE_LIMIT = { limit: 10, windowMs: 60_000 };
+export const dynamic = 'force-dynamic';
 
 const UpdateKeySchema = z.object({
   action: z.enum(['revoke', 'delete']),
   reason: z.string().min(1).max(500),
 });
-
-async function checkOpsAccess(request: Request, clientIp: string) {
-  return enforceOperationalAccess({
-    request,
-    clientIp,
-    namespace: 'admin.keys',
-    limit: RATE_LIMIT.limit,
-    windowMs: RATE_LIMIT.windowMs,
-    unauthorizedError: 'Unauthorized. Valid OPS_API_KEY required.',
-    rateLimitError: 'Too many requests.',
-    misconfiguredError: 'Server misconfigured: OPS_API_KEY is required.',
-  });
-}
 
 export async function PATCH(
   request: NextRequest,
@@ -40,7 +27,11 @@ export async function PATCH(
     request,
     { route: '/api/admin/keys/:id', routeGroup: 'admin' },
     async ({ clientIp, userAgent, requestId }) => {
-      const access = await checkOpsAccess(request, clientIp);
+      const access = await enforceOperationalAccess({
+        request,
+        clientIp,
+        namespace: 'admin.keys',
+      });
 
       if ('response' in access) {
         const status = access.response.status;
@@ -114,7 +105,11 @@ export async function DELETE(
     request,
     { route: '/api/admin/keys/:id', routeGroup: 'admin' },
     async ({ clientIp, userAgent, requestId }) => {
-      const access = await checkOpsAccess(request, clientIp);
+      const access = await enforceOperationalAccess({
+        request,
+        clientIp,
+        namespace: 'admin.keys',
+      });
 
       if ('response' in access) {
         const status = access.response.status;
