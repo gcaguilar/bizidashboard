@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { AlertType } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
 import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 export type RankingType = 'turnover' | 'availability';
@@ -142,7 +143,7 @@ export async function getAvailableDataMonths(): Promise<string[]> {
       WHERE "bucketStart" IS NOT NULL
       ORDER BY "monthKey" DESC;
     `.catch((error) => {
-      console.warn('[Analytics] Unable to read monthly keys from HourlyStationStat:', error);
+      logger.warn('analytics.read.monthly_keys_hourly_failed', { error });
       return [];
     }),
     prisma.$queryRaw<Array<{ monthKey: string | null }>>`
@@ -151,7 +152,7 @@ export async function getAvailableDataMonths(): Promise<string[]> {
       WHERE "bucketDate" IS NOT NULL
       ORDER BY "monthKey" DESC;
     `.catch((error) => {
-      console.warn('[Analytics] Unable to read monthly keys from DailyStationStat:', error);
+      logger.warn('analytics.read.monthly_keys_daily_failed', { error });
       return [];
     }),
     prisma.$queryRaw<Array<{ monthKey: string | null }>>`
@@ -160,7 +161,7 @@ export async function getAvailableDataMonths(): Promise<string[]> {
       WHERE "recordedAt" IS NOT NULL
       ORDER BY "monthKey" DESC;
     `.catch((error) => {
-      console.warn('[Analytics] Unable to read monthly keys from StationStatus:', error);
+      logger.warn('analytics.read.monthly_keys_status_failed', { error });
       return [];
     }),
   ]);
@@ -539,7 +540,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     FROM monthly
     ORDER BY "monthKey" ASC;
   `.catch((error) => {
-    console.warn('[Analytics] Unable to build monthly series from DailyStationStat:', error);
+    logger.warn('analytics.read.monthly_demand_daily_failed', { error });
     return [];
   });
 
@@ -571,7 +572,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     FROM monthly
     ORDER BY "monthKey" ASC;
   `.catch((error) => {
-    console.warn('[Analytics] Unable to build monthly series from HourlyStationStat:', error);
+    logger.warn('analytics.read.monthly_demand_hourly_failed', { error });
     return [];
   });
 
