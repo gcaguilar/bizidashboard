@@ -13,7 +13,7 @@ import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
-import { average, formatDecimal, formatInteger, formatPercent } from '@/lib/format';
+import { average, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import {
