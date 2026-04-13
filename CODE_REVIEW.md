@@ -155,10 +155,27 @@ Un cambio en `selectedStation` requiere tocar 6 archivos.
 
 ### P3 — Inconsistencias menores
 
-- [ ] Unificar `NextRequest` vs `Request` en las rutas API
+- [x] Unificar `NextRequest` vs `Request` en las rutas API
 - [x] Añadir `force-dynamic` a rutas admin
-- [ ] Estandarizar respuestas de error (siempre incluir `timestamp` y `dataState`)
+- [x] Estandarizar respuestas de error (siempre incluir `timestamp` y `dataState`)
 - [x] Centralizar rate-limit config en vez de redefinir en cada archivo
 - [x] Migrar `console.warn`/`console.log` a `logger` estructurado
-- [ ] Unificar `Response.json` → `NextResponse.json`
+- [x] Unificar `Response.json` → `NextResponse.json`
 - [x] Unificar `extractStationStatusUrl` en `extractFeedUrl`
+
+---
+
+**Resumen de cambios implementados (11 commits):**
+
+- `c2e7a17` - Centralize RollupResult in types.ts
+- `6dd7df4` - Extract formatters to lib/format.ts
+- `1916c9c` - Centralize CSV in lib/csv.ts
+- `14bb849` - Simplify ops-api with defaults + force-dynamic
+- `fbf8dcf` - Extract ensureLockRefreshed to jobs/utils.ts
+- `0b5d901` - Add withPublicApiRoute and withMobileApiRoute
+- `eba7c8c` - Add DashboardContext and custom hooks
+- `5eb94d4` - Migrate console.warn/log to logger
+- `2849a51` - Add queries/index.ts barrel export
+- `e2acb32` - Add CODE_REVIEW.md
+- `36511f5` - Deprecate extractStationStatusUrl
+- `5f7af64` - Add centralized rate-limits config
