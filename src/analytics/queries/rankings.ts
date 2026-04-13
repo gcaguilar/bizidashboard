@@ -1,14 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
+import type { RollupResult } from '@/analytics/types';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
-
-export interface RollupResult {
-  processedCount: number;
-  upsertedCount: number;
-  watermark: Date;
-  cutoff: Date;
-}
 
 const RANKING_WATERMARK = 'ranking_rollup';
 

@@ -8,6 +8,13 @@ export enum AlertType {
   LOW_ANCHORS = "LOW_ANCHORS",
 }
 
+export interface RollupResult {
+  processedCount: number;
+  upsertedCount: number;
+  watermark: Date;
+  cutoff: Date;
+}
+
 export const ALERT_THRESHOLDS = {
   lowBikes: 5,
   lowAnchors: 3,

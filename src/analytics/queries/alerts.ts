@@ -1,15 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS, AlertType } from '@/analytics/types';
+import type { RollupResult } from '@/analytics/types';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 import { chunkRowsForBulkQuery } from '@/analytics/queries/bulk-upsert';
-
-export interface RollupResult {
-  processedCount: number;
-  upsertedCount: number;
-  watermark: Date;
-  cutoff: Date;
-}
 
 interface AlertMetricAccumulator {
   bikesSum: number;
