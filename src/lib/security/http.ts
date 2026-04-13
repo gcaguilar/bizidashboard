@@ -39,16 +39,20 @@ export function getClientIp(headers: Headers): string {
   );
 }
 
+function getSecuritySalt(): string {
+  const salt = process.env.SIGNATURE_SECRET || process.env.JWT_SECRET;
+  if (!salt) {
+    throw new Error('SECURITY_ERROR: SIGNATURE_SECRET or JWT_SECRET must be configured');
+  }
+  return salt;
+}
+
 export function hashSensitiveValue(value: string | null | undefined): string | null {
   if (!value) {
     return null;
   }
 
-  const salt =
-    process.env.SIGNATURE_SECRET ||
-    process.env.JWT_SECRET ||
-    'bizidashboard-fallback-security-salt';
-
+  const salt = getSecuritySalt();
   return createHash('sha256').update(`${salt}:${value}`).digest('hex');
 }
 
