@@ -28,6 +28,17 @@ export type CollectionRunUpdateInput = {
   finishedAt?: Date | null;
 };
 
+export class CollectionRunError extends Error {
+  constructor(
+    message: string,
+    public readonly collectionId: string,
+    public readonly cause: unknown
+  ) {
+    super(message);
+    this.name = 'CollectionRunError';
+  }
+}
+
 export async function createCollectionRun(
   input: CollectionRunRecordInput
 ): Promise<void> {
@@ -47,6 +58,11 @@ export async function createCollectionRun(
       collectionId: input.collectionId,
       error,
     });
+    throw new CollectionRunError(
+      `Failed to create collection run: ${input.collectionId}`,
+      input.collectionId,
+      error
+    );
   }
 }
 
@@ -77,6 +93,11 @@ export async function updateCollectionRun(
       collectionId,
       error,
     });
+    throw new CollectionRunError(
+      `Failed to update collection run: ${collectionId}`,
+      collectionId,
+      error
+    );
   }
 }
 
