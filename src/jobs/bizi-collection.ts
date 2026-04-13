@@ -33,17 +33,8 @@ import {
   runWithExecutionContext,
   updateExecutionContext,
 } from '@/lib/request-context';
+import { ensureLockRefreshed } from './utils';
 import type { CronOptions } from './types';
-
-async function ensureLockRefreshed(
-  lock: { refresh: () => Promise<boolean> },
-  stage: string
-): Promise<void> {
-  const refreshed = await lock.refresh();
-  if (!refreshed) {
-    throw new Error(`Collection lock refresh failed at stage: ${stage}`);
-  }
-}
 
 /**
  * Result of a collection run
@@ -217,7 +208,7 @@ async function executeCollection(
         reason: syncStationInformation ? 'startup_or_bootstrap' : 'missing_station_ids',
       });
     }
-    await ensureLockRefreshed(lock, 'post-station-metadata-sync');
+    await ensureLockRefreshed(lock, 'post-station-metadata-sync', 'collection');
 
     const snapshotRecordedAt = new Date(stationStatusResponse.last_updated * 1000);
     const existingSnapshotCount = await getSnapshotCount(snapshotRecordedAt);
