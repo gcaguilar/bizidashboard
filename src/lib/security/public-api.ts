@@ -22,7 +22,7 @@ type PublicApiAccessOptions = {
   requireApiKey: boolean;
 };
 
-type PublicApiAccessResult =
+export type PublicApiAccessResult =
   | {
       ok: true;
       headers: Record<string, string>;
