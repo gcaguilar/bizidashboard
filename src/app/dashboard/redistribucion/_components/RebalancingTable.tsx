@@ -31,6 +31,22 @@ const PAGE_SIZE = 20;
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
 
+function copyToClipboard(diagnostics: StationDiagnostic[]) {
+  const text = diagnostics
+    .map((d) => [
+      d.stationName,
+      d.stationId,
+      d.districtName ?? '',
+      d.inferredType,
+      CLASSIFICATION_LABEL[d.classification],
+      `${Math.round(d.currentOccupancy * 100)}%`,
+      ACTION_LABEL[d.actionGroup],
+      URGENCY_LABEL[d.urgency],
+    ].join('\t'))
+    .join('\n');
+  navigator.clipboard.writeText(text);
+}
+
 function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
   const headers = ['Estación', 'ID', 'Barrio', 'Tipo', 'Clasificación', 'Ocupación', 'Banda', 'Acción', 'Urgencia', 'Score'];
   const rows = diagnostics.map((d) => [
@@ -342,6 +358,20 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     }
   }, [handleToggle]);
 
+  const handleHeaderClick = useCallback((e: React.MouseEvent, column: { toggleSorting: (desc?: boolean) => void; getCanSort: () => boolean; getIsSorted: () => false | 'asc' | 'desc'; id: string }) => {
+    if (!column.getCanSort()) return;
+    if (e.shiftKey && sorting.length > 0) {
+      const currentSort = sorting.find((s) => s.id === column.id);
+      if (currentSort) {
+        setSorting((prev) => prev.map((s) => s.id === column.id ? { ...s, desc: !s.desc } : s));
+      } else {
+        setSorting((prev) => [...prev, { id: column.id, desc: true }]);
+      }
+    } else {
+      column.toggleSorting();
+    }
+  }, [sorting]);
+
   const updateURL = useCallback(() => {
     const params = new URLSearchParams();
     if (sorting.length > 0) {
@@ -407,7 +437,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
   return (
     <div className="space-y-3">
       {/* Filters toolbar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-3">
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -506,6 +536,19 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         </details>
         {totalRows > 0 && (
           <button
+            onClick={() => {
+              const data = selectedCount > 0
+                ? table.getSelectedRowModel().rows.map((r) => r.original)
+                : table.getFilteredRowModel().rows.map((r) => r.original);
+              copyToClipboard(data);
+            }}
+            className="text-xs text-[var(--accent)] hover:underline"
+          >
+            {selectedCount > 0 ? `Copiar ${selectedCount}` : 'Copiar'}
+          </button>
+        )}
+        {totalRows > 0 && (
+          <button
             onClick={() => exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion')}
             className="text-xs text-[var(--accent)] hover:underline"
           >
@@ -520,7 +563,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)] max-w-[100vw]">
         <table className="w-full text-sm">
           <thead className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -531,7 +574,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                     className={`select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] ${
                       header.column.getCanSort() ? 'cursor-pointer hover:text-[var(--foreground)]' : ''
                     }`}
-                    onClick={header.column.getToggleSortingHandler()}
+                    onClick={(e) => handleHeaderClick(e, header.column)}
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder
