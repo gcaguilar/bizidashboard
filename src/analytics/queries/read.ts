@@ -35,19 +35,17 @@ type HourlyStatRow = {
   sampleCount: number;
 };
 
-function parseBucketStart(value: string | Date): Date {
-  if (value instanceof Date) {
-    return value;
+import { parseBucketStart } from './date-utils';
+
+// Whitelist of allowed column names to prevent SQL injection
+const ALLOWED_RANGE_COLUMNS = ['bucketStart', 'bucketDate', 'recordedAt'] as const;
+type AllowedRangeColumn = typeof ALLOWED_RANGE_COLUMNS[number];
+
+function buildRangeFilter(column: AllowedRangeColumn, days: number, monthKey?: string): Prisma.Sql {
+  if (!ALLOWED_RANGE_COLUMNS.includes(column)) {
+    throw new Error(`Invalid column name: ${column}`);
   }
-
-  if (value.includes('T')) {
-    return new Date(value);
-  }
-
-  return new Date(value.replace(' ', 'T') + 'Z');
-}
-
-function buildRangeFilter(column: string, days: number, monthKey?: string): Prisma.Sql {
+  
   if (monthKey && isValidMonthKey(monthKey)) {
     const { start, endExclusive } = getMonthBounds(monthKey);
     return Prisma.sql`${Prisma.raw(`"${column}"`)} >= ${start}::timestamp AND ${Prisma.raw(`"${column}"`)} < ${endExclusive}::timestamp`;
