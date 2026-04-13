@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { rowsToCsv } from '@/lib/csv';
 import { resolveStationsDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -17,24 +18,7 @@ const PUBLIC_ROUTE_RATE_LIMIT = {
   windowMs: 60_000,
 };
 
-function toCsv(
-  stations: Array<{
-    id: string;
-    name: string;
-    lat: number;
-    lon: number;
-    capacity: number;
-    bikesAvailable: number;
-    anchorsFree: number;
-    recordedAt: string;
-  }>
-): string {
-  const headers = ['stationId', 'stationName', 'lat', 'lon', 'capacity', 'bikesAvailable', 'anchorsFree', 'recordedAt'];
-  const rows = stations.map((station) => [station.id, station.name, station.lat, station.lon, station.capacity, station.bikesAvailable, station.anchorsFree, station.recordedAt]);
-  return [headers, ...rows]
-    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
-    .join('\n');
-}
+const STATIONS_CSV_HEADERS = ['stationId', 'stationName', 'lat', 'lon', 'capacity', 'bikesAvailable', 'anchorsFree', 'recordedAt'];
 
 export async function GET(request?: NextRequest): Promise<NextResponse> {
   if (!request) {
@@ -120,7 +104,7 @@ export async function GET(request?: NextRequest): Promise<NextResponse> {
         });
 
         if (format === 'csv') {
-          const csv = toCsv(payload.stations);
+          const csv = rowsToCsv(STATIONS_CSV_HEADERS, payload.stations);
           return new NextResponse(csv, {
             status: 200,
             headers: {

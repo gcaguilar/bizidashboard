@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withCache } from '@/lib/cache/cache';
+import { rowsToCsv } from '@/lib/csv';
 import { resolveHistoryDataState } from '@/lib/data-state';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -25,21 +26,7 @@ type DailyHistoryRow = {
   balanceIndex: number;
 };
 
-function toCsv(
-  rows: Array<{
-    day: string;
-    demandScore: number;
-    avgOccupancy: number;
-    balanceIndex: number;
-    sampleCount: number;
-  }>
-): string {
-  const headers = ['day', 'demandScore', 'avgOccupancy', 'balanceIndex', 'sampleCount'];
-  const values = rows.map((row) => [row.day, row.demandScore, row.avgOccupancy, row.balanceIndex, row.sampleCount]);
-  return [headers, ...values]
-    .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(','))
-    .join('\n');
-}
+const HISTORY_CSV_HEADERS = ['day', 'demandScore', 'avgOccupancy', 'balanceIndex', 'sampleCount'];
 
 export async function GET(request?: NextRequest): Promise<Response> {
   if (!request) {
@@ -123,7 +110,7 @@ export async function GET(request?: NextRequest): Promise<Response> {
         });
 
         if (format === 'csv') {
-          const csv = toCsv(payload.history);
+          const csv = rowsToCsv(HISTORY_CSV_HEADERS, payload.history);
           return new NextResponse(csv, {
             status: 200,
             headers: {

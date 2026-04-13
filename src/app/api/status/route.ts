@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rowsToCsv } from '@/lib/csv'
 import { resolveStatusDataState } from '@/lib/data-state'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
@@ -7,8 +8,10 @@ import { getPipelineStatusSummary } from '@/services/shared-data'
 
 export const dynamic = 'force-dynamic'
 
-function toCsv(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>): string {
-  const rows = [
+const STATUS_CSV_HEADERS = ['metric', 'value']
+
+function statusToRows(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>) {
+  return [
     ['timestamp', status.timestamp],
     ['healthStatus', status.pipeline.healthStatus],
     ['healthReason', status.pipeline.healthReason ?? ''],
@@ -23,9 +26,7 @@ function toCsv(status: Awaited<ReturnType<typeof getPipelineStatusSummary>>): st
     ['isFresh', status.quality.freshness.isFresh],
     ['environment', status.system.environment],
     ['version', status.system.version],
-  ];
-
-  return ['metric,value', ...rows.map(([metric, value]) => `${metric},"${String(value).replaceAll('"', '""')}"`)].join('\n')
+  ]
 }
 
 /**
@@ -57,14 +58,15 @@ export async function GET(_request: NextRequest): Promise<Response> {
         }
 
         if (format === 'csv') {
-          return new NextResponse(toCsv(status), {
+          const csv = rowsToCsv(STATUS_CSV_HEADERS, statusToRows(status) as unknown as Record<string, unknown>[]);
+          return new NextResponse(csv, {
             status: 200,
             headers: {
               'Content-Type': 'text/csv; charset=utf-8',
               'Content-Disposition': 'attachment; filename="system-status.csv"',
               'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
             },
-          })
+          });
         }
 
         return NextResponse.json(payload, {
