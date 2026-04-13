@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPatterns } from '@/analytics/queries/read'
+import { getStationPatterns } from '@/analytics/queries/read'
 import { withCache } from '@/lib/cache/cache'
 import { errorResponse } from '@/lib/api-response'
 import { logger } from '@/lib/logger'
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       try {
         const cacheKey = `patterns:stationId=${stationId}`
         const patterns = await withCache(cacheKey, 300, () =>
-          getStationPatterns(stationId)
+          getStationPatterns(stationId, undefined)
         )
 
         return NextResponse.json(patterns, {

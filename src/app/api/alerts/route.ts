@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getActiveAlerts } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { errorResponse } from '@/lib/api-response';
-import { resolveAlertsDataState } from '@/lib/data-state';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { withApiRequest } from '@/lib/security/http';

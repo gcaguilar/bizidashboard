@@ -4,7 +4,10 @@ export function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
 }
 
-export function formatDecimal(value: number): string {
+export function formatDecimal(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '—';
+  }
   return new Intl.NumberFormat('es-ES', {
     maximumFractionDigits: 1,
     minimumFractionDigits: value < 10 && value > 0 ? 1 : 0,

@@ -1,9 +1,9 @@
 export {
   getStationRankings,
   getStationPatternsBulk,
+  getStationPatterns,
   getHeatmap,
-  getPatterns,
-  getAlerts,
+  getActiveAlerts,
   getAvailableDataMonths,
   getMonthlyDemandCurve,
   getDailyDemandCurve,
@@ -12,5 +12,3 @@ export {
   getStationsWithLatestStatus,
   type RankingType,
 } from './read';
-
-export type { RankingType } from './read';
