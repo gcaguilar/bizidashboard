@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
@@ -12,7 +13,7 @@ type MonthFilterProps = {
   source?: string;
 };
 
-export function MonthFilter({
+function MonthFilterContent({
   months,
   activeMonth,
   className,
@@ -53,10 +54,10 @@ export function MonthFilter({
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[var(--shadow-soft)]">
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Mes</span>
+      <div className='flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[var(--shadow-soft)]'>
+        <span className='text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]'>Mes</span>
         <button
-          type="button"
+          type='button'
           onClick={() => updateMonth(null)}
           className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
             activeMonth === null
@@ -69,7 +70,7 @@ export function MonthFilter({
         {monthOptions.map((month) => (
           <button
             key={month.key}
-            type="button"
+            type='button'
             onClick={() => updateMonth(month.key)}
             className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition ${
               activeMonth === month.key
@@ -82,5 +83,13 @@ export function MonthFilter({
         ))}
       </div>
     </div>
+  );
+}
+
+export function MonthFilter(props: MonthFilterProps) {
+  return (
+    <Suspense fallback={<div className='h-10 w-full animate-pulse rounded-xl bg-[var(--surface-soft)]' />}>
+      <MonthFilterContent {...props} />
+    </Suspense>
   );
 }
