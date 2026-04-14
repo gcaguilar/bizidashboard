@@ -1,29 +1,39 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { vi, beforeEach, describe, expect, it } from 'vitest';
 
-const {
-  fetchDiscoveryMock,
-  fetchStationInformationMock,
-  fetchStationStatusMock,
-  validateAndStoreMock,
-  getMissingStationIdsMock,
-  getSnapshotCountMock,
-  getStationMetadataCountMock,
-  upsertStationsMock,
-  recordCollectionMock,
-  captureExceptionWithContextMock,
-  acquireJobLockMock,
-} = vi.hoisted(() => ({
+const { fetchDiscoveryMock, fetchStationInformationMock, fetchStationStatusMock } = vi.hoisted(() => ({
   fetchDiscoveryMock: vi.fn(),
   fetchStationInformationMock: vi.fn(),
   fetchStationStatusMock: vi.fn(),
+}));
+
+const { validateAndStoreMock } = vi.hoisted(() => ({
   validateAndStoreMock: vi.fn(),
+}));
+
+const { getMissingStationIdsMock, getSnapshotCountMock, getStationMetadataCountMock, upsertStationsMock } = vi.hoisted(() => ({
   getMissingStationIdsMock: vi.fn(),
   getSnapshotCountMock: vi.fn(),
   getStationMetadataCountMock: vi.fn(),
   upsertStationsMock: vi.fn(),
+}));
+
+const { recordCollectionMock } = vi.hoisted(() => ({
   recordCollectionMock: vi.fn(),
+}));
+
+const { captureExceptionWithContextMock } = vi.hoisted(() => ({
   captureExceptionWithContextMock: vi.fn(),
+}));
+
+const { acquireJobLockMock } = vi.hoisted(() => ({
   acquireJobLockMock: vi.fn(),
+}));
+
+const { createCollectionRunMock, updateCollectionRunMock, completeCollectionRunMock, failCollectionRunMock } = vi.hoisted(() => ({
+  createCollectionRunMock: vi.fn().mockResolvedValue({ id: 'test-id' }),
+  updateCollectionRunMock: vi.fn().mockResolvedValue(undefined),
+  completeCollectionRunMock: vi.fn().mockResolvedValue(undefined),
+  failCollectionRunMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/services/gbfs-client', () => ({
@@ -55,6 +65,17 @@ vi.mock('@/analytics/job-lock', () => ({
   acquireJobLock: acquireJobLockMock,
 }));
 
+vi.mock('@/lib/collection-runs', async () => {
+  const actual: typeof import('@/lib/collection-runs') = await vi.importActual('@/lib/collection-runs');
+  return {
+    ...actual,
+    createCollectionRun: createCollectionRunMock,
+    updateCollectionRun: updateCollectionRunMock,
+    completeCollectionRun: completeCollectionRunMock,
+    failCollectionRun: failCollectionRunMock,
+  };
+});
+
 import { runCollection } from '@/jobs/bizi-collection';
 
 describe('runCollection', () => {
@@ -70,6 +91,10 @@ describe('runCollection', () => {
     recordCollectionMock.mockReset();
     captureExceptionWithContextMock.mockReset();
     acquireJobLockMock.mockReset();
+    createCollectionRunMock.mockReset();
+    updateCollectionRunMock.mockReset();
+    completeCollectionRunMock.mockReset();
+    failCollectionRunMock.mockReset();
 
     acquireJobLockMock.mockResolvedValue({
       refresh: vi.fn().mockResolvedValue(true),
@@ -155,7 +180,7 @@ describe('runCollection', () => {
     });
 
     await expect(runCollection()).rejects.toThrow(
-      'Collection lock refresh failed at stage: post-station-metadata-sync'
+      'collection lock refresh failed at stage: post-station-metadata-sync'
     );
     expect(releaseMock).toHaveBeenCalled();
   });
