@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -52,7 +53,7 @@ type MobilityInsightsProps = {
   demandDays?: number;
 };
 
-export function MobilityInsights({
+function MobilityInsightsContent({
   stations,
   selectedStationId,
   mobilityDays = 14,
@@ -597,14 +598,22 @@ export function MobilityInsights({
                         />
                       </AreaChart>
                     </MeasuredResponsiveContainer>
-                  </div>
+</div>
                 </ChartWrapper>
-                <p className="text-[11px] text-[var(--muted)]">{mobilityData.methodology}</p>
+                <p className='text-[11px] text-[var(--muted)]'>{mobilityData.methodology}</p>
               </>
             )}
           </article>
         </div>
       ) : null}
     </section>
+  );
+}
+
+export function MobilityInsights(props: MobilityInsightsProps) {
+  return (
+    <Suspense fallback={<div className='dashboard-card h-96 animate-pulse' />}>
+      <MobilityInsightsContent {...props} />
+    </Suspense>
   );
 }

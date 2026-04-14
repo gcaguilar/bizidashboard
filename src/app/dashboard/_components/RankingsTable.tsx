@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
@@ -22,7 +23,7 @@ type RankingsTableProps = {
 
 type RankingTab = 'turnover' | 'availability';
 
-export function RankingsTable({ rankings, stations, density = 'normal' }: RankingsTableProps) {
+function RankingsTableContent({ rankings, stations, density = 'normal' }: RankingsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -114,26 +115,26 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
       : 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2.5';
 
   return (
-    <section className="dashboard-card h-full">
-      <header className="flex items-center justify-between gap-2">
+    <section className='dashboard-card h-full'>
+      <header className='flex items-center justify-between gap-2'>
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
+          <h2 className='text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]'>
             Cuellos de botella
           </h2>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="text-xs text-[var(--muted)]">Estaciones con mayor friccion operativa recurrente.</p>
+          <div className='mt-1 flex items-center gap-2'>
+            <p className='text-xs text-[var(--muted)]'>Estaciones con mayor friccion operativa recurrente.</p>
             <InfoHint
-              label="Como se calcula la friccion"
-              content="La friccion suma el tiempo en que una estacion estuvo vacia o llena. Cuantas mas horas problema acumula, mas alta aparece en el ranking."
+              label='Como se calcula la friccion'
+              content='La friccion suma el tiempo en que una estacion estuvo vacia o llena. Cuantas mas horas problema acumula, mas alta aparece en el ranking.'
             />
           </div>
         </div>
-        <div className="text-right">
-          <span className="kpi-chip">{rows.length} resultados</span>
-          <div className="mt-1">
+        <div className='text-right'>
+          <span className='kpi-chip'>{rows.length} resultados</span>
+          <div className='mt-1'>
             <Link
               href={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
-              className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              className='text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline'
             >
               Entender ranking
             </Link>
@@ -141,10 +142,10 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-2">
+      <div className='flex flex-wrap items-center gap-2'>
+        <div className='flex gap-2'>
           <button
-            type="button"
+            type='button'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'availability'
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
@@ -157,7 +158,7 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
             Criticas
           </button>
           <button
-            type="button"
+            type='button'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'turnover'
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
@@ -172,8 +173,8 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
         </div>
 
         <input
-          className="min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
-          placeholder="Buscar estacion"
+          className='min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
+          placeholder='Buscar estacion'
           value={search}
           onChange={(event) => {
             updateQuery({ search: event.target.value, showAll: false });
@@ -191,8 +192,8 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
               : 'El ranking se ha calculado con datos antiguos y puede no reflejar el estado actual.'
           }
           href={appRoutes.status()}
-          actionLabel="Ver estado"
-          className="mb-3"
+          actionLabel='Ver estado'
+          className='mb-3'
           compact
         />
       ) : null}
@@ -207,11 +208,11 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
               : 'Todavia no hay datos suficientes para calcular este ranking.'
           }
           href={appRoutes.status()}
-          actionLabel="Ver estado"
+          actionLabel='Ver estado'
           compact
         />
       ) : (
-        <ul className="space-y-2">
+        <ul className='space-y-2'>
           {visibleRows.map((row) => {
             const barWidth =
               activeTab === 'turnover'
@@ -223,32 +224,32 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
                 key={`${row.id}-${activeTab}`}
                 className={itemClass}
               >
-                <div className="mb-1 flex items-center justify-between gap-2">
+                <div className='mb-1 flex items-center justify-between gap-2'>
                   <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">{row.stationName}</p>
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                    <p className='text-sm font-semibold text-[var(--foreground)]'>{row.stationName}</p>
+                    <p className='text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]'>
                       {row.stationId}
                     </p>
                   </div>
 
                   {activeTab === 'turnover' ? (
-                    <p className="text-xs font-bold text-[var(--foreground)]">
+                    <p className='text-xs font-bold text-[var(--foreground)]'>
                       {row.turnoverScore.toFixed(1)}x
                     </p>
                   ) : (
-                    <p className="text-xs font-bold text-[var(--foreground)]">
+                    <p className='text-xs font-bold text-[var(--foreground)]'>
                       {row.problemHours}h · {formatPercent(row.problemRate)}
                     </p>
                   )}
                 </div>
 
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/25">
+                <div className='h-1.5 w-full overflow-hidden rounded-full bg-black/25'>
                   <div
                     className={`${activeTab === 'turnover' ? 'bg-[var(--accent)]' : 'bg-amber-400'} h-full rounded-full`}
                     style={{ width: `${Math.max(8, Math.min(100, barWidth))}%` }}
                   />
                 </div>
-                <p className="mt-2 text-[11px] text-[var(--muted)]">
+                <p className='mt-2 text-[11px] text-[var(--muted)]'>
                   {activeTab === 'turnover'
                     ? `Movimiento relativo frente al resto de estaciones. Capacidad ${row.stationCapacity}.`
                     : `Friccion = horas vacia + horas llena sobre ${row.totalHours}h observadas.`}
@@ -261,15 +262,23 @@ export function RankingsTable({ rankings, stations, density = 'normal' }: Rankin
 
       {rows.length > 8 ? (
         <button
-          type="button"
+          type='button'
           onClick={() => {
             updateQuery({ showAll: !showAll });
           }}
-          className="rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+          className='rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white'
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}
         </button>
       ) : null}
     </section>
+  );
+}
+
+export function RankingsTable(props: RankingsTableProps) {
+  return (
+    <Suspense fallback={<div className='dashboard-card h-full animate-pulse' />}>
+      <RankingsTableContent {...props} />
+    </Suspense>
   );
 }
