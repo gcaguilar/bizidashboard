@@ -10,4 +10,4 @@ process.env.SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'test-signature-s
 
 // Set other required environment variables
 process.env.CITY = process.env.CITY || 'zaragoza';
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test';
+process.env.DATABASE_URL = '';
