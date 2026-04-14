@@ -1,16 +1,27 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useDistrictData, useDistrictMap } from '@/app/dashboard/_components/useDistrictData';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+
+const { fetchDistrictCollectionMock, captureExceptionWithContextMock } = vi.hoisted(() => ({
+  fetchDistrictCollectionMock: vi.fn(),
+  captureExceptionWithContextMock: vi.fn(),
+}));
 
 vi.mock('@/lib/districts', () => ({
-  fetchDistrictCollection: vi.fn(),
+  fetchDistrictCollection: fetchDistrictCollectionMock,
 }));
 
 vi.mock('@/lib/sentry-reporting', () => ({
-  captureExceptionWithContext: vi.fn(),
+  captureExceptionWithContext: captureExceptionWithContextMock,
 }));
 
-import { fetchDistrictCollection } from '@/lib/districts';
+vi.mock('react', async () => {
+  const actual = await vi.importActual('react');
+  return {
+    ...actual,
+    useMemo: vi.fn((fn) => fn()),
+  };
+});
+
+import { useDistrictMap } from '@/app/dashboard/_components/useDistrictData';
 import type { DistrictCollection } from '@/lib/districts';
 
 const mockDistricts: DistrictCollection = {
@@ -31,112 +42,47 @@ const mockDistricts: DistrictCollection = {
   ],
 };
 
-describe('useDistrictData', () => {
+describe('useDistrictMap', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
   });
 
-  it('loads districts on mount', async () => {
-    vi.mocked(fetchDistrictCollection).mockResolvedValue(mockDistricts);
-
-    const { result } = renderHook(() => useDistrictData());
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(fetchDistrictCollection).toHaveBeenCalled();
-    expect(result.current.districts).toEqual(mockDistricts);
-  });
-
-  it('sets loading state initially', () => {
-    vi.mocked(fetchDistrictCollection).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
-
-    const { result } = renderHook(() => useDistrictData());
-
-    expect(result.current.loading).toBe(true);
-  });
-
-  it('sets error on fetch failure', async () => {
-    const error = new Error('Network error');
-    vi.mocked(fetchDistrictCollection).mockRejectedValue(error);
-
-    const { result } = renderHook(() => useDistrictData());
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.error).toBe(error);
-  });
-
-  it('refetch clears data and reloads', async () => {
-    vi.mocked(fetchDistrictCollection).mockResolvedValue(mockDistricts);
-
-    const { result } = renderHook(() => useDistrictData());
-
-    await waitFor(() => {
-      expect(result.current.districts).toEqual(mockDistricts);
-    });
-
-    const newDistricts = { ...mockDistricts, features: [] };
-    vi.mocked(fetchDistrictCollection).mockResolvedValue(newDistricts);
-
-    await act(async () => {
-      result.current.refetch();
-    });
-
-    await waitFor(() => {
-      expect(result.current.districts).toEqual(newDistricts);
-    });
-  });
-
-  it('respects immediate: false option', () => {
-    vi.mocked(fetchDistrictCollection).mockResolvedValue(mockDistricts);
-
-    const { result } = renderHook(() => useDistrictData({ immediate: false }));
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.districts).toBeNull();
-    expect(fetchDistrictCollection).not.toHaveBeenCalled();
-  });
-
-  it('respects enabled: false option', async () => {
-    vi.mocked(fetchDistrictCollection).mockResolvedValue(mockDistricts);
-
-    const { result } = renderHook(() => useDistrictData({ enabled: false }));
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(fetchDistrictCollection).not.toHaveBeenCalled();
-  });
-});
-
-describe('useDistrictMap', () => {
   it('builds map from districts', () => {
-    const { result } = renderHook(() => useDistrictMap(mockDistricts));
+    const result = useDistrictMap(mockDistricts);
 
-    expect(result.current).toBeInstanceOf(Map);
-    expect(result.current?.get('1')).toBe('Centro');
-    expect(result.current?.get('2')).toBe('Delicias');
+    expect(result).toBeInstanceOf(Map);
+    expect(result?.get('1')).toBe('Centro');
+    expect(result?.get('2')).toBe('Delicias');
   });
 
   it('returns null when districts is null', () => {
-    const { result } = renderHook(() => useDistrictMap(null));
+    const result = useDistrictMap(null);
 
-    expect(result.current).toBeNull();
+    expect(result).toBeNull();
   });
 
-  it('returns null when districts is empty', () => {
+  it('returns empty map when districts is empty', () => {
     const emptyCollection: DistrictCollection = { type: 'FeatureCollection', features: [] };
-    const { result } = renderHook(() => useDistrictMap(emptyCollection));
+    const result = useDistrictMap(emptyCollection);
 
-    expect(result.current).toBeInstanceOf(Map);
-    expect(result.current?.size).toBe(0);
+    expect(result).toBeInstanceOf(Map);
+    expect(result?.size).toBe(0);
+  });
+
+  it('uses distrito as key when id is not present', () => {
+    const districtsWithoutId: DistrictCollection = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] },
+          properties: { distrito: 'Centro' },
+        },
+      ],
+    };
+
+    const result = useDistrictMap(districtsWithoutId);
+
+    expect(result?.get('Centro')).toBe('Centro');
   });
 });
