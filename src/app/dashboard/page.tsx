@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import {
   fetchAlerts,
@@ -210,21 +209,19 @@ export default async function DashboardPage() {
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
-      {loadErrors.length > 0 ? (
-        <section className="mx-auto mb-6 w-full max-w-[1280px] rounded-2xl border border-amber-500/40 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
-          <p className="font-semibold">
+{loadErrors.length > 0 ? (
+        <section className='mx-auto mb-6 w-full max-w-[1280px] rounded-2xl border border-amber-500/40 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]'>
+          <p className='font-semibold'>
             No se pudieron cargar algunos paneles: {loadErrors.join(', ')}.
           </p>
-          <p className="mt-1 text-xs text-amber-200/80">
+          <p className='mt-1 text-xs text-amber-200/80'>
             {isSchemaMissing
               ? 'La base de datos parece no estar inicializada. Ejecuta `bun prisma migrate deploy` con la misma DATABASE_URL del servidor.'
               : 'Revisa los logs del servidor para mas detalles.'}
           </p>
         </section>
       ) : null}
-      <Suspense>
-        <DashboardClient initialData={initialData} />
-      </Suspense>
+      <DashboardClient initialData={initialData} />
     </main>
   );
 }
