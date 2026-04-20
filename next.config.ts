@@ -75,7 +75,14 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/:path*',
-        headers: securityHeaders,
+        headers: [
+          ...securityHeaders,
+          // Link headers for agent discovery (RFC 8288)
+          {
+            key: 'Link',
+            value: '</.well-known/api-catalog>; rel="api-catalog", </robots.txt>; rel="content-policy"',
+          },
+        ],
       },
       {
         source: '/api/:path*',
