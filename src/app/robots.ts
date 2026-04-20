@@ -27,7 +27,7 @@ export default function robots(): MetadataRoute.Robots {
     // ai-input=no: Do not use content as input for AI systems
     // Note: Next.js MetadataRoute.Robots doesn't have explicit contentSignals property,
     // so we need to add it as a custom property that will be serialized correctly
-    // @ts-ignore - Adding custom property for Content Signals
+    // @ts-expect-error - Adding custom property for Content Signals
     contentSignals: {
       'ai-train': 'no',
       'search': 'yes',
