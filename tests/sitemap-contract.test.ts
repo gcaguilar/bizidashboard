@@ -29,18 +29,13 @@ const {
   getSeoLandingPageDataMock: vi.fn(),
 }));
 
-vi.mock('@/lib/api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api')>();
-
-  return {
-    ...actual,
-    fetchStations: fetchStationsMock,
-    fetchAvailableDataMonths: fetchAvailableDataMonthsMock,
-    fetchSharedDatasetSnapshot: fetchSharedDatasetSnapshotMock,
-    fetchStatus: fetchStatusMock,
-    fetchHistoryMetadata: fetchHistoryMetadataMock,
-  };
-});
+vi.mock('@/lib/api', () => ({
+  fetchStations: fetchStationsMock,
+  fetchAvailableDataMonths: fetchAvailableDataMonthsMock,
+  fetchSharedDatasetSnapshot: fetchSharedDatasetSnapshotMock,
+  fetchStatus: fetchStatusMock,
+  fetchHistoryMetadata: fetchHistoryMetadataMock,
+}));
 
 vi.mock('@/lib/seo-districts', () => ({
   getDistrictSeoRows: getDistrictSeoRowsMock,
