@@ -1,46 +1,70 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { resolveRedirectTarget } from '@/lib/routes';
-import { cleanCanonicalSearchParams } from '@/lib/seo-policy';
+import { NextResponse } from 'next/server';
+import TurndownService from 'turndown';
 
-export default function proxy(request: NextRequest) {
-  const requestHeaders = new Headers(request.headers);
-  const requestId =
-    requestHeaders.get('x-request-id')?.trim() || crypto.randomUUID();
-  requestHeaders.set('x-request-id', requestId);
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  codeBlockStyle: 'fenced',
+  emDelimiter: '*',
+  strongDelimiter: '**',
+  linkStyle: 'inlined',
+  linkBaseUrl: '',
+  bulletListMarker: '-',
+  hr: '---',
+});
 
-  const currentPath = request.nextUrl.pathname;
-  const targetPath = resolveRedirectTarget(currentPath);
-  const destination = request.nextUrl.clone();
-  const cleanedSearchParams = cleanCanonicalSearchParams(
-    currentPath,
-    request.nextUrl.searchParams
-  );
+function convertHtmlToMarkdown(html: string): string {
+  return turndownService.turndown(html);
+}
 
-  if ((!targetPath || targetPath === currentPath) && cleanedSearchParams === null) {
-    const response = NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-    if (currentPath.startsWith('/api/')) {
-      response.headers.set('X-Request-Id', requestId);
-    }
+export async function proxy(request: NextRequest) {
+  // Check if client accepts markdown
+  const acceptHeader = request.headers.get('accept') || '';
+  const wantsMarkdown = acceptHeader.includes('text/markdown');
+
+  if (!wantsMarkdown) {
+    return NextResponse.next();
+  }
+
+  // Continue with normal request processing
+  const response = await NextResponse.next();
+
+  // Only convert HTML responses
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('text/html')) {
     return response;
   }
 
-  destination.pathname = targetPath ?? currentPath;
+  // Clone the response to modify it
+  const clonedResponse = response.clone();
+  const text = await clonedResponse.text();
+  
+  // Convert HTML to markdown
+  const markdown = convertHtmlToMarkdown(text);
 
-  if (cleanedSearchParams !== null) {
-    const serializedSearch = cleanedSearchParams.toString();
-    destination.search = serializedSearch.length > 0 ? `?${serializedSearch}` : '';
-  }
-
-  const response = NextResponse.redirect(destination, 301);
-  response.headers.set('X-Request-Id', requestId);
-  return response;
+  // Return markdown response
+  return new NextResponse(markdown, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: {
+      'content-type': 'text/markdown; charset=utf-8',
+      // Add x-markdown-tokens header if we want to provide token count estimate
+      // 'x-markdown-tokens': String(Math.ceil(markdown.length / 4)), // Rough estimate
+      ...Object.fromEntries(response.headers.entries()),
+    },
+  });
 }
 
+// Configure proxy to run on all paths
 export const config = {
-  matcher: ['/((?!_next/|.*\\..*$).*)'],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+  ],
 };
