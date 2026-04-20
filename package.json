@@ -39,7 +39,7 @@
     "@tanstack/react-table": "^8.21.3",
     "jose": "^6.2.2",
     "maplibre-gl": "^5.21.1",
-    "next": "16.2.3",
+    "next": "16.2.4",
     "node-cron": "^4.2.1",
     "pg": "^8.20.0",
     "react": "19.2.5",
