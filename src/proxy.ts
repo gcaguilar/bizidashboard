@@ -8,7 +8,6 @@ const turndownService = new TurndownService({
   emDelimiter: '*',
   strongDelimiter: '**',
   linkStyle: 'inlined',
-  linkBaseUrl: '',
   bulletListMarker: '-',
   hr: '---',
 });
