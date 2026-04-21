@@ -1,12 +1,15 @@
-import { NextResponse } from 'next/server';
 import { getAgentSkillIndex } from '@/lib/agent-skills';
+import {
+  buildAgentSkillsHeadResponse,
+  buildAgentSkillsJsonResponse,
+} from '@/lib/agent-skills-response';
 
 export const dynamic = 'force-static';
 
 export function GET(): Response {
-  return NextResponse.json(getAgentSkillIndex(), {
-    headers: {
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
-    },
-  });
+  return buildAgentSkillsJsonResponse(getAgentSkillIndex());
+}
+
+export function HEAD(): Response {
+  return buildAgentSkillsHeadResponse('application/json; charset=utf-8');
 }

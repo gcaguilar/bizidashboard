@@ -107,7 +107,10 @@ describe('agent readiness routes', () => {
   });
 
   it('publishes a local agent skills index with digests', async () => {
-    const { GET } = await import('@/app/.well-known/agent-skills/index.json/route');
+    const { GET, HEAD } = await import('@/app/.well-known/agent-skills/index.json/route');
+    const developerSkillRoute = await import(
+      '@/app/.well-known/agent-skills/developer-api/SKILL.md/route'
+    );
     const response = GET();
     const body = await response.json();
 
@@ -116,7 +119,23 @@ describe('agent readiness routes', () => {
     );
     expect(body.skills.length).toBeGreaterThan(0);
     expect(body.skills[0].digest).toMatch(/^sha256:[a-f0-9]{64}$/u);
+    expect(body.skills[0].sha256).toBe(body.skills[0].digest);
     expect(body.skills[0].url).toContain('/.well-known/agent-skills/');
+
+    const developerSkillResponse = developerSkillRoute.GET();
+    const developerSkillBody = await developerSkillResponse.text();
+    expect(developerSkillResponse.headers.get('content-type')).toContain('text/markdown');
+    expect(developerSkillResponse.headers.get('access-control-allow-origin')).toBe('*');
+    expect(developerSkillBody).toContain('---\nname: developer-api\n');
+    expect(developerSkillBody).toContain('# Developer API');
+
+    const indexHeadResponse = HEAD();
+    expect(indexHeadResponse.headers.get('content-type')).toContain('application/json');
+    expect(indexHeadResponse.headers.get('access-control-allow-origin')).toBe('*');
+
+    const skillHeadResponse = developerSkillRoute.HEAD();
+    expect(skillHeadResponse.headers.get('content-type')).toContain('text/markdown');
+    expect(skillHeadResponse.headers.get('access-control-allow-origin')).toBe('*');
   });
 
   it('publishes a server card and a working tools list endpoint', async () => {
