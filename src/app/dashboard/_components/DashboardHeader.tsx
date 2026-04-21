@@ -1,6 +1,7 @@
 'use client';
 
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { buildPanelOpenEvent } from '@/lib/umami';
@@ -129,6 +130,15 @@ export function DashboardHeader({
           >
             Ayuda
           </TrackedLink>
+          <FeedbackCta
+            source="dashboard_header"
+            ctaId="feedback_header_open"
+            module="dashboard_header"
+            className="icon-button hidden sm:inline-flex"
+            pendingClassName="icon-button hidden cursor-not-allowed opacity-70 sm:inline-flex"
+          >
+            Feedback
+          </FeedbackCta>
           <ThemeToggleButton />
           <GitHubRepoButton />
         </div>
