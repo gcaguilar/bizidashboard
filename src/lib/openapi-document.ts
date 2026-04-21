@@ -22,6 +22,19 @@ export const openApiDocument = {
         description:
           'Required for elevated access to expensive public endpoints and CSV exports.'
       },
+      OAuthClientCredentials: {
+        type: 'oauth2',
+        description:
+          'OAuth 2.0 client credentials for agents that need bearer tokens instead of x-public-api-key.',
+        flows: {
+          clientCredentials: {
+            tokenUrl: '/oauth/token',
+            scopes: {
+              'public_api.read': 'Read protected public API routes and exports.',
+            },
+          },
+        },
+      },
     }
   },
   paths: {

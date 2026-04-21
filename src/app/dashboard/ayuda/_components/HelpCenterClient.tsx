@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -363,10 +364,21 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
           <div className="max-w-md">
             <h2 className="text-2xl font-bold">No encontraste lo que buscabas?</h2>
             <p className="mt-2 text-sm text-white/85">
-              Si necesitas soporte directo o quieres compartir feedback, puedes escribirnos y consultar el historico agregado disponible.
+              Si necesitas soporte directo o quieres compartir feedback, usa el acceso dedicado y
+              deja contexto sobre la vista, la estacion o el problema detectado.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
+            <FeedbackCta
+              source="help_support_block"
+              ctaId="feedback_help_open"
+              module="help_support_block"
+              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[var(--accent)] transition hover:bg-white/90"
+              pendingClassName="rounded-lg border border-white/30 bg-black/20 px-6 py-3 text-sm font-bold text-white/80"
+              pendingLabel="Feedback pronto"
+            >
+              Enviar feedback
+            </FeedbackCta>
             <a
               href="https://www.linkedin.com/in/guillermocastella/"
               target="_blank"

@@ -4,7 +4,6 @@ import {
   getInsightsLandingData,
   getUtilityLandingData,
 } from '@/lib/acquisition-landings';
-import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
@@ -81,7 +80,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .then(({ fetchAvailableDataMonths }) => fetchAvailableDataMonths())
         .then((response) => response.months)
         .catch(() => []),
-      fetchCachedMonthlyDemandCurve(36).catch(() => []),
+      import('@/lib/analytics-series')
+        .then(({ fetchCachedMonthlyDemandCurve }) => fetchCachedMonthlyDemandCurve(36))
+        .catch(() => []),
     ]);
     const validMonths = Array.from(
       new Set(

@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server';
+import {
+  getOAuthScope,
+  getProtectedResourceMetadataUrl,
+  verifyOAuthAccessToken,
+} from '@/lib/oauth';
 import { getPublicApiKey } from '@/lib/security/config';
 import { recordSecurityEvent } from '@/lib/security/audit';
 import { isApiKeyValid, readPublicApiKey } from '@/lib/security/http';
@@ -34,6 +39,10 @@ export type PublicApiAccessResult =
       response: NextResponse;
     };
 
+function getBearerChallengeHeader(): string {
+  return `Bearer realm="BiziDashboard API", scope="${getOAuthScope()}", resource_metadata="${getProtectedResourceMetadataUrl()}"`;
+}
+
 /**
  * Validate API key using either multi-key system or legacy single-key
  */
@@ -63,6 +72,8 @@ export async function enforcePublicApiAccess(
   options: PublicApiAccessOptions
 ): Promise<PublicApiAccessResult> {
   const publicApiKey = readPublicApiKey(options.request.headers);
+  const bearerToken = options.request.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
+  const oauthPayload = bearerToken ? await verifyOAuthAccessToken(bearerToken) : null;
 
   // Check if API key system is configured
   if (options.requireApiKey && !isMultiKeySystemEnabled() && !getPublicApiKey()) {
@@ -72,6 +83,49 @@ export async function enforcePublicApiAccess(
         { error: 'Public API key is not configured for this elevated route.' },
         { status: 503 }
       ),
+    };
+  }
+
+  if (oauthPayload && oauthPayload.scope.split(/\s+/u).includes(getOAuthScope())) {
+    const keyDecision = await consumeRateLimit({
+      namespace: `${options.namespace}:oauth-client`,
+      identifierParts: [oauthPayload.clientId],
+      limit: options.limit,
+      windowMs: options.windowMs,
+    });
+    const headers = getRateLimitHeaders(keyDecision);
+
+    if (keyDecision.backend === 'unavailable') {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: 'Rate limiting backend unavailable.' },
+          { status: 503, headers }
+        ),
+      };
+    }
+
+    if (!keyDecision.allowed) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: 'Too many requests for this route.' },
+          {
+            status: 429,
+            headers: {
+              ...headers,
+              'Retry-After': String(keyDecision.retryAfterSeconds),
+            },
+          }
+        ),
+      };
+    }
+
+    return {
+      ok: true,
+      headers,
+      providedKey: null,
+      apiKeyInfo: null,
     };
   }
 
@@ -93,7 +147,12 @@ export async function enforcePublicApiAccess(
       ok: false,
       response: NextResponse.json(
         { error: 'Valid X-Public-Api-Key required for this route.' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'WWW-Authenticate': getBearerChallengeHeader(),
+          },
+        }
       ),
     };
   }
