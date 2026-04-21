@@ -4,6 +4,8 @@ import { appRoutes } from '@/lib/routes';
 import { getSiteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
+const MCP_SESSION_HEADER = 'Mcp-Session-Id';
+const ACTIVE_MCP_SESSIONS = new Map<string, { initializedAt: number }>();
 
 type JsonRpcRequest = {
   id?: string | number | null;
@@ -11,18 +13,48 @@ type JsonRpcRequest = {
   params?: Record<string, unknown>;
 };
 
-function jsonRpcResult(id: JsonRpcRequest['id'], result: unknown): Response {
-  return NextResponse.json({
-    jsonrpc: '2.0',
-    id: id ?? null,
-    result,
-  });
+function withMcpSessionHeaders(headers: HeadersInit = {}, sessionId?: string): Headers {
+  const responseHeaders = new Headers(headers);
+
+  responseHeaders.set('Cache-Control', 'no-store');
+  responseHeaders.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Accept, Mcp-Session-Id'
+  );
+  responseHeaders.set(
+    'Access-Control-Expose-Headers',
+    `Content-Type, ${MCP_SESSION_HEADER}`
+  );
+
+  if (sessionId) {
+    responseHeaders.set(MCP_SESSION_HEADER, sessionId);
+  }
+
+  return responseHeaders;
+}
+
+function jsonRpcResult(
+  id: JsonRpcRequest['id'],
+  result: unknown,
+  sessionId?: string
+): Response {
+  return NextResponse.json(
+    {
+      jsonrpc: '2.0',
+      id: id ?? null,
+      result,
+    },
+    {
+      headers: withMcpSessionHeaders({}, sessionId),
+    }
+  );
 }
 
 function jsonRpcError(
   id: JsonRpcRequest['id'],
   code: number,
-  message: string
+  message: string,
+  sessionId?: string
 ): Response {
   return NextResponse.json(
     {
@@ -33,8 +65,25 @@ function jsonRpcError(
         message,
       },
     },
-    { status: 400 }
+    {
+      status: 400,
+      headers: withMcpSessionHeaders({}, sessionId),
+    }
   );
+}
+
+function getSessionIdFromRequest(request: Request): string | null {
+  return request.headers.get(MCP_SESSION_HEADER) ?? request.headers.get(MCP_SESSION_HEADER.toLowerCase());
+}
+
+function createMcpSession(): string {
+  const sessionId = crypto.randomUUID();
+  ACTIVE_MCP_SESSIONS.set(sessionId, { initializedAt: Date.now() });
+  return sessionId;
+}
+
+function hasMcpSession(sessionId: string | null): sessionId is string {
+  return Boolean(sessionId && ACTIVE_MCP_SESSIONS.has(sessionId));
 }
 
 async function callTool(name: string, input: Record<string, unknown>) {
@@ -156,8 +205,11 @@ export async function POST(request: Request): Promise<Response> {
     return jsonRpcError(body?.id, -32600, 'Invalid JSON-RPC request.');
   }
 
+  const sessionId = getSessionIdFromRequest(request);
+
   switch (body.method) {
-    case 'initialize':
+    case 'initialize': {
+      const createdSessionId = createMcpSession();
       return jsonRpcResult(body.id, {
         protocolVersion: '2025-03-26',
         serverInfo: {
@@ -167,12 +219,29 @@ export async function POST(request: Request): Promise<Response> {
         capabilities: {
           tools: {},
         },
-      });
+      }, createdSessionId);
+    }
     case 'tools/list':
+      if (!hasMcpSession(sessionId)) {
+        return jsonRpcError(
+          body.id,
+          -32001,
+          'MCP session not initialized. Call initialize first.',
+          sessionId ?? undefined
+        );
+      }
       return jsonRpcResult(body.id, {
         tools: MCP_SERVER_TOOLS,
-      });
+      }, sessionId);
     case 'tools/call': {
+      if (!hasMcpSession(sessionId)) {
+        return jsonRpcError(
+          body.id,
+          -32001,
+          'MCP session not initialized. Call initialize first.',
+          sessionId ?? undefined
+        );
+      }
       const name = typeof body.params?.name === 'string' ? body.params.name : '';
       const input =
         body.params && typeof body.params.arguments === 'object' && body.params.arguments
@@ -180,11 +249,80 @@ export async function POST(request: Request): Promise<Response> {
           : {};
       const result = await callTool(name, input);
       if (!result) {
-        return jsonRpcError(body.id, -32601, `Unknown tool: ${name}`);
+        return jsonRpcError(body.id, -32601, `Unknown tool: ${name}`, sessionId);
       }
-      return jsonRpcResult(body.id, result);
+      return jsonRpcResult(body.id, result, sessionId);
     }
     default:
-      return jsonRpcError(body.id, -32601, `Unsupported method: ${body.method}`);
+      return jsonRpcError(
+        body.id,
+        -32601,
+        `Unsupported method: ${body.method}`,
+        sessionId ?? undefined
+      );
   }
+}
+
+export function GET(request: Request): Response {
+  const sessionId = getSessionIdFromRequest(request);
+
+  if (!sessionId) {
+    return new Response('Missing Mcp-Session-Id header.', {
+      status: 400,
+      headers: withMcpSessionHeaders({
+        'Content-Type': 'text/plain; charset=utf-8',
+      }),
+    });
+  }
+
+  if (!ACTIVE_MCP_SESSIONS.has(sessionId)) {
+    return new Response('Unknown MCP session.', {
+      status: 404,
+      headers: withMcpSessionHeaders({
+        'Content-Type': 'text/plain; charset=utf-8',
+      }),
+    });
+  }
+
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(': stream-ready\n\n'));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: withMcpSessionHeaders(
+      {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        Connection: 'keep-alive',
+      },
+      sessionId
+    ),
+  });
+}
+
+export function DELETE(request: Request): Response {
+  const sessionId = getSessionIdFromRequest(request);
+
+  if (!sessionId) {
+    return new Response(null, {
+      status: 400,
+      headers: withMcpSessionHeaders(),
+    });
+  }
+
+  if (!ACTIVE_MCP_SESSIONS.has(sessionId)) {
+    return new Response(null, {
+      status: 404,
+      headers: withMcpSessionHeaders(),
+    });
+  }
+
+  ACTIVE_MCP_SESSIONS.delete(sessionId);
+
+  return new Response(null, {
+    status: 204,
+    headers: withMcpSessionHeaders(),
+  });
 }

@@ -106,6 +106,31 @@ describe('agent readiness routes', () => {
     expect(payload?.scope).toBe('public_api.read');
   });
 
+  it('refuses oauth token issuance when JWT_SECRET is missing', async () => {
+    vi.stubEnv('PUBLIC_API_KEY', 'legacy-public-secret');
+    vi.stubEnv('JWT_SECRET', '');
+
+    const { POST } = await import('@/app/oauth/token/route');
+
+    const response = await POST(
+      new Request(`${SITE_URL}/oauth/token`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: 'legacy-public-api',
+          client_secret: 'legacy-public-secret',
+        }),
+      })
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.error).toBe('temporarily_unavailable');
+  });
+
   it('publishes a local agent skills index with digests', async () => {
     const { GET, HEAD } = await import('@/app/.well-known/agent-skills/index.json/route');
     const developerSkillRoute = await import(
@@ -145,13 +170,31 @@ describe('agent readiness routes', () => {
     const serverCardResponse = serverCardRoute.GET();
     const serverCard = await serverCardResponse.json();
     expect(serverCard.serverInfo.name).toBe('BiziDashboard MCP');
+    expect(serverCard.transport.type).toBe('streamable-http');
     expect(serverCard.transport.endpoint).toBe(`${SITE_URL}/mcp`);
+
+    const initializeResponse = await mcpRoute.POST(
+      new Request(`${SITE_URL}/mcp`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+        }),
+      })
+    );
+    const sessionId = initializeResponse.headers.get('mcp-session-id');
+    expect(sessionId).toBeTruthy();
 
     const toolsResponse = await mcpRoute.POST(
       new Request(`${SITE_URL}/mcp`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          'mcp-session-id': sessionId ?? '',
         },
         body: JSON.stringify({
           jsonrpc: '2.0',
@@ -166,5 +209,25 @@ describe('agent readiness routes', () => {
     expect(
       toolsBody.result.tools.some((tool: { name: string }) => tool.name === 'get_system_status')
     ).toBe(true);
+
+    const streamResponse = mcpRoute.GET(
+      new Request(`${SITE_URL}/mcp`, {
+        headers: {
+          'mcp-session-id': sessionId ?? '',
+        },
+      })
+    );
+    expect(streamResponse.status).toBe(200);
+    expect(streamResponse.headers.get('content-type')).toContain('text/event-stream');
+
+    const deleteResponse = mcpRoute.DELETE(
+      new Request(`${SITE_URL}/mcp`, {
+        method: 'DELETE',
+        headers: {
+          'mcp-session-id': sessionId ?? '',
+        },
+      })
+    );
+    expect(deleteResponse.status).toBe(204);
   });
 });

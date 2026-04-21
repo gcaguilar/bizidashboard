@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   generateOAuthAccessToken,
   getOAuthScope,
+  isOAuthSigningConfigured,
   OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS,
   parseClientCredentials,
   validateOAuthClient,
@@ -30,6 +31,22 @@ function tokenError(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  if (!isOAuthSigningConfigured()) {
+    return NextResponse.json(
+      {
+        error: 'temporarily_unavailable',
+        error_description: 'OAuth token issuance is disabled until JWT_SECRET is configured.',
+      },
+      {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-store',
+          Pragma: 'no-cache',
+        },
+      }
+    );
+  }
+
   const contentType = request.headers.get('content-type')?.toLowerCase() ?? '';
   if (!contentType.includes('application/x-www-form-urlencoded')) {
     return tokenError(

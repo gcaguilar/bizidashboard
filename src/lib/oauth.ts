@@ -9,9 +9,6 @@ const OAUTH_SCOPE = 'public_api.read';
 const LEGACY_OAUTH_CLIENT_ID = 'legacy-public-api';
 const DEFAULT_RATE_LIMIT = 100;
 const DEFAULT_RATE_WINDOW_MS = 60_000;
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production'
-);
 
 type ApiKeyInfo = {
   id: string;
@@ -40,6 +37,16 @@ export interface OAuthAccessTokenPayload extends JWTPayload {
   tokenUse: 'oauth_access';
 }
 
+function getOAuthJwtSecret(): Uint8Array | null {
+  const configuredSecret = process.env.JWT_SECRET?.trim();
+
+  if (!configuredSecret) {
+    return null;
+  }
+
+  return new TextEncoder().encode(configuredSecret);
+}
+
 export function getOAuthIssuer(): string {
   return getSiteUrl();
 }
@@ -52,7 +59,16 @@ export function getProtectedResourceMetadataUrl(): string {
   return `${getSiteUrl()}/.well-known/oauth-protected-resource`;
 }
 
+export function isOAuthSigningConfigured(): boolean {
+  return getOAuthJwtSecret() !== null;
+}
+
 export async function generateOAuthAccessToken(clientId: string): Promise<string> {
+  const jwtSecret = getOAuthJwtSecret();
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET is required to issue OAuth access tokens.');
+  }
+
   return new SignJWT({
     clientId,
     scope: OAUTH_SCOPE,
@@ -63,14 +79,19 @@ export async function generateOAuthAccessToken(clientId: string): Promise<string
     .setAudience(getSiteUrl())
     .setIssuedAt()
     .setExpirationTime(`${OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS}s`)
-    .sign(JWT_SECRET);
+    .sign(jwtSecret);
 }
 
 export async function verifyOAuthAccessToken(
   token: string
 ): Promise<OAuthAccessTokenPayload | null> {
+  const jwtSecret = getOAuthJwtSecret();
+  if (!jwtSecret) {
+    return null;
+  }
+
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
+    const { payload } = await jwtVerify(token, jwtSecret, {
       issuer: getOAuthIssuer(),
       audience: getSiteUrl(),
     });
