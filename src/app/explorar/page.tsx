@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   fetchAvailableDataMonths,
   fetchSharedDatasetSnapshot,
@@ -14,6 +15,7 @@ import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { EXPLORE_PAGE_NAV_CONFIG } from '@/lib/seo-pages';
 import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
 import { getCityName } from '@/lib/site';
 import {
@@ -97,7 +99,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.dashboard()} className="mt-1" />
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -124,18 +126,34 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
-            <Link
-              href={appRoutes.dashboardView('research')}
+            <TrackedLink
+              href={EXPLORE_PAGE_NAV_CONFIG.primaryCta.href}
+              ctaEvent={{
+                source: 'explore_hero',
+                ctaId: 'explore_primary',
+                destination: EXPLORE_PAGE_NAV_CONFIG.primaryCta.destination,
+                sourceRole: 'hub',
+                destinationRole: 'dashboard',
+                transitionKind: 'to_dashboard',
+              }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
-              Abrir analisis del dashboard
-            </Link>
-            <Link
+              {EXPLORE_PAGE_NAV_CONFIG.primaryCta.label}
+            </TrackedLink>
+            <TrackedLink
               href={appRoutes.compare()}
+              ctaEvent={{
+                source: 'explore_hero',
+                ctaId: 'explore_secondary',
+                destination: 'compare',
+                sourceRole: 'hub',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Abrir comparador
-            </Link>
+            </TrackedLink>
           </div>
 
           <PublicSearchForm defaultQuery={searchQuery} />

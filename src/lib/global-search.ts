@@ -162,8 +162,8 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       description:
         item.id === 'help'
           ? 'Guia publica sobre fuente de datos, frescura, metodologia y limites de interpretacion.'
-          : item.id === 'stations'
-            ? 'Hub publico de estaciones con fichas indexables, disponibilidad y contexto operativo.'
+          : item.id === 'explore'
+            ? 'Hub publico para descubrir herramientas, mapas, rankings, comparativas y lecturas del sistema.'
             : item.id === 'dashboard'
               ? 'Producto operativo en tiempo real con mapa, alertas, flujo y herramientas de analisis.'
           : `Acceso publico a ${item.label.toLowerCase()}.`,
@@ -172,8 +172,8 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       keywords:
         item.id === 'help'
           ? [item.label, item.href, 'metodologia', 'calidad datos', 'gbfs', 'faq']
-          : item.id === 'stations'
-            ? [item.label, item.href, 'estaciones', 'uso bizi por estacion', 'fichas publicas']
+          : item.id === 'explore'
+            ? [item.label, item.href, 'explorar', 'herramientas', 'rankings', 'comparador']
             : item.id === 'dashboard'
               ? [item.label, item.href, 'mapa', 'alertas', 'dashboard', 'operaciones']
           : [item.label, item.href],

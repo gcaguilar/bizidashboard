@@ -77,7 +77,7 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
         name: 'Donde puedo ver el detalle operativo completo?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Desde esta landing puedes abrir ${config.dashboardLabel.toLowerCase()} para consultar el detalle en tiempo real.`,
+          text: `Desde esta landing puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle en tiempo real.`,
         },
       },
     ],
@@ -1229,12 +1229,18 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
 
         <div className="flex flex-wrap gap-3">
           <TrackedLink
-            href={config.dashboardHref}
-            eventName="related_module_click"
-            eventData={{ source: 'seo_landing_hero', destination: config.dashboardHref, slug }}
+            href={config.primaryCta.href}
+            ctaEvent={{
+              source: 'seo_landing_hero',
+              ctaId: 'seo_primary',
+              destination: config.primaryCta.destination,
+              sourceRole: config.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+              destinationRole: config.primaryCta.destination.startsWith('dashboard_') ? 'dashboard' : 'hub',
+              transitionKind: config.primaryCta.destination.startsWith('dashboard_') ? 'to_dashboard' : 'within_public',
+            }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
-            {config.dashboardLabel}
+            {config.primaryCta.label}
           </TrackedLink>
           <TrackedLink
             href={appRoutes.reports()}

@@ -172,7 +172,7 @@ export default async function SystemStatusPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.status()} className="mt-1" />
+        <PublicSectionNav activeItemId="status" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

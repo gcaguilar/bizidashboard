@@ -197,7 +197,7 @@ export default async function MethodologyPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.methodology()} className="mt-1" />
+        <PublicSectionNav activeItemId="help" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildCtaClickEvent,
   buildFilterChangeEvent,
   buildLegacyInteractionEvent,
+  buildNavigationClickEvent,
   buildPublicPageViewEvent,
   buildSearchSubmitEvent,
   getQueryLengthBucket,
@@ -22,6 +24,9 @@ describe('umami tracking helpers', () => {
       route_key: 'home',
       source: 'hero',
       query_length_bucket: '3_5',
+      source_role: 'hub',
+      destination_role: 'dashboard',
+      transition_kind: 'to_dashboard',
       path: '/should-not-leak',
       station_id: '123',
       empty: '',
@@ -33,6 +38,9 @@ describe('umami tracking helpers', () => {
       route_key: 'home',
       source: 'hero',
       query_length_bucket: '3_5',
+      source_role: 'hub',
+      destination_role: 'dashboard',
+      transition_kind: 'to_dashboard',
     });
   });
 
@@ -138,6 +146,58 @@ describe('umami tracking helpers', () => {
       module: 'time_window',
       source: 'dashboard_header',
       time_window: '30d',
+    });
+  });
+
+  it('keeps navigation and CTA role metadata additive', () => {
+    expect(
+      buildNavigationClickEvent({
+        surface: 'public',
+        routeKey: 'explore',
+        source: 'public_section_nav',
+        destination: 'dashboard',
+        module: 'public_nav_primary',
+        sourceRole: 'hub',
+        destinationRole: 'dashboard',
+        transitionKind: 'to_dashboard',
+      })
+    ).toEqual({
+      name: 'navigation_click',
+      payload: {
+        surface: 'public',
+        route_key: 'explore',
+        source: 'public_section_nav',
+        destination: 'dashboard',
+        module: 'public_nav_primary',
+        source_role: 'hub',
+        destination_role: 'dashboard',
+        transition_kind: 'to_dashboard',
+      },
+    });
+
+    expect(
+      buildCtaClickEvent({
+        surface: 'public',
+        routeKey: 'utility_landing',
+        source: 'utility_landing_hero',
+        ctaId: 'utility_primary',
+        destination: 'dashboard_overview',
+        sourceRole: 'entry_seo',
+        destinationRole: 'dashboard',
+        transitionKind: 'to_dashboard',
+      })
+    ).toEqual({
+      name: 'cta_click',
+      payload: {
+        surface: 'public',
+        route_key: 'utility_landing',
+        source: 'utility_landing_hero',
+        destination: 'dashboard_overview',
+        cta_id: 'utility_primary',
+        source_role: 'entry_seo',
+        destination_role: 'dashboard',
+        transition_kind: 'to_dashboard',
+      },
     });
   });
 });
