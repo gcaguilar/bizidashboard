@@ -1,15 +1,19 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import {
   BICIRADAR_BANNER_DISMISSED_STORAGE_KEY,
   BICIRADAR_WELCOME_MODAL_DISMISSED_STORAGE_KEY,
   FEEDBACK_BANNER_DISMISSED_STORAGE_KEY,
+  FEEDBACK_MODAL_LAST_DISMISSED_VISIT_STORAGE_KEY,
   FEEDBACK_VISIT_COUNT_STORAGE_KEY,
   resolveInitialFeedbackBannerState,
+  resolveInitialFeedbackModalState,
   type FeedbackBannerVariant,
   type FeedbackBannerState,
+  type FeedbackModalState,
 } from '@/lib/feedback';
 
 const BICIRADAR_URL = 'https://biciradar.es';
@@ -39,6 +43,14 @@ function getInitialWelcomeModalOpen(): boolean {
   }
 }
 
+function getInitialFeedbackModalState(visitCount: number): FeedbackModalState {
+  if (typeof window === 'undefined') {
+    return resolveInitialFeedbackModalState(visitCount, () => null);
+  }
+
+  return resolveInitialFeedbackModalState(visitCount, (key) => window.localStorage.getItem(key));
+}
+
 function CloseIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
@@ -47,10 +59,14 @@ function CloseIcon() {
   );
 }
 
-function WelcomeModal({
+function DashboardDialogShell({
+  ariaLabel,
   onClose,
+  children,
 }: {
+  ariaLabel: string;
   onClose: () => void;
+  children: ReactNode;
 }) {
   return (
     <div
@@ -65,34 +81,83 @@ function WelcomeModal({
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
-          aria-label="Cerrar dialogo de bienvenida"
+          aria-label={ariaLabel}
         >
           <CloseIcon />
         </button>
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">Nuevo</p>
-        <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">BiciRadar ya esta disponible</h2>
-        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Ya puedes abrir la web oficial de BiciRadar para ver la app y acceder a sus enlaces de descarga.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href={BICIRADAR_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-          >
-            Ir a biciradar.es
-          </a>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
-          >
-            Cerrar
-          </button>
-        </div>
+        {children}
       </div>
     </div>
+  );
+}
+
+function WelcomeModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  return (
+    <DashboardDialogShell ariaLabel="Cerrar dialogo de bienvenida" onClose={onClose}>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">Nuevo</p>
+      <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">BiciRadar ya esta disponible</h2>
+      <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+        Ya puedes abrir la web oficial de BiciRadar para ver la app y acceder a sus enlaces de descarga.
+      </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <a
+          href={BICIRADAR_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+        >
+          Ir a biciradar.es
+        </a>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+        >
+          Cerrar
+        </button>
+      </div>
+    </DashboardDialogShell>
+  );
+}
+
+function FeedbackModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  return (
+    <DashboardDialogShell ariaLabel="Cerrar dialogo de feedback" onClose={onClose}>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">Feedback</p>
+      <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">
+        Ayudanos a mejorar DatosBizi
+      </h2>
+      <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+        Ya conoces la web. Cuéntanos qué te falta, qué te sobra o qué cambiarías para que el
+        dashboard te resulte más útil.
+      </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <FeedbackCta
+          source="global_feedback_modal"
+          ctaId="feedback_modal_open"
+          module="global_modal"
+          className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+          pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
+        >
+          Dar feedback
+        </FeedbackCta>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+        >
+          Ahora no
+        </button>
+      </div>
+    </DashboardDialogShell>
   );
 }
 
@@ -165,6 +230,8 @@ export function BetaBanner() {
   const [{ variant, visitCount }] = useState(getInitialBannerState);
   const [bannerVariant, setBannerVariant] = useState(variant);
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(getInitialWelcomeModalOpen);
+  const [{ isOpen: initialFeedbackModalOpen }] = useState(() => getInitialFeedbackModalState(visitCount));
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(initialFeedbackModalOpen);
 
   const dismissBanner = useCallback(() => {
     setBannerVariant('hidden');
@@ -191,6 +258,19 @@ export function BetaBanner() {
     }
   }, []);
 
+  const closeFeedbackModal = useCallback(() => {
+    setFeedbackModalOpen(false);
+
+    try {
+      window.localStorage.setItem(
+        FEEDBACK_MODAL_LAST_DISMISSED_VISIT_STORAGE_KEY,
+        String(visitCount)
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [visitCount]);
+
   useEffect(() => {
     try {
       window.localStorage.setItem(FEEDBACK_VISIT_COUNT_STORAGE_KEY, String(visitCount));
@@ -200,12 +280,17 @@ export function BetaBanner() {
   }, [visitCount]);
 
   useEffect(() => {
-    if (!welcomeModalOpen) {
+    if (!welcomeModalOpen && !feedbackModalOpen) {
       return;
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (feedbackModalOpen) {
+          closeFeedbackModal();
+          return;
+        }
+
         closeWelcomeModal();
       }
     };
@@ -214,11 +299,12 @@ export function BetaBanner() {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [welcomeModalOpen, closeWelcomeModal]);
+  }, [feedbackModalOpen, welcomeModalOpen, closeFeedbackModal, closeWelcomeModal]);
 
   return (
     <>
       {welcomeModalOpen ? <WelcomeModal onClose={closeWelcomeModal} /> : null}
+      {!welcomeModalOpen && feedbackModalOpen ? <FeedbackModal onClose={closeFeedbackModal} /> : null}
 
       {bannerVariant !== 'hidden' ? (
         <div className="mx-auto mb-2 w-full max-w-[1280px] animate-[fadeSlideIn_0.3s_ease-out]">
