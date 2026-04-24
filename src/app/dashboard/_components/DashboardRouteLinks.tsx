@@ -1,5 +1,4 @@
 import { DASHBOARD_ROUTE_CONFIG } from '@/lib/routes';
-import { buildNavigationClickEvent } from '@/lib/umami';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 
 export type DashboardRoute = 'dashboard' | 'stations' | 'flow' | 'conclusions' | 'redistribucion' | 'help';
@@ -13,14 +12,6 @@ type DashboardRouteLinksProps = {
 };
 
 const DEFAULT_ROUTES: DashboardRoute[] = ['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help'];
-const DASHBOARD_ROUTE_KEYS: Record<DashboardRoute, string> = {
-  dashboard: 'dashboard_home',
-  stations: 'dashboard_stations',
-  flow: 'dashboard_flow',
-  conclusions: 'dashboard_conclusions',
-  redistribucion: 'dashboard_redistribucion',
-  help: 'dashboard_help',
-};
 
 export function DashboardRouteLinks({
   activeRoute,
@@ -29,7 +20,6 @@ export function DashboardRouteLinks({
   className,
   source,
 }: DashboardRouteLinksProps) {
-  const activeRouteKey = activeRoute ? DASHBOARD_ROUTE_KEYS[activeRoute] : 'dashboard_unknown';
   const navigationSource = source ?? activeRoute ?? 'dashboard_navigation';
 
   return (
@@ -51,13 +41,14 @@ export function DashboardRouteLinks({
           <TrackedLink
             key={route}
             href={href}
-            trackingEvent={buildNavigationClickEvent({
-              surface: 'dashboard',
-              routeKey: activeRouteKey,
+            navigationEvent={{
               source: navigationSource,
               destination: route,
               module: 'dashboard_route_links',
-            })}
+              sourceRole: 'dashboard',
+              destinationRole: 'dashboard',
+              transitionKind: 'within_dashboard',
+            }}
             className={linkClass}
             aria-current={isActive ? 'page' : undefined}
           >
