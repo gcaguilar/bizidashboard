@@ -61,12 +61,12 @@
     "@types/react-dom": "^19.2.3",
     "@types/turndown": "^5.0.6",
     "eslint": "^9.39.4",
-    "eslint-config-next": "16.2.3",
+    "eslint-config-next": "16.2.4",
     "prisma": "^7.6.0",
     "proj4": "^2.20.4",
     "tailwindcss": "^4.2.2",
     "tsx": "^4.21.0",
-    "typescript": "6.0.2",
+    "typescript": "6.0.3",
     "vitest": "^4.1.2"
   },
   "overrides": {
