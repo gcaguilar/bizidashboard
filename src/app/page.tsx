@@ -115,24 +115,42 @@ export default async function Home() {
         <div className="flex flex-wrap gap-3">
           <TrackedLink
             href={appRoutes.dashboard()}
-            eventName="home_cta_primary_click"
-            eventData={{ destination: 'dashboard' }}
+            ctaEvent={{
+              source: 'home_hero',
+              ctaId: 'home_primary',
+              destination: 'dashboard_home',
+              sourceRole: 'home',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard principal
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('uso-bizi-por-estacion')}
-            eventName="related_module_click"
-            eventData={{ destination: 'station_hub', source: 'home_hero' }}
+            navigationEvent={{
+              source: 'home_hero',
+              destination: 'station_hub',
+              sourceRole: 'home',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Explorar estaciones publicas
           </TrackedLink>
           <TrackedLink
             href={appRoutes.developers()}
-            eventName="api_cta_click"
-            eventData={{ source: 'home_hero' }}
+            ctaEvent={{
+              source: 'home_hero',
+              ctaId: 'api_open',
+              destination: 'developers',
+              entityType: 'api',
+              sourceRole: 'home',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir Developers
@@ -172,8 +190,13 @@ export default async function Home() {
           <TrackedLink
             key={link.href}
             href={link.href}
-            eventName="related_module_click"
-            eventData={{ source: 'home_quick_links', destination: link.href }}
+            navigationEvent={{
+              source: 'home_quick_links',
+              destination: link.href,
+              sourceRole: 'home',
+              destinationRole: link.href === appRoutes.dashboard() ? 'dashboard' : 'hub',
+              transitionKind: link.href === appRoutes.dashboard() ? 'to_dashboard' : 'within_public',
+            }}
             className="dashboard-card transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -198,8 +221,13 @@ export default async function Home() {
             </div>
             <TrackedLink
               href={appRoutes.seoPage('uso-bizi-por-estacion')}
-              eventName="related_module_click"
-              eventData={{ source: 'home_featured_stations', destination: 'station_hub' }}
+              navigationEvent={{
+                source: 'home_featured_stations',
+                destination: 'station_hub',
+                sourceRole: 'home',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
             >
               Ver mas estaciones
@@ -241,8 +269,13 @@ export default async function Home() {
         <div className="mt-2 grid gap-3 md:grid-cols-2">
           <TrackedLink
             href={appRoutes.utilityLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'home_acquisition_routes', destination: 'utility_landing' }}
+            navigationEvent={{
+              source: 'home_acquisition_routes',
+              destination: 'utility_landing',
+              sourceRole: 'home',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones en tiempo real</p>
@@ -252,8 +285,13 @@ export default async function Home() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.insightsLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'home_acquisition_routes', destination: 'insights_landing' }}
+            navigationEvent={{
+              source: 'home_acquisition_routes',
+              destination: 'insights_landing',
+              sourceRole: 'home',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas y ranking</p>

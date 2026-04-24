@@ -262,8 +262,13 @@ export default async function UtilityLandingPage() {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
             href={appRoutes.districtLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'utility_landing_related', destination: 'district_hub' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'district_hub',
+              sourceRole: 'entry_seo',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
@@ -273,8 +278,13 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.status()}
-            eventName="related_module_click"
-            eventData={{ source: 'utility_landing_related', destination: 'status' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'status',
+              sourceRole: 'entry_seo',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p>
@@ -284,8 +294,15 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.biciradar()}
-            eventName="app_external_click"
-            eventData={{ source: 'utility_landing_related', destination: 'biciradar' }}
+            ctaEvent={{
+              source: 'utility_landing_related',
+              ctaId: 'app_external',
+              destination: 'biciradar',
+              isExternal: true,
+              sourceRole: 'entry_seo',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p>
@@ -295,8 +312,13 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.insightsLanding()}
-            eventName="ad_landing_secondary_click"
-            eventData={{ landing: 'utility', destination: 'insights' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'insights_landing',
+              sourceRole: 'entry_seo',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p>
