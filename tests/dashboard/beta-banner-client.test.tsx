@@ -1,13 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { BetaBanner } from '@/app/dashboard/_components/BetaBanner';
+import {
+  BetaBanner,
+  buildBiciRadarTrackingEvent,
+} from '@/app/dashboard/_components/BetaBanner';
 import {
   BICIRADAR_WELCOME_MODAL_DISMISSED_STORAGE_KEY,
   FEEDBACK_BANNER_DISMISSED_STORAGE_KEY,
   FEEDBACK_MODAL_LAST_DISMISSED_VISIT_STORAGE_KEY,
   FEEDBACK_VISIT_COUNT_STORAGE_KEY,
 } from '@/lib/feedback';
+
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/dashboard',
+}));
 
 vi.mock('@/app/_components/FeedbackCta', () => ({
   FeedbackCta: ({
@@ -47,6 +54,14 @@ describe('BetaBanner client feedback behavior', () => {
     vi.unstubAllGlobals();
   });
 
+  it('renders the updated BiciRadar welcome copy on first visit', () => {
+    const { html } = renderBannerWithStorage([]);
+
+    expect(html).toContain('Pedalea con menos sorpresas con BiciRadar');
+    expect(html).toContain('Mira incidencias, cortes y avisos utiles antes de salir en bici');
+    expect(html.match(/Ver BiciRadar/g)?.length).toBe(2);
+  });
+
   it('shows the feedback modal and banner together from the second visit', () => {
     const { html, storage } = renderBannerWithStorage([
       [BICIRADAR_WELCOME_MODAL_DISMISSED_STORAGE_KEY, '1'],
@@ -81,5 +96,71 @@ describe('BetaBanner client feedback behavior', () => {
 
     expect(html).toContain('Ayudanos a mejorar DatosBizi');
     expect(html).not.toContain('Cerrar banner de feedback');
+  });
+
+  it('builds a tracked CTA event for the BiciRadar banner link', () => {
+    expect(
+      buildBiciRadarTrackingEvent({
+        routeKey: 'dashboard_home',
+        surface: 'banner',
+        action: 'open',
+      })
+    ).toEqual({
+      name: 'cta_click',
+      payload: {
+        surface: 'dashboard',
+        route_key: 'dashboard_home',
+        source: 'biciradar_banner',
+        module: 'global_banner',
+        cta_id: 'biciradar_open',
+        destination: 'biciradar_web',
+        is_external: true,
+      },
+    });
+  });
+
+  it('builds distinct dismiss events for every BiciRadar modal close path', () => {
+    expect(
+      buildBiciRadarTrackingEvent({
+        routeKey: 'dashboard_home',
+        surface: 'modal',
+        action: 'dismiss_button',
+      })
+    ).toEqual({
+      name: 'cta_click',
+      payload: {
+        surface: 'dashboard',
+        route_key: 'dashboard_home',
+        source: 'biciradar_modal',
+        module: 'global_modal',
+        cta_id: 'biciradar_dismiss_button',
+        destination: 'dismiss_button',
+        is_external: false,
+      },
+    });
+
+    expect(
+      buildBiciRadarTrackingEvent({
+        routeKey: 'dashboard_home',
+        surface: 'modal',
+        action: 'dismiss_icon',
+      }).payload?.cta_id
+    ).toBe('biciradar_dismiss_icon');
+
+    expect(
+      buildBiciRadarTrackingEvent({
+        routeKey: 'dashboard_home',
+        surface: 'modal',
+        action: 'dismiss_overlay',
+      }).payload?.cta_id
+    ).toBe('biciradar_dismiss_overlay');
+
+    expect(
+      buildBiciRadarTrackingEvent({
+        routeKey: 'dashboard_home',
+        surface: 'modal',
+        action: 'dismiss_escape',
+      }).payload?.cta_id
+    ).toBe('biciradar_dismiss_escape');
   });
 });
