@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
+import { getMobileCompactNav, PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import {
   PUBLIC_NAV_ITEMS,
   PUBLIC_PRIMARY_NAV_ITEMS,
@@ -49,5 +49,29 @@ describe('public navigation contract', () => {
     expect(html).toContain('>Metodologia<');
     expect(html).toContain('>Mas<');
     expect(html).toContain('aria-current="page"');
+  });
+
+  it('keeps home visible in compact navigation when home is active', () => {
+    const compactNav = getMobileCompactNav('home');
+
+    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['home', 'explore', 'reports']);
+    expect(compactNav.overflowItems.map((item) => item.id)).toEqual([
+      'dashboard',
+      'status',
+      'api',
+      'help',
+    ]);
+  });
+
+  it('keeps the active utility page visible in compact navigation', () => {
+    const compactNav = getMobileCompactNav('api');
+
+    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['explore', 'reports', 'api']);
+    expect(compactNav.overflowItems.map((item) => item.id)).toEqual([
+      'home',
+      'dashboard',
+      'status',
+      'help',
+    ]);
   });
 });

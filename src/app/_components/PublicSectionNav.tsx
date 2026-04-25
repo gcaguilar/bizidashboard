@@ -1,6 +1,7 @@
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   getPublicNavItem,
+  PUBLIC_NAV_ITEMS,
   PUBLIC_PRIMARY_NAV_ITEMS,
   PUBLIC_UTILITY_NAV_ITEMS,
   type PublicNavItem,
@@ -13,6 +14,44 @@ type PublicSectionNavProps = {
 };
 
 const MOBILE_PRIMARY_NAV_IDS = ['explore', 'reports', 'dashboard'] as const;
+const MOBILE_COMPACT_NAV_LIMIT = 3;
+
+export function getMobileCompactNav(activeItemId: PublicNavItemId) {
+  const activeItem = getPublicNavItem(activeItemId);
+  const mobilePrimaryNavItems = MOBILE_PRIMARY_NAV_IDS.map((id) => getPublicNavItem(id));
+
+  if (activeItem.id === 'home') {
+    return {
+      visibleItems: [
+        getPublicNavItem('home'),
+        getPublicNavItem('explore'),
+        getPublicNavItem('reports'),
+      ],
+      overflowItems: [getPublicNavItem('dashboard'), ...PUBLIC_UTILITY_NAV_ITEMS],
+      isOverflowActive: false,
+    };
+  }
+
+  if (activeItem.section === 'utility') {
+    const visibleItems = [
+      getPublicNavItem('explore'),
+      getPublicNavItem('reports'),
+      activeItem,
+    ];
+
+    return {
+      visibleItems,
+      overflowItems: PUBLIC_NAV_ITEMS.filter((item) => !visibleItems.some((visible) => visible.id === item.id)),
+      isOverflowActive: false,
+    };
+  }
+
+  return {
+    visibleItems: mobilePrimaryNavItems,
+    overflowItems: [getPublicNavItem('home'), ...PUBLIC_UTILITY_NAV_ITEMS],
+    isOverflowActive: false,
+  };
+}
 
 function renderNavLink(
   item: PublicNavItem,
@@ -45,12 +84,7 @@ function renderNavLink(
 
 export function PublicSectionNav({ activeItemId, className }: PublicSectionNavProps) {
   const activeItem = getPublicNavItem(activeItemId);
-  const mobilePrimaryNavItems = MOBILE_PRIMARY_NAV_IDS.map((id) => getPublicNavItem(id));
-  const mobileOverflowNavItems = [
-    getPublicNavItem('home'),
-    ...PUBLIC_UTILITY_NAV_ITEMS,
-  ];
-  const isMobileOverflowActive = activeItem.id === 'home' || activeItem.section === 'utility';
+  const mobileCompactNav = getMobileCompactNav(activeItemId);
 
   return (
     <nav aria-label="Secciones globales" className={className}>
@@ -68,14 +102,14 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
       </div>
 
       <div className="flex flex-wrap items-center gap-2 md:hidden">
-        {mobilePrimaryNavItems.map((item) =>
+        {mobileCompactNav.visibleItems.slice(0, MOBILE_COMPACT_NAV_LIMIT).map((item) =>
           renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
         )}
 
         <details className="group relative">
           <summary
             className={`inline-flex cursor-pointer list-none rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-              isMobileOverflowActive
+              mobileCompactNav.isOverflowActive
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
             }`}
@@ -84,7 +118,7 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
           </summary>
           <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
             <div className="flex flex-col gap-2">
-              {mobileOverflowNavItems.map((item) =>
+              {mobileCompactNav.overflowItems.map((item) =>
                 renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
               )}
             </div>
