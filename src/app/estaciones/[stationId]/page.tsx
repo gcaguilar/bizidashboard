@@ -459,8 +459,10 @@ export default async function PublicStationPage({ params }: PageProps) {
               <TrackedLink
                 key={related.station.id}
                 href={appRoutes.stationDetail(related.station.id)}
-                eventName="station_card_click"
-                eventData={{ source: 'public_station_related_stations', station_id: related.station.id }}
+                entitySelectEvent={{
+                  source: 'public_station_related_stations',
+                  entityType: 'station',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{related.station.name}</p>

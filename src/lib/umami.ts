@@ -106,6 +106,14 @@ export type CtaClickInput = {
   transitionKind?: string;
 };
 
+export type EntitySelectInput = {
+  surface: UmamiSurface;
+  routeKey: string;
+  entityType: UmamiEntityType;
+  source: string;
+  module?: string;
+};
+
 type DashboardModeChangeInput = {
   routeKey: string;
   mode: DashboardViewMode;
@@ -122,14 +130,6 @@ type FilterChangeInput = {
   period?: string;
   timeWindow?: string;
   resultCount?: number | null;
-};
-
-type EntitySelectInput = {
-  surface: UmamiSurface;
-  routeKey: string;
-  entityType: UmamiEntityType;
-  source: string;
-  module?: string;
 };
 
 type PanelOpenInput = {

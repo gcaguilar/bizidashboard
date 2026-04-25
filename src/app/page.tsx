@@ -239,8 +239,10 @@ export default async function Home() {
               <TrackedLink
                 key={station.station.id}
                 href={appRoutes.stationDetail(station.station.id)}
-                eventName="station_card_click"
-                eventData={{ source: 'home_featured_stations', station_id: station.station.id }}
+                entitySelectEvent={{
+                  source: 'home_featured_stations',
+                  entityType: 'station',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>

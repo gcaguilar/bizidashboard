@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildCtaClickEvent,
+  buildEntitySelectEvent,
   buildFilterChangeEvent,
   buildLegacyInteractionEvent,
   buildNavigationClickEvent,
@@ -111,6 +112,25 @@ describe('umami tracking helpers', () => {
         route_key: 'insights_landing',
         entity_type: 'station',
         source: 'insights_featured_stations',
+      },
+    });
+  });
+
+  it('builds explicit entity selection events without leaking identifiers', () => {
+    expect(
+      buildEntitySelectEvent({
+        surface: 'public',
+        routeKey: 'monthly_report',
+        entityType: 'station',
+        source: 'monthly_report_top_stations',
+      })
+    ).toEqual({
+      name: 'entity_select',
+      payload: {
+        surface: 'public',
+        route_key: 'monthly_report',
+        entity_type: 'station',
+        source: 'monthly_report_top_stations',
       },
     });
   });

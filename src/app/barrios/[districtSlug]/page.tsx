@@ -283,8 +283,10 @@ export default async function DistrictSeoPage({ params }: PageProps) {
             <TrackedLink
               key={station.stationId}
               href={appRoutes.stationDetail(station.stationId)}
-              eventName="station_card_click"
-              eventData={{ source: 'district_top_stations', district: district.slug, station_id: station.stationId }}
+              entitySelectEvent={{
+                source: 'district_top_stations',
+                entityType: 'station',
+              }}
               className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <div className="min-w-0">

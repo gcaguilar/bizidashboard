@@ -304,6 +304,15 @@ describe('public page contract', () => {
       expect.objectContaining({ activeItemId: 'explore' })
     );
     expect(publicSectionNavSpy).toHaveBeenCalledTimes(2);
+    expect(trackedLinkSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: '/estaciones/101',
+        entitySelectEvent: {
+          source: 'district_top_stations',
+          entityType: 'station',
+        },
+      })
+    );
   });
 
   it('keeps reports active on report archive and monthly report pages', async () => {
@@ -365,5 +374,59 @@ describe('public page contract', () => {
       destinationRole: 'hub',
       transitionKind: 'within_public',
     });
+  });
+
+  it('uses explicit station entity selection tracking on report cards', async () => {
+    getDailyMobilityConclusionsMock.mockResolvedValue({
+      payload: {
+        dateKey: '2026-03-31',
+        generatedAt: '2026-03-31T10:00:00.000Z',
+        selectedMonth: '2026-03',
+        sourceFirstDay: '2026-03-01',
+        sourceLastDay: '2026-03-31',
+        totalHistoricalDays: 31,
+        stationsWithData: 42,
+        activeStations: 42,
+        metrics: {
+          demandLast7Days: 1200,
+          demandPrevious7Days: 1000,
+          demandDeltaRatio: 0.2,
+          occupancyLast7Days: 0.61,
+          occupancyPrevious7Days: 0.56,
+          occupancyDeltaRatio: 0.05,
+        },
+        summary: 'Resumen mensual de prueba.',
+        highlights: [],
+        recommendations: [],
+        peakDemandHours: [],
+        topDistrictsByDemand: [],
+        topStationsByDemand: [
+          { stationId: '101', stationName: 'Plaza Espana', avgDemand: 17.4 },
+        ],
+        leastUsedStations: [],
+        weekdayWeekendProfile: {
+          weekday: { avgDemand: 20.4, avgOccupancy: 0.63, daysCount: 22 },
+          weekend: { avgDemand: 14.2, avgOccupancy: 0.52, daysCount: 9 },
+          demandGapRatio: 0.12,
+          dominantPeriod: 'weekday',
+        },
+      },
+    });
+
+    const monthlyReportPage = await import('@/app/informes/[month]/page');
+
+    renderToStaticMarkup(
+      await monthlyReportPage.default({ params: Promise.resolve({ month: '2026-03' }) })
+    );
+
+    expect(trackedLinkSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: '/estaciones/101',
+        entitySelectEvent: {
+          source: 'monthly_report_top_stations',
+          entityType: 'station',
+        },
+      })
+    );
   });
 });

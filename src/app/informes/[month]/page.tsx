@@ -441,8 +441,10 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               <TrackedLink
                 key={station.stationId}
                 href={appRoutes.stationDetail(station.stationId)}
-                eventName="station_card_click"
-                eventData={{ source: 'monthly_report_top_stations', station_id: station.stationId, month }}
+                entitySelectEvent={{
+                  source: 'monthly_report_top_stations',
+                  entityType: 'station',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>

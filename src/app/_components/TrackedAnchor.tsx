@@ -4,11 +4,13 @@ import { usePathname } from 'next/navigation';
 import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
+  buildEntitySelectEvent,
   buildLegacyInteractionEvent,
   buildNavigationClickEvent,
   resolveRouteKeyFromPathname,
   trackUmamiEvent,
   type CtaClickInput,
+  type EntitySelectInput,
   type LegacyUmamiInteractionName,
   type NavigationClickInput,
   type UmamiEventValue,
@@ -20,6 +22,7 @@ type TrackedAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   trackingEvent?: UmamiTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
+  entitySelectEvent?: Omit<EntitySelectInput, 'surface' | 'routeKey'>;
   eventName?: LegacyUmamiInteractionName;
   eventData?: Record<string, UmamiEventValue>;
 };
@@ -27,6 +30,7 @@ type TrackedAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
 export function TrackedAnchor({
   children,
   ctaEvent,
+  entitySelectEvent,
   eventName,
   eventData,
   navigationEvent,
@@ -57,6 +61,14 @@ export function TrackedAnchor({
           surface,
           routeKey,
           ...ctaEvent,
+        })
+      );
+    } else if (entitySelectEvent) {
+      trackUmamiEvent(
+        buildEntitySelectEvent({
+          surface,
+          routeKey,
+          ...entitySelectEvent,
         })
       );
     } else if (eventName) {
