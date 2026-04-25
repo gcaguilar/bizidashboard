@@ -167,14 +167,27 @@ beforeEach(() => {
     generatedAt: '2026-03-31T10:00:00.000Z',
   });
   fetchSharedDatasetSnapshotMock.mockResolvedValue({
-    coverage: { totalDays: 90 },
+    coverage: {
+      totalDays: 90,
+      generatedAt: '2026-03-31T10:00:00.000Z',
+      firstRecordedAt: '2026-01-01T00:00:00.000Z',
+      lastRecordedAt: '2026-03-31T10:00:00.000Z',
+    },
     lastUpdated: { lastSampleAt: '2026-03-31T10:00:00.000Z' },
     dataState: 'fresh',
+    source: { gbfsDiscoveryUrl: 'https://gbfs.example.com/gbfs.json' },
+    stats: { totalSamples: 120000, totalStations: 42 },
   });
   fetchHistoryMetadataMock.mockResolvedValue({
-    coverage: { lastRecordedAt: '2026-03-31T10:00:00.000Z' },
+    coverage: {
+      lastRecordedAt: '2026-03-31T10:00:00.000Z',
+      totalDays: 90,
+      totalStations: 42,
+    },
+    source: { gbfsDiscoveryUrl: 'https://gbfs.example.com/gbfs.json' },
   });
   fetchStatusMock.mockResolvedValue({
+    dataState: 'fresh',
     pipeline: { lastSuccessfulPoll: '2026-03-31T10:00:00.000Z' },
   });
   fetchCachedMonthlyDemandCurveMock.mockResolvedValue([
@@ -328,6 +341,23 @@ describe('public page contract', () => {
       expect.objectContaining({ activeItemId: 'reports' })
     );
     expect(publicSectionNavSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps utility navigation active on developers and methodology pages', async () => {
+    const developersPage = await import('@/app/developers/page');
+    const methodologyPage = await import('@/app/metodologia/page');
+
+    renderToStaticMarkup(await developersPage.default());
+    renderToStaticMarkup(await methodologyPage.default());
+
+    expect(publicSectionNavSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ activeItemId: 'api' })
+    );
+    expect(publicSectionNavSpy).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ activeItemId: 'help' })
+    );
   });
 
   it('aligns seo landing hero CTA telemetry for dashboard transitions', async () => {
