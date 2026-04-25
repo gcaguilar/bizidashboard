@@ -202,24 +202,41 @@ export default async function SystemStatusPage() {
           <div className="flex flex-wrap gap-3">
             <TrackedLink
               href={appRoutes.dashboard()}
-              eventName="related_module_click"
-              eventData={{ source: 'status_hero', destination: 'dashboard' }}
+              navigationEvent={{
+                source: 'status_hero',
+                destination: 'dashboard_home',
+                sourceRole: 'utility',
+                destinationRole: 'dashboard',
+                transitionKind: 'to_dashboard',
+              }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir dashboard en vivo
             </TrackedLink>
             <TrackedLink
               href={appRoutes.developers()}
-              eventName="api_cta_click"
-              eventData={{ source: 'status_hero', destination: 'developers' }}
+              ctaEvent={{
+                source: 'status_hero',
+                ctaId: 'api_open',
+                destination: 'developers',
+                entityType: 'api',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver API y developers
             </TrackedLink>
             <TrackedLink
               href={appRoutes.methodology()}
-              eventName="related_module_click"
-              eventData={{ source: 'status_hero', destination: 'methodology' }}
+              navigationEvent={{
+                source: 'status_hero',
+                destination: 'methodology',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver metodologia

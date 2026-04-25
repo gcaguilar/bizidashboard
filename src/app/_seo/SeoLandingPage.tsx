@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -1098,20 +1099,24 @@ function buildSeoLandingIndexabilityInput(
   };
 }
 
-function resolveSeoLandingClickEvent(href: string) {
-  if (href.startsWith('/estaciones/') || href.startsWith('/dashboard/estaciones/')) {
-    return 'station_card_click';
+function resolveSeoLandingDestinationRole(href: string): 'dashboard' | 'hub' | 'utility' {
+  if (href.startsWith('/dashboard')) {
+    return 'dashboard';
   }
 
-  if (href.startsWith('/informes/')) {
-    return 'report_open_click';
+  if (
+    href === appRoutes.developers() ||
+    href === appRoutes.methodology() ||
+    href === appRoutes.status()
+  ) {
+    return 'utility';
   }
 
-  if (href === appRoutes.developers()) {
-    return 'api_cta_click';
-  }
+  return 'hub';
+}
 
-  return 'related_module_click';
+function resolveSeoLandingTransitionKind(href: string): 'to_dashboard' | 'within_public' {
+  return href.startsWith('/dashboard') ? 'to_dashboard' : 'within_public';
 }
 
 export async function getSeoLandingPageData(slug: SeoPageSlug) {
@@ -1207,6 +1212,8 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="hero-card">
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
+
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -1244,8 +1251,15 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.reports()}
-            eventName="report_open_click"
-            eventData={{ source: 'seo_landing_hero', slug }}
+            ctaEvent={{
+              source: 'seo_landing_hero',
+              ctaId: 'report_open',
+              destination: 'report_archive',
+              entityType: 'report',
+              sourceRole: config.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir archivo mensual
@@ -1316,8 +1330,13 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                 <TrackedLink
                   key={`${item.title}-${item.href}`}
                   href={item.href}
-                  eventName={resolveSeoLandingClickEvent(item.href)}
-                  eventData={{ source: 'seo_landing_items', destination: item.href, slug }}
+                  navigationEvent={{
+                    source: 'seo_landing_items',
+                    destination: item.href,
+                    sourceRole: config.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+                    destinationRole: resolveSeoLandingDestinationRole(item.href),
+                    transitionKind: resolveSeoLandingTransitionKind(item.href),
+                  }}
                   className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
                 >
                   {body}
@@ -1339,8 +1358,13 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
             <TrackedLink
               key={page.slug}
               href={appRoutes.seoPage(page.slug)}
-              eventName="related_module_click"
-              eventData={{ source: 'seo_landing_related', destination: page.slug, slug }}
+              navigationEvent={{
+                source: 'seo_landing_related',
+                destination: page.slug,
+                sourceRole: config.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+                destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+                transitionKind: 'within_public',
+              }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

@@ -228,24 +228,43 @@ export default async function MethodologyPage() {
               href={historyMeta.source.gbfsDiscoveryUrl}
               target="_blank"
               rel="noopener noreferrer"
-              eventName="dataset_source_click"
-              eventData={{ source: 'methodology_hero', destination: 'gbfs_discovery' }}
+              ctaEvent={{
+                source: 'methodology_hero',
+                ctaId: 'dataset_source_open',
+                destination: 'gbfs_discovery',
+                isExternal: true,
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Ver feed GBFS oficial
             </TrackedAnchor>
             <TrackedLink
               href={appRoutes.developers()}
-              eventName="api_cta_click"
-              eventData={{ source: 'methodology_hero', destination: 'developers' }}
+              ctaEvent={{
+                source: 'methodology_hero',
+                ctaId: 'api_open',
+                destination: 'developers',
+                entityType: 'api',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Abrir API y datos abiertos
             </TrackedLink>
             <TrackedLink
               href={appRoutes.status()}
-              eventName="related_module_click"
-              eventData={{ source: 'methodology_hero', destination: 'status' }}
+              navigationEvent={{
+                source: 'methodology_hero',
+                destination: 'status',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver estado del sistema
@@ -379,8 +398,15 @@ export default async function MethodologyPage() {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <TrackedLink
             href={appRoutes.developers()}
-            eventName="api_cta_click"
-            eventData={{ source: 'methodology_related', destination: 'developers' }}
+            ctaEvent={{
+              source: 'methodology_related',
+              ctaId: 'api_open',
+              destination: 'developers',
+              entityType: 'api',
+              sourceRole: 'utility',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
@@ -390,8 +416,13 @@ export default async function MethodologyPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.status()}
-            eventName="related_module_click"
-            eventData={{ source: 'methodology_related', destination: 'status' }}
+            navigationEvent={{
+              source: 'methodology_related',
+              destination: 'status',
+              sourceRole: 'utility',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado y cobertura</p>
@@ -401,8 +432,15 @@ export default async function MethodologyPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.reports()}
-            eventName="report_open_click"
-            eventData={{ source: 'methodology_related' }}
+            ctaEvent={{
+              source: 'methodology_related',
+              ctaId: 'report_open',
+              destination: 'report_archive',
+              entityType: 'report',
+              sourceRole: 'utility',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
@@ -412,8 +450,13 @@ export default async function MethodologyPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('uso-bizi-por-estacion')}
-            eventName="related_module_click"
-            eventData={{ source: 'methodology_related', destination: 'station_hub' }}
+            navigationEvent={{
+              source: 'methodology_related',
+              destination: 'station_hub',
+              sourceRole: 'utility',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Fichas de estacion</p>
@@ -423,8 +466,13 @@ export default async function MethodologyPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.districtLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'methodology_related', destination: 'district_hub' }}
+            navigationEvent={{
+              source: 'methodology_related',
+              destination: 'district_hub',
+              sourceRole: 'utility',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios y contexto territorial</p>
@@ -434,8 +482,13 @@ export default async function MethodologyPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.dashboardHelp()}
-            eventName="related_module_click"
-            eventData={{ source: 'methodology_related', destination: 'dashboard_help' }}
+            navigationEvent={{
+              source: 'methodology_related',
+              destination: 'dashboard_help',
+              sourceRole: 'utility',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ayuda completa del dashboard</p>

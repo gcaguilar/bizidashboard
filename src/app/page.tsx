@@ -323,8 +323,13 @@ export default async function Home() {
               <TrackedLink
                 key={slug}
                 href={appRoutes.seoPage(slug)}
-                eventName="related_module_click"
-                eventData={{ source: 'home_seo_grid', destination: slug }}
+                navigationEvent={{
+                  source: 'home_seo_grid',
+                  destination: slug,
+                  sourceRole: 'home',
+                  destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+                  transitionKind: 'within_public',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

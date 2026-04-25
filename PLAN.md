@@ -11,13 +11,22 @@ Estado ya completado en esta rama:
 - `activeItemId` corregido en paginas publicas ya migradas.
 - Contrato inicial `pageRole` + `primaryCta` introducido en `src/lib/seo-pages.ts`.
 - `TrackedLink` y Umami ampliados para `navigationEvent` y `ctaEvent`.
+- `TrackedAnchor` ampliado para soportar tambien `navigationEvent` y `ctaEvent`.
 - `DashboardHeader` limpiado para no duplicar navegacion primaria.
-- Landings principales migradas parcialmente al contrato nuevo:
+- Landings y superficies publicas ya migradas al contrato nuevo:
   - home
   - `/explorar`
   - `/mapa-estaciones-bizi-zaragoza`
   - `/estadisticas-bizi-zaragoza`
   - `SeoLandingPage`
+  - `/informes`
+  - `/informes/[month]`
+  - `/developers`
+  - `/metodologia`
+  - `/estado`
+  - `/biciradar`
+  - `/estaciones/[stationId]`
+  - `/barrios/[districtSlug]`
 - Tests ya añadidos o ampliados:
   - `tests/public-navigation.test.tsx`
   - `tests/dashboard-route-links.test.tsx`
@@ -27,42 +36,36 @@ Estado ya completado en esta rama:
 
 ## Pendiente inmediato
 
-### R2. Propagar contrato role/CTA al resto de superficies publicas
+### R2. Cerrar residuos y decidir politica final para `station_card_click`
 
-Migrar enlaces que aun usan `eventName/eventData` a `navigationEvent` o `ctaEvent`, priorizando:
+Estado actual:
 
-1. `src/app/_seo/SeoLandingPage.tsx`
-   - Hero secundario y bloques relacionados.
-   - Revisar si todos los `destinationRole` y `transitionKind` quedan consistentes.
-2. `src/app/informes/page.tsx`
-   - Hero, archivo mensual y modulos relacionados.
-3. `src/app/informes/[month]/page.tsx`
-   - Hero, navegacion entre meses y bloques relacionados.
-4. `src/app/developers/page.tsx`
-   - Hero, related modules y dataset downloads.
-5. `src/app/metodologia/page.tsx`
-   - Hero y modulos relacionados.
-6. `src/app/estado/page.tsx`
-   - Hero y accesos relacionados.
-7. `src/app/estaciones/[stationId]/page.tsx`
-   - Hero y bloques relacionados.
-8. `src/app/barrios/[districtSlug]/page.tsx`
-   - Hero y bloques relacionados.
+- Los CTAs y la navegacion publica ya no dependen de `eventName/eventData`.
+- El unico evento legacy que queda en superficies publicas es `station_card_click`.
+- Ese evento sigue siendo valido porque mapea a `entity_select` sin exponer identificadores prohibidos.
 
 Nota:
-- `station_card_click` puede mantenerse como evento legacy mientras siga modelando `entity_select`, pero conviene revisar si algun caso pide contrato explicito adicional.
-- `TrackedAnchor` sigue aceptando solo legacy tracking; revisar si merece soporte paralelo para `ctaEvent` en superficies publicas con enlaces externos.
+
+- Si se quiere homogeneidad total, valorar si `station_card_click` debe quedarse como wrapper legacy estable o si conviene introducir una API explicita tipo `entitySelectEvent` en `TrackedLink`.
+- Si no hay necesidad analitica nueva, tambien es razonable dejarlo como esta y considerar cerrada la migracion.
 
 ### R4. Revisar intencion de navegacion (`activeItemId`)
 
-Comprobar si hay mas rutas publicas que deberian marcar `explore` por intencion en vez de `dashboard` o `reports`.
+Estado actual:
 
-Checklist:
+- `explore` ya se usa en:
+  - landings de adquisicion
+  - hubs SEO
+  - fichas publicas de estacion
+  - fichas publicas de barrio
+- `reports` se mantiene en:
+  - archivo mensual
+  - informe mensual individual
+- `api` y `help` se mantienen correctamente en developers y metodologia.
 
-- Landings de adquisicion.
-- Hubs SEO.
-- Archivo mensual vs informe mensual individual.
-- Fichas publicas de estacion y barrio.
+Pendiente:
+
+- Revisar visualmente en navegador si la seleccion activa se percibe correcta en desktop y movil para estas rutas.
 
 ## Tests a reforzar
 
@@ -70,8 +73,13 @@ Checklist:
    - `pageRole` correcto.
    - CTA principal alineada con `primaryCta`.
    - transiciones `to_dashboard` vs `within_public`.
-2. Añadir tests de render donde importe `activeItemId="explore"` en landings de exploracion.
-3. Evaluar snapshot o assertions mas directas sobre payloads Umami en superficies migradas.
+2. Añadir tests de render para:
+   - `activeItemId="explore"` en station/district detail.
+   - `activeItemId="reports"` en archivo mensual y reporte mensual.
+3. Evaluar assertions mas directas sobre payloads Umami en:
+   - `TrackedAnchor`
+   - `SeoLandingPage`
+   - superficies editoriales (`informes`, `informes/[month]`)
 
 ## Validacion recomendada al retomar
 
@@ -88,10 +96,16 @@ bun run test tests/dashboard-route-links.test.tsx tests/routes-registry.test.ts 
 bun run lint
 ```
 
+Si se tocan `TrackedAnchor`, `developers` o `metodologia`, conviene volver a pasar al menos:
+
+```bash
+bun run test tests/umami.test.ts tests/canonical-metadata.test.ts tests/public-navigation.test.tsx
+```
+
 ## Riesgos a vigilar
 
 - No degradar semantica de eventos ya usados en Umami sin un mapeo equivalente.
 - No marcar como `dashboard` rutas que siguen siendo descubrimiento publico.
 - Mantener canonicidad SEO y enlazado interno estable.
 - Evitar mezclar cambios de navegacion con refactors amplios de copy o layout.
-
+- No romper enlaces externos con `TrackedAnchor` al añadir soporte de telemetria nueva.

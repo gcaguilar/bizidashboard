@@ -185,8 +185,15 @@ export default function BiciRadarPage() {
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            eventName="app_external_click"
-            eventData={{ source: 'biciradar_hero', destination: 'app_store' }}
+            ctaEvent={{
+              source: 'biciradar_hero',
+              ctaId: 'app_external',
+              destination: 'app_store',
+              isExternal: true,
+              sourceRole: 'utility',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -198,8 +205,15 @@ export default function BiciRadarPage() {
             href={GOOGLE_GROUP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            eventName="app_external_click"
-            eventData={{ source: 'biciradar_hero', destination: 'google_group' }}
+            ctaEvent={{
+              source: 'biciradar_hero',
+              ctaId: 'app_external',
+              destination: 'google_group',
+              isExternal: true,
+              sourceRole: 'utility',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -211,8 +225,15 @@ export default function BiciRadarPage() {
             href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            eventName="app_external_click"
-            eventData={{ source: 'biciradar_hero', destination: 'google_play' }}
+            ctaEvent={{
+              source: 'biciradar_hero',
+              ctaId: 'app_external',
+              destination: 'google_play',
+              isExternal: true,
+              sourceRole: 'utility',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/50"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
