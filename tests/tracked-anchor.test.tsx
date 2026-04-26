@@ -154,4 +154,36 @@ describe('TrackedAnchor', () => {
       },
     });
   });
+
+  it('builds entity selection payloads when no navigation or CTA event is provided', async () => {
+    const { TrackedAnchor } = await import('@/app/_components/TrackedAnchor');
+    const anchor = TrackedAnchor({
+      href: '/estaciones/101',
+      children: 'Abrir estacion',
+      entitySelectEvent: {
+        source: 'monthly_report_top_stations',
+        entityType: 'station',
+      },
+    });
+
+    anchor.props.onClick({ type: 'click' });
+
+    expect(buildEntitySelectEventMock).toHaveBeenCalledWith({
+      surface: 'public',
+      routeKey: 'methodology',
+      source: 'monthly_report_top_stations',
+      entityType: 'station',
+    });
+    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+      name: 'entity_select',
+      payload: {
+        surface: 'public',
+        routeKey: 'methodology',
+        source: 'monthly_report_top_stations',
+        entityType: 'station',
+      },
+    });
+    expect(buildNavigationClickEventMock).not.toHaveBeenCalled();
+    expect(buildCtaClickEventMock).not.toHaveBeenCalled();
+  });
 });

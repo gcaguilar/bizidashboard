@@ -8,8 +8,30 @@ import {
   getPublicNavItem,
 } from '@/lib/public-navigation';
 
+const trackedLinkSpy = vi.fn();
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/explorar',
+}));
+
+vi.mock('@/app/_components/TrackedLink', () => ({
+  TrackedLink: ({
+    children,
+    href,
+    navigationEvent,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    navigationEvent?: Record<string, unknown>;
+  }) => {
+    trackedLinkSpy({ href, navigationEvent, ...props });
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 describe('public navigation contract', () => {
@@ -73,5 +95,41 @@ describe('public navigation contract', () => {
       'status',
       'help',
     ]);
+  });
+
+  it('emits navigation telemetry with the active route role as source context', () => {
+    trackedLinkSpy.mockClear();
+
+    renderToStaticMarkup(<PublicSectionNav activeItemId="help" />);
+
+    expect(trackedLinkSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: '/dashboard',
+        navigationEvent: {
+          source: 'public_section_nav',
+          destination: 'dashboard',
+          module: 'public_nav_primary',
+          sourceRole: 'utility',
+          destinationRole: 'dashboard',
+          transitionKind: 'to_dashboard',
+        },
+        'aria-current': undefined,
+      })
+    );
+
+    expect(trackedLinkSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: '/metodologia',
+        navigationEvent: {
+          source: 'public_section_nav',
+          destination: 'help',
+          module: 'public_nav_utility',
+          sourceRole: 'utility',
+          destinationRole: 'utility',
+          transitionKind: 'within_public',
+        },
+        'aria-current': 'page',
+      })
+    );
   });
 });
