@@ -2,9 +2,6 @@
 
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
-import { TrackedLink } from '@/app/_components/TrackedLink';
-import { appRoutes } from '@/lib/routes';
-import { buildPanelOpenEvent } from '@/lib/umami';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -106,30 +103,6 @@ export function DashboardHeader({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-          <TrackedLink
-            href={appRoutes.dashboardConclusions()}
-            trackingEvent={buildPanelOpenEvent({
-              surface: 'dashboard',
-              routeKey: 'dashboard_home',
-              module: 'conclusions',
-              source: 'dashboard_header',
-            })}
-            className="icon-button hidden sm:inline-flex"
-          >
-            Conclusiones
-          </TrackedLink>
-          <TrackedLink
-            href={appRoutes.dashboardHelp()}
-            trackingEvent={buildPanelOpenEvent({
-              surface: 'dashboard',
-              routeKey: 'dashboard_home',
-              module: 'help',
-              source: 'dashboard_header',
-            })}
-            className="icon-button hidden sm:inline-flex"
-          >
-            Ayuda
-          </TrackedLink>
           <FeedbackCta
             source="dashboard_header"
             ctaId="feedback_header_open"

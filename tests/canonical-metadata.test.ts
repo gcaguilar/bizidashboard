@@ -53,6 +53,8 @@ describe('canonical metadata', () => {
     const developersMetadata = await getResolvedMetadata('@/app/developers/page');
     const exploreMetadata = await getResolvedMetadata('@/app/explorar/page');
     const reportsMetadata = await getResolvedMetadata('@/app/informes/page');
+    const utilityLandingMetadata = await getResolvedMetadata('@/app/mapa-estaciones-bizi-zaragoza/page');
+    const insightsLandingMetadata = await getResolvedMetadata('@/app/estadisticas-bizi-zaragoza/page');
     const helpMetadata = await getResolvedMetadata('@/app/dashboard/ayuda/page');
     const statusMetadata = await getResolvedMetadata('@/app/estado/page');
     const flowMetadata = await getResolvedMetadata('@/app/dashboard/flujo/page');
@@ -69,6 +71,12 @@ describe('canonical metadata', () => {
     );
     expect(resolveCanonical(exploreMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.explore()));
     expect(resolveCanonical(reportsMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.reports()));
+    expect(resolveCanonical(utilityLandingMetadata)).toBe(
+      toAbsoluteRouteUrl(appRoutes.utilityLanding())
+    );
+    expect(resolveCanonical(insightsLandingMetadata)).toBe(
+      toAbsoluteRouteUrl(appRoutes.insightsLanding())
+    );
     expect(resolveCanonical(helpMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardHelp()));
     expect(resolveCanonical(statusMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.status()));
     expect(resolveCanonical(flowMetadata)).toBe(toAbsoluteRouteUrl(appRoutes.dashboardFlow()));

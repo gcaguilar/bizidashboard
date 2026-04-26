@@ -202,7 +202,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.dashboard()} className="mt-1" />
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

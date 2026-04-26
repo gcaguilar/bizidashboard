@@ -7,6 +7,7 @@ import { getUtilityLandingData } from '@/lib/acquisition-landings';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
+import { UTILITY_LANDING_NAV_CONFIG } from '@/lib/seo-pages';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
@@ -130,7 +131,7 @@ export default async function UtilityLandingPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.seoPage('uso-bizi-por-estacion')} className="mt-1" />
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -156,17 +157,29 @@ export default async function UtilityLandingPage() {
 
         <div className="flex flex-wrap gap-3">
           <TrackedLink
-            href={appRoutes.dashboardView('overview')}
-            eventName="ad_landing_primary_click"
-            eventData={{ landing: 'utility', destination: 'dashboard_overview' }}
+            href={UTILITY_LANDING_NAV_CONFIG.primaryCta.href}
+            ctaEvent={{
+              source: 'utility_landing_hero',
+              ctaId: 'utility_primary',
+              destination: UTILITY_LANDING_NAV_CONFIG.primaryCta.destination,
+              sourceRole: 'entry_seo',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
-            Abrir dashboard en vista resumen
+            {UTILITY_LANDING_NAV_CONFIG.primaryCta.label}
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('uso-bizi-por-estacion')}
-            eventName="ad_landing_secondary_click"
-            eventData={{ landing: 'utility', destination: 'station_hub' }}
+            ctaEvent={{
+              source: 'utility_landing_hero',
+              ctaId: 'utility_secondary',
+              destination: 'station_hub',
+              sourceRole: 'entry_seo',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Explorar estaciones
@@ -215,8 +228,10 @@ export default async function UtilityLandingPage() {
             <TrackedLink
               key={station.station.id}
               href={appRoutes.stationDetail(station.station.id)}
-              eventName="station_card_click"
-              eventData={{ source: 'utility_landing_featured_stations', station_id: station.station.id }}
+              entitySelectEvent={{
+                source: 'utility_landing_featured_stations',
+                entityType: 'station',
+              }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
@@ -249,8 +264,13 @@ export default async function UtilityLandingPage() {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
             href={appRoutes.districtLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'utility_landing_related', destination: 'district_hub' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'district_hub',
+              sourceRole: 'entry_seo',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
@@ -260,8 +280,13 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.status()}
-            eventName="related_module_click"
-            eventData={{ source: 'utility_landing_related', destination: 'status' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'status',
+              sourceRole: 'entry_seo',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p>
@@ -271,8 +296,15 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.biciradar()}
-            eventName="app_external_click"
-            eventData={{ source: 'utility_landing_related', destination: 'biciradar' }}
+            ctaEvent={{
+              source: 'utility_landing_related',
+              ctaId: 'app_external',
+              destination: 'biciradar',
+              isExternal: true,
+              sourceRole: 'entry_seo',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p>
@@ -282,8 +314,13 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.insightsLanding()}
-            eventName="ad_landing_secondary_click"
-            eventData={{ landing: 'utility', destination: 'insights' }}
+            navigationEvent={{
+              source: 'utility_landing_related',
+              destination: 'insights_landing',
+              sourceRole: 'entry_seo',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p>

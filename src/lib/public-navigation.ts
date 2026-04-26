@@ -1,10 +1,16 @@
 import { appRoutes } from '@/lib/routes';
 
 export type PublicNavItem = {
-  id: 'home' | 'dashboard' | 'stations' | 'reports' | 'api' | 'help' | 'status';
+  id: PublicNavItemId;
   label: string;
   href: string;
+  section: 'primary' | 'utility';
+  trackingRole: 'home' | 'hub' | 'dashboard' | 'utility';
 };
+
+export type PublicPrimaryNavItemId = 'home' | 'explore' | 'reports' | 'dashboard';
+export type PublicUtilityNavItemId = 'status' | 'api' | 'help';
+export type PublicNavItemId = PublicPrimaryNavItemId | PublicUtilityNavItemId;
 
 export type ExploreHubItem = {
   id:
@@ -36,15 +42,33 @@ export type ExploreHubSection = {
   items: ExploreHubItem[];
 };
 
-export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
-  { id: 'home', label: 'Inicio', href: appRoutes.home() },
-  { id: 'dashboard', label: 'Dashboard', href: appRoutes.dashboard() },
-  { id: 'stations', label: 'Estaciones', href: appRoutes.seoPage('uso-bizi-por-estacion') },
-  { id: 'reports', label: 'Informes', href: appRoutes.reports() },
-  { id: 'api', label: 'API', href: appRoutes.developers() },
-  { id: 'help', label: 'Metodologia', href: appRoutes.methodology() },
-  { id: 'status', label: 'Estado', href: appRoutes.status() },
+export const PUBLIC_PRIMARY_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'home', label: 'Inicio', href: appRoutes.home(), section: 'primary', trackingRole: 'home' },
+  { id: 'explore', label: 'Explorar', href: appRoutes.explore(), section: 'primary', trackingRole: 'hub' },
+  { id: 'reports', label: 'Informes', href: appRoutes.reports(), section: 'primary', trackingRole: 'hub' },
+  { id: 'dashboard', label: 'Dashboard', href: appRoutes.dashboard(), section: 'primary', trackingRole: 'dashboard' },
 ];
+
+export const PUBLIC_UTILITY_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'status', label: 'Estado', href: appRoutes.status(), section: 'utility', trackingRole: 'utility' },
+  { id: 'api', label: 'API', href: appRoutes.developers(), section: 'utility', trackingRole: 'utility' },
+  { id: 'help', label: 'Metodologia', href: appRoutes.methodology(), section: 'utility', trackingRole: 'utility' },
+];
+
+export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
+  ...PUBLIC_PRIMARY_NAV_ITEMS,
+  ...PUBLIC_UTILITY_NAV_ITEMS,
+];
+
+export function getPublicNavItem(id: PublicNavItemId): PublicNavItem {
+  const item = PUBLIC_NAV_ITEMS.find((entry) => entry.id === id);
+
+  if (!item) {
+    throw new Error(`Unknown public navigation item: ${id}`);
+  }
+
+  return item;
+}
 
 export function getExploreHubSections(options?: {
   latestMonth?: string | null;

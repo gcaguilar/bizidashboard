@@ -148,7 +148,7 @@ describe('GET /api/status', () => {
     });
 
     const response = await GET(new Request('http://localhost/api/status?format=csv') as never);
-    const payload = await response.text();
+    await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/csv');

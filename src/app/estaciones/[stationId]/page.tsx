@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -175,6 +176,7 @@ export default async function PublicStationPage({ params }: PageProps) {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -199,8 +201,13 @@ export default async function PublicStationPage({ params }: PageProps) {
         <div className="flex flex-wrap gap-3">
           <TrackedLink
             href={appRoutes.dashboardStation(station.id)}
-            eventName="related_module_click"
-            eventData={{ source: 'public_station_hero', destination: 'dashboard_station', station_id: station.id }}
+            navigationEvent={{
+              source: 'public_station_hero',
+              destination: 'dashboard_station',
+              sourceRole: 'hub',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir detalle operativo
@@ -208,8 +215,13 @@ export default async function PublicStationPage({ params }: PageProps) {
           {summary.districtSlug ? (
             <TrackedLink
               href={appRoutes.districtDetail(summary.districtSlug)}
-              eventName="related_module_click"
-              eventData={{ source: 'public_station_hero', destination: 'district', station_id: station.id }}
+              navigationEvent={{
+                source: 'public_station_hero',
+                destination: 'district_detail',
+                sourceRole: 'hub',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver barrio relacionado
@@ -217,8 +229,13 @@ export default async function PublicStationPage({ params }: PageProps) {
           ) : null}
           <TrackedLink
             href={appRoutes.seoPage('ranking-estaciones-bizi')}
-            eventName="related_module_click"
-            eventData={{ source: 'public_station_hero', destination: 'ranking', station_id: station.id }}
+            navigationEvent={{
+              source: 'public_station_hero',
+              destination: 'station_ranking',
+              sourceRole: 'hub',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir ranking de estaciones
@@ -379,8 +396,13 @@ export default async function PublicStationPage({ params }: PageProps) {
             {summary.districtSlug ? (
               <TrackedLink
                 href={appRoutes.districtDetail(summary.districtSlug)}
-                eventName="related_module_click"
-                eventData={{ source: 'public_station_related', destination: 'district', station_id: station.id }}
+                navigationEvent={{
+                  source: 'public_station_related',
+                  destination: 'district_detail',
+                  sourceRole: 'hub',
+                  destinationRole: 'hub',
+                  transitionKind: 'within_public',
+                }}
                 className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">Más datos del barrio</p>
@@ -391,8 +413,15 @@ export default async function PublicStationPage({ params }: PageProps) {
             ) : null}
             <TrackedLink
               href={appRoutes.reports()}
-              eventName="report_open_click"
-              eventData={{ source: 'public_station_related', station_id: station.id }}
+              ctaEvent={{
+                source: 'public_station_related',
+                ctaId: 'report_open',
+                destination: 'report_archive',
+                entityType: 'report',
+                sourceRole: 'hub',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
@@ -402,8 +431,13 @@ export default async function PublicStationPage({ params }: PageProps) {
             </TrackedLink>
             <TrackedLink
               href={appRoutes.seoPage('estaciones-mas-usadas-zaragoza')}
-              eventName="related_module_click"
-              eventData={{ source: 'public_station_related', destination: 'seo_ranking', station_id: station.id }}
+              navigationEvent={{
+                source: 'public_station_related',
+                destination: 'seo_ranking',
+                sourceRole: 'hub',
+                destinationRole: 'entry_seo',
+                transitionKind: 'within_public',
+              }}
               className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ranking y análisis</p>
@@ -425,8 +459,10 @@ export default async function PublicStationPage({ params }: PageProps) {
               <TrackedLink
                 key={related.station.id}
                 href={appRoutes.stationDetail(related.station.id)}
-                eventName="station_card_click"
-                eventData={{ source: 'public_station_related_stations', station_id: related.station.id }}
+                entitySelectEvent={{
+                  source: 'public_station_related_stations',
+                  entityType: 'station',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{related.station.name}</p>

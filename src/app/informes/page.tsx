@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
@@ -204,6 +205,7 @@ export default async function ReportsIndexPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
+        <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Archivo mensual indexable</p>
@@ -224,8 +226,16 @@ export default async function ReportsIndexPage() {
           {latestMonth ? (
             <TrackedLink
               href={appRoutes.reportMonth(latestMonth)}
-              eventName="report_open_click"
-              eventData={{ source: 'reports_hero', month: latestMonth }}
+              ctaEvent={{
+                source: 'reports_hero',
+                ctaId: 'report_open',
+                destination: 'monthly_report',
+                entityType: 'report',
+                monthPresent: true,
+                sourceRole: 'hub',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
@@ -233,8 +243,13 @@ export default async function ReportsIndexPage() {
           ) : null}
           <TrackedLink
             href={appRoutes.dashboardConclusions()}
-            eventName="related_module_click"
-            eventData={{ source: 'reports_hero', destination: 'dashboard_conclusions' }}
+            navigationEvent={{
+              source: 'reports_hero',
+              destination: 'dashboard_conclusions',
+              sourceRole: 'hub',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Abrir conclusiones del dashboard
@@ -313,8 +328,16 @@ export default async function ReportsIndexPage() {
               <TrackedLink
                 key={month}
                 href={appRoutes.reportMonth(month)}
-                eventName="report_open_click"
-                eventData={{ source: 'reports_archive', month }}
+                ctaEvent={{
+                  source: 'reports_archive',
+                  ctaId: 'report_open',
+                  destination: 'monthly_report',
+                  entityType: 'report',
+                  monthPresent: true,
+                  sourceRole: 'hub',
+                  destinationRole: 'hub',
+                  transitionKind: 'within_public',
+                }}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <div>
@@ -337,8 +360,13 @@ export default async function ReportsIndexPage() {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
             href={appRoutes.seoPage('viajes-por-mes-zaragoza')}
-            eventName="related_module_click"
-            eventData={{ source: 'reports_related', destination: 'monthly_series' }}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'monthly_series',
+              sourceRole: 'hub',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
@@ -348,8 +376,13 @@ export default async function ReportsIndexPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.districtLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'reports_related', destination: 'district_hub' }}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'district_hub',
+              sourceRole: 'hub',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
@@ -359,8 +392,13 @@ export default async function ReportsIndexPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('ranking-estaciones-bizi')}
-            eventName="related_module_click"
-            eventData={{ source: 'reports_related', destination: 'station_ranking' }}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'station_ranking',
+              sourceRole: 'hub',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
@@ -370,8 +408,15 @@ export default async function ReportsIndexPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.developers()}
-            eventName="api_cta_click"
-            eventData={{ source: 'reports_related' }}
+            ctaEvent={{
+              source: 'reports_related',
+              ctaId: 'api_open',
+              destination: 'developers',
+              entityType: 'api',
+              sourceRole: 'hub',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
@@ -381,8 +426,13 @@ export default async function ReportsIndexPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.methodology()}
-            eventName="related_module_click"
-            eventData={{ source: 'reports_related', destination: 'methodology' }}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'methodology',
+              sourceRole: 'hub',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
