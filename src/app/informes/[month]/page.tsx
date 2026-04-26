@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
+import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
@@ -308,6 +309,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
+        <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Informe mensual indexable</p>
@@ -327,16 +329,26 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <div className="flex flex-wrap gap-3">
           <TrackedLink
             href={appRoutes.dashboardConclusions({ month })}
-            eventName="related_module_click"
-            eventData={{ source: 'monthly_report_hero', destination: 'dashboard_conclusions', month }}
+            navigationEvent={{
+              source: 'monthly_report_hero',
+              destination: 'dashboard_conclusions',
+              sourceRole: 'hub',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard filtrado por mes
           </TrackedLink>
           <TrackedLink
             href={appRoutes.reports()}
-            eventName="related_module_click"
-            eventData={{ source: 'monthly_report_hero', destination: 'reports_archive', month }}
+            navigationEvent={{
+              source: 'monthly_report_hero',
+              destination: 'report_archive',
+              sourceRole: 'hub',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Volver al archivo mensual
@@ -429,8 +441,10 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               <TrackedLink
                 key={station.stationId}
                 href={appRoutes.stationDetail(station.stationId)}
-                eventName="station_card_click"
-                eventData={{ source: 'monthly_report_top_stations', station_id: station.stationId, month }}
+                entitySelectEvent={{
+                  source: 'monthly_report_top_stations',
+                  entityType: 'station',
+                }}
                 className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
@@ -479,8 +493,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               <TrackedLink
                 key={district.district}
                 href={appRoutes.districtDetail(slugifyDistrictName(district.district))}
-                eventName="related_module_click"
-                eventData={{ source: 'monthly_report_top_districts', district: district.district, month }}
+                navigationEvent={{
+                  source: 'monthly_report_top_districts',
+                  destination: 'district_detail',
+                  sourceRole: 'hub',
+                  destinationRole: 'hub',
+                  transitionKind: 'within_public',
+                }}
                 className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
@@ -519,12 +538,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             {newerMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(newerMonth)} eventName="report_open_click" eventData={{ source: 'monthly_report_navigation', month: newerMonth }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(newerMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes mas reciente: {formatMonthLabel(newerMonth)}
               </TrackedLink>
             ) : null}
             {olderMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(olderMonth)} eventName="report_open_click" eventData={{ source: 'monthly_report_navigation', month: olderMonth }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(olderMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
                 Mes anterior: {formatMonthLabel(olderMonth)}
               </TrackedLink>
             ) : null}
@@ -537,8 +556,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
             href={appRoutes.reports()}
-            eventName="related_module_click"
-            eventData={{ source: 'monthly_report_related', destination: 'reports_archive', month }}
+            navigationEvent={{
+              source: 'monthly_report_related',
+              destination: 'report_archive',
+              sourceRole: 'hub',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo de informes</p>
@@ -548,8 +572,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
             <TrackedLink
               key={page.slug}
               href={appRoutes.seoPage(page.slug)}
-              eventName="related_module_click"
-              eventData={{ source: 'monthly_report_related', destination: page.slug, month }}
+              navigationEvent={{
+                source: 'monthly_report_related',
+                destination: page.slug,
+                sourceRole: 'hub',
+                destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
+                transitionKind: 'within_public',
+              }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>

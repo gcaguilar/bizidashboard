@@ -5,6 +5,7 @@ import {
   getUtilityLandingData,
 } from '@/lib/acquisition-landings';
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { withCache } from '@/lib/cache/cache';
 import { resolveDataState } from '@/lib/data-state';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
@@ -19,6 +20,7 @@ export const revalidate = 3600;
 // Keep sitemap generation in runtime so it reflects live coverage instead of build-time database fallbacks.
 export const dynamic = 'force-dynamic';
 const EMERGENCY_PRODUCTION_SITEMAP_URL = 'https://datosbizi.com';
+const SITEMAP_CACHE_TTL_SECONDS = 300;
 
 function toValidDate(value: string | null | undefined, fallback: Date): Date {
   if (!value) {
@@ -54,11 +56,8 @@ function buildFallbackStaticEntries(siteUrl: string, lastModified: Date): Metada
   }));
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+async function buildSitemapEntries(siteUrl: string): Promise<MetadataRoute.Sitemap> {
   const configuredSiteUrl = getRobotsBaseUrl();
-  const siteUrl = isFallbackSiteUrl(configuredSiteUrl)
-    ? EMERGENCY_PRODUCTION_SITEMAP_URL
-    : configuredSiteUrl;
 
   if (isFallbackSiteUrl(configuredSiteUrl)) {
     captureWarningWithContext('Sitemap is using emergency production base URL.', {
@@ -275,4 +274,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Never fail sitemap generation entirely: return a safe static subset.
     return dedupeSitemapEntries(buildFallbackStaticEntries(siteUrl, lastModified));
   }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const configuredSiteUrl = getRobotsBaseUrl();
+  const siteUrl = isFallbackSiteUrl(configuredSiteUrl)
+    ? EMERGENCY_PRODUCTION_SITEMAP_URL
+    : configuredSiteUrl;
+
+  return withCache(
+    `sitemap:entries:siteUrl=${siteUrl}`,
+    SITEMAP_CACHE_TTL_SECONDS,
+    () => buildSitemapEntries(siteUrl)
+  );
 }

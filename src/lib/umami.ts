@@ -5,6 +5,7 @@ export type UmamiSurface = 'public' | 'dashboard';
 export type UmamiEntityType = 'station' | 'district' | 'report' | 'api' | 'help';
 export type UmamiQueryLengthBucket = '0' | '1_2' | '3_5' | '6_plus';
 export type UmamiResultCountBucket = '0' | '1' | '2_5' | '6_20' | '21_plus';
+export type UmamiNavigationRole = 'home' | 'entry_seo' | 'hub' | 'detail' | 'dashboard' | 'utility';
 export type UmamiTrackedEventName =
   | 'public_page_view'
   | 'dashboard_page_view'
@@ -46,7 +47,10 @@ type AllowedPayloadKey =
   | 'query_present'
   | 'query_length_bucket'
   | 'result_count_bucket'
-  | 'is_external';
+  | 'is_external'
+  | 'source_role'
+  | 'destination_role'
+  | 'transition_kind';
 
 export type UmamiEventPayload = Partial<Record<AllowedPayloadKey, UmamiEventValue>>;
 
@@ -76,15 +80,18 @@ type SearchSubmitInput = {
   resultCount?: number | null;
 };
 
-type NavigationClickInput = {
+export type NavigationClickInput = {
   surface: UmamiSurface;
   routeKey: string;
   source: string;
   destination: string;
   module?: string;
+  sourceRole?: UmamiNavigationRole;
+  destinationRole?: UmamiNavigationRole;
+  transitionKind?: string;
 };
 
-type CtaClickInput = {
+export type CtaClickInput = {
   surface: UmamiSurface;
   routeKey: string;
   source: string;
@@ -94,6 +101,17 @@ type CtaClickInput = {
   entityType?: UmamiEntityType;
   monthPresent?: boolean;
   isExternal?: boolean;
+  sourceRole?: UmamiNavigationRole;
+  destinationRole?: UmamiNavigationRole;
+  transitionKind?: string;
+};
+
+export type EntitySelectInput = {
+  surface: UmamiSurface;
+  routeKey: string;
+  entityType: UmamiEntityType;
+  source: string;
+  module?: string;
 };
 
 type DashboardModeChangeInput = {
@@ -112,14 +130,6 @@ type FilterChangeInput = {
   period?: string;
   timeWindow?: string;
   resultCount?: number | null;
-};
-
-type EntitySelectInput = {
-  surface: UmamiSurface;
-  routeKey: string;
-  entityType: UmamiEntityType;
-  source: string;
-  module?: string;
 };
 
 type PanelOpenInput = {
@@ -171,6 +181,9 @@ const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
   'query_length_bucket',
   'result_count_bucket',
   'is_external',
+  'source_role',
+  'destination_role',
+  'transition_kind',
 ];
 
 const ALLOWED_PAYLOAD_KEY_SET = new Set<string>(ALLOWED_PAYLOAD_KEYS);
@@ -417,6 +430,9 @@ export function buildNavigationClickEvent({
   source,
   destination,
   module,
+  sourceRole,
+  destinationRole,
+  transitionKind,
 }: NavigationClickInput): UmamiTrackedEvent {
   return {
     name: 'navigation_click',
@@ -425,6 +441,9 @@ export function buildNavigationClickEvent({
       source,
       destination,
       module,
+      source_role: sourceRole,
+      destination_role: destinationRole,
+      transition_kind: transitionKind,
     },
   };
 }
@@ -439,6 +458,9 @@ export function buildCtaClickEvent({
   entityType,
   monthPresent,
   isExternal,
+  sourceRole,
+  destinationRole,
+  transitionKind,
 }: CtaClickInput): UmamiTrackedEvent {
   return {
     name: 'cta_click',
@@ -451,6 +473,9 @@ export function buildCtaClickEvent({
       entity_type: entityType,
       month_present: monthPresent,
       is_external: isExternal,
+      source_role: sourceRole,
+      destination_role: destinationRole,
+      transition_kind: transitionKind,
     },
   };
 }

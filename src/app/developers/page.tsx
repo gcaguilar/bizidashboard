@@ -39,6 +39,20 @@ type EndpointDoc = {
   params: string[];
 };
 
+const OPENAPI_DESTINATION = 'openapi';
+
+function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints') {
+  return {
+    source,
+    ctaId: 'api_open',
+    destination: OPENAPI_DESTINATION,
+    entityType: 'api',
+    sourceRole: 'utility',
+    destinationRole: 'utility',
+    transitionKind: 'within_public',
+  } as const;
+}
+
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
@@ -229,7 +243,7 @@ export default async function DevelopersPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.developers()} className="mt-1" />
+        <PublicSectionNav activeItemId="api" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -257,40 +271,59 @@ export default async function DevelopersPage() {
           <div className="flex flex-wrap gap-3">
             <TrackedLink
               href={appRoutes.api.openApi()}
-              eventName="api_cta_click"
-              eventData={{ source: 'developers_hero', destination: 'openapi' }}
+              ctaEvent={buildOpenApiCtaEvent('developers_hero')}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Descargar OpenAPI JSON
             </TrackedLink>
             <TrackedLink
               href={appRoutes.llms()}
-              eventName="related_module_click"
-              eventData={{ source: 'developers_hero', destination: 'llms' }}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'llms',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver llms.txt
             </TrackedLink>
             <TrackedLink
               href={appRoutes.llmsFull()}
-              eventName="related_module_click"
-              eventData={{ source: 'developers_hero', destination: 'llms_full' }}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'llms_full',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver llms-full.txt
             </TrackedLink>
             <TrackedLink
               href={appRoutes.status()}
-              eventName="related_module_click"
-              eventData={{ source: 'developers_hero', destination: 'status' }}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'status',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver estado del sistema
             </TrackedLink>
             <TrackedLink
               href={appRoutes.methodology()}
-              eventName="related_module_click"
-              eventData={{ source: 'developers_hero', destination: 'methodology' }}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'methodology',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
             >
               Ver metodologia
@@ -432,8 +465,7 @@ print(len(res.json()["transfers"]))`}</code>
           </div>
           <TrackedLink
             href={appRoutes.api.openApi()}
-            eventName="api_cta_click"
-            eventData={{ source: 'developers_endpoints', destination: 'openapi_json' }}
+            ctaEvent={buildOpenApiCtaEvent('developers_endpoints')}
             className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
           >
             Ver JSON OpenAPI
@@ -473,8 +505,15 @@ print(len(res.json()["transfers"]))`}</code>
               <TrackedLink
                 key={item.label}
                 href={item.href}
-                eventName="dataset_download_click"
-                eventData={{ source: 'developers_dataset', destination: item.href, label: item.label }}
+                ctaEvent={{
+                  source: 'developers_dataset',
+                  ctaId: 'dataset_download',
+                  destination: item.href,
+                  entityType: 'api',
+                  sourceRole: 'utility',
+                  destinationRole: 'utility',
+                  transitionKind: 'within_public',
+                }}
                 className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
               >
                 <div>

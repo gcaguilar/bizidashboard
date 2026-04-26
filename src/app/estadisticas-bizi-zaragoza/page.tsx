@@ -109,7 +109,7 @@ export default async function InsightsLandingPage() {
 
       <header className="hero-card">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeHref={appRoutes.reports()} className="mt-1" />
+        <PublicSectionNav activeItemId="explore" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -137,8 +137,16 @@ export default async function InsightsLandingPage() {
           {landingData.latestMonth ? (
             <TrackedLink
               href={appRoutes.reportMonth(landingData.latestMonth)}
-              eventName="ad_landing_primary_click"
-              eventData={{ landing: 'insights', destination: 'latest_report', month: landingData.latestMonth }}
+              ctaEvent={{
+                source: 'insights_landing_hero',
+                ctaId: 'insights_primary',
+                destination: 'monthly_report',
+                monthPresent: true,
+                entityType: 'report',
+                sourceRole: 'entry_seo',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
@@ -146,8 +154,14 @@ export default async function InsightsLandingPage() {
           ) : null}
           <TrackedLink
             href={appRoutes.seoPage('ranking-estaciones-bizi')}
-            eventName="ad_landing_secondary_click"
-            eventData={{ landing: 'insights', destination: 'station_ranking' }}
+            ctaEvent={{
+              source: 'insights_landing_hero',
+              ctaId: 'insights_secondary',
+              destination: 'station_ranking',
+              sourceRole: 'entry_seo',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
           >
             Ver ranking de estaciones
@@ -215,8 +229,16 @@ export default async function InsightsLandingPage() {
           {landingData.latestMonth ? (
             <TrackedLink
               href={appRoutes.reportMonth(landingData.latestMonth)}
-              eventName="report_open_click"
-              eventData={{ source: 'insights_landing_modules', month: landingData.latestMonth }}
+              ctaEvent={{
+                source: 'insights_landing_modules',
+                ctaId: 'report_open',
+                destination: 'monthly_report',
+                monthPresent: true,
+                entityType: 'report',
+                sourceRole: 'entry_seo',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ultimo informe</p>
@@ -227,8 +249,13 @@ export default async function InsightsLandingPage() {
           ) : null}
           <TrackedLink
             href={appRoutes.districtLanding()}
-            eventName="related_module_click"
-            eventData={{ source: 'insights_landing_modules', destination: 'district_hub' }}
+            navigationEvent={{
+              source: 'insights_landing_modules',
+              destination: 'district_hub',
+              sourceRole: 'entry_seo',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios</p>
@@ -238,8 +265,13 @@ export default async function InsightsLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('uso-bizi-por-hora')}
-            eventName="related_module_click"
-            eventData={{ source: 'insights_landing_modules', destination: 'hourly_usage' }}
+            navigationEvent={{
+              source: 'insights_landing_modules',
+              destination: 'hourly_usage',
+              sourceRole: 'entry_seo',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Horas punta</p>
@@ -249,8 +281,15 @@ export default async function InsightsLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.developers()}
-            eventName="api_cta_click"
-            eventData={{ source: 'insights_landing_modules' }}
+            ctaEvent={{
+              source: 'insights_landing_modules',
+              ctaId: 'api_open',
+              destination: 'developers',
+              entityType: 'api',
+              sourceRole: 'entry_seo',
+              destinationRole: 'utility',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
@@ -268,8 +307,10 @@ export default async function InsightsLandingPage() {
             <TrackedLink
               key={station.station.id}
               href={appRoutes.stationDetail(station.station.id)}
-              eventName="station_card_click"
-              eventData={{ source: 'insights_landing_featured_stations', station_id: station.station.id }}
+              entitySelectEvent={{
+                source: 'insights_landing_featured_stations',
+                entityType: 'station',
+              }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
@@ -286,8 +327,13 @@ export default async function InsightsLandingPage() {
         <div className="mt-2 grid gap-3 md:grid-cols-2">
           <TrackedLink
             href={appRoutes.utilityLanding()}
-            eventName="ad_landing_secondary_click"
-            eventData={{ landing: 'insights', destination: 'utility' }}
+            navigationEvent={{
+              source: 'insights_landing_next_step',
+              destination: 'utility_landing',
+              sourceRole: 'entry_seo',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero resolver algo practico</p>
@@ -297,8 +343,13 @@ export default async function InsightsLandingPage() {
           </TrackedLink>
           <TrackedLink
             href={appRoutes.dashboardConclusions()}
-            eventName="related_module_click"
-            eventData={{ source: 'insights_landing_next_step', destination: 'dashboard_conclusions' }}
+            navigationEvent={{
+              source: 'insights_landing_next_step',
+              destination: 'dashboard_conclusions',
+              sourceRole: 'entry_seo',
+              destinationRole: 'dashboard',
+              transitionKind: 'to_dashboard',
+            }}
             className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero ir al detalle operativo</p>
