@@ -32,6 +32,9 @@ function getTrackedLinkCallByHref(href: string) {
         navigationEvent?: {
           source?: string;
           destination?: string;
+          module?: string;
+          sourceRole?: string;
+          destinationRole?: string;
           transitionKind?: string;
         };
       }
@@ -47,14 +50,20 @@ describe('dashboard route links', () => {
     const dashboardLink = getTrackedLinkCallByHref(appRoutes.dashboard());
     const stationsLink = getTrackedLinkCallByHref(appRoutes.dashboardStations());
 
-    expect(dashboardLink?.navigationEvent).toMatchObject({
+    expect(dashboardLink?.navigationEvent).toEqual({
       source: 'dashboard',
       destination: 'dashboard',
+      module: 'dashboard_route_links',
+      sourceRole: 'dashboard',
+      destinationRole: 'dashboard',
       transitionKind: 'within_dashboard',
     });
-    expect(stationsLink?.navigationEvent).toMatchObject({
+    expect(stationsLink?.navigationEvent).toEqual({
       source: 'dashboard',
       destination: 'stations',
+      module: 'dashboard_route_links',
+      sourceRole: 'dashboard',
+      destinationRole: 'dashboard',
       transitionKind: 'within_dashboard',
     });
   });
