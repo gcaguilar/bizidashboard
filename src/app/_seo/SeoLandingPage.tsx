@@ -1115,6 +1115,26 @@ function resolveSeoLandingDestinationRole(href: string): 'dashboard' | 'hub' | '
   return 'hub';
 }
 
+function resolveSeoLandingDestination(href: string): string {
+  if (href.startsWith('/dashboard')) {
+    return 'dashboard_view';
+  }
+
+  if (href.startsWith('/estaciones/')) {
+    return 'station_detail';
+  }
+
+  if (href.startsWith('/barrios/')) {
+    return 'district_detail';
+  }
+
+  if (href.startsWith('/informes/')) {
+    return 'monthly_report';
+  }
+
+  return href === appRoutes.reports() ? 'report_archive' : 'seo_or_hub';
+}
+
 function resolveSeoLandingTransitionKind(href: string): 'to_dashboard' | 'within_public' {
   return href.startsWith('/dashboard') ? 'to_dashboard' : 'within_public';
 }
@@ -1330,14 +1350,6 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                 <TrackedLink
                   key={`${item.title}-${item.href}`}
                   href={item.href}
-function resolveSeoLandingDestination(href: string): string {
-  if (href.startsWith('/dashboard')) return 'dashboard_view';
-  if (href.startsWith('/estaciones/')) return 'station_detail';
-  if (href.startsWith('/barrios/')) return 'district_detail';
-  if (href.startsWith('/informes/')) return 'monthly_report';
-  return href === appRoutes.reports() ? 'report_archive' : 'seo_or_hub';
-}
-
                   navigationEvent={{
                     source: 'seo_landing_items',
                     destination: resolveSeoLandingDestination(item.href),
