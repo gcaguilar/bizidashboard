@@ -49,6 +49,12 @@ const QUICK_LINKS = [
   },
 ] as const;
 
+const HOME_UTILITY_LINKS = new Set([
+  appRoutes.status(),
+  appRoutes.developers(),
+  appRoutes.methodology(),
+]);
+
 export const metadata: Metadata = buildPageMetadata({
   title: 'DatosBizi: estaciones Bizi Zaragoza, uso, disponibilidad y analisis',
   description:
@@ -76,6 +82,18 @@ function formatPercent(value: number): string {
     style: 'percent',
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function getHomeQuickLinkDestinationRole(href: string): 'dashboard' | 'hub' | 'utility' {
+  if (href === appRoutes.dashboard()) {
+    return 'dashboard';
+  }
+
+  if (HOME_UTILITY_LINKS.has(href)) {
+    return 'utility';
+  }
+
+  return 'hub';
 }
 
 export default async function Home() {
@@ -194,7 +212,7 @@ export default async function Home() {
               source: 'home_quick_links',
               destination: link.href,
               sourceRole: 'home',
-              destinationRole: link.href === appRoutes.dashboard() ? 'dashboard' : 'hub',
+              destinationRole: getHomeQuickLinkDestinationRole(link.href),
               transitionKind: link.href === appRoutes.dashboard() ? 'to_dashboard' : 'within_public',
             }}
             className="dashboard-card transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"

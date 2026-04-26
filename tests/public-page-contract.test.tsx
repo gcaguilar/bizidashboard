@@ -7,24 +7,28 @@ const {
   publicSectionNavSpy,
   trackedLinkSpy,
   getStationSeoPageDataMock,
+  getStationSeoRowsMock,
   getDistrictSeoRowBySlugMock,
   getDistrictSeoRowsMock,
   fetchAvailableDataMonthsMock,
   fetchSharedDatasetSnapshotMock,
   fetchHistoryMetadataMock,
   fetchStatusMock,
+  fetchStationsMock,
   fetchCachedMonthlyDemandCurveMock,
   getDailyMobilityConclusionsMock,
 } = vi.hoisted(() => ({
   publicSectionNavSpy: vi.fn(),
   trackedLinkSpy: vi.fn(),
   getStationSeoPageDataMock: vi.fn(),
+  getStationSeoRowsMock: vi.fn(),
   getDistrictSeoRowBySlugMock: vi.fn(),
   getDistrictSeoRowsMock: vi.fn(),
   fetchAvailableDataMonthsMock: vi.fn(),
   fetchSharedDatasetSnapshotMock: vi.fn(),
   fetchHistoryMetadataMock: vi.fn(),
   fetchStatusMock: vi.fn(),
+  fetchStationsMock: vi.fn(),
   fetchCachedMonthlyDemandCurveMock: vi.fn(),
   getDailyMobilityConclusionsMock: vi.fn(),
 }));
@@ -106,6 +110,7 @@ vi.mock('@/app/_components/DataStateNotice', () => ({
 
 vi.mock('@/lib/seo-stations', () => ({
   getStationSeoPageData: getStationSeoPageDataMock,
+  getStationSeoRows: getStationSeoRowsMock,
 }));
 
 vi.mock('@/lib/seo-districts', async () => {
@@ -124,7 +129,7 @@ vi.mock('@/lib/api', () => ({
   fetchSharedDatasetSnapshot: fetchSharedDatasetSnapshotMock,
   fetchHistoryMetadata: fetchHistoryMetadataMock,
   fetchStatus: fetchStatusMock,
-  fetchStations: vi.fn(),
+  fetchStations: fetchStationsMock,
   fetchRankings: vi.fn(),
 }));
 
@@ -146,6 +151,12 @@ function getTrackedLinkCallByHref(href: string) {
   return call?.[0] as Record<string, unknown> | undefined;
 }
 
+function getTrackedLinkCallsByHref(href: string) {
+  return trackedLinkSpy.mock.calls
+    .filter(([props]) => props.href === href)
+    .map(([props]) => props as Record<string, unknown>);
+}
+
 beforeEach(() => {
   vi.resetModules();
   vi.stubEnv('APP_URL', SITE_URL);
@@ -153,14 +164,18 @@ beforeEach(() => {
   publicSectionNavSpy.mockClear();
   trackedLinkSpy.mockClear();
   getStationSeoPageDataMock.mockReset();
+  getStationSeoRowsMock.mockReset();
   getDistrictSeoRowBySlugMock.mockReset();
   getDistrictSeoRowsMock.mockReset();
   fetchAvailableDataMonthsMock.mockReset();
   fetchSharedDatasetSnapshotMock.mockReset();
   fetchHistoryMetadataMock.mockReset();
   fetchStatusMock.mockReset();
+  fetchStationsMock.mockReset();
   fetchCachedMonthlyDemandCurveMock.mockReset();
   getDailyMobilityConclusionsMock.mockReset();
+
+  getStationSeoRowsMock.mockResolvedValue([]);
 
   fetchAvailableDataMonthsMock.mockResolvedValue({
     months: ['2026-03', '2026-02'],
@@ -187,8 +202,56 @@ beforeEach(() => {
     source: { gbfsDiscoveryUrl: 'https://gbfs.example.com/gbfs.json' },
   });
   fetchStatusMock.mockResolvedValue({
+    pipeline: {
+      lastSuccessfulPoll: '2026-03-31T10:00:00.000Z',
+      totalRowsCollected: 120000,
+      pollsLast24Hours: 288,
+      validationErrors: 0,
+      consecutiveFailures: 0,
+      lastDataFreshness: true,
+      lastStationCount: 42,
+      averageStationsPerPoll: 42,
+      healthStatus: 'healthy',
+      healthReason: null,
+    },
+    quality: {
+      freshness: {
+        isFresh: true,
+        lastUpdated: '2026-03-31T10:00:00.000Z',
+        maxAgeSeconds: 600,
+      },
+      volume: {
+        recentStationCount: 42,
+        averageStationsPerPoll: 42,
+        expectedRange: { min: 20, max: 80 },
+      },
+      lastCheck: '2026-03-31T10:00:00.000Z',
+    },
+    system: {
+      uptime: '2026-03-31T00:00:00.000Z',
+      version: '0.1.0',
+      environment: 'test',
+    },
+    operations: {
+      cache: {
+        configured: true,
+        available: true,
+        backend: 'redis',
+      },
+      recentCollections: [],
+      security: {
+        failedAuthLast24Hours: 0,
+        rateLimitedLast24Hours: 0,
+        refreshTokenReuseLast24Hours: 0,
+      },
+    },
+    timestamp: '2026-03-31T10:00:00.000Z',
     dataState: 'fresh',
-    pipeline: { lastSuccessfulPoll: '2026-03-31T10:00:00.000Z' },
+  });
+  fetchStationsMock.mockResolvedValue({
+    stations: [],
+    generatedAt: '2026-03-31T10:00:00.000Z',
+    dataState: 'fresh',
   });
   fetchCachedMonthlyDemandCurveMock.mockResolvedValue([
     { monthKey: '2026-03', activeStations: 42, estimatedTrips: 1200 },
@@ -343,20 +406,60 @@ describe('public page contract', () => {
     expect(publicSectionNavSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('keeps utility navigation active on developers and methodology pages', async () => {
+  it('keeps utility navigation active on status, developers and methodology pages', async () => {
+    const statusPage = await import('@/app/estado/page');
     const developersPage = await import('@/app/developers/page');
     const methodologyPage = await import('@/app/metodologia/page');
 
+    renderToStaticMarkup(await statusPage.default());
     renderToStaticMarkup(await developersPage.default());
     renderToStaticMarkup(await methodologyPage.default());
 
     expect(publicSectionNavSpy).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ activeItemId: 'api' })
+      expect.objectContaining({ activeItemId: 'status' })
     );
     expect(publicSectionNavSpy).toHaveBeenNthCalledWith(
       2,
+      expect.objectContaining({ activeItemId: 'api' })
+    );
+    expect(publicSectionNavSpy).toHaveBeenNthCalledWith(
+      3,
       expect.objectContaining({ activeItemId: 'help' })
+    );
+  });
+
+  it('tracks home utility links with utility destination roles', async () => {
+    const homePage = await import('@/app/page');
+
+    renderToStaticMarkup(await homePage.default());
+
+    expect(getTrackedLinkCallsByHref('/estado')).toContainEqual(
+      expect.objectContaining({
+        navigationEvent: expect.objectContaining({
+          source: 'home_quick_links',
+          sourceRole: 'home',
+          destinationRole: 'utility',
+        }),
+      })
+    );
+    expect(getTrackedLinkCallsByHref('/developers')).toContainEqual(
+      expect.objectContaining({
+        navigationEvent: expect.objectContaining({
+          source: 'home_quick_links',
+          sourceRole: 'home',
+          destinationRole: 'utility',
+        }),
+      })
+    );
+    expect(getTrackedLinkCallsByHref('/metodologia')).toContainEqual(
+      expect.objectContaining({
+        navigationEvent: expect.objectContaining({
+          source: 'home_quick_links',
+          sourceRole: 'home',
+          destinationRole: 'utility',
+        }),
+      })
     );
   });
 
