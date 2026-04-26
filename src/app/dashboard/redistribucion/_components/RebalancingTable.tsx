@@ -392,6 +392,8 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     updateURL();
   }, [updateURL]);
 
+  // TanStack Table intentionally returns non-memoizable functions; keep this local opt-out explicit.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: diagnostics,
     columns,

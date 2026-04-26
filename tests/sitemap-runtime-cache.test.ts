@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
 const {
@@ -116,6 +116,11 @@ describe('sitemap runtime cache', () => {
       indexability: { includeInSitemap: true },
     });
     getSeoLandingPageDataMock.mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
   });
 
   it('caches the generated sitemap payload behind the shared cache helper', async () => {

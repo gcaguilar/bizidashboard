@@ -39,6 +39,20 @@ type EndpointDoc = {
   params: string[];
 };
 
+const OPENAPI_DESTINATION = 'openapi';
+
+function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints') {
+  return {
+    source,
+    ctaId: 'api_open',
+    destination: OPENAPI_DESTINATION,
+    entityType: 'api',
+    sourceRole: 'utility',
+    destinationRole: 'utility',
+    transitionKind: 'within_public',
+  } as const;
+}
+
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = buildPageMetadata({
@@ -257,15 +271,7 @@ export default async function DevelopersPage() {
           <div className="flex flex-wrap gap-3">
             <TrackedLink
               href={appRoutes.api.openApi()}
-              ctaEvent={{
-                source: 'developers_hero',
-                ctaId: 'api_open',
-                destination: 'openapi',
-                entityType: 'api',
-                sourceRole: 'utility',
-                destinationRole: 'utility',
-                transitionKind: 'within_public',
-              }}
+              ctaEvent={buildOpenApiCtaEvent('developers_hero')}
               className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Descargar OpenAPI JSON
@@ -459,15 +465,7 @@ print(len(res.json()["transfers"]))`}</code>
           </div>
           <TrackedLink
             href={appRoutes.api.openApi()}
-            ctaEvent={{
-              source: 'developers_endpoints',
-              ctaId: 'api_open',
-              destination: 'openapi_json',
-              entityType: 'api',
-              sourceRole: 'utility',
-              destinationRole: 'utility',
-              transitionKind: 'within_public',
-            }}
+            ctaEvent={buildOpenApiCtaEvent('developers_endpoints')}
             className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
           >
             Ver JSON OpenAPI
