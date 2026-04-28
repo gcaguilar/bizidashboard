@@ -1,5 +1,6 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api';
 import type { Coordinates } from '@/lib/geo';
@@ -58,8 +59,9 @@ export function MapPanel({
       : ['Rojo = desequilibrio', 'Verde = estable', 'Azul = favorita', 'Toca para detalle'];
 
   return (
-    <section
-      className="relative w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]"
+    <Card
+      variant="panel"
+      className="relative w-full"
       style={{ height: `${MAP_HEIGHT}px` }}
     >
       <div className="absolute left-4 top-4 z-20 max-w-[75%] rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 backdrop-blur">
@@ -93,6 +95,6 @@ export function MapPanel({
           onViewStateCommit={onViewStateCommit}
         />
       </div>
-    </section>
+    </Card>
   );
 }
