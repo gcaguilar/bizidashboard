@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { getFeedbackUrl } from '@/lib/feedback';
 import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
 
@@ -35,7 +36,7 @@ export function FeedbackCta({
 
   if (!feedbackUrl) {
     return (
-      <button
+      <Button
         {...buttonProps}
         type={type}
         disabled
@@ -43,7 +44,7 @@ export function FeedbackCta({
         className={pendingClassName ?? className}
       >
         {pendingLabel}
-      </button>
+      </Button>
     );
   }
 
@@ -69,7 +70,7 @@ export function FeedbackCta({
           })
         )
       }
-      className={className}
+      className={buttonVariants({ className })}
     >
       {children}
     </a>

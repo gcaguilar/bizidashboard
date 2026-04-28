@@ -3,6 +3,9 @@
 import { useMemo, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationSnapshot } from '@/lib/api';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
@@ -81,15 +84,19 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           </div>
         </div>
         <CitySwitcher compact className="mt-3" />
-        <label className="mt-3 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
-          <input
+        <div className="mt-3">
+          <label htmlFor="stations-directory-search" className="sr-only">
+            Buscar por nombre o ID
+          </label>
+          <Input
+            id="stations-directory-search"
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            className="bg-[var(--surface-soft)]"
             placeholder="Buscar por nombre o ID"
           />
-        </label>
+        </div>
       </header>
 
       {shouldShowDataStateNotice(directoryDataState) ? (
@@ -111,7 +118,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           const occupancy = station.capacity > 0 ? station.bikesAvailable / station.capacity : 0;
 
           return (
-            <article
+            <Card
               key={station.id}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]"
             >
@@ -140,11 +147,16 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   source: 'stations_directory',
                   module: 'station_card',
                 })}
-                className="mt-3 inline-flex rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                className={buttonVariants({
+                  variant: 'outline',
+                  size: 'sm',
+                  className:
+                    'mt-3 min-h-0 border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+                })}
               >
                 Ver detalle
               </TrackedLink>
-            </article>
+            </Card>
           );
         })}
       </section>

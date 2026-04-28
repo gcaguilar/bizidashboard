@@ -13,6 +13,14 @@ import {
   YAxis,
 } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ChartWrapper } from './ChartWrapper';
 import type { StationSnapshot } from '@/lib/api';
 import {
@@ -369,17 +377,25 @@ function MobilityInsightsContent({
                 <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
                   Barrio de referencia
                 </label>
-                <select
+                <Select
                   value={selectedDistrictName}
-                  onChange={(event) => setSelectedDistrictName(event.target.value)}
-                  className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] outline-none"
+                  onValueChange={(value) => setSelectedDistrictName(value ?? '')}
                 >
-                  {activeInsights.districts.map((district) => (
-                    <option key={district.district} value={district.district}>
-                      {district.district}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger
+                    aria-label="Seleccionar barrio de referencia"
+                    className="mt-2 w-full bg-[var(--surface)]"
+                  >
+                    <SelectValue placeholder="Selecciona un barrio" />
+                    <SelectIcon />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeInsights.districts.map((district) => (
+                      <SelectItem key={district.district} value={district.district}>
+                        {district.district}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="mt-2 text-xs text-[var(--muted)]">
                   Cambia el barrio para revisar su saldo neto y los barrios con mas flujo estimado hacia el y desde el.
                 </p>

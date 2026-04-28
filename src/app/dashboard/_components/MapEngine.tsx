@@ -14,6 +14,7 @@ import {
   type MapRef,
 } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { Button } from '@/components/ui/button';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
@@ -364,22 +365,24 @@ export function MapEngine({
   return (
     <>
       <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
-        <button
-          type="button"
+        <Button
           onClick={handleZoomIn}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Acercar"
         >
           +
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           onClick={handleZoomOut}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Alejar"
         >
           -
-        </button>
+        </Button>
       </div>
 
       <Map
@@ -435,18 +438,19 @@ export function MapEngine({
                   <p className="text-sm font-bold">{popupStation.name}</p>
                   <p className="text-xs text-[var(--muted)]">ID #{popupStation.id}</p>
                 </div>
-                <button
-                  type="button"
+                <Button
                   onClick={() => onToggleFavorite?.(popupStation.id)}
                   aria-pressed={favoriteStationSet.has(popupStation.id)}
-                  className={`rounded-md border px-2 py-1 text-xs font-bold transition ${
+                  variant="outline"
+                  size="sm"
+                  className={`min-h-0 rounded-md px-2 py-1 text-xs font-bold transition ${
                     favoriteStationSet.has(popupStation.id)
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]'
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)]/20'
                       : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
                   }`}
                 >
                   {favoriteStationSet.has(popupStation.id) ? '★ Favorita' : '☆ Favorita'}
-                </button>
+                </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">

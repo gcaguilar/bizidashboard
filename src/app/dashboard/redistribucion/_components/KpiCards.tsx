@@ -1,5 +1,14 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { ReportKPIs, BaselineComparison } from '@/types/rebalancing';
 
 type Props = {
@@ -20,7 +29,7 @@ export function KpiCards({ kpis, baseline }: Props) {
   return (
     <div className="space-y-4">
       {/* Service KPIs */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+      <Card className="p-4">
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">KPIs de servicio</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
@@ -48,10 +57,10 @@ export function KpiCards({ kpis, baseline }: Props) {
             <p className="text-xs text-[var(--muted)]">Usos perdidos estimados</p>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* Impact KPIs */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+      <Card className="p-4">
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Impacto esperado de intervenciones</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
@@ -81,38 +90,41 @@ export function KpiCards({ kpis, baseline }: Props) {
             <p className="text-xs text-[var(--muted)]">Mejora vs sin intervención</p>
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* Baseline comparison */}
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+      <Card className="p-4">
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Comparativa de escenarios</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-                <th className="pb-2 pr-4">Escenario</th>
-                <th className="pb-2 pr-4">Vaciados evitados</th>
-                <th className="pb-2 pr-4">Llenos evitados</th>
-                <th className="pb-2 pr-4">Movimientos</th>
-                <th className="pb-2">Coste / incidente</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
+          <Table className="text-xs">
+            <TableHeader>
+              <TableRow className="text-left text-[var(--muted)]">
+                <TableHead className="h-auto px-0 pb-2 pr-4 normal-case tracking-normal">Escenario</TableHead>
+                <TableHead className="h-auto px-0 pb-2 pr-4 normal-case tracking-normal">Vaciados evitados</TableHead>
+                <TableHead className="h-auto px-0 pb-2 pr-4 normal-case tracking-normal">Llenos evitados</TableHead>
+                <TableHead className="h-auto px-0 pb-2 pr-4 normal-case tracking-normal">Movimientos</TableHead>
+                <TableHead className="h-auto px-0 pb-2 normal-case tracking-normal">Coste / incidente</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {[baseline.doNothing, baseline.simpleRules, baseline.recommended].map((s) => (
-                <tr key={s.label} className={s.label === 'Sistema recomendado' ? 'font-semibold' : ''}>
-                  <td className="py-2 pr-4">{s.label}</td>
-                  <td className="py-2 pr-4 tabular-nums">{s.emptiesAvoided.toFixed(1)}</td>
-                  <td className="py-2 pr-4 tabular-nums">{s.fullsAvoided.toFixed(1)}</td>
-                  <td className="py-2 pr-4 tabular-nums">{s.totalMoves}</td>
-                  <td className="py-2 tabular-nums">
+                <TableRow
+                  key={s.label}
+                  className={s.label === 'Sistema recomendado' ? 'font-semibold' : ''}
+                >
+                  <TableCell className="px-0 py-2 pr-4">{s.label}</TableCell>
+                  <TableCell className="px-0 py-2 pr-4 tabular-nums">{s.emptiesAvoided.toFixed(1)}</TableCell>
+                  <TableCell className="px-0 py-2 pr-4 tabular-nums">{s.fullsAvoided.toFixed(1)}</TableCell>
+                  <TableCell className="px-0 py-2 pr-4 tabular-nums">{s.totalMoves}</TableCell>
+                  <TableCell className="px-0 py-2 tabular-nums">
                     {s.costPerIncidentAvoided !== null ? s.costPerIncidentAvoided.toFixed(2) : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

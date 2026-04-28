@@ -1,6 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import {
   buildSearchSubmitEvent,
@@ -46,7 +48,7 @@ export function PublicSearchForm({
         Buscador global
       </label>
       <div className="flex flex-wrap gap-2">
-        <input
+        <Input
           id="public-search"
           name="q"
           type="search"
@@ -54,12 +56,12 @@ export function PublicSearchForm({
           placeholder={placeholder}
           className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
         />
-        <button
+        <Button
           type="submit"
           className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
         >
           {buttonLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

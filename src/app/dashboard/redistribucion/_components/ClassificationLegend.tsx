@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import type { StationClassification } from '@/types/rebalancing';
 
 const CLASSIFICATIONS: Array<{
@@ -55,21 +57,29 @@ const CLASSIFICATIONS: Array<{
 
 export function ClassificationLegend() {
   return (
-    <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
-        Clasificación de estaciones
-      </h2>
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {CLASSIFICATIONS.map((c) => (
-          <div
-            key={c.code}
-            className={`rounded-lg border p-3 text-sm ${c.bg}`}
-          >
-            <p className={`font-semibold ${c.color}`}>{c.label}</p>
-            <p className="mt-1 text-xs text-[var(--muted)]">{c.description}</p>
-          </div>
-        ))}
-      </div>
+    <section>
+      <Card className="p-4">
+        <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
+          Clasificación de estaciones
+        </h2>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {CLASSIFICATIONS.map((c) => (
+            <Card
+              key={c.code}
+              variant="stat"
+              className={`gap-2 rounded-lg border p-3 text-sm ${c.bg}`}
+            >
+              <Badge
+                variant="muted"
+                className={`w-fit border-transparent px-0 py-0 text-xs font-semibold normal-case tracking-normal ${c.color}`}
+              >
+                {c.label}
+              </Badge>
+              <p className="mt-1 text-xs text-[var(--muted)]">{c.description}</p>
+            </Card>
+          ))}
+        </div>
+      </Card>
     </section>
   );
 }
