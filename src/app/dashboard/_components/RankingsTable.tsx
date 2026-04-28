@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
@@ -29,7 +31,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams.get('rankingTab');
   const activeTab: RankingTab =
-    tabFromUrl === 'turnover' ? 'turnover' : 'availability'
+    tabFromUrl === 'turnover' ? 'turnover' : 'availability';
   const search = searchParams.get('rankingSearch') ?? '';
   const showAll = searchParams.get('rankingShowAll') === '1';
 
@@ -144,36 +146,36 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
       <div className='flex flex-wrap items-center gap-2'>
         <div className='flex gap-2'>
-          <button
-            type='button'
+          <Button
+            variant='ghost'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'availability'
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
-            }`}
+            } h-auto min-h-0`}
             onClick={() => {
               updateQuery({ tab: 'availability', showAll: false });
             }}
           >
             Criticas
-          </button>
-          <button
-            type='button'
+          </Button>
+          <Button
+            variant='ghost'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'turnover'
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
-            }`}
+            } h-auto min-h-0`}
             onClick={() => {
               updateQuery({ tab: 'turnover', showAll: false });
             }}
           >
             Rotacion
-          </button>
+          </Button>
         </div>
 
-        <input
-          className='min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
+        <Input
+          className='h-8 min-h-0 min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
           placeholder='Buscar estacion'
           value={search}
           onChange={(event) => {
@@ -261,15 +263,15 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       )}
 
       {rows.length > 8 ? (
-        <button
-          type='button'
+        <Button
+          variant='ghost'
           onClick={() => {
             updateQuery({ showAll: !showAll });
           }}
-          className='rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white'
+          className='h-auto min-h-0 rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white'
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}
-        </button>
+        </Button>
       ) : null}
     </section>
   );

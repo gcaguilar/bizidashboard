@@ -4,6 +4,25 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -15,6 +34,7 @@ import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
 
 const PAGE_SIZE = 100;
 const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const ALL_STATIONS_VALUE = '__all_stations__';
 
 type AlertTypeFilter = 'all' | 'LOW_BIKES' | 'LOW_ANCHORS';
 type AlertStateFilter = 'all' | 'active' | 'resolved';
@@ -469,79 +489,101 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         <CitySwitcher compact className="mt-3" />
 
         <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-6">
-          <select
-            value={stationId}
-            onChange={(event) => {
-              setStationId(event.target.value);
+          <Select
+            value={stationId || ALL_STATIONS_VALUE}
+            onValueChange={(value) => {
+              setStationId(!value || value === ALL_STATIONS_VALUE ? '' : value);
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           >
-            <option value="">Todas las estaciones</option>
-            {stations.map((station) => (
-              <option key={station.id} value={station.id}>
-                {station.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger aria-label="Filtrar por estación" className="w-full bg-[var(--surface-soft)]">
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATIONS_VALUE}>Todas las estaciones</SelectItem>
+              {stations.map((station) => (
+                <SelectItem key={station.id} value={station.id}>
+                  {station.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <select
+          <Select
             value={alertType}
-            onChange={(event) => {
-              setAlertType(event.target.value as AlertTypeFilter);
+            onValueChange={(value) => {
+              setAlertType((value as AlertTypeFilter) ?? 'all');
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           >
-            <option value="all">Todos los tipos</option>
-            <option value="LOW_BIKES">Pocas bicis</option>
-            <option value="LOW_ANCHORS">Pocos anclajes</option>
-          </select>
+            <SelectTrigger aria-label="Filtrar por tipo de alerta" className="w-full bg-[var(--surface-soft)]">
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="LOW_BIKES">Pocas bicis</SelectItem>
+              <SelectItem value="LOW_ANCHORS">Pocos anclajes</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
+          <Select
             value={stateFilter}
-            onChange={(event) => {
-              setStateFilter(event.target.value as AlertStateFilter);
+            onValueChange={(value) => {
+              setStateFilter((value as AlertStateFilter) ?? 'all');
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           >
-            <option value="all">Todos los estados</option>
-            <option value="active">Activas</option>
-            <option value="resolved">Resueltas</option>
-          </select>
+            <SelectTrigger aria-label="Filtrar por estado" className="w-full bg-[var(--surface-soft)]">
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activas</SelectItem>
+              <SelectItem value="resolved">Resueltas</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
+          <Select
             value={severityFilter}
-            onChange={(event) => {
-              setSeverityFilter(event.target.value as SeverityFilter);
+            onValueChange={(value) => {
+              setSeverityFilter((value as SeverityFilter) ?? 'all');
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
           >
-            <option value="all">Todas las severidades</option>
-            <option value="1">Media</option>
-            <option value="2">Critica</option>
-          </select>
+            <SelectTrigger aria-label="Filtrar por severidad" className="w-full bg-[var(--surface-soft)]">
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las severidades</SelectItem>
+              <SelectItem value="1">Media</SelectItem>
+              <SelectItem value="2">Critica</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <input
+          <Input
             type="date"
             value={fromDate}
             onChange={(event) => {
               setFromDate(event.target.value);
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
+            aria-label="Fecha desde"
+            className="bg-[var(--surface-soft)]"
           />
 
-          <input
+          <Input
             type="date"
             value={toDate}
             onChange={(event) => {
               setToDate(event.target.value);
               setPage(0);
             }}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
+            aria-label="Fecha hasta"
+            className="bg-[var(--surface-soft)]"
           />
         </div>
 
@@ -549,75 +591,81 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
             Rangos rapidos
           </span>
-          <button
-            type="button"
+          <Button
             onClick={() => applyQuickRange(1)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            variant={activeQuickRange === 'today' ? 'default' : 'outline'}
+            size="sm"
+            className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'today'
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] text-[var(--foreground)] hover:border-[var(--accent)]'
+                ? 'border-[var(--accent)]'
+                : 'hover:border-[var(--accent)]'
             }`}
           >
             Hoy
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => applyQuickRange(7)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            variant={activeQuickRange === 'last7' ? 'default' : 'outline'}
+            size="sm"
+            className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'last7'
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] text-[var(--foreground)] hover:border-[var(--accent)]'
+                ? 'border-[var(--accent)]'
+                : 'hover:border-[var(--accent)]'
             }`}
           >
             7 dias
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => applyQuickRange(30)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            variant={activeQuickRange === 'last30' ? 'default' : 'outline'}
+            size="sm"
+            className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'last30'
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] text-[var(--foreground)] hover:border-[var(--accent)]'
+                ? 'border-[var(--accent)]'
+                : 'hover:border-[var(--accent)]'
             }`}
           >
             30 dias
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={clearFilters}
             disabled={!hasActiveFilters}
-            className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
+            variant="outline"
+            size="sm"
+            className="rounded-full px-3 py-1 text-xs hover:border-[var(--accent)]"
           >
             Limpiar filtros
-          </button>
+          </Button>
 
           <span className="ml-auto text-xs text-[var(--muted)]">La URL refleja los filtros actuales.</span>
         </div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="dashboard-card">
+        <Card className="dashboard-card">
           <p className="stat-label">Total filtrado</p>
           <p className="stat-value">{totalRows}</p>
-        </article>
-        <article className="dashboard-card">
+        </Card>
+        <Card className="dashboard-card">
           <p className="stat-label">Activas (pagina)</p>
           <p className="stat-value">{stats.active}</p>
-        </article>
-        <article className="dashboard-card">
+        </Card>
+        <Card className="dashboard-card">
           <p className="stat-label">Criticas (pagina)</p>
           <p className="stat-value">{stats.critical}</p>
-        </article>
-        <article className="dashboard-card">
+        </Card>
+        <Card className="dashboard-card">
           <p className="stat-label">Exportar</p>
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               onClick={copyToClipboard}
               disabled={rows.length === 0}
-              className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--foreground)] transition hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
+              variant="outline"
+              size="sm"
+              className="px-3 py-2 text-xs"
             >
               Copiar
-            </button>
+            </Button>
             <a
               href={downloadCsvHref}
               className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
@@ -625,7 +673,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               CSV
             </a>
           </div>
-        </article>
+        </Card>
       </section>
 
       <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
@@ -644,30 +692,30 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           <p className="px-4 py-6 text-sm text-[var(--muted)]">No hay alertas para los filtros actuales.</p>
         ) : (
           <div className="overflow-x-auto max-h-[600px]">
-            <table className="min-w-full border-collapse text-sm">
-              <thead className="sticky top-0 z-10 bg-[var(--surface-soft)]">
-                <tr className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
-                  <th className="px-4 py-3">Fecha</th>
-                  <th className="px-4 py-3">Estacion</th>
-                  <th className="px-4 py-3">Tipo</th>
-                  <th className="px-4 py-3">Severidad</th>
-                  <th className="px-4 py-3">Estado</th>
-                  <th className="px-4 py-3">Valor</th>
-                  <th className="px-4 py-3">Ventana</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="min-w-full border-collapse text-sm">
+              <TableHeader className="sticky top-0 z-10 bg-[var(--surface-soft)]">
+                <TableRow className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
+                  <TableHead className="h-auto px-4 py-3">Fecha</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Estacion</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Tipo</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Severidad</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Estado</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Valor</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Ventana</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-[var(--border)] text-[var(--foreground)]">
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-[var(--muted)]">
+                  <TableRow key={row.id} className="border-t border-[var(--border)] text-[var(--foreground)]">
+                    <TableCell className="whitespace-nowrap px-4 py-3 text-xs text-[var(--muted)]">
                       {formatDateTime(row.generatedAt)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <p className="font-semibold">{row.stationName}</p>
                       <p className="text-xs text-[var(--muted)]">{row.stationId}</p>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">{formatAlertType(row.alertType)}</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-4 py-3">{formatAlertType(row.alertType)}</TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
                           row.severity >= 2
@@ -677,8 +725,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                       >
                         {row.severity >= 2 ? 'Critica' : 'Media'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
                           row.isActive
@@ -688,37 +736,39 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                       >
                         {row.isActive ? 'Activa' : 'Resuelta'}
                       </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs">{row.metricValue.toFixed(1)}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-[var(--muted)]">
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-4 py-3 text-xs">{row.metricValue.toFixed(1)}</TableCell>
+                    <TableCell className="whitespace-nowrap px-4 py-3 text-xs text-[var(--muted)]">
                       {row.windowHours}h
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
 
         <footer className="flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
           <p className="text-xs text-[var(--muted)]">Muestra de {PAGE_SIZE} filas por pagina</p>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
+            <Button
               onClick={() => hasPreviousPage && setPage((current) => current - 1)}
               disabled={!hasPreviousPage || isLoading}
-              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40"
+              variant="outline"
+              size="sm"
+              className="text-xs"
             >
               Anterior
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={() => hasNextPage && setPage((current) => current + 1)}
               disabled={!hasNextPage || isLoading}
-              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40"
+              variant="outline"
+              size="sm"
+              className="text-xs"
             >
               Siguiente
-            </button>
+            </Button>
           </div>
         </footer>
       </section>

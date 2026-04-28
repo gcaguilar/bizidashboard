@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, type KeyboardEvent } from 'react';
+import { Button } from '@/components/ui/button';
 import { DASHBOARD_MODE_META, type DashboardViewMode } from '@/lib/dashboard-modes';
 
 type ModeHeaderProps = {
@@ -55,16 +56,16 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
             const isActive = activeMode === mode.id;
             const tabId = `mode-tab-${mode.id}`;
             return (
-              <button
+              <Button
                 key={mode.id}
-                type="button"
                 onClick={() => onChangeMode(mode.id)}
                 onKeyDown={(event) => handleKeyDown(event, index)}
                 role="tab"
                 id={tabId}
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
-                className={`rounded-xl border px-4 py-3 text-left transition ${
+                variant="ghost"
+                className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border px-4 py-3 text-left transition ${
                   isActive
                     ? 'border-[var(--accent)] bg-[var(--accent)]/10 shadow-[var(--shadow-soft)]'
                     : 'border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--accent)]/35 hover:bg-[var(--surface)]'
@@ -72,7 +73,7 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
               >
                 <p className={`text-sm font-bold ${isActive ? 'text-[var(--accent)]' : 'text-[var(--foreground)]'}`}>{mode.label}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{mode.description}</p>
-              </button>
+              </Button>
             );
           })}
         </div>

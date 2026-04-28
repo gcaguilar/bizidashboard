@@ -2,6 +2,16 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { StationSnapshot } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
 
@@ -219,82 +229,96 @@ export function StationPicker({
           </p>
           <div className="flex flex-wrap gap-2">
             {favoriteStations.slice(0, 8).map((station) => (
-              <button
+              <Button
                 key={`favorite-${station.id}`}
-                type="button"
                 onClick={() => onSelectStation(station.id)}
                 className={`max-w-full truncate rounded-full border px-3 py-1 text-xs font-semibold transition ${
                   station.id === selectedStationId
                     ? 'border-amber-500 bg-amber-500 text-[#111827]'
                     : 'border-amber-500/40 bg-amber-500/15 text-[var(--foreground)] hover:border-amber-500'
                 }`}
+                variant="ghost"
+                size="sm"
               >
                 ★ {station.name}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
       ) : null}
 
       <div className="grid min-w-0 gap-3 lg:grid-cols-[1.4fr_1fr]">
-        <label className="flex min-w-0 items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
-          <input
+        <div className="min-w-0">
+          <label htmlFor="station-search" className="sr-only">
+            Buscar por nombre o ID
+          </label>
+          <Input
             id="station-search"
-            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            className="min-h-11 border-[var(--border)] bg-[var(--surface-soft)]"
             placeholder="Buscar por nombre o ID"
             value={query}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                setQuery(nextValue);
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setQuery(nextValue);
 
-                const nextMatch = scoreStations(orderedStations, nextValue, favoriteStationSet)[0]?.station;
+              const nextMatch = scoreStations(orderedStations, nextValue, favoriteStationSet)[0]?.station;
 
-                if (nextMatch && nextMatch.id !== selectedStationId) {
-                  onSelectStation(nextMatch.id);
-                }
-              }}
+              if (nextMatch && nextMatch.id !== selectedStationId) {
+                onSelectStation(nextMatch.id);
+              }
+            }}
             autoComplete="off"
           />
-        </label>
+        </div>
 
-        <select
-          id="station-picker"
-          aria-label="Seleccionar estacion"
-          className="w-full min-w-0 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
-          value={selectedStationId}
-          onChange={(event) => onSelectStation(event.target.value)}
+        <Select
+          value={selectedStationId || null}
+          onValueChange={(value) => {
+            if (value) {
+              onSelectStation(value);
+            }
+          }}
           disabled={stations.length === 0}
         >
-          {stations.length === 0 ? (
-            <option value="">Sin estaciones disponibles</option>
-          ) : (
-            orderedStations.map((station) => (
-              <option key={station.id} value={station.id}>
-                {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
-              </option>
-            ))
-          )}
-        </select>
+          <SelectTrigger
+            id="station-picker"
+            aria-label="Seleccionar estacion"
+            className="min-h-11 w-full min-w-0 bg-[var(--surface-soft)]"
+          >
+            <SelectValue placeholder="Sin estaciones disponibles" />
+            <SelectIcon />
+          </SelectTrigger>
+          {stations.length > 0 ? (
+            <SelectContent>
+              {orderedStations.map((station) => (
+                <SelectItem key={station.id} value={station.id}>
+                  {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          ) : null}
+        </Select>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {stationSuggestions.slice(0, 5).map(({ station }) => (
-          <button
+          <Button
             key={station.id}
-            type="button"
             className={`max-w-full truncate rounded-full border px-3 py-1 text-xs transition ${
               station.id === selectedStationId
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent-soft)] hover:text-[var(--foreground)]'
             }`}
             onClick={() => onSelectStation(station.id)}
+            variant="ghost"
+            size="sm"
           >
             {favoriteStationSet.has(station.id) ? '★ ' : ''}
             {station.name}
             {nearestStationId === station.id ? ' · cerca' : ''}
             {trendByStationId?.[station.id] === 'up' ? ' ↑' : ''}
             {trendByStationId?.[station.id] === 'down' ? ' ↓' : ''}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -308,8 +332,7 @@ export function StationPicker({
                 ? '↓ bajan bicis'
                 : '→ sin cambios'}
           </span>
-          <button
-            type="button"
+          <Button
             onClick={() => onToggleFavorite(selectedStation.id)}
             aria-pressed={favoriteStationSet.has(selectedStation.id)}
             className={`rounded-full border px-2 py-1 text-[11px] font-bold ${
@@ -317,9 +340,11 @@ export function StationPicker({
                 ? 'border-amber-500 bg-amber-500/20 text-amber-500'
                 : 'border-[var(--border)] text-[var(--foreground)]'
             }`}
+            variant="ghost"
+            size="sm"
           >
             {favoriteStationSet.has(selectedStation.id) ? '★ Quitar favorita' : '☆ Marcar favorita'}
-          </button>
+          </Button>
         </div>
       ) : null}
 

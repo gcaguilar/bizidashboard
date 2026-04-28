@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const THEME_STORAGE_KEY = 'bizidashboard-theme';
 
@@ -47,10 +48,10 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
 
   if (theme === null) {
     return (
-      <button type="button" className={className} aria-label="Cambiar tema" disabled>
+      <Button type="button" className={className} aria-label="Cambiar tema" variant="icon-button" disabled>
         <span aria-hidden="true" className="text-sm leading-none">&#8203;</span>
         <span>&#8203;</span>
-      </button>
+      </Button>
     );
   }
 
@@ -59,8 +60,9 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
   const icon = theme === 'dark' ? '☀' : '☾';
 
   return (
-    <button
+    <Button
       type="button"
+      variant="icon-button"
       className={className}
       onClick={() => {
         const activeTheme = theme ?? getPreferredTheme();
@@ -76,6 +78,6 @@ export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButt
         {icon}
       </span>
       <span>{buttonLabel}</span>
-    </button>
+    </Button>
   );
 }

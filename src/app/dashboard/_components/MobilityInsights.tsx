@@ -13,6 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { Card } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -21,6 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { ChartWrapper } from './ChartWrapper';
 import type { StationSnapshot } from '@/lib/api';
 import {
@@ -270,7 +279,7 @@ function MobilityInsightsContent({
 
       {canRenderInsights && mobilityData && activeInsights ? (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
@@ -338,10 +347,10 @@ function MobilityInsightsContent({
                 <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Mayor flujo estimado
               </span>
             </div>
-          </article>
+          </Card>
 
           <div className="space-y-6 xl:col-span-4">
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
               <h3 className="text-base font-bold text-[var(--foreground)]">Rutas de mayor flujo</h3>
               <div className="mt-4 space-y-4">
                 {topRoutes.slice(0, 4).length === 0 ? (
@@ -369,9 +378,9 @@ function MobilityInsightsContent({
                   })
                 )}
               </div>
-            </article>
+            </Card>
 
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
               <h3 className="text-base font-bold text-[var(--foreground)]">Resumen de balance neto</h3>
               <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-3">
                 <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
@@ -440,10 +449,10 @@ function MobilityInsightsContent({
                   'No hay un barrio de referencia disponible para este periodo.'
                 )}
               </div>
-            </article>
+            </Card>
           </div>
 
-          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
             <h3 className="text-base font-bold text-[var(--foreground)]">Balance neto por barrio</h3>
             <div className="mt-4 space-y-5">
               {activeInsights.districts.map((district) => {
@@ -483,9 +492,9 @@ function MobilityInsightsContent({
               <span>Neutro</span>
               <span>Receptor neto</span>
             </div>
-          </article>
+          </Card>
 
-          <article className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+          <Card className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--foreground)]">Matriz origen-destino</h3>
               <span className="text-[10px] text-[var(--muted)]">Datos en vivo</span>
@@ -495,30 +504,30 @@ function MobilityInsightsContent({
               <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
             ) : (
               <div className="mt-3 overflow-auto">
-                <table className="min-w-full border-collapse text-[11px]">
-                  <thead>
-                    <tr>
-                      <th className="sticky left-0 z-10 bg-[var(--surface)] px-2 py-2 text-left font-semibold text-[var(--muted)]">
+                <Table className="min-w-full border-collapse text-[11px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="sticky left-0 z-10 h-auto bg-[var(--surface)] px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]">
                         O \ D
-                      </th>
+                      </TableHead>
                       {activeInsights.districts.map((district) => (
-                        <th
+                        <TableHead
                           key={`dest-${district.district}`}
-                          className="px-2 py-2 text-left font-semibold text-[var(--muted)]"
+                          className="h-auto px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]"
                         >
                           {district.district}
-                        </th>
+                        </TableHead>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {activeInsights.districts.map((origin, originIndex) => (
-                      <tr key={`origin-${origin.district}`}>
-                        <td className="sticky left-0 bg-[var(--surface)] px-2 py-2 font-semibold text-[var(--foreground)]">
+                      <TableRow key={`origin-${origin.district}`}>
+                        <TableCell className="sticky left-0 bg-[var(--surface)] px-2 py-2 font-semibold text-[var(--foreground)]">
                           {origin.district}
-                        </td>
+                        </TableCell>
                         {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
-                          <td
+                          <TableCell
                             key={`${originIndex}-${destinationIndex}`}
                             className="border border-[var(--border)] px-2 py-2 text-right"
                             style={{
@@ -530,17 +539,17 @@ function MobilityInsightsContent({
                             }}
                           >
                             {value.toFixed(1)}
-                          </td>
+                          </TableCell>
                         ))}
-                      </tr>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
-          </article>
+          </Card>
 
-          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
@@ -619,7 +628,7 @@ function MobilityInsightsContent({
                 <p className='text-[11px] text-[var(--muted)]'>{mobilityData.methodology}</p>
               </>
             )}
-          </article>
+          </Card>
         </div>
       ) : null}
     </section>
