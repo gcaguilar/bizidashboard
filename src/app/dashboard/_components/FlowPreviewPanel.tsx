@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import type { StationSnapshot } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import {
@@ -139,7 +141,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
 
   return (
     <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-2">
-      <div className="relative flex h-64 items-center justify-center rounded-xl border border-dashed border-[var(--accent)]/35 bg-[var(--surface-soft)]">
+      <Card className="relative h-64 items-center justify-center rounded-xl border-dashed border-[var(--accent)]/35 bg-[var(--surface-soft)] p-0">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, #ea0615 0%, transparent 70%)' }} />
         <div className="relative z-10 flex flex-col items-center text-center">
           <span className="text-4xl text-[var(--accent)]">◎</span>
@@ -149,12 +151,16 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           </p>
           <Link
             href={appRoutes.dashboardFlow()}
-            className="mt-4 rounded-lg bg-[#8f1018] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#731017]"
+            className={buttonVariants({
+              variant: 'default',
+              size: 'sm',
+              className: 'mt-4 min-h-0 bg-[#8f1018] px-4 py-2 text-xs font-bold hover:bg-[#731017]',
+            })}
           >
             Expandir vista completa
           </Link>
         </div>
-      </div>
+      </Card>
 
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
@@ -168,7 +174,11 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           </div>
           <Link
             href={appRoutes.dashboardHelp('calculo-rutas')}
-            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            className={buttonVariants({
+              variant: 'ghost',
+              size: 'sm',
+              className: 'min-h-0 px-1 py-0 text-xs font-semibold text-[var(--accent)] hover:underline',
+            })}
           >
             Como se calcula
           </Link>
@@ -193,9 +203,10 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             const flowPct = Math.max(8, Math.round((route.flow / topFlowValue) * 100));
 
             return (
-              <div
+              <Card
+                variant="stat"
                 key={`${route.origin}-${route.destination}`}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-3"
+                className="gap-2 rounded-lg p-3"
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <p className="text-sm font-bold text-[var(--foreground)]">
@@ -209,7 +220,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
                     style={{ width: `${flowPct}%` }}
                   />
                 </div>
-              </div>
+              </Card>
             );
           })
         )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
 import type { ReportSummary } from '@/types/rebalancing';
 
 type Props = { summary: ReportSummary };
@@ -54,14 +55,15 @@ export function RebalancingSummaryCards({ summary }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
-        <div
+        <Card
           key={card.label}
-          className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3"
+          variant="stat"
+          className="gap-1 px-4 py-3"
         >
           <p className={`text-3xl font-black tabular-nums ${card.color}`}>{card.value}</p>
           <p className="mt-1 text-xs font-semibold text-[var(--foreground)]">{card.label}</p>
           <p className="text-xs text-[var(--muted)]">{card.description}</p>
-        </div>
+        </Card>
       ))}
     </div>
   );

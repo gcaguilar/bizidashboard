@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   getDataStateMeta,
   type DataState,
@@ -32,9 +35,9 @@ export function DataStateNotice({
   const meta = getDataStateMeta(state, { subject });
 
   return (
-    <div
+    <Card
       className={joinClasses(
-        'rounded-2xl border px-4 py-4 shadow-[var(--shadow-soft)]',
+        'rounded-2xl px-4 py-4 shadow-[var(--shadow-soft)]',
         meta.toneClasses,
         className
       )}
@@ -46,14 +49,14 @@ export function DataStateNotice({
         )}
       >
         <div className="min-w-0">
-          <span
+          <Badge
             className={joinClasses(
-              'inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]',
+              'rounded-full px-2.5 py-1 text-[10px] font-black tracking-[0.16em]',
               meta.badgeClasses
             )}
           >
             {meta.label}
-          </span>
+          </Badge>
           <p className={joinClasses('font-semibold text-current', compact ? 'mt-2 text-sm' : 'mt-3 text-base')}>
             {title ?? meta.title}
           </p>
@@ -65,12 +68,17 @@ export function DataStateNotice({
         {href ? (
           <Link
             href={href}
-            className="inline-flex rounded-xl border border-current/20 bg-black/10 px-3 py-2 text-xs font-bold text-current transition hover:bg-black/20"
+            className={buttonVariants({
+              variant: 'outline',
+              size: 'sm',
+              className:
+                'rounded-xl border-current/20 bg-black/10 px-3 py-2 text-xs font-bold text-current hover:bg-black/20',
+            })}
           >
             {actionLabel ?? 'Ver detalle'}
           </Link>
         ) : null}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import type { StationSnapshot } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
 import { DemandFlowCard } from './DemandFlowCard';
@@ -69,7 +71,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
         />
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
+      <Card variant="panel">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
           <div>
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
@@ -77,13 +79,18 @@ export function ResearchModeView(props: ResearchModeViewProps) {
           </div>
           <Link
             href={appRoutes.dashboardFlow()}
-            className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            className={buttonVariants({
+              variant: 'outline',
+              size: 'sm',
+              className:
+                'min-h-0 border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+            })}
           >
             Vista completa
           </Link>
         </div>
         <FlowPreviewPanel stations={props.stations} hourlySignals={props.hourlySignals} />
-      </section>
+      </Card>
     </>
   );
 }
