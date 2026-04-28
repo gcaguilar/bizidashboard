@@ -94,11 +94,14 @@ const DialogHeader = React.forwardRef<
 const DialogTitle = React.forwardRef<
   HTMLHeadingElement,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(function DialogTitle({ className, ...props }, ref) {
+>(function DialogTitle({ className, style, ...props }, ref) {
   if (typeof document === 'undefined') {
+    const htmlStyle = typeof style === 'function' ? undefined : style;
+
     return (
       <h2
         ref={ref}
+        style={htmlStyle}
         className={cn(
           'text-2xl font-black text-[var(--foreground)] md:text-4xl',
           typeof className === 'string' ? className : undefined
