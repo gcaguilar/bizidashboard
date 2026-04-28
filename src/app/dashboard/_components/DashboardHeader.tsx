@@ -2,6 +2,9 @@
 
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -85,9 +88,8 @@ export function DashboardHeader({
 
           <div className="hidden items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:flex">
             {timeWindows.map((window) => (
-              <button
+              <Button
                 key={window.id}
-                type="button"
                 onClick={() => onChangeWindow(window.id)}
                 aria-pressed={activeWindowId === window.id}
                 className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${
@@ -95,9 +97,11 @@ export function DashboardHeader({
                     ? 'bg-[var(--accent)] text-white shadow-sm'
                     : 'text-[var(--muted)] hover:bg-[var(--accent)]/10 hover:text-[var(--foreground)]'
                 }`}
+                variant="ghost"
+                size="sm"
               >
                 {window.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -129,22 +133,23 @@ export function DashboardHeader({
           className="flex flex-wrap items-center gap-2 sm:hidden"
         />
 
-        <label htmlFor="dashboard-search" className="flex min-h-11 w-full items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm">
-          <span className="sr-only">Buscar estacion, identificador o barrio</span>
-          <input
+        <div className="w-full">
+          <label htmlFor="dashboard-search" className="sr-only">
+            Buscar estacion, identificador o barrio
+          </label>
+          <Input
             id="dashboard-search"
             type="text"
-            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            className="min-h-11 border-[var(--border)] bg-[var(--surface-soft)] py-2"
             placeholder="Buscar estacion, ID o barrio..."
             value={searchQuery}
             onChange={(event) => onChangeSearch(event.target.value)}
           />
-        </label>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1.5">
           <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)]">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={onlyWithBikes}
               onChange={(event) => onToggleOnlyWithBikes(event.target.checked)}
               className="h-5 w-5 accent-[var(--accent)]"
@@ -153,8 +158,7 @@ export function DashboardHeader({
           </label>
 
           <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)]">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={onlyWithAnchors}
               onChange={(event) => onToggleOnlyWithAnchors(event.target.checked)}
               className="h-5 w-5 accent-[var(--accent)]"
@@ -175,17 +179,18 @@ export function DashboardHeader({
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
           {timeWindows.map((window) => (
-            <button
+            <Button
               key={window.id}
-              type="button"
               onClick={() => onChangeWindow(window.id)}
               aria-pressed={activeWindowId === window.id}
               className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
                 activeWindowId === window.id ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--foreground)]'
               }`}
+              variant="ghost"
+              size="sm"
             >
               {window.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -193,21 +198,23 @@ export function DashboardHeader({
           <p className="text-xs text-[var(--foreground)]">{nearestMessage}</p>
 
           {canJumpToNearest ? (
-            <button
-              type="button"
+            <Button
               onClick={onJumpToNearest}
               className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              variant="ghost"
+              size="sm"
             >
               Ir a la mas cercana
-            </button>
+            </Button>
           ) : canUseGeolocation ? (
-            <button
-              type="button"
+            <Button
               onClick={onUseGeolocation}
               className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              variant="ghost"
+              size="sm"
             >
               Usar mi ubicacion
-            </button>
+            </Button>
           ) : null}
         </div>
 

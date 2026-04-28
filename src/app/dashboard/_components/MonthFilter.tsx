@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
 
@@ -56,30 +57,32 @@ function MonthFilterContent({
     <div className={className}>
       <div className='flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[var(--shadow-soft)]'>
         <span className='text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]'>Mes</span>
-        <button
-          type='button'
+        <Button
           onClick={() => updateMonth(null)}
           className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
             activeMonth === null
               ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
               : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]'
           }`}
+          variant='ghost'
+          size='sm'
         >
           Acumulado
-        </button>
+        </Button>
         {monthOptions.map((month) => (
-          <button
+          <Button
             key={month.key}
-            type='button'
             onClick={() => updateMonth(month.key)}
             className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition ${
               activeMonth === month.key
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                 : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]'
             }`}
+            variant='ghost'
+            size='sm'
           >
             {month.label}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
