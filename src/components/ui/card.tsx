@@ -1,12 +1,21 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-type CardVariant = 'default' | 'stat' | 'panel';
+type CardVariant =
+  | 'default'
+  | 'stat'
+  | 'panel'
+  | 'hero-card'
+  | 'dashboard-card'
+  | 'stat-card';
 
 const CARD_VARIANT_CLASSES: Record<CardVariant, string> = {
   default: 'gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]',
   stat: 'gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3',
   panel: 'gap-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-0 shadow-[var(--shadow-soft)]',
+  'hero-card': 'hero-card',
+  'dashboard-card': 'dashboard-card',
+  'stat-card': 'stat-card',
 };
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -20,6 +29,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   return (
     <div
       ref={ref}
+      data-card-variant={variant}
       className={cn(
         'flex min-w-0 flex-col backdrop-blur-[9px]',
         CARD_VARIANT_CLASSES[variant],
@@ -28,6 +38,29 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
       {...props}
     />
   );
+});
+
+type CardWrapperProps = Omit<CardProps, 'variant'>;
+
+const HeroCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function HeroCard(
+  { className, ...props },
+  ref
+) {
+  return <Card ref={ref} variant="hero-card" className={className} {...props} />;
+});
+
+const DashboardCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function DashboardCard(
+  { className, ...props },
+  ref
+) {
+  return <Card ref={ref} variant="dashboard-card" className={className} {...props} />;
+});
+
+const StatCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function StatCard(
+  { className, ...props },
+  ref
+) {
+  return <Card ref={ref} variant="stat-card" className={className} {...props} />;
 });
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -74,11 +107,15 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 
 export {
   Card,
+  DashboardCard,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
+  HeroCard,
+  StatCard,
   type CardProps,
   type CardVariant,
+  type CardWrapperProps,
 };

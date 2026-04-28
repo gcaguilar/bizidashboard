@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-type ButtonVariant = 'default' | 'outline' | 'ghost' | 'chip';
+type ButtonVariant = 'default' | 'outline' | 'ghost' | 'chip' | 'icon-button';
 type ButtonSize = 'default' | 'sm' | 'icon';
 
 const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -13,6 +13,7 @@ const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
     'border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-soft)]',
   chip:
     'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]',
+  'icon-button': 'icon-button',
 };
 
 const BUTTON_SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -30,10 +31,16 @@ export function buttonVariants({
   size?: ButtonSize;
   className?: string;
 } = {}): string {
+  const baseClasses =
+    variant === 'icon-button'
+      ? 'inline-flex items-center justify-center disabled:pointer-events-none disabled:opacity-60'
+      : 'inline-flex items-center justify-center gap-2 rounded-lg border font-semibold transition outline-none disabled:pointer-events-none disabled:opacity-60';
+  const sizeClasses = variant === 'icon-button' && size === 'default' ? '' : BUTTON_SIZE_CLASSES[size];
+
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-lg border font-semibold transition outline-none disabled:pointer-events-none disabled:opacity-60',
+    baseClasses,
     BUTTON_VARIANT_CLASSES[variant],
-    BUTTON_SIZE_CLASSES[size],
+    sizeClasses,
     className
   );
 }
@@ -51,10 +58,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     <button
       ref={ref}
       type={type}
+      data-button-variant={variant}
       className={buttonVariants({ variant, size, className })}
       {...props}
     />
   );
 });
 
-export { Button, type ButtonProps, type ButtonSize, type ButtonVariant };
+type IconButtonProps = Omit<ButtonProps, 'variant'>;
+
+const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { className, size = 'default', ...props },
+  ref
+) {
+  return <Button ref={ref} variant="icon-button" size={size} className={className} {...props} />;
+});
+
+export { Button, IconButton, type ButtonProps, type ButtonSize, type ButtonVariant, type IconButtonProps };
