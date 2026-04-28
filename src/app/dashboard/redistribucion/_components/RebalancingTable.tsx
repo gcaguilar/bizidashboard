@@ -12,6 +12,31 @@ import {
   type ColumnFiltersState,
   type RowSelectionState,
 } from '@tanstack/react-table';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 
 type TableParams = {
@@ -28,6 +53,19 @@ type Props = {
 };
 
 const PAGE_SIZE = 20;
+const SELECT_ALL_VALUE = '__all__';
+const COLUMN_VISIBILITY_LABELS: Record<string, string> = {
+  select: '☑',
+  stationName: 'Estación',
+  districtName: 'Barrio',
+  inferredType: 'Tipo',
+  classification: 'Clasificación',
+  currentOccupancy: 'Ocupación',
+  actionGroup: 'Acción',
+  urgency: 'Urgencia',
+  priorityScore: 'Score',
+  expand: 'Expand',
+};
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
 
@@ -186,19 +224,17 @@ const columns: ColumnDef<StationDiagnostic>[] = [
   {
     id: 'select',
     header: ({ table }) => (
-      <input
-        type="checkbox"
+      <Checkbox
         checked={table.getIsAllRowsSelected()}
         onChange={table.getToggleAllRowsSelectedHandler()}
-        className="rounded border-[var(--border)]"
+        aria-label="Seleccionar todas las filas"
       />
     ),
     cell: ({ row }) => (
-      <input
-        type="checkbox"
+      <Checkbox
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
-        className="rounded border-[var(--border)]"
+        aria-label={`Seleccionar estación ${row.original.stationName}`}
         onClick={(e) => e.stopPropagation()}
       />
     ),
@@ -289,23 +325,32 @@ function FilterSelect({
   value,
   onChange,
   options,
+  ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
+  ariaLabel: string;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-8 rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 text-xs text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none"
+    <Select
+      value={value || SELECT_ALL_VALUE}
+      onValueChange={(nextValue) =>
+        onChange(nextValue && nextValue !== SELECT_ALL_VALUE ? nextValue : '')
+      }
     >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger aria-label={ariaLabel} className="h-8 min-h-8 rounded-md px-2 py-0 text-xs">
+        <SelectValue />
+        <SelectIcon />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={opt.value || SELECT_ALL_VALUE} value={opt.value || SELECT_ALL_VALUE}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -346,6 +391,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [activeQuickFilter, setActiveQuickFilter] = useState('all');
+  const [openToolbarAccordions, setOpenToolbarAccordions] = useState<string[]>([]);
 
   const handleToggle = useCallback((stationId: string) => {
     setExpandedId((id) => (id === stationId ? null : stationId));
@@ -441,29 +487,31 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       {/* Filters toolbar */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-3">
         <div className="flex items-center gap-2">
-          <input
-            type="text"
+          <Input
             placeholder="Buscar estación o barrio..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="h-8 w-40 rounded-md border border-[var(--border)] bg-[var(--background)] px-3 text-xs text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none"
+            aria-label="Buscar estación o barrio"
+            className="h-8 min-h-8 w-40 rounded-md bg-[var(--background)] px-3 text-xs"
           />
         </div>
 
         {/* Quick filters */}
         <div className="flex items-center gap-1">
           {QUICK_FILTERS.map((qf) => (
-            <button
+            <Button
               key={qf.id}
               onClick={() => applyQuickFilter(qf.id)}
-              className={`rounded px-2 py-1 text-xs ${
+              variant={activeQuickFilter === qf.id ? 'default' : 'chip'}
+              size="sm"
+              className={`min-h-7 rounded px-2 py-1 text-xs ${
                 activeQuickFilter === qf.id
-                  ? 'bg-[var(--accent)] text-white'
-                  : 'text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
+                  ? 'border-[var(--accent)]'
+                  : 'text-[var(--foreground)]'
               }`}
             >
               {qf.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -476,6 +524,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             ])
           }
           options={CLASSIFICATION_OPTIONS}
+          ariaLabel="Filtrar por clasificación"
         />
         <FilterSelect
           value={(columnFilters.find((f) => f.id === 'actionGroup')?.value as string) ?? ''}
@@ -486,6 +535,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             ])
           }
           options={ACTION_OPTIONS}
+          ariaLabel="Filtrar por acción"
         />
         <FilterSelect
           value={(columnFilters.find((f) => f.id === 'urgency')?.value as string) ?? ''}
@@ -496,66 +546,74 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             ])
           }
           options={URGENCY_OPTIONS}
+          ariaLabel="Filtrar por urgencia"
         />
         {(globalFilter || columnFilters.length > 0) && (
-          <button
+          <Button
             onClick={() => {
               setGlobalFilter('');
               setColumnFilters([]);
               setActiveQuickFilter('all');
             }}
-            className="text-xs text-[var(--accent)] hover:underline"
+            variant="ghost"
+            size="sm"
+            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
           >
             Limpiar filtros
-          </button>
+          </Button>
         )}
-        <details className="relative">
-          <summary className="cursor-pointer list-none text-xs text-[var(--accent)] hover:underline">
-            Columnas
-          </summary>
-          <div className="absolute left-0 top-full z-10 mt-1 rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 shadow-lg">
-            {table.getAllLeafColumns().map((column) => (
-              <label key={column.id} className="flex items-center gap-2 whitespace-nowrap text-xs text-[var(--foreground)]">
-                <input
-                  type="checkbox"
-                  checked={column.getIsVisible()}
-                  onChange={() => column.toggleVisibility()}
-                  className="rounded border-[var(--border)]"
-                />
-                {column.id === 'select' && '☑'}
-                {column.id === 'stationName' && 'Estación'}
-                {column.id === 'districtName' && 'Barrio'}
-                {column.id === 'inferredType' && 'Tipo'}
-                {column.id === 'classification' && 'Clasificación'}
-                {column.id === 'currentOccupancy' && 'Ocupación'}
-                {column.id === 'actionGroup' && 'Acción'}
-                {column.id === 'urgency' && 'Urgencia'}
-                {column.id === 'priorityScore' && 'Score'}
-                {column.id === 'expand' && 'Expand'}
-              </label>
-            ))}
-          </div>
-        </details>
+        <Accordion
+          value={openToolbarAccordions}
+          onValueChange={setOpenToolbarAccordions}
+          className="w-full sm:w-auto"
+        >
+          <AccordionItem value="columns" className="rounded-md border border-[var(--border)] bg-[var(--surface)]">
+            <AccordionTrigger
+              className="px-2 py-1.5 text-xs text-[var(--accent)] [&>span]:text-xs [&>span]:font-semibold"
+            >
+              Columnas
+            </AccordionTrigger>
+            <AccordionContent className="space-y-1 border-none p-2 text-xs">
+              {table.getAllLeafColumns().map((column) => (
+                <label
+                  key={column.id}
+                  className="flex items-center gap-2 whitespace-nowrap text-xs text-[var(--foreground)]"
+                >
+                  <Checkbox
+                    checked={column.getIsVisible()}
+                    onChange={() => column.toggleVisibility()}
+                    aria-label={`Mostrar columna ${COLUMN_VISIBILITY_LABELS[column.id] ?? column.id}`}
+                  />
+                  {COLUMN_VISIBILITY_LABELS[column.id] ?? column.id}
+                </label>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
         {totalRows > 0 && (
-          <button
+          <Button
             onClick={() => {
               const data = selectedCount > 0
                 ? table.getSelectedRowModel().rows.map((r) => r.original)
                 : table.getFilteredRowModel().rows.map((r) => r.original);
               copyToClipboard(data);
             }}
-            className="text-xs text-[var(--accent)] hover:underline"
+            variant="ghost"
+            size="sm"
+            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
           >
             {selectedCount > 0 ? `Copiar ${selectedCount}` : 'Copiar'}
-          </button>
+          </Button>
         )}
         {totalRows > 0 && (
-          <button
+          <Button
             onClick={() => exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion')}
-            className="text-xs text-[var(--accent)] hover:underline"
+            variant="ghost"
+            size="sm"
+            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
           >
             Exportar CSV
-          </button>
+          </Button>
         )}
         {selectedCount > 0 && (
           <span className="text-xs text-[var(--muted)]">
@@ -566,14 +624,14 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-[var(--border)] max-w-[100vw]">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
+        <Table className="w-full text-sm">
+          <TableHeader className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th
+                  <TableHead
                     key={header.id}
-                    className={`select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-[var(--muted)] ${
+                    className={`h-auto select-none whitespace-nowrap px-3 py-2 text-left text-xs font-semibold normal-case tracking-normal text-[var(--muted)] ${
                       header.column.getCanSort() ? 'cursor-pointer hover:text-[var(--foreground)]' : ''
                     }`}
                     onClick={(e) => handleHeaderClick(e, header.column)}
@@ -586,18 +644,18 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                       : header.column.columnDef.header}
                     {header.column.getIsSorted() === 'asc' && ' ↑'}
                     {header.column.getIsSorted() === 'desc' && ' ↓'}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody className="divide-y divide-[var(--border)]">
+          </TableHeader>
+          <TableBody className="divide-y divide-[var(--border)]">
             {table.getRowModel().rows.map((row) => {
               const isExpanded = expandedId === row.original.stationId;
               const diagnostic = row.original;
               return (
                 <Fragment key={row.id}>
-                  <tr
+                  <TableRow
                     className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
                     onClick={() => handleToggle(diagnostic.stationId)}
                     onKeyDown={(e) => handleKeyDown(e, diagnostic.stationId)}
@@ -609,23 +667,23 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                       const colId = cell.column.id;
                       if (colId === 'expand') {
                         return (
-                          <td key={colId} className="px-3 py-2.5 text-xs text-[var(--muted)]">
+                          <TableCell key={colId} className="px-3 py-2.5 text-xs text-[var(--muted)]">
                             {isExpanded ? '▲' : '▼'}
-                          </td>
+                          </TableCell>
                         );
                       }
                       return (
-                        <td key={colId} className="px-3 py-2.5">
+                        <TableCell key={colId} className="px-3 py-2.5">
                           {typeof cell.column.columnDef.cell === 'function'
                             ? cell.column.columnDef.cell(cell.getContext())
                             : null}
-                        </td>
+                        </TableCell>
                       );
                     })}
-                  </tr>
+                  </TableRow>
                   {isExpanded && (
-                    <tr>
-                      <td colSpan={11} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
+                    <TableRow>
+                      <TableCell colSpan={11} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
                         <div className="grid gap-4 text-xs sm:grid-cols-2">
                           <div>
                             <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de clasificación</p>
@@ -668,14 +726,14 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                             </p>
                           </div>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
                 </Fragment>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         {totalRows === 0 && (
           <p className="py-8 text-center text-sm text-[var(--muted)]">
             No hay estaciones que mostrar con los filtros actuales.
@@ -690,48 +748,69 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             <span>
               {pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, totalRows)} de {totalRows}
             </span>
-            <select
-              value={pageSize}
-              onChange={(e) => setPagination({ ...pagination, pageSize: Number(e.target.value), pageIndex: 0 })}
-              className="rounded border border-[var(--border)] bg-[var(--background)] px-1 text-[var(--foreground)]"
+            <Select
+              value={String(pageSize)}
+              onValueChange={(nextValue) => {
+                if (!nextValue) {
+                  return;
+                }
+                setPagination({ ...pagination, pageSize: Number(nextValue), pageIndex: 0 });
+              }}
             >
-              {[10, 20, 50, 100].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                aria-label="Filas por página"
+                className="h-7 min-h-7 w-20 rounded-md bg-[var(--background)] px-2 py-0 text-xs"
+              >
+                <SelectValue />
+                <SelectIcon />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 50, 100].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <span>por página</span>
           </div>
           <div className="flex items-center gap-1">
-            <button
+            <Button
               onClick={() => setPagination({ ...pagination, pageIndex: 0 })}
               disabled={pageIndex === 0}
-              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+              variant="ghost"
+              size="sm"
+              className="h-7 min-h-7 rounded px-2 py-1 text-xs"
             >
               ««
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPagination({ ...pagination, pageIndex: Math.max(0, pageIndex - 1) })}
               disabled={pageIndex === 0}
-              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+              variant="ghost"
+              size="sm"
+              className="h-7 min-h-7 rounded px-2 py-1 text-xs"
             >
               «
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPagination({ ...pagination, pageIndex: Math.min(pageCount - 1, pageIndex + 1) })}
               disabled={pageIndex >= pageCount - 1}
-              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+              variant="ghost"
+              size="sm"
+              className="h-7 min-h-7 rounded px-2 py-1 text-xs"
             >
               »
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPagination({ ...pagination, pageIndex: pageCount - 1 })}
               disabled={pageIndex >= pageCount - 1}
-              className="rounded px-2 py-1 text-xs text-[var(--foreground)] disabled:opacity-50 hover:bg-[var(--surface-hover)]"
+              variant="ghost"
+              size="sm"
+              className="h-7 min-h-7 rounded px-2 py-1 text-xs"
             >
               »»
-            </button>
+            </Button>
           </div>
         </div>
       )}
