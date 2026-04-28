@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
+import { Button } from '@/components/ui/button';
 import {
   BICIRADAR_BANNER_DISMISSED_STORAGE_KEY,
   BICIRADAR_WELCOME_MODAL_DISMISSED_STORAGE_KEY,
@@ -139,14 +140,14 @@ function DashboardDialogShell({
         className="relative w-full max-w-2xl rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface)] p-6 shadow-2xl md:p-8"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={() => onClose('dismiss_icon')}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
+          className="absolute right-3 top-3 h-9 min-h-0 w-9 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
           aria-label={ariaLabel}
         >
           <CloseIcon />
-        </button>
+        </Button>
         {children}
       </div>
     </div>
@@ -179,13 +180,13 @@ function WelcomeModal({
         >
           Ver BiciRadar
         </a>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={() => onClose('dismiss_button')}
-          className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
         >
           Cerrar
-        </button>
+        </Button>
       </div>
     </DashboardDialogShell>
   );
@@ -216,13 +217,13 @@ function FeedbackModal({
         >
           Dar feedback
         </FeedbackCta>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onClose}
-          className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
         >
           Ahora no
-        </button>
+        </Button>
       </div>
     </DashboardDialogShell>
   );
@@ -248,14 +249,14 @@ function renderFeedbackBanner(onDismiss: () => void) {
         >
           Dar feedback
         </FeedbackCta>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onDismiss}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
+          className="h-7 min-h-0 w-7 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
           aria-label="Cerrar banner de feedback"
         >
           <CloseIcon />
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -281,14 +282,14 @@ function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
         >
           Ver BiciRadar
         </a>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={onDismiss}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
+          className="h-7 min-h-0 w-7 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
           aria-label="Cerrar banner"
         >
           <CloseIcon />
-        </button>
+        </Button>
       </div>
     </div>
   );

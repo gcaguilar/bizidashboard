@@ -5,6 +5,8 @@ import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import type { HistoryMetadata } from '@/services/shared-data/types';
 import {
@@ -106,12 +108,12 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
           <div className="flex flex-wrap items-center justify-end gap-3">
             <label htmlFor="help-search-desktop" className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 sm:flex">
               <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
-              <input
+              <Input
                 id="help-search-desktop"
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="w-44 bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+                className="h-auto min-h-0 w-44 border-0 bg-transparent px-0 py-0 text-sm text-[var(--foreground)] shadow-none outline-none placeholder:text-[var(--muted)] focus:border-0"
                 placeholder="Buscar ayuda..."
               />
             </label>
@@ -146,12 +148,12 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
         <label htmlFor="help-search-mobile" className="mb-6 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm sm:hidden">
           <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
-          <input
+          <Input
             id="help-search-mobile"
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]"
+            className="h-auto min-h-0 w-full border-0 bg-transparent px-0 py-0 text-sm text-[var(--foreground)] shadow-none outline-none placeholder:text-[var(--muted)] focus:border-0"
             placeholder="Buscar ayuda..."
           />
         </label>
@@ -172,22 +174,22 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 {filteredItems.length} preguntas visibles
               </span>
               {activeCategory ? (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveCategory(null)}
-                  className="rounded-full border border-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1 text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                  className="h-auto min-h-0 rounded-full border border-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1 text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
                 >
                   Categoria: {activeCategory} ×
-                </button>
+                </Button>
               ) : null}
               {normalizedQuery ? (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => setQuery('')}
-                  className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  className="h-auto min-h-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                 >
                   Buscar: {query} ×
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -266,9 +268,9 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             const totalInCategory = categoryCounts.get(category) ?? 0;
 
             return (
-              <button
+              <Button
                 key={category}
-                type="button"
+                variant="ghost"
                 onClick={() => {
                   const nextCategory = activeCategory === category ? null : category;
                   trackUmamiEvent(
@@ -282,7 +284,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   setActiveCategory(nextCategory);
                 }}
                 aria-pressed={isCategoryFilterActive}
-                className={`rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
+                className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
                   isCategoryFilterActive
                     ? 'border-[var(--accent)] bg-[var(--accent)]/6 shadow-[0_0_0_1px_var(--accent-soft)]'
                     : 'border-[var(--border)]'
@@ -306,7 +308,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                     ? `${categoryMatches} de ${totalInCategory} preguntas coinciden.`
                     : `${totalInCategory} preguntas disponibles.`}
                 </p>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -335,17 +337,17 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
                     return (
                       <article key={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-                        <button
+                        <Button
                           id={buttonId}
-                          type="button"
-                          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                          variant="ghost"
+                          className="h-auto min-h-0 w-full justify-between gap-4 rounded-none px-5 py-4 text-left"
                           onClick={() => setOpenItemId((current) => (current === item.id ? '' : item.id))}
                           aria-expanded={isOpen}
                           aria-controls={panelId}
                         >
                           <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
                           <span className="text-lg font-bold text-[var(--muted)]">{isOpen ? '-' : '+'}</span>
-                        </button>
+                        </Button>
                         {isOpen ? (
                           <div id={panelId} role="region" aria-labelledby={buttonId} className="border-t border-[var(--border)] px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
                             {item.answer}
