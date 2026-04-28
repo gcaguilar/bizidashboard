@@ -30,6 +30,7 @@
     "security:audit": "bun audit"
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
     "@libsql/client": "^0.17.2",
     "@libsql/isomorphic-ws": "^0.1.5",
     "@prisma/adapter-libsql": "^7.6.0",
