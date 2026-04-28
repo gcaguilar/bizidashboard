@@ -1,5 +1,11 @@
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   getPublicNavItem,
   PUBLIC_NAV_ITEMS,
   PUBLIC_PRIMARY_NAV_ITEMS,
@@ -106,8 +112,9 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
           renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
         )}
 
-        <details className="group relative">
-          <summary
+        <Accordion type="single" collapsible className="relative">
+          <AccordionItem value="mobile-overflow" className="border-none bg-transparent">
+            <AccordionTrigger
             className={`inline-flex cursor-pointer list-none rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
               mobileCompactNav.isOverflowActive
                 ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
@@ -115,15 +122,16 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
             }`}
           >
             Mas
-          </summary>
-          <div className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
-            <div className="flex flex-col gap-2">
-              {mobileCompactNav.overflowItems.map((item) =>
-                renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
-              )}
-            </div>
-          </div>
-        </details>
+            </AccordionTrigger>
+            <AccordionContent className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
+              <div className="flex flex-col gap-2">
+                {mobileCompactNav.overflowItems.map((item) =>
+                  renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </nav>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import type {
   AlertsResponse,
   HeatmapCell,
@@ -460,13 +461,13 @@ export function StationDetailPanel({
                   {isNearestStation ? ' · Es la mas cercana' : ''}
                 </p>
               ) : !isGeolocationEnabled ? (
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
                   onClick={() => setIsGeolocationEnabled(true)}
-                  className="mt-2 rounded-lg border border-[var(--accent)] px-2 py-1 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                  className="mt-2 h-auto min-h-0 rounded-lg border border-[var(--accent)] px-2 py-1 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
                 >
                   Usar mi ubicacion para calcular distancia
-                </button>
+                </Button>
               ) : null}
               <div
                 className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${

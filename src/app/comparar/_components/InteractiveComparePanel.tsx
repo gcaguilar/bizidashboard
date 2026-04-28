@@ -3,6 +3,15 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type {
   InteractiveComparisonData,
   InteractiveComparisonDimension,
@@ -278,22 +287,22 @@ export function InteractiveComparePanel({
           };
 
           return (
-            <button
+            <Button
               key={dimension.id}
-              type="button"
+              variant="ghost"
               onClick={() => {
                 setActiveDimensionId(dimension.id);
                 syncCompareSelection(dimension, dimensionSelection);
               }}
               aria-pressed={isActive}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+              className={`h-auto min-h-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
                   ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                   : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
               }`}
             >
               {dimension.label}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -307,19 +316,23 @@ export function InteractiveComparePanel({
             key={side.side}
             className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4"
           >
-            <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                 {side.label}
-              </span>
-              <select
+              </p>
+              <Select
                 value={side.option.id}
-                onChange={(event) => {
+                onValueChange={(value) => {
+                  if (!value) {
+                    return;
+                  }
+
                   const nextSelection = {
                     ...(selectionState[activeDimension.id] ?? {
                       leftId: activeDimension.defaultLeftId ?? '',
                       rightId: activeDimension.defaultRightId ?? '',
                     }),
-                    [side.side === 'left' ? 'leftId' : 'rightId']: event.target.value,
+                    [side.side === 'left' ? 'leftId' : 'rightId']: value,
                   };
 
                   setSelectionState((current) => ({
@@ -328,15 +341,20 @@ export function InteractiveComparePanel({
                   }));
                   syncCompareSelection(activeDimension, nextSelection);
                 }}
-                className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] outline-none"
               >
-                {activeDimension.options.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <SelectTrigger className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--foreground)]">
+                  <SelectValue />
+                  <SelectIcon />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeDimension.options.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="mt-4 space-y-2 text-sm">
               <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
@@ -374,8 +392,7 @@ export function InteractiveComparePanel({
           {shareHref}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
+          <Button
             onClick={async () => {
               try {
                 const absoluteUrl =
@@ -388,10 +405,10 @@ export function InteractiveComparePanel({
                 setCopyState('error');
               }
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="h-auto min-h-0 rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Copiar enlace
-          </button>
+          </Button>
           <Link
             href={shareHref}
             className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"

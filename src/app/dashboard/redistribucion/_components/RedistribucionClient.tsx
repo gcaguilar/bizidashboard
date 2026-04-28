@@ -2,6 +2,15 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectIcon,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import type { RebalancingReport } from '@/types/rebalancing';
@@ -35,6 +44,7 @@ type Props = {
 };
 
 const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
+const ALL_DISTRICTS_VALUE = '__all_districts__';
 
 export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
   const [report, setReport] = useState<RebalancingReport>(initialReport);
@@ -182,12 +192,10 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
 
         {/* Filters */}
         <div className="mt-4 flex flex-wrap gap-3">
-          <select
-            aria-label="Filtrar redistribucion por barrio"
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
-            value={selectedDistrict}
-            onChange={(e) => {
-              const nextValue = e.target.value;
+          <Select
+            value={selectedDistrict || ALL_DISTRICTS_VALUE}
+            onValueChange={(value) => {
+              const nextValue = value === ALL_DISTRICTS_VALUE ? '' : value ?? '';
               trackUmamiEvent(
                 buildFilterChangeEvent({
                   surface: 'dashboard',
@@ -200,20 +208,27 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
               handleDistrictChange(nextValue);
             }}
           >
-            <option value="">Todos los barrios</option>
-            {districtNames.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              aria-label="Filtrar redistribucion por barrio"
+              className="min-h-9 min-w-[230px] bg-[var(--surface)]"
+            >
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_DISTRICTS_VALUE}>Todos los barrios</SelectItem>
+              {districtNames.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <select
-            aria-label="Cambiar ventana temporal del informe"
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)]"
-            value={selectedDays}
-            onChange={(e) => {
-              const nextValue = Number(e.target.value);
+          <Select
+            value={String(selectedDays)}
+            onValueChange={(value) => {
+              const nextValue = Number(value);
               trackUmamiEvent(
                 buildFilterChangeEvent({
                   surface: 'dashboard',
@@ -226,12 +241,21 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
               handleDaysChange(nextValue);
             }}
           >
-            {ANALYSIS_WINDOWS.map((d) => (
-              <option key={d} value={d}>
-                Últimos {d} días
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              aria-label="Cambiar ventana temporal del informe"
+              className="min-h-9 min-w-[190px] bg-[var(--surface)]"
+            >
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              {ANALYSIS_WINDOWS.map((d) => (
+                <SelectItem key={d} value={String(d)}>
+                  Últimos {d} días
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {isUpdatingReport && (
             <span className="self-center text-xs text-[var(--muted)] animate-pulse">
@@ -259,9 +283,8 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
         aria-label="Secciones del informe de redistribucion"
       >
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab.id}
-            type="button"
             onClick={() => {
               trackUmamiEvent(
                 buildPanelOpenEvent({
@@ -282,9 +305,11 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
                 ? 'border border-b-0 border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]'
                 : 'text-[var(--muted)] hover:text-[var(--foreground)]'
             }`}
+            variant="ghost"
+            size="sm"
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 
