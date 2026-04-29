@@ -7,6 +7,7 @@ import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -691,7 +692,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         ) : rows.length === 0 ? (
           <p className="px-4 py-6 text-sm text-[var(--muted)]">No hay alertas para los filtros actuales.</p>
         ) : (
-          <div className="overflow-x-auto max-h-[600px]">
+          <ScrollArea className="overflow-x-auto max-h-[600px]">
             <Table className="min-w-full border-collapse text-sm">
               <TableHeader className="sticky top-0 z-10 bg-[var(--surface-soft)]">
                 <TableRow className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
@@ -745,7 +746,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </ScrollArea>
         )}
 
         <footer className="flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">

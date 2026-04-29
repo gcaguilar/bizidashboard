@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import type { RebalancingReport } from '@/types/rebalancing';
@@ -276,67 +276,55 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
         <RebalancingSummaryCards summary={report.summary} />
       </div>
 
-      {/* Tabs */}
-      <div
-        className="mb-4 flex gap-1 border-b border-[var(--border)]"
-        role="tablist"
-        aria-label="Secciones del informe de redistribucion"
-      >
-        {tabs.map((tab) => (
-          <Button
-            key={tab.id}
-            onClick={() => {
-              trackUmamiEvent(
-                buildPanelOpenEvent({
-                  surface: 'dashboard',
-                  routeKey: 'dashboard_redistribucion',
-                  module: tab.id,
-                  source: 'redistribucion_tabs',
-                })
-              );
-              setActiveTab(tab.id);
-            }}
-            role="tab"
-            id={`redistribucion-tab-${tab.id}`}
-            aria-selected={activeTab === tab.id}
-            aria-controls={`redistribucion-panel-${tab.id}`}
-            className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'border border-b-0 border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]'
-                : 'text-[var(--muted)] hover:text-[var(--foreground)]'
-            }`}
-            variant="ghost"
-            size="sm"
-          >
-            {tab.label}
-          </Button>
-        ))}
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          const isTab = tabs.some((tab) => tab.id === value);
+          if (!isTab || value === activeTab) {
+            return;
+          }
 
-      {/* Tab content */}
-      <div
-        className="space-y-6"
-        role="tabpanel"
-        id={`redistribucion-panel-${activeTab}`}
-        aria-labelledby={`redistribucion-tab-${activeTab}`}
+          const nextTab = value as Tab;
+          trackUmamiEvent(
+            buildPanelOpenEvent({
+              surface: 'dashboard',
+              routeKey: 'dashboard_redistribucion',
+              module: nextTab,
+              source: 'redistribucion_tabs',
+            })
+          );
+          setActiveTab(nextTab);
+        }}
       >
-        {activeTab === 'estaciones' && (
-          <>
-            <ClassificationLegend />
-            <RebalancingTable diagnostics={report.diagnostics} initialParams={tableParams} />
-          </>
-        )}
+        <TabsList className="mb-4 gap-1 border-b border-[var(--border)]" aria-label="Secciones del informe de redistribucion">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="rounded-t-lg px-4 py-2 text-sm font-medium transition-colors"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-        {activeTab === 'transferencias' && (
+        <TabsContent className="space-y-6" value="estaciones">
+          <ClassificationLegend />
+          <RebalancingTable diagnostics={report.diagnostics} initialParams={tableParams} />
+        </TabsContent>
+
+        <TabsContent className="space-y-6" value="transferencias">
           <TransferTable transfers={report.transfers} />
-        )}
+        </TabsContent>
 
-        {activeTab === 'kpis' && (
+        <TabsContent className="space-y-6" value="kpis">
           <KpiCards kpis={report.kpis} baseline={report.baselineComparison} />
-        )}
+        </TabsContent>
 
-        {activeTab === 'metodologia' && <MetodologiaPanel />}
-      </div>
+        <TabsContent className="space-y-6" value="metodologia">
+          <MetodologiaPanel />
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }

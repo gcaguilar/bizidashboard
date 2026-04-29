@@ -64,7 +64,7 @@ export function DataModeView({
   ];
 
   return (
-    <section id="mode-panel-data" role="tabpanel" aria-labelledby="mode-tab-data" className="space-y-6">
+    <section className="space-y-6">
       <DataModeCard
         stationsCsvUrl={stationsCsvUrl}
         frictionCsvUrl={frictionCsvUrl}

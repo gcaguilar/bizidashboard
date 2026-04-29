@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -623,7 +624,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)] max-w-[100vw]">
+      <ScrollArea className="overflow-x-auto rounded-xl border border-[var(--border)] max-w-[100vw]">
         <Table className="w-full text-sm">
           <TableHeader className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -739,7 +740,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             No hay estaciones que mostrar con los filtros actuales.
           </p>
         )}
-      </div>
+      </ScrollArea>
 
       {/* Pagination */}
       {pageCount > 1 && (

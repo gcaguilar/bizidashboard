@@ -5,6 +5,12 @@ import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
@@ -331,29 +337,22 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
                 <div className="space-y-3">
                   {items.map((item) => {
-                    const isOpen = resolvedOpenItemId === item.id;
-                    const buttonId = `faq-button-${item.id}`;
-                    const panelId = `faq-panel-${item.id}`;
-
                     return (
-                      <article key={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-                        <Button
-                          id={buttonId}
-                          variant="ghost"
-                          className="h-auto min-h-0 w-full justify-between gap-4 rounded-none px-5 py-4 text-left"
-                          onClick={() => setOpenItemId((current) => (current === item.id ? '' : item.id))}
-                          aria-expanded={isOpen}
-                          aria-controls={panelId}
-                        >
-                          <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
-                          <span className="text-lg font-bold text-[var(--muted)]">{isOpen ? '-' : '+'}</span>
-                        </Button>
-                        {isOpen ? (
-                          <div id={panelId} role="region" aria-labelledby={buttonId} className="border-t border-[var(--border)] px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
+                      <Accordion
+                        key={item.id}
+                        type="single"
+                        value={resolvedOpenItemId}
+                        onValueChange={(value) => setOpenItemId(value)}
+                      >
+                        <AccordionItem value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+                          <AccordionTrigger className="h-auto min-h-0 px-5 py-4">
+                            <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
                             {item.answer}
-                          </div>
-                        ) : null}
-                      </article>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     );
                   })}
                 </div>

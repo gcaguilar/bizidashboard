@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { appRoutes } from '@/lib/routes';
+import { Progress } from '@/components/ui/progress';
 import { InfoHint } from './InfoHint';
 
 type BalanceIndexCardProps = {
@@ -55,9 +56,11 @@ export function BalanceIndexCard({
         </div>
       </div>
 
-      <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-black/15">
-        <div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500" style={{ width: `${percentage}%` }} />
-      </div>
+      <Progress
+        className="mt-4 h-3 bg-black/15"
+        value={percentage}
+        indicatorClassName="bg-[var(--accent)] duration-500"
+      />
     </article>
   );
 }

@@ -1,12 +1,10 @@
 'use client';
 
-import { useCallback, type KeyboardEvent } from 'react';
-import { Button } from '@/components/ui/button';
+import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DASHBOARD_MODE_META, type DashboardViewMode } from '@/lib/dashboard-modes';
 
 type ModeHeaderProps = {
   activeMode: DashboardViewMode;
-  onChangeMode: (mode: DashboardViewMode) => void;
 };
 
 const MODE_OPTIONS: Array<{ id: DashboardViewMode; label: string; description: string }> = [
@@ -16,32 +14,7 @@ const MODE_OPTIONS: Array<{ id: DashboardViewMode; label: string; description: s
   { id: 'data', label: DASHBOARD_MODE_META.data.label, description: DASHBOARD_MODE_META.data.description },
 ];
 
-export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
-      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') {
-        return;
-      }
-
-      event.preventDefault();
-
-      let nextIndex = currentIndex;
-
-      if (event.key === 'ArrowRight') {
-        nextIndex = (currentIndex + 1) % MODE_OPTIONS.length;
-      } else if (event.key === 'ArrowLeft') {
-        nextIndex = (currentIndex - 1 + MODE_OPTIONS.length) % MODE_OPTIONS.length;
-      } else if (event.key === 'Home') {
-        nextIndex = 0;
-      } else if (event.key === 'End') {
-        nextIndex = MODE_OPTIONS.length - 1;
-      }
-
-      onChangeMode(MODE_OPTIONS[nextIndex].id);
-    },
-    [onChangeMode]
-  );
-
+export function ModeHeader({ activeMode }: ModeHeaderProps) {
   return (
     <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -51,20 +24,13 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
           <p className="text-sm text-[var(--muted)]">Cambia entre vistas segun si quieres un resumen, operar, investigar o revisar metodologia.</p>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Modos del dashboard">
-          {MODE_OPTIONS.map((mode, index) => {
+        <TabsList className="grid gap-2 border-none sm:grid-cols-2 xl:grid-cols-4" aria-label="Modos del dashboard">
+          {MODE_OPTIONS.map((mode) => {
             const isActive = activeMode === mode.id;
-            const tabId = `mode-tab-${mode.id}`;
             return (
-              <Button
+              <TabsTrigger
                 key={mode.id}
-                onClick={() => onChangeMode(mode.id)}
-                onKeyDown={(event) => handleKeyDown(event, index)}
-                role="tab"
-                id={tabId}
-                aria-selected={isActive}
-                tabIndex={isActive ? 0 : -1}
-                variant="ghost"
+                value={mode.id}
                 className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border px-4 py-3 text-left transition ${
                   isActive
                     ? 'border-[var(--accent)] bg-[var(--accent)]/10 shadow-[var(--shadow-soft)]'
@@ -73,10 +39,10 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
               >
                 <p className={`text-sm font-bold ${isActive ? 'text-[var(--accent)]' : 'text-[var(--foreground)]'}`}>{mode.label}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{mode.description}</p>
-              </Button>
+              </TabsTrigger>
             );
           })}
-        </div>
+        </TabsList>
       </div>
     </section>
   );
