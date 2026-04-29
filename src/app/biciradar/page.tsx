@@ -9,6 +9,8 @@ import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 export const revalidate = 86400;
 
@@ -127,30 +129,30 @@ export const metadata: Metadata = buildPageMetadata({
 
 function CityCard({ city }: { city: (typeof CITIES)[number] }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+    <Card variant="stat" className="flex-row items-center gap-3 px-4 py-3">
       <span className="text-2xl">{city.flag}</span>
       <div className="flex-1">
         <h3 className="text-sm font-bold text-[var(--foreground)]">{city.name}</h3>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {city.supportsEbikes && (
-            <span className="rounded-full bg-green-500/12 px-2 py-0.5 text-[10px] font-semibold text-green-600 dark:text-green-400">
+            <Badge variant="success" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
               Bicis electricas
-            </span>
+            </Badge>
           )}
           {city.supportsUsagePatterns && (
-            <span className="rounded-full bg-[var(--primary)]/12 px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)]">
+            <Badge className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
               Patrones de uso
-            </span>
+            </Badge>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
 function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
   return (
-    <article className="flex flex-col items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+    <Card variant="stat" className="p-4">
       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/12 text-lg">
         {feature.icon}
       </span>
@@ -158,7 +160,7 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
         <h3 className="text-sm font-bold text-[var(--foreground)]">{feature.title}</h3>
         <p className="mt-1 text-xs text-[var(--muted)]">{feature.description}</p>
       </div>
-    </article>
+    </Card>
   );
 }
 
@@ -256,7 +258,8 @@ export default function BiciRadarPage() {
         </div>
       </header>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-6">
+      <section>
+        <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Ciudades disponibles</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Bici Radar esta disponible en las principales ciudades de Espania</p>
@@ -266,6 +269,7 @@ export default function BiciRadarPage() {
             <CityCard key={city.name} city={city} />
           ))}
         </div>
+        </Card>
       </section>
 
       <section>
@@ -280,7 +284,8 @@ export default function BiciRadarPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-6">
+      <section>
+        <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descarga la app</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">iOS ya esta publicado · Android requiere acceso como tester</p>
@@ -305,6 +310,7 @@ export default function BiciRadarPage() {
         <p className="mt-4 text-center text-xs text-[var(--muted)]">
           En Android, el enlace de Google Play solo tiene sentido despues de unirte al grupo de testers y abrirlo desde tu telefono.
         </p>
+        </Card>
       </section>
     </PageShell>
   );

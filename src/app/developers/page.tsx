@@ -27,6 +27,7 @@ import {
 } from '@/lib/shared-data-fallbacks';
 import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
+import { Card } from '@/components/ui/card';
 import {
   formatStatusDateTime,
   getApiVersionLabel,
@@ -380,24 +381,24 @@ export default async function DevelopersPage() {
         </div>
 
         <div className="grid gap-4 xl:grid-cols-3">
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+          <Card variant="stat" className="p-4">
             <p className="stat-label">curl</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{curlExamples.join('\n\n')}</code>
             </pre>
-          </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+          </Card>
+          <Card variant="stat" className="p-4">
             <p className="stat-label">Python</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{pythonExample}</code>
             </pre>
-          </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+          </Card>
+          <Card variant="stat" className="p-4">
             <p className="stat-label">JavaScript</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{jsExample}</code>
             </pre>
-          </article>
+          </Card>
         </div>
       </section>
 
@@ -413,13 +414,13 @@ export default async function DevelopersPage() {
           </p>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+          <Card variant="stat" className="p-4">
             <p className="stat-label">Ejemplo (curl)</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{`curl -sG ${siteUrl}${appRoutes.api.rebalancingReport({ district: 'Centro', days: 15 })}`}</code>
             </pre>
-          </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+          </Card>
+          <Card variant="stat" className="p-4">
             <p className="stat-label">Ejemplo (Python)</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{`import requests
@@ -430,7 +431,7 @@ res = requests.get(f"{base_url}${appRoutes.api.rebalancingReport()}", params=par
 res.raise_for_status()
 print(len(res.json()["transfers"]))`}</code>
             </pre>
-          </article>
+          </Card>
         </div>
       </section>
 
@@ -444,14 +445,15 @@ print(len(res.json()["transfers"]))`}</code>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {accessPolicies.map((policy) => (
-            <article
+            <Card
               key={policy.label}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4"
+              variant="stat"
+              className="rounded-2xl px-4 py-4"
             >
               <p className="stat-label">{policy.label}</p>
               <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{policy.title}</p>
               <p className="mt-2 text-xs text-[var(--muted)]">{policy.detail}</p>
-            </article>
+            </Card>
           ))}
         </div>
       </section>
@@ -475,10 +477,11 @@ print(len(res.json()["transfers"]))`}</code>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {endpointDocs.map((endpoint) => (
-            <article
+            <Card
               key={`${endpoint.method}-${endpoint.path}`}
+              variant="stat"
               id={buildDeveloperEndpointAnchorId(endpoint.path, endpoint.method)}
-              className="scroll-mt-24 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4"
+              className="scroll-mt-24 px-4 py-4"
             >
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                 {endpoint.method}
@@ -488,7 +491,7 @@ print(len(res.json()["transfers"]))`}</code>
               <p className="mt-2 text-xs text-[var(--muted)]">
                 {endpoint.params.length > 0 ? `Params: ${endpoint.params.join(', ')}` : 'Sin parametros obligatorios o query destacados.'}
               </p>
-            </article>
+            </Card>
           ))}
         </div>
       </section>
@@ -515,13 +518,18 @@ print(len(res.json()["transfers"]))`}</code>
                   destinationRole: 'utility',
                   transitionKind: 'within_public',
                 }}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="group block transition hover:-translate-y-0.5"
               >
-                <div>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
-                  <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
-                </div>
-                <span className="text-xs font-bold text-[var(--primary)]">Descargar</span>
+                <Card
+                  variant="stat"
+                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
+                    <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
+                  </div>
+                  <span className="text-xs font-bold text-[var(--primary)]">Descargar</span>
+                </Card>
               </TrackedLink>
             ))}
           </div>
@@ -564,9 +572,9 @@ print(len(res.json()["transfers"]))`}</code>
           </div>
           <div className="space-y-3">
             {changelog.map((item) => (
-              <div key={item} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 text-sm text-[var(--muted)]">
+              <Card key={item} variant="stat" className="px-4 py-3 text-sm text-[var(--muted)]">
                 {item}
-              </div>
+              </Card>
             ))}
           </div>
         </article>
@@ -608,9 +616,9 @@ print(len(res.json()["transfers"]))`}</code>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {useCases.map((item) => (
-            <article key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted)]">
+            <Card key={item} variant="stat" className="px-4 py-4 text-sm text-[var(--muted)]">
               {item}
-            </article>
+            </Card>
           ))}
         </div>
       </section>
