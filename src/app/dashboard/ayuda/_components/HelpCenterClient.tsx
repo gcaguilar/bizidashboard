@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
@@ -167,9 +168,9 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">
+            <Badge className="mb-4 px-3 py-1 text-xs font-bold tracking-[0.14em]">
               Centro de ayuda
-            </div>
+            </Badge>
             <h1 className="text-4xl font-black leading-tight tracking-tight text-[var(--foreground)] md:text-5xl">
               Preguntas frecuentes
             </h1>

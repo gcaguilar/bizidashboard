@@ -24,6 +24,7 @@ import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { formatInteger, formatPercent } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
+import { Card } from '@/components/ui/card';
 
 export const revalidate = 3600;
 // Prisma is intentionally unavailable during build, so prerendering would freeze empty SEO fallbacks.
@@ -339,17 +340,22 @@ export default async function ReportsIndexPage() {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="group block transition hover:-translate-y-0.5"
               >
-                <div>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
-                  <p className="text-[11px] text-[var(--muted)]">
-                    {row
-                      ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
-                      : 'Informe disponible con acceso al dashboard filtrado por mes.'}
-                  </p>
-                </div>
-                <span className="text-xs font-bold text-[var(--primary)]">Abrir informe</span>
+                <Card
+                  variant="stat"
+                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
+                    <p className="text-[11px] text-[var(--muted)]">
+                      {row
+                        ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
+                        : 'Informe disponible con acceso al dashboard filtrado por mes.'}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-[var(--primary)]">Abrir informe</span>
+                </Card>
               </TrackedLink>
             );
           })}
@@ -368,12 +374,14 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Evolucion agregada para complementar el archivo editorial por mes.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Evolucion agregada para complementar el archivo editorial por mes.
+              </p>
+            </Card>
           </TrackedLink>
           <TrackedLink
             href={appRoutes.districtLanding()}
@@ -384,12 +392,14 @@ export default async function ReportsIndexPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Descubre que zonas destacan en uso y que estaciones concentran mas actividad.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Descubre que zonas destacan en uso y que estaciones concentran mas actividad.
+              </p>
+            </Card>
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('ranking-estaciones-bizi')}
@@ -400,12 +410,14 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Da el salto del contexto mensual al ranking actual de estaciones.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Da el salto del contexto mensual al ranking actual de estaciones.
+              </p>
+            </Card>
           </TrackedLink>
           <TrackedLink
             href={appRoutes.developers()}
@@ -418,12 +430,14 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Accede a OpenAPI, CSV y trazabilidad del mismo dataset que alimenta los informes.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Accede a OpenAPI, CSV y trazabilidad del mismo dataset que alimenta los informes.
+              </p>
+            </Card>
           </TrackedLink>
           <TrackedLink
             href={appRoutes.methodology()}
@@ -434,12 +448,14 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Revisa como leer demanda, cobertura y limites antes de interpretar la serie mensual.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Revisa como leer demanda, cobertura y limites antes de interpretar la serie mensual.
+              </p>
+            </Card>
           </TrackedLink>
         </div>
       </section>

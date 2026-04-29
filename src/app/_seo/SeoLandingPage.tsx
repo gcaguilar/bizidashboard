@@ -28,6 +28,8 @@ import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 type SeoStat = {
   label: string;
@@ -1329,21 +1331,22 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
                   </div>
                   {item.badge ? (
-                    <span className="rounded-full bg-[var(--primary)]/12 px-3 py-1 text-xs font-bold text-[var(--primary)]">
+                    <Badge className="px-3 py-1 text-xs font-bold normal-case tracking-normal">
                       {item.badge}
-                    </span>
+                    </Badge>
                   ) : null}
                 </>
               );
 
               if (!item.href) {
                 return (
-                  <article
+                  <Card
                     key={`${item.title}-${item.badge ?? 'static'}`}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+                    variant="stat"
+                    className="flex-row items-center justify-between gap-3 px-4 py-3"
                   >
                     {body}
-                  </article>
+                  </Card>
                 );
               }
 
@@ -1358,9 +1361,14 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                     destinationRole: resolveSeoLandingDestinationRole(item.href),
                     transitionKind: resolveSeoLandingTransitionKind(item.href),
                   }}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                  className="group block transition hover:-translate-y-0.5"
                 >
-                  {body}
+                  <Card
+                    variant="stat"
+                    className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
+                  >
+                    {body}
+                  </Card>
                 </TrackedLink>
               );
             })}
@@ -1386,10 +1394,12 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                 destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="ui-surface-block ui-surface-block-interactive"
+              className="group block transition hover:-translate-y-0.5"
             >
-              <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
+              <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+                <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
+              </Card>
             </TrackedLink>
           ))}
         </div>

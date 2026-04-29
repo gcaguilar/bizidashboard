@@ -14,6 +14,8 @@ import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { average, formatDecimal, formatInteger } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
@@ -288,17 +290,22 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                 source: 'district_top_stations',
                 entityType: 'station',
               }}
-              className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="group block transition hover:-translate-y-0.5"
             >
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
-                <p className="text-[11px] text-[var(--muted)]">
-                  {station.bikesAvailable} bicis · {station.anchorsFree} anclajes libres · capacidad {station.capacity}
-                </p>
-              </div>
-              <span className="rounded-full bg-[var(--primary)]/12 px-3 py-1 text-xs font-bold text-[var(--primary)]">
-                {formatDecimal(station.turnoverScore)} pts
-              </span>
+              <Card
+                variant="stat"
+                className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
+                  <p className="text-[11px] text-[var(--muted)]">
+                    {station.bikesAvailable} bicis · {station.anchorsFree} anclajes libres · capacidad {station.capacity}
+                  </p>
+                </div>
+                <Badge className="px-3 py-1 text-xs font-bold normal-case tracking-normal">
+                  {formatDecimal(station.turnoverScore)} pts
+                </Badge>
+              </Card>
             </TrackedLink>
           ))}
         </div>
@@ -318,12 +325,14 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Informes indexables para conectar este barrio con el contexto historico.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Informes indexables para conectar este barrio con el contexto historico.
+              </p>
+            </Card>
           </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('ranking-estaciones-bizi')}
@@ -334,12 +343,14 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="group block transition hover:-translate-y-0.5"
           >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Contrasta las estaciones del barrio con las mas activas de Zaragoza.
-            </p>
+            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">
+                Contrasta las estaciones del barrio con las mas activas de Zaragoza.
+              </p>
+            </Card>
           </TrackedLink>
           {siblingDistricts.map((row) => (
             <TrackedLink
@@ -352,12 +363,14 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="ui-surface-block ui-surface-block-interactive"
+              className="group block transition hover:-translate-y-0.5"
             >
-              <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                {row.stationCount} estaciones · {formatDecimal(row.avgTurnover)} pts medios
-              </p>
+              <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+                <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">
+                  {row.stationCount} estaciones · {formatDecimal(row.avgTurnover)} pts medios
+                </p>
+              </Card>
             </TrackedLink>
           ))}
         </div>
