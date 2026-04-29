@@ -335,27 +335,22 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   </span>
                 </h2>
 
-                <div className="space-y-3">
-                  {items.map((item) => {
-                    return (
-                      <Accordion
-                        key={item.id}
-                        type="single"
-                        value={resolvedOpenItemId}
-                        onValueChange={(value) => setOpenItemId(value)}
-                      >
-                        <AccordionItem value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-                          <AccordionTrigger className="h-auto min-h-0 px-5 py-4">
-                            <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
-                            {item.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    );
-                  })}
-                </div>
+                <Accordion
+                  className="space-y-3"
+                  value={resolvedOpenItemId ? [resolvedOpenItemId] : []}
+                  onValueChange={(value) => setOpenItemId(value[0] ?? '')}
+                >
+                  {items.map((item) => (
+                    <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+                      <AccordionTrigger className="h-auto min-h-0 px-5 py-4">
+                        <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">
+                        {item.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </section>
             ))
           )}

@@ -112,7 +112,7 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
           renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)
         )}
 
-        <Accordion type="single" collapsible className="relative">
+        <Accordion className="relative">
           <AccordionItem value="mobile-overflow" className="border-none bg-transparent">
             <AccordionTrigger
             className={`inline-flex cursor-pointer list-none rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
