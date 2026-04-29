@@ -28,6 +28,7 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { formatInteger, formatPercent } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const revalidate = 3600;
 
@@ -302,7 +303,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker pageType="report" template="monthly_report" pageSlug={month} />
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -349,7 +350,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Volver al archivo mensual
           </TrackedLink>
@@ -412,7 +413,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           <h2 className="text-xl font-black text-[var(--foreground)]">Hallazgos del mes</h2>
           <div className="mt-2 space-y-3">
             {payload.highlights.length > 0 ? payload.highlights.map((item) => (
-              <article key={`${item.title}-${item.detail}`} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+              <article key={`${item.title}-${item.detail}`} className="ui-surface-block">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
               </article>
@@ -424,7 +425,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           <h2 className="text-xl font-black text-[var(--foreground)]">Recomendaciones operativas</h2>
           <div className="mt-2 space-y-3">
             {payload.recommendations.length > 0 ? payload.recommendations.map((item, index) => (
-              <article key={`${item}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+              <article key={`${item}-${index}`} className="ui-surface-block">
                 <p className="text-sm font-semibold text-[var(--foreground)]">Accion {index + 1}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{item}</p>
               </article>
@@ -445,7 +446,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                   source: 'monthly_report_top_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">Indice medio {station.avgDemand.toFixed(1)} pts/dia</p>
@@ -458,7 +459,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           <h2 className="text-xl font-black text-[var(--foreground)]">Horas pico</h2>
           <div className="mt-2 space-y-3">
             {payload.peakDemandHours.map((slot) => (
-              <div key={slot.hour} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+              <div key={slot.hour} className="ui-surface-block">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourLabel(slot.hour)}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{formatInteger(slot.demandScore)} pts de actividad agregada</p>
               </div>
@@ -471,13 +472,13 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Entre semana vs fin de semana</h2>
           <div className="mt-2 space-y-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <div className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">Entre semana</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 {payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts/dia · ocupacion {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)}
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <div className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">Fin de semana</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 {payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts/dia · ocupacion {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)}
@@ -500,7 +501,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="block ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{formatInteger(district.demandScore)} pts de demanda agregada</p>
@@ -512,17 +513,17 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cobertura</h2>
           <div className="mt-2 space-y-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <div className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">Rango historico</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 Desde {formatDate(payload.sourceFirstDay)} hasta {formatDate(payload.sourceLastDay)}.
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <div className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">Dias historicos</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{payload.totalHistoricalDays} dias con datos consolidados.</p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <div className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con muestra</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{payload.stationsWithData} estaciones con datos en el periodo.</p>
             </div>
@@ -538,12 +539,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             {newerMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(newerMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40">
+              <TrackedLink href={appRoutes.reportMonth(newerMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">
                 Mes mas reciente: {formatMonthLabel(newerMonth)}
               </TrackedLink>
             ) : null}
             {olderMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(olderMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40">
+              <TrackedLink href={appRoutes.reportMonth(olderMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">
                 Mes anterior: {formatMonthLabel(olderMonth)}
               </TrackedLink>
             ) : null}
@@ -563,7 +564,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo de informes</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo completo de informes y comparativas.</p>
@@ -579,7 +580,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                 destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
@@ -587,6 +588,6 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           ))}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

@@ -25,6 +25,7 @@ import {
 } from '@/lib/shared-data-fallbacks';
 import { getSharedDataSource, type HistoryMetadata } from '@/services/shared-data';
 import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 import {
   formatStatusDateTime,
   getApiVersionLabel,
@@ -186,7 +187,7 @@ export default async function MethodologyPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker pageType="methodology" template="methodology_hub" pageSlug="metodologia" />
 
       <script
@@ -252,7 +253,7 @@ export default async function MethodologyPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Abrir API y datos abiertos
             </TrackedLink>
@@ -265,7 +266,7 @@ export default async function MethodologyPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Ver estado del sistema
             </TrackedLink>
@@ -378,7 +379,7 @@ export default async function MethodologyPage() {
           {faqItems.map((item) => (
             <article
               key={item.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+              className="ui-surface-block"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
               <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted)]">{item.answer}</p>
@@ -407,7 +408,7 @@ export default async function MethodologyPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -423,7 +424,7 @@ export default async function MethodologyPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado y cobertura</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -441,7 +442,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -457,7 +458,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Fichas de estacion</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -473,7 +474,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios y contexto territorial</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -489,7 +490,7 @@ export default async function MethodologyPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ayuda completa del dashboard</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -498,6 +499,6 @@ export default async function MethodologyPage() {
           </TrackedLink>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

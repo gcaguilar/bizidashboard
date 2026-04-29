@@ -1,8 +1,9 @@
 import { WidgetSkeleton } from './_components/WidgetSkeleton';
+import { PageShell } from '@/components/layout/page-shell';
 
 export default function DashboardLoading() {
   return (
-    <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell maxWidthClassName="">
       <div className="mx-auto max-w-[1280px] space-y-6">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-[var(--secondary)]" />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -12,6 +13,6 @@ export default function DashboardLoading() {
         </div>
         <WidgetSkeleton className="min-h-[360px]" lines={6} />
       </div>
-    </main>
+    </PageShell>
   );
 }

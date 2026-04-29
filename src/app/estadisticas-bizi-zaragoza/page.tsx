@@ -12,6 +12,7 @@ import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
 import { formatDecimal } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 export async function generateMetadata(): Promise<Metadata> {
   const landingData = await getInsightsLandingData();
@@ -94,7 +95,7 @@ export default async function InsightsLandingPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker
         pageType="acquisition"
         template="insights_landing"
@@ -162,7 +163,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Ver ranking de estaciones
           </TrackedLink>
@@ -239,7 +240,7 @@ export default async function InsightsLandingPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ultimo informe</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -256,7 +257,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -272,7 +273,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Horas punta</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -290,7 +291,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -311,7 +312,7 @@ export default async function InsightsLandingPage() {
                 source: 'insights_landing_featured_stations',
                 entityType: 'station',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -334,7 +335,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero resolver algo practico</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -350,7 +351,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero ir al detalle operativo</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -359,6 +360,6 @@ export default async function InsightsLandingPage() {
           </TrackedLink>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

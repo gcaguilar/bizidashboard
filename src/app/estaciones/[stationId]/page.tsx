@@ -11,6 +11,7 @@ import { getStationSeoPageData } from '@/lib/seo-stations';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { formatDecimal, formatHourRange, formatPercent } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const revalidate = 300;
 
@@ -160,7 +161,7 @@ export default async function PublicStationPage({ params }: PageProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker
         pageType="station"
         template="station_detail"
@@ -222,7 +223,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Ver barrio relacionado
             </TrackedLink>
@@ -236,7 +237,7 @@ export default async function PublicStationPage({ params }: PageProps) {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Abrir ranking de estaciones
           </TrackedLink>
@@ -299,7 +300,7 @@ export default async function PublicStationPage({ params }: PageProps) {
               highOccupancySlots.map((slot) => (
                 <div
                   key={`${slot.dayType}-${slot.hour}-high`}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+                  className="ui-surface-block"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">
                     {formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)}
@@ -324,7 +325,7 @@ export default async function PublicStationPage({ params }: PageProps) {
               lowOccupancySlots.map((slot) => (
                 <div
                   key={`${slot.dayType}-${slot.hour}-low`}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+                  className="ui-surface-block"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">
                     {formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)}
@@ -348,7 +349,7 @@ export default async function PublicStationPage({ params }: PageProps) {
             {predictions.predictions.map((point) => (
               <div
                 key={point.horizonMinutes}
-                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+                className="ui-surface-block"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">
                   En {point.horizonMinutes} minutos
@@ -369,19 +370,19 @@ export default async function PublicStationPage({ params }: PageProps) {
         <article className="ui-section-card xl:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">FAQ basada en datos visibles</h2>
           <div className="mt-2 grid gap-3 md:grid-cols-3">
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <article className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele ser más fácil encontrar bici?
               </p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[0].answer}</p>
             </article>
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <article className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele haber más huecos para devolver?
               </p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[1].answer}</p>
             </article>
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
+            <article className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Está por encima o por debajo de la media de Zaragoza?
               </p>
@@ -403,7 +404,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="block ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">Más datos del barrio</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -422,7 +423,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="block ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -438,7 +439,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="block ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ranking y análisis</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -463,7 +464,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                   source: 'public_station_related_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{related.station.name}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -474,6 +475,6 @@ export default async function PublicStationPage({ params }: PageProps) {
           </div>
         </section>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

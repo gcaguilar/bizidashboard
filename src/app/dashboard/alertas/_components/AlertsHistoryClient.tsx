@@ -32,6 +32,8 @@ import { fetchJson, useAbortableAsyncEffect } from '../../_components/useAbortab
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
+import { PageShell } from '@/components/layout/page-shell';
 
 const PAGE_SIZE = 100;
 const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -456,8 +458,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+    <PageShell>
+      <PageHeaderCard>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3 text-[var(--primary)]">
@@ -640,7 +642,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
           <span className="ml-auto text-xs text-[var(--muted)]">La URL refleja los filtros actuales.</span>
         </div>
-      </header>
+      </PageHeaderCard>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="ui-section-card">
@@ -773,6 +775,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           </div>
         </footer>
       </section>
-    </main>
+    </PageShell>
   );
 }

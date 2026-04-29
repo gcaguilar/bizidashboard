@@ -18,6 +18,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { EXPLORE_PAGE_NAV_CONFIG } from '@/lib/seo-pages';
 import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
 import { getCityName } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 import {
   formatStatusDateTime,
   getHealthLabel,
@@ -70,7 +71,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
   const itemList = sections.flatMap((section) => section.items);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -150,7 +151,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Abrir comparador
             </TrackedLink>
@@ -294,6 +295,6 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
           </div>
         </section>
       ))}
-    </main>
+    </PageShell>
   );
 }

@@ -5,6 +5,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const revalidate = 86400;
 
@@ -137,7 +138,7 @@ export default function BetaPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <SiteBreadcrumbs items={breadcrumbs} />
 
@@ -405,34 +406,34 @@ export default function BetaPage() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link
             href={appRoutes.dashboard()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Dashboard en tiempo real</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Mapa interactivo, estado del sistema y alertas.</p>
           </Link>
           <Link
             href={appRoutes.seoPage('estaciones-con-mas-bicis')}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con mas bicis</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Donde hay bicicletas disponibles ahora mismo.</p>
           </Link>
           <Link
             href={appRoutes.dashboardStations()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Directorio de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Ficha detallada de cada estacion del sistema.</p>
           </Link>
           <Link
             href={appRoutes.reports()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Informes mensuales</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo historico con datos agregados por mes.</p>
           </Link>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

@@ -33,6 +33,7 @@ import {
   getPipelineLagLabel,
 } from '@/lib/system-status';
 import { StatusBanner } from '@/app/dashboard/_components/StatusBanner';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,7 +148,7 @@ export default async function SystemStatusPage() {
   ] as const;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker pageType="status" template="system_status" pageSlug="estado" />
 
       <script
@@ -224,7 +225,7 @@ export default async function SystemStatusPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Ver API y developers
             </TrackedLink>
@@ -237,7 +238,7 @@ export default async function SystemStatusPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Ver metodologia
             </TrackedLink>
@@ -357,6 +358,6 @@ export default async function SystemStatusPage() {
           ))}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
