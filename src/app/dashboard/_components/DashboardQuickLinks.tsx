@@ -10,7 +10,7 @@ type DashboardQuickLinksProps = {
 export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuickLinksProps) {
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Detalle de estacion</h3>
         <p className="text-sm text-[var(--muted)]">
           Abre la vista completa de la estacion seleccionada para ver prediccion, mapa por barrios y comparativas.
@@ -30,7 +30,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Flujo por barrios</h3>
         <p className="text-sm text-[var(--muted)]">
           Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
@@ -50,7 +50,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Conclusiones diarias</h3>
         <p className="text-sm text-[var(--muted)]">
           Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
@@ -70,7 +70,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Centro de ayuda</h3>
         <p className="text-sm text-[var(--muted)]">
           Metodologia, criterios de alertas y documentacion en una pagina independiente.
@@ -90,7 +90,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Paginas SEO</h3>
         <p className="text-sm text-[var(--muted)]">
           Rankings indexables, series temporales e informes mensuales enlazados al dashboard.

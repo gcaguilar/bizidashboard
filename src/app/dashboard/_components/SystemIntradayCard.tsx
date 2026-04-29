@@ -50,7 +50,7 @@ function SystemTooltip({ active, label, payload }: TooltipProps) {
   }
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
       <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">Hora {label}</p>
       <div className="mt-1 space-y-1">
         {payload.map((row) => (
@@ -79,7 +79,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
   );
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
@@ -91,7 +91,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
         </div>
         <Link
           href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
-          className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
         >
           Como se calcula
         </Link>
@@ -104,7 +104,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
           helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />
       ) : (
-        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
           <ChartWrapper height="h-[280px]">
             <div className="h-[280px]">
               <MeasuredResponsiveContainer>

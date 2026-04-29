@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
         <div
           ref={ref}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface)] p-6 shadow-2xl outline-none md:p-8',
+            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--primary)]/30 bg-[var(--card)] p-6 shadow-2xl outline-none md:p-8',
             typeof className === 'string' ? className : undefined
           )}
         >
@@ -66,7 +66,7 @@ const DialogContent = React.forwardRef<
         ref={ref}
         className={(state) =>
           cn(
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface)] p-6 shadow-2xl outline-none md:p-8',
+            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--primary)]/30 bg-[var(--card)] p-6 shadow-2xl outline-none md:p-8',
             typeof className === 'function' ? className(state) : className
           )
         }

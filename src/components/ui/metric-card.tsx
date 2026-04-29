@@ -14,7 +14,7 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(function Me
   return (
     <div
       ref={ref}
-      className={cn('rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4', className)}
+      className={cn('ui-metric-card rounded-xl px-4 py-4', className)}
       {...props}
     >
       <p className="stat-label">{label}</p>
@@ -31,4 +31,3 @@ const MetricGrid = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 
 export { MetricCard, MetricGrid, type MetricCardProps };
-

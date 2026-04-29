@@ -486,7 +486,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
   return (
     <div className="space-y-3">
       {/* Filters toolbar */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-2 sm:p-3">
         <div className="flex items-center gap-2">
           <Input
             placeholder="Buscar estación o barrio..."
@@ -507,7 +507,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
               size="sm"
               className={`min-h-7 rounded px-2 py-1 text-xs ${
                 activeQuickFilter === qf.id
-                  ? 'border-[var(--accent)]'
+                  ? 'border-[var(--primary)]'
                   : 'text-[var(--foreground)]'
               }`}
             >
@@ -558,7 +558,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             }}
             variant="ghost"
             size="sm"
-            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
+            className="min-h-7 px-1 text-xs text-[var(--primary)] hover:underline"
           >
             Limpiar filtros
           </Button>
@@ -568,9 +568,9 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
           onValueChange={setOpenToolbarAccordions}
           className="w-full sm:w-auto"
         >
-          <AccordionItem value="columns" className="rounded-md border border-[var(--border)] bg-[var(--surface)]">
+          <AccordionItem value="columns" className="rounded-md border border-[var(--border)] bg-[var(--card)]">
             <AccordionTrigger
-              className="px-2 py-1.5 text-xs text-[var(--accent)] [&>span]:text-xs [&>span]:font-semibold"
+              className="px-2 py-1.5 text-xs text-[var(--primary)] [&>span]:text-xs [&>span]:font-semibold"
             >
               Columnas
             </AccordionTrigger>
@@ -601,7 +601,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             }}
             variant="ghost"
             size="sm"
-            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
+            className="min-h-7 px-1 text-xs text-[var(--primary)] hover:underline"
           >
             {selectedCount > 0 ? `Copiar ${selectedCount}` : 'Copiar'}
           </Button>
@@ -611,7 +611,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
             onClick={() => exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion')}
             variant="ghost"
             size="sm"
-            className="min-h-7 px-1 text-xs text-[var(--accent)] hover:underline"
+            className="min-h-7 px-1 text-xs text-[var(--primary)] hover:underline"
           >
             Exportar CSV
           </Button>
@@ -626,7 +626,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       {/* Table */}
       <ScrollArea className="overflow-x-auto rounded-xl border border-[var(--border)] max-w-[100vw]">
         <Table className="w-full text-sm">
-          <TableHeader className="sticky top-0 border-b border-[var(--border)] bg-[var(--surface)]">
+          <TableHeader className="sticky top-0 border-b border-[var(--border)] bg-[var(--card)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -657,7 +657,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
               return (
                 <Fragment key={row.id}>
                   <TableRow
-                    className="cursor-pointer bg-[var(--surface)] transition-colors hover:bg-[var(--surface-hover,var(--surface))]"
+                    className="cursor-pointer bg-[var(--card)] transition-colors hover:bg-[var(--surface-hover,var(--card))]"
                     onClick={() => handleToggle(diagnostic.stationId)}
                     onKeyDown={(e) => handleKeyDown(e, diagnostic.stationId)}
                     tabIndex={0}
@@ -684,14 +684,14 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                   </TableRow>
                   {isExpanded && (
                     <TableRow>
-                      <TableCell colSpan={11} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--surface))] px-4 pb-4 pt-2">
+                      <TableCell colSpan={11} className="border-b border-[var(--border)] bg-[var(--surface-secondary,var(--card))] px-4 pb-4 pt-2">
                         <div className="grid gap-4 text-xs sm:grid-cols-2">
                           <div>
                             <p className="mb-1 font-semibold text-[var(--foreground)]">Razones de clasificación</p>
                             <ul className="space-y-1 text-[var(--muted)]">
                               {diagnostic.classificationReasons.map((r, i) => (
                                 <li key={i} className="flex gap-1">
-                                  <span className="shrink-0 text-[var(--accent)]">›</span>
+                                  <span className="shrink-0 text-[var(--primary)]">›</span>
                                   {r}
                                 </li>
                               ))}
@@ -702,7 +702,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                             <ul className="space-y-1 text-[var(--muted)]">
                               {diagnostic.actionReasons.map((r, i) => (
                                 <li key={i} className="flex gap-1">
-                                  <span className="shrink-0 text-[var(--accent)]">›</span>
+                                  <span className="shrink-0 text-[var(--primary)]">›</span>
                                   {r}
                                 </li>
                               ))}
@@ -744,7 +744,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
 
       {/* Pagination */}
       {pageCount > 1 && (
-        <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+        <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2">
           <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
             <span>
               {pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, totalRows)} de {totalRows}

@@ -369,7 +369,7 @@ export function MapEngine({
           onClick={handleZoomIn}
           variant="outline"
           size="icon"
-          className="h-9 w-9 bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          className="h-9 w-9 bg-[var(--card)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Acercar"
         >
           +
@@ -378,7 +378,7 @@ export function MapEngine({
           onClick={handleZoomOut}
           variant="outline"
           size="icon"
-          className="h-9 w-9 bg-[var(--surface)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          className="h-9 w-9 bg-[var(--card)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
           aria-label="Alejar"
         >
           -
@@ -445,8 +445,8 @@ export function MapEngine({
                   size="sm"
                   className={`min-h-0 rounded-md px-2 py-1 text-xs font-bold transition ${
                     favoriteStationSet.has(popupStation.id)
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)]/20'
-                      : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
+                      ? 'border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/20'
+                      : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)]'
                   }`}
                 >
                   {favoriteStationSet.has(popupStation.id) ? '★ Favorita' : '☆ Favorita'}
@@ -454,10 +454,10 @@ export function MapEngine({
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <p className="rounded bg-[var(--surface-soft)] px-2 py-1">
+                <p className="rounded bg-[var(--secondary)] px-2 py-1">
                   🚲 Bicis: <span className="font-semibold">{popupStation.bikesAvailable}</span>
                 </p>
-                <p className="rounded bg-[var(--surface-soft)] px-2 py-1">
+                <p className="rounded bg-[var(--secondary)] px-2 py-1">
                   ✕ Huecos: <span className="font-semibold">{popupStation.anchorsFree}</span>
                 </p>
               </div>
@@ -467,7 +467,7 @@ export function MapEngine({
               </p>
 
               {nearestStationId === popupStation.id ? (
-                <p className="mt-1 text-xs font-semibold text-[var(--accent)]">
+                <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
                   📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
                 </p>
               ) : null}

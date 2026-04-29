@@ -72,7 +72,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
       </div>
 
       <Card variant="panel">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 py-4">
           <div>
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
@@ -83,7 +83,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
               variant: 'outline',
               size: 'sm',
               className:
-                'min-h-0 border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+                'min-h-0 border-[var(--primary)] bg-[var(--primary)]/12 px-3 py-2 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
             })}
           >
             Vista completa

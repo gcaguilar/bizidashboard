@@ -238,7 +238,7 @@ export function InteractiveComparePanel({
 
   if (!activeDimension || !leftOption || !rightOption) {
     return (
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
           Comparador interactivo
         </p>
@@ -254,7 +254,7 @@ export function InteractiveComparePanel({
   }
 
   return (
-    <section className="dashboard-card">
+    <section className="ui-section-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -269,8 +269,8 @@ export function InteractiveComparePanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-          <span className="kpi-chip">{data.dimensions.length} dimensiones comparables</span>
-          <span className="kpi-chip">{activeDimension.options.length} opciones en {activeDimension.label.toLowerCase()}</span>
+          <span className="ui-chip">{data.dimensions.length} dimensiones comparables</span>
+          <span className="ui-chip">{activeDimension.options.length} opciones en {activeDimension.label.toLowerCase()}</span>
         </div>
       </div>
 
@@ -297,8 +297,8 @@ export function InteractiveComparePanel({
               aria-pressed={isActive}
               className={`h-auto min-h-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
-                  ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                  : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
+                  ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                  : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)]'
               }`}
             >
               {dimension.label}
@@ -314,7 +314,7 @@ export function InteractiveComparePanel({
         ].map((side) => (
           <article
             key={side.side}
-            className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4"
+            className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4"
           >
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -342,7 +342,7 @@ export function InteractiveComparePanel({
                   syncCompareSelection(activeDimension, nextSelection);
                 }}
               >
-                <SelectTrigger className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-semibold text-[var(--foreground)]">
+                <SelectTrigger className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-semibold text-[var(--foreground)]">
                   <SelectValue />
                   <SelectIcon />
                 </SelectTrigger>
@@ -357,14 +357,14 @@ export function InteractiveComparePanel({
             </div>
 
             <div className="mt-4 space-y-2 text-sm">
-              <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+              <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-[var(--foreground)]">
                 <span className="font-bold">{side.option.primaryLabel}:</span> {side.option.primaryDisplay}
               </p>
-              <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+              <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-[var(--foreground)]">
                 <span className="font-bold">{side.option.secondaryLabel}:</span> {side.option.secondaryDisplay}
               </p>
               {side.option.tertiaryLabel && side.option.tertiaryDisplay ? (
-                <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+                <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-[var(--foreground)]">
                   <span className="font-bold">{side.option.tertiaryLabel}:</span> {side.option.tertiaryDisplay}
                 </p>
               ) : null}
@@ -376,7 +376,7 @@ export function InteractiveComparePanel({
 
             <Link
               href={side.option.href}
-              className="mt-4 inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-bold text-[var(--accent)] transition hover:border-[var(--accent)]/40"
+              className="mt-4 inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--primary)] transition hover:border-[var(--primary)]/40"
             >
               Abrir {side.option.label}
             </Link>
@@ -384,11 +384,11 @@ export function InteractiveComparePanel({
         ))}
       </div>
 
-      <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+      <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
           URL compartible
         </p>
-        <p className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 font-mono text-xs text-[var(--foreground)]">
+        <p className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 font-mono text-xs text-[var(--foreground)]">
           {shareHref}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -405,13 +405,13 @@ export function InteractiveComparePanel({
                 setCopyState('error');
               }
             }}
-            className="h-auto min-h-0 rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="h-auto min-h-0 rounded-xl bg-[var(--primary)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Copiar enlace
           </Button>
           <Link
             href={shareHref}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Abrir esta seleccion
           </Link>
@@ -425,7 +425,7 @@ export function InteractiveComparePanel({
         ) : null}
       </article>
 
-      <article className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/8 p-4">
+      <article className="rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/8 p-4">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
           Lectura comparativa
         </p>

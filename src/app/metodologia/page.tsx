@@ -195,7 +195,7 @@ export default async function MethodologyPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="help" className="mt-1" />
 
@@ -214,8 +214,8 @@ export default async function MethodologyPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{historyMeta.coverage.totalDays} dias de cobertura</span>
-            <span className="kpi-chip">{historyMeta.coverage.totalStations} estaciones con historico</span>
+            <span className="ui-chip">{historyMeta.coverage.totalDays} dias de cobertura</span>
+            <span className="ui-chip">{historyMeta.coverage.totalStations} estaciones con historico</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {getHealthLabel(status.pipeline.healthStatus)}
             </span>
@@ -237,7 +237,7 @@ export default async function MethodologyPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Ver feed GBFS oficial
             </TrackedAnchor>
@@ -252,7 +252,7 @@ export default async function MethodologyPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Abrir API y datos abiertos
             </TrackedLink>
@@ -265,7 +265,7 @@ export default async function MethodologyPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver estado del sistema
             </TrackedLink>
@@ -276,26 +276,26 @@ export default async function MethodologyPage() {
       </header>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Fuente primaria</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {historyMeta.source.provider}
           </p>
           <p className="text-xs text-[var(--muted)]">Discovery GBFS consultado y validado de forma periodica.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cobertura visible</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getCoverageLabel(dataset)}
           </p>
           <p className="text-xs text-[var(--muted)]">Base compartida por informes, rankings y fichas publicas.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cadencia observada</p>
           <p className="stat-value">{getObservedCadenceLabel(status)}</p>
           <p className="text-xs text-[var(--muted)]">Lectura reciente del pipeline y de la frescura del sistema.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Versiones activas</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getDatasetVersionLabel(dataset)} · API v{getApiVersionLabel()}
@@ -306,7 +306,7 @@ export default async function MethodologyPage() {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -332,7 +332,7 @@ export default async function MethodologyPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Snapshot actual</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que ves ahora mismo</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -340,7 +340,7 @@ export default async function MethodologyPage() {
             no una media historica.
           </p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Historico agregado</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que suele pasar</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -348,7 +348,7 @@ export default async function MethodologyPage() {
             no una sola foto puntual.
           </p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Demanda y movilidad</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lecturas estimadas</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -356,7 +356,7 @@ export default async function MethodologyPage() {
             zonas; ninguna de las dos equivale a viajes oficiales uno a uno.
           </p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Prediccion</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Orientacion, no garantia</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -366,7 +366,7 @@ export default async function MethodologyPage() {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             FAQs visibles
@@ -378,7 +378,7 @@ export default async function MethodologyPage() {
           {faqItems.map((item) => (
             <article
               key={item.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
               <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted)]">{item.answer}</p>
@@ -387,7 +387,7 @@ export default async function MethodologyPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Siguiente paso segun tu necesidad
@@ -407,7 +407,7 @@ export default async function MethodologyPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -423,7 +423,7 @@ export default async function MethodologyPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado y cobertura</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -441,7 +441,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -457,7 +457,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Fichas de estacion</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -473,7 +473,7 @@ export default async function MethodologyPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios y contexto territorial</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -489,7 +489,7 @@ export default async function MethodologyPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ayuda completa del dashboard</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">

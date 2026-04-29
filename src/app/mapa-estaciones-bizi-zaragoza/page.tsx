@@ -129,7 +129,7 @@ export default async function UtilityLandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
 
@@ -149,9 +149,9 @@ export default async function UtilityLandingPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{landingData.stationRows.length} estaciones publicas</span>
-            <span className="kpi-chip">{landingData.bikesAvailable} bicis visibles</span>
-            <span className="kpi-chip">{landingData.districtRows.length} barrios conectados</span>
+            <span className="ui-chip">{landingData.stationRows.length} estaciones publicas</span>
+            <span className="ui-chip">{landingData.bikesAvailable} bicis visibles</span>
+            <span className="ui-chip">{landingData.districtRows.length} barrios conectados</span>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             {UTILITY_LANDING_NAV_CONFIG.primaryCta.label}
           </TrackedLink>
@@ -180,30 +180,30 @@ export default async function UtilityLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Explorar estaciones
           </TrackedLink>
         </div>
       </header>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="grid gap-4 xl:grid-cols-3">
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Paso 1</p>
             <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Localiza la zona</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Usa el mapa o entra por barrio si ya sabes en qué parte de Zaragoza te vas a mover.
             </p>
           </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Paso 2</p>
             <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Revisa disponibilidad</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Cada ficha pública muestra bicis, anclajes libres, ocupación y comparación frente a la media.
             </p>
           </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Paso 3</p>
             <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Baja al detalle operativo</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
@@ -213,7 +213,7 @@ export default async function UtilityLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas para empezar</h2>
@@ -232,7 +232,7 @@ export default async function UtilityLandingPage() {
                 source: 'utility_landing_featured_stations',
                 entityType: 'station',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -244,13 +244,13 @@ export default async function UtilityLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas habituales</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-3">
           {FAQ_ITEMS.map((item) => (
             <article
               key={item.question}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{item.answer}</p>
@@ -259,7 +259,7 @@ export default async function UtilityLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas utiles</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
@@ -271,7 +271,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -287,7 +287,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -305,7 +305,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -321,7 +321,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">

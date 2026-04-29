@@ -137,7 +137,7 @@ function DashboardDialogShell({
       onClick={() => onClose('dismiss_overlay')}
     >
       <div
-        className="relative w-full max-w-2xl rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface)] p-6 shadow-2xl md:p-8"
+        className="relative w-full max-w-2xl rounded-2xl border border-[var(--primary)]/30 bg-[var(--card)] p-6 shadow-2xl md:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <Button
@@ -163,7 +163,7 @@ function WelcomeModal({
 }) {
   return (
     <DashboardDialogShell ariaLabel="Cerrar dialogo de bienvenida" onClose={onClose}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">Nuevo</p>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">Nuevo</p>
       <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">
         Pedalea con menos sorpresas con BiciRadar
       </h2>
@@ -176,14 +176,14 @@ function WelcomeModal({
           target="_blank"
           rel="noopener noreferrer"
           onClick={onOpen}
-          className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+          className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
         >
           Ver BiciRadar
         </a>
         <Button
           variant="ghost"
           onClick={() => onClose('dismiss_button')}
-          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
         >
           Cerrar
         </Button>
@@ -199,7 +199,7 @@ function FeedbackModal({
 }) {
   return (
     <DashboardDialogShell ariaLabel="Cerrar dialogo de feedback" onClose={onClose}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">Feedback</p>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">Feedback</p>
       <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">
         Ayudanos a mejorar DatosBizi
       </h2>
@@ -212,15 +212,15 @@ function FeedbackModal({
           source="global_feedback_modal"
           ctaId="feedback_modal_open"
           module="global_modal"
-          className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-          pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
+          className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+          pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
         >
           Dar feedback
         </FeedbackCta>
         <Button
           variant="ghost"
           onClick={onClose}
-          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
         >
           Ahora no
         </Button>
@@ -231,7 +231,7 @@ function FeedbackModal({
 
 function renderFeedbackBanner(onDismiss: () => void) {
   return (
-    <div className="relative flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/6 px-4 py-2.5">
+    <div className="relative flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--primary)]/25 bg-[var(--primary)]/6 px-4 py-2.5">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <span className="hidden shrink-0 text-sm sm:inline" aria-hidden="true">📝</span>
         <p className="min-w-0 text-xs text-[var(--foreground)]">
@@ -244,8 +244,8 @@ function renderFeedbackBanner(onDismiss: () => void) {
           source="global_feedback_banner"
           ctaId="feedback_banner_open"
           module="global_banner"
-          className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
-          pendingClassName="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]"
+          className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
+          pendingClassName="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]"
         >
           Dar feedback
         </FeedbackCta>
@@ -264,7 +264,7 @@ function renderFeedbackBanner(onDismiss: () => void) {
 
 function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
   return (
-    <div className="relative flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/6 px-4 py-2.5">
+    <div className="relative flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--primary)]/25 bg-[var(--primary)]/6 px-4 py-2.5">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <span className="hidden shrink-0 text-sm sm:inline" aria-hidden="true">📱</span>
         <p className="min-w-0 text-xs text-[var(--foreground)]">
@@ -278,7 +278,7 @@ function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={onOpen}
-          className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
+          className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
         >
           Ver BiciRadar
         </a>

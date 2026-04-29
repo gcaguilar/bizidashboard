@@ -107,7 +107,7 @@ export function OverviewModeView({
         />
       </div>
 
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
+      <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del sistema</p>
@@ -143,7 +143,7 @@ export function OverviewModeView({
           />
         </div>
         <div className="min-w-0 lg:col-span-1">
-          <div className="dashboard-card h-full">
+          <div className="ui-section-card h-full">
             <p className="text-sm text-[var(--muted)]">Resumen visual rapido disponible en el modo Operaciones y el historial completo en la pagina de alertas.</p>
             <Button asChild variant="cta" size="sm" className="mt-auto">
               <Link href={appRoutes.dashboardAlerts()}>Abrir alertas completas</Link>
@@ -162,8 +162,8 @@ export function OverviewModeView({
         <NeighborhoodLoadCard stations={stations} />
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 py-4">
+      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 py-4">
           <div>
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>

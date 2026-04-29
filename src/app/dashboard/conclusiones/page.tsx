@@ -15,6 +15,8 @@ import { DashboardPageViewTracker } from '../_components/DashboardPageViewTracke
 import { GitHubRepoButton } from '../_components/GitHubRepoButton';
 import { MonthFilter } from '../_components/MonthFilter';
 import { ThemeToggleButton } from '../_components/ThemeToggleButton';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,19 +188,19 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <DashboardPageViewTracker
         routeKey="dashboard_conclusions"
         pageType="dashboard"
         template="conclusions_report"
       />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <PageHeaderCard>
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 text-[var(--accent)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-black text-white">
+            <div className="flex items-center gap-3 text-[var(--primary)]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-sm font-black text-white">
                 B
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h1>
@@ -222,7 +224,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
             <GitHubRepoButton />
           </div>
         </div>
-      </header>
+      </PageHeaderCard>
 
       <Suspense>
         <MonthFilter
@@ -233,7 +235,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
         />
       </Suspense>
 
-      <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)]">
+      <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl space-y-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -246,22 +248,22 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Dia informe {payload.dateKey}</span>
-            <span className="kpi-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
-            <span className="kpi-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
-            <span className="kpi-chip">{fromCache ? 'Actualizacion diaria en cache' : 'Actualizado hoy'}</span>
+            <span className="ui-chip">Dia informe {payload.dateKey}</span>
+            <span className="ui-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
+            <span className="ui-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
+            <span className="ui-chip">{fromCache ? 'Actualizacion diaria en cache' : 'Actualizado hoy'}</span>
           </div>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">{getDemandCardLabel(payload.selectedMonth)}</p>
           <p className="stat-value">{formatDelta(payload.metrics.demandDeltaRatio)}</p>
           <p className="text-xs text-[var(--muted)]">{getDemandCardDetail(payload)}</p>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">{getOccupancyCardLabel(payload.selectedMonth)}</p>
           <p className="stat-value">{formatPercent(payload.metrics.occupancyLast7Days)}</p>
           <p className="text-xs text-[var(--muted)]">
@@ -269,7 +271,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           </p>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cobertura historica</p>
           <p className="stat-value">{payload.totalHistoricalDays}</p>
           <p className="text-xs text-[var(--muted)]">Dias con informacion consolidada.</p>
@@ -278,7 +280,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       </section>
 
       <section className="grid gap-6 xl:grid-cols-12">
-        <article className="dashboard-card xl:col-span-7">
+        <article className="ui-section-card xl:col-span-7">
           <h3 className="text-base font-bold text-[var(--foreground)]">Hallazgos principales</h3>
           <p className="text-xs text-[var(--muted)]">
             Cobertura desde {formatDate(payload.sourceFirstDay)} hasta {formatDate(payload.sourceLastDay)}.
@@ -291,7 +293,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.highlights.map((item) => (
                 <article
                   key={`${item.title}-${item.detail}`}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
                   <p className="mt-1 text-xs text-[var(--muted)]">{item.detail}</p>
@@ -301,7 +303,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           )}
         </article>
 
-        <article className="dashboard-card xl:col-span-5">
+        <article className="ui-section-card xl:col-span-5">
           <h3 className="text-base font-bold text-[var(--foreground)]">Recomendaciones operativas</h3>
           {payload.recommendations.length === 0 ? (
             <p className="mt-4 text-sm text-[var(--muted)]">Sin recomendaciones para hoy.</p>
@@ -310,9 +312,9 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.recommendations.map((recommendation, index) => (
                 <li
                   key={`${recommendation}-${index}`}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
-                  <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--accent)]/15 text-[10px] font-bold text-[var(--accent)]">
+                  <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[10px] font-bold text-[var(--primary)]">
                     {index + 1}
                   </span>
                   {recommendation}
@@ -324,7 +326,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Entre semana vs fin de semana</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ventana actual')}</span>
@@ -333,14 +335,14 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           <p className="mt-3 text-sm text-[var(--muted)]">{getWeekPatternSummary(payload)}</p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Entre semana</p>
               <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 Ocupacion media {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)} · {payload.weekdayWeekendProfile.weekday.daysCount} dias
               </p>
             </div>
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Fin de semana</p>
               <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
@@ -354,7 +356,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           </p>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Horas pico de demanda</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
@@ -367,7 +369,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.peakDemandHours.map((slot, index) => (
                 <div
                   key={`${slot.hour}-${index}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourLabel(slot.hour)}</p>
@@ -380,7 +382,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           )}
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Barrios con mas demanda</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
@@ -393,7 +395,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               {payload.topDistrictsByDemand.map((district, index) => (
                 <div
                   key={`${district.district}-${index}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
@@ -408,7 +410,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">
               {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
@@ -426,10 +428,10 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
                 <Link
                   key={station.stationId}
                   href={appRoutes.dashboardStation(station.stationId)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/15 text-xs font-bold text-[var(--accent)]">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-xs font-bold text-[var(--primary)]">
                       {index + 1}
                     </span>
                     <div className="min-w-0">
@@ -444,7 +446,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           )}
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">
               {payload.selectedMonth ? 'Estaciones menos usadas del mes' : 'Estaciones menos usadas'}
@@ -460,7 +462,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
                 <Link
                   key={station.stationId}
                   href={appRoutes.dashboardStation(station.stationId)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--foreground)]/8 text-xs font-bold text-[var(--foreground)]">
@@ -480,12 +482,12 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Informes mensuales publicados</h3>
             <Link
               href={appRoutes.reports()}
-              className="text-xs font-bold text-[var(--accent)] transition hover:opacity-80"
+              className="text-xs font-bold text-[var(--primary)] transition hover:opacity-80"
             >
               Ver archivo completo
             </Link>
@@ -496,19 +498,19 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               <Link
                 key={month}
                 href={appRoutes.reportMonth(month)}
-                className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
               >
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">Informe {toMonthOptions([month])[0]?.label ?? month}</p>
                   <p className="text-[11px] text-[var(--muted)]">URL indexable permanente con resumen y enlaces al dashboard filtrado.</p>
                 </div>
-                <span className="text-xs font-bold text-[var(--accent)]">Abrir</span>
+                <span className="text-xs font-bold text-[var(--primary)]">Abrir</span>
               </Link>
             ))}
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Landings SEO relacionadas</h3>
             <span className="text-xs text-[var(--muted)]">Enlazadas al dashboard y al detalle de estaciones</span>
@@ -524,7 +526,7 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
               <Link
                 key={href}
                 href={href}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+                className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
               >
                 {label}
               </Link>
@@ -532,6 +534,6 @@ export default async function DashboardConclusionsPage({ searchParams }: Dashboa
           </div>
         </article>
       </section>
-    </main>
+    </PageShell>
   );
 }

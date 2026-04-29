@@ -203,7 +203,7 @@ export default async function ReportsIndexPage() {
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -217,8 +217,8 @@ export default async function ReportsIndexPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{months.length} meses indexables</span>
-            {latestMonth ? <span className="kpi-chip">Ultimo informe {formatMonthLabel(latestMonth)}</span> : null}
+            <span className="ui-chip">{months.length} meses indexables</span>
+            {latestMonth ? <span className="ui-chip">Ultimo informe {formatMonthLabel(latestMonth)}</span> : null}
           </div>
         </div>
 
@@ -236,7 +236,7 @@ export default async function ReportsIndexPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
             </TrackedLink>
@@ -250,7 +250,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Abrir conclusiones del dashboard
           </TrackedLink>
@@ -267,7 +267,7 @@ export default async function ReportsIndexPage() {
         />
       ) : null}
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -292,30 +292,30 @@ export default async function ReportsIndexPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultimo mes con informe</p>
           <p className="stat-value">{latestMonth ? formatMonthLabel(latestMonth) : 'Sin datos'}</p>
           <p className="text-xs text-[var(--muted)]">Enlace persistente para bots, buscadores y navegacion editorial.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Meses publicados</p>
           <p className="stat-value">{months.length}</p>
           <p className="text-xs text-[var(--muted)]">Archivo historico disponible para indexacion y enlazado interno.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cobertura de serie</p>
           <p className="stat-value">{monthlySeries.length}</p>
           <p className="text-xs text-[var(--muted)]">Meses con agregados mensuales disponibles en base de datos.</p>
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">Cada informe tiene su propia URL estable y enlaza al dashboard con el mes ya seleccionado.</p>
           </div>
-          <Link href={appRoutes.reports()} className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80">
+          <Link href={appRoutes.reports()} className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80">
             Ver archivo completo
           </Link>
         </div>
@@ -338,7 +338,7 @@ export default async function ReportsIndexPage() {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
@@ -348,14 +348,14 @@ export default async function ReportsIndexPage() {
                       : 'Informe disponible con acceso al dashboard filtrado por mes.'}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-[var(--accent)]">Abrir informe</span>
+                <span className="text-xs font-bold text-[var(--primary)]">Abrir informe</span>
               </TrackedLink>
             );
           })}
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas para seguir explorando</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
@@ -367,7 +367,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -383,7 +383,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -399,7 +399,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -417,7 +417,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -433,7 +433,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">

@@ -7,12 +7,12 @@ export function PredictionHooksCard() {
   const predictionExamplePath = `${appRoutes.api.predictions().replace('101', '')}...`;
 
   return (
-    <article className="dashboard-card">
+    <article className="ui-section-card">
       <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Predicciones futuras</h3>
       <p className="text-sm text-[var(--muted)]">
         El endpoint de predicciones ya combina el estado actual con patrones historicos por franja horaria para estimar ocupacion en +30 y +60 minutos.
       </p>
-      <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-xs text-[var(--muted)]">
+      <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 text-xs text-[var(--muted)]">
         <p><span className="font-semibold text-[var(--foreground)]">Endpoint activo:</span> <code>{predictionExamplePath}</code></p>
         <p className="mt-1"><span className="font-semibold text-[var(--foreground)]">Horizontes:</span> T+30 min y T+60 min</p>
         <p className="mt-1"><span className="font-semibold text-[var(--foreground)]">Modelo:</span> baseline historico con confianza por cobertura muestral</p>

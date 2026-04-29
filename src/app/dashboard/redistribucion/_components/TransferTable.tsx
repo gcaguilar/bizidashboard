@@ -37,7 +37,7 @@ export function TransferTable({ transfers }: Props) {
             </div>
 
             {/* Bikes to move */}
-            <Badge className="rounded-full bg-[var(--accent)] px-3 py-1 text-sm font-bold normal-case tracking-normal text-white">
+            <Badge className="rounded-full bg-[var(--primary)] px-3 py-1 text-sm font-bold normal-case tracking-normal text-white">
               {t.bikesToMove} bicis
             </Badge>
           </div>
@@ -77,14 +77,14 @@ export function TransferTable({ transfers }: Props) {
           {/* Reasons */}
           <Accordion className="mt-3">
             <AccordionItem value={`transfer-reasons-${i}`}>
-              <AccordionTrigger className="px-0 py-0 text-xs text-[var(--accent)]">
+              <AccordionTrigger className="px-0 py-0 text-xs text-[var(--primary)]">
                 Por qué se recomienda esta transferencia
               </AccordionTrigger>
               <AccordionContent className="mt-2 border-t-0 px-0 py-0">
                 <ul className="space-y-1 text-xs text-[var(--muted)]">
                   {t.reasons.map((r, j) => (
                     <li key={j} className="flex gap-1">
-                      <span className="shrink-0 text-[var(--accent)]">›</span>
+                      <span className="shrink-0 text-[var(--primary)]">›</span>
                       {r}
                     </li>
                   ))}

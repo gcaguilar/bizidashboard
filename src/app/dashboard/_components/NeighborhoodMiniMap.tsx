@@ -281,7 +281,7 @@ export function NeighborhoodMiniMap({
       : null;
 
   return (
-    <section className="dashboard-card">
+    <section className="ui-section-card">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">
@@ -291,7 +291,7 @@ export function NeighborhoodMiniMap({
             Ocupacion media por distrito frente al promedio de ciudad.
           </p>
         </div>
-        <span className="kpi-chip">{districtRows.length} barrios activos</span>
+        <span className="ui-chip">{districtRows.length} barrios activos</span>
       </header>
 
       <div className="h-[280px] overflow-hidden rounded-2xl border border-[var(--border)]">
@@ -339,11 +339,11 @@ export function NeighborhoodMiniMap({
       </div>
 
       <div className="grid gap-3 text-xs text-[var(--muted)] sm:grid-cols-2">
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Media ciudad</p>
           <p className="stat-value">{formatPercent(cityAverage)}</p>
         </article>
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Seleccion vs distrito</p>
           <p className="stat-value">
             {selectedVsDistrict === null
@@ -354,7 +354,7 @@ export function NeighborhoodMiniMap({
             {selectedStationDistrict ?? 'Selecciona una estacion'}
           </p>
         </article>
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Mayor ocupacion</p>
           <p className="text-sm font-semibold text-[var(--foreground)]">
             {highestDistrict
@@ -362,7 +362,7 @@ export function NeighborhoodMiniMap({
               : 'Sin datos'}
           </p>
         </article>
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Menor ocupacion</p>
           <p className="text-sm font-semibold text-[var(--foreground)]">
             {lowestDistrict

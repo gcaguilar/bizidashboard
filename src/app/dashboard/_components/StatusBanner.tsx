@@ -57,7 +57,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
   const coverageGeneratedText = formatFreshnessLabel(coverage?.generatedAt ?? null);
 
   return (
-    <section className="dashboard-card gap-4">
+    <section className="ui-section-card gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Resumen del sistema</p>

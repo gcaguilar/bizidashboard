@@ -307,7 +307,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -319,10 +319,10 @@ export default async function MonthlyReportPage({ params }: PageProps) {
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">{payload.summary}</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Mes {month}</span>
-            <span className="kpi-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
-            <span className="kpi-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
-            <span className="kpi-chip">Actualizado {new Date(payload.generatedAt).toLocaleDateString('es-ES')}</span>
+            <span className="ui-chip">Mes {month}</span>
+            <span className="ui-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
+            <span className="ui-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
+            <span className="ui-chip">Actualizado {new Date(payload.generatedAt).toLocaleDateString('es-ES')}</span>
           </div>
         </div>
 
@@ -336,7 +336,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard filtrado por mes
           </TrackedLink>
@@ -349,7 +349,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Volver al archivo mensual
           </TrackedLink>
@@ -366,7 +366,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         />
       ) : null}
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -390,17 +390,17 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Demanda del mes</p>
           <p className="stat-value">{formatInteger(payload.metrics.demandLast7Days)} pts</p>
           <p className="text-xs text-[var(--muted)]">Indice agregado del periodo, pensado para comparativa operativa y SEO.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Variacion</p>
           <p className="stat-value">{formatDelta(payload.metrics.demandDeltaRatio)}</p>
           <p className="text-xs text-[var(--muted)]">Comparativa frente al periodo previo equivalente.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ocupacion media</p>
           <p className="stat-value">{formatPercent(payload.metrics.occupancyLast7Days)}</p>
           <p className="text-xs text-[var(--muted)]">Promedio de ocupacion del sistema durante el mes analizado.</p>
@@ -408,11 +408,11 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Hallazgos del mes</h2>
           <div className="mt-2 space-y-3">
             {payload.highlights.length > 0 ? payload.highlights.map((item) => (
-              <article key={`${item.title}-${item.detail}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+              <article key={`${item.title}-${item.detail}`} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
               </article>
@@ -420,11 +420,11 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Recomendaciones operativas</h2>
           <div className="mt-2 space-y-3">
             {payload.recommendations.length > 0 ? payload.recommendations.map((item, index) => (
-              <article key={`${item}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+              <article key={`${item}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
                 <p className="text-sm font-semibold text-[var(--foreground)]">Accion {index + 1}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{item}</p>
               </article>
@@ -434,7 +434,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="dashboard-card xl:col-span-2">
+        <article className="ui-section-card xl:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones mas destacadas del mes</h2>
           <div className="mt-2 grid gap-3 md:grid-cols-2">
             {payload.topStationsByDemand.map((station, index) => (
@@ -445,7 +445,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                   source: 'monthly_report_top_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">Indice medio {station.avgDemand.toFixed(1)} pts/dia</p>
@@ -454,11 +454,11 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Horas pico</h2>
           <div className="mt-2 space-y-3">
             {payload.peakDemandHours.map((slot) => (
-              <div key={slot.hour} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+              <div key={slot.hour} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourLabel(slot.hour)}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{formatInteger(slot.demandScore)} pts de actividad agregada</p>
               </div>
@@ -468,16 +468,16 @@ export default async function MonthlyReportPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Entre semana vs fin de semana</h2>
           <div className="mt-2 space-y-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Entre semana</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 {payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts/dia · ocupacion {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)}
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Fin de semana</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 {payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts/dia · ocupacion {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)}
@@ -486,7 +486,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Barrios destacados</h2>
           <div className="mt-2 space-y-3">
             {payload.topDistrictsByDemand.map((district) => (
@@ -500,7 +500,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{formatInteger(district.demandScore)} pts de demanda agregada</p>
@@ -509,20 +509,20 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cobertura</h2>
           <div className="mt-2 space-y-3">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Rango historico</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
                 Desde {formatDate(payload.sourceFirstDay)} hasta {formatDate(payload.sourceLastDay)}.
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Dias historicos</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{payload.totalHistoricalDays} dias con datos consolidados.</p>
             </div>
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con muestra</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{payload.stationsWithData} estaciones con datos en el periodo.</p>
             </div>
@@ -530,7 +530,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">Navegacion mensual</h2>
@@ -538,12 +538,12 @@ export default async function MonthlyReportPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             {newerMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(newerMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(newerMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40">
                 Mes mas reciente: {formatMonthLabel(newerMonth)}
               </TrackedLink>
             ) : null}
             {olderMonth ? (
-              <TrackedLink href={appRoutes.reportMonth(olderMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40">
+              <TrackedLink href={appRoutes.reportMonth(olderMonth)} ctaEvent={{ source: 'monthly_report_navigation', ctaId: 'report_open', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40">
                 Mes anterior: {formatMonthLabel(olderMonth)}
               </TrackedLink>
             ) : null}
@@ -551,7 +551,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas paginas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
@@ -563,7 +563,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo de informes</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo completo de informes y comparativas.</p>
@@ -579,7 +579,7 @@ export default async function MonthlyReportPage({ params }: PageProps) {
                 destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>

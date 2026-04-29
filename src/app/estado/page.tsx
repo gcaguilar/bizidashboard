@@ -170,7 +170,7 @@ export default async function SystemStatusPage() {
         }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="status" className="mt-1" />
 
@@ -189,12 +189,12 @@ export default async function SystemStatusPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Ultima muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
+            <span className="ui-chip">Ultima muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {healthLabel}
             </span>
-            <span className="kpi-chip">{dataset.coverage.totalDays} dias de cobertura</span>
-            <span className="kpi-chip">API {getApiVersionLabel()}</span>
+            <span className="ui-chip">{dataset.coverage.totalDays} dias de cobertura</span>
+            <span className="ui-chip">API {getApiVersionLabel()}</span>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ export default async function SystemStatusPage() {
                 destinationRole: 'dashboard',
                 transitionKind: 'to_dashboard',
               }}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir dashboard en vivo
             </TrackedLink>
@@ -224,7 +224,7 @@ export default async function SystemStatusPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver API y developers
             </TrackedLink>
@@ -237,7 +237,7 @@ export default async function SystemStatusPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver metodologia
             </TrackedLink>
@@ -256,7 +256,7 @@ export default async function SystemStatusPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
-          <article key={card.label} className="dashboard-card">
+          <article key={card.label} className="ui-section-card">
             <p className="stat-label">{card.label}</p>
             <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{card.value}</p>
             <p className="text-xs text-[var(--muted)]">{card.hint}</p>
@@ -265,7 +265,7 @@ export default async function SystemStatusPage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Incidentes
@@ -290,7 +290,7 @@ export default async function SystemStatusPage() {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Fuente y versionado
@@ -298,24 +298,24 @@ export default async function SystemStatusPage() {
             <h2 className="text-xl font-black text-[var(--foreground)]">Trazabilidad del dataset</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Proveedor</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{dataset.source.provider}</p>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Discovery GBFS</p>
               <Link
                 href={dataset.source.gbfsDiscoveryUrl}
-                className="break-all text-sm font-semibold text-[var(--accent)] transition hover:opacity-80"
+                className="break-all text-sm font-semibold text-[var(--primary)] transition hover:opacity-80"
               >
                 {dataset.source.gbfsDiscoveryUrl}
               </Link>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Version dataset</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{getDatasetVersionLabel(dataset)}</p>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Ultimo informe publicado</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 {latestMonth ? formatMonthLabel(latestMonth) : 'Sin informes'}
@@ -325,7 +325,7 @@ export default async function SystemStatusPage() {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -335,7 +335,7 @@ export default async function SystemStatusPage() {
           </div>
           <Link
             href={appRoutes.compare()}
-            className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
+            className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80"
           >
             Abrir comparador
           </Link>

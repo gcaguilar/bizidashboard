@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 type AlertVariant = 'default' | 'success' | 'warning' | 'danger';
 
 const ALERT_VARIANT_CLASSES: Record<AlertVariant, string> = {
-  default: 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)]',
+  default: 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
   success: 'border-[var(--success)]/40 bg-[var(--success)]/12 text-[var(--foreground)]',
   warning: 'border-[var(--warning)]/40 bg-[var(--warning)]/12 text-[var(--foreground)]',
   danger: 'border-[var(--danger)]/40 bg-[var(--danger)]/12 text-[var(--foreground)]',

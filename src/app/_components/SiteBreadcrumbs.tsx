@@ -34,7 +34,7 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                   ) : (
                     <Link
                       href={item.href}
-                      className="rounded-sm transition hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                      className="rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                     >
                       {item.label}
                     </Link>

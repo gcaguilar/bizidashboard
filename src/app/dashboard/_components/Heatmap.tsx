@@ -98,7 +98,7 @@ function HeatTooltip({ active, payload }: TooltipProps) {
   const hourLabel = `${String(point.hour).padStart(2, '0')}:00`;
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
       <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
         {dayLabel} · {hourLabel}
       </p>
@@ -150,7 +150,7 @@ export function Heatmap({
   const tickHours = [0, 4, 8, 12, 16, 20, 23];
 
   return (
-    <section className="dashboard-card gap-4">
+    <section className="ui-section-card gap-4">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Heatmap de ocupacion</h2>
@@ -164,24 +164,24 @@ export function Heatmap({
         <div className="flex items-center gap-2">
           <Link
             href={appRoutes.dashboardHelp('detalle-estacion')}
-            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
             Como leerlo
           </Link>
-          {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+          {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>
       </header>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Celdas</p>
           <p className="stat-value">{heatmap.length}</p>
         </article>
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Media</p>
           <p className="stat-value">{formatPercent(stats.avg)}</p>
         </article>
-        <article className="stat-card">
+        <article className="ui-metric-card">
           <p className="stat-label">Rango</p>
           <p className="text-sm font-semibold text-[var(--foreground)]">
             {formatPercent(stats.min)} - {formatPercent(stats.max)}
@@ -189,7 +189,7 @@ export function Heatmap({
         </article>
       </div>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
         {hasData ? (
           <ChartWrapper height="h-[300px]">
             <div className="h-[300px]">

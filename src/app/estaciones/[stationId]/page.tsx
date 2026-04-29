@@ -174,7 +174,7 @@ export default async function PublicStationPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -192,9 +192,9 @@ export default async function PublicStationPage({ params }: PageProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Distrito {districtLabel}</span>
-            <span className="kpi-chip">Ocupación {formatPercent(summary.currentOccupancy)}</span>
-            <span className="kpi-chip">{signalHours} horas históricas útiles</span>
+            <span className="ui-chip">Distrito {districtLabel}</span>
+            <span className="ui-chip">Ocupación {formatPercent(summary.currentOccupancy)}</span>
+            <span className="ui-chip">{signalHours} horas históricas útiles</span>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export default async function PublicStationPage({ params }: PageProps) {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir detalle operativo
           </TrackedLink>
@@ -222,7 +222,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver barrio relacionado
             </TrackedLink>
@@ -236,14 +236,14 @@ export default async function PublicStationPage({ params }: PageProps) {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Abrir ranking de estaciones
           </TrackedLink>
         </div>
       </header>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -269,22 +269,22 @@ export default async function PublicStationPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Bicis disponibles</p>
           <p className="stat-value">{station.bikesAvailable}</p>
           <p className="text-xs text-[var(--muted)]">Lectura actual del snapshot público.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Anclajes libres</p>
           <p className="stat-value">{station.anchorsFree}</p>
           <p className="text-xs text-[var(--muted)]">Huecos disponibles para devolver bici.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Rotación estimada</p>
           <p className="stat-value">{formatDecimal(summary.turnover?.turnoverScore ?? null)}</p>
           <p className="text-xs text-[var(--muted)]">Índice reciente de uso relativo frente al resto de estaciones.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Fricción operativa</p>
           <p className="stat-value">{formatDecimal(summary.availability?.problemHours ?? null)} h</p>
           <p className="text-xs text-[var(--muted)]">Horas con mayor riesgo de vaciado o saturación.</p>
@@ -292,14 +292,14 @@ export default async function PublicStationPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele haber más bicis</h2>
           <div className="mt-2 space-y-3">
             {highOccupancySlots.length > 0 ? (
               highOccupancySlots.map((slot) => (
                 <div
                   key={`${slot.dayType}-${slot.hour}-high`}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">
                     {formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)}
@@ -317,14 +317,14 @@ export default async function PublicStationPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele haber más huecos</h2>
           <div className="mt-2 space-y-3">
             {lowOccupancySlots.length > 0 ? (
               lowOccupancySlots.map((slot) => (
                 <div
                   key={`${slot.dayType}-${slot.hour}-low`}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">
                     {formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)}
@@ -342,13 +342,13 @@ export default async function PublicStationPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Predicción próxima</h2>
           <div className="mt-2 space-y-3">
             {predictions.predictions.map((point) => (
               <div
                 key={point.horizonMinutes}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">
                   En {point.horizonMinutes} minutos
@@ -366,22 +366,22 @@ export default async function PublicStationPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="dashboard-card xl:col-span-2">
+        <article className="ui-section-card xl:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">FAQ basada en datos visibles</h2>
           <div className="mt-2 grid gap-3 md:grid-cols-3">
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele ser más fácil encontrar bici?
               </p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[0].answer}</p>
             </article>
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Cuándo suele haber más huecos para devolver?
               </p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{faqItems[1].answer}</p>
             </article>
-            <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+            <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 ¿Está por encima o por debajo de la media de Zaragoza?
               </p>
@@ -390,7 +390,7 @@ export default async function PublicStationPage({ params }: PageProps) {
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Explora más</h2>
           <div className="mt-2 space-y-3">
             {summary.districtSlug ? (
@@ -403,7 +403,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">Más datos del barrio</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -422,7 +422,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -438,7 +438,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                 destinationRole: 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="block rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="block rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ranking y análisis</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -450,7 +450,7 @@ export default async function PublicStationPage({ params }: PageProps) {
       </section>
 
       {relatedStations.length > 0 ? (
-        <section className="dashboard-card">
+        <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">
             Estaciones relacionadas en {districtLabel}
           </h2>
@@ -463,7 +463,7 @@ export default async function PublicStationPage({ params }: PageProps) {
                   source: 'public_station_related_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{related.station.name}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">

@@ -13,7 +13,7 @@ type ApiCatalogCardProps = {
 
 export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
   return (
-    <section className="dashboard-card">
+    <section className="ui-section-card">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-[var(--foreground)]">Catalogo de endpoints</h3>
@@ -29,7 +29,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
             module: 'api_documentation',
             source: 'api_catalog',
           })}
-          className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+          className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
         >
           Ver ayuda
         </TrackedLink>
@@ -39,7 +39,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
         {items.map((item) => (
           <article
             key={`${item.label}-${item.path}`}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4"
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>

@@ -80,13 +80,13 @@ export function DemandFlowCard({
   const canRenderChart =
     demandDataState === 'ok' || demandDataState === 'partial';
   const yAxisTicks = [
-    { value: maxDemand, color: 'var(--accent)' },
-    { value: maxDemand / 2, color: 'var(--accent-soft)' },
+    { value: maxDemand, color: 'var(--primary)' },
+    { value: maxDemand / 2, color: 'var(--primary-soft)' },
     { value: 0, color: 'var(--muted)' },
   ];
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <div className="flex items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
@@ -103,7 +103,7 @@ export function DemandFlowCard({
           <div>
             <Link
               href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
-              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Entender metrica
             </Link>
@@ -148,7 +148,7 @@ export function DemandFlowCard({
               ))}
             </div>
 
-            <div className="relative flex flex-1 items-end gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+            <div className="relative flex flex-1 items-end gap-1 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-3">
               <div className="pointer-events-none absolute inset-0 flex flex-col justify-between px-3 py-3">
                 {yAxisTicks.map((_, index) => (
                   <span

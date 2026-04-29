@@ -21,7 +21,7 @@ export function DataModeCard({
 }: DataModeCardProps) {
   return (
     <section className="grid gap-4 lg:grid-cols-3 xl:grid-cols-5">
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Estado actual de estaciones</h3>
         <p className="text-sm text-[var(--muted)]">Descarga una foto actual del sistema con bicis, anclajes, capacidad y marca temporal.</p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
@@ -41,7 +41,7 @@ export function DataModeCard({
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Ranking de friccion</h3>
         <p className="text-sm text-[var(--muted)]">Exporta las estaciones con mas horas problema para revisar vacios, llenos y cuellos de botella.</p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
@@ -61,7 +61,7 @@ export function DataModeCard({
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Historico agregado</h3>
         <p className="text-sm text-[var(--muted)]">Accede al historico agregado de demanda, ocupacion y balance para analisis externo o auditoria.</p>
         <div className="mt-auto flex flex-wrap gap-2">
@@ -98,7 +98,7 @@ export function DataModeCard({
         </div>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Alertas historicas</h3>
         <p className="text-sm text-[var(--muted)]">Exporta alertas activas y resueltas para revisar incidencia, severidad y ventana temporal.</p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
@@ -118,7 +118,7 @@ export function DataModeCard({
         </Button>
       </article>
 
-      <article className="dashboard-card">
+      <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Resumen del sistema</h3>
         <p className="text-sm text-[var(--muted)]">Descarga el estado del pipeline, la frescura de datos y la salud general del sistema en un CSV simple.</p>
         <Button asChild variant="cta" size="sm" className="mt-auto">

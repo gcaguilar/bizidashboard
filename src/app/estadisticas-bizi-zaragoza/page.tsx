@@ -107,7 +107,7 @@ export default async function InsightsLandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
 
@@ -127,9 +127,9 @@ export default async function InsightsLandingPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{landingData.stationRows.length} estaciones indexables</span>
-            <span className="kpi-chip">{landingData.districtRows.length} barrios con cobertura</span>
-            <span className="kpi-chip">{landingData.publishedMonths.length} meses publicados</span>
+            <span className="ui-chip">{landingData.stationRows.length} estaciones indexables</span>
+            <span className="ui-chip">{landingData.districtRows.length} barrios con cobertura</span>
+            <span className="ui-chip">{landingData.publishedMonths.length} meses publicados</span>
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default async function InsightsLandingPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir ultimo informe mensual
             </TrackedLink>
@@ -162,7 +162,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Ver ranking de estaciones
           </TrackedLink>
@@ -170,7 +170,7 @@ export default async function InsightsLandingPage() {
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultimo mes publicado</p>
           <p className="stat-value">
             {landingData.latestMonth ? formatMonthLabel(landingData.latestMonth) : 'Sin datos'}
@@ -179,7 +179,7 @@ export default async function InsightsLandingPage() {
             Punto de entrada editorial para seguir la serie histórica.
           </p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Barrio destacado</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {topDistrict?.name ?? 'Sin datos'}
@@ -190,7 +190,7 @@ export default async function InsightsLandingPage() {
               : 'Esperando cobertura territorial suficiente.'}
           </p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Bicis visibles</p>
           <p className="stat-value">{landingData.bikesAvailable}</p>
           <p className="text-xs text-[var(--muted)]">
@@ -199,7 +199,7 @@ export default async function InsightsLandingPage() {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -223,7 +223,7 @@ export default async function InsightsLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Empieza por aqui</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {landingData.latestMonth ? (
@@ -239,7 +239,7 @@ export default async function InsightsLandingPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">Ultimo informe</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -256,7 +256,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -272,7 +272,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Horas punta</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -290,7 +290,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -300,7 +300,7 @@ export default async function InsightsLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones para seguir</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {landingData.featuredStations.map((station) => (
@@ -311,7 +311,7 @@ export default async function InsightsLandingPage() {
                 source: 'insights_landing_featured_stations',
                 entityType: 'station',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -322,7 +322,7 @@ export default async function InsightsLandingPage() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Siguiente paso segun tu objetivo</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2">
           <TrackedLink
@@ -334,7 +334,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero resolver algo practico</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -350,7 +350,7 @@ export default async function InsightsLandingPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Quiero ir al detalle operativo</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">

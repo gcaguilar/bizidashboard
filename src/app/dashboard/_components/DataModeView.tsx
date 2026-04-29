@@ -78,7 +78,7 @@ export function DataModeView({
       <ApiCatalogCard items={apiItems} />
       <MethodologyPanel />
       <section className="grid gap-4 lg:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Metodologia y origen</h3>
           <p className="text-sm text-[var(--muted)]">
             Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
@@ -100,7 +100,7 @@ export function DataModeView({
         <PredictionHooksCard />
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del modo datos</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
           Esta vista ya centraliza exportaciones, metodologia, trazabilidad y una primera capa predictiva. El siguiente paso pendiente sigue siendo medir rendimiento real en produccion tras despliegue.

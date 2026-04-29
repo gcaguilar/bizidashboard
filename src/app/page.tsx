@@ -106,7 +106,7 @@ export default async function Home() {
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
       <PublicPageViewTracker pageType="home" template="home" pageSlug="home" />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <PublicSectionNav activeItemId="home" />
         <CitySwitcher className="mt-3" compact />
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -124,9 +124,9 @@ export default async function Home() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Ciudad activa {currentCityName}</span>
-            <span className="kpi-chip">Navegacion canonica sin prefijo</span>
-            <span className="kpi-chip">API y comparador visibles</span>
+            <span className="ui-chip">Ciudad activa {currentCityName}</span>
+            <span className="ui-chip">Navegacion canonica sin prefijo</span>
+            <span className="ui-chip">API y comparador visibles</span>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export default async function Home() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard principal
           </TrackedLink>
@@ -154,7 +154,7 @@ export default async function Home() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Explorar estaciones publicas
           </TrackedLink>
@@ -169,7 +169,7 @@ export default async function Home() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Abrir Developers
           </TrackedLink>
@@ -178,7 +178,7 @@ export default async function Home() {
         <PublicSearchForm eventSource="home_hero" />
       </header>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -215,7 +215,7 @@ export default async function Home() {
               destinationRole: getHomeQuickLinkDestinationRole(link.href),
               transitionKind: link.href === appRoutes.dashboard() ? 'to_dashboard' : 'within_public',
             }}
-            className="dashboard-card transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="ui-section-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
               Acceso rapido
@@ -227,7 +227,7 @@ export default async function Home() {
       </section>
 
       {featuredStations.length > 0 ? (
-        <section className="dashboard-card">
+        <section className="ui-section-card">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-[var(--foreground)]">
@@ -246,7 +246,7 @@ export default async function Home() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
+              className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80"
             >
               Ver mas estaciones
             </TrackedLink>
@@ -261,7 +261,7 @@ export default async function Home() {
                   source: 'home_featured_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -274,7 +274,7 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">
@@ -296,7 +296,7 @@ export default async function Home() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones en tiempo real</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -312,7 +312,7 @@ export default async function Home() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas y ranking</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -322,7 +322,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">
@@ -350,7 +350,7 @@ export default async function Home() {
                   destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                   transitionKind: 'within_public',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>

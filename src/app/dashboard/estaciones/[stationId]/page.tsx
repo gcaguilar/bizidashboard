@@ -150,11 +150,11 @@ export default async function StationDetailPage({ params, searchParams }: Statio
           }),
         }}
       />
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-lg font-black text-[var(--accent)]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary)]/12 text-lg font-black text-[var(--primary)]">
               B
             </div>
             <div>

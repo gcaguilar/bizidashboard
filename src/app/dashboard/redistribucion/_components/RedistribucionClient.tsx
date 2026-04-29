@@ -184,7 +184,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
               entityType: 'api',
               module: 'redistribucion_export',
             })}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--surface))]"
+            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--card))]"
           >
             Descargar CSV
           </TrackedAnchor>
@@ -210,7 +210,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           >
             <SelectTrigger
               aria-label="Filtrar redistribucion por barrio"
-              className="min-h-9 min-w-[230px] bg-[var(--surface)]"
+              className="min-h-9 min-w-[230px] bg-[var(--card)]"
             >
               <SelectValue />
               <SelectIcon />
@@ -243,7 +243,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           >
             <SelectTrigger
               aria-label="Cambiar ventana temporal del informe"
-              className="min-h-9 min-w-[190px] bg-[var(--surface)]"
+              className="min-h-9 min-w-[190px] bg-[var(--card)]"
             >
               <SelectValue />
               <SelectIcon />
@@ -333,7 +333,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
 
 function MetodologiaPanel() {
   return (
-    <div className="prose prose-sm max-w-none rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--foreground)]">
+    <div className="prose prose-sm max-w-none rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-[var(--foreground)]">
       <h2>Cómo funciona el sistema de redistribución</h2>
 
       <h3>1. Diagnóstico estructural (clasificación A-F)</h3>

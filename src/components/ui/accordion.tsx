@@ -15,7 +15,7 @@ const AccordionItem = React.forwardRef<
       ref={ref}
       className={(state) =>
         cn(
-          'overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]',
+          'overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]',
           typeof className === 'function' ? className(state) : className
         )
       }

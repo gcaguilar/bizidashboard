@@ -15,8 +15,8 @@ const SelectTrigger = React.forwardRef<
       ref={ref}
       className={(state) =>
         cn(
-          'inline-flex min-h-8 items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
-          state.open && 'border-[var(--accent)]',
+          'inline-flex min-h-8 items-center justify-between gap-2 rounded-lg border border-[var(--input)] bg-[var(--card)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
+          state.open && 'border-[var(--primary)]',
           typeof className === 'function' ? className(state) : className
         )
       }
@@ -64,7 +64,7 @@ const SelectContent = React.forwardRef<
           ref={ref}
           className={(state) =>
             cn(
-              'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1 shadow-[var(--shadow-soft)] outline-none backdrop-blur-md',
+              'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--popover)] p-1 shadow-[var(--shadow-md)] outline-none backdrop-blur-md',
               typeof className === 'function' ? className(state) : className
             )
           }
@@ -87,7 +87,7 @@ const SelectItem = React.forwardRef<
       className={(state) =>
         cn(
           'flex cursor-default items-center justify-between rounded-lg px-3 py-2 text-sm text-[var(--foreground)] outline-none',
-          state.highlighted && 'bg-[var(--accent)]/10 text-[var(--accent)]',
+          state.highlighted && 'bg-[var(--primary)]/10 text-[var(--primary)]',
           state.selected && 'font-semibold',
           typeof className === 'function' ? className(state) : className
         )
@@ -95,7 +95,7 @@ const SelectItem = React.forwardRef<
       {...props}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator className="ml-3 text-xs text-[var(--accent)]">
+      <SelectPrimitive.ItemIndicator className="ml-3 text-xs text-[var(--primary)]">
         ✓
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>

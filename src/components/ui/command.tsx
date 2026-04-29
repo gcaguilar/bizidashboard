@@ -15,7 +15,7 @@ const CommandInput = React.forwardRef<
       ref={ref}
       className={(state) =>
         cn(
-          'min-h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent)]/45',
+          'min-h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--primary)]/45',
           typeof className === 'function' ? className(state) : className
         )
       }
@@ -33,7 +33,7 @@ const CommandList = React.forwardRef<
       ref={ref}
       className={(state) =>
         cn(
-          'mt-2 max-h-72 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1',
+          'mt-2 max-h-72 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-1',
           typeof className === 'function' ? className(state) : className
         )
       }
@@ -52,7 +52,7 @@ const CommandItem = React.forwardRef<
       className={(state) =>
         cn(
           'flex cursor-default items-center justify-between rounded-md px-3 py-2 text-sm text-[var(--foreground)] outline-none',
-          state.highlighted && 'bg-[var(--accent)]/10 text-[var(--accent)]',
+          state.highlighted && 'bg-[var(--primary)]/10 text-[var(--primary)]',
           state.selected && 'font-semibold',
           typeof className === 'function' ? className(state) : className
         )

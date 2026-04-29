@@ -146,7 +146,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
   }, [stations]);
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
@@ -161,7 +161,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           <div>
             <Link
               href={appRoutes.dashboardHelp('estados-mapa')}
-              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Como leerlo
             </Link>
@@ -169,7 +169,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+      <div className="flex items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-4">
         <div className="relative h-28 w-28 shrink-0">
           <svg viewBox="0 0 36 36" className="h-full w-full">
             <path

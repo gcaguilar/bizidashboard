@@ -97,7 +97,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
         }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
 
@@ -115,9 +115,9 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{totalTools} herramientas enlazadas</span>
-            <span className="kpi-chip">Ultima muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
-            <span className="kpi-chip">{dataset.coverage.totalDays} dias de cobertura</span>
+            <span className="ui-chip">{totalTools} herramientas enlazadas</span>
+            <span className="ui-chip">Ultima muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
+            <span className="ui-chip">{dataset.coverage.totalDays} dias de cobertura</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {getHealthLabel(status.pipeline.healthStatus)}
             </span>
@@ -136,7 +136,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
                 destinationRole: 'dashboard',
                 transitionKind: 'to_dashboard',
               }}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               {EXPLORE_PAGE_NAV_CONFIG.primaryCta.label}
             </TrackedLink>
@@ -150,7 +150,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Abrir comparador
             </TrackedLink>
@@ -161,7 +161,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
       </header>
 
       {searchResults ? (
-        <section className="dashboard-card">
+        <section className="ui-section-card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -175,10 +175,10 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-              <span className="kpi-chip">{searchResults.totalMatches} coincidencias</span>
+              <span className="ui-chip">{searchResults.totalMatches} coincidencias</span>
               <Link
                 href={appRoutes.explore()}
-                className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                className="inline-flex rounded-full border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
               >
                 Limpiar busqueda
               </Link>
@@ -186,7 +186,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
           </div>
 
           {searchResults.totalMatches === 0 ? (
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-sm text-[var(--muted)]">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted)]">
               No hemos encontrado coincidencias exactas para esta consulta. Prueba con el nombre de
               una estacion, un barrio, un mes como &quot;2026-03&quot; o un endpoint como
               &quot;/api/status&quot;.
@@ -194,7 +194,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
           ) : (
             <div className="grid gap-4 xl:grid-cols-2">
               {searchResults.groups.map((group) => (
-                <article key={group.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+                <article key={group.id} className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -215,7 +215,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
                         <Link
                           key={result.id}
                           href={result.href}
-                          className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                          className="block rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <p className="text-sm font-semibold text-[var(--foreground)]">
@@ -240,22 +240,22 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-4">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Herramientas disponibles</p>
           <p className="stat-value">{totalTools}</p>
           <p className="text-xs text-[var(--muted)]">Cobertura transversal de operacion, analisis y archivo.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultimo informe</p>
           <p className="stat-value">{latestMonth ? formatMonthLabel(latestMonth) : 'Sin datos'}</p>
           <p className="text-xs text-[var(--muted)]">Serie mensual conectada con el archivo indexable.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cobertura</p>
           <p className="stat-value">{dataset.coverage.totalDays}</p>
           <p className="text-xs text-[var(--muted)]">{dataset.coverage.totalStations} estaciones con datos historicos.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultima generacion</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {formatStatusDateTime(dataset.coverage.generatedAt)}
@@ -265,7 +265,7 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
       </section>
 
       {sections.map((section) => (
-        <section key={section.id} className="dashboard-card">
+        <section key={section.id} className="ui-section-card">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -281,14 +281,14 @@ export default async function ExploreHubPage({ searchParams }: ExploreHubPagePro
               <Link
                 key={item.id}
                 href={item.href}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                   {item.eyebrow}
                 </p>
                 <h3 className="mt-2 text-lg font-black text-[var(--foreground)]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{item.description}</p>
-                <p className="mt-3 text-xs font-bold text-[var(--accent)]">{item.destinationLabel}</p>
+                <p className="mt-3 text-xs font-bold text-[var(--primary)]">{item.destinationLabel}</p>
               </Link>
             ))}
           </div>

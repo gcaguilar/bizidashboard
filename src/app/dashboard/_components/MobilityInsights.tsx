@@ -239,7 +239,7 @@ function MobilityInsightsContent({
             Distribucion interdistrital de trayectos y metricas de balance neto.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)]/80 p-1">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)]/80 p-1">
           {PERIODS.map((period) => (
             <Link
               key={period.key}
@@ -250,7 +250,7 @@ function MobilityInsightsContent({
               aria-current={activePeriod === period.key ? 'page' : undefined}
               className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
                 activePeriod === period.key
-                  ? 'bg-[var(--accent)] text-white shadow-sm'
+                  ? 'bg-[var(--primary)] text-white shadow-sm'
                   : 'text-[var(--muted)] hover:text-[var(--foreground)]'
               }`}
             >
@@ -281,7 +281,7 @@ function MobilityInsightsContent({
 
       {canRenderInsights && mobilityData && activeInsights ? (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-8">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 xl:col-span-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
@@ -294,7 +294,7 @@ function MobilityInsightsContent({
                 <div>
                   <Link
                     href={appRoutes.dashboardHelp('diagrama-chord')}
-                    className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                    className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Como interpretarlo
                   </Link>
@@ -302,7 +302,7 @@ function MobilityInsightsContent({
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-soft)] py-4">
+            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--secondary)] py-4">
               <svg viewBox="0 0 280 280" className="h-[260px] w-[260px]">
                 <circle cx="140" cy="140" r="116" fill="none" stroke="rgba(234,6,21,0.22)" />
                 {chordLinks.map((link, index) => {
@@ -345,14 +345,14 @@ function MobilityInsightsContent({
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--muted)]">
-              <span className="legend-item">
-                <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]" /> Mayor flujo estimado
+              <span className="ui-legend-item">
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--primary)]" /> Mayor flujo estimado
               </span>
             </div>
           </Card>
 
           <div className="space-y-6 xl:col-span-4">
-            <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
               <h3 className="text-base font-bold text-[var(--foreground)]">Rutas de mayor flujo</h3>
               <div className="mt-4 space-y-4">
                 {topRoutes.slice(0, 4).length === 0 ? (
@@ -372,7 +372,7 @@ function MobilityInsightsContent({
                           </span>
                           <span className="font-bold text-[var(--muted)]">{route.flow.toFixed(0)}</span>
                         </div>
-                        <Progress className="bg-black/20" value={width} indicatorClassName="bg-[var(--accent)]" />
+                        <Progress className="bg-black/20" value={width} indicatorClassName="bg-[var(--primary)]" />
                       </div>
                     );
                   })
@@ -380,9 +380,9 @@ function MobilityInsightsContent({
               </div>
             </Card>
 
-            <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
               <h3 className="text-base font-bold text-[var(--foreground)]">Resumen de balance neto</h3>
-              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] p-3">
                 <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
                   Barrio de referencia
                 </label>
@@ -392,7 +392,7 @@ function MobilityInsightsContent({
                 >
                   <SelectTrigger
                     aria-label="Seleccionar barrio de referencia"
-                    className="mt-2 w-full bg-[var(--surface)]"
+                    className="mt-2 w-full bg-[var(--card)]"
                   >
                     <SelectValue placeholder="Selecciona un barrio" />
                     <SelectIcon />
@@ -439,7 +439,7 @@ function MobilityInsightsContent({
                   </p>
                 </div>
               </div>
-              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-xs text-[var(--muted)]">
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted)]">
                 {selectedDistrictFlow ? (
                   <>
                     <span className="font-semibold text-[var(--foreground)]">{selectedDistrictName}</span>
@@ -452,7 +452,7 @@ function MobilityInsightsContent({
             </Card>
           </div>
 
-          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 xl:col-span-6">
             <h3 className="text-base font-bold text-[var(--foreground)]">Balance neto por barrio</h3>
             <div className="mt-4 space-y-5">
               {activeInsights.districts.map((district) => {
@@ -494,7 +494,7 @@ function MobilityInsightsContent({
             </div>
           </Card>
 
-          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 xl:col-span-6">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--foreground)]">Matriz origen-destino</h3>
               <span className="text-[10px] text-[var(--muted)]">Datos en vivo</span>
@@ -507,7 +507,7 @@ function MobilityInsightsContent({
                 <Table className="min-w-full border-collapse text-[11px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 z-10 h-auto bg-[var(--surface)] px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]">
+                      <TableHead className="sticky left-0 z-10 h-auto bg-[var(--card)] px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]">
                         O \ D
                       </TableHead>
                       {activeInsights.districts.map((district) => (
@@ -523,7 +523,7 @@ function MobilityInsightsContent({
                   <TableBody>
                     {activeInsights.districts.map((origin, originIndex) => (
                       <TableRow key={`origin-${origin.district}`}>
-                        <TableCell className="sticky left-0 bg-[var(--surface)] px-2 py-2 font-semibold text-[var(--foreground)]">
+                        <TableCell className="sticky left-0 bg-[var(--card)] px-2 py-2 font-semibold text-[var(--foreground)]">
                           {origin.district}
                         </TableCell>
                         {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
@@ -549,7 +549,7 @@ function MobilityInsightsContent({
             )}
           </Card>
 
-          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-12">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 xl:col-span-12">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
@@ -562,7 +562,7 @@ function MobilityInsightsContent({
                 <div>
                   <Link
                     href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
-                    className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+                    className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Entender curva
                   </Link>
@@ -637,7 +637,7 @@ function MobilityInsightsContent({
 
 export function MobilityInsights(props: MobilityInsightsProps) {
   return (
-    <Suspense fallback={<div className='dashboard-card h-96 animate-pulse' />}>
+    <Suspense fallback={<div className='ui-section-card h-96 animate-pulse' />}>
       <MobilityInsightsContent {...props} />
     </Suspense>
   );

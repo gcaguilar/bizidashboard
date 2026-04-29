@@ -21,18 +21,18 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
   const compact = density === 'compact';
 
   return (
-    <section className="h-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
-      <header className={`flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--accent)]/8 px-4 ${compact ? 'py-3' : 'py-4'}`}>
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
+    <section className="h-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
+      <header className={`flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 ${compact ? 'py-3' : 'py-4'}`}>
+        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
           Estaciones criticas
         </h2>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
+          <span className="rounded-full bg-[var(--primary)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
             {activeAlerts.length} accion requerida
           </span>
           <Link
             href={appRoutes.dashboardAlerts()}
-            className="rounded-full border border-[var(--accent)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            className="rounded-full border border-[var(--primary)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Historial
           </Link>
@@ -44,7 +44,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
           <Link
             href={appRoutes.dashboardAlerts()}
-            className="w-full rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            className="w-full rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Ver historial de alertas
           </Link>
@@ -60,7 +60,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
             const isEmptyLike = alert.alertType === 'LOW_BIKES';
             const progressValue = Math.max(0, Math.min(100, occupancy));
             const toneClass = isEmptyLike
-              ? 'border-[var(--accent)]/30 bg-[var(--accent)]/8'
+              ? 'border-[var(--primary)]/30 bg-[var(--primary)]/8'
               : 'border-amber-500/30 bg-amber-500/10';
 
             return (
@@ -76,8 +76,8 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse" aria-hidden="true" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
+                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--primary)] animate-pulse" aria-hidden="true" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
                       {isEmptyLike ? 'VACIA' : 'LLENA'}
                     </span>
                   </div>
@@ -86,7 +86,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                 <Progress
                   className="bg-black/20"
                   value={progressValue}
-                  indicatorClassName={isEmptyLike ? 'bg-[var(--accent)]' : 'bg-amber-400'}
+                  indicatorClassName={isEmptyLike ? 'bg-[var(--primary)]' : 'bg-amber-400'}
                 />
 
                 <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted)]">

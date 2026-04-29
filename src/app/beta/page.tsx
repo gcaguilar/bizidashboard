@@ -32,8 +32,8 @@ export const metadata: Metadata = buildPageMetadata({
 
 function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
-    <article className="dashboard-card flex flex-col items-start gap-3">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/12 text-lg">
+    <article className="ui-section-card flex flex-col items-start gap-3">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/12 text-lg">
         {icon}
       </span>
       <div>
@@ -46,8 +46,8 @@ function FeatureCard({ icon, title, description }: { icon: string; title: string
 
 function StepCard({ step, title, description }: { step: number; title: string; description: string }) {
   return (
-    <article className="flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-bold text-white">
+    <article className="flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">
         {step}
       </span>
       <div>
@@ -60,7 +60,7 @@ function StepCard({ step, title, description }: { step: number; title: string; d
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+    <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
       <h3 className="text-sm font-bold text-[var(--foreground)]">{question}</h3>
       <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{answer}</p>
     </article>
@@ -142,7 +142,7 @@ export default function BetaPage() {
       <SiteBreadcrumbs items={breadcrumbs} />
 
       {/* Hero */}
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Disponibilidad por plataforma</p>
@@ -157,9 +157,9 @@ export default function BetaPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">Gratuita</span>
-            <span className="kpi-chip">iOS publico</span>
-            <span className="kpi-chip">Android testers</span>
+            <span className="ui-chip">Gratuita</span>
+            <span className="ui-chip">iOS publico</span>
+            <span className="ui-chip">Android testers</span>
           </div>
         </div>
 
@@ -168,7 +168,7 @@ export default function BetaPage() {
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
@@ -179,7 +179,7 @@ export default function BetaPage() {
             href={GOOGLE_GROUP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--primary)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary)]/8"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M17.523 2.237a.625.625 0 0 0-.857.228l-1.376 2.4A8.154 8.154 0 0 0 12 4.098c-1.153 0-2.254.264-3.29.767L7.334 2.465a.626.626 0 0 0-1.085.629l1.344 2.348A7.677 7.677 0 0 0 4 11.874h16a7.677 7.677 0 0 0-3.593-6.432l1.344-2.348a.625.625 0 0 0-.228-.857zM9 9.375a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zm6 0a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zM4 13.125v6.25A1.875 1.875 0 0 0 5.875 21.25h.75v2.375a1.375 1.375 0 1 0 2.75 0V21.25h1.25v2.375a1.375 1.375 0 1 0 2.75 0V21.25h.75A1.875 1.875 0 0 0 20 19.375v-6.25H4zM1.375 13.125a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5zm18.5 0a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5z" />
@@ -190,7 +190,7 @@ export default function BetaPage() {
             href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--primary)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary)]/8"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z"/>
@@ -235,13 +235,13 @@ export default function BetaPage() {
       </section>
 
       {/* How to join */}
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Como instalarla</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">El proceso cambia segun la plataforma.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">iOS</p>
             <h3 className="mt-2 text-base font-bold text-[var(--foreground)]">Version publica en App Store</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
@@ -252,13 +252,13 @@ export default function BetaPage() {
               href={APP_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="mt-4 inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Descargar en App Store
             </a>
           </article>
 
-          <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
+          <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Android</p>
             <h3 className="mt-2 text-base font-bold text-[var(--foreground)]">Acceso para testers</h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
@@ -282,7 +282,7 @@ export default function BetaPage() {
                 href={GOOGLE_GROUP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex rounded-xl border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+                className="inline-flex rounded-xl border border-[var(--primary)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary)]/8"
               >
                 Unirse al grupo
               </a>
@@ -290,7 +290,7 @@ export default function BetaPage() {
                 href={PLAY_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+                className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
               >
                 Abrir Google Play
               </a>
@@ -301,7 +301,7 @@ export default function BetaPage() {
 
       {/* Platform availability */}
       <section className="grid gap-4 md:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/12 text-lg">
               <svg className="h-5 w-5 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -321,7 +321,7 @@ export default function BetaPage() {
               href={GOOGLE_GROUP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-fit rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex w-fit rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Unirse al grupo
             </a>
@@ -329,14 +329,14 @@ export default function BetaPage() {
               href={PLAY_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-            className="inline-flex w-fit rounded-xl border border-[var(--accent)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8"
+            className="inline-flex w-fit rounded-xl border border-[var(--primary)] bg-transparent px-4 py-2 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary)]/8"
           >
             Abrir Google Play
           </a>
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--foreground)]/8 text-lg">
               <svg className="h-5 w-5 text-[var(--muted)]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -355,7 +355,7 @@ export default function BetaPage() {
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-fit rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex w-fit rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Descargar en App Store
           </a>
@@ -363,7 +363,7 @@ export default function BetaPage() {
       </section>
 
       {/* FAQ */}
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Preguntas frecuentes</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Todo lo importante sobre la disponibilidad y la instalacion.</p>
@@ -397,7 +397,7 @@ export default function BetaPage() {
       </section>
 
       {/* Related routes */}
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <h2 className="text-xl font-black text-[var(--foreground)] md:text-2xl">Explora tambien</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Mientras tanto, accede a toda la analitica desde el navegador.</p>
@@ -405,28 +405,28 @@ export default function BetaPage() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link
             href={appRoutes.dashboard()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Dashboard en tiempo real</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Mapa interactivo, estado del sistema y alertas.</p>
           </Link>
           <Link
             href={appRoutes.seoPage('estaciones-con-mas-bicis')}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estaciones con mas bicis</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Donde hay bicicletas disponibles ahora mismo.</p>
           </Link>
           <Link
             href={appRoutes.dashboardStations()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Directorio de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Ficha detallada de cada estacion del sistema.</p>
           </Link>
           <Link
             href={appRoutes.reports()}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Informes mensuales</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Archivo historico con datos agregados por mes.</p>

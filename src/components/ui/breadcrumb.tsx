@@ -31,7 +31,7 @@ const BreadcrumbLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsW
       <a
         ref={ref}
         className={cn(
-          'rounded-sm transition hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]',
+          'rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]',
           className
         )}
         {...props}

@@ -1231,7 +1231,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
       />
       <SiteBreadcrumbs items={breadcrumbs} />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <PublicSectionNav activeItemId="explore" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1247,8 +1247,8 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{config.cadenceLabel}</span>
-            <span className="kpi-chip">
+            <span className="ui-chip">{config.cadenceLabel}</span>
+            <span className="ui-chip">
               Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}
             </span>
           </div>
@@ -1265,7 +1265,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
               destinationRole: config.primaryCta.destination.startsWith('dashboard_') ? 'dashboard' : 'hub',
               transitionKind: config.primaryCta.destination.startsWith('dashboard_') ? 'to_dashboard' : 'within_public',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             {config.primaryCta.label}
           </TrackedLink>
@@ -1280,7 +1280,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Abrir archivo mensual
           </TrackedLink>
@@ -1296,7 +1296,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
 
       <section className="grid gap-4 md:grid-cols-3">
         {content.stats.map((stat) => (
-          <article key={stat.label} className="dashboard-card">
+          <article key={stat.label} className="ui-section-card">
             <p className="stat-label">{stat.label}</p>
             <p className="stat-value">{stat.value}</p>
             <p className="text-xs text-[var(--muted)]">{stat.detail}</p>
@@ -1304,7 +1304,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         ))}
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">
@@ -1328,7 +1328,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
                   </div>
                   {item.badge ? (
-                    <span className="rounded-full bg-[var(--accent)]/12 px-3 py-1 text-xs font-bold text-[var(--accent)]">
+                    <span className="rounded-full bg-[var(--primary)]/12 px-3 py-1 text-xs font-bold text-[var(--primary)]">
                       {item.badge}
                     </span>
                   ) : null}
@@ -1339,7 +1339,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                 return (
                   <article
                     key={`${item.title}-${item.badge ?? 'static'}`}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                   >
                     {body}
                   </article>
@@ -1357,7 +1357,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                     destinationRole: resolveSeoLandingDestinationRole(item.href),
                     transitionKind: resolveSeoLandingTransitionKind(item.href),
                   }}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
                 >
                   {body}
                 </TrackedLink>
@@ -1371,7 +1371,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
         )}
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {relatedPages.map((page) => (
@@ -1385,7 +1385,7 @@ export async function renderSeoLandingPage(slug: SeoPageSlug) {
                 destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
