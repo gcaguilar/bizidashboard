@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import type { StationSnapshot } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import {
@@ -214,12 +215,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
                   </p>
                   <p className="text-xs font-bold text-[var(--foreground)]">{route.flow.toFixed(0)}</p>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/25">
-                  <div
-                    className="h-full rounded-full bg-[var(--accent)]"
-                    style={{ width: `${flowPct}%` }}
-                  />
-                </div>
+                <Progress className="bg-black/25" value={flowPct} indicatorClassName="bg-[var(--accent)]" />
               </Card>
             );
           })

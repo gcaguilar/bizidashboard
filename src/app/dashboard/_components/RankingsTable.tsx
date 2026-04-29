@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
 import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
@@ -245,12 +246,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
                   )}
                 </div>
 
-                <div className='h-1.5 w-full overflow-hidden rounded-full bg-black/25'>
-                  <div
-                    className={`${activeTab === 'turnover' ? 'bg-[var(--accent)]' : 'bg-amber-400'} h-full rounded-full`}
-                    style={{ width: `${Math.max(8, Math.min(100, barWidth))}%` }}
-                  />
-                </div>
+                <Progress
+                  className='bg-black/25'
+                  value={Math.max(8, Math.min(100, barWidth))}
+                  indicatorClassName={activeTab === 'turnover' ? 'bg-[var(--accent)]' : 'bg-amber-400'}
+                />
                 <p className='mt-2 text-[11px] text-[var(--muted)]'>
                   {activeTab === 'turnover'
                     ? `Movimiento relativo frente al resto de estaciones. Capacidad ${row.stationCapacity}.`

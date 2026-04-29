@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
+import { Progress } from '@/components/ui/progress';
 import { calculateFrictionScore } from './useSystemMetrics';
 
 type StationStabilityCardProps = {
@@ -57,9 +58,11 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
                 </div>
                 <p className="text-xs font-bold text-[var(--foreground)]">{formatPercent(row.stabilityScore)}</p>
               </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-black/15">
-                <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${Math.max(6, row.stabilityScore * 100)}%` }} />
-              </div>
+              <Progress
+                className="mt-2 bg-black/15"
+                value={Math.max(6, row.stabilityScore * 100)}
+                indicatorClassName="bg-[var(--accent)]"
+              />
             </Link>
           ))}
         </div>

@@ -14,6 +14,8 @@ import {
 } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -370,9 +372,7 @@ function MobilityInsightsContent({
                           </span>
                           <span className="font-bold text-[var(--muted)]">{route.flow.toFixed(0)}</span>
                         </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/20">
-                          <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${width}%` }} />
-                        </div>
+                        <Progress className="bg-black/20" value={width} indicatorClassName="bg-[var(--accent)]" />
                       </div>
                     );
                   })
@@ -494,7 +494,7 @@ function MobilityInsightsContent({
             </div>
           </Card>
 
-          <Card className="overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
+          <Card className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 xl:col-span-6">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--foreground)]">Matriz origen-destino</h3>
               <span className="text-[10px] text-[var(--muted)]">Datos en vivo</span>
@@ -503,7 +503,7 @@ function MobilityInsightsContent({
             {activeInsights.districts.length === 0 ? (
               <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
             ) : (
-              <div className="mt-3 overflow-auto">
+              <ScrollArea className="mt-3 max-h-[420px]">
                 <Table className="min-w-full border-collapse text-[11px]">
                   <TableHeader>
                     <TableRow>
@@ -545,7 +545,7 @@ function MobilityInsightsContent({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ScrollArea>
             )}
           </Card>
 

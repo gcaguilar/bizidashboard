@@ -26,6 +26,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { ModeIntroBanner } from './ModeIntroBanner';
 import { DashboardQuickLinks } from './DashboardQuickLinks';
 import { ModeHeader } from './ModeHeader';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useSystemMetrics } from './useSystemMetrics';
 import { WidgetSkeleton } from './WidgetSkeleton';
 import {
@@ -1061,99 +1062,116 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         />
       ) : null}
 
-      <ModeHeader activeMode={viewMode} onChangeMode={handleChangeMode} />
-
-      <ModeIntroBanner mode={viewMode} />
-
-      {viewMode === 'overview' ? (
-        <OverviewModeView
-          status={statusData}
-          stationsGeneratedAt={stationsData.generatedAt}
-          totalStations={totalStationsCount}
-          stations={stationsData.stations}
-          filteredStations={filteredStations}
-          selectedStationId={selectedStationId}
-          onSelectStation={(stationId) =>
-            selectStationWithTracking(stationId, 'overview_mode', 'overview')
+      <Tabs
+        value={viewMode}
+        onValueChange={(value) => {
+          if (value === 'overview' || value === 'operations' || value === 'research' || value === 'data') {
+            handleChangeMode(value);
           }
-          favoriteStationIds={favoriteStationIds}
-          onToggleFavorite={toggleFavoriteStation}
-          trendByStationId={stationTrendById}
-          nearestStationId={nearestStation?.stationId ?? null}
-          nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-          userLocation={userLocation}
-          mapViewState={mapViewState}
-          onViewStateCommit={setMapViewState}
-          frictionByStationId={frictionByStationId}
-          systemMetrics={systemMetrics}
-          updatedText={updatedText}
-          topFrictionStationName={topFrictionStationName}
-          mobilityPreview={mobilityPreview}
-          activeWindowLabel={activeWindow.label}
-          activeWindowDemandDays={activeWindow.demandDays}
-        />
-      ) : null}
+        }}
+      >
+        <ModeHeader activeMode={viewMode} />
 
-      {viewMode === 'operations' ? (
-        <OperationsModeView
-          stations={stationsData.stations}
-          filteredStations={filteredStations}
-          totalStations={totalStationsCount}
-          selectedStationId={selectedStationId}
-          onSelectStation={(stationId) =>
-            selectStationWithTracking(stationId, 'operations_mode', 'operations')
-          }
-          favoriteStationIds={favoriteStationIds}
-          onToggleFavorite={toggleFavoriteStation}
-          trendByStationId={stationTrendById}
-          nearestStationId={nearestStation?.stationId ?? null}
-          nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-          userLocation={userLocation}
-          mapViewState={mapViewState}
-          onViewStateCommit={setMapViewState}
-          frictionByStationId={frictionByStationId}
-          alerts={alertsData}
-          rankings={rankingsData}
-          balanceIndex={systemMetrics.balanceIndex}
-          criticalStationsCount={systemMetrics.criticalStations.length}
-          dailyInsight={systemMetrics.dailyInsight}
-          topFrictionStationName={topFrictionStationName}
-          activeAlertsCount={systemMetrics.activeAlerts.length}
-        />
-      ) : null}
+        <ModeIntroBanner mode={viewMode} />
 
-      {viewMode === 'research' ? (
-        <ResearchModeView
-          stations={stationsData.stations}
-          filteredStations={filteredStations}
-          selectedStationId={selectedStationId}
-          onSelectStation={(stationId) =>
-            selectStationWithTracking(stationId, 'research_mode', 'research')
-          }
-          favoriteStationIds={favoriteStationIds}
-          onToggleFavorite={toggleFavoriteStation}
-          trendByStationId={stationTrendById}
-          nearestStationId={nearestStation?.stationId ?? null}
-          rankings={rankingsData}
-          dailyDemand={mobilityPreview.dailyDemand}
-          systemHourlyProfile={mobilityPreview.systemHourlyProfile}
-          hourlySignals={mobilityPreview.hourlySignals}
-          windowLabel={activeWindow.label}
-          requestedDays={activeWindow.demandDays}
-          recentSnapshots={recentSnapshots}
-        />
-      ) : null}
+        <TabsContent value="overview">
+          {viewMode === 'overview' ? (
+            <OverviewModeView
+              status={statusData}
+              stationsGeneratedAt={stationsData.generatedAt}
+              totalStations={totalStationsCount}
+              stations={stationsData.stations}
+              filteredStations={filteredStations}
+              selectedStationId={selectedStationId}
+              onSelectStation={(stationId) =>
+                selectStationWithTracking(stationId, 'overview_mode', 'overview')
+              }
+              favoriteStationIds={favoriteStationIds}
+              onToggleFavorite={toggleFavoriteStation}
+              trendByStationId={stationTrendById}
+              nearestStationId={nearestStation?.stationId ?? null}
+              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+              userLocation={userLocation}
+              mapViewState={mapViewState}
+              onViewStateCommit={setMapViewState}
+              frictionByStationId={frictionByStationId}
+              systemMetrics={systemMetrics}
+              updatedText={updatedText}
+              topFrictionStationName={topFrictionStationName}
+              mobilityPreview={mobilityPreview}
+              activeWindowLabel={activeWindow.label}
+              activeWindowDemandDays={activeWindow.demandDays}
+            />
+          ) : null}
+        </TabsContent>
 
-      {viewMode === 'data' ? (
-        <DataModeView
-          stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
-          frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
-          historyJsonUrl={appRoutes.api.history()}
-          historyCsvUrl={appRoutes.api.history({ format: 'csv' })}
-          alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
-          statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
-        />
-      ) : null}
+        <TabsContent value="operations">
+          {viewMode === 'operations' ? (
+            <OperationsModeView
+              stations={stationsData.stations}
+              filteredStations={filteredStations}
+              totalStations={totalStationsCount}
+              selectedStationId={selectedStationId}
+              onSelectStation={(stationId) =>
+                selectStationWithTracking(stationId, 'operations_mode', 'operations')
+              }
+              favoriteStationIds={favoriteStationIds}
+              onToggleFavorite={toggleFavoriteStation}
+              trendByStationId={stationTrendById}
+              nearestStationId={nearestStation?.stationId ?? null}
+              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+              userLocation={userLocation}
+              mapViewState={mapViewState}
+              onViewStateCommit={setMapViewState}
+              frictionByStationId={frictionByStationId}
+              alerts={alertsData}
+              rankings={rankingsData}
+              balanceIndex={systemMetrics.balanceIndex}
+              criticalStationsCount={systemMetrics.criticalStations.length}
+              dailyInsight={systemMetrics.dailyInsight}
+              topFrictionStationName={topFrictionStationName}
+              activeAlertsCount={systemMetrics.activeAlerts.length}
+            />
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="research">
+          {viewMode === 'research' ? (
+            <ResearchModeView
+              stations={stationsData.stations}
+              filteredStations={filteredStations}
+              selectedStationId={selectedStationId}
+              onSelectStation={(stationId) =>
+                selectStationWithTracking(stationId, 'research_mode', 'research')
+              }
+              favoriteStationIds={favoriteStationIds}
+              onToggleFavorite={toggleFavoriteStation}
+              trendByStationId={stationTrendById}
+              nearestStationId={nearestStation?.stationId ?? null}
+              rankings={rankingsData}
+              dailyDemand={mobilityPreview.dailyDemand}
+              systemHourlyProfile={mobilityPreview.systemHourlyProfile}
+              hourlySignals={mobilityPreview.hourlySignals}
+              windowLabel={activeWindow.label}
+              requestedDays={activeWindow.demandDays}
+              recentSnapshots={recentSnapshots}
+            />
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="data">
+          {viewMode === 'data' ? (
+            <DataModeView
+              stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
+              frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
+              historyJsonUrl={appRoutes.api.history()}
+              historyCsvUrl={appRoutes.api.history({ format: 'csv' })}
+              alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
+              statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
+            />
+          ) : null}
+        </TabsContent>
+      </Tabs>
 
       <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
 

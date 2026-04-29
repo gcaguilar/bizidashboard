@@ -41,7 +41,7 @@ type OperationsModeViewProps = {
 export function OperationsModeView(props: OperationsModeViewProps) {
   return (
     <>
-      <div id="mode-panel-operations" role="tabpanel" aria-labelledby="mode-tab-operations" className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <BalanceIndexCard
           balanceIndex={props.balanceIndex}
           criticalStationsCount={props.criticalStationsCount}

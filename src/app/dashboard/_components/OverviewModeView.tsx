@@ -87,7 +87,7 @@ export function OverviewModeView({
 
   return (
     <>
-      <div id="mode-panel-overview" role="tabpanel" aria-labelledby="mode-tab-overview" className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <SystemHealthCard
           totalStations={systemMetrics.totalStations}
           bikesAvailable={systemMetrics.bikesAvailable}

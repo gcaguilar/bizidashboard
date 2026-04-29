@@ -1,6 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -95,7 +96,7 @@ export function KpiCards({ kpis, baseline }: Props) {
       {/* Baseline comparison */}
       <Card className="p-4">
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Comparativa de escenarios</h3>
-        <div className="overflow-x-auto">
+        <ScrollArea className="overflow-x-auto">
           <Table className="text-xs">
             <TableHeader>
               <TableRow className="text-left text-[var(--muted)]">
@@ -123,7 +124,7 @@ export function KpiCards({ kpis, baseline }: Props) {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </ScrollArea>
       </Card>
     </div>
   );

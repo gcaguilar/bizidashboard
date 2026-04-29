@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { AlertsResponse, StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -48,8 +50,9 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           </Link>
         </div>
       ) : (
-        <ul className={`max-h-[500px] overflow-auto p-4 ${compact ? 'space-y-2' : 'space-y-3'}`}>
-          {activeAlerts.map((alert) => {
+        <ScrollArea className={`max-h-[500px] p-4 ${compact ? 'space-y-2' : 'space-y-3'}`}>
+          <ul className={compact ? 'space-y-2' : 'space-y-3'}>
+            {activeAlerts.map((alert) => {
             const station = stationMap.get(alert.stationId);
             const stationName = station?.name ?? `Estacion ${alert.stationId}`;
             const occupancy =
@@ -80,12 +83,11 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                   </div>
                 </div>
 
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/20">
-                  <div
-                    className={`${isEmptyLike ? 'bg-[var(--accent)]' : 'bg-amber-400'} h-full rounded-full`}
-                    style={{ width: `${progressValue}%` }}
-                  />
-                </div>
+                <Progress
+                  className="bg-black/20"
+                  value={progressValue}
+                  indicatorClassName={isEmptyLike ? 'bg-[var(--accent)]' : 'bg-amber-400'}
+                />
 
                 <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted)]">
                   <span>{severityLabel(alert.severity)}</span>
@@ -99,8 +101,9 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                 </p>
               </li>
             );
-          })}
-        </ul>
+            })}
+          </ul>
+        </ScrollArea>
       )}
     </section>
   );

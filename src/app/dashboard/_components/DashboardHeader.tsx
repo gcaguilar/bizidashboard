@@ -5,6 +5,7 @@ import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -223,12 +224,11 @@ export function DashboardHeader({
             <span>Proxima actualizacion automatica en menos de 2 min</span>
             <span>{isRefreshingData ? 'actualizando...' : `siguiente en ${refreshCountdownLabel}`}</span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/15">
-            <div
-              className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500"
-              style={{ width: `${Math.max(0, Math.min(100, refreshProgress))}%` }}
-            />
-          </div>
+          <Progress
+            className="bg-black/15"
+            value={Math.max(0, Math.min(100, refreshProgress))}
+            indicatorClassName="bg-[var(--accent)] duration-500"
+          />
         </div>
       </div>
     </header>
