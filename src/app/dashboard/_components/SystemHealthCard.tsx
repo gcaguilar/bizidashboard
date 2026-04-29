@@ -1,4 +1,5 @@
 import { formatPercent } from '@/lib/format';
+import { MetricCard, MetricGrid } from '@/components/ui/metric-card';
 
 type SystemHealthCardProps = {
   totalStations: number;
@@ -21,24 +22,12 @@ export function SystemHealthCard({
       <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Salud general del sistema</h3>
       <p className="mt-1 text-sm text-[var(--muted)]">Resumen rapido para entender cuantas estaciones hay, cuantas bicis quedan y como de equilibrada esta la red.</p>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Estaciones activas</p>
-          <p className="stat-value">{totalStations}</p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Bicis disponibles</p>
-          <p className="stat-value">{bikesAvailable}</p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Anclajes libres</p>
-          <p className="stat-value">{anchorsFree}</p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Ocupacion media</p>
-          <p className="stat-value">{formatPercent(avgOccupancy)}</p>
-        </div>
-      </div>
+      <MetricGrid>
+        <MetricCard label="Estaciones activas" value={totalStations} />
+        <MetricCard label="Bicis disponibles" value={bikesAvailable} />
+        <MetricCard label="Anclajes libres" value={anchorsFree} />
+        <MetricCard label="Ocupacion media" value={formatPercent(avgOccupancy)} />
+      </MetricGrid>
 
       <p className="mt-3 text-xs text-[var(--muted)]">Actualizado {updatedText}</p>
     </article>

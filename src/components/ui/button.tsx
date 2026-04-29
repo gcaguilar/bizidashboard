@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { Slot } from '@/components/ui/slot';
 
-type ButtonVariant = 'default' | 'outline' | 'ghost' | 'chip' | 'icon-button';
+type ButtonVariant = 'default' | 'outline' | 'ghost' | 'chip' | 'icon-button' | 'cta';
 type ButtonSize = 'default' | 'sm' | 'icon';
 
 const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
@@ -14,6 +15,7 @@ const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
   chip:
     'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]',
   'icon-button': 'icon-button',
+  cta: 'border-[var(--accent)] bg-transparent text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
 };
 
 const BUTTON_SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -48,20 +50,38 @@ export function buttonVariants({
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  asChild?: boolean;
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = 'default', size = 'default', type = 'button', ...props },
+  { className, variant = 'default', size = 'default', type = 'button', asChild = false, children, ...props },
   ref
 ) {
+  const classes = buttonVariants({ variant, size, className });
+
+  if (asChild) {
+    return (
+      <Slot
+        ref={ref as React.Ref<HTMLElement>}
+        data-button-variant={variant}
+        className={classes}
+        {...(props as React.HTMLAttributes<HTMLElement>)}
+      >
+        {children as React.ReactElement}
+      </Slot>
+    );
+  }
+
   return (
     <button
       ref={ref}
       type={type}
       data-button-variant={variant}
-      className={buttonVariants({ variant, size, className })}
+      className={classes}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 });
 

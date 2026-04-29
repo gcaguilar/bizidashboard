@@ -1,5 +1,6 @@
 import { ApiCatalogCard } from './ApiCatalogCard';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
 import { buildPanelOpenEvent } from '@/lib/umami';
 import { DataHistoryCard } from './DataHistoryCard';
@@ -82,18 +83,19 @@ export function DataModeView({
           <p className="text-sm text-[var(--muted)]">
             Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
           </p>
-          <TrackedLink
-            href={appRoutes.dashboardHelp()}
-            trackingEvent={buildPanelOpenEvent({
-              surface: 'dashboard',
-              routeKey: 'dashboard_home',
-              module: 'help',
-              source: 'data_mode',
-            })}
-            className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Revisar metodologia
-          </TrackedLink>
+          <Button asChild variant="cta" size="sm" className="mt-auto">
+            <TrackedLink
+              href={appRoutes.dashboardHelp()}
+              trackingEvent={buildPanelOpenEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_home',
+                module: 'help',
+                source: 'data_mode',
+              })}
+            >
+              Revisar metodologia
+            </TrackedLink>
+          </Button>
         </article>
         <PredictionHooksCard />
       </section>

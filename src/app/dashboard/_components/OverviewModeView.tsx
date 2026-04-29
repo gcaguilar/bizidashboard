@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { Coordinates } from '@/lib/geo';
@@ -116,12 +117,9 @@ export function OverviewModeView({
             </p>
           </div>
 
-          <Link
-            href={appRoutes.status()}
-            className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Abrir pagina de estado
-          </Link>
+          <Button asChild variant="cta" size="sm">
+            <Link href={appRoutes.status()}>Abrir pagina de estado</Link>
+          </Button>
         </div>
       </section>
 
@@ -147,12 +145,9 @@ export function OverviewModeView({
         <div className="min-w-0 lg:col-span-1">
           <div className="dashboard-card h-full">
             <p className="text-sm text-[var(--muted)]">Resumen visual rapido disponible en el modo Operaciones y el historial completo en la pagina de alertas.</p>
-            <Link
-              href={appRoutes.dashboardAlerts()}
-              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-            >
-              Abrir alertas completas
-            </Link>
+            <Button asChild variant="cta" size="sm" className="mt-auto">
+              <Link href={appRoutes.dashboardAlerts()}>Abrir alertas completas</Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -173,12 +168,9 @@ export function OverviewModeView({
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
-          <Link
-            href={appRoutes.dashboardFlow()}
-            className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/12 px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
-          >
-            Vista completa
-          </Link>
+          <Button asChild variant="cta" size="sm">
+            <Link href={appRoutes.dashboardFlow()}>Vista completa</Link>
+          </Button>
         </div>
         <FlowPreviewPanel stations={stations} hourlySignals={mobilityPreview.hourlySignals} />
       </section>
