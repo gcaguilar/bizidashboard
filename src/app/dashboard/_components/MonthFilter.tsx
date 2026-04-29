@@ -55,14 +55,14 @@ function MonthFilterContent({
 
   return (
     <div className={className}>
-      <div className='flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 shadow-[var(--shadow-soft)]'>
+      <div className='flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 shadow-[var(--shadow-soft)]'>
         <span className='text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]'>Mes</span>
         <Button
           onClick={() => updateMonth(null)}
           className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
             activeMonth === null
-              ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-              : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]'
+              ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+              : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]'
           }`}
           variant='ghost'
           size='sm'
@@ -75,8 +75,8 @@ function MonthFilterContent({
             onClick={() => updateMonth(month.key)}
             className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition ${
               activeMonth === month.key
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]'
+                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]'
             }`}
             variant='ghost'
             size='sm'
@@ -91,7 +91,7 @@ function MonthFilterContent({
 
 export function MonthFilter(props: MonthFilterProps) {
   return (
-    <Suspense fallback={<div className='h-10 w-full animate-pulse rounded-xl bg-[var(--surface-soft)]' />}>
+    <Suspense fallback={<div className='h-10 w-full animate-pulse rounded-xl bg-[var(--secondary)]' />}>
       <MonthFilterContent {...props} />
     </Suspense>
   );

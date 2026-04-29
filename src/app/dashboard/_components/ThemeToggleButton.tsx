@@ -29,7 +29,7 @@ type ThemeToggleButtonProps = {
   className?: string;
 };
 
-export function ThemeToggleButton({ className = 'icon-button' }: ThemeToggleButtonProps) {
+export function ThemeToggleButton({ className = 'ui-icon-button' }: ThemeToggleButtonProps) {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {

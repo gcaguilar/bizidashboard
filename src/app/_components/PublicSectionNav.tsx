@@ -79,8 +79,8 @@ function renderNavLink(
       aria-current={isActive ? 'page' : undefined}
       className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
         isActive
-          ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-          : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
+          ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+          : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)]'
       }`}
     >
       {item.label}
@@ -117,13 +117,13 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
             <AccordionTrigger
             className={`inline-flex cursor-pointer list-none rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
               mobileCompactNav.isOverflowActive
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
+                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)]'
             }`}
           >
             Mas
             </AccordionTrigger>
-            <AccordionContent keepMounted className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
+            <AccordionContent keepMounted className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 shadow-[var(--shadow-soft)]">
               <div className="flex flex-col gap-2">
                 {mobileCompactNav.overflowItems.map((item) =>
                   renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)

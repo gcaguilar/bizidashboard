@@ -5,17 +5,44 @@ type CardVariant =
   | 'default'
   | 'stat'
   | 'panel'
+  | 'hero'
+  | 'section'
+  | 'metric'
   | 'hero-card'
   | 'dashboard-card'
-  | 'stat-card';
+  | 'stat-card'
+  | 'ui-page-hero'
+  | 'ui-section-card'
+  | 'ui-metric-card';
 
 const CARD_VARIANT_CLASSES: Record<CardVariant, string> = {
-  default: 'gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]',
-  stat: 'gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3',
-  panel: 'gap-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-0 shadow-[var(--shadow-soft)]',
-  'hero-card': 'hero-card',
-  'dashboard-card': 'dashboard-card',
-  'stat-card': 'stat-card',
+  default: 'gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-md)]',
+  stat: 'gap-2 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-3',
+  panel: 'gap-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-0 shadow-[var(--shadow-md)]',
+  hero: 'ui-page-hero',
+  section: 'ui-section-card',
+  metric: 'ui-metric-card',
+  'hero-card': 'ui-page-hero',
+  'dashboard-card': 'ui-section-card',
+  'stat-card': 'ui-metric-card',
+  'ui-page-hero': 'ui-page-hero',
+  'ui-section-card': 'ui-section-card',
+  'ui-metric-card': 'ui-metric-card',
+};
+
+const CARD_DATA_VARIANT: Record<CardVariant, 'default' | 'stat' | 'panel' | 'hero' | 'section' | 'metric'> = {
+  default: 'default',
+  stat: 'stat',
+  panel: 'panel',
+  hero: 'hero',
+  section: 'section',
+  metric: 'metric',
+  'hero-card': 'hero',
+  'dashboard-card': 'section',
+  'stat-card': 'metric',
+  'ui-page-hero': 'hero',
+  'ui-section-card': 'section',
+  'ui-metric-card': 'metric',
 };
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -29,7 +56,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   return (
     <div
       ref={ref}
-      data-card-variant={variant}
+      data-card-variant={CARD_DATA_VARIANT[variant]}
       className={cn(
         'flex min-w-0 flex-col backdrop-blur-[9px]',
         CARD_VARIANT_CLASSES[variant],
@@ -46,21 +73,21 @@ const HeroCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function Her
   { className, ...props },
   ref
 ) {
-  return <Card ref={ref} variant="hero-card" className={className} {...props} />;
+  return <Card ref={ref} variant="hero" className={className} {...props} />;
 });
 
 const DashboardCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function DashboardCard(
   { className, ...props },
   ref
 ) {
-  return <Card ref={ref} variant="dashboard-card" className={className} {...props} />;
+  return <Card ref={ref} variant="section" className={className} {...props} />;
 });
 
 const StatCard = React.forwardRef<HTMLDivElement, CardWrapperProps>(function StatCard(
   { className, ...props },
   ref
 ) {
-  return <Card ref={ref} variant="stat-card" className={className} {...props} />;
+  return <Card ref={ref} variant="metric" className={className} {...props} />;
 });
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

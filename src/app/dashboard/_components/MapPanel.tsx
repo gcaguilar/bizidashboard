@@ -64,7 +64,7 @@ export function MapPanel({
       className="relative w-full"
       style={{ height: `${MAP_HEIGHT}px` }}
     >
-      <div className="absolute left-4 top-4 z-20 max-w-[75%] rounded-lg border border-[var(--border)] bg-[var(--surface)]/90 px-3 py-2 backdrop-blur">
+      <div className="absolute left-4 top-4 z-20 max-w-[75%] rounded-lg border border-[var(--border)] bg-[var(--card)]/90 px-3 py-2 backdrop-blur">
         <p className="text-xs font-semibold text-[var(--foreground)]">
           {headerTitle} · {stations.length}/{totalStations} estaciones
           {isFilteredView ? ' (filtradas)' : ''}
@@ -72,9 +72,9 @@ export function MapPanel({
         <p className="mt-1 text-[11px] text-[var(--muted)]">{headerHint}</p>
       </div>
 
-      <div className="absolute bottom-4 left-4 z-20 flex max-w-[90%] flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 text-[11px] backdrop-blur">
+      <div className="absolute bottom-4 left-4 z-20 flex max-w-[90%] flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-3 py-2 text-[11px] backdrop-blur">
         {legendItems.map((item) => (
-          <span key={item} className="legend-item">{item}</span>
+          <span key={item} className="ui-legend-item">{item}</span>
         ))}
       </div>
 

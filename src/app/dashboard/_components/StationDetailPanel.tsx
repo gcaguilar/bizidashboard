@@ -414,7 +414,7 @@ export function StationDetailPanel({
 
   if (!station) {
     return (
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-lg font-semibold text-[var(--foreground)]">Detalle de estacion</h2>
         <p className="text-sm text-[var(--muted)]">
           Selecciona una estacion para ver KPIs, benchmarking y proyecciones.
@@ -443,10 +443,10 @@ export function StationDetailPanel({
 
   return (
     <section className="space-y-6">
-      <header className="rounded-xl border border-[var(--border)] bg-[var(--accent)]/8 p-6">
+      <header className="rounded-xl border border-[var(--border)] bg-[var(--primary)]/8 p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-6">
-            <div className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/35 to-[var(--surface-soft)] text-xs font-black uppercase tracking-[0.14em] text-[var(--foreground)]">
+            <div className="flex h-24 w-24 items-center justify-center rounded-lg border-2 border-[var(--primary)]/30 bg-gradient-to-br from-[var(--primary)]/35 to-[var(--secondary)] text-xs font-black uppercase tracking-[0.14em] text-[var(--foreground)]">
               #{station.id}
             </div>
             <div className="flex flex-col">
@@ -456,7 +456,7 @@ export function StationDetailPanel({
                 {selectedDistrict ? ` · ${selectedDistrict}` : ''}
               </p>
               {nearestDistanceMeters !== null ? (
-                <p className="mt-2 text-xs font-semibold text-[var(--accent)]">
+                <p className="mt-2 text-xs font-semibold text-[var(--primary)]">
                   📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
                   {isNearestStation ? ' · Es la mas cercana' : ''}
                 </p>
@@ -464,7 +464,7 @@ export function StationDetailPanel({
                 <Button
                   variant="ghost"
                   onClick={() => setIsGeolocationEnabled(true)}
-                  className="mt-2 h-auto min-h-0 rounded-lg border border-[var(--accent)] px-2 py-1 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                  className="mt-2 h-auto min-h-0 rounded-lg border border-[var(--primary)] px-2 py-1 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
                 >
                   Usar mi ubicacion para calcular distancia
                 </Button>
@@ -472,7 +472,7 @@ export function StationDetailPanel({
               <div
                 className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${
                   isCritical
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
+                    ? 'border-[var(--primary)] bg-[var(--primary)]/20 text-[var(--primary)]'
                     : 'border-emerald-500/35 bg-emerald-500/10 text-emerald-500'
                 }`}
               >
@@ -499,28 +499,28 @@ export function StationDetailPanel({
       </header>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/12 p-5">
+        <article className="rounded-xl border border-[var(--primary)]/25 bg-[var(--primary)]/12 p-5">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Bicis disponibles</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{station.bikesAvailable}</p>
           <p className="mt-1 text-xs text-[var(--muted)]">
             Media distrito: {districtSnapshot ? districtSnapshot.bikesAvg.toFixed(1) : 'N/D'}
           </p>
         </article>
-        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Anclajes libres</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{station.anchorsFree}</p>
           <p className="mt-1 text-xs text-[var(--muted)]">
             Media distrito: {districtSnapshot ? districtSnapshot.anchorsAvg.toFixed(1) : 'N/D'}
           </p>
         </article>
-        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Rotacion 14d</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">
             {turnoverRow ? turnoverRow.turnoverScore.toFixed(1) : '0.0'}
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">Puntuacion del ranking operativo.</p>
         </article>
-        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Horas problema 14d</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{problemHours}</p>
           <p className="mt-1 text-xs text-[var(--muted)]">Alertas activas: {stationAlerts.length}</p>
@@ -528,11 +528,11 @@ export function StationDetailPanel({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5 lg:col-span-2">
+        <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5 lg:col-span-2">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-[var(--foreground)]">Benchmark de barrio</h3>
             {selectedDistrict ? (
-              <span className="rounded bg-[var(--accent)]/10 px-2 py-1 text-[10px] font-bold uppercase text-[var(--accent)]">
+              <span className="rounded bg-[var(--primary)]/10 px-2 py-1 text-[10px] font-bold uppercase text-[var(--primary)]">
                 {selectedDistrict}
               </span>
             ) : null}
@@ -560,8 +560,8 @@ export function StationDetailPanel({
                 {availabilityRow ? `${availabilityRow.totalHours}h muestra` : 'N/D'}
               </span>
             </div>
-            <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-xs text-[var(--muted)]">
-              <span className="font-bold text-[var(--accent)]">Conclusión:</span>{' '}
+            <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-xs text-[var(--muted)]">
+              <span className="font-bold text-[var(--primary)]">Conclusión:</span>{' '}
               {districtAverage === null
                 ? 'Sin datos de distrito para comparar.'
                 : `Esta estacion esta ${
@@ -573,7 +573,7 @@ export function StationDetailPanel({
           </div>
         </article>
 
-        <article className="rounded-xl border-2 border-[var(--accent)] bg-[var(--accent)] p-5 text-white">
+        <article className="rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)] p-5 text-white">
           <h3 className="text-lg font-bold">Prediccion de disponibilidad</h3>
           <p className="mt-1 text-sm text-white/80">Estimacion de disponibilidad para 60 minutos.</p>
           <div className="mt-4 space-y-3">
@@ -592,10 +592,10 @@ export function StationDetailPanel({
         </article>
       </div>
 
-      <article className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-5">
+      <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-bold text-[var(--foreground)]">Destinos principales</h3>
-          <span className="kpi-chip">Balance neto {selectedDistrictNet?.toFixed(1) ?? 'N/D'}</span>
+          <span className="ui-chip">Balance neto {selectedDistrictNet?.toFixed(1) ?? 'N/D'}</span>
         </div>
         {estimatedDestinations.length === 0 ? (
           <p className="mt-3 text-sm text-[var(--muted)]">
@@ -612,10 +612,10 @@ export function StationDetailPanel({
               return (
                 <div
                   key={destination.district}
-                  className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2"
+                  className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)]/12 text-sm font-bold text-[var(--accent)]">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)]/12 text-sm font-bold text-[var(--primary)]">
                       {index + 1}
                     </div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">{destination.district}</p>

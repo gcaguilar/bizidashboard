@@ -77,7 +77,7 @@ export function ResearchSummaryCard({
   })();
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>

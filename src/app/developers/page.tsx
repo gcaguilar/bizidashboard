@@ -241,7 +241,7 @@ export default async function DevelopersPage() {
         }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="api" className="mt-1" />
 
@@ -260,10 +260,10 @@ export default async function DevelopersPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">OpenAPI {openApiDocument.openapi}</span>
-            <span className="kpi-chip">API v{apiVersion}</span>
-            <span className="kpi-chip">Dataset {datasetVersion}</span>
-            <span className="kpi-chip">{endpointDocs.length} endpoints publicados</span>
+            <span className="ui-chip">OpenAPI {openApiDocument.openapi}</span>
+            <span className="ui-chip">API v{apiVersion}</span>
+            <span className="ui-chip">Dataset {datasetVersion}</span>
+            <span className="ui-chip">{endpointDocs.length} endpoints publicados</span>
           </div>
         </div>
 
@@ -272,7 +272,7 @@ export default async function DevelopersPage() {
             <TrackedLink
               href={appRoutes.api.openApi()}
               ctaEvent={buildOpenApiCtaEvent('developers_hero')}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Descargar OpenAPI JSON
             </TrackedLink>
@@ -285,7 +285,7 @@ export default async function DevelopersPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver llms.txt
             </TrackedLink>
@@ -298,7 +298,7 @@ export default async function DevelopersPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver llms-full.txt
             </TrackedLink>
@@ -311,7 +311,7 @@ export default async function DevelopersPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver estado del sistema
             </TrackedLink>
@@ -324,7 +324,7 @@ export default async function DevelopersPage() {
                 destinationRole: 'utility',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver metodologia
             </TrackedLink>
@@ -344,22 +344,22 @@ export default async function DevelopersPage() {
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-4">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Version API</p>
           <p className="stat-value">{apiVersion}</p>
           <p className="text-xs text-[var(--muted)]">Version declarada en la especificacion OpenAPI.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Version dataset</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{datasetVersion}</p>
           <p className="text-xs text-[var(--muted)]">Derivada de la ultima muestra util y del historico agregado.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Cobertura historica</p>
           <p className="stat-value">{dataset.coverage.totalDays}</p>
           <p className="text-xs text-[var(--muted)]">{dataset.stats.totalSamples} muestras y {dataset.stats.totalStations} estaciones.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultima generacion</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {formatStatusDateTime(dataset.coverage.generatedAt)}
@@ -370,7 +370,7 @@ export default async function DevelopersPage() {
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Quick start
@@ -379,19 +379,19 @@ export default async function DevelopersPage() {
         </div>
 
         <div className="grid gap-4 xl:grid-cols-3">
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">curl</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{curlExamples.join('\n\n')}</code>
             </pre>
           </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Python</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{pythonExample}</code>
             </pre>
           </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">JavaScript</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{jsExample}</code>
@@ -400,7 +400,7 @@ export default async function DevelopersPage() {
         </div>
       </section>
 
-      <section className="dashboard-card" id="rebalancing-api">
+      <section className="ui-section-card" id="rebalancing-api">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Logistica y redistribucion
@@ -412,13 +412,13 @@ export default async function DevelopersPage() {
           </p>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Ejemplo (curl)</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{`curl -sG ${siteUrl}${appRoutes.api.rebalancingReport({ district: 'Centro', days: 15 })}`}</code>
             </pre>
           </article>
-          <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
+          <article className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-4">
             <p className="stat-label">Ejemplo (Python)</p>
             <pre className="mt-3 overflow-x-auto rounded-xl bg-black/20 p-3 text-xs text-[var(--foreground)]">
               <code>{`import requests
@@ -433,7 +433,7 @@ print(len(res.json()["transfers"]))`}</code>
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Acceso y seguridad
@@ -445,7 +445,7 @@ print(len(res.json()["transfers"]))`}</code>
           {accessPolicies.map((policy) => (
             <article
               key={policy.label}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4"
+              className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4"
             >
               <p className="stat-label">{policy.label}</p>
               <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{policy.title}</p>
@@ -455,7 +455,7 @@ print(len(res.json()["transfers"]))`}</code>
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -466,7 +466,7 @@ print(len(res.json()["transfers"]))`}</code>
           <TrackedLink
             href={appRoutes.api.openApi()}
             ctaEvent={buildOpenApiCtaEvent('developers_endpoints')}
-            className="text-sm font-bold text-[var(--accent)] transition hover:opacity-80"
+            className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80"
           >
             Ver JSON OpenAPI
           </TrackedLink>
@@ -477,7 +477,7 @@ print(len(res.json()["transfers"]))`}</code>
             <article
               key={`${endpoint.method}-${endpoint.path}`}
               id={buildDeveloperEndpointAnchorId(endpoint.path, endpoint.method)}
-              className="scroll-mt-24 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4"
+              className="scroll-mt-24 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4"
             >
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                 {endpoint.method}
@@ -493,7 +493,7 @@ print(len(res.json()["transfers"]))`}</code>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Dataset y descargas
@@ -514,19 +514,19 @@ print(len(res.json()["transfers"]))`}</code>
                   destinationRole: 'utility',
                   transitionKind: 'within_public',
                 }}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
                   <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
                 </div>
-                <span className="text-xs font-bold text-[var(--accent)]">Descargar</span>
+                <span className="text-xs font-bold text-[var(--primary)]">Descargar</span>
               </TrackedLink>
             ))}
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Rate limits y politicas
@@ -534,17 +534,17 @@ print(len(res.json()["transfers"]))`}</code>
             <h2 className="text-xl font-black text-[var(--foreground)]">Consumo responsable</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Lectura publica</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">Modelo mixto: anonimo para lectura barata, clave para acceso elevado</p>
               <p className="mt-1 text-xs text-[var(--muted)]">Las lecturas ligeras siguen abiertas; CSV costosos y ventanas amplias pasan por `X-Public-Api-Key` y rate limit compartido.</p>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Ingesta protegida</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">GET y POST /api/collect aplican auth operativa + Redis rate limit</p>
               <p className="mt-1 text-xs text-[var(--muted)]">Configuracion por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`; `x-collect-api-key` queda como alias temporal.</p>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Licencia del codigo</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{codeLicense}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">La app esta licenciada como software libre; para redistribuir datos derivados revisa tambien los terminos del proveedor GBFS.</p>
@@ -554,7 +554,7 @@ print(len(res.json()["transfers"]))`}</code>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Changelog actual
@@ -563,14 +563,14 @@ print(len(res.json()["transfers"]))`}</code>
           </div>
           <div className="space-y-3">
             {changelog.map((item) => (
-              <div key={item} className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[var(--muted)]">
+              <div key={item} className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 text-sm text-[var(--muted)]">
                 {item}
               </div>
             ))}
           </div>
         </article>
 
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Cita y licencia de datos
@@ -578,19 +578,19 @@ print(len(res.json()["transfers"]))`}</code>
             <h2 className="text-xl font-black text-[var(--foreground)]">Como citar y reutilizar</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Cita sugerida</p>
               <p className="text-sm leading-relaxed text-[var(--foreground)]">
                 {`BiziDashboard ${cityName}, dataset historico agregado (version ${datasetVersion}), consultado el ${new Date().toLocaleDateString('es-ES')}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
               </p>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Fuente primaria</p>
-              <Link href={dataset.source.gbfsDiscoveryUrl} className="break-all text-sm font-semibold text-[var(--accent)] transition hover:opacity-80">
+              <Link href={dataset.source.gbfsDiscoveryUrl} className="break-all text-sm font-semibold text-[var(--primary)] transition hover:opacity-80">
                 {dataset.source.gbfsDiscoveryUrl}
               </Link>
             </div>
-            <div className="stat-card">
+            <div className="ui-metric-card">
               <p className="stat-label">Ultima generacion compartida</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{formatStatusDateTime(dataset.coverage.generatedAt)}</p>
             </div>
@@ -598,7 +598,7 @@ print(len(res.json()["transfers"]))`}</code>
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Casos de uso
@@ -607,7 +607,7 @@ print(len(res.json()["transfers"]))`}</code>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {useCases.map((item) => (
-            <article key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-sm text-[var(--muted)]">
+            <article key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted)]">
               {item}
             </article>
           ))}

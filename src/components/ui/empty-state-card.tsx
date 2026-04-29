@@ -16,13 +16,13 @@ const EmptyStateCard = React.forwardRef<HTMLDivElement, EmptyStateCardProps>(fun
   return (
     <div
       ref={ref}
-      className={cn('mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-5 text-sm text-[var(--muted)]', className)}
+      className={cn('mt-4 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-5 text-sm text-[var(--muted)]', className)}
       {...props}
     >
       <p className="font-semibold text-[var(--foreground)]">{title}</p>
       <p className="mt-1">{description}</p>
       {actionSlot ? (
-        <Button asChild variant="ghost" size="sm" className="mt-3 h-auto px-0 py-0 text-xs font-semibold text-[var(--accent)] hover:bg-transparent hover:text-[var(--accent)]">
+        <Button asChild variant="ghost" size="sm" className="mt-3 h-auto px-0 py-0 text-xs font-semibold text-[var(--primary)] hover:bg-transparent hover:text-[var(--primary)]">
           {actionSlot}
         </Button>
       ) : actionLabel ? (
@@ -33,4 +33,3 @@ const EmptyStateCard = React.forwardRef<HTMLDivElement, EmptyStateCardProps>(fun
 });
 
 export { EmptyStateCard, type EmptyStateCardProps };
-

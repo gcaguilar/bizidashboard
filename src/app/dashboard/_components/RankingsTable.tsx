@@ -114,11 +114,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
     rankingsState === 'stale';
   const itemClass =
     density === 'compact'
-      ? 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2'
-      : 'rounded-lg border border-[var(--border)] bg-[var(--surface-soft)]/90 px-3 py-2.5';
+      ? 'rounded-lg border border-[var(--border)] bg-[var(--secondary)]/90 px-3 py-2'
+      : 'rounded-lg border border-[var(--border)] bg-[var(--secondary)]/90 px-3 py-2.5';
 
   return (
-    <section className='dashboard-card h-full'>
+    <section className='ui-section-card h-full'>
       <header className='flex items-center justify-between gap-2'>
         <div>
           <h2 className='text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]'>
@@ -133,11 +133,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           </div>
         </div>
         <div className='text-right'>
-          <span className='kpi-chip'>{rows.length} resultados</span>
+          <span className='ui-chip'>{rows.length} resultados</span>
           <div className='mt-1'>
             <Link
               href={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
-              className='text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline'
+              className='text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline'
             >
               Entender ranking
             </Link>
@@ -151,8 +151,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
             variant='ghost'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'availability'
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
+                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
             } h-auto min-h-0`}
             onClick={() => {
               updateQuery({ tab: 'availability', showAll: false });
@@ -164,8 +164,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
             variant='ghost'
             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
               activeTab === 'turnover'
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
+                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
             } h-auto min-h-0`}
             onClick={() => {
               updateQuery({ tab: 'turnover', showAll: false });
@@ -176,7 +176,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
         </div>
 
         <Input
-          className='h-8 min-h-0 min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
+          className='h-8 min-h-0 min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
           placeholder='Buscar estacion'
           value={search}
           onChange={(event) => {
@@ -249,7 +249,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
                 <Progress
                   className='bg-black/25'
                   value={Math.max(8, Math.min(100, barWidth))}
-                  indicatorClassName={activeTab === 'turnover' ? 'bg-[var(--accent)]' : 'bg-amber-400'}
+                  indicatorClassName={activeTab === 'turnover' ? 'bg-[var(--primary)]' : 'bg-amber-400'}
                 />
                 <p className='mt-2 text-[11px] text-[var(--muted)]'>
                   {activeTab === 'turnover'
@@ -268,7 +268,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           onClick={() => {
             updateQuery({ showAll: !showAll });
           }}
-          className='h-auto min-h-0 rounded-lg border border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white'
+          className='h-auto min-h-0 rounded-lg border border-[var(--primary)] px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white'
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}
         </Button>
@@ -279,7 +279,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
 export function RankingsTable(props: RankingsTableProps) {
   return (
-    <Suspense fallback={<div className='dashboard-card h-full animate-pulse' />}>
+    <Suspense fallback={<div className='ui-section-card h-full animate-pulse' />}>
       <RankingsTableContent {...props} />
     </Suspense>
   );

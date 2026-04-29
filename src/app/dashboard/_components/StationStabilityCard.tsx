@@ -29,14 +29,14 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
     .slice(0, 8);
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estacion</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Una estacion es menos estable cuando pasa muchas horas vacia o llena respecto a su ventana observada.</p>
         </div>
-        <Link href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Como leerlo
         </Link>
       </div>
@@ -49,7 +49,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
             <Link
               key={row.stationId}
               href={appRoutes.dashboardStation(row.stationId)}
-              className="block rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+              className="block rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -61,7 +61,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
               <Progress
                 className="mt-2 bg-black/15"
                 value={Math.max(6, row.stabilityScore * 100)}
-                indicatorClassName="bg-[var(--accent)]"
+                indicatorClassName="bg-[var(--primary)]"
               />
             </Link>
           ))}

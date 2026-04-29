@@ -35,7 +35,7 @@ const TabsTrigger = React.forwardRef<
         cn(
           'rounded-t-lg border border-transparent px-4 py-2 text-sm font-medium transition-colors outline-none',
           state.active
-            ? 'border-b-0 border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]'
+            ? 'border-b-0 border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]'
             : 'text-[var(--muted)] hover:text-[var(--foreground)]',
           typeof className === 'function' ? className(state) : className
         )

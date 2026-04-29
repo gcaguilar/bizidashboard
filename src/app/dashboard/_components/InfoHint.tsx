@@ -12,7 +12,7 @@ export function InfoHint({ label, content }: InfoHintProps) {
     <Tooltip>
       <TooltipTrigger
         aria-label={label}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-soft)] text-[11px] font-bold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--secondary)] text-[11px] font-bold text-[var(--muted)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
       >
         i
       </TooltipTrigger>

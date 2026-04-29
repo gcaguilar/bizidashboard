@@ -457,11 +457,11 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 text-[var(--accent)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-black text-white">
+            <div className="flex items-center gap-3 text-[var(--primary)]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-sm font-black text-white">
                 B
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Historial de alertas</h1>
@@ -479,7 +479,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href={appRoutes.dashboard()} className="icon-button" aria-label="Volver al dashboard">
+            <Link href={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al dashboard">
               Inicio
             </Link>
             <ThemeToggleButton />
@@ -497,7 +497,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
           >
-            <SelectTrigger aria-label="Filtrar por estación" className="w-full bg-[var(--surface-soft)]">
+            <SelectTrigger aria-label="Filtrar por estación" className="w-full bg-[var(--secondary)]">
               <SelectValue />
               <SelectIcon />
             </SelectTrigger>
@@ -518,7 +518,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
           >
-            <SelectTrigger aria-label="Filtrar por tipo de alerta" className="w-full bg-[var(--surface-soft)]">
+            <SelectTrigger aria-label="Filtrar por tipo de alerta" className="w-full bg-[var(--secondary)]">
               <SelectValue />
               <SelectIcon />
             </SelectTrigger>
@@ -536,7 +536,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
           >
-            <SelectTrigger aria-label="Filtrar por estado" className="w-full bg-[var(--surface-soft)]">
+            <SelectTrigger aria-label="Filtrar por estado" className="w-full bg-[var(--secondary)]">
               <SelectValue />
               <SelectIcon />
             </SelectTrigger>
@@ -554,7 +554,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
           >
-            <SelectTrigger aria-label="Filtrar por severidad" className="w-full bg-[var(--surface-soft)]">
+            <SelectTrigger aria-label="Filtrar por severidad" className="w-full bg-[var(--secondary)]">
               <SelectValue />
               <SelectIcon />
             </SelectTrigger>
@@ -573,7 +573,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
             aria-label="Fecha desde"
-            className="bg-[var(--surface-soft)]"
+            className="bg-[var(--secondary)]"
           />
 
           <Input
@@ -584,7 +584,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               setPage(0);
             }}
             aria-label="Fecha hasta"
-            className="bg-[var(--surface-soft)]"
+            className="bg-[var(--secondary)]"
           />
         </div>
 
@@ -598,8 +598,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             size="sm"
             className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'today'
-                ? 'border-[var(--accent)]'
-                : 'hover:border-[var(--accent)]'
+                ? 'border-[var(--primary)]'
+                : 'hover:border-[var(--primary)]'
             }`}
           >
             Hoy
@@ -610,8 +610,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             size="sm"
             className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'last7'
-                ? 'border-[var(--accent)]'
-                : 'hover:border-[var(--accent)]'
+                ? 'border-[var(--primary)]'
+                : 'hover:border-[var(--primary)]'
             }`}
           >
             7 dias
@@ -622,8 +622,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             size="sm"
             className={`rounded-full px-3 py-1 text-xs ${
               activeQuickRange === 'last30'
-                ? 'border-[var(--accent)]'
-                : 'hover:border-[var(--accent)]'
+                ? 'border-[var(--primary)]'
+                : 'hover:border-[var(--primary)]'
             }`}
           >
             30 dias
@@ -633,7 +633,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             disabled={!hasActiveFilters}
             variant="outline"
             size="sm"
-            className="rounded-full px-3 py-1 text-xs hover:border-[var(--accent)]"
+            className="rounded-full px-3 py-1 text-xs hover:border-[var(--primary)]"
           >
             Limpiar filtros
           </Button>
@@ -643,19 +643,19 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="dashboard-card">
+        <Card className="ui-section-card">
           <p className="stat-label">Total filtrado</p>
           <p className="stat-value">{totalRows}</p>
         </Card>
-        <Card className="dashboard-card">
+        <Card className="ui-section-card">
           <p className="stat-label">Activas (pagina)</p>
           <p className="stat-value">{stats.active}</p>
         </Card>
-        <Card className="dashboard-card">
+        <Card className="ui-section-card">
           <p className="stat-label">Criticas (pagina)</p>
           <p className="stat-value">{stats.critical}</p>
         </Card>
-        <Card className="dashboard-card">
+        <Card className="ui-section-card">
           <p className="stat-label">Exportar</p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -669,7 +669,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             </Button>
             <a
               href={downloadCsvHref}
-              className="inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              className="inline-flex rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
             >
               CSV
             </a>
@@ -677,8 +677,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         </Card>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
           <p className="text-sm font-semibold text-[var(--foreground)]">Registros de alertas</p>
           <p className="text-xs text-[var(--muted)]">
             Pagina {page + 1}/{pageCount} · {rows.length} filas
@@ -694,7 +694,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         ) : (
           <ScrollArea className="overflow-x-auto max-h-[600px]">
             <Table className="min-w-full border-collapse text-sm">
-              <TableHeader className="sticky top-0 z-10 bg-[var(--surface-soft)]">
+              <TableHeader className="sticky top-0 z-10 bg-[var(--secondary)]">
                 <TableRow className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
                   <TableHead className="h-auto px-4 py-3">Fecha</TableHead>
                   <TableHead className="h-auto px-4 py-3">Estacion</TableHead>
@@ -720,7 +720,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                       <span
                         className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
                           row.severity >= 2
-                            ? 'bg-[var(--accent)]/15 text-[var(--accent)]'
+                            ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
                             : 'bg-amber-500/15 text-amber-500'
                         }`}
                       >
@@ -749,7 +749,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           </ScrollArea>
         )}
 
-        <footer className="flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+        <footer className="flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
           <p className="text-xs text-[var(--muted)]">Muestra de {PAGE_SIZE} filas por pagina</p>
           <div className="flex items-center gap-2">
             <Button

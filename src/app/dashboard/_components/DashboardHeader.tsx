@@ -73,11 +73,11 @@ export function DashboardHeader({
   const hasAvailabilityFilter = filteredOutCount > 0;
 
   return (
-    <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+    <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-6">
-          <div className="flex items-center gap-3 text-[var(--accent)]">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-sm font-black text-white">
+          <div className="flex items-center gap-3 text-[var(--primary)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-sm font-black text-white">
               B
             </div>
             <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Bizi Zaragoza</h1>
@@ -87,7 +87,7 @@ export function DashboardHeader({
             <CitySwitcher compact className="min-w-[320px]" />
           </div>
 
-          <div className="hidden items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:flex">
+          <div className="hidden items-center gap-2 rounded-lg bg-[var(--primary)]/10 p-1 lg:flex">
             {timeWindows.map((window) => (
               <Button
                 key={window.id}
@@ -95,8 +95,8 @@ export function DashboardHeader({
                 aria-pressed={activeWindowId === window.id}
                 className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${
                   activeWindowId === window.id
-                    ? 'bg-[var(--accent)] text-white shadow-sm'
-                    : 'text-[var(--muted)] hover:bg-[var(--accent)]/10 hover:text-[var(--foreground)]'
+                    ? 'bg-[var(--primary)] text-white shadow-sm'
+                    : 'text-[var(--muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--foreground)]'
                 }`}
                 variant="ghost"
                 size="sm"
@@ -112,8 +112,8 @@ export function DashboardHeader({
             source="dashboard_header"
             ctaId="feedback_header_open"
             module="dashboard_header"
-            className="icon-button hidden sm:inline-flex"
-            pendingClassName="icon-button hidden cursor-not-allowed opacity-70 sm:inline-flex"
+            className="ui-icon-button hidden sm:inline-flex"
+            pendingClassName="ui-icon-button hidden cursor-not-allowed opacity-70 sm:inline-flex"
           >
             Feedback
           </FeedbackCta>
@@ -141,19 +141,19 @@ export function DashboardHeader({
           <Input
             id="dashboard-search"
             type="text"
-            className="min-h-11 border-[var(--border)] bg-[var(--surface-soft)] py-2"
+            className="min-h-11 border-[var(--border)] bg-[var(--secondary)] py-2"
             placeholder="Buscar estacion, ID o barrio..."
             value={searchQuery}
             onChange={(event) => onChangeSearch(event.target.value)}
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-2 py-1.5">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-2 py-1.5">
           <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--foreground)]">
             <Checkbox
               checked={onlyWithBikes}
               onChange={(event) => onToggleOnlyWithBikes(event.target.checked)}
-              className="h-5 w-5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-[var(--primary)]"
             />
             Solo con bicis
           </label>
@@ -162,7 +162,7 @@ export function DashboardHeader({
             <Checkbox
               checked={onlyWithAnchors}
               onChange={(event) => onToggleOnlyWithAnchors(event.target.checked)}
-              className="h-5 w-5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-[var(--primary)]"
             />
             Solo con huecos
           </label>
@@ -178,14 +178,14 @@ export function DashboardHeader({
           <p>{datasetSummaryLabel}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--accent)]/10 p-1 lg:hidden">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--primary)]/10 p-1 lg:hidden">
           {timeWindows.map((window) => (
             <Button
               key={window.id}
               onClick={() => onChangeWindow(window.id)}
               aria-pressed={activeWindowId === window.id}
               className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
-                activeWindowId === window.id ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                activeWindowId === window.id ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--foreground)]'
               }`}
               variant="ghost"
               size="sm"
@@ -195,13 +195,13 @@ export function DashboardHeader({
           ))}
         </div>
 
-        <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-2">
           <p className="text-xs text-[var(--foreground)]">{nearestMessage}</p>
 
           {canJumpToNearest ? (
             <Button
               onClick={onJumpToNearest}
-              className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              className="rounded-lg border border-[var(--primary)] px-2 py-1 text-[11px] font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
               variant="ghost"
               size="sm"
             >
@@ -210,7 +210,7 @@ export function DashboardHeader({
           ) : canUseGeolocation ? (
             <Button
               onClick={onUseGeolocation}
-              className="rounded-lg border border-[var(--accent)] px-2 py-1 text-[11px] font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              className="rounded-lg border border-[var(--primary)] px-2 py-1 text-[11px] font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
               variant="ghost"
               size="sm"
             >
@@ -227,7 +227,7 @@ export function DashboardHeader({
           <Progress
             className="bg-black/15"
             value={Math.max(0, Math.min(100, refreshProgress))}
-            indicatorClassName="bg-[var(--accent)] duration-500"
+            indicatorClassName="bg-[var(--primary)] duration-500"
           />
         </div>
       </div>

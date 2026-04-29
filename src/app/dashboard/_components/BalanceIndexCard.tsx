@@ -12,7 +12,7 @@ type BalanceIndexCardProps = {
 function getBalanceTone(value: number): string {
   if (value >= 0.8) return 'text-emerald-400';
   if (value >= 0.6) return 'text-amber-300';
-  return 'text-[var(--accent)]';
+  return 'text-[var(--primary)]';
 }
 
 function getBalanceLabel(value: number): string {
@@ -30,7 +30,7 @@ export function BalanceIndexCard({
   const compact = density === 'compact';
 
   return (
-    <article className={`dashboard-card ${compact ? 'border-[var(--accent)]/30 bg-[var(--accent)]/6' : ''}`.trim()}>
+    <article className={`ui-section-card ${compact ? 'border-[var(--primary)]/30 bg-[var(--primary)]/6' : ''}`.trim()}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Operaciones</p>
@@ -43,7 +43,7 @@ export function BalanceIndexCard({
           </div>
           <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
         </div>
-        <Link href={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link href={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender formula
         </Link>
       </div>
@@ -59,7 +59,7 @@ export function BalanceIndexCard({
       <Progress
         className="mt-4 h-3 bg-black/15"
         value={percentage}
-        indicatorClassName="bg-[var(--accent)] duration-500"
+        indicatorClassName="bg-[var(--primary)] duration-500"
       />
     </article>
   );

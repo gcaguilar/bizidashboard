@@ -67,7 +67,7 @@ function CompareHubFallback({
 
       <section className="grid gap-4 md:grid-cols-3">
         {data.sections.map((section) => (
-          <article key={section.id} className="dashboard-card">
+          <article key={section.id} className="ui-section-card">
             <p className="stat-label">{section.title}</p>
             <p className="stat-value">{section.cards.length}</p>
             <p className="text-xs text-[var(--muted)]">{section.description}</p>
@@ -93,17 +93,17 @@ async function CompareHubContent({
   return (
     <>
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Comparativas activas</p>
           <p className="stat-value">{comparisonCount}</p>
           <p className="text-xs text-[var(--muted)]">Lecturas listas para explorar ahora mismo.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Ultimo mes</p>
           <p className="stat-value">{data.latestMonth ? formatMonthLabel(data.latestMonth) : 'Sin dato'}</p>
           <p className="text-xs text-[var(--muted)]">Referencia temporal mas reciente publicada.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Generado</p>
           <p className="stat-value">{new Date(data.generatedAt).toLocaleDateString('es-ES')}</p>
           <p className="text-xs text-[var(--muted)]">Snapshot compartido del comparador.</p>
@@ -123,7 +123,7 @@ async function CompareHubContent({
       <InteractiveComparePanel data={data.interactive} initialQuery={initialQuery} />
 
       {data.sections.map((section) => (
-        <section key={section.id} className="dashboard-card">
+        <section key={section.id} className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               {section.title}
@@ -137,7 +137,7 @@ async function CompareHubContent({
               <Link
                 key={card.id}
                 href={card.href}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+                className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                   {card.eyebrow}
@@ -145,14 +145,14 @@ async function CompareHubContent({
                 <h3 className="mt-2 text-lg font-black text-[var(--foreground)]">{card.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{card.summary}</p>
                 <div className="mt-4 space-y-2 text-sm">
-                  <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+                  <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-[var(--foreground)]">
                     {card.metricA}
                   </p>
-                  <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--foreground)]">
+                  <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-[var(--foreground)]">
                     {card.metricB}
                   </p>
                 </div>
-                <p className="mt-3 text-sm font-bold text-[var(--accent)]">{card.delta}</p>
+                <p className="mt-3 text-sm font-bold text-[var(--primary)]">{card.delta}</p>
                 {card.note ? (
                   <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{card.note}</p>
                 ) : null}
@@ -200,7 +200,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
         }}
       />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
 
@@ -223,13 +223,13 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
           <div className="flex flex-wrap gap-3">
             <Link
               href={appRoutes.dashboardView('research')}
-              className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
               Abrir analisis del dashboard
             </Link>
             <Link
               href={appRoutes.explore()}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Volver al hub Explorar
             </Link>

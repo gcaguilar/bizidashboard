@@ -60,7 +60,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
         pageType="dashboard"
         template="stations_directory"
       />
-      <header className="sticky top-0 z-40 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <header className="sticky top-0 z-40 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estaciones</p>
@@ -93,7 +93,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="bg-[var(--surface-soft)]"
+            className="bg-[var(--secondary)]"
             placeholder="Buscar por nombre o ID"
           />
         </div>
@@ -120,7 +120,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           return (
             <Card
               key={station.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]"
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-soft)]"
             >
               <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">ID {station.id}</p>
               <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">{station.name}</h2>
@@ -151,7 +151,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   variant: 'outline',
                   size: 'sm',
                   className:
-                    'mt-3 min-h-0 border-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+                    'mt-3 min-h-0 border-[var(--primary)] px-3 py-1.5 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
                 })}
               >
                 Ver detalle

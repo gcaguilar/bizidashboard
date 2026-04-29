@@ -94,7 +94,7 @@ export function DataHistoryCard() {
   const showChart = historyDataState === 'ok' || historyDataState === 'partial' || historyDataState === 'stale';
 
   return (
-    <section className="dashboard-card">
+    <section className="ui-section-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-[var(--foreground)]">Historico de equilibrio y demanda</h3>
@@ -112,7 +112,7 @@ export function DataHistoryCard() {
                 module: 'balance_help',
                 source: 'data_history',
               })}
-              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Entender balance
             </TrackedLink>
@@ -128,7 +128,7 @@ export function DataHistoryCard() {
                 entityType: 'api',
                 module: 'data_history',
               })}
-              className="font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
               rel="noopener noreferrer"
             >
               Descargar CSV
@@ -159,7 +159,7 @@ export function DataHistoryCard() {
       ) : null}
 
       {showChart ? (
-        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
           <ChartWrapper height="h-[280px]">
             <div className="h-[280px]">
               <MeasuredResponsiveContainer>

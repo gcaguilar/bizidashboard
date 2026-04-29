@@ -65,7 +65,7 @@ export function getHealthToneClasses(
     case 'down':
       return 'border-rose-500/40 bg-rose-500/12 text-rose-200';
     default:
-      return 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)]';
+      return 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]';
   }
 }
 

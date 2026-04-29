@@ -89,7 +89,7 @@ function HourlyTooltip({ active, label, payload }: TooltipProps) {
   const rows = payload.filter((entry) => entry.value !== null);
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
       <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">Hora {label}</p>
       {rows.length === 0 ? (
         <p className="mt-1 text-[var(--muted)]">Sin datos para esta hora.</p>
@@ -121,7 +121,7 @@ export function HourlyCharts({
   const hasData = patterns.length > 0;
 
   return (
-    <section className="dashboard-card h-full">
+    <section className="ui-section-card h-full">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Ocupacion por hora</h2>
@@ -135,15 +135,15 @@ export function HourlyCharts({
         <div className="flex items-center gap-2">
           <Link
             href={appRoutes.dashboardHelp('detalle-estacion')}
-            className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
             Entender grafico
           </Link>
-          {isRefreshing ? <span className="kpi-chip">Actualizando</span> : null}
+          {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>
       </header>
 
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
         {hasData ? (
           <ChartWrapper height="h-[270px]">
             <div className="h-[270px]">

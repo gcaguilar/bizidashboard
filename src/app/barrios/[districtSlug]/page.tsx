@@ -104,7 +104,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
       <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
         <PublicPageViewTracker pageType="district" template="district_detail" pageSlug={districtSlug} />
 
-        <header className="hero-card">
+        <header className="ui-page-hero">
           <SiteBreadcrumbs items={createRootBreadcrumbs(
             { label: 'Barrios Bizi Zaragoza', href: appRoutes.districtLanding() },
             { label: displayName, href: appRoutes.districtDetail(districtSlug) }
@@ -121,7 +121,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           <div className="flex flex-wrap gap-3">
             <Link
               href={appRoutes.districtLanding()}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
             >
               Ver comparativa de barrios
             </Link>
@@ -179,7 +179,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="explore" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -193,8 +193,8 @@ export default async function DistrictSeoPage({ params }: PageProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="kpi-chip">{district.stationCount} estaciones</span>
-            <span className="kpi-chip">{district.bikesAvailable} bicis disponibles</span>
+            <span className="ui-chip">{district.stationCount} estaciones</span>
+            <span className="ui-chip">{district.bikesAvailable} bicis disponibles</span>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir flujo por barrios en el dashboard
           </TrackedLink>
@@ -221,14 +221,14 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/40"
+            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
           >
             Ver comparativa de barrios
           </TrackedLink>
         </div>
       </header>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -254,24 +254,24 @@ export default async function DistrictSeoPage({ params }: PageProps) {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Rotacion media</p>
           <p className="stat-value">{formatDecimal(district.avgTurnover)} pts</p>
           <p className="text-xs text-[var(--muted)]">Media reciente de actividad por estacion dentro del barrio.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Riesgo operativo medio</p>
           <p className="stat-value">{formatDecimal(district.avgAvailabilityRisk)}</p>
           <p className="text-xs text-[var(--muted)]">Horas medias de friccion entre vaciado y saturacion por estacion.</p>
         </article>
-        <article className="dashboard-card">
+        <article className="ui-section-card">
           <p className="stat-label">Capacidad agregada</p>
           <p className="stat-value">{formatInteger(district.capacity)}</p>
           <p className="text-xs text-[var(--muted)]">Anclajes totales repartidos entre las estaciones del barrio.</p>
         </article>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas en {district.name}</h2>
@@ -287,7 +287,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                 source: 'district_top_stations',
                 entityType: 'station',
               }}
-              className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{index + 1}. {station.stationName}</p>
@@ -295,7 +295,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                   {station.bikesAvailable} bicis · {station.anchorsFree} anclajes libres · capacidad {station.capacity}
                 </p>
               </div>
-              <span className="rounded-full bg-[var(--accent)]/12 px-3 py-1 text-xs font-bold text-[var(--accent)]">
+              <span className="rounded-full bg-[var(--primary)]/12 px-3 py-1 text-xs font-bold text-[var(--primary)]">
                 {formatDecimal(station.turnoverScore)} pts
               </span>
             </TrackedLink>
@@ -303,7 +303,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="dashboard-card">
+      <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Barrios y rutas relacionadas</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <TrackedLink
@@ -317,7 +317,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -333,7 +333,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -351,7 +351,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40"
+              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">

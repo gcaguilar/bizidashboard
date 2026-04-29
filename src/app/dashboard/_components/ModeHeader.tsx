@@ -16,7 +16,7 @@ const MODE_OPTIONS: Array<{ id: DashboardViewMode; label: string; description: s
 
 export function ModeHeader({ activeMode }: ModeHeaderProps) {
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 shadow-[var(--shadow-soft)]">
+    <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Modo de vista</p>
@@ -33,11 +33,11 @@ export function ModeHeader({ activeMode }: ModeHeaderProps) {
                 value={mode.id}
                 className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border px-4 py-3 text-left transition ${
                   isActive
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/10 shadow-[var(--shadow-soft)]'
-                    : 'border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--accent)]/35 hover:bg-[var(--surface)]'
+                    ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-[var(--shadow-soft)]'
+                    : 'border-[var(--border)] bg-[var(--secondary)] hover:border-[var(--primary)]/35 hover:bg-[var(--card)]'
                 }`}
               >
-                <p className={`text-sm font-bold ${isActive ? 'text-[var(--accent)]' : 'text-[var(--foreground)]'}`}>{mode.label}</p>
+                <p className={`text-sm font-bold ${isActive ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{mode.label}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{mode.description}</p>
               </TabsTrigger>
             );

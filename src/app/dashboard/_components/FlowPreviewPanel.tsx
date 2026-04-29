@@ -142,10 +142,10 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
 
   return (
     <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-2">
-      <Card className="relative h-64 items-center justify-center rounded-xl border-dashed border-[var(--accent)]/35 bg-[var(--surface-soft)] p-0">
+      <Card className="relative h-64 items-center justify-center rounded-xl border-dashed border-[var(--primary)]/35 bg-[var(--secondary)] p-0">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, #ea0615 0%, transparent 70%)' }} />
         <div className="relative z-10 flex flex-col items-center text-center">
-          <span className="text-4xl text-[var(--accent)]">◎</span>
+          <span className="text-4xl text-[var(--primary)]">◎</span>
           <p className="mt-2 text-sm font-bold text-[var(--foreground)]">Modelo de distribucion espacial</p>
           <p className="mt-1 max-w-sm text-xs text-[var(--muted)]">
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
@@ -178,7 +178,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             className={buttonVariants({
               variant: 'ghost',
               size: 'sm',
-              className: 'min-h-0 px-1 py-0 text-xs font-semibold text-[var(--accent)] hover:underline',
+              className: 'min-h-0 px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline',
             })}
           >
             Como se calcula
@@ -215,7 +215,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
                   </p>
                   <p className="text-xs font-bold text-[var(--foreground)]">{route.flow.toFixed(0)}</p>
                 </div>
-                <Progress className="bg-black/25" value={flowPct} indicatorClassName="bg-[var(--accent)]" />
+                <Progress className="bg-black/25" value={flowPct} indicatorClassName="bg-[var(--primary)]" />
               </Card>
             );
           })

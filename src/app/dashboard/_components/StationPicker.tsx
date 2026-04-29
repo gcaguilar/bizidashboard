@@ -218,7 +218,7 @@ export function StationPicker({
     : null;
 
   return (
-    <section className="dashboard-card overflow-x-hidden">
+    <section className="ui-section-card overflow-x-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
@@ -228,7 +228,7 @@ export function StationPicker({
             Cambia estacion para sincronizar mapa, patrones y heatmap.
           </p>
         </div>
-        <span className="kpi-chip">
+        <span className="ui-chip">
           {stations.length} estaciones · {favoriteStations.length} favoritas
         </span>
       </div>
@@ -265,7 +265,7 @@ export function StationPicker({
           </label>
           <Input
             id="station-search"
-            className="min-h-11 border-[var(--border)] bg-[var(--surface-soft)]"
+            className="min-h-11 border-[var(--border)] bg-[var(--secondary)]"
             placeholder="Buscar por nombre o ID"
             value={query}
             onChange={(event) => {
@@ -287,8 +287,8 @@ export function StationPicker({
             id="station-picker"
             aria-label="Seleccionar estacion"
             className={cn(
-              'inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
-              pickerOpen && 'border-[var(--accent)]'
+              'inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
+              pickerOpen && 'border-[var(--primary)]'
             )}
             disabled={stations.length === 0}
           >
@@ -327,7 +327,7 @@ export function StationPicker({
                           {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
                         </span>
                         {station.id === selectedStationId ? (
-                          <span className="ml-2 text-xs text-[var(--accent)]">✓</span>
+                          <span className="ml-2 text-xs text-[var(--primary)]">✓</span>
                         ) : null}
                       </CommandItem>
                     ))}
@@ -346,8 +346,8 @@ export function StationPicker({
             key={station.id}
             className={`max-w-full truncate rounded-full border px-3 py-1 text-xs transition ${
               station.id === selectedStationId
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent-soft)] hover:text-[var(--foreground)]'
+                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary-soft)] hover:text-[var(--foreground)]'
             }`}
             onClick={() => onSelectStation(station.id)}
             variant="ghost"
@@ -405,7 +405,7 @@ export function StationPicker({
         <div className="flex justify-end">
           <Link
             href={stationDetailUrl}
-            className="rounded-lg border border-[var(--accent)] bg-[var(--accent)]/15 px-3 py-1.5 text-xs font-bold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            className="rounded-lg border border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Abrir detalle completo
           </Link>

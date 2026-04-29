@@ -94,11 +94,11 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <DashboardPageViewTracker routeKey="dashboard_help" pageType="dashboard" template="help_center" />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--surface)]/95 px-6 py-4 backdrop-blur-md md:px-10">
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card)]/95 px-6 py-4 backdrop-blur-md md:px-10">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3 text-[var(--accent)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white">
+            <div className="flex items-center gap-3 text-[var(--primary)]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-white">
                 B
               </div>
               <h2 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h2>
@@ -112,7 +112,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <label htmlFor="help-search-desktop" className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 sm:flex">
+            <label htmlFor="help-search-desktop" className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 sm:flex">
               <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
               <Input
                 id="help-search-desktop"
@@ -139,7 +139,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 entityType: 'api',
                 module: 'help_header',
               })}
-              className="icon-button"
+              className="ui-icon-button"
             >
               Historico
             </TrackedLink>
@@ -152,7 +152,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
         <SiteBreadcrumbs items={breadcrumbs} className="mb-6" />
 
-        <label htmlFor="help-search-mobile" className="mb-6 flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-sm sm:hidden">
+        <label htmlFor="help-search-mobile" className="mb-6 flex items-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-2 text-sm sm:hidden">
           <span className="sr-only">Buscar ayuda o preguntas frecuentes</span>
           <Input
             id="help-search-mobile"
@@ -166,7 +166,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">
               Centro de ayuda
             </div>
             <h1 className="text-4xl font-black leading-tight tracking-tight text-[var(--foreground)] md:text-5xl">
@@ -176,14 +176,14 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               Explora nuestra metodologia y resuelve dudas sobre como procesamos los datos de Bizi Zaragoza en tiempo real.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
-              <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1">
+              <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1">
                 {filteredItems.length} preguntas visibles
               </span>
               {activeCategory ? (
                 <Button
                   variant="ghost"
                   onClick={() => setActiveCategory(null)}
-                  className="h-auto min-h-0 rounded-full border border-[var(--accent)] bg-[var(--accent)]/10 px-3 py-1 text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+                  className="h-auto min-h-0 rounded-full border border-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
                 >
                   Categoria: {activeCategory} ×
                 </Button>
@@ -192,7 +192,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 <Button
                   variant="ghost"
                   onClick={() => setQuery('')}
-                  className="h-auto min-h-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  className="h-auto min-h-0 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
                 >
                   Buscar: {query} ×
                 </Button>
@@ -200,7 +200,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             </div>
           </div>
 
-          <aside className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
+          <aside className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-soft)]">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
               Cobertura de datos
             </p>
@@ -229,7 +229,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 destination: 'gbfs_feed',
                 isExternal: true,
               })}
-              className="mt-1 inline-flex text-xs font-semibold text-[var(--accent)] underline decoration-[var(--accent)]/40 underline-offset-2"
+              className="mt-1 inline-flex text-xs font-semibold text-[var(--primary)] underline decoration-[var(--primary)]/40 underline-offset-2"
             >
               Ver feed de origen
             </TrackedAnchor>
@@ -245,7 +245,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   entityType: 'api',
                   module: 'help_coverage',
                 })}
-                className="rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white"
+                className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white"
               >
                 Ver historico completo
               </TrackedLink>
@@ -259,7 +259,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   destination: 'openapi',
                   entityType: 'api',
                 })}
-                className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
+                className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
               >
                 Definicion API
               </TrackedLink>
@@ -290,20 +290,20 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   setActiveCategory(nextCategory);
                 }}
                 aria-pressed={isCategoryFilterActive}
-                className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border bg-[var(--surface)] p-6 text-left transition hover:border-[var(--accent)] ${
+                className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border bg-[var(--card)] p-6 text-left transition hover:border-[var(--primary)] ${
                   isCategoryFilterActive
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/6 shadow-[0_0_0_1px_var(--accent-soft)]'
+                    ? 'border-[var(--primary)] bg-[var(--primary)]/6 shadow-[0_0_0_1px_var(--primary-soft)]'
                     : 'border-[var(--border)]'
                 }`}
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-xl font-black text-[var(--accent)]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-xl font-black text-[var(--primary)]">
                     {category.slice(0, 1)}
                   </div>
                   <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
                     isCategoryFilterActive
-                      ? 'bg-[var(--accent)] text-white'
-                      : 'border border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]'
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
                   }`}>
                     {categoryMatches}/{totalInCategory}
                   </span>
@@ -321,16 +321,16 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
         <div className="mt-14 space-y-8">
           {groupedItems.length === 0 ? (
-            <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+            <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)]">
               No hay coincidencias para la busqueda actual.
             </p>
           ) : (
             groupedItems.map(([category, items]) => (
               <section key={category} className="space-y-4">
                 <h2 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
-                  <span className="h-1 w-8 rounded-full bg-[var(--accent)]" />
+                  <span className="h-1 w-8 rounded-full bg-[var(--primary)]" />
                   {category}
-                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-2.5 py-1 text-[11px] font-bold text-[var(--muted)]">
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-1 text-[11px] font-bold text-[var(--muted)]">
                     {items.length}
                   </span>
                 </h2>
@@ -341,7 +341,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   onValueChange={(value) => setOpenItemId(value[0] ?? '')}
                 >
                   {items.map((item) => (
-                    <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+                    <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
                       <AccordionTrigger className="h-auto min-h-0 px-5 py-4">
                         <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
                       </AccordionTrigger>
@@ -356,7 +356,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
           )}
         </div>
 
-        <div className="relative mt-16 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent)]/70 p-8 text-white">
+        <div className="relative mt-16 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 p-8 text-white">
           <div className="max-w-md">
             <h2 className="text-2xl font-bold">No encontraste lo que buscabas?</h2>
             <p className="mt-2 text-sm text-white/85">
@@ -369,7 +369,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               source="help_support_block"
               ctaId="feedback_help_open"
               module="help_support_block"
-              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[var(--accent)] transition hover:bg-white/90"
+              className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-[var(--primary)] transition hover:bg-white/90"
               pendingClassName="rounded-lg border border-white/30 bg-black/20 px-6 py-3 text-sm font-bold text-white/80"
               pendingLabel="Feedback pronto"
             >

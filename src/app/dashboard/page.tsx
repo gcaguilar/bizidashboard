@@ -20,6 +20,7 @@ import {
   buildFallbackStations,
 } from '@/lib/shared-data-fallbacks';
 import { DashboardClient, type DashboardInitialData } from './_components/DashboardClient';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -204,7 +205,7 @@ export default async function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell maxWidthClassName="">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
@@ -222,6 +223,6 @@ export default async function DashboardPage() {
         </section>
       ) : null}
       <DashboardClient initialData={initialData} />
-    </main>
+    </PageShell>
   );
 }

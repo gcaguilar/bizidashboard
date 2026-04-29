@@ -17,7 +17,7 @@ export function SystemHealthCard({
   updatedText,
 }: SystemHealthCardProps) {
   return (
-    <article className="dashboard-card">
+    <article className="ui-section-card">
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Resumen</p>
       <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Salud general del sistema</h3>
       <p className="mt-1 text-sm text-[var(--muted)]">Resumen rapido para entender cuantas estaciones hay, cuantas bicis quedan y como de equilibrada esta la red.</p>

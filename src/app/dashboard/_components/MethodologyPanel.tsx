@@ -32,7 +32,7 @@ const QUICK_FAQ = [
 
 export function MethodologyPanel() {
   return (
-    <section className="dashboard-card">
+    <section className="ui-section-card">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">Centro de ayuda rapido</h2>
@@ -49,7 +49,7 @@ export function MethodologyPanel() {
         {QUICK_FAQ.map((item) => (
           <article
             key={item.question}
-            className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3"
+            className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
             <p className="mt-1 text-xs text-[var(--muted)]">{item.answer}</p>

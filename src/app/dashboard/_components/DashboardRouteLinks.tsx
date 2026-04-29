@@ -30,12 +30,12 @@ export function DashboardRouteLinks({
 
         const linkClass =
           variant === 'chips'
-            ? `icon-button ${
-                isActive ? 'border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent)]' : ''
+            ? `ui-icon-button ${
+                isActive ? 'border-[var(--primary)] bg-[var(--primary)] text-white hover:bg-[var(--primary)]' : ''
               }`
              : isActive
-              ? 'border-b-2 border-[var(--accent)] pb-1 text-sm font-bold text-[var(--foreground)]'
-              : 'pb-1 text-sm font-semibold text-[var(--accent-strong)] transition hover:text-[var(--accent)]';
+              ? 'border-b-2 border-[var(--primary)] pb-1 text-sm font-bold text-[var(--foreground)]'
+              : 'pb-1 text-sm font-semibold text-[var(--primary-strong)] transition hover:text-[var(--primary)]';
 
         return (
           <TrackedLink

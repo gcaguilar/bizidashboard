@@ -19,7 +19,7 @@ const TooltipContent = React.forwardRef<
           ref={ref}
           className={(state) =>
             cn(
-              'z-50 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-left text-[11px] leading-relaxed text-[var(--foreground)] shadow-[var(--shadow-soft)] backdrop-blur-md',
+              'z-50 w-64 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-left text-[11px] leading-relaxed text-[var(--foreground)] shadow-[var(--shadow-soft)] backdrop-blur-md',
               typeof className === 'function' ? className(state) : className
             )
           }

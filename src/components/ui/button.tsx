@@ -7,15 +7,17 @@ type ButtonSize = 'default' | 'sm' | 'icon';
 
 const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
   default:
-    'border-transparent bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]',
+    'border-transparent bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-strong)]',
   outline:
-    'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--foreground)] hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]',
+    'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:bg-[var(--card)]',
   ghost:
-    'border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-soft)]',
+    'border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--secondary)]',
   chip:
-    'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)] hover:border-[var(--accent)]/40 hover:text-[var(--foreground)]',
-  'icon-button': 'icon-button',
-  cta: 'border-[var(--accent)] bg-transparent text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+    'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]',
+  'icon-button':
+    'min-h-10 min-w-10 rounded-[0.65rem] border border-[var(--border)] bg-[var(--secondary)] px-3 py-2 text-[0.78rem] font-bold text-[var(--primary-strong)] transition hover:-translate-y-px hover:border-[var(--primary-soft)] hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--secondary))] hover:text-white active:translate-y-0',
+  cta:
+    'border-[var(--primary)] bg-transparent text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]',
 };
 
 const BUTTON_SIZE_CLASSES: Record<ButtonSize, string> = {

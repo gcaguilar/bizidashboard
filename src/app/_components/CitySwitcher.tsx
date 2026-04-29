@@ -36,7 +36,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
       aria-label="Ciudad activa en esta instalacion"
       className={className}
     >
-      <Card variant="stat" className="rounded-2xl bg-[var(--surface-soft)] px-3 py-3">
+      <Card variant="stat" className="rounded-2xl bg-[var(--secondary)] px-3 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
@@ -57,8 +57,8 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
                 aria-label={item.isActive ? `${item.label} activa en esta instalacion` : item.label}
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                   item.isActive
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                    : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]'
+                    ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                    : 'border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]'
                 }`}
               >
                 <span>{item.label}</span>

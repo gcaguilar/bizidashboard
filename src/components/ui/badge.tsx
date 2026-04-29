@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils';
 type BadgeVariant = 'default' | 'muted' | 'success' | 'warning' | 'danger';
 
 const BADGE_VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  default: 'border-[var(--accent)]/35 bg-[var(--accent)]/10 text-[var(--accent)]',
-  muted: 'border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]',
+  default: 'border-[var(--primary)]/35 bg-[var(--primary)]/10 text-[var(--primary)]',
+  muted: 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]',
   success: 'border-[var(--success)]/40 bg-[var(--success)]/12 text-[var(--success)]',
   warning: 'border-[var(--warning)]/40 bg-[var(--warning)]/12 text-[var(--warning)]',
   danger: 'border-[var(--danger)]/40 bg-[var(--danger)]/12 text-[var(--danger)]',

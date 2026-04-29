@@ -27,7 +27,7 @@ const DOWNLOAD_CTAS = [
     href: APP_STORE_URL,
     label: 'Descargar en App Store',
     destination: 'app_store',
-    className: 'inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95',
+    className: 'inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white transition hover:brightness-95',
     iconPath:
       'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z',
   },
@@ -35,7 +35,7 @@ const DOWNLOAD_CTAS = [
     href: GOOGLE_GROUP_URL,
     label: 'Android para testers',
     destination: 'google_group',
-    className: 'inline-flex items-center gap-2 rounded-xl border border-[var(--accent)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--accent)] transition hover:bg-[var(--accent)]/8',
+    className: 'inline-flex items-center gap-2 rounded-xl border border-[var(--primary)] bg-transparent px-5 py-2.5 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary)]/8',
     iconPath:
       'M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z',
   },
@@ -43,7 +43,7 @@ const DOWNLOAD_CTAS = [
     href: PLAY_STORE_URL,
     label: 'Abrir Google Play',
     destination: 'google_play',
-    className: 'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/50',
+    className: 'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-2.5 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/50',
     iconPath:
       'M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z',
   },
@@ -126,7 +126,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 function CityCard({ city }: { city: (typeof CITIES)[number] }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+    <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
       <span className="text-2xl">{city.flag}</span>
       <div className="flex-1">
         <h3 className="text-sm font-bold text-[var(--foreground)]">{city.name}</h3>
@@ -137,7 +137,7 @@ function CityCard({ city }: { city: (typeof CITIES)[number] }) {
             </span>
           )}
           {city.supportsUsagePatterns && (
-            <span className="rounded-full bg-[var(--accent)]/12 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
+            <span className="rounded-full bg-[var(--primary)]/12 px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)]">
               Patrones de uso
             </span>
           )}
@@ -149,8 +149,8 @@ function CityCard({ city }: { city: (typeof CITIES)[number] }) {
 
 function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
   return (
-    <article className="flex flex-col items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-4">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/12 text-lg">
+    <article className="flex flex-col items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-4">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]/12 text-lg">
         {feature.icon}
       </span>
       <div>
@@ -231,12 +231,12 @@ export default function BiciRadarPage() {
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <header className="hero-card">
+      <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
         <PublicSectionNav activeItemId="home" className="mt-1" />
 
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent)]/60 text-4xl shadow-lg shadow-[var(--accent)]/25">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/60 text-4xl shadow-lg shadow-[var(--primary)]/25">
             🚲
           </div>
           <h1 className="text-3xl font-black leading-tight text-[var(--foreground)] md:text-5xl">
@@ -255,7 +255,7 @@ export default function BiciRadarPage() {
         </div>
       </header>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-6">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Ciudades disponibles</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Bici Radar esta disponible en las principales ciudades de Espania</p>
@@ -279,7 +279,7 @@ export default function BiciRadarPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-6">
+      <section className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descarga la app</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">iOS ya esta publicado · Android requiere acceso como tester</p>
@@ -293,11 +293,11 @@ export default function BiciRadarPage() {
             }}
             classNameByDestination={{
               app_store:
-                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/50',
+                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/50',
               google_group:
-                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/50',
+                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/50',
               google_play:
-                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--accent)]/50',
+                'inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/50',
             }}
           />
         </div>
