@@ -292,6 +292,43 @@ textarea:disabled {
   color: var(--danger);
 }
 
+.ui-surface-block {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--secondary);
+  padding: 0.75rem 1rem;
+}
+
+.ui-surface-block-interactive {
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.ui-surface-block-interactive:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
+.ui-inline-action {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--secondary);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  padding: 0.5rem 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.ui-inline-action:hover {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
 .ui-icon-button,
 [data-button-variant='icon-button'] {
   display: inline-flex;

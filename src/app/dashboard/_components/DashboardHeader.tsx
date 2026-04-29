@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
@@ -73,7 +74,7 @@ export function DashboardHeader({
   const hasAvailabilityFilter = filteredOutCount > 0;
 
   return (
-    <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+    <PageHeaderCard>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-6">
           <div className="flex items-center gap-3 text-[var(--primary)]">
@@ -231,6 +232,6 @@ export function DashboardHeader({
           />
         </div>
       </div>
-    </header>
+    </PageHeaderCard>
   );
 }

@@ -16,6 +16,7 @@ import { formatMonthLabel } from '@/lib/months';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { getCityName } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -179,7 +180,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -229,7 +230,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
             </Link>
             <Link
               href={appRoutes.explore()}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Volver al hub Explorar
             </Link>
@@ -241,6 +242,6 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
       <Suspense fallback={<CompareHubFallback initialQuery={initialQuery} />}>
         <CompareHubContent initialQuery={initialQuery} />
       </Suspense>
-    </main>
+    </PageShell>
   );
 }

@@ -25,6 +25,7 @@ import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTra
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { FAQ_ITEMS } from './help-center-content';
 import {
   buildHelpCenterFaqStructuredData,
@@ -94,7 +95,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <DashboardPageViewTracker routeKey="dashboard_help" pageType="dashboard" template="help_center" />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card)]/95 px-6 py-4 backdrop-blur-md md:px-10">
+      <PageHeaderCard className="px-6 py-4 md:px-10">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3 text-[var(--primary)]">
@@ -147,7 +148,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             <GitHubRepoButton />
           </div>
         </div>
-      </header>
+      </PageHeaderCard>
 
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
         <SiteBreadcrumbs items={breadcrumbs} className="mb-6" />

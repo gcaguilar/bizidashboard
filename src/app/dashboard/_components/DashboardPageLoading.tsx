@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageShell } from '@/components/layout/page-shell';
 
 type DashboardPageLoadingProps = {
   title: string;
@@ -7,7 +8,7 @@ type DashboardPageLoadingProps = {
 
 export function DashboardPageLoading({ title, subtitle }: DashboardPageLoadingProps) {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-4 py-3 shadow-[var(--shadow-soft)]">
         <div className="flex animate-pulse flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -56,6 +57,6 @@ export function DashboardPageLoading({ title, subtitle }: DashboardPageLoadingPr
           </article>
         ))}
       </section>
-    </main>
+    </PageShell>
   );
 }

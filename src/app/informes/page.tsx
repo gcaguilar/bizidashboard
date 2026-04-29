@@ -23,6 +23,7 @@ import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { formatInteger, formatPercent } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const revalidate = 3600;
 // Prisma is intentionally unavailable during build, so prerendering would freeze empty SEO fallbacks.
@@ -198,7 +199,7 @@ export default async function ReportsIndexPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker pageType="report_archive" template="reports_index" pageSlug="informes" />
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -250,7 +251,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'dashboard',
               transitionKind: 'to_dashboard',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Abrir conclusiones del dashboard
           </TrackedLink>
@@ -367,7 +368,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -383,7 +384,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -399,7 +400,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -417,7 +418,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -433,7 +434,7 @@ export default async function ReportsIndexPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -442,6 +443,6 @@ export default async function ReportsIndexPage() {
           </TrackedLink>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

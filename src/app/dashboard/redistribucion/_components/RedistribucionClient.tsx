@@ -21,6 +21,7 @@ import {
   trackUmamiEvent,
 } from '@/lib/umami';
 import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
+import { PageShell } from '@/components/layout/page-shell';
 import { ClassificationLegend } from './ClassificationLegend';
 import { RebalancingSummaryCards } from './RebalancingSummaryCards';
 import { RebalancingTable } from './RebalancingTable';
@@ -148,7 +149,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
   ];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-4 py-6 sm:px-6">
+    <PageShell maxWidthClassName="max-w-[1280px]" className="bg-[var(--background)] sm:px-6">
       <DashboardPageViewTracker
         routeKey="dashboard_redistribucion"
         pageType="dashboard"
@@ -325,7 +326,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           <MetodologiaPanel />
         </TabsContent>
       </Tabs>
-    </main>
+    </PageShell>
   );
 }
 

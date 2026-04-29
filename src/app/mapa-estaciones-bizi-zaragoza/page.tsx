@@ -12,6 +12,7 @@ import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl } from '@/lib/site';
 import { formatPercent } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 const FAQ_ITEMS = [
   {
@@ -116,7 +117,7 @@ export default async function UtilityLandingPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker
         pageType="acquisition"
         template="utility_landing"
@@ -180,7 +181,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Explorar estaciones
           </TrackedLink>
@@ -232,7 +233,7 @@ export default async function UtilityLandingPage() {
                 source: 'utility_landing_featured_stations',
                 entityType: 'station',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -250,7 +251,7 @@ export default async function UtilityLandingPage() {
           {FAQ_ITEMS.map((item) => (
             <article
               key={item.question}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
+              className="ui-surface-block"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">{item.answer}</p>
@@ -271,7 +272,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -287,7 +288,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -305,7 +306,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -321,7 +322,7 @@ export default async function UtilityLandingPage() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -330,6 +331,6 @@ export default async function UtilityLandingPage() {
           </TrackedLink>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

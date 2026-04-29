@@ -8,6 +8,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata } from '@/lib/seo';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const revalidate = 86400;
 
@@ -226,7 +227,7 @@ export default function BiciRadarPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
+    <PageShell className="gap-8 py-8 md:py-12">
       <PublicPageViewTracker pageType="product" template="biciradar" pageSlug="biciradar" />
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -305,6 +306,6 @@ export default function BiciRadarPage() {
           En Android, el enlace de Google Play solo tiene sentido despues de unirte al grupo de testers y abrirlo desde tu telefono.
         </p>
       </section>
-    </main>
+    </PageShell>
   );
 }

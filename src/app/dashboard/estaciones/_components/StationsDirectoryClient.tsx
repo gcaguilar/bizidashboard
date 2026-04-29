@@ -16,6 +16,8 @@ import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTra
 import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
+import { PageShell } from '@/components/layout/page-shell';
 
 type StationsDirectoryClientProps = {
   stations: StationSnapshot[];
@@ -54,13 +56,13 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
     : dataState;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <DashboardPageViewTracker
         routeKey="dashboard_stations"
         pageType="dashboard"
         template="stations_directory"
       />
-      <header className="sticky top-0 z-40 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <PageHeaderCard className="z-40 bg-[var(--card)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estaciones</p>
@@ -97,7 +99,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
             placeholder="Buscar por nombre o ID"
           />
         </div>
-      </header>
+      </PageHeaderCard>
 
       {shouldShowDataStateNotice(directoryDataState) ? (
         <DataStateNotice
@@ -160,6 +162,6 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           );
         })}
       </section>
-    </main>
+    </PageShell>
   );
 }

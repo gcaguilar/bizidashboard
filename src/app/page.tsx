@@ -10,6 +10,7 @@ import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
 import { getStationSeoRows } from '@/lib/seo-stations';
 import { buildSocialImagePath } from '@/lib/social-images';
 import { getCityName, SITE_DESCRIPTION, SITE_TITLE } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
 
 const QUICK_LINKS = [
   {
@@ -103,7 +104,7 @@ export default async function Home() {
     .slice(0, 4);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-8 overflow-x-clip px-4 py-8 md:px-6 md:py-12">
+    <PageShell className="gap-8 py-8 md:py-12">
       <PublicPageViewTracker pageType="home" template="home" pageSlug="home" />
 
       <header className="ui-page-hero">
@@ -154,7 +155,7 @@ export default async function Home() {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Explorar estaciones publicas
           </TrackedLink>
@@ -169,7 +170,7 @@ export default async function Home() {
               destinationRole: 'utility',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Abrir Developers
           </TrackedLink>
@@ -261,7 +262,7 @@ export default async function Home() {
                   source: 'home_featured_stations',
                   entityType: 'station',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{station.station.name}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -296,7 +297,7 @@ export default async function Home() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones en tiempo real</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -312,7 +313,7 @@ export default async function Home() {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas y ranking</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -350,7 +351,7 @@ export default async function Home() {
                   destinationRole: page.pageRole === 'HUB' ? 'hub' : 'entry_seo',
                   transitionKind: 'within_public',
                 }}
-                className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{page.title}</p>
                 <p className="mt-1 text-[11px] text-[var(--muted)]">{page.description}</p>
@@ -359,6 +360,6 @@ export default async function Home() {
           })}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

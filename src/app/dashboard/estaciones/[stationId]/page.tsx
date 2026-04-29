@@ -27,6 +27,8 @@ import { MonthFilter } from '../../_components/MonthFilter';
 import { NeighborhoodMiniMap } from '../../_components/NeighborhoodMiniMap';
 import { StationDetailPanel } from '../../_components/StationDetailPanel';
 import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { PageHeaderCard } from '@/components/layout/page-header-card';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 
@@ -134,7 +136,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
   ]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell maxWidthClassName="max-w-[1200px]">
       <DashboardPageViewTracker
         routeKey="dashboard_station_detail"
         pageType="dashboard"
@@ -150,7 +152,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
           }),
         }}
       />
-      <header className="sticky top-0 z-50 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
+      <PageHeaderCard className="px-5 py-4">
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -179,7 +181,7 @@ export default async function StationDetailPage({ params, searchParams }: Statio
             <GitHubRepoButton />
           </div>
         </div>
-      </header>
+      </PageHeaderCard>
 
       <Suspense>
         <MonthFilter
@@ -222,6 +224,6 @@ export default async function StationDetailPage({ params, searchParams }: Statio
           <MethodologyPanel />
         </div>
       </div>
-    </main>
+    </PageShell>
   );
 }

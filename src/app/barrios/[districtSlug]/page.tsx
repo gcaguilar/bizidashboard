@@ -13,6 +13,7 @@ import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { average, formatDecimal, formatInteger } from '@/lib/format';
+import { PageShell } from '@/components/layout/page-shell';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
@@ -101,7 +102,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
       .join(' ');
 
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+      <PageShell>
         <PublicPageViewTracker pageType="district" template="district_detail" pageSlug={districtSlug} />
 
         <header className="ui-page-hero">
@@ -121,13 +122,13 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           <div className="flex flex-wrap gap-3">
             <Link
               href={appRoutes.districtLanding()}
-              className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action"
             >
               Ver comparativa de barrios
             </Link>
           </div>
         </header>
-      </main>
+      </PageShell>
     );
   }
 
@@ -174,7 +175,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col gap-6 overflow-x-clip px-4 py-6 md:px-6 md:py-8">
+    <PageShell>
       <PublicPageViewTracker pageType="district" template="district_detail" pageSlug={district.slug} />
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -221,7 +222,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Ver comparativa de barrios
           </TrackedLink>
@@ -317,7 +318,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'hub',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -333,7 +334,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
               destinationRole: 'entry_seo',
               transitionKind: 'within_public',
             }}
-            className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+            className="ui-surface-block ui-surface-block-interactive"
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -351,7 +352,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+              className="ui-surface-block ui-surface-block-interactive"
             >
               <p className="text-sm font-semibold text-[var(--foreground)]">{row.name}</p>
               <p className="mt-1 text-[11px] text-[var(--muted)]">
@@ -361,6 +362,6 @@ export default async function DistrictSeoPage({ params }: PageProps) {
           ))}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
