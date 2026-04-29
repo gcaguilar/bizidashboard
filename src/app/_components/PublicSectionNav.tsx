@@ -123,7 +123,7 @@ export function PublicSectionNav({ activeItemId, className }: PublicSectionNavPr
           >
             Mas
             </AccordionTrigger>
-            <AccordionContent className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
+            <AccordionContent keepMounted className="absolute left-0 top-[calc(100%+0.5rem)] z-20 min-w-[200px] rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-soft)]">
               <div className="flex flex-col gap-2">
                 {mobileCompactNav.overflowItems.map((item) =>
                   renderNavLink(item, item.id === activeItemId, activeItem.trackingRole)

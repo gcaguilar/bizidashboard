@@ -46,14 +46,16 @@ function renderSectionNav(activeItemId: React.ComponentProps<typeof PublicSectio
     throw new Error('Unable to parse PublicSectionNav markup');
   }
 
-  const [mobileVisibleMarkup, mobileDetailsMarkup = ''] = mobileMatch[1].split('<details', 2);
-  const overflowMatch = mobileDetailsMarkup.match(/<div class="flex flex-col gap-2">([\s\S]*?)<\/div>/);
+  const mobileAllLinks = extractLinks(mobileMatch[1]);
+  const overflowMatch = mobileMatch[1].match(/<div class="flex flex-col gap-2">([\s\S]*?)<\/div>/);
+  const mobileOverflowLinks = extractLinks(overflowMatch?.[1] ?? '');
+  const visibleCount = Math.max(0, mobileAllLinks.length - mobileOverflowLinks.length);
 
   return {
     desktopPrimaryLinks: extractLinks(groupMatches[0][1]),
     desktopUtilityLinks: extractLinks(groupMatches[1][1]),
-    mobileVisibleLinks: extractLinks(mobileVisibleMarkup),
-    mobileOverflowLinks: extractLinks(overflowMatch?.[1] ?? ''),
+    mobileVisibleLinks: mobileAllLinks.slice(0, visibleCount),
+    mobileOverflowLinks,
   };
 }
 
