@@ -1,4 +1,7 @@
 import type { StatusResponse } from '@/lib/api';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { MetricCard } from '@/components/ui/metric-card';
 import { formatFreshnessLabel } from '@/lib/freshness';
 import type { CoverageSummary } from '@/services/shared-data/types';
 
@@ -34,16 +37,16 @@ type StatusBannerProps = {
   lastSampleAt?: string | null;
 };
 
-function getHealthStyle(statusLabel: string): string {
+function getHealthVariant(statusLabel: string): 'success' | 'warning' | 'danger' | 'muted' {
   switch (statusLabel) {
     case 'healthy':
-      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40';
+      return 'success';
     case 'degraded':
-      return 'bg-amber-500/15 text-amber-300 border-amber-500/40';
+      return 'warning';
     case 'down':
-      return 'bg-rose-500/15 text-rose-300 border-rose-500/40';
+      return 'danger';
     default:
-      return 'bg-slate-500/15 text-slate-300 border-slate-400/30';
+      return 'muted';
   }
 }
 
@@ -63,54 +66,44 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
             Actualizacion {updatedText} · cobertura {coverage?.totalDays ?? 0} dias · entorno {status.system.environment}
           </p>
         </div>
-        <span
-          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthStyle(status.pipeline.healthStatus)}`}
-        >
+        <Badge variant={getHealthVariant(status.pipeline.healthStatus)}>
           {translateHealthStatus(status.pipeline.healthStatus)}
-        </span>
+        </Badge>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Ultimo sondeo</p>
-          <p className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
-            {status.pipeline.lastSuccessfulPoll
-              ? new Date(status.pipeline.lastSuccessfulPoll).toLocaleString('es-ES')
-              : 'Sin datos'}
-          </p>
-        </article>
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Sondeos 24h</p>
-          <p className="stat-value">{status.pipeline.pollsLast24Hours}</p>
-        </article>
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Estaciones recientes</p>
-          <p className="stat-value">{status.quality.volume.recentStationCount}</p>
-          <p className="text-[11px] text-[var(--muted)]">
-            Rango esperado {volumeRange.min}-{volumeRange.max}
-          </p>
-        </article>
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Errores de validacion</p>
-          <p className="stat-value">{status.pipeline.validationErrors}</p>
-        </article>
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Fallos consecutivos</p>
-          <p className="stat-value">{status.pipeline.consecutiveFailures}</p>
-        </article>
-        <article className="stat-card min-w-0">
-          <p className="stat-label">Cobertura dataset</p>
-          <p className="stat-value">{coverage?.totalDays ?? 0}</p>
-          <p className="text-[11px] text-[var(--muted)]">
-            {coverage?.totalStations ?? 0} estaciones · generado {coverageGeneratedText}
-          </p>
-        </article>
+        <MetricCard
+          className="min-w-0"
+          label="Ultimo sondeo"
+          value={
+            <span className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
+              {status.pipeline.lastSuccessfulPoll
+                ? new Date(status.pipeline.lastSuccessfulPoll).toLocaleString('es-ES')
+                : 'Sin datos'}
+            </span>
+          }
+        />
+        <MetricCard className="min-w-0" label="Sondeos 24h" value={status.pipeline.pollsLast24Hours} />
+        <MetricCard
+          className="min-w-0"
+          label="Estaciones recientes"
+          value={status.quality.volume.recentStationCount}
+          detail={`Rango esperado ${volumeRange.min}-${volumeRange.max}`}
+        />
+        <MetricCard className="min-w-0" label="Errores de validacion" value={status.pipeline.validationErrors} />
+        <MetricCard className="min-w-0" label="Fallos consecutivos" value={status.pipeline.consecutiveFailures} />
+        <MetricCard
+          className="min-w-0"
+          label="Cobertura dataset"
+          value={coverage?.totalDays ?? 0}
+          detail={`${coverage?.totalStations ?? 0} estaciones · generado ${coverageGeneratedText}`}
+        />
       </div>
 
       {status.pipeline.healthReason ? (
-        <p className="break-words rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-xs leading-relaxed text-[var(--muted)]">
+        <Alert className="text-xs leading-relaxed text-[var(--muted)]">
           Motivo del estado: {translateHealthReason(status.pipeline.healthReason)}
-        </p>
+        </Alert>
       ) : null}
     </section>
   );

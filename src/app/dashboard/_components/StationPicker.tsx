@@ -3,17 +3,19 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectIcon,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { StationSnapshot } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -173,6 +175,7 @@ export function StationPicker({
   nearestStationId,
 }: StationPickerProps) {
   const [query, setQuery] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const favoriteStationSet = useMemo(() => new Set(favoriteStationIds), [favoriteStationIds]);
 
@@ -197,9 +200,17 @@ export function StationPicker({
     return stations.find((station) => station.id === selectedStationId) ?? null;
   }, [selectedStationId, stations]);
 
+  const stationNameById = useMemo(() => {
+    return new Map(stations.map((station) => [station.id, station.name]));
+  }, [stations]);
+
   const stationSuggestions = useMemo(() => {
     return scoreStations(orderedStations, query, favoriteStationSet);
   }, [favoriteStationSet, orderedStations, query]);
+
+  const commandStations = query.trim()
+    ? stationSuggestions.map(({ station }) => station)
+    : orderedStations;
 
   const bestMatch = stationSuggestions[0]?.station ?? null;
   const stationDetailUrl = selectedStation
@@ -271,33 +282,62 @@ export function StationPicker({
           />
         </div>
 
-        <Select
-          value={selectedStationId || null}
-          onValueChange={(value) => {
-            if (value) {
-              onSelectStation(value);
-            }
-          }}
-          disabled={stations.length === 0}
-        >
-          <SelectTrigger
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger
             id="station-picker"
             aria-label="Seleccionar estacion"
-            className="min-h-11 w-full min-w-0 bg-[var(--surface-soft)]"
+            className={cn(
+              'inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
+              pickerOpen && 'border-[var(--accent)]'
+            )}
+            disabled={stations.length === 0}
           >
-            <SelectValue placeholder="Sin estaciones disponibles" />
-            <SelectIcon />
-          </SelectTrigger>
+            <span className="truncate text-left">
+              {selectedStation ? selectedStation.name : 'Sin estaciones disponibles'}
+            </span>
+            <span aria-hidden="true" className="text-xs text-[var(--muted)]">
+              ▾
+            </span>
+          </PopoverTrigger>
           {stations.length > 0 ? (
-            <SelectContent>
-              {orderedStations.map((station) => (
-                <SelectItem key={station.id} value={station.id}>
-                  {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <PopoverContent className="w-[min(100vw-2.5rem,28rem)] p-2">
+              <Command
+                value={selectedStationId || null}
+                onValueChange={(value) => {
+                  if (typeof value === 'string' && value) {
+                    onSelectStation(value);
+                    setPickerOpen(false);
+                  }
+                }}
+                onInputValueChange={(nextValue) => {
+                  setQuery(nextValue);
+                  const nextMatch = scoreStations(orderedStations, nextValue, favoriteStationSet)[0]?.station;
+                  if (nextMatch && nextMatch.id !== selectedStationId) {
+                    onSelectStation(nextMatch.id);
+                  }
+                }}
+                itemToStringLabel={(value) => stationNameById.get(String(value)) ?? String(value)}
+              >
+                <CommandInput placeholder="Buscar por nombre o ID" autoFocus />
+                <CommandList className="mt-2 max-h-72">
+                  <CommandGroup>
+                    {commandStations.map((station) => (
+                      <CommandItem key={station.id} value={station.id}>
+                        <span className="truncate">
+                          {favoriteStationSet.has(station.id) ? `★ ${station.name}` : station.name}
+                        </span>
+                        {station.id === selectedStationId ? (
+                          <span className="ml-2 text-xs text-[var(--accent)]">✓</span>
+                        ) : null}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                  <CommandEmpty>Sin coincidencias.</CommandEmpty>
+                </CommandList>
+              </Command>
+            </PopoverContent>
           ) : null}
-        </Select>
+        </Popover>
       </div>
 
       <div className="flex flex-wrap gap-2">

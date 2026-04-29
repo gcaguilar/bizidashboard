@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { MetricCard } from '@/components/ui/metric-card';
 import type { StationSnapshot } from '@/lib/api';
 import { appRoutes } from '@/lib/routes';
 import type { RecentStationSnapshot } from '@/lib/recent-station-history';
@@ -82,38 +84,47 @@ export function ResearchSummaryCard({
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura temporal rapida</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Resume cuando se concentra mas actividad y en que momento del dia se ve mas bici disponible.</p>
         </div>
-        <Link href={appRoutes.dashboardHelp('demanda-no-viajes-reales')} className="text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
-          Entender metrica
-        </Link>
+        <Button asChild variant="cta" size="sm">
+          <Link href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}>Entender metrica</Link>
+        </Button>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Dia mas intenso</p>
-          <p className="mt-2 text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            {topDemandDay ? `${topDemandDay.demandScore.toFixed(1)} puntos de demanda agregada` : 'Todavia no hay historico suficiente.'}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-          <p className="stat-label">Hora con mas bicis</p>
-          <p className="mt-2 text-lg font-bold text-[var(--foreground)]">
-            {topHour ? `${String(topHour.hour).padStart(2, '0')}:00` : 'Sin datos'}
-          </p>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            {topHour ? `${topHour.avgBikesAvailable.toFixed(1)} bicis medias por estacion` : 'Todavia no hay perfil horario suficiente.'}
-          </p>
-        </div>
+        <MetricCard
+          label="Dia mas intenso"
+          value={<span className="text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</span>}
+          detail={
+            topDemandDay
+              ? `${topDemandDay.demandScore.toFixed(1)} puntos de demanda agregada`
+              : 'Todavia no hay historico suficiente.'
+          }
+        />
+        <MetricCard
+          label="Hora con mas bicis"
+          value={
+            <span className="text-lg font-bold text-[var(--foreground)]">
+              {topHour ? `${String(topHour.hour).padStart(2, '0')}:00` : 'Sin datos'}
+            </span>
+          }
+          detail={
+            topHour
+              ? `${topHour.avgBikesAvailable.toFixed(1)} bicis medias por estacion`
+              : 'Todavia no hay perfil horario suficiente.'
+          }
+        />
       </div>
 
-      <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4">
-        <p className="stat-label">Cambio mas visible en memoria</p>
-        <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
-          {recentSnapshotInsight
-            ? `${recentSnapshotInsight.stationName}: ${recentSnapshotInsight.delta >= 0 ? '+' : ''}${recentSnapshotInsight.delta} bicis frente al primer snapshot guardado.`
-            : 'Todavia no hay suficientes snapshots recientes para comparar tendencia inmediata.'}
-        </p>
-      </div>
+      <MetricCard
+        className="mt-3"
+        label="Cambio mas visible en memoria"
+        value={
+          <span className="text-sm font-semibold text-[var(--foreground)]">
+            {recentSnapshotInsight
+              ? `${recentSnapshotInsight.stationName}: ${recentSnapshotInsight.delta >= 0 ? '+' : ''}${recentSnapshotInsight.delta} bicis frente al primer snapshot guardado.`
+              : 'Todavia no hay suficientes snapshots recientes para comparar tendencia inmediata.'}
+          </span>
+        }
+      />
     </section>
   );
 }

@@ -1,9 +1,16 @@
 import Link from 'next/link';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
-import type { BreadcrumbItem } from '@/lib/breadcrumbs';
+import {
+  Breadcrumb,
+  BreadcrumbItem as BreadcrumbListItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import type { BreadcrumbItem as SiteBreadcrumbItem } from '@/lib/breadcrumbs';
 
 type SiteBreadcrumbsProps = {
-  items: BreadcrumbItem[];
+  items: SiteBreadcrumbItem[];
   className?: string;
 };
 
@@ -15,17 +22,15 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
   return (
     <div className={className}>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <nav aria-label="Breadcrumb">
-          <ol className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+        <Breadcrumb>
+          <BreadcrumbList>
             {items.map((item, index) => {
               const isLast = index === items.length - 1;
 
               return (
-                <li key={`${item.href}-${item.label}`} className="flex items-center gap-2">
+                <BreadcrumbListItem key={`${item.href}-${item.label}`}>
                   {isLast ? (
-                    <span aria-current="page" className="font-semibold text-[var(--foreground)]">
-                      {item.label}
-                    </span>
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
                   ) : (
                     <Link
                       href={item.href}
@@ -34,12 +39,12 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                       {item.label}
                     </Link>
                   )}
-                  {!isLast ? <span aria-hidden="true">/</span> : null}
-                </li>
+                  {!isLast ? <BreadcrumbSeparator /> : null}
+                </BreadcrumbListItem>
               );
             })}
-          </ol>
-        </nav>
+          </BreadcrumbList>
+        </Breadcrumb>
         <CitySwitcher compact className="min-w-[280px] flex-1 sm:flex-none" />
       </div>
     </div>
