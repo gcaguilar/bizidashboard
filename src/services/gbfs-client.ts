@@ -34,6 +34,46 @@ const BASE_DELAY = Number(process.env.GBFS_RETRY_BASE_DELAY_MS ?? 1000) || 1000;
 /** User-Agent header for API requests */
 const USER_AGENT = 'BiziDashboard/1.0';
 
+// ─── SSRF protection ────────────────────────────────────────────────────────
+
+const PRIVATE_IP_PATTERNS = [
+  /^10\./,
+  /^172\.(1[6-9]|2[0-9]|3[01])\./,
+  /^192\.168\./,
+  /^127\./,
+  /^0\./,
+  /^::1/,
+  /^fc/i,
+  /^fd/i,
+  /^169\.254\./,
+];
+
+const BLOCKED_HOSTNAMES = new Set([
+  'localhost',
+  '0.0.0.0',
+  '127.0.0.1',
+  '[::1]',
+]);
+
+export function isBlockedUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    const hostname = url.hostname;
+
+    if (BLOCKED_HOSTNAMES.has(hostname)) {
+      return true;
+    }
+
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+      return PRIVATE_IP_PATTERNS.some(re => re.test(hostname));
+    }
+
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Fetch with timeout wrapper
  */
@@ -42,6 +82,10 @@ async function fetchWithTimeout(
   options: RequestInit,
   timeoutMs: number
 ): Promise<Response> {
+  if (isBlockedUrl(url)) {
+    throw new Error(`SSRF protection: access to ${url} is blocked`);
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
