@@ -1,15 +1,29 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { logger } from '@/lib/logger';
 
-if (!process.env.SIGNATURE_SECRET && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
-  throw new Error('SIGNATURE_SECRET is required in production');
+const DEFAULT_SECRET = 'dev-secret-do-not-use-in-production';
+
+function getSignatureSecret(): string {
+  const raw = process.env.SIGNATURE_SECRET;
+
+  if (!raw) {
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error('SIGNATURE_SECRET is required in production');
+    }
+    logger.warn('signature.using_insecure_default');
+    return DEFAULT_SECRET;
+  }
+
+  if (raw.length < 32) {
+    throw new Error(
+      `SIGNATURE_SECRET must be at least 32 characters long (got ${raw.length}). Generate a strong secret: \`openssl rand -base64 32\``
+    );
+  }
+
+  return raw;
 }
 
-if (!process.env.SIGNATURE_SECRET) {
-  logger.warn('signature.using_insecure_default');
-}
-
-const SIGNATURE_SECRET = process.env.SIGNATURE_SECRET || 'dev-secret-do-not-use-in-production';
+const SIGNATURE_SECRET = getSignatureSecret();
 
 export interface SignedRequest {
   body: string;
