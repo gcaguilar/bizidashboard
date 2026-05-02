@@ -9,7 +9,7 @@ const cspDirectives = [
   "form-action 'self'",
   // Keep inline scripts temporarily because the app renders JSON-LD tags server-side.
   "script-src 'self' 'unsafe-inline' https://cloud.umami.is",
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://basemaps.cartocdn.com https://fonts.gstatic.com",
   // Explicit Sentry + Umami endpoints to avoid telemetry regressions.
@@ -19,6 +19,7 @@ const cspDirectives = [
   "manifest-src 'self'",
   "media-src 'self' blob:",
   'upgrade-insecure-requests',
+  "report-uri https://your-csp-report-endpoint.example.com/csp-report",
 ];
 
 const securityHeaders = [
