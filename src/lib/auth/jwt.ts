@@ -3,20 +3,32 @@ import { createHash } from 'node:crypto';
 import { randomUUID } from 'node:crypto';
 import { logger } from '@/lib/logger';
 
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
-  throw new Error('JWT_SECRET is required in production');
+const DEFAULT_SECRET = 'dev-secret-do-not-use-in-production';
+
+function getJwtSecret(): Uint8Array {
+  const raw = process.env.JWT_SECRET;
+
+  if (!raw) {
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error('JWT_SECRET is required in production');
+    }
+    logger.warn('jwt.using_insecure_default');
+    return new TextEncoder().encode(DEFAULT_SECRET);
+  }
+
+  if (raw.length < 32) {
+    throw new Error(
+      `JWT_SECRET must be at least 32 characters long (got ${raw.length}). Generate a strong secret: \`openssl rand -base64 32\``
+    );
+  }
+
+  return new TextEncoder().encode(raw);
 }
 
-if (!process.env.JWT_SECRET) {
-  logger.warn('jwt.using_insecure_default');
-}
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production'
-);
+const JWT_SECRET = getJwtSecret();
 
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
-const REFRESH_TOKEN_EXPIRY = '30d'; // 30 days
+const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
 
 export interface AccessTokenPayload extends JWTPayload {
   installId: string;
