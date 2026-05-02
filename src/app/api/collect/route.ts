@@ -191,11 +191,7 @@ export async function GET(request?: Request): Promise<Response> {
 
       return NextResponse.json(
         {
-          lastRun: toIsoString(state.lastRun),
           lastSuccess: toIsoString(state.lastSuccess),
-          consecutiveFailures: state.consecutiveFailures,
-          totalRuns: state.totalRuns,
-          totalSuccesses: state.totalSuccesses,
           isScheduled: isCollectionScheduled(),
         },
         {
