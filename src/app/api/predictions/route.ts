@@ -22,10 +22,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     async ({ requestId, clientIp, userAgent }) => {
       const stationId = new URL(request.url).searchParams.get('stationId')?.trim() ?? '';
 
-      if (!stationId) {
+      if (!stationId || stationId.length < 1 || stationId.length > 64) {
         return NextResponse.json(
           {
-            error: 'stationId is required',
+            error: 'stationId must be 1-64 characters',
           },
           { status: 400 }
         );

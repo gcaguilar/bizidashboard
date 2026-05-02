@@ -24,9 +24,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const { searchParams } = new URL(request.url)
       const stationId = searchParams.get('stationId')
 
-      if (!stationId) {
+      if (!stationId || stationId.trim().length < 1 || stationId.trim().length > 64) {
         return NextResponse.json(
-          { error: 'stationId query parameter is required' },
+          { error: 'stationId query parameter is required (max 64 chars)' },
           { status: 400 }
         )
       }
