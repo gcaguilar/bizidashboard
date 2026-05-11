@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import {

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { EmptyStateCard } from '@/components/ui/empty-state-card';
 
 type WidgetEmptyStateProps = {
@@ -13,7 +13,7 @@ export function WidgetEmptyState({ title, description, helpHref, helpLabel = 'En
     <EmptyStateCard
       title={title}
       description={description}
-      actionSlot={helpHref ? <Link href={helpHref}>{helpLabel}</Link> : undefined}
+      actionSlot={helpHref ? <Link to={helpHref}>{helpLabel}</Link> : undefined}
     />
   );
 }

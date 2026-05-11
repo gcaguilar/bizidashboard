@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { getExecutionContext } from '@/lib/request-context';
 
 type CaptureContext = {

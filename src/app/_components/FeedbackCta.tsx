@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { getFeedbackUrl } from '@/lib/feedback';
@@ -31,7 +31,7 @@ export function FeedbackCta({
   type = 'button',
   ...buttonProps
 }: FeedbackCtaProps) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const feedbackUrl = getFeedbackUrl();
 
   if (!feedbackUrl) {

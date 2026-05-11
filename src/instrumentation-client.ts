@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { parseSentrySampleRate } from '@/lib/sentry-config';
 
 Sentry.init({

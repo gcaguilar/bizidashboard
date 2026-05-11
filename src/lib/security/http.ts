@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { NextRequest, NextResponse } from 'next/server';
+// Native Request/Response replace Request/Response
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { getCity } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import {
@@ -90,7 +91,7 @@ export type RequestExecution = {
 };
 
 export async function withApiRequest<T extends Response>(
-  request: Request | NextRequest,
+  request: Request | Request,
   meta: Pick<ExecutionContext, 'route' | 'routeGroup'>,
   handler: (execution: RequestExecution) => Promise<T>
 ): Promise<T> {
@@ -167,7 +168,7 @@ export function buildMobileCorsHeaders(request: Request): Record<string, string>
   };
 }
 
-export function rejectDisallowedMobileOrigin(request: Request): NextResponse | null {
+export function rejectDisallowedMobileOrigin(request: Request): Response | null {
   const origin = request.headers.get('origin');
 
   if (!origin) {
@@ -179,7 +180,7 @@ export function rejectDisallowedMobileOrigin(request: Request): NextResponse | n
     return null;
   }
 
-  return NextResponse.json(
+  return Response.json(
     { error: 'Origin not allowed' },
     {
       status: 403,

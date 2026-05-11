@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';

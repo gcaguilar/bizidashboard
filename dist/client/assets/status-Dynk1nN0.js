@@ -1,0 +1,1 @@
+function e(){return null}var t=()=>null;export{t as component,e as default};

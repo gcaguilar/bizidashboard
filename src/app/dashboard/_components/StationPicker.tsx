@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-kJazARoa.js";import{t}from"./route-DgPSW06h.js";var n=e();function r(){let{mode:e}=t.useParams();return(0,n.jsxs)(`div`,{children:[`Dashboard view mode: `,e]})}export{r as component};

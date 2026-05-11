@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Request/Response removed;
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 import { rejectDisallowedMobileOrigin, buildMobileCorsHeaders } from '@/lib/security/http';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
 
 export type MobileApiRouteHandler = (params: {
-  request: NextRequest;
+  request: Request;
   requestId: string;
   clientIp: string;
   userAgent: string | null;
@@ -25,7 +25,7 @@ export function withMobileApiRoute(
   options: MobileApiRouteOptions,
   handler: MobileApiRouteHandler
 ) {
-  return async function (request: NextRequest): Promise<Response> {
+  return async function (request: Request): Promise<Response> {
     const originRejection = rejectDisallowedMobileOrigin(request);
     if (originRejection) {
       return originRejection;
@@ -59,7 +59,7 @@ export function withMobileApiRoute(
     const headers = getRateLimitHeaders(effectiveDecision);
 
 if (effectiveDecision.backend === 'unavailable') {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Service temporarily unavailable' },
         {
           status: 503,
@@ -69,7 +69,7 @@ if (effectiveDecision.backend === 'unavailable') {
     }
 
     if (!effectiveDecision.allowed) {
-      return NextResponse.json(
+      return Response.json(
         { error: 'Too many requests' },
         {
           headers: {
@@ -84,7 +84,7 @@ if (effectiveDecision.backend === 'unavailable') {
     try {
       const response = await handler({ request, requestId, clientIp, userAgent });
       
-      if (response instanceof NextResponse) {
+      if (response instanceof Response) {
         const newHeaders = new Headers(response.headers);
         Object.entries(buildMobileCorsHeaders(request)).forEach(([key, value]) => {
           newHeaders.set(key, value);
@@ -93,7 +93,7 @@ if (effectiveDecision.backend === 'unavailable') {
           newHeaders.set(key, value);
         });
         
-        return new NextResponse(response.body, {
+        return new Response(response.body, {
           status: response.status,
           headers: newHeaders,
         });
@@ -108,7 +108,7 @@ if (effectiveDecision.backend === 'unavailable') {
       });
       logger.error(`${options.routeGroup ?? 'mobile.api'}.failed`, { error, requestId });
       
-      return NextResponse.json(
+      return Response.json(
         { error: 'Internal server error' },
         {
           status: 500,
@@ -120,8 +120,8 @@ if (effectiveDecision.backend === 'unavailable') {
 }
 
 export function withMobileOptions() {
-  return function (_request: NextRequest): NextResponse {
-    return new NextResponse(null, {
+  return function (_request: Request): Response {
+    return new Response(null, {
       status: 204,
       headers: buildMobileCorsHeaders(_request),
     });

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import type { RankingsResponse } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -37,7 +37,7 @@ export function ResearchVolatilityCard({ rankings }: ResearchVolatilityCardProps
             Resume cuanta inestabilidad acumula la red cuando una parte importante de estaciones pasa demasiadas horas vacia o llena.
           </p>
         </div>
-        <Link href={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <Link to={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Como leerlo
         </Link>
       </div>

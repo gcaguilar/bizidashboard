@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
@@ -25,7 +25,7 @@ export function PublicSearchForm({
   buttonLabel = 'Buscar',
   eventSource = 'public_search',
 }: PublicSearchFormProps) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
 
   return (
     <form

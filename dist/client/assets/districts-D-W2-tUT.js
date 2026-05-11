@@ -1,0 +1,1 @@
+import{r as e}from"./districts-EWiInL8J.js";export{e as fetchDistrictCollection};

@@ -1,31 +1,22 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import {
-  buildMarkdownDocument,
-  countMarkdownTokens,
-  requestWantsMarkdown,
-} from '@/lib/agent-markdown';
+import { buildMarkdownDocument, countMarkdownTokens, requestWantsMarkdown } from '@/lib/agent-markdown';
 import { resolveRedirectTarget } from '@/lib/routes';
 import { cleanCanonicalSearchParams } from '@/lib/seo-policy';
 
-export default function proxy(request: NextRequest) {
+export default function proxy(request: Request) {
   const requestHeaders = new Headers(request.headers);
-  const requestId =
-    requestHeaders.get('x-request-id')?.trim() || crypto.randomUUID();
+  const requestId = requestHeaders.get('x-request-id')?.trim() || crypto.randomUUID();
   requestHeaders.set('x-request-id', requestId);
 
-  const currentPath = request.nextUrl.pathname;
+  const url = new URL(request.url);
+  const currentPath = url.pathname;
   const targetPath = resolveRedirectTarget(currentPath);
-  const destination = request.nextUrl.clone();
-  const cleanedSearchParams = cleanCanonicalSearchParams(
-    currentPath,
-    request.nextUrl.searchParams
-  );
+  const destination = new URL(request.url);
+  const cleanedSearchParams = cleanCanonicalSearchParams(currentPath, url.searchParams);
 
   if ((!targetPath || targetPath === currentPath) && cleanedSearchParams === null) {
     if (!currentPath.startsWith('/api/') && requestWantsMarkdown(request)) {
       const markdown = buildMarkdownDocument(currentPath);
-      return new NextResponse(markdown, {
+      return new Response(markdown, {
         status: 200,
         headers: {
           'Content-Type': 'text/markdown; charset=utf-8',
@@ -36,15 +27,8 @@ export default function proxy(request: NextRequest) {
       });
     }
 
-    const response = NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-    if (currentPath.startsWith('/api/')) {
-      response.headers.set('X-Request-Id', requestId);
-    }
-    return response;
+    // Forward the request — return a simple pass-through
+    return new Response(null, { status: 200, headers: { 'X-Request-Id': requestId } });
   }
 
   destination.pathname = targetPath ?? currentPath;
@@ -54,11 +38,5 @@ export default function proxy(request: NextRequest) {
     destination.search = serializedSearch.length > 0 ? `?${serializedSearch}` : '';
   }
 
-  const response = NextResponse.redirect(destination, 301);
-  response.headers.set('X-Request-Id', requestId);
-  return response;
+  return Response.redirect(destination, 301);
 }
-
-export const config = {
-  matcher: ['/((?!_next/|.*\\..*$).*)'],
-};

@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';

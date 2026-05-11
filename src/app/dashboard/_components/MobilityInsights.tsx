@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Area,

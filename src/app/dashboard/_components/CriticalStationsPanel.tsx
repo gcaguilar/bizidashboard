@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import type { StationSnapshot } from '@/lib/api';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -40,7 +40,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones criticas</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Prioriza estaciones vacias, llenas o con ocupacion extrema para actuar antes de que aumente la friccion.</p>
         </div>
-        <Link href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <Link to={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender criterio
         </Link>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import {
   buildPublicPageViewEvent,
@@ -23,7 +23,7 @@ export function PublicPageViewTracker({
   pageSlug,
   entityId,
 }: PublicPageViewTrackerProps) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const lastTrackedKey = useRef<string | null>(null);
 
   useEffect(() => {

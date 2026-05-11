@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -67,7 +67,7 @@ export function DataStateNotice({
 
         {href ? (
           <Link
-            href={href}
+            to={href}
             className={buttonVariants({
               variant: 'outline',
               size: 'sm',

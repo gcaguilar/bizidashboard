@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes';
 import { Progress } from '@/components/ui/progress';
 import { InfoHint } from './InfoHint';
@@ -43,7 +43,7 @@ export function BalanceIndexCard({
           </div>
           <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
         </div>
-        <Link href={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <Link to={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender formula
         </Link>
       </div>

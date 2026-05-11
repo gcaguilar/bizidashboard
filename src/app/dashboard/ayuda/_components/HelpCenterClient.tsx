@@ -22,10 +22,10 @@ import {
   buildPanelOpenEvent,
   trackUmamiEvent,
 } from '@/lib/umami';
-import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
-import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
-import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
-import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
+import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
+import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { FAQ_ITEMS } from './help-center-content';
 import {

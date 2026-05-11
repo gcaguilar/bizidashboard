@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,10 @@ import type { StationSnapshot } from '@/lib/api';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { fetchJson, useAbortableAsyncEffect } from '../../_components/useAbortableAsyncEffect';
-import { DashboardRouteLinks } from '../../_components/DashboardRouteLinks';
-import { GitHubRepoButton } from '../../_components/GitHubRepoButton';
-import { ThemeToggleButton } from '../../_components/ThemeToggleButton';
+import { fetchJson, useAbortableAsyncEffect } from '@/app/dashboard/_components/useAbortableAsyncEffect';
+import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
+import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
+import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 
@@ -481,7 +481,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link href={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al dashboard">
+            <Link to={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al dashboard">
               Inicio
             </Link>
             <ThemeToggleButton />

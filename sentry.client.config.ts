@@ -1,3 +1,7 @@
-// Client-side Sentry initialization lives in `src/instrumentation-client.ts`.
-// Keep this file intentionally empty to avoid double initialization warnings.
-export {};
+import * as Sentry from '@sentry/tanstackstart-react'
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  tracesSampleRate: Number(import.meta.env.NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE) || 0.2,
+  debug: false,
+})

@@ -1,7 +1,8 @@
 'use client';
 
-import Link, { type LinkProps } from 'next/link';
-import { usePathname } from 'next/navigation';
+import type { LinkProps } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
@@ -41,7 +42,7 @@ export function TrackedLink({
   className,
   ...linkProps
 }: TrackedLinkProps) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';

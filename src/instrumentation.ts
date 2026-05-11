@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { validateRuntimeConfiguration } from '@/lib/security/config';
 
 export async function register(): Promise<void> {
