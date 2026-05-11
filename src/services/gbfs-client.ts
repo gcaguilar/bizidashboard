@@ -7,14 +7,15 @@
 
 import { withRetry } from '@/lib/retry';
 import { logger } from '@/lib/logger';
-import {
+import type {
   GBFSDiscovery,
   GBFSResponse,
   StationInformation,
+} from '@/schemas/gbfs';
+import {
   extractFeedUrl,
   validateDiscovery,
   validateStationData,
-  validateStationInformation,
   extractStationStatusUrl,
 } from '@/schemas/gbfs';
 

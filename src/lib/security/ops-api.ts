@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Response removed;
 import { getOpsApiKey } from '@/lib/security/config';
 import { isApiKeyValid, readOpsApiKey } from '@/lib/security/http';
 import {
@@ -27,15 +27,15 @@ export type OperationalAccessResult =
       decision: RateLimitDecision;
     }
   | {
-      response: NextResponse;
+      response: Response;
     };
 
 function errorResponse(
   status: number,
   error: string,
   headers?: Record<string, string>
-): NextResponse {
-  return NextResponse.json(
+): Response {
+  return Response.json(
     {
       success: false,
       error,

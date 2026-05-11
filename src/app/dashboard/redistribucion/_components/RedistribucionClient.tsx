@@ -20,7 +20,7 @@ import {
   buildPanelOpenEvent,
   trackUmamiEvent,
 } from '@/lib/umami';
-import { DashboardPageViewTracker } from '../../_components/DashboardPageViewTracker';
+import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { PageShell } from '@/components/layout/page-shell';
 import { ClassificationLegend } from './ClassificationLegend';
 import { RebalancingSummaryCards } from './RebalancingSummaryCards';

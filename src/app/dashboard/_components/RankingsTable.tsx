@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';

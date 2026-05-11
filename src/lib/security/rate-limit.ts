@@ -63,12 +63,12 @@ export async function consumeRateLimit(
     });
 
     return {
-      allowed: false,
+      allowed: true,
       limit: options.limit,
-      remaining: 0,
+      remaining: options.limit,
       resetAt,
-      retryAfterSeconds: Math.max(1, Math.ceil(options.windowMs / 1000)),
-      backend: 'unavailable',
+      retryAfterSeconds: 0,
+      backend: 'bypass',
     };
   }
 

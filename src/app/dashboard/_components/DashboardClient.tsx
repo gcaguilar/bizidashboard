@@ -1,6 +1,6 @@
 'use client';
-import dynamic from 'next/dynamic';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { lazy, Suspense } from 'react';
+import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -50,7 +50,7 @@ import {
 import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 
-const OverviewModeView = dynamic(
+const OverviewModeView = lazy(
   () => import('./OverviewModeView').then((module) => module.OverviewModeView),
   {
     ssr: false,
@@ -58,7 +58,7 @@ const OverviewModeView = dynamic(
   }
 );
 
-const OperationsModeView = dynamic(
+const OperationsModeView = lazy(
   () => import('./OperationsModeView').then((module) => module.OperationsModeView),
   {
     ssr: false,
@@ -66,7 +66,7 @@ const OperationsModeView = dynamic(
   }
 );
 
-const ResearchModeView = dynamic(
+const ResearchModeView = lazy(
   () => import('./ResearchModeView').then((module) => module.ResearchModeView),
   {
     ssr: false,
@@ -74,7 +74,7 @@ const ResearchModeView = dynamic(
   }
 );
 
-const DataModeView = dynamic(
+const DataModeView = lazy(
   () => import('./DataModeView').then((module) => module.DataModeView),
   {
     ssr: false,
@@ -444,32 +444,35 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     };
   }, [districts, searchQuery, shouldLoadDistricts]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
-    const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
-    setFavoriteStationIds(parsedFavorites);
-
-    const previousSnapshot = parseStationSnapshot(
-      window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
-    );
-
-    if (previousSnapshot) {
-      setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
-    }
-
-    const nextRecentSnapshots = pushRecentSnapshot(
-      parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
-      {
-        recordedAt: initialData.stations.generatedAt,
-        snapshot: currentSnapshot,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- SSR hydration: batch localStorage/sessionStorage reads into state
+    useEffect(() => {
+      if (typeof window === 'undefined') {
+        return;
       }
-    );
 
-    setRecentSnapshots(nextRecentSnapshots);
+      const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+      setFavoriteStationIds(parsedFavorites);
+
+      const previousSnapshot = parseStationSnapshot(
+        window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
+      );
+
+      if (previousSnapshot) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+        setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
+      }
+
+      const nextRecentSnapshots = pushRecentSnapshot(
+        parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
+        {
+          recordedAt: initialData.stations.generatedAt,
+          snapshot: currentSnapshot,
+        }
+      );
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+      setRecentSnapshots(nextRecentSnapshots);
 
     writeJsonStorageItem(
       window.sessionStorage,
@@ -497,6 +500,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }
 
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
       setGeolocationError('La geolocalizacion no esta disponible en este navegador.');
       return;
     }
@@ -525,7 +529,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [isGeolocationEnabled]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
     if (filteredStations.length === 0) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
       setSelectedStationId('');
       return;
     }

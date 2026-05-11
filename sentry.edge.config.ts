@@ -1,10 +1,7 @@
-import * as Sentry from "@sentry/nextjs";
-import { parseSentrySampleRate } from "@/lib/sentry-config";
+import * as Sentry from '@sentry/tanstackstart-react'
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-
-  tracesSampleRate: parseSentrySampleRate(process.env.SENTRY_TRACE_SAMPLE_RATE, 0.2),
-
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  tracesSampleRate: Number(import.meta.env.NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE) || 0.2,
   debug: false,
-});
+})

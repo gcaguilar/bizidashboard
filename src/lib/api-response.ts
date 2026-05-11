@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Response removed;
 
 export type DataState = 'ok' | 'warning' | 'error' | 'stale';
 
@@ -16,8 +16,8 @@ export interface WarningResponse {
   requestId?: string;
 }
 
-export function errorResponse(message: string, status = 500, requestId?: string): NextResponse<ErrorResponse> {
-  return NextResponse.json(
+export function errorResponse(message: string, status = 500, requestId?: string): Response {
+  return Response.json(
     {
       error: message,
       timestamp: new Date().toISOString(),
@@ -28,8 +28,8 @@ export function errorResponse(message: string, status = 500, requestId?: string)
   );
 }
 
-export function warningResponse(message: string, requestId?: string): NextResponse<WarningResponse> {
-  return NextResponse.json(
+export function warningResponse(message: string, requestId?: string): Response {
+  return Response.json(
     {
       warning: message,
       timestamp: new Date().toISOString(),
@@ -40,8 +40,8 @@ export function warningResponse(message: string, requestId?: string): NextRespon
   );
 }
 
-export function okResponse<T>(data: T, requestId?: string): NextResponse<T> {
-  return NextResponse.json(data, {
+export function okResponse<T>(data: T, requestId?: string): Response {
+  return Response.json(data, {
     headers: requestId ? { 'X-Request-ID': requestId } : undefined,
   });
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Response removed;
 import { prisma } from '@/lib/db';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { isSignatureExpired, verifySignature } from '@/lib/auth/signature';
@@ -28,7 +28,7 @@ type VerifyMobileRequestResult =
     }
   | {
       ok: false;
-      response: NextResponse;
+      response: Response;
     };
 
 async function deny(
@@ -58,7 +58,7 @@ async function deny(
 
   return {
     ok: false,
-    response: NextResponse.json(
+    response: Response.json(
       { error: options.message },
       { status: options.status, headers: options.headers }
     ),

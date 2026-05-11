@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import {
   Breadcrumb,
@@ -33,7 +33,7 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                     <BreadcrumbPage>{item.label}</BreadcrumbPage>
                   ) : (
                     <Link
-                      href={item.href}
+                      to={item.href}
                       className="rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                     >
                       {item.label}

@@ -2,11 +2,9 @@
 FROM oven/bun:1.3.13 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-# In multi-arch builds, optional deps can differ by platform (arm64 vs amd64).
-# Avoid lockfile strictness inside image builds to keep buildx stable.
 RUN bun install
 
-# ── builder: generate prisma client & build Next.js ──────────────────
+# ── builder: generate prisma client & build TanStack Start ───────────
 FROM oven/bun:1.3.13 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
@@ -25,16 +23,6 @@ ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID
 RUN bunx prisma generate
 RUN bun run build
 
-# ── prodeps: production dependencies + prisma CLI for migrations ─────
-FROM oven/bun:1.3.13 AS prodeps
-WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --production
-# Prisma CLI is a devDependency — copy it for `prisma migrate deploy`
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-# Generated prisma client from builder stage
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
 # ── runner: minimal production image ─────────────────────────────────
 FROM oven/bun:1.3.13-slim AS runner
 WORKDIR /app
@@ -48,17 +36,16 @@ ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
-# Next.js standalone output (includes its own bundled node_modules)
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# TanStack Start output (Nitro server bundle)
+COPY --from=builder /app/.output ./
 COPY --from=builder /app/public ./public
-
-# Production node_modules (pg, @prisma/client, prisma CLI, etc.)
-COPY --from=prodeps /app/node_modules ./node_modules
 
 # Prisma schema, migrations & config (for migrate deploy)
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
+# Production node_modules (pg, @prisma/client, prisma CLI, etc.)
+COPY --from=deps /app/node_modules ./node_modules
 
 # Entrypoint & ops scripts
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
@@ -70,4 +57,4 @@ RUN chmod +x /app/docker-entrypoint.sh
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 \
   CMD wget --spider -q http://127.0.0.1:3000/api/health/live || exit 1
-CMD ["/app/docker-entrypoint.sh"]
+CMD ["bun", ".output/server/index.mjs"]

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { StationSnapshot } from '@/lib/api';

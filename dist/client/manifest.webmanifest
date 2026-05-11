@@ -1,0 +1,24 @@
+{
+  "name": "Bizi Zaragoza Dashboard",
+  "short_name": "BiziDashboard",
+  "description": "Panel operativo de disponibilidad, alertas y movilidad de Bizi Zaragoza.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f5f6",
+  "theme_color": "#ea0615",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

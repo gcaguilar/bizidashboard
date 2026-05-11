@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import type { StationPatternRow } from '@/lib/api';
 import { DayType } from '@/analytics/types';

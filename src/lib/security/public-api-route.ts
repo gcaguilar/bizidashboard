@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Request/Response removed;
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 import { enforcePublicApiAccess, type PublicApiAccessResult } from '@/lib/security/public-api';
 
 export type PublicApiRouteHandler = (params: {
-  request: NextRequest;
+  request: Request;
   requestId: string;
   clientIp: string;
   userAgent: string | null;
@@ -27,7 +27,7 @@ export function withPublicApiRoute(
   options: PublicApiRouteOptions,
   handler: PublicApiRouteHandler
 ) {
-  return async function (request: NextRequest): Promise<Response> {
+  return async function (request: Request): Promise<Response> {
     const requestId = crypto.randomUUID();
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
       ?? request.headers.get('x-real-ip') 
@@ -55,7 +55,7 @@ export function withPublicApiRoute(
     try {
       const response = await handler({ request, requestId, clientIp, userAgent, access });
       
-      if (options.cacheControl && response instanceof NextResponse) {
+      if (options.cacheControl && response instanceof Response) {
         response.headers.set('Cache-Control', options.cacheControl);
       }
       
@@ -68,7 +68,7 @@ export function withPublicApiRoute(
       });
       logger.error(`${options.routeGroup ?? 'api'}.failed`, { error, requestId });
       
-      return NextResponse.json(
+      return Response.json(
         {
           error: 'Internal server error',
           timestamp: new Date().toISOString(),

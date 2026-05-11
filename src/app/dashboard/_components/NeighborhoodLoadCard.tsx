@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api';
 import {

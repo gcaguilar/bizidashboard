@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { Button } from '@/components/ui/button';
 import {

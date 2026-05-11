@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Response removed;
 import {
   getOAuthScope,
   getProtectedResourceMetadataUrl,
@@ -36,7 +36,7 @@ export type PublicApiAccessResult =
     }
   | {
       ok: false;
-      response: NextResponse;
+      response: Response;
     };
 
 function getBearerChallengeHeader(): string {
@@ -79,7 +79,7 @@ export async function enforcePublicApiAccess(
   if (options.requireApiKey && !isMultiKeySystemEnabled() && !getPublicApiKey()) {
     return {
       ok: false,
-      response: NextResponse.json(
+      response: Response.json(
         { error: 'Public API key is not configured for this elevated route.' },
         { status: 503 }
       ),
@@ -98,7 +98,7 @@ export async function enforcePublicApiAccess(
     if (keyDecision.backend === 'unavailable') {
       return {
         ok: false,
-        response: NextResponse.json(
+        response: Response.json(
           { error: 'Rate limiting backend unavailable.' },
           { status: 503, headers }
         ),
@@ -108,7 +108,7 @@ export async function enforcePublicApiAccess(
     if (!keyDecision.allowed) {
       return {
         ok: false,
-        response: NextResponse.json(
+        response: Response.json(
           { error: 'Too many requests for this route.' },
           {
             status: 429,
@@ -145,7 +145,7 @@ export async function enforcePublicApiAccess(
 
     return {
       ok: false,
-      response: NextResponse.json(
+      response: Response.json(
         { error: 'Valid X-Public-Api-Key required for this route.' },
         {
           status: 401,
@@ -176,7 +176,7 @@ export async function enforcePublicApiAccess(
   if (keyDecision.backend === 'unavailable') {
     return {
       ok: false,
-      response: NextResponse.json(
+      response: Response.json(
         { error: 'Rate limiting backend unavailable.' },
         { status: 503, headers }
       ),
@@ -196,7 +196,7 @@ export async function enforcePublicApiAccess(
 
     return {
       ok: false,
-      response: NextResponse.json(
+      response: Response.json(
         { error: 'Too many requests for this route.' },
         {
           status: 429,

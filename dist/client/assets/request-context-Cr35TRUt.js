@@ -1,0 +1,1 @@
+import{n as e}from"./chunk-BNv3lrIs.js";function t(){let e;return{getStore:()=>e,run:(t,n)=>{let r=e;e=t;try{return n()}finally{e=r}},enterWith:t=>{e=t}}}function n(){if(typeof window<`u`)return t();try{let{AsyncLocalStorage:e}=(0,eval)(`require`)(`node:async_hooks`);return new e}catch{return t()}}function r(){return i.getStore()}var i,a=e((()=>{i=n()}));export{a as n,r as t};

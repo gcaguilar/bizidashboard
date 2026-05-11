@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/ui/metric-card';
 import type { StationSnapshot } from '@/lib/api';
@@ -85,7 +85,7 @@ export function ResearchSummaryCard({
           <p className="mt-1 text-sm text-[var(--muted)]">Resume cuando se concentra mas actividad y en que momento del dia se ve mas bici disponible.</p>
         </div>
         <Button asChild variant="cta" size="sm">
-          <Link href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}>Entender metrica</Link>
+          <Link to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}>Entender metrica</Link>
         </Button>
       </div>
 

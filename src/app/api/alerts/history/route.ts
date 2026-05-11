@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { NextRequest, NextResponse } from 'next/server';
+// Request/Response removed;
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -185,7 +185,7 @@ function toCsv(
   return `${header}\n${body}`;
 }
 
-function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
+function parseQuery(request: Request): ParsedQuery | Response {
   const { searchParams } = new URL(request.url);
 
   const format = parseFormat(searchParams.get('format'));
@@ -200,14 +200,14 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
   const stationId = stationIdRaw && stationIdRaw.trim().length > 0 ? stationIdRaw.trim() : null;
 
   if (format === null) {
-    return NextResponse.json(
+    return Response.json(
       { error: 'Invalid format. Use json or csv.' },
       { status: 400 }
     );
   }
 
   if (state === null) {
-    return NextResponse.json(
+    return Response.json(
       { error: 'Invalid state. Use all, active, or resolved.' },
       { status: 400 }
     );
@@ -215,21 +215,21 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
 
   const alertTypeParam = searchParams.get('alertType');
   if (alertTypeParam && alertTypeParam !== 'all' && !alertType) {
-    return NextResponse.json(
+    return Response.json(
       { error: 'Invalid alertType. Use LOW_BIKES, LOW_ANCHORS, or all.' },
       { status: 400 }
     );
   }
 
   if (severity === undefined) {
-    return NextResponse.json(
+    return Response.json(
       { error: 'Invalid severity. Use an integer between 1 and 5.' },
       { status: 400 }
     );
   }
 
   if (limit === null || offset === null) {
-    return NextResponse.json(
+    return Response.json(
       {
         error: `Invalid pagination. limit must be 1..${MAX_LIMIT} and offset must be 0..${MAX_OFFSET}.`,
       },
@@ -238,7 +238,7 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
   }
 
   if ((searchParams.get('from') && !from) || (searchParams.get('to') && !to)) {
-    return NextResponse.json(
+    return Response.json(
       {
         error: 'Invalid date filter. Use ISO date or datetime (for example 2026-03-09 or 2026-03-09T12:00:00Z).',
       },
@@ -247,7 +247,7 @@ function parseQuery(request: NextRequest): ParsedQuery | NextResponse {
   }
 
   if (from && to && from > to) {
-    return NextResponse.json(
+    return Response.json(
       { error: 'Invalid date range. from must be before or equal to to.' },
       { status: 400 }
     );
@@ -297,7 +297,7 @@ function buildWhereFilters(query: ParsedQuery): Prisma.StationAlertWhereInput {
   return where;
 }
 
-export async function GET(request: NextRequest): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   return withApiRequest(
     request,
     {
@@ -307,7 +307,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     async ({ requestId, clientIp, userAgent }) => {
       const parsed = parseQuery(request);
 
-      if (parsed instanceof NextResponse) {
+      if (parsed instanceof Response) {
         return parsed;
       }
 
@@ -363,7 +363,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           const csv = toCsv(alerts);
           const suffix = new Date().toISOString().slice(0, 10);
 
-          return new NextResponse(csv, {
+          return new Response(csv, {
             status: 200,
             headers: {
               'Content-Type': 'text/csv; charset=utf-8',
@@ -374,7 +374,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           });
         }
 
-        return NextResponse.json(
+        return Response.json(
           {
             filters: {
               state: parsed.state,
@@ -420,7 +420,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         });
         logger.error('api.alerts_history.failed', { error });
 
-        return NextResponse.json(
+        return Response.json(
           {
             error: 'Failed to fetch alert history',
             timestamp: new Date().toISOString(),
