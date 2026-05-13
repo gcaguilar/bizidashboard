@@ -2,8 +2,8 @@ import type { StatusResponse } from '@/lib/api';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { MetricCard } from '@/components/ui/metric-card';
-import { formatFreshnessLabel } from '@/lib/freshness';
 import type { CoverageSummary } from '@/services/shared-data/types';
+import { formatStatusDateTime } from '@/lib/system-status';
 
 function translateHealthStatus(statusLabel: string): string {
   switch (statusLabel) {
@@ -52,9 +52,9 @@ function getHealthVariant(statusLabel: string): 'success' | 'warning' | 'danger'
 
 export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSampleAt }: StatusBannerProps) {
   const lastUpdated = lastSampleAt ?? status.quality.freshness.lastUpdated ?? stationsGeneratedAt ?? null;
-  const updatedText = formatFreshnessLabel(lastUpdated);
+  const updatedText = formatStatusDateTime(lastUpdated);
   const volumeRange = status.quality.volume.expectedRange;
-  const coverageGeneratedText = formatFreshnessLabel(coverage?.generatedAt ?? null);
+  const coverageGeneratedText = formatStatusDateTime(coverage?.generatedAt ?? null);
 
   return (
     <section className="ui-section-card gap-4">
@@ -78,7 +78,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
           value={
             <span className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
               {status.pipeline.lastSuccessfulPoll
-                ? new Date(status.pipeline.lastSuccessfulPoll).toLocaleString('es-ES')
+                ? formatStatusDateTime(status.pipeline.lastSuccessfulPoll)
                 : 'Sin datos'}
             </span>
           }

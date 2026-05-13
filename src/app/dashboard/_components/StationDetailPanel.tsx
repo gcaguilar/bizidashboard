@@ -8,7 +8,7 @@ import type {
   RankingsResponse,
   StationPatternRow,
   StationSnapshot,
-} from '@/lib/api';
+} from '@/lib/api-types';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -19,6 +19,8 @@ import { formatPercent } from '@/lib/format';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { formatStatusDateTime } from '@/lib/system-status';
+import { TIMEZONE } from '@/lib/timezone';
 import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type MobilitySignalRow = {
@@ -61,8 +63,27 @@ function toOccupancy(station: StationSnapshot | null): number {
 }
 
 function getDayTypeForToday(): string {
-  const day = new Date().getDay();
+  const day = Number(
+    new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, weekday: 'short' })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'weekday')?.value === 'Sun'
+      ? 0
+      : new Intl.DateTimeFormat('en-GB', { timeZone: TIMEZONE, weekday: 'short' })
+          .formatToParts(new Date())
+          .find((part) => part.type === 'weekday')?.value === 'Sat'
+        ? 6
+        : 1
+  );
   return day === 0 || day === 6 ? 'WEEKEND' : 'WEEKDAY';
+}
+
+function getCurrentHour(): number {
+  const hour = new Intl.DateTimeFormat('en-GB', {
+    timeZone: TIMEZONE,
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date());
+  return Number.parseInt(hour, 10);
 }
 
 function getAverageOccupancy(
@@ -269,9 +290,9 @@ export function StationDetailPanel({
   const projection = useMemo(() => {
     const currentOccupancy = toOccupancy(station);
     const dayType = getDayTypeForToday();
-    const now = new Date();
-    const nextHour = (now.getHours() + 1) % 24;
-    const nextTwoHours = (now.getHours() + 2) % 24;
+    const currentHour = getCurrentHour();
+    const nextHour = (currentHour + 1) % 24;
+    const nextTwoHours = (currentHour + 2) % 24;
 
     const nextHourRow = patterns.find(
       (row) => String(row.dayType) === dayType && Number(row.hour) === nextHour
@@ -491,7 +512,7 @@ export function StationDetailPanel({
                 Ultima actualizacion
               </p>
               <p className="text-sm font-medium text-[var(--foreground)]">
-                {new Date(station.recordedAt).toLocaleString('es-ES')}
+                {formatStatusDateTime(station.recordedAt)}
               </p>
             </div>
           </div>

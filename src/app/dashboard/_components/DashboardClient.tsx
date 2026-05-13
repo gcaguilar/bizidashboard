@@ -1,6 +1,7 @@
 'use client';
 import { lazy, Suspense } from 'react';
 import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
+import type { RouteSearch } from '@/app/dashboard/route';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -9,8 +10,9 @@ import type {
   SharedDatasetSnapshot,
   StationsResponse,
   StatusResponse,
-} from '@/lib/api';
+} from '@/lib/api-types';
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
+import { TIMEZONE } from '@/lib/timezone';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -50,37 +52,10 @@ import {
 import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 
-const OverviewModeView = lazy(
-  () => import('./OverviewModeView').then((module) => module.OverviewModeView),
-  {
-    ssr: false,
-    loading: () => <WidgetSkeleton className="min-h-[360px]" lines={6} />,
-  }
-);
-
-const OperationsModeView = lazy(
-  () => import('./OperationsModeView').then((module) => module.OperationsModeView),
-  {
-    ssr: false,
-    loading: () => <WidgetSkeleton className="min-h-[320px]" lines={6} />,
-  }
-);
-
-const ResearchModeView = lazy(
-  () => import('./ResearchModeView').then((module) => module.ResearchModeView),
-  {
-    ssr: false,
-    loading: () => <WidgetSkeleton className="min-h-[360px]" lines={6} />,
-  }
-);
-
-const DataModeView = lazy(
-  () => import('./DataModeView').then((module) => module.DataModeView),
-  {
-    ssr: false,
-    loading: () => <WidgetSkeleton className="min-h-[260px]" lines={5} />,
-  }
-);
+import { OverviewModeView } from './OverviewModeView';
+import { OperationsModeView } from './OperationsModeView';
+import { ResearchModeView } from './ResearchModeView';
+import { DataModeView } from './DataModeView';
 
 export type DashboardInitialData = {
   dataset: SharedDatasetSnapshot;
@@ -272,19 +247,28 @@ function resolveLatestDataUpdatedAt(
 function resolveNextRefreshAt(
   dataset: SharedDatasetSnapshot,
   stations: StationsResponse,
-  status: StatusResponse
+  status: StatusResponse,
+  now: number
 ): Date {
   if (stations.stations.length === 0) {
-    return new Date(Date.now() + MIN_REFRESH_FALLBACK_MS);
+    return new Date(now + MIN_REFRESH_FALLBACK_MS);
   }
 
   const latestUpdate = resolveLatestDataUpdatedAt(dataset, stations, status);
   return new Date(
     Math.max(
       latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS,
-      Date.now() + MIN_REFRESH_FALLBACK_MS
+      now + MIN_REFRESH_FALLBACK_MS
     )
   );
+}
+
+function resolveHydrationNow(initialData: DashboardInitialData): number {
+  if (typeof window === 'undefined') {
+    const serverTs = toTimestamp(initialData.status.timestamp);
+    return serverTs ?? Date.now();
+  }
+  return Date.now();
 }
 
 function formatCountdown(valueMs: number): string {
@@ -300,9 +284,13 @@ function formatCountdown(valueMs: number): string {
 
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
+    [location]
+  );
 
   const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
   const [statusData, setStatusData] = useState<StatusResponse>(initialData.status);
@@ -329,9 +317,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
-    resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status)
+    resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
-  const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
+  const [refreshCountdownMs, setRefreshCountdownMs] = useState(() =>
+    typeof window === 'undefined' ? 0 : Math.max(0, resolveHydrationNow(initialData) - Date.now())
+  );
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
@@ -451,6 +441,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       }
 
       const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
+      const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
       // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
       setFavoriteStationIds(parsedFavorites);
 
@@ -591,7 +582,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    router.replace(nextUrl, { scroll: false });
+    router.navigate({ to: nextUrl, replace: true });
   }, [
     activeWindowId,
     mapViewState,
@@ -991,10 +982,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const datasetLastSampleAt =
     statusData.quality.freshness.lastUpdated ?? initialData.dataset.lastUpdated.lastSampleAt;
   const updatedText = statusData.quality.freshness.lastUpdated
-    ? new Date(statusData.quality.freshness.lastUpdated).toLocaleString('es-ES')
+    ? new Date(statusData.quality.freshness.lastUpdated).toLocaleString('es-ES', { timeZone: TIMEZONE })
     : 'sin datos';
   const sharedDatasetUpdatedText = datasetLastSampleAt
-    ? new Date(datasetLastSampleAt).toLocaleString('es-ES')
+    ? new Date(datasetLastSampleAt).toLocaleString('es-ES', { timeZone: TIMEZONE })
     : 'sin datos';
   const datasetSummaryLabel = `Cobertura ${initialData.dataset.coverage.totalDays} dias · ${initialData.dataset.coverage.totalStations} estaciones · ultima muestra ${sharedDatasetUpdatedText}`;
   const topFrictionStationName = systemMetrics.topFriction

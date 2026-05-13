@@ -4,22 +4,13 @@ import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import {
-  fetchAvailableDataMonths,
-  fetchSharedDatasetSnapshot,
-  fetchStations,
-  fetchStatus,
-} from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates } from '@/lib/data-state';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildSocialImagePath } from '@/lib/social-images';
-import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStations, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
 import { getCityName } from '@/lib/site';
 import {
-  buildSystemCapabilities,
-  buildSystemIncidents,
   formatStatusDateTime,
   formatStatusNumber,
   getApiVersionLabel,
@@ -32,6 +23,7 @@ import {
 } from '@/lib/system-status';
 import { StatusBanner } from '@/app/dashboard/_components/StatusBanner';
 import { PageShell } from '@/components/layout/page-shell';
+import { getSystemStatusPageData } from '@/server-functions/estado';
 
 export const Route = createFileRoute('/estado')({
   head: () => ({
@@ -47,42 +39,12 @@ export const Route = createFileRoute('/estado')({
     ],
     title: 'Cobertura y estado de datos de Bizi Zaragoza',
   }),
-  loader: async () => {
-    const nowIso = new Date().toISOString();
-    const [status, stations, dataset, availableMonths] = await Promise.all([
-      fetchStatus().catch(() => buildFallbackStatus(nowIso)),
-      fetchStations().catch(() => buildFallbackStations(nowIso)),
-      fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
-      fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
-    ]);
-    const months = availableMonths.months.filter(isValidMonthKey);
-    const latestMonth = months[0] ?? null;
-    const incidents = buildSystemIncidents(status, dataset);
-    const capabilities = buildSystemCapabilities(status, dataset, stations);
-    const activeIncidentCount = incidents.filter((incident) => incident.severity !== 'healthy').length;
-    const activeStationsCount = Math.max(
-      stations.stations.length,
-      status.quality.volume.recentStationCount
-    );
-    return {
-      status,
-      stations,
-      dataset,
-      availableMonths,
-      months,
-      latestMonth,
-      incidents,
-      capabilities,
-      activeIncidentCount,
-      activeStationsCount,
-    };
-  },
+  loader: () => getSystemStatusPageData(),
   component: SystemStatusPage,
 });
 
 export default function SystemStatusPage() {
   const { status, stations, dataset, availableMonths, months, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount } = Route.useLoaderData();
-  const nowIso = new Date().toISOString();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Estado',
