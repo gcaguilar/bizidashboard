@@ -1,5 +1,6 @@
 import { CATEGORY_PRIORITY, FAQ_ITEMS, FAQ_PRIORITY_IDS } from './help-center-content';
 import type { FaqItem } from './help-center-content';
+import { TIMEZONE } from '@/lib/timezone';
 
 const CATEGORY_PRIORITY_MAP = new Map<string, number>(
   CATEGORY_PRIORITY.map((category, index) => [category, index])
@@ -57,7 +58,7 @@ export function formatDateTime(value: string | null | undefined): string {
     return 'Sin datos';
   }
 
-  return parsed.toLocaleString('es-ES');
+  return parsed.toLocaleString('es-ES', { timeZone: TIMEZONE });
 }
 
 export function getHelpCenterCategories(): string[] {

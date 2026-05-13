@@ -4,7 +4,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildPanelOpenEvent } from '@/lib/umami';
 
 export function PredictionHooksCard() {
-  const predictionExamplePath = `${appRoutes.api.predictions().replace('101', '')}...`;
+  const predictionExamplePath = `${String(appRoutes.api.predictions()).replace('101', '')}...`;
 
   return (
     <article className="ui-section-card">

@@ -1,5 +1,6 @@
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
+import { TIMEZONE } from '@/lib/timezone';
 import type { SharedDatasetSnapshot, StationsResponse, StatusResponse } from './api';
 
 export type SystemCapability = {
@@ -34,7 +35,7 @@ function toDate(value: string | null | undefined): Date | null {
 
 export function formatStatusDateTime(value: string | null | undefined): string {
   const parsed = toDate(value);
-  return parsed ? parsed.toLocaleString('es-ES') : 'Sin datos';
+  return parsed ? parsed.toLocaleString('es-ES', { timeZone: TIMEZONE }) : 'Sin datos';
 }
 
 export function formatStatusNumber(value: number): string {
@@ -80,11 +81,12 @@ export function getObservedCadenceLabel(status: StatusResponse): string {
 
 export function getPipelineLagMinutes(status: StatusResponse): number | null {
   const lastPoll = toDate(status.pipeline.lastSuccessfulPoll);
+  const lastCheck = toDate(status.quality.lastCheck);
   if (!lastPoll) {
     return null;
   }
 
-  return Math.max(0, Math.round((Date.now() - lastPoll.getTime()) / 60_000));
+  return Math.max(0, Math.round(((lastCheck?.getTime() ?? Date.now()) - lastPoll.getTime()) / 60_000));
 }
 
 export function getPipelineLagLabel(status: StatusResponse): string {
