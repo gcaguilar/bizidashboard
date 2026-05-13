@@ -1,23 +1,16 @@
+import { Badge } from '@/components/ui/badge';
 import { Link, createFileRoute, useSearch } from '@tanstack/react-router';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import {
-  fetchAvailableDataMonths,
-  fetchSharedDatasetSnapshot,
-  fetchStatus,
-} from '@/lib/api';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { searchGlobalContent } from '@/lib/global-search';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { formatMonthLabel } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
-import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
+import { appRoutes } from '@/lib/routes';
 import { EXPLORE_PAGE_NAV_CONFIG } from '@/lib/seo-pages';
-import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
-import { getCityName } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { formatStatusDateTime } from '@/lib/system-status';
+import { getExploreLoaderData } from '@/server-functions/explorar';
 
 type ExploreSearch = {
   q?: string;
@@ -47,55 +40,7 @@ export const Route = createFileRoute('/explorar')({
     ],
     title: 'Explorar',
   }),
-  loader: async () => {
-    const nowIso = new Date().toISOString();
-    const cityName = getCityName();
-    const searchQuery = '';
-    const breadcrumbs = createRootBreadcrumbs({
-      label: 'Explorar',
-      href: appRoutes.explore(),
-    });
-
-    const [availableMonths, searchResults] = await Promise.all([
-      fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
-      searchQuery ? searchGlobalContent(searchQuery) : Promise.resolve(null),
-    ]);
-
-    const latestMonth = availableMonths.months.filter(isValidMonthKey)[0] ?? null;
-    const sections = getExploreHubSections({ latestMonth });
-    const totalTools = sections.reduce((count, section) => count + section.items.length, 0);
-    const itemList = sections.flatMap((section) => section.items);
-
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@graph': [
-        buildBreadcrumbStructuredData(breadcrumbs),
-        {
-          '@type': 'CollectionPage',
-          name: `Hub Explorar ${cityName}`,
-          description:
-            'Indice publico de herramientas de analisis, comparativa, mapas, historico y movilidad.',
-          url: toAbsoluteRouteUrl(appRoutes.explore()),
-          hasPart: itemList.map((item, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            name: item.title,
-            url: toAbsoluteRouteUrl(item.href),
-          })),
-        },
-      ],
-    };
-
-    return {
-      searchQuery,
-      searchResults,
-      latestMonth,
-      sections,
-      totalTools,
-      breadcrumbs,
-      structuredData,
-    };
-  },
+  loader: () => getExploreLoaderData(),
   component: ExploreHubPage,
 });
 
@@ -142,7 +87,7 @@ export default function ExploreHubPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
             <TrackedLink
-              to={EXPLORE_PAGE_NAV_CONFIG.primaryCta.href}
+              href={EXPLORE_PAGE_NAV_CONFIG.primaryCta.href}
               ctaEvent={{
                 source: 'explore_hero',
                 ctaId: 'explore_primary',
@@ -156,7 +101,7 @@ export default function ExploreHubPage() {
               {EXPLORE_PAGE_NAV_CONFIG.primaryCta.label}
             </TrackedLink>
             <TrackedLink
-              to={appRoutes.compare()}
+              href={appRoutes.compare()}
               ctaEvent={{
                 source: 'explore_hero',
                 ctaId: 'explore_secondary',
@@ -236,9 +181,7 @@ export default function ExploreHubPage() {
                             <p className="text-sm font-semibold text-[var(--foreground)]">
                               {result.title}
                             </p>
-                            <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
-                              {result.badge}
-                            </span>
+                            <Badge variant="muted">{result.badge}</Badge>
                           </div>
                           <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
                             {result.description}
