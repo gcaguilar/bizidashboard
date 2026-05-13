@@ -1,34 +1,19 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
-import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series'
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
 import { shouldShowDataStateNotice } from '@/lib/data-state'
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months'
+import { formatMonthLabel } from '@/lib/months'
 import { appRoutes } from '@/lib/routes'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks'
 import { PageShell } from '@/components/layout/page-shell'
+import { getReportMonthPageData } from '@/server-functions/informes-month'
 
-export const Route = createFileRoute('/informes/month')({
-  loader: async ({ params }) => {
-    const month = (params as { month?: string }).month ?? ''
-    if (!month || !isValidMonthKey(month)) {
-      throw redirect({ to: appRoutes.reports() })
-    }
-    const nowIso = new Date().toISOString()
-    try {
-      await fetchCachedMonthlyDemandCurve().catch(() => buildFallbackDatasetSnapshot(nowIso))
-      return { month, dataState: 'ok' as const }
-    } catch (error) {
-      captureExceptionWithContext(error, { area: 'informes.month', operation: 'loader' })
-      return { month, dataState: 'error' as const }
-    }
-  },
+export const Route = createFileRoute('/informes/$month')({
+  loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
   head: (opts) => ({
     meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-    title: `Informe ${formatMonthLabel((opts.params as { month?: string }).month ?? '')} - DatosBizi`,
+    title: `Informe ${formatMonthLabel(opts.params.month ?? '')} - DatosBizi`,
   }),
   component: InformesMonthPage,
 })

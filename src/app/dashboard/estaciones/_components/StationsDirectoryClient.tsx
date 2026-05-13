@@ -1,13 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CitySwitcher } from '@/app/_components/CitySwitcher';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -85,7 +84,6 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
             <GitHubRepoButton />
           </div>
         </div>
-        <CitySwitcher compact className="mt-3" />
         <div className="mt-3">
           <label htmlFor="stations-directory-search" className="sr-only">
             Buscar por nombre o ID
@@ -120,10 +118,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           const occupancy = station.capacity > 0 ? station.bikesAvailable / station.capacity : 0;
 
           return (
-            <Card
-              key={station.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-soft)]"
-            >
+            <Card key={station.id}>
               <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">ID {station.id}</p>
               <h2 className="mt-1 text-lg font-semibold text-[var(--foreground)]">{station.name}</h2>
               <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-[var(--muted)]">
