@@ -122,20 +122,14 @@ export function getMatrixCellColor(value: number, maxValue: number): string {
   return `rgba(234, 6, 21, ${0.2 + ratio * 0.72})`;
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
 export function isMobilityResponse(value: unknown): value is MobilityResponse {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return false;
   }
   const obj = value as Record<string, unknown>;
   const hasMethodology = typeof obj.methodology === 'string';
-  const hasGeneratedAt = typeof obj.generatedAt === 'string';
   const hasHourlySignals = Array.isArray(obj.hourlySignals);
   const hasDailyDemand = Array.isArray(obj.dailyDemand);
-  const hasSystemHourlyProfile = Array.isArray(obj.systemHourlyProfile);
   if (!hasMethodology && !hasDailyDemand) {
     return false;
   }

@@ -44,6 +44,14 @@ function isMissingTableError(error: unknown): boolean {
   return false;
 }
 
+function toStr(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  if (typeof value === 'object') return JSON.stringify(value);
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  return String(value);
+}
+
 function serializeStationsResponse(data: unknown): DashboardInitialData['stations'] {
   if (!data || typeof data !== 'object') {
     return { stations: [], generatedAt: new Date().toISOString(), dataState: 'empty' };
@@ -54,8 +62,8 @@ function serializeStationsResponse(data: unknown): DashboardInitialData['station
         if (!s || typeof s !== 'object') return s;
         const obj = s as Record<string, unknown>;
         return {
-          id: String(obj.id ?? ''),
-          name: String(obj.name ?? ''),
+          id: toStr(obj.id),
+          name: toStr(obj.name),
           lat: typeof obj.lat === 'number' ? obj.lat : Number(obj.lat) || 0,
           lon: typeof obj.lon === 'number' ? obj.lon : Number(obj.lon) || 0,
           capacity: Number(obj.capacity) || 0,
