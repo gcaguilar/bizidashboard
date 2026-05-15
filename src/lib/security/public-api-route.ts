@@ -27,7 +27,8 @@ export function withPublicApiRoute(
   options: PublicApiRouteOptions,
   handler: PublicApiRouteHandler
 ) {
-  return async function (request: Request): Promise<Response> {
+  return async function (opts: { request: Request } & Record<string, unknown>): Promise<Response> {
+    const request = opts.request;
     const requestId = crypto.randomUUID();
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
       ?? request.headers.get('x-real-ip') 

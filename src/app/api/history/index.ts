@@ -2,9 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '@/lib/db'
 import { rowsToCsv } from '@/lib/csv'
 import { resolveHistoryDataState } from '@/lib/data-state'
-import { errorResponse } from '@/lib/api-response'
-import { enforcePublicApiAccess } from '@/lib/security/public-api'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
+import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import { getHistoryMetadata, getPipelineStatusSummary } from '@/services/shared-data'
 
 type DailyHistoryRow = {
@@ -64,32 +62,26 @@ async function buildHistoryPayload() {
 export const Route = createFileRoute('/api/history/')({
   server: {
     handlers: {
-      GET: async (opts) => {
-        const request = opts.request
-        try {
+      GET: withPublicApiRoute(
+        {
+          route: '/api/history',
+          routeGroup: 'api.history',
+          namespace: 'public-history',
+          limit: 40,
+          windowMs: 60_000,
+          requireApiKey: false,
+          cacheControl: 'public, max-age=300, stale-while-revalidate=120',
+        },
+        async ({ request, access }) => {
           const format = new URL(request.url).searchParams.get('format')
-
-          const access = await enforcePublicApiAccess({
-            route: '/api/history',
-            request,
-            requestId: '',
-            clientIp: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
-            userAgent: request.headers.get('user-agent') || '',
-            namespace: 'public-history',
-            limit: 40,
-            windowMs: 60_000,
-            requireApiKey: false,
-          })
-          if (!access.ok) return access.response
-
           const payload = await buildHistoryPayload()
+
           if (format === 'csv') {
             return new Response(rowsToCsv(HISTORY_CSV_HEADERS, payload.history), {
               status: 200,
               headers: {
                 'Content-Type': 'text/csv; charset=utf-8',
                 'Content-Disposition': 'attachment; filename="history-balance.csv"',
-                'Cache-Control': 'public, max-age=300, stale-while-revalidate=120',
                 ...access.headers,
               },
             })
@@ -97,17 +89,10 @@ export const Route = createFileRoute('/api/history/')({
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'public, max-age=300, stale-while-revalidate=120',
-              ...access.headers,
-            },
+            headers: { 'Content-Type': 'application/json', ...access.headers },
           })
-        } catch (error) {
-          captureExceptionWithContext(error, { area: 'api.history', operation: 'GET /api/history' })
-          return errorResponse('Failed to fetch historical data', 500)
         }
-      },
+      ),
     },
   },
 })

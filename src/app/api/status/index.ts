@@ -1,30 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getPipelineStatusSummary } from '@/services/shared-data'
 import { resolveStatusDataState } from '@/lib/data-state'
-import { logger } from '@/lib/logger'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { enforcePublicApiAccess } from '@/lib/security/public-api'
+import { withPublicApiRoute } from '@/lib/security/public-api-route'
 
 export const Route = createFileRoute('/api/status/')({
   server: {
     handlers: {
-      GET: async (opts) => {
-        const request = opts.request
-        try {
+      GET: withPublicApiRoute(
+        {
+          route: '/api/status',
+          routeGroup: 'api.status',
+          namespace: 'public-status',
+          limit: 40,
+          windowMs: 60_000,
+          requireApiKey: false,
+          cacheControl: 'public, max-age=60, stale-while-revalidate=60',
+        },
+        async ({ request, access }) => {
           const format = new URL(request.url).searchParams.get('format')
-          const access = await enforcePublicApiAccess({
-            route: '/api/status',
-            request,
-            requestId: '',
-            clientIp: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
-            userAgent: request.headers.get('user-agent') || '',
-            namespace: 'public-status',
-            limit: 40,
-            windowMs: 60_000,
-            requireApiKey: false,
-          })
-          if (!access.ok) return access.response
-
           const data = await getPipelineStatusSummary()
           if (!data || typeof data !== 'object') {
             throw new Error('Respuesta invalida al consultar el estado del sistema.')
@@ -42,14 +35,10 @@ export const Route = createFileRoute('/api/status/')({
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60, stale-while-revalidate=60', ...access.headers },
+            headers: { 'Content-Type': 'application/json', ...access.headers },
           })
-        } catch (error) {
-          captureExceptionWithContext(error, { area: 'api.status', operation: 'GET /api/status' })
-          logger.error('api.status.failed', { error })
-          return new Response(JSON.stringify({ error: 'Failed to fetch status', dataState: 'error' }), { status: 500 })
         }
-      },
+      ),
     },
   },
 })
