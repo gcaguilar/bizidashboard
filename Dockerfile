@@ -1,11 +1,11 @@
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.3.13 AS deps
+FROM oven/bun:1.3.14 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install
 
 # ── builder: generate prisma client & build TanStack Start ───────────
-FROM oven/bun:1.3.13 AS builder
+FROM oven/bun:1.3.14 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -26,7 +26,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun run build
 
 # ── runner: minimal production image ─────────────────────────────────
-FROM oven/bun:1.3.13-slim AS runner
+FROM oven/bun:1.3.14-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
