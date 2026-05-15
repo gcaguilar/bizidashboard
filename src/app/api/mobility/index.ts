@@ -1,37 +1,40 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { withPublicApiRoute } from '@/lib/security/public-api-route'
+import { getMobilityData } from '@/lib/mobility-read-model'
 
 export const Route = createFileRoute('/api/mobility/')({
   server: {
     handlers: {
-      // eslint-disable-next-line @typescript-eslint/require-await
-      GET: async ({ request }) => {
-        const { searchParams } = new URL(request.url)
-        const mobilityDays = Number(searchParams.get('mobilityDays')) || 14
-        const demandDays = Number(searchParams.get('demandDays')) || 30
-        const monthKey = searchParams.get('month')
+      GET: withPublicApiRoute(
+        {
+          route: '/api/mobility',
+          routeGroup: 'api.mobility',
+          namespace: 'public-mobility',
+          limit: 30,
+          windowMs: 60_000,
+          requireApiKey: false,
+          cacheControl: 'public, max-age=300, stale-while-revalidate=120',
+        },
+        async ({ request }) => {
+          const { searchParams } = new URL(request.url)
+          const mobilityDays = Number(searchParams.get('mobilityDays')) || 14
+          const demandDays = Number(searchParams.get('demandDays')) || 30
+          const monthKey = searchParams.get('month') ?? undefined
 
-        return new Response(
-          JSON.stringify({
+          const payload = await getMobilityData({
             mobilityDays,
             demandDays,
-            selectedMonth: monthKey,
-            methodology:
-              'Matriz O-D estimada con variaciones netas horarias de bicis por estacion; no representa viajes individuales observados.',
-            hourlySignals: [],
-            dailyDemand: [],
-            systemHourlyProfile: [],
-            generatedAt: new Date().toISOString(),
-            dataState: 'empty',
-          }),
-          {
+            monthKey,
+          })
+
+          return new Response(JSON.stringify(payload), {
             status: 200,
             headers: {
               'Content-Type': 'application/json',
-              'Cache-Control': 'public, max-age=300, stale-while-revalidate=120',
             },
-          }
-        )
-      },
+          })
+        }
+      ),
     },
   },
 })
