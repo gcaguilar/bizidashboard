@@ -113,12 +113,30 @@ npx @tanstack/intent@latest list     # Result: "No intent-enabled packages found
 | `OPS_API_KEY` | Operational API access |
 | `ENABLE_INTERNAL_JOBS` | Toggle internal cron jobs |
 
-## Deployment Notes
+## Runtime, CI, and Deployment Notes
+
+### Runtime Versions
+- **Bun**: pinned to `1.3.14` in `package.json`, GitHub Actions, and Docker images.
+- **Node.js**: dependency compatibility target remains Node 20+ where Node tooling is involved.
+- **Docker base images**: `oven/bun:1.3.14` for deps/build stages and `oven/bun:1.3.14-slim` for runtime.
 
 ### Build Process
-- **Dev**: `vite dev` — TanStack Start dev server with HMR
-- **Build**: `vite build` — Generates `dist/client/` and `dist/server/`
+- **Dev**: `bun run dev` — loads `.env.local`, instruments Sentry, and runs `vite dev --port 3000`
+- **Build**: `bun run build` — removes `dist`/`.output` and runs `vite build`, generating `dist/client/` and `dist/server/`
 - **Start**: `bun ops/start-server.mjs` — production Bun runtime serving `dist/client` assets and TanStack Start SSR
+- **Test**: `bun run test` — Vitest unit/integration tests
+- **Lint**: `bun run lint` — ESLint 9 with TanStack/React rules
+
+### GitHub Actions
+- `.github/workflows/ci.yml` runs install, Prisma generate, migrations, QA seed, lint, unit tests, and build.
+- `.github/workflows/docker-image.yml` repeats quality gates before building/publishing the Docker image.
+- `.github/workflows/prod-audit.yml` runs the production audit manually.
+- All workflows use `oven-sh/setup-bun@v2` with `bun-version: '1.3.14'`.
+
+### Dependabot
+- `.github/dependabot.yml` tracks `npm`, `docker`, and `github-actions` ecosystems.
+- npm updates are grouped by current stack: TanStack, Prisma, Vite/Vitest, React, Sentry, and test/lint tooling.
+- Major updates for `eslint`, `typescript`, and `vite` are ignored to keep framework/toolchain upgrades explicit.
 
 ### Key Differences from Next.js
 | Aspect | Next.js | TanStack Start |
@@ -132,10 +150,9 @@ npx @tanstack/intent@latest list     # Result: "No intent-enabled packages found
 | Image optimization | `next/image` | Manual or external CDN |
 
 ### Platform Considerations
-- **Vercel**: Works but lacks `next/image` auto-optimization
-- **Docker**: Uses multi-stage build with Node.js 20+ for `.output/`
-- **Serverless**: Compatible with Nitro's serverless adapters
-- **Node.js**: Requires Node 20+ (same as legacy)
+- **Docker**: Uses a multi-stage Bun build and serves the TanStack Start `dist/` output.
+- **Serverless**: Compatible with Nitro's serverless adapters, but this repo's production path is Bun/Docker.
+- **Vercel**: Possible, but no longer a Next.js app and does not get `next/image` behavior.
 
 ## Known Gotchas
 
@@ -213,7 +230,7 @@ bizidashboard/
 └── neon-vite-plugin.ts         # Neon PostgreSQL Vite plugin
 ```
 
-## Migration Status: 28/29 complete ✅
+## Migration Status: Complete ✅
 
 ### COMPLETED ✅
 1. ✅ Scaffolded TanStack Start app with all add-ons (neon, sentry, prisma, better-auth, tanstack-query)
@@ -238,16 +255,16 @@ bizidashboard/
 20. ✅ **Convert `'use server'` to `createServerFn`** — No `'use server'` directives found in codebase
 21. ✅ **Add form handling** — Using native HTML forms (PublicSearchForm, login, register, profile)
 22. ✅ **Migrate Playwright tests** — Updated config to use `bunx vite dev` instead of `bun dev`
-23. ✅ **Docker build pipeline** — Updated Dockerfile for TanStack Start `.output/` instead of `.next/standalone`
+23. ✅ **Docker build pipeline** — Updated Dockerfile for TanStack Start `dist/` output instead of `.next/standalone`
 24. ✅ **Sentry performance tracing** — Already configured with `tracesSampleRate: 0.2` in `sentry.server.config.ts`
 25. ✅ **NextImage removed** — No `next/image` usages found in codebase
 26. ✅ **Legacy deps removed** — No `next` package in package.json
 27. ✅ **TanStack Query ready** — SSR integration configured, can migrate gradually
 28. ✅ **TanStack Table** — Already used in RebalancingTable.tsx, can expand later
-29. ~~**TanStack DB**~~ — Add type-safe SQL queries with `@tanstack/db`
+29. ✅ **CI and Dependabot updated** — Bun `1.3.14`, TanStack/Vite/Prisma dependency groups, passing lint/test/build gates
 
-### Remaining (P1)
-- **TanStack DB** — Add type-safe SQL queries with `@tanstack/db` when needed
+### Optional Later
+- **TanStack DB** — Add type-safe SQL queries with `@tanstack/db` only if there is a concrete need.
 
 ## Legacy Reference
 
