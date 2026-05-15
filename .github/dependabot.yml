@@ -8,20 +8,91 @@ updates:
       time: '06:00'
     open-pull-requests-limit: 10
     groups:
+      tanstack-stack:
+        patterns:
+          - '@tanstack/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      prisma-stack:
+        patterns:
+          - 'prisma'
+          - '@prisma/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      vite-tooling:
+        patterns:
+          - 'vite'
+          - 'vitest'
+          - '@vitejs/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      react-stack:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - 'minor'
+          - 'patch'
+      sentry-stack:
+        patterns:
+          - '@sentry/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      test-and-lint-tooling:
+        patterns:
+          - 'eslint'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - '@testing-library/*'
+          - '@playwright/*'
+          - 'playwright'
+          - 'typescript'
+        update-types:
+          - 'minor'
+          - 'patch'
       production-dependencies:
         dependency-type: 'production'
+        exclude-patterns:
+          - '@tanstack/*'
+          - '@prisma/*'
+          - '@sentry/*'
+          - 'react'
+          - 'react-dom'
+          - 'vite'
         update-types:
           - 'minor'
           - 'patch'
       development-dependencies:
         dependency-type: 'development'
+        exclude-patterns:
+          - '@tanstack/*'
+          - '@prisma/*'
+          - '@sentry/*'
+          - '@vitejs/*'
+          - 'vite'
+          - 'vitest'
+          - 'eslint'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - '@testing-library/*'
+          - '@playwright/*'
+          - 'playwright'
+          - 'typescript'
         update-types:
           - 'minor'
           - 'patch'
     ignore:
-      - dependency-name: 'next'
-        update-types: ['version-update:semver-major']
       - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'vite'
         update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'docker'

@@ -34,6 +34,6 @@ describe('llms discovery routes', () => {
     expect(response.headers.get('content-type')).toContain('text/plain');
     expect(body).toContain(`${SITE_URL}/estaciones-mas-usadas-zaragoza`);
     expect(body).toContain(`GET ${SITE_URL}/api/status`);
-    expect(body).toContain('## Agent instructions');
+    expect(body).toContain('## Guidance for AI Assistants');
   });
 });
