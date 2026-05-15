@@ -22,7 +22,7 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCases": true,
+    "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   }
 }
