@@ -333,7 +333,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           {
             signal,
             cache: 'no-store',
-            errorMessage: 'No se pudo cargar el historial de alertas.',
+            errorMessage: 'No hemos podido cargar el historial de alertas.',
           }
         );
 
@@ -358,7 +358,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         console.error('[Dashboard] Error cargando historial de alertas.', error);
         setRows([]);
         setTotalRows(0);
-        setErrorMessage('No se pudo cargar el historial de alertas.');
+        setErrorMessage('No hemos podido cargar el historial de alertas.');
       }
     },
     [apiQueryString],
@@ -563,7 +563,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               <SelectIcon />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las severidades</SelectItem>
+              <SelectItem value="all">Todas las prioridades</SelectItem>
               <SelectItem value="1">Media</SelectItem>
               <SelectItem value="2">Critica</SelectItem>
             </SelectContent>
@@ -594,7 +594,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-            Rangos rapidos
+            Fechas rapidas
           </span>
           <Button
             onClick={() => applyQuickRange(1)}
@@ -642,7 +642,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             Limpiar filtros
           </Button>
 
-          <span className="ml-auto text-xs text-[var(--muted)]">La URL refleja los filtros actuales.</span>
+          <span className="ml-auto text-xs text-[var(--muted)]">Puedes compartir esta URL: conserva los filtros actuales.</span>
         </div>
       </PageHeaderCard>
 
@@ -652,11 +652,11 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           <p className="stat-value">{totalRows}</p>
         </Card>
         <Card className="ui-section-card">
-          <p className="stat-label">Activas (pagina)</p>
+          <p className="stat-label">Activas en esta pagina</p>
           <p className="stat-value">{stats.active}</p>
         </Card>
         <Card className="ui-section-card">
-          <p className="stat-label">Criticas (pagina)</p>
+          <p className="stat-label">Criticas en esta pagina</p>
           <p className="stat-value">{stats.critical}</p>
         </Card>
         <Card className="ui-section-card">
@@ -690,7 +690,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         </header>
 
         {isLoading ? (
-          <p className="px-4 py-6 text-sm text-[var(--muted)]">Cargando historial...</p>
+          <p className="px-4 py-6 text-sm text-[var(--muted)]">Cargando alertas...</p>
         ) : errorMessage ? (
           <p className="px-4 py-6 text-sm text-[var(--muted)]">{errorMessage}</p>
         ) : rows.length === 0 ? (

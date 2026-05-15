@@ -17,41 +17,41 @@ export const DASHBOARD_MODE_META: Record<
   overview: {
     label: 'Resumen',
     shortLabel: 'Resumen',
-    description: 'Vision ejecutiva y estado global',
+    description: 'Estado general y senales clave',
     introEyebrow: 'Resumen ejecutivo',
     introTitle: 'Lo importante de un vistazo',
     introDescription:
-      'Pensado para entender rapido el estado general del sistema, su equilibrio y las señales clave del dia.',
+      'Para entender rapidamente como esta el sistema, si hay equilibrio y que senales merecen atencion hoy.',
     introTone: 'from-rose-500/12 via-transparent to-transparent border-rose-500/25',
   },
   operations: {
     label: 'Operaciones',
     shortLabel: 'Operaciones',
-    description: 'Friccion, alertas y accion operativa',
+    description: 'Alertas, friccion y prioridades',
     introEyebrow: 'Modo operaciones',
-    introTitle: 'Priorizar y actuar antes',
+    introTitle: 'Priorizar antes de que el problema crezca',
     introDescription:
-      'Enfocado en estaciones criticas, alertas, friccion y decisiones operativas inmediatas.',
+      'Pensado para detectar estaciones criticas, revisar alertas y decidir donde actuar primero.',
     introTone: 'from-amber-500/14 via-transparent to-transparent border-amber-500/25',
   },
   research: {
     label: 'Analisis',
     shortLabel: 'Analisis',
-    description: 'Patrones, demanda y flujo urbano',
+    description: 'Patrones, demanda y movimiento',
     introEyebrow: 'Modo analisis',
     introTitle: 'Entender patrones y comportamiento',
     introDescription:
-      'Pensado para leer tendencias temporales, estabilidad y flujo entre zonas sin perder contexto.',
+      'Para leer tendencias, estabilidad y movimiento entre zonas con el contexto necesario.',
     introTone: 'from-sky-500/14 via-transparent to-transparent border-sky-500/25',
   },
   data: {
     label: 'Datos',
     shortLabel: 'Datos',
-    description: 'Metodologia, trazabilidad y acceso',
+    description: 'Metodologia, historico y descargas',
     introEyebrow: 'Modo datos',
-    introTitle: 'Transparencia, trazabilidad y exportacion',
+    introTitle: 'Datos claros para auditar y reutilizar',
     introDescription:
-      'Reune metodologia, historicos y salidas de datos para auditar o reutilizar la informacion.',
+      'Reune metodologia, historicos y salidas de datos para comprobar, citar o reutilizar la informacion.',
     introTone: 'from-emerald-500/14 via-transparent to-transparent border-emerald-500/25',
   },
 };

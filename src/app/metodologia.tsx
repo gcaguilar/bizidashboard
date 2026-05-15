@@ -71,15 +71,14 @@ export default function MethodologyPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Guia publica de confianza
+              Como leer los datos
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Metodologia y calidad de datos de Bizi {cityName}
+              Metodologia y calidad de datos de Bizi en {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Esta pagina explica como se construyen las lecturas publicas de DatosBizi: de donde sale
-              el dato base, con que frescura se actualiza, que metricas son estimadas y que limites
-              conviene tener presentes antes de interpretar estaciones, barrios, rankings e informes.
+              Aqui explicamos de donde salen los datos, cada cuanto se actualizan, que metricas son
+              estimaciones y que limites conviene tener presentes antes de sacar conclusiones.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -123,7 +122,7 @@ export default function MethodologyPage() {
               }}
               className="ui-inline-action"
             >
-              Abrir API y datos abiertos
+              Ver API y descargas
             </TrackedLink>
             <TrackedLink
               href={appRoutes.status()}
@@ -150,19 +149,19 @@ export default function MethodologyPage() {
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {historyMeta.source.provider}
           </p>
-          <p className="text-xs text-[var(--muted)]">Discovery GBFS consultado y validado de forma periodica.</p>
+          <p className="text-xs text-[var(--muted)]">Feed GBFS oficial consultado y validado de forma periodica.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cobertura visible</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getCoverageLabel(dataset)}
           </p>
-          <p className="text-xs text-[var(--muted)]">Base compartida por informes, rankings y fichas publicas.</p>
+          <p className="text-xs text-[var(--muted)]">Base comun para informes, rankings y fichas publicas.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cadencia observada</p>
           <p className="stat-value">{getObservedCadenceLabel(status)}</p>
-          <p className="text-xs text-[var(--muted)]">Lectura reciente del pipeline y de la frescura del sistema.</p>
+          <p className="text-xs text-[var(--muted)]">Ritmo observado en las recogidas recientes.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Versiones activas</p>
@@ -179,23 +178,23 @@ export default function MethodologyPage() {
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Como se construye la capa publica
+              Como se construyen las vistas publicas
             </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Del feed oficial a paginas utiles y comparables
+              Del feed oficial a paginas faciles de comparar
             </h2>
           </div>
           <p>
             El dato base llega desde el feed oficial GBFS de Bizi {cityName}. A partir de ese origen se
-            capturan snapshots de estaciones, se validan, se agregan y se reutilizan en varias capas:
-            disponibilidad actual, historico agregado, rankings, hubs territoriales, informes mensuales
+            capturan muestras de estaciones, se validan, se agregan y se reutilizan en varias vistas:
+            disponibilidad actual, historico agregado, rankings, paginas por barrio, informes mensuales
             y endpoints API.
           </p>
           <p>
             La ultima muestra util hoy es {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)} y el
-            lag visible del pipeline es {getPipelineLagLabel(status)}. Cuando falta cobertura o la serie
-            es parcial, la policy SEO desindexa las plantillas debiles en lugar de forzar contenido
-            pobre. Ese criterio se aplica igual a estaciones, barrios, informes y landings.
+            retraso visible es {getPipelineLagLabel(status)}. Cuando falta cobertura o la serie
+            es parcial, evitamos presentar paginas pobres como si fueran conclusiones solidas. Ese
+            criterio se aplica igual a estaciones, barrios, informes y landings.
           </p>
         </div>
       </section>
@@ -221,7 +220,7 @@ export default function MethodologyPage() {
           <p className="stat-label">Demanda y movilidad</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lecturas estimadas</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            La demanda publica es un indice de actividad y la movilidad es una estimacion agregada por
+            La demanda publicada es un indice de actividad y la movilidad es una estimacion agregada por
             zonas; ninguna de las dos equivale a viajes oficiales uno a uno.
           </p>
         </article>
@@ -280,7 +279,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              OpenAPI, CSV, versiones y trazabilidad del mismo dataset explicado aqui.
+              OpenAPI, CSV, versiones y origen de los mismos datos explicados aqui.
             </p>
           </TrackedLink>
           <TrackedLink
@@ -296,7 +295,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Estado y cobertura</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Comprueba frescura, incidencias, lag del pipeline y salud operativa antes de interpretar.
+              Comprueba frescura, incidencias y retrasos antes de interpretar resultados.
             </p>
           </TrackedLink>
           <TrackedLink
@@ -314,7 +313,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Archivo mensual</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Usa el contexto metodologico para leer mejor los informes y sus insights por mes.
+              Usa este contexto para leer mejor los informes y conclusiones de cada mes.
             </p>
           </TrackedLink>
           <TrackedLink
@@ -346,7 +345,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Barrios y contexto territorial</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Interpreta comparativas por barrio sabiendo que metricas son snapshot y cuales son agregadas.
+              Interpreta comparativas por barrio sabiendo que metricas son puntuales y cuales son agregadas.
             </p>
           </TrackedLink>
           <TrackedLink
@@ -362,7 +361,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm font-semibold text-[var(--foreground)]">Ayuda completa del dashboard</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Si necesitas mas detalle operativo o FAQ extensa, entra en la ayuda interna del producto.
+              Si necesitas mas detalle o una FAQ extensa, entra en la ayuda del dashboard.
             </p>
           </TrackedLink>
         </div>

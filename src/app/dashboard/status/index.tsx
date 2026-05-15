@@ -7,7 +7,7 @@ import { getSystemStatusPageData } from '@/server-functions/estado';
 export const Route = createFileRoute('/dashboard/status/')({
   head: () => {
     const title = 'Estado del sistema - Dashboard Bizi'
-    const description = 'Estado del sistema DatosBizi. Salud, última muestra, cobertura e incidencias del sistema Bizi Zaragoza.'
+    const description = 'Estado de los datos de DatosBizi: ultima muestra, cobertura, incidencias y servicios afectados.'
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -35,8 +35,8 @@ export default function DashboardStatusPage() {
     <PageShell>
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Estado del dashboard</p>
-        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Estado operativo de DatosBizi</h1>
-        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen directo del estado de datos usado por el dashboard, sin redirecciones ni pantallas intermedias.</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Estado de los datos de DatosBizi</h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen directo para saber si el dashboard esta usando datos recientes, completos y sin incidencias activas.</p>
         <div className="mt-5 flex flex-wrap gap-3">
           <a className="ui-inline-action" href={appRoutes.status()}>Abrir estado completo</a>
           <a className="ui-inline-action" href={appRoutes.dashboard()}>Volver al dashboard</a>
@@ -50,7 +50,7 @@ export default function DashboardStatusPage() {
       </section>
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Incidencias activas</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">{activeIncidentCount > 0 ? `${activeIncidentCount} incidencias requieren seguimiento operativo.` : 'No hay incidencias activas.'}</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">{activeIncidentCount > 0 ? `${activeIncidentCount} incidencias requieren revision.` : 'No hay incidencias activas.'}</p>
       </section>
     </PageShell>
   );

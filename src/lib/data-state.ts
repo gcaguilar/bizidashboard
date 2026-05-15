@@ -285,9 +285,9 @@ export function getDataStateMeta(
       return {
         state,
         label: 'Cargando',
-        title: 'Cargando datos',
+        title: 'Estamos cargando los datos',
         description:
-          options.loadingDescription ?? `Estamos cargando ${subject}.`,
+          options.loadingDescription ?? `Estamos preparando ${subject}.`,
         toneClasses:
           'border-sky-500/30 bg-sky-500/10 text-sky-100',
         badgeClasses:
@@ -297,10 +297,10 @@ export function getDataStateMeta(
       return {
         state,
         label: 'Sin datos',
-        title: 'Sin resultados',
+        title: 'No hay datos para mostrar',
         description:
           options.emptyDescription ??
-          `No hay resultados disponibles para ${subject}.`,
+          `No hay datos disponibles para ${subject} ahora mismo.`,
         toneClasses:
           'border-slate-400/25 bg-slate-400/10 text-slate-100',
         badgeClasses:
@@ -310,10 +310,10 @@ export function getDataStateMeta(
       return {
         state,
         label: 'Sin cobertura',
-        title: 'Cobertura no disponible',
+        title: 'Aun no hay cobertura suficiente',
         description:
           options.noCoverageDescription ??
-          `Todavia no existe cobertura suficiente para ${subject}.`,
+          `Todavia no hay historico suficiente para mostrar ${subject} con confianza.`,
         toneClasses:
           'border-slate-400/25 bg-slate-400/10 text-slate-100',
         badgeClasses:
@@ -322,11 +322,11 @@ export function getDataStateMeta(
     case 'partial':
       return {
         state,
-        label: 'Dataset parcial',
-        title: 'Cobertura parcial',
+        label: 'Datos parciales',
+        title: 'La cobertura es parcial',
         description:
           options.partialDescription ??
-          `Hay datos para ${subject}, pero la ventana disponible es parcial.`,
+          `Hay datos para ${subject}, pero la ventana disponible todavia no esta completa.`,
         toneClasses:
           'border-amber-400/30 bg-amber-400/10 text-amber-100',
         badgeClasses:
@@ -335,11 +335,11 @@ export function getDataStateMeta(
     case 'stale':
       return {
         state,
-        label: 'Dataset antiguo',
-        title: 'Datos desactualizados',
+        label: 'Datos antiguos',
+        title: 'Los datos no estan frescos',
         description:
           options.staleDescription ??
-          `Los datos disponibles para ${subject} no estan frescos y pueden haber quedado antiguos.`,
+          `Los datos disponibles para ${subject} pueden estar desactualizados. Revisa la hora de la ultima muestra antes de usarlos.`,
         toneClasses:
           'border-orange-400/30 bg-orange-400/10 text-orange-100',
         badgeClasses:
@@ -349,10 +349,10 @@ export function getDataStateMeta(
       return {
         state,
         label: 'Error',
-        title: 'Error cargando datos',
+        title: 'No hemos podido cargar los datos',
         description:
           options.errorDescription ??
-          `No se pudieron cargar ${subject} ahora mismo.`,
+          `No se han podido cargar ${subject} ahora mismo. Intentalo de nuevo o revisa el estado del sistema.`,
         toneClasses:
           'border-rose-500/30 bg-rose-500/10 text-rose-100',
         badgeClasses:
@@ -362,10 +362,10 @@ export function getDataStateMeta(
     default:
       return {
         state: 'ok',
-        label: 'OK',
-        title: 'Datos listos',
+        label: 'Listo',
+        title: 'Datos listos para consultar',
         description:
-          options.okDescription ?? `${subject} estan listos y consistentes.`,
+          options.okDescription ?? `${subject} estan disponibles y son consistentes.`,
         toneClasses:
           'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
         badgeClasses:

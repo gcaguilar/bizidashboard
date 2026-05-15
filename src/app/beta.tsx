@@ -13,7 +13,7 @@ export const Route = createFileRoute('/beta')({
   head: () => {
     const siteUrl = getSiteUrl()
     const title = 'Bici Radar - iOS disponible y Android para testers'
-    const description = 'Bici Radar ya esta disponible en App Store para iPhone. En Android el acceso sigue para testers: unete al Google Group y abre desde tu telefono el enlace de Google Play.'
+    const description = 'Bici Radar ya esta disponible en App Store para iPhone. En Android puedes probarla entrando al grupo de testers y abriendo Google Play desde tu telefono.'
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -87,7 +87,7 @@ export default function BetaPage() {
         '@type': 'MobileApplication',
         name: 'Bici Radar - Estaciones y disponibilidad',
         description:
-          'App para encontrar estaciones de Bizi Zaragoza cercanas, ver bicis y huecos libres en tiempo real y guardar favoritas. iOS disponible en App Store y Android en acceso para testers.',
+          'App para encontrar estaciones de Bizi Zaragoza cercanas, ver bicis y huecos libres y guardar favoritas. iOS esta disponible en App Store y Android sigue en acceso para testers.',
         operatingSystem: 'Android, iOS',
         applicationCategory: 'TravelApplication',
         url: `${siteUrl}${appRoutes.beta()}`,
@@ -150,12 +150,12 @@ export default function BetaPage() {
       <header className="ui-page-hero">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Disponibilidad por plataforma</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Descarga y beta</p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
               Bici Radar en tu movil
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Encuentra estaciones cercanas, consulta bicis y huecos libres en tiempo real y
+              Encuentra estaciones cercanas, consulta bicis y huecos libres y
               guarda tus favoritas para tenerlas siempre a mano. En iOS ya puedes descargar la
               version publica desde la App Store. En Android el acceso sigue para testers: unete
               al Google Group y despues abre desde tu telefono el enlace de Google Play.

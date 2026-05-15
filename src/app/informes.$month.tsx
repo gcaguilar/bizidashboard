@@ -15,7 +15,7 @@ export const Route = createFileRoute('/informes/$month')({
   head: (opts) => {
     const month = opts.params.month ?? ''
     const title = `Informe ${formatMonthLabel(month)} - DatosBizi`
-    const description = `Informe mensual de movilidad Bizi Zaragoza para ${formatMonthLabel(month)}. Datos de demanda, estaciones y patrones de uso.`
+    const description = `Informe mensual de Bizi Zaragoza para ${formatMonthLabel(month)}: demanda estimada, estaciones y patrones de uso.`
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -54,15 +54,15 @@ function InformesMonthPage() {
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
               Informe {formatMonthLabel(month)}
             </h1>
-            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Curva de demanda y metricas del mes seleccionado.</p>
+            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen mensual con demanda estimada, estaciones y patrones del periodo seleccionado.</p>
           </div>
         </div>
       </header>
       {shouldShowDataStateNotice(dataState) ? (
-        <DataStateNotice state={dataState} subject="el informe mensual" description="Los datos del informe dependen del estado del dataset." href={appRoutes.status()} actionLabel="Ver estado" />
+        <DataStateNotice state={dataState} subject="el informe mensual" description="Este informe depende de los datos historicos disponibles. Revisa el estado si ves huecos o cobertura parcial." href={appRoutes.status()} actionLabel="Revisar estado" />
       ) : null}
       <section className="ui-section-card">
-        <p className="text-sm text-[var(--muted)]">Proximamente: curva de demanda y metricas para {formatMonthLabel(month)}.</p>
+        <p className="text-sm text-[var(--muted)]">Estamos preparando el detalle visual de {formatMonthLabel(month)}. Mientras tanto, puedes abrir el dashboard con este mes seleccionado desde el archivo de informes.</p>
       </section>
     </PageShell>
   )

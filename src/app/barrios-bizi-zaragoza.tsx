@@ -9,7 +9,7 @@ export const Route = createFileRoute('/barrios-bizi-zaragoza')({
   head: () => {
     const siteUrl = getSiteUrl()
     const title = 'Barrios de Bizi Zaragoza - DatosBizi'
-    const description = 'Analiza los barrios del sistema Bizi Zaragoza. Comparativas por distrito, estaciones por barrio y patrones de movilidad urbana.'
+    const description = 'Compara los barrios de Zaragoza con datos de Bizi: estaciones, disponibilidad y patrones de uso por zona.'
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/barrios-bizi-zaragoza')({
 function BarriosBiziZaragozaPage() {
   const { config, content, indexability } = Route.useLoaderData();
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div>Cargando barrios...</div>}>
       <SeoLandingPageComponent
         slug="barrios-bizi-zaragoza"
         config={config}

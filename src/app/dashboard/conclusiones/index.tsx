@@ -43,7 +43,7 @@ function formatHourLabel(hour: number): string {
 }
 
 function getDemandCardLabel(selectedMonth: string | null): string {
-  return selectedMonth ? 'Variacion demanda del mes' : 'Variacion demanda 7 dias';
+  return selectedMonth ? 'Cambio de demanda del mes' : 'Cambio de demanda 7 dias';
 }
 
 function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
@@ -52,8 +52,8 @@ function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
     : null;
 
   return payload.selectedMonth
-    ? `Demanda agregada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (indice de actividad, no viajes exactos).`
-    : `Demanda agregada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 dias (indice de actividad, no viajes exactos).`;
+    ? `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (indice de actividad, no viajes exactos).`
+    : `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 dias (indice de actividad, no viajes exactos).`;
 }
 
 function getOccupancyCardLabel(selectedMonth: string | null): string {
@@ -159,7 +159,7 @@ export default function DashboardConclusionsPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl space-y-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Informe ejecutivo diario
+              Resumen diario
             </p>
             <h2 className="text-2xl font-black leading-tight text-[var(--foreground)] md:text-3xl">
               Conclusiones generales de movilidad en Zaragoza
@@ -168,10 +168,10 @@ export default function DashboardConclusionsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">Dia informe {payload.dateKey}</span>
+            <span className="ui-chip">Dia {payload.dateKey}</span>
             <span className="ui-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
             <span className="ui-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
-            <span className="ui-chip">{fromCache ? 'Actualizacion diaria en cache' : 'Actualizado hoy'}</span>
+            <span className="ui-chip">{fromCache ? 'Actualizacion diaria guardada' : 'Actualizado hoy'}</span>
           </div>
         </div>
       </section>
@@ -207,7 +207,7 @@ export default function DashboardConclusionsPage() {
           </p>
 
           {payload.highlights.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--muted)]">Sin highlights disponibles para el dia actual.</p>
+            <p className="mt-4 text-sm text-[var(--muted)]">Aun no hay hallazgos suficientes para el dia actual.</p>
           ) : (
             <div className="mt-4 space-y-3">
               {payload.highlights.map((item) => (
@@ -336,7 +336,7 @@ export default function DashboardConclusionsPage() {
               {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
             </h3>
             <span className="text-xs text-[var(--muted)]">
-              {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria en cache de BD'}
+              {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria guardada'}
             </span>
           </div>
 
@@ -424,7 +424,7 @@ export default function DashboardConclusionsPage() {
                 >
                   <div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">Informe {toMonthOptions([month])[0]?.label ?? month}</p>
-                    <p className="text-[11px] text-[var(--muted)]">URL indexable permanente con resumen y enlaces al dashboard filtrado.</p>
+                    <p className="text-[11px] text-[var(--muted)]">Enlace permanente con resumen y accesos al dashboard filtrado.</p>
                   </div>
                   <span className="text-xs font-bold text-[var(--primary)]">Abrir</span>
                 </Link>
@@ -436,7 +436,7 @@ export default function DashboardConclusionsPage() {
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Landings SEO relacionadas</h3>
-            <span className="text-xs text-[var(--muted)]">Enlazadas al dashboard y al detalle de estaciones</span>
+            <span className="text-xs text-[var(--muted)]">Con enlaces al dashboard y al detalle de estaciones</span>
           </div>
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">

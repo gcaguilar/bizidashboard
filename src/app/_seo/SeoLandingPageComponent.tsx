@@ -63,7 +63,7 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
         name: 'Donde puedo ver el detalle operativo completo?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Desde esta landing puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle en tiempo real.`,
+          text: `Desde esta pagina puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle actualizado.`,
         },
       },
     ],
@@ -220,7 +220,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability }:
 
       {content.emptyReason ? (
         <section className="rounded-2xl border border-amber-500/30 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
-          <p className="font-semibold">Cobertura parcial</p>
+            <p className="font-semibold">Datos parciales</p>
           <p className="mt-1 text-xs text-amber-100/80">{content.emptyReason}</p>
         </section>
       ) : null}
@@ -242,7 +242,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability }:
               {content.sectionTitle}
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Vista enlazable con acceso rapido al dashboard y a las fichas publicas relacionadas.
+              Vista con acceso rapido al dashboard y a las fichas publicas relacionadas.
             </p>
           </div>
         </div>
@@ -303,7 +303,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability }:
           </div>
         ) : (
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Esta landing quedara automaticamente poblada cuando el dataset tenga cobertura suficiente.
+            Esta pagina se completara automaticamente cuando haya cobertura suficiente.
           </p>
         )}
       </section>
