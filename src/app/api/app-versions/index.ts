@@ -1,10 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { isRecord, tryParseJson } from '@/lib/json'
-import { logger } from '@/lib/logger'
+import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { enforcePublicApiAccess } from '@/lib/security/public-api'
-
-const PUBLIC_ROUTE_RATE_LIMIT = { limit: 30, windowMs: 60_000 }
+import { logger } from '@/lib/logger'
 
 export type AppVersion = { version: string; allowed: boolean; reason?: string }
 export type AppVersionsResponse = { minVersion: string; maxVersion: string; versions: AppVersion[] }
@@ -34,22 +32,20 @@ const APP_VERSIONS = parseAppVersions()
 export const Route = createFileRoute('/api/app-versions/')({
   server: {
     handlers: {
-      GET: async (opts) => {
-        const request = opts.request
-        try {
-          const access = await enforcePublicApiAccess({
-            route: '/api/app-versions', request, requestId: '',
-            clientIp: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
-            userAgent: request.headers.get('user-agent') || '',
-            namespace: 'public-app-versions', limit: PUBLIC_ROUTE_RATE_LIMIT.limit, windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs, requireApiKey: false,
-          })
-          if (!access.ok) return access.response
-          return new Response(JSON.stringify(APP_VERSIONS), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600, s-maxage=86400', ...access.headers } })
-        } catch (error) {
-          captureExceptionWithContext(error, { area: 'api.app-versions', operation: 'GET /api/app-versions' })
-          return new Response(JSON.stringify(APP_VERSIONS), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' } })
+      GET: withPublicApiRoute(
+        {
+          route: '/api/app-versions',
+          routeGroup: 'api.app-versions',
+          namespace: 'public-app-versions',
+          limit: 30,
+          windowMs: 60_000,
+          requireApiKey: false,
+          cacheControl: 'public, max-age=3600, s-maxage=86400',
+        },
+        (_opts, access) => {
+          return new Response(JSON.stringify(APP_VERSIONS), { status: 200, headers: { 'Content-Type': 'application/json', ...access.headers } })
         }
-      },
+      ),
     },
   },
 })

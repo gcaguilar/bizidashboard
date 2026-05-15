@@ -1,17 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { buildRebalancingReport } from '@/lib/rebalancing-report'
-import { errorResponse } from '@/lib/api-response'
-import { logger } from '@/lib/logger'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { enforcePublicApiAccess } from '@/lib/security/public-api'
+import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import type { StationDiagnostic, TransferRecommendation } from '@/types/rebalancing'
 
 const MAX_DAYS = 90
 const DEFAULT_DAYS = 15
-const PUBLIC_ROUTE_RATE_LIMIT = {
-  limit: 20,
-  windowMs: 60_000,
-}
 
 function parseDays(value: string | null): number | null {
   if (value === null) return DEFAULT_DAYS
@@ -66,11 +59,22 @@ function toCsvTransfers(rows: TransferRecommendation[]): string {
 export const Route = createFileRoute('/api/rebalancing-report/')({
   server: {
     handlers: {
-      GET: async (opts) => {
-        const request = opts.request
-        try {
+      GET: withPublicApiRoute(
+        {
+          route: '/api/rebalancing-report',
+          routeGroup: 'api.rebalancing-report',
+          namespace: 'public-rebalancing',
+          limit: 20,
+          windowMs: 60_000,
+          requireApiKey: (url) => {
+            const format = url.searchParams.get('format')
+            const days = parseDays(url.searchParams.get('days'))
+            return format === 'csv' || (days !== null && days > 30)
+          },
+          cacheControl: 'public, max-age=300, stale-while-revalidate=60',
+        },
+        async ({ request, access }) => {
           const { searchParams } = new URL(request.url)
-          const district = searchParams.get('district')?.trim() || null
           const format = searchParams.get('format')
           const daysParam = searchParams.get('days')
 
@@ -80,24 +84,10 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           }
 
           if (format !== null && format !== 'json' && format !== 'csv') {
-            return errorResponse('Invalid format. Use json or csv.', 400)
+            return new Response(JSON.stringify({ error: 'Invalid format. Use json or csv.' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
           }
 
-          const access = await enforcePublicApiAccess({
-            route: '/api/rebalancing-report',
-            request,
-            requestId: '',
-            clientIp: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
-            userAgent: request.headers.get('user-agent') || '',
-            namespace: 'public-rebalancing',
-            limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
-            windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
-            requireApiKey: format === 'csv' || days > 30,
-          })
-
-          if (!access.ok) return access.response
-
-          const report = await buildRebalancingReport({ days, district })
+          const report = await buildRebalancingReport({ days })
 
           if (format === 'csv') {
             const diagCsv = toCsvDiagnostics(report.diagnostics)
@@ -108,7 +98,6 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
               headers: {
                 'Content-Type': 'text/csv; charset=utf-8',
                 'Content-Disposition': `attachment; filename="rebalancing-report-${days}d.csv"`,
-                'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
                 ...access.headers,
               },
             })
@@ -116,14 +105,10 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
 
           return new Response(JSON.stringify(report), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, stale-while-revalidate=60', ...access.headers },
+            headers: { 'Content-Type': 'application/json', ...access.headers },
           })
-        } catch (error) {
-          captureExceptionWithContext(error, { area: 'api.rebalancing-report', operation: 'GET /api/rebalancing-report' })
-          logger.error('api.rebalancing_report.failed', { error })
-          return errorResponse('Failed to build rebalancing report', 500)
         }
-      },
+      ),
     },
   },
 })

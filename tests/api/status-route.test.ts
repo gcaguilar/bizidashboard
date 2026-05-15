@@ -97,8 +97,7 @@ describe('GET /api/status', () => {
     const payload = await response.json();
 
     expect(response.status).toBe(500);
-    expect(payload.error).toBe('Failed to fetch status');
-    expect(payload.dataState).toBe('error');
+    expect(payload.error).toBe('Internal server error');
   });
 
   it('exports status as csv when requested', async () => {

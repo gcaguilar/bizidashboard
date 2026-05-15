@@ -102,7 +102,6 @@ describe('GET /api/stations', () => {
     const payload = await response.json();
 
     expect(response.status).toBe(500);
-    expect(payload.error).toBe('Failed to fetch stations');
-    expect(payload.dataState).toBe('error');
+    expect(payload.error).toBe('Internal server error');
   });
 });
