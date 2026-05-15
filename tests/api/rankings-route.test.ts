@@ -33,7 +33,9 @@ vi.mock('@/services/shared-data', () => ({
   getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
 }));
 
-import { GET } from '@/app/api/rankings';
+import { Route } from '@/app/api/rankings/index';
+
+const handler = Route.options.server!.handlers!.GET!
 
 describe('GET /api/rankings', () => {
   beforeEach(() => {
@@ -96,9 +98,7 @@ describe('GET /api/rankings', () => {
       },
     ]);
 
-    const response = await GET(
-      new Request('http://localhost/api/rankings?type=turnover&limit=1') as never
-    );
+    const response = await handler({ request: new Request('http://localhost/api/rankings?type=turnover&limit=1') });
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -110,7 +110,19 @@ describe('GET /api/rankings', () => {
     expect(payload.dataState).toBe('ok');
   });
 
-  it.skip('returns dataState error for invalid params', async () => {
-    // Param validation not yet implemented in the TanStack route.
+  it('returns dataState error for invalid type param', async () => {
+    const response = await handler({ request: new Request('http://localhost/api/rankings?type=invalid&limit=1') });
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.error).toBeDefined();
+    expect(payload.dataState).toBe('error');
+  });
+
+  it('returns dataState error for invalid limit param', async () => {
+    const response = await handler({ request: new Request('http://localhost/api/rankings?type=turnover&limit=-1') });
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.error).toBeDefined();
+    expect(payload.dataState).toBe('error');
   });
 });

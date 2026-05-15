@@ -245,9 +245,12 @@ describe('shared data consistency', () => {
     expect(dashboard.coverage.generatedAt).toBe(help.generatedAt);
   });
 
-  it.skip('keeps reports, api history, and the shared coverage contract aligned', async () => {
-    // History route removed during TanStack Start migration — test skipped until endpoint is restored.
-  });
+  it('history route handler is accessible and properly configured', async () => {
+    const { Route } = await import('@/app/api/history/index');
+    expect(Route.options.server).toBeDefined();
+    expect(Route.options.server!.handlers!.GET).toBeDefined();
+    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
+  }, 15000);
 
   it('keeps date boundaries monotonic across dashboard, reports, and history metadata', async () => {
     const dashboard = await fetchSharedDatasetSnapshot();

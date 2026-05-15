@@ -8,7 +8,9 @@ vi.mock('@/services/shared-data', () => ({
   getPipelineStatusSummary: getStatusMock,
 }));
 
-import { GET } from '@/app/api/status';
+import { Route } from '@/app/api/status/index';
+
+const handler = Route.options.server!.handlers!.GET!
 
 describe('GET /api/status', () => {
   beforeEach(() => {
@@ -77,7 +79,7 @@ describe('GET /api/status', () => {
       timestamp: new Date('2026-01-01T00:05:00.000Z'),
     });
 
-    const response = await GET(new Request('http://localhost/api/status') as never);
+    const response = await handler({ request: new Request('http://localhost/api/status') });
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -91,7 +93,7 @@ describe('GET /api/status', () => {
   it('returns 500 when status aggregation throws', async () => {
     getStatusMock.mockRejectedValue(new Error('metrics failed'));
 
-    const response = await GET(new Request('http://localhost/api/status') as never);
+    const response = await handler({ request: new Request('http://localhost/api/status') });
     const payload = await response.json();
 
     expect(response.status).toBe(500);
@@ -99,7 +101,16 @@ describe('GET /api/status', () => {
     expect(payload.dataState).toBe('error');
   });
 
-  it.skip('exports status as csv when requested', async () => {
-    // CSV export not yet implemented in the no-request branch of the TanStack route.
+  it('exports status as csv when requested', async () => {
+    getStatusMock.mockResolvedValue({
+      pipeline: { lastSuccessfulPoll: '2026-01-01T00:00:00.000Z', totalRowsCollected: 42, healthStatus: 'healthy' },
+      quality: { freshness: { lastUpdated: '2026-01-01T00:00:00.000Z', isFresh: true }, volume: { expectedRange: { min: 1, max: 400 } } },
+      timestamp: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    const response = await handler({ request: new Request('http://localhost/api/status?format=csv') });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toContain('csv');
+    const body = await response.text();
+    expect(body).toContain('timestamp');
   });
 });

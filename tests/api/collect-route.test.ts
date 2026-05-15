@@ -1,5 +1,12 @@
-import { describe } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { Route } from '@/app/api/collect/index';
 
-describe.skip('GET /api/collect', () => {
-  // Route removed during TanStack Start migration — collection endpoint not yet migrated.
+describe('GET /api/collect', () => {
+  it('exposes POST and GET handlers through server options', () => {
+    expect(Route.options.server).toBeDefined();
+    expect(Route.options.server!.handlers!.POST).toBeDefined();
+    expect(typeof Route.options.server!.handlers!.POST).toBe('function');
+    expect(Route.options.server!.handlers!.GET).toBeDefined();
+    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
+  });
 });

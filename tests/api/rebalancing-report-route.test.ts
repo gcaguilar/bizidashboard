@@ -1,5 +1,10 @@
-import { describe } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { Route } from '@/app/api/rebalancing-report/index';
 
-describe.skip('API rebalancing-report', () => {
-  // Route removed during TanStack Start migration — rebalancing-report endpoint not yet migrated.
+describe('API rebalancing-report', () => {
+  it('exposes GET handler through server options', () => {
+    expect(Route.options.server).toBeDefined();
+    expect(Route.options.server!.handlers!.GET).toBeDefined();
+    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
+  });
 });
