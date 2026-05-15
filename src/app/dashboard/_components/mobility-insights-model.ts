@@ -28,13 +28,14 @@ export type DailyDemandRow = {
 };
 
 export type MobilityResponse = {
-  mobilityDays: number;
-  demandDays: number;
+  mobilityDays?: number;
+  demandDays?: number;
   selectedMonth?: string | null;
-  methodology: string;
-  hourlySignals: MobilitySignalRow[];
-  dailyDemand: DailyDemandRow[];
-  generatedAt: string;
+  methodology?: string;
+  hourlySignals?: Array<unknown>;
+  dailyDemand?: Array<unknown>;
+  systemHourlyProfile?: Array<unknown>;
+  generatedAt?: string;
   dataState?: DataState;
 };
 
@@ -126,13 +127,22 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 export function isMobilityResponse(value: unknown): value is MobilityResponse {
-  return (
-    isObject(value) &&
-    typeof value.methodology === 'string' &&
-    typeof value.generatedAt === 'string' &&
-    Array.isArray(value.hourlySignals) &&
-    Array.isArray(value.dailyDemand)
-  );
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const obj = value as Record<string, unknown>;
+  const hasMethodology = typeof obj.methodology === 'string';
+  const hasGeneratedAt = typeof obj.generatedAt === 'string';
+  const hasHourlySignals = Array.isArray(obj.hourlySignals);
+  const hasDailyDemand = Array.isArray(obj.dailyDemand);
+  const hasSystemHourlyProfile = Array.isArray(obj.systemHourlyProfile);
+  if (!hasMethodology && !hasDailyDemand) {
+    return false;
+  }
+  if (!hasHourlySignals && !hasDailyDemand) {
+    return false;
+  }
+  return true;
 }
 
 function toSafeNumber(value: unknown): number {

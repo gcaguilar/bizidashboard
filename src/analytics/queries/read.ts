@@ -245,23 +245,32 @@ export async function getStationRankings(
     windowEnd: string;
   }[]
 > {
-  if (type === 'availability') {
-    return prisma.$queryRaw`
+  const rows = type === 'availability'
+    ? await prisma.$queryRaw<Array<{ id: unknown; stationId: unknown; turnoverScore: unknown; emptyHours: unknown; fullHours: unknown; totalHours: unknown; windowStart: unknown; windowEnd: unknown }>>`
       SELECT id, "stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd"
       FROM "StationRanking"
       WHERE "windowEnd" = (SELECT MAX("windowEnd") FROM "StationRanking")
       ORDER BY ("emptyHours" + "fullHours") DESC
       LIMIT ${limit};
+    `
+    : await prisma.$queryRaw<Array<{ id: unknown; stationId: unknown; turnoverScore: unknown; emptyHours: unknown; fullHours: unknown; totalHours: unknown; windowStart: unknown; windowEnd: unknown }>>`
+      SELECT id, "stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd"
+      FROM "StationRanking"
+      WHERE "windowEnd" = (SELECT MAX("windowEnd") FROM "StationRanking")
+      ORDER BY "turnoverScore" DESC
+      LIMIT ${limit};
     `;
-  }
 
-  return prisma.$queryRaw`
-    SELECT id, "stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd"
-    FROM "StationRanking"
-    WHERE "windowEnd" = (SELECT MAX("windowEnd") FROM "StationRanking")
-    ORDER BY "turnoverScore" DESC
-    LIMIT ${limit};
-  `;
+  return rows.map((row) => ({
+    id: toSerializableNumber(row.id),
+    stationId: String(row.stationId),
+    turnoverScore: toSerializableNumber(row.turnoverScore),
+    emptyHours: toSerializableNumber(row.emptyHours),
+    fullHours: toSerializableNumber(row.fullHours),
+    totalHours: toSerializableNumber(row.totalHours),
+    windowStart: String(row.windowStart),
+    windowEnd: String(row.windowEnd),
+  }));
 }
 
 /** Patrones agregados (laborable/fin de semana × hora) para varias estaciones en una sola consulta. */
@@ -311,14 +320,14 @@ export async function getStationsWithLatestStatus(): Promise<
 > {
   const rows = await prisma.$queryRaw<
     Array<{
-      id: string;
-      name: string;
-      lat: number;
-      lon: number;
-      capacity: number;
-      bikesAvailable: number;
-      anchorsFree: number;
-      recordedAt: string | Date;
+      id: unknown;
+      name: unknown;
+      lat: unknown;
+      lon: unknown;
+      capacity: unknown;
+      bikesAvailable: unknown;
+      anchorsFree: unknown;
+      recordedAt: unknown;
     }>
   >`
     SELECT s.id, s.name, s.lat, s.lon, s.capacity,
@@ -336,9 +345,15 @@ export async function getStationsWithLatestStatus(): Promise<
   `;
 
   return rows.map((row) => ({
-    ...row,
+    id: String(row.id),
+    name: String(row.name),
+    lat: toSerializableNumber(row.lat),
+    lon: toSerializableNumber(row.lon),
+    capacity: toSerializableNumber(row.capacity),
+    bikesAvailable: toSerializableNumber(row.bikesAvailable),
+    anchorsFree: toSerializableNumber(row.anchorsFree),
     recordedAt:
-      row.recordedAt instanceof Date ? row.recordedAt.toISOString() : row.recordedAt,
+      row.recordedAt instanceof Date ? row.recordedAt.toISOString() : String(row.recordedAt),
   }));
 }
 
@@ -454,13 +469,35 @@ export async function getActiveAlerts(limit = 50): Promise<
     isActive: boolean;
   }[]
 > {
-  return prisma.$queryRaw`
+  const rows = await prisma.$queryRaw<
+    {
+      id: unknown;
+      stationId: unknown;
+      alertType: unknown;
+      severity: unknown;
+      metricValue: unknown;
+      windowHours: unknown;
+      generatedAt: unknown;
+      isActive: unknown;
+    }[]
+  >`
     SELECT id, "stationId", "alertType", severity, "metricValue", "windowHours", "generatedAt", "isActive"
     FROM "StationAlert"
     WHERE "isActive" = true
     ORDER BY "generatedAt" DESC
     LIMIT ${limit};
   `;
+
+  return rows.map((row) => ({
+    id: toSerializableNumber(row.id),
+    stationId: String(row.stationId),
+    alertType: String(row.alertType) as AlertType,
+    severity: toSerializableNumber(row.severity),
+    metricValue: toSerializableNumber(row.metricValue),
+    windowHours: toSerializableNumber(row.windowHours),
+    generatedAt: row.generatedAt instanceof Date ? row.generatedAt.toISOString() : String(row.generatedAt),
+    isActive: row.isActive === true || row.isActive === 'true' || row.isActive === 1,
+  }));
 }
 
 export async function getHourlyMobilitySignals(
@@ -469,7 +506,13 @@ export async function getHourlyMobilitySignals(
 ): Promise<HourlyMobilitySignalRow[]> {
   const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
-  const rows = await prisma.$queryRaw<HourlyMobilitySignalRow[]>`
+  const rows = await prisma.$queryRaw<Array<{
+    stationId: unknown;
+    hour: unknown;
+    departures: unknown;
+    arrivals: unknown;
+    sampleCount: unknown;
+  }>>`
     WITH with_lag AS (
       SELECT
         "stationId",
@@ -498,7 +541,7 @@ export async function getHourlyMobilitySignals(
   `;
 
   return rows.map((row) => ({
-    ...row,
+    stationId: String(row.stationId),
     hour: toSerializableNumber(row.hour),
     departures: toSerializableNumber(row.departures),
     arrivals: toSerializableNumber(row.arrivals),
@@ -508,10 +551,15 @@ export async function getHourlyMobilitySignals(
 
 export async function getDailyDemandCurve(days = 30, monthKey?: string): Promise<DailyDemandRow[]> {
   const query = buildDemandSeriesQuery(days, monthKey)
-  const rows = await prisma.$queryRaw<DailyDemandRow[]>(query)
+  const rows = await prisma.$queryRaw<Array<{
+    day: unknown;
+    demandScore: unknown;
+    avgOccupancy: unknown;
+    sampleCount: unknown;
+  }>>(query)
 
   return rows.map((row) => ({
-    ...row,
+    day: String(row.day),
     demandScore: toSerializableNumber(row.demandScore),
     avgOccupancy: toSerializableNumber(row.avgOccupancy),
     sampleCount: toSerializableNumber(row.sampleCount),
@@ -589,7 +637,12 @@ export async function getSystemHourlyProfile(
 ): Promise<SystemHourlyProfileRow[]> {
   const rangeFilter = buildRangeFilter('bucketStart', days, monthKey);
 
-  const rows = await prisma.$queryRaw<SystemHourlyProfileRow[]>`
+  const rows = await prisma.$queryRaw<Array<{
+    hour: unknown;
+    avgOccupancy: unknown;
+    avgBikesAvailable: unknown;
+    sampleCount: unknown;
+  }>>`
     SELECT
       EXTRACT(HOUR FROM "bucketStart")::int AS hour,
       AVG("occupancyAvg") AS "avgOccupancy",
@@ -602,7 +655,6 @@ export async function getSystemHourlyProfile(
   `;
 
   return rows.map((row) => ({
-    ...row,
     hour: toSerializableNumber(row.hour),
     avgOccupancy: toSerializableNumber(row.avgOccupancy),
     avgBikesAvailable: toSerializableNumber(row.avgBikesAvailable),

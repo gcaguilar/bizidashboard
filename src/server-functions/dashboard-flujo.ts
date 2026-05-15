@@ -11,6 +11,33 @@ const FlowSearchParamsSchema = z.object({
 
 type FlowSearchParams = z.infer<typeof FlowSearchParamsSchema>;
 
+function serializeStationsResponse(data: unknown) {
+  if (!data || typeof data !== 'object') {
+    return { stations: [], generatedAt: new Date().toISOString() };
+  }
+  const d = data as Record<string, unknown>;
+  const stations = Array.isArray(d.stations)
+    ? d.stations.map((s: unknown) => {
+        if (!s || typeof s !== 'object') return s;
+        const obj = s as Record<string, unknown>;
+        return {
+          id: String(obj.id ?? ''),
+          name: String(obj.name ?? ''),
+          lat: typeof obj.lat === 'number' ? obj.lat : Number(obj.lat) || 0,
+          lon: typeof obj.lon === 'number' ? obj.lon : Number(obj.lon) || 0,
+          capacity: Number(obj.capacity) || 0,
+          bikesAvailable: Number(obj.bikesAvailable) || 0,
+          anchorsFree: Number(obj.anchorsFree) || 0,
+          recordedAt: typeof obj.recordedAt === 'string' ? obj.recordedAt : new Date().toISOString(),
+        };
+      })
+    : [];
+  return {
+    stations,
+    generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
+  };
+}
+
 export const getDashboardFlowPageData = createServerFn({ method: 'GET' })
   .inputValidator(FlowSearchParamsSchema)
   .handler(async ({ data: searchParams }: { data: FlowSearchParams | undefined }) => {

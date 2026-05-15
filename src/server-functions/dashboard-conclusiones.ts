@@ -1,4 +1,86 @@
 import { createServerFn } from '@tanstack/react-start';
+
+function safeNumber(value: unknown): number {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+  if (typeof value === 'bigint') return Number(value);
+  return 0;
+}
+
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  return String(value);
+}
+
+function serializeConclusionsPayload(payload: unknown): MobilityConclusionsPayload {
+  if (!payload || typeof payload !== 'object') {
+    return buildFallbackPayload();
+  }
+  const p = payload as Record<string, unknown>;
+  const metrics = (p.metrics as Record<string, unknown> | undefined) || {};
+  const weekdayWeekendProfile = (p.weekdayWeekendProfile as Record<string, unknown> | undefined) || {};
+  const weekday = (weekdayWeekendProfile.weekday as Record<string, unknown> | undefined) || {};
+  const weekend = (weekdayWeekendProfile.weekend as Record<string, unknown> | undefined) || {};
+
+  return {
+    dateKey: safeString(p.dateKey),
+    generatedAt: safeString(p.generatedAt),
+    selectedMonth: p.selectedMonth ? safeString(p.selectedMonth) : null,
+    sourceFirstDay: p.sourceFirstDay ? safeString(p.sourceFirstDay) : null,
+    sourceLastDay: p.sourceLastDay ? safeString(p.sourceLastDay) : null,
+    totalHistoricalDays: safeNumber(p.totalHistoricalDays),
+    stationsWithData: safeNumber(p.stationsWithData),
+    activeStations: safeNumber(p.activeStations),
+    metrics: {
+      demandLast7Days: safeNumber(metrics.demandLast7Days),
+      demandPrevious7Days: safeNumber(metrics.demandPrevious7Days),
+      demandDeltaRatio: p.metrics.demandDeltaRatio != null ? safeNumber(p.metrics.demandDeltaRatio) : null,
+      occupancyLast7Days: safeNumber(metrics.occupancyLast7Days),
+      occupancyPrevious7Days: safeNumber(metrics.occupancyPrevious7Days),
+      occupancyDeltaRatio: p.metrics.occupancyDeltaRatio != null ? safeNumber(p.metrics.occupancyDeltaRatio) : null,
+    },
+    summary: safeString(p.summary),
+    highlights: Array.isArray(p.highlights) ? p.highlights : [],
+    recommendations: Array.isArray(p.recommendations) ? p.recommendations : [],
+    peakDemandHours: Array.isArray(p.peakDemandHours) ? (p.peakDemandHours as Array<Record<string, unknown>>).map((h: Record<string, unknown>) => ({
+      hour: safeNumber(h.hour),
+      demandScore: safeNumber(h.demandScore),
+    })) : [],
+    topDistrictsByDemand: Array.isArray(p.topDistrictsByDemand) ? (p.topDistrictsByDemand as Array<Record<string, unknown>>).map((d: Record<string, unknown>) => ({
+      district: safeString(d.district),
+      demandScore: safeNumber(d.demandScore),
+    })) : [],
+    topStationsByDemand: Array.isArray(p.topStationsByDemand) ? (p.topStationsByDemand as Array<Record<string, unknown>>).map((s: Record<string, unknown>) => ({
+      stationId: safeString(s.stationId),
+      stationName: safeString(s.stationName),
+      avgDemand: safeNumber(s.avgDemand),
+    })) : [],
+    leastUsedStations: Array.isArray(p.leastUsedStations) ? (p.leastUsedStations as Array<Record<string, unknown>>).map((s: Record<string, unknown>) => ({
+      stationId: safeString(s.stationId),
+      stationName: safeString(s.stationName),
+      avgDemand: safeNumber(s.avgDemand),
+    })) : [],
+    weekdayWeekendProfile: {
+      weekday: {
+        avgDemand: safeNumber(weekday.avgDemand),
+        avgOccupancy: safeNumber(weekday.avgOccupancy),
+        daysCount: safeNumber(weekday.daysCount),
+      },
+      weekend: {
+        avgDemand: safeNumber(weekend.avgDemand),
+        avgOccupancy: safeNumber(weekend.avgOccupancy),
+        daysCount: safeNumber(weekend.daysCount),
+      },
+      demandGapRatio: p.weekdayWeekendProfile.demandGapRatio != null ? safeNumber(p.weekdayWeekendProfile.demandGapRatio) : null,
+      dominantPeriod: (p.weekdayWeekendProfile.dominantPeriod as 'weekday' | 'weekend' | null) ?? null,
+    },
+  };
+}
+
 import { z } from 'zod';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
@@ -66,10 +148,14 @@ export const getDashboardConclusionsPageData = createServerFn({ method: 'GET' })
       normalizeMonthSearchParam(searchParams?.month)
     );
 
-    const { payload, fromCache } = await getDailyMobilityConclusions(activeMonth).catch(() => ({
-      payload: fallbackPayload,
-      fromCache: false,
-    }));
+    let conclusionsResult: { payload: unknown; fromCache: boolean } = { payload: fallbackPayload, fromCache: false };
+    try {
+      conclusionsResult = await getDailyMobilityConclusions(activeMonth);
+    } catch {
+      conclusionsResult = { payload: fallbackPayload, fromCache: false };
+    }
+    const payload = serializeConclusionsPayload(conclusionsResult.payload);
+    const fromCache = conclusionsResult.fromCache;
     const breadcrumbs = createRootBreadcrumbs(
       {
         label: 'Dashboard',
