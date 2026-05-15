@@ -1,18 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { GeoJSONSource } from 'maplibre-gl';
-import type { StyleSpecification } from 'react-map-gl/maplibre';
-import {
+import type { StyleSpecification,
   Layer,
   Map,
   Marker,
   Popup,
   Source,
-  type LayerProps,
-  type MapLayerMouseEvent,
-  type MapRef,
 } from 'react-map-gl/maplibre';
+import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
@@ -297,7 +293,7 @@ export function MapEngine({
   };
 
   const expandCluster = async (clusterId: number, coordinates: [number, number]) => {
-    const source = mapRef.current?.getMap().getSource('stations-source') as GeoJSONSource | undefined;
+    const source = mapRef.current?.getMap().getSource('stations-source');
 
     if (!source) {
       return;
@@ -342,7 +338,7 @@ export function MapEngine({
       return;
     }
 
-    const stationId = String(properties.stationId ?? '');
+    const stationId = typeof properties.stationId === 'string' ? properties.stationId : '';
 
     if (!stationId) {
       return;

@@ -42,7 +42,7 @@ export function ThemeToggleButton({ className = 'ui-icon-button' }: ThemeToggleB
           ? 'dark'
           : 'light';
     // DOM ya alineado por script en layout; solo sincronizamos estado del boton
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setTheme(resolved);
   }, []);
 

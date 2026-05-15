@@ -30,7 +30,7 @@ export type GBFSStationInformation = {
 export type StorageResult = {
   success: boolean
   count: number
-  skippedMissingStationIds: string[]
+  skippedMissingStationIds: Array<string>
   errors: Array<{
     stationId: string
     error: string
@@ -60,7 +60,7 @@ export type SnapshotSummary = {
  * @returns Storage result with success status and count
  */
 export async function storeStationStatuses(
-  statuses: GBFSStationStatus[]
+  statuses: Array<GBFSStationStatus>
 ): Promise<StorageResult & { duplicateCount: number }> {
   const result: StorageResult & { duplicateCount: number } = {
     success: true,
@@ -148,7 +148,7 @@ export async function storeStationStatuses(
 }
 
 export async function upsertStations(
-  stations: GBFSStationInformation[]
+  stations: Array<GBFSStationInformation>
 ): Promise<{ createdOrUpdated: number }> {
   if (stations.length === 0) return { createdOrUpdated: 0 };
 
@@ -176,8 +176,8 @@ export async function getStationMetadataCount(): Promise<number> {
 }
 
 export async function getMissingStationIds(
-  stationIds: string[]
-): Promise<string[]> {
+  stationIds: Array<string>
+): Promise<Array<string>> {
   const uniqueStationIds = Array.from(new Set(stationIds))
 
   if (uniqueStationIds.length === 0) {
@@ -210,7 +210,7 @@ export async function getSnapshotCount(recordedAt: Date): Promise<number> {
 export async function getRecentSnapshotSummaries(options?: {
   limit?: number
   minStationCount?: number
-}): Promise<SnapshotSummary[]> {
+}): Promise<Array<SnapshotSummary>> {
   const limit = Math.max(1, options?.limit ?? 10)
   const minStationCount = Math.max(0, options?.minStationCount ?? 0)
   const havingClause =

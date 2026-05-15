@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert } from '@/components/ui/alert';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {

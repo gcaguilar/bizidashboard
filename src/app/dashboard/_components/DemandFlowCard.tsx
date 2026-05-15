@@ -63,7 +63,7 @@ export function DemandFlowCard({
         continue;
       }
 
-      sampledRows.push(dailyDemand[index] as DailyDemandRow);
+      sampledRows.push(dailyDemand[index]);
       previousIndex = index;
     }
 

@@ -64,7 +64,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   if (asChild) {
     return (
       <Slot
-        ref={ref as React.Ref<HTMLElement>}
+        ref={ref}
         data-button-variant={variant}
         className={classes}
         {...(props as React.HTMLAttributes<HTMLElement>)}

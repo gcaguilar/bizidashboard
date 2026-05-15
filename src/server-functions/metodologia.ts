@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { FAQ_ITEMS } from '@/app/dashboard/ayuda/_components/help-center-content';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
 import type { HistoryMetadata } from '@/services/shared-data/types';

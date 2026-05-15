@@ -107,7 +107,7 @@ export function useDistrictData(options?: {
 
   useEffect(() => {
     if (shouldLoadDistricts) {
-      loadDistricts();
+      void loadDistricts();
     }
 
     return () => {
@@ -120,7 +120,7 @@ export function useDistrictData(options?: {
     sessionStorage.removeItem(DISTRICT_CACHE_KEY);
     setDistricts(null);
     setLoading(true);
-    loadDistricts();
+    void loadDistricts();
   }, [loadDistricts]);
 
   return { districts, loading, error, refetch };

@@ -1,6 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 // Native Request/Response replace Request/Response
-import type { IncomingMessage, ServerResponse } from 'node:http';
 import { getCity } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import {

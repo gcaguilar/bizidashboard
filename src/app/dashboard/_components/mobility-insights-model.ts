@@ -355,7 +355,7 @@ export function buildTopEmitterTowardReference(
   }
 
   return {
-    district: activeInsights.districts[bestIndex]!.district,
+    district: activeInsights.districts[bestIndex].district,
     flow: bestFlow,
   };
 }
@@ -395,7 +395,7 @@ export function buildTopReceiverFromReference(
   }
 
   return {
-    district: activeInsights.districts[bestIndex]!.district,
+    district: activeInsights.districts[bestIndex].district,
     flow: bestFlow,
   };
 }

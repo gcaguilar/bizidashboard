@@ -55,6 +55,6 @@ export function buildDashboardUrlSearchParams(
 }
 
 export type ReadonlyURLSearchParamsLike = {
-  get(name: string): string | null;
-  toString(): string;
+  get: (name: string) => string | null;
+  toString: () => string;
 };

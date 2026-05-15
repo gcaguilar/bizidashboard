@@ -64,6 +64,7 @@ export const Route = createFileRoute('/api/geo/search/')({
           return new Response(JSON.stringify({ error: 'Failed to search locations' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
         }
       },
+      // eslint-disable-next-line @typescript-eslint/require-await
       OPTIONS: async (opts) => {
         const request = opts.request
         const rejection = rejectDisallowedMobileOrigin(request)

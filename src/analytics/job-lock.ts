@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/db';
 
 const DEFAULT_LOCK_TTL_MS = 55 * 60 * 1000;

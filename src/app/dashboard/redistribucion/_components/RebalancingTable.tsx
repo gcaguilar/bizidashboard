@@ -83,7 +83,7 @@ function copyToClipboard(diagnostics: StationDiagnostic[]) {
       URGENCY_LABEL[d.urgency],
     ].join('\t'))
     .join('\n');
-  navigator.clipboard.writeText(text);
+  void navigator.clipboard.writeText(text);
 }
 
 function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
@@ -440,7 +440,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
   }, [updateURL]);
 
   // TanStack Table intentionally returns non-memoizable functions; keep this local opt-out explicit.
-  // eslint-disable-next-line react-hooks/incompatible-library
+   
   const table = useReactTable({
     data: diagnostics,
     columns,

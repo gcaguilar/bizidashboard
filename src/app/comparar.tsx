@@ -11,37 +11,7 @@ import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
 import { getSiteUrl } from '@/lib/site';
 
-type CompareSearch = {
-  dimension?: string | string[];
-  left?: string | string[];
-  right?: string | string[];
-};
 
-function buildClientFallbackComparisonSections() {
-  return [
-    {
-      id: 'current',
-      title: 'Comparativas operativas',
-      description:
-        'Lecturas directas para comparar estaciones, barrios, franjas horarias y comportamiento laboral frente al fin de semana.',
-      cards: [],
-    },
-    {
-      id: 'historical',
-      title: 'Comparativas historicas',
-      description:
-        'Cortes temporales para comparar meses, anos, periodos y grandes cambios en la red o en la demanda.',
-      cards: [],
-    },
-    {
-      id: 'changes',
-      title: 'Cambios detectados',
-      description:
-        'Deltas recientes de rankings, demanda y balance para entender si el sistema mejora, empeora o gira de lideres.',
-      cards: [],
-    },
-  ];
-}
 
 function getFirstSearchParam(
   value: string | string[] | undefined
@@ -51,53 +21,6 @@ function getFirstSearchParam(
   }
 
   return value ?? null;
-}
-
-function CompareHubFallback({
-  initialQuery,
-}: {
-  initialQuery: {
-    dimensionId?: string | null;
-    leftId?: string | null;
-    rightId?: string | null;
-  };
-}) {
-  const data = {
-    latestMonth: null,
-    generatedAt: new Date().toISOString(),
-    dataState: 'no_coverage' as const,
-    interactive: {
-      defaultDimensionId: null,
-      dimensions: [],
-    },
-    sections: buildClientFallbackComparisonSections(),
-  };
-
-  return (
-    <>
-      {shouldShowDataStateNotice('loading') ? (
-        <DataStateNotice
-          state="loading"
-          subject="las comparativas del hub"
-          description="Estamos preparando el snapshot comparativo compartido."
-          href={appRoutes.status()}
-          actionLabel="Revisar estado"
-        />
-      ) : null}
-
-      <InteractiveComparePanel data={data.interactive} initialQuery={initialQuery} />
-
-      <section className="grid gap-4 md:grid-cols-3">
-        {data.sections.map((section) => (
-          <article key={section.id} className="ui-section-card">
-            <p className="stat-label">{section.title}</p>
-            <p className="stat-value">{section.cards.length}</p>
-            <p className="text-xs text-[var(--muted)]">{section.description}</p>
-          </article>
-        ))}
-      </section>
-    </>
-  );
 }
 
 function CompareHubContent({
@@ -243,7 +166,7 @@ export const Route = createFileRoute('/comparar')({
 
 export default function ComparePage() {
   const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
-  const search = useSearch({ from: Route.fullPath }) as CompareSearch;
+  const search = useSearch({ from: Route.fullPath });
   const initialQuery = {
     dimensionId: getFirstSearchParam(search.dimension),
     leftId: getFirstSearchParam(search.left),

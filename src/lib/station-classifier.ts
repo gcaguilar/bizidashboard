@@ -22,7 +22,7 @@ export function classifyStation(
   const currentBikes = legacyCall ? 0 : (currentBikesOrTimeBandMetrics as number);
   const currentAnchors = legacyCall ? 0 : (currentAnchorsOrTargetBand as number);
   const globalMetrics = legacyCall
-    ? (capacityOrGlobalMetrics as StationBaseMetrics)
+    ? (capacityOrGlobalMetrics)
     : (globalMetricsOrRotationPercentile as StationBaseMetrics);
   const timeBandMetrics = legacyCall
     ? (currentBikesOrTimeBandMetrics as TimeBandMetrics[])

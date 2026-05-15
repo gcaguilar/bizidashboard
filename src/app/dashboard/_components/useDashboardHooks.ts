@@ -139,7 +139,7 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
     intervalRef.current = setInterval(() => {
       setCountdownMs((prev) => {
         if (prev <= 1000) {
-          triggerRefresh();
+          void triggerRefresh();
           return intervalMs;
         }
         return prev - 1000;

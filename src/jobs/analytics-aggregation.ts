@@ -272,7 +272,7 @@ export function startAnalyticsAggregationJob(): void {
  */
 export function stopAnalyticsAggregationJob(): void {
   if (cronJob) {
-    cronJob.stop();
+    void cronJob.stop();
     cronJob = null;
     logger.info('analytics.cron_stopped');
   }

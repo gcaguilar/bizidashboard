@@ -21,7 +21,8 @@ function parseDays(value: string | null): number | null {
 }
 
 function escapeCell(value: unknown): string {
-  return `"${String(value ?? '').replaceAll('"', '""')}"`
+  const result = typeof value === 'string' ? value : value === null || value === undefined ? '' : JSON.stringify(value)
+  return `"${result.replaceAll('"', '""')}"`
 }
 
 function toCsvDiagnostics(rows: StationDiagnostic[]): string {

@@ -1,8 +1,8 @@
 export type CsvRow = (string | number | boolean | null | undefined)[];
 
 export function escapeCsvCell(value: unknown): string {
-  const str = String(value ?? '');
-  return `"${str.replace(/"/g, '""')}"`;
+  const result = typeof value === 'string' ? value : value === null || value === undefined ? '' : JSON.stringify(value);
+  return `"${result.replace(/"/g, '""')}"`;
 }
 
 export function toCsv(headers: string[], rows: CsvRow[]): string {

@@ -322,7 +322,7 @@ export function NeighborhoodMiniMap({
             <Source
               id="district-stations-source"
               type="geojson"
-              data={stationPoints as unknown as GeoJSON.FeatureCollection}
+              data={stationPoints}
             >
               <Layer {...STATION_POINTS_LAYER_PROPS} />
             </Source>

@@ -1,5 +1,5 @@
-import type { LastUpdatedSummary } from './types';
 import { getCoverageSummary } from './coverage-service';
+import type { LastUpdatedSummary } from './types';
 
 export async function getLastUpdatedSummary(): Promise<LastUpdatedSummary> {
   const coverage = await getCoverageSummary();

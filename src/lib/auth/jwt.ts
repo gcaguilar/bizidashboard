@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
-import { createHash } from 'node:crypto';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID  } from 'node:crypto';
 import { logger } from '@/lib/logger';
 
 const DEFAULT_SECRET = 'dev-secret-do-not-use-in-production';

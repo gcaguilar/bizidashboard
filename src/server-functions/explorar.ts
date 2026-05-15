@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { getCityName } from '@/lib/site';

@@ -44,8 +44,8 @@ function isSubsequence(query: string, target: string): boolean {
 
   let queryIndex = 0;
 
-  for (let i = 0; i < target.length; i += 1) {
-    if (target[i] === query[queryIndex]) {
+  for (const char of target) {
+    if (char === query[queryIndex]) {
       queryIndex += 1;
       if (queryIndex === query.length) {
         return true;

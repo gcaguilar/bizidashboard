@@ -1,7 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
-import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
+import { Link, useLocation, useRouter } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -210,7 +209,10 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const router = useRouter();
   const location = useLocation();
   const pathname = location.pathname;
-  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
+  const searchParams = useMemo(
+    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
+    [location]
+  );
 
   const [stationId, setStationId] = useState('');
   const [alertType, setAlertType] = useState<AlertTypeFilter>('all');
@@ -281,23 +283,23 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
     if (!urlChanged && !stationsJustHydrated) {
       prevStationsLengthRef.current = stations.length;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setIsUrlReady(true);
       return;
     }
 
-    const parsedState = parseViewStateFromSearchParams(
+    const nextParsedState = parseViewStateFromSearchParams(
       new URLSearchParams(serialized),
       stations
     );
 
-    setStationId(parsedState.stationId);
-    setAlertType(parsedState.alertType);
-    setStateFilter(parsedState.stateFilter);
-    setSeverityFilter(parsedState.severityFilter);
-    setFromDate(parsedState.fromDate);
-    setToDate(parsedState.toDate);
-    setPage(parsedState.page);
+    setStationId(nextParsedState.stationId);
+    setAlertType(nextParsedState.alertType);
+    setStateFilter(nextParsedState.stateFilter);
+    setSeverityFilter(nextParsedState.severityFilter);
+    setFromDate(nextParsedState.fromDate);
+    setToDate(nextParsedState.toDate);
+    setPage(nextParsedState.page);
 
     if (urlChanged) {
       lastSyncedUrlRef.current = serialized;
@@ -320,7 +322,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const nextUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
-    router.navigate({ to: nextUrl, replace: true });
+    void router.navigate({ to: nextUrl, replace: true });
   }, [isUrlReady, pathname, router, stations, viewQueryString]);
 
   useAbortableAsyncEffect(
@@ -398,7 +400,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       `${row.windowHours}h`,
     ]);
     const text = [headers, ...textRows].map((row) => row.join('\t')).join('\n');
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
   }, [rows]);
 
   const downloadCsvHref = useMemo(() => {

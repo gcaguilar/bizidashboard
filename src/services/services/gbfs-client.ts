@@ -5,17 +5,18 @@
  * and response validation with automatic retry logic.
  */
 
+import type {
+  GBFSDiscovery,
+  GBFSResponse,
+  StationInformation} from '@/schemas/gbfs';
 import { withRetry } from '@/lib/retry';
 import { logger } from '@/lib/logger';
 import {
-  GBFSDiscovery,
-  GBFSResponse,
-  StationInformation,
   extractFeedUrl,
+  extractStationStatusUrl,
   validateDiscovery,
   validateStationData,
   validateStationInformation,
-  extractStationStatusUrl,
 } from '@/schemas/gbfs';
 
 /** Bizi GBFS discovery URL */
@@ -247,7 +248,7 @@ export async function fetchStationStatus(
 
 export async function fetchStationInformation(
   discovery?: GBFSDiscovery
-): Promise<StationInformation[]> {
+): Promise<Array<StationInformation>> {
   const disc = discovery ?? (await fetchDiscovery());
   const stationInformationUrl = extractFeedUrl(disc, 'station_information');
 

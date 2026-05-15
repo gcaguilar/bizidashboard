@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
@@ -52,7 +52,7 @@ function MonthFilterContent({
     }
 
     const nextQuery = nextParams.toString();
-    router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
+    void router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 
   return (

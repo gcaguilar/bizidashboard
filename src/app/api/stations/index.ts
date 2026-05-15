@@ -5,7 +5,6 @@ import { errorResponse } from '@/lib/api-response'
 import { resolveStationsDataState } from '@/lib/data-state'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { withApiRequest } from '@/lib/security/http'
 import { enforcePublicApiAccess } from '@/lib/security/public-api'
 import { getSharedDatasetSnapshot } from '@/services/shared-data'
 

@@ -55,7 +55,7 @@ function quantile(sortedAsc: number[], q: number): number {
   const base = Math.floor(pos);
   const next = Math.min(sortedAsc.length - 1, base + 1);
   const t = pos - base;
-  return sortedAsc[base]! * (1 - t) + sortedAsc[next]! * t;
+  return sortedAsc[base] * (1 - t) + sortedAsc[next] * t;
 }
 
 function turnoverThresholds(turnovers: number[]): { low: number; high: number } {

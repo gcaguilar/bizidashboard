@@ -455,7 +455,7 @@ export function startCollectionJob(): void {
  */
 export function stopCollectionJob(): void {
   if (cronJob) {
-    cronJob.stop();
+    void cronJob.stop();
     cronJob = null;
     isScheduled = false;
     logger.info('collection.cron_stopped');

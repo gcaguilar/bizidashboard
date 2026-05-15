@@ -368,7 +368,7 @@ export function sanitizeUmamiPayload(
   });
 
   return sanitizedEntries.length > 0
-    ? (Object.fromEntries(sanitizedEntries) as UmamiEventPayload)
+    ? (Object.fromEntries(sanitizedEntries))
     : undefined;
 }
 

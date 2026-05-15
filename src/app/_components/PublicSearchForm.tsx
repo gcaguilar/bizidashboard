@@ -32,7 +32,8 @@ export function PublicSearchForm({
       action={appRoutes.explore()}
       method="get"
       onSubmit={(event) => {
-        const query = String(new FormData(event.currentTarget).get('q') ?? '').trim();
+        const raw = new FormData(event.currentTarget).get('q');
+        const query = (typeof raw === 'string' ? raw : '').trim();
         trackUmamiEvent(
           buildSearchSubmitEvent({
             surface: 'public',

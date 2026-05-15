@@ -10,9 +10,9 @@ type CaptureContext = {
 };
 
 type ScopeLike = {
-  setTag(key: string, value: string): void;
-  setContext(name: string, context: Record<string, unknown> | null): void;
-  setLevel(level: 'warning'): void;
+  setTag: (key: string, value: string) => void;
+  setContext: (name: string, context: Record<string, unknown> | null) => void;
+  setLevel: (level: 'warning') => void;
 };
 
 const capturedMessageKeys = new Set<string>();

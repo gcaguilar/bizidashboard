@@ -2,7 +2,7 @@ import { createFileRoute, redirect, notFound } from '@tanstack/react-router'
 import { PageShell } from '@/components/layout/page-shell'
 
 export const Route = createFileRoute('/$')({
-  loader: async ({ params }) => {
+  loader: ({ params }) => {
     const path = params._splat ?? ''
 
     const redirects: Record<string, string> = {

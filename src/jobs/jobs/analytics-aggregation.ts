@@ -4,7 +4,10 @@
  * Runs hourly rollups and triggers daily rollups + retention after UTC day completion.
  */
 
-import { schedule, ScheduledTask } from 'node-cron';
+import { schedule } from 'node-cron';
+import { ensureLockRefreshed } from './utils';
+import type { ScheduledTask } from 'node-cron';
+import type { CronOptions } from './types';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { acquireJobLock } from '@/analytics/job-lock';
 import { getWatermark } from '@/analytics/watermarks';
@@ -19,12 +22,10 @@ import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
-import { ensureLockRefreshed } from './utils';
-import type { CronOptions } from './types';
 import {
-  getStationsWithLatestStatus,
   getDailyDemandCurve,
   getHourlyMobilitySignals,
+  getStationsWithLatestStatus,
   getSystemHourlyProfile
 } from '@/analytics/queries/read';
 

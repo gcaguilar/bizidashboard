@@ -1,7 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter  } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -221,7 +220,7 @@ export function InteractiveComparePanel({
     }
 
     lastSyncedHref.current = nextHref;
-    router.navigate({ to: nextHref, replace: true });
+    void router.navigate({ to: nextHref, replace: true });
   }
 
   useEffect(() => {

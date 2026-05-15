@@ -6,8 +6,13 @@
  * Also provides manual trigger capability via runCollection().
  */
 
-import { schedule, ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
+import { schedule } from 'node-cron';
+import { ensureLockRefreshed } from './utils';
+import type { ScheduledTask } from 'node-cron';
+import type { CronOptions } from './types';
+import type { DataObservabilityMetrics } from '@/lib/observability';
+import type {CollectionRunTrigger} from '@/lib/collection-runs';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore } from '@/services/data-validator';
 import {
@@ -16,14 +21,13 @@ import {
   getStationMetadataCount,
   upsertStations,
 } from '@/services/data-storage';
-import { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { acquireJobLock } from '@/analytics/job-lock';
 import {
+  
   createCollectionRun,
-  updateCollectionRun,
-  type CollectionRunTrigger,
+  updateCollectionRun
 } from '@/lib/collection-runs';
 import { getCity } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -33,8 +37,6 @@ import {
   runWithExecutionContext,
   updateExecutionContext,
 } from '@/lib/request-context';
-import { ensureLockRefreshed } from './utils';
-import type { CronOptions } from './types';
 
 /**
  * Result of a collection run
@@ -46,7 +48,7 @@ export interface CollectionResult {
   recordedAt: Date | null;
   quality: DataObservabilityMetrics | null;
   duration: number;
-  warnings: string[];
+  warnings: Array<string>;
   error?: string;
   timestamp: Date;
 }
