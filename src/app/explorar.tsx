@@ -1,11 +1,10 @@
 import { Badge } from '@/components/ui/badge';
-import { Link, createFileRoute, useSearch } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatMonthLabel } from '@/lib/months';
-import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes } from '@/lib/routes';
 import { EXPLORE_PAGE_NAV_CONFIG } from '@/lib/seo-pages';
 import { PageShell } from '@/components/layout/page-shell';
@@ -13,19 +12,7 @@ import { formatStatusDateTime } from '@/lib/system-status';
 import { getExploreLoaderData } from '@/server-functions/explorar';
 import { getSiteUrl } from '@/lib/site';
 
-type ExploreSearch = {
-  q?: string;
-};
 
-function getFirstSearchParam(
-  value: string | string[] | undefined
-): string {
-  if (Array.isArray(value)) {
-    return value[0] ?? '';
-  }
-
-  return value ?? '';
-}
 
 export const Route = createFileRoute('/explorar')({
   head: () => {

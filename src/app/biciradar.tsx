@@ -1,11 +1,10 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
-import { buildSocialImagePath } from '@/lib/social-images';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Badge } from '@/components/ui/badge';

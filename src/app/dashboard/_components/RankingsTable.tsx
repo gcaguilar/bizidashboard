@@ -1,9 +1,7 @@
 'use client';
 
-import { Suspense } from 'react';
-import { Link } from '@tanstack/react-router';
-import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { Suspense, useMemo  } from 'react';
+import { Link, useLocation, useRouter } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,7 +57,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
     }
 
     const nextQuery = nextParams.toString();
-    router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
+    void router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 
   const stationMap = useMemo(() => {

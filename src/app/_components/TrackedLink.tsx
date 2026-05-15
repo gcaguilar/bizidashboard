@@ -1,9 +1,7 @@
 'use client';
 
-import type { LinkProps } from '@tanstack/react-router';
-import { Link } from '@tanstack/react-router';
-import { useLocation } from '@tanstack/react-router';
-import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
+import { Link, useLocation  } from '@tanstack/react-router';
+import type { MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
   buildEntitySelectEvent,
@@ -43,7 +41,6 @@ export function TrackedLink({
   entitySelectEvent,
   onClick,
   className,
-  ...otherProps
 }: TrackedLinkProps) {
   const pathname = useLocation().pathname;
   const to = href;

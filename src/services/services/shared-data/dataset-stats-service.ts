@@ -1,5 +1,5 @@
-import type { DatasetStatsSummary } from './types';
 import { getCoverageSummary } from './coverage-service';
+import type { DatasetStatsSummary } from './types';
 
 export async function getDatasetStatsSummary(): Promise<DatasetStatsSummary> {
   const coverage = await getCoverageSummary();

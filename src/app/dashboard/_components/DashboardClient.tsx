@@ -1,8 +1,6 @@
 'use client';
-import { lazy, Suspense } from 'react';
-import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
-import type { RouteSearch } from '@/app/dashboard/route';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState  } from 'react';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
   AlertsResponse,
@@ -30,7 +28,6 @@ import { DashboardQuickLinks } from './DashboardQuickLinks';
 import { ModeHeader } from './ModeHeader';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useSystemMetrics } from './useSystemMetrics';
-import { WidgetSkeleton } from './WidgetSkeleton';
 import {
   resolveDashboardMapViewState,
   type DashboardMapViewState,
@@ -437,7 +434,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     };
   }, [districts, searchQuery, shouldLoadDistricts]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- SSR hydration: batch localStorage/sessionStorage reads into state
+     
     useEffect(() => {
       if (typeof window === 'undefined') {
         return;
@@ -445,7 +442,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
       const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+       
       setFavoriteStationIds(parsedFavorites);
 
       const previousSnapshot = parseStationSnapshot(
@@ -453,7 +450,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       );
 
       if (previousSnapshot) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+         
         setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
       }
 
@@ -465,7 +462,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         }
       );
 
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- hydration: setState from effect is intentional
+       
       setRecentSnapshots(nextRecentSnapshots);
 
     writeJsonStorageItem(
@@ -494,7 +491,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }
 
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
+       
       setGeolocationError('La geolocalizacion no esta disponible en este navegador.');
       return;
     }
@@ -523,9 +520,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [isGeolocationEnabled]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
+     
     if (filteredStations.length === 0) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- effect: setState from effect is intentional
+       
       setSelectedStationId('');
       return;
     }
@@ -585,7 +582,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    router.navigate({ to: nextUrl, replace: true });
+    void     void router.navigate({ to: nextUrl, replace: true });
   }, [
     activeWindowId,
     mapViewState,
@@ -924,7 +921,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       }
 
       try {
-        const searchParams = new URLSearchParams({
+        const params = new URLSearchParams({
           mobilityDays: String(activeWindow.mobilityDays),
           demandDays: String(activeWindow.demandDays),
         });
@@ -935,7 +932,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           searchParams.set('month', selectedMonth);
         }
 
-        const response = await fetch(`${appRoutes.api.mobility()}?${searchParams.toString()}`, {
+        const response = await fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
           signal: controller.signal,
         });
 
@@ -987,7 +984,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       isActive = false;
       controller.abort();
     };
-  }, [activeWindow.demandDays, activeWindow.mobilityDays]);
+  }, [activeWindow.demandDays, activeWindow.mobilityDays, searchParams]);
 
   const selectedStationDetailUrl = selectedStation
     ? appRoutes.dashboardStation(selectedStation.id)

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getStationRankings, type RankingType } from '@/analytics/queries/read'
+import { getStationRankings } from '@/analytics/queries/read'
 import { getStationsWithLatestStatus } from '@/analytics/queries/read'
 import { fetchDistrictCollection } from '@/lib/districts.server'
 import { buildDistrictSpotlight, enrichRankingRows, buildPeakFullHoursByStation, attachPeakFullHours } from '@/lib/ranking-enrichment'
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/api/rankings/')({
           if (typeParam !== 'turnover' && typeParam !== 'availability') {
             return new Response(JSON.stringify({ error: 'Invalid type. Use "turnover" or "availability".', dataState: 'error' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
           }
-          const type = typeParam as RankingType
+          const type = typeParam
           const limitParam = new URL(request.url).searchParams.get('limit') ?? '20'
           const parsedLimit = parseInt(limitParam)
           if (!Number.isFinite(parsedLimit) || parsedLimit < 1) {
@@ -57,10 +57,10 @@ export const Route = createFileRoute('/api/rankings/')({
           let enriched = enrichRankingRows(rankings, stationNameById, districtNameById)
           const peakMap = buildPeakFullHoursByStation([])
           enriched = attachPeakFullHours(enriched, peakMap)
-          const districtSpotlight = buildDistrictSpotlight(enriched, typeParam as RankingType)
+          const districtSpotlight = buildDistrictSpotlight(enriched, typeParam)
 
           const payload = {
-            type: type as 'turnover' | 'availability',
+            type: type,
             limit,
             rankings: enriched,
             districtSpotlight,
@@ -82,7 +82,7 @@ export const Route = createFileRoute('/api/rankings/')({
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300, stale-while-revalidate=300', ...access.headers },
           })
-        } catch (error) {
+        } catch {
           return errorResponse('Failed to fetch rankings', 500)
         }
       },

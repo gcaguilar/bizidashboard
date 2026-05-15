@@ -1,10 +1,13 @@
-import { storeStationStatuses, GBFSStationStatus } from './data-storage'
+import { storeStationStatuses } from './data-storage'
+import type { GBFSStationStatus } from './data-storage';
+import type {
+  DataObservabilityMetrics,
+  ValidationInput 
+} from '@/lib/observability';
 import { 
-  validateDataQuality, 
-  logObservabilityMetrics,
+  logObservabilityMetrics, 
   shouldStoreData,
-  ValidationInput,
-  DataObservabilityMetrics 
+  validateDataQuality 
 } from '@/lib/observability'
 import { incrementValidationErrors } from '@/lib/metrics'
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
@@ -44,8 +47,8 @@ export type ValidationResult = {
     duplicateCount: number
     errors: Array<{ stationId: string; error: string }>
   }
-  errors: string[]
-  warnings: string[]
+  errors: Array<string>
+  warnings: Array<string>
 }
 
 /**
@@ -59,7 +62,7 @@ export type ValidateAndStoreOptions = {
   /** Collection ID for tracking this specific collection run */
   collectionId?: string
   /** Schema validation errors from external validation (e.g., Zod) */
-  schemaErrors?: string[]
+  schemaErrors?: Array<string>
 }
 
 /**
@@ -87,7 +90,7 @@ function toValidationInput(
   }
 }
 
-function toStationStatuses(response: GBFSStatusResponse): GBFSStationStatus[] {
+function toStationStatuses(response: GBFSStatusResponse): Array<GBFSStationStatus> {
   return response.data.stations.map((station) => ({
     station_id: station.station_id,
     num_bikes_available: station.num_bikes_available,
@@ -269,9 +272,9 @@ export async function validateOnly(
  */
 export async function checkValidatorHealth(): Promise<{
   healthy: boolean
-  errors: string[]
+  errors: Array<string>
 }> {
-  const errors: string[] = []
+  const errors: Array<string> = []
 
   // Check that required modules are available
   try {

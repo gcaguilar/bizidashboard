@@ -11,7 +11,7 @@ export const fetchSeoLandingData = createServerFn({ method: 'GET' })
     if (!slug) {
       throw new Error('Missing slug in input');
     }
-    const data = await getSeoLandingPageData(slug as SeoPageSlug);
+    const data = await getSeoLandingPageData(slug);
     return {
       path: data.path,
       config: data.config,

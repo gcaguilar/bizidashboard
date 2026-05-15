@@ -5,34 +5,21 @@ import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs';
+import { shouldShowDataStateNotice } from '@/lib/data-state';
+import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
-import { buildSocialImagePath } from '@/lib/social-images';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import {
-  buildFallbackAvailableMonths,
-  buildFallbackDatasetSnapshot,
-  buildFallbackStatus,
-} from '@/lib/shared-data-fallbacks';
-import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
 import {
   formatStatusDateTime,
-  getApiVersionLabel,
-  getDatasetVersionLabel,
 } from '@/lib/system-status';
 import { getDevelopersPageData } from '@/server-functions/developers';
 
-type EndpointDoc = {
-  path: string;
-  method: string;
-  summary: string;
-  params: string[];
-};
+
 
 const OPENAPI_DESTINATION = 'openapi';
 
@@ -89,28 +76,7 @@ export const Route = createFileRoute('/developers')({
   component: DevelopersPage,
 });
 
-function getEndpointDocs(): EndpointDoc[] {
-  return Object.entries(openApiDocument.paths)
-    .filter(([path]) => path !== '/api/docs')
-    .flatMap(([path, operations]) =>
-      Object.entries(operations).map(([method, operation]) => {
-        const operationRecord = operation as {
-          summary?: string;
-          parameters?: Array<{ name?: string }>;
-        };
 
-        return {
-          path,
-          method: method.toUpperCase(),
-          summary: operationRecord.summary ?? 'Operacion disponible',
-          params: Array.isArray(operationRecord.parameters)
-            ? operationRecord.parameters.map((param: { name?: string }) => String(param.name ?? ''))
-            : [],
-        };
-      })
-    )
-    .sort((left, right) => left.path.localeCompare(right.path, 'es'));
-}
 
 export default function DevelopersPage() {
   const { siteUrl, cityName, breadcrumbs, latestMonth, endpointDocs, datasetVersion, apiVersion, codeLicense, developersDataState, datasetTemporalCoverage, curlExamples, pythonExample, jsExample, csvDownloads, accessPolicies, useCases, changelog, datasetDownloadEntries, dataset } = Route.useLoaderData();

@@ -8,11 +8,10 @@ import { getStationDetailPageData } from '@/server-functions/dashboard-estacione
 
 export const Route = createFileRoute('/dashboard/estaciones/$stationId')({
   loader: ({ params }) => {
-    const { stationId } = params;
-    if (!stationId) {
+    if (!params.stationId) {
       throw redirect({ to: appRoutes.dashboardStations() });
     }
-    return getStationDetailPageData({ data: stationId });
+    return getStationDetailPageData({ data: params.stationId });
   },
   head: (opts) => {
     const { stationId } = opts.params;
@@ -28,7 +27,6 @@ export const Route = createFileRoute('/dashboard/estaciones/$stationId')({
 });
 
 function StationDetailRoute() {
-  const { stationId } = Route.useParams();
   const { station, stations, rankings, alerts, patterns, heatmap } = Route.useLoaderData();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Estaciones',

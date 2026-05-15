@@ -1,7 +1,6 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { appRoutes } from '@/lib/routes';
 import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';

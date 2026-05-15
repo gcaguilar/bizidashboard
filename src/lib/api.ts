@@ -148,9 +148,7 @@ export async function fetchStations(): Promise<StationsResponse> {
   return {
     ...payload,
     stations: normalizeStations(
-      payload.stations as Array<
-        Omit<StationSnapshot, 'recordedAt'> & { recordedAt: string | Date }
-      >
+      payload.stations
     ),
   };
 }

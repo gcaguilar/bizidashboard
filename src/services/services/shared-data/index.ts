@@ -1,8 +1,8 @@
 import { cache } from 'react';
-import { getCoverageSummary, getSharedDataSource, getHistoryMetadata } from './coverage-service';
+import { getCoverageSummary, getHistoryMetadata, getSharedDataSource } from './coverage-service';
 import { getPipelineStatusSummary } from './pipeline-status-service';
-import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import type { CoverageSummary, SharedDatasetSnapshot } from './types';
+import { captureWarningWithContext } from '@/lib/sentry-reporting';
 
 export * from './types';
 export { getCoverageSummary, getHistoryMetadata, getPipelineStatusSummary, getSharedDataSource };

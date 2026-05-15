@@ -1,10 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useMemo, useState  } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@tanstack/react-router';
-import { useLocation } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation  } from '@tanstack/react-router';
 import {
   Area,
   AreaChart,
@@ -80,7 +78,10 @@ function MobilityInsightsContent({
   demandDays = 30,
 }: MobilityInsightsProps) {
   const location = useLocation();
-  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
+  const searchParams = useMemo(
+    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
+    [location]
+  );
 
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
@@ -99,7 +100,7 @@ function MobilityInsightsContent({
         setIsLoading(true);
         setErrorMessage(null);
 
-        const searchParams = new URLSearchParams({
+        const params = new URLSearchParams({
           mobilityDays: String(mobilityDays),
           demandDays: String(demandDays),
         });
@@ -109,7 +110,7 @@ function MobilityInsightsContent({
         }
 
         const [mobilityResponse, districtsPayload] = await Promise.all([
-          fetch(`${appRoutes.api.mobility()}?${searchParams.toString()}`, {
+          fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
             signal: controller.signal,
           }),
           fetchDistrictCollection(controller.signal),
@@ -166,7 +167,7 @@ function MobilityInsightsContent({
       isActive = false;
       controller.abort();
     };
-  }, [demandDays, mobilityDays, selectedMonth]);
+  }, [demandDays, mobilityDays, selectedMonth, searchParams]);
 
   const stationDistrictMap = useMemo(() => {
     return buildStationDistrictLookup(stations, districts);

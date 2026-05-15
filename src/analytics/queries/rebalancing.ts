@@ -257,7 +257,7 @@ export async function getCriticalEpisodes(days: number = 15): Promise<Record<str
   return map;
 }
 
-export async function getStationDistanceMatrix(
+export function getStationDistanceMatrix(
   stations: Array<{ id: string; lat: number; lon: number }>,
   maxDistanceMeters: number = 3000
 ): Promise<Map<string, NearbyStation[]>> {

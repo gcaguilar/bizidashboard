@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
@@ -51,7 +51,7 @@ export const Route = createFileRoute('/metodologia')({
 });
 
 export default function MethodologyPage() {
-  const { historyMeta, dataset, status, months, latestMonth, breadcrumbs, faqItems, structuredData } = Route.useLoaderData();
+  const { historyMeta, dataset, status, latestMonth, breadcrumbs, faqItems, structuredData } = Route.useLoaderData();
   const cityName = getCityName();
 
   return (

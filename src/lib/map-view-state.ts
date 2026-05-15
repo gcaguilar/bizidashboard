@@ -39,5 +39,5 @@ export function serializeDashboardMapViewState(state: DashboardMapViewState): Re
 }
 
 export type ReadonlyURLSearchParamsLike = {
-  get(name: string): string | null;
+  get: (name: string) => string | null;
 };

@@ -16,9 +16,9 @@ export type ExecutionContext = {
 };
 
 type ContextStoreLike = {
-  getStore(): ExecutionContext | undefined;
-  run<T>(context: ExecutionContext, callback: () => T): T;
-  enterWith(context: ExecutionContext): void;
+  getStore: () => ExecutionContext | undefined;
+  run: <T>(context: ExecutionContext, callback: () => T) => T;
+  enterWith: (context: ExecutionContext) => void;
 };
 
 function createFallbackStore(): ContextStoreLike {

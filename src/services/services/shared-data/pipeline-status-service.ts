@@ -1,9 +1,9 @@
+import type { PipelineStatusSummary } from './types';
 import { getRecentCollectionRuns } from '@/lib/collection-runs';
 import { getRedisHealthSummary } from '@/lib/cache/redis';
 import { withCache } from '@/lib/cache/cache';
 import { getStatus } from '@/lib/metrics';
 import { getSecurityEventSummary } from '@/lib/security/audit';
-import type { PipelineStatusSummary } from './types';
 
 const CACHE_KEY = 'shared-data:pipeline-status';
 const CACHE_TTL_SECONDS = 60;

@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
+import { parseBucketStart } from './date-utils';
+
 export type RankingType = 'turnover' | 'availability';
 
 type StationPatternRow = {
@@ -35,8 +37,6 @@ type HourlyStatRow = {
   occupancyAvg: number;
   sampleCount: number;
 };
-
-import { parseBucketStart } from './date-utils';
 
 // Whitelist of allowed column names to prevent SQL injection
 const ALLOWED_RANGE_COLUMNS = ['bucketStart', 'bucketDate', 'recordedAt'] as const;
@@ -224,7 +224,7 @@ function toSerializableNumber(value: unknown): number {
     'toString' in value &&
     typeof value.toString === 'function'
   ) {
-    return Number(value.toString());
+    return Number((value as { toString: () => string }).toString());
   }
 
   return 0;

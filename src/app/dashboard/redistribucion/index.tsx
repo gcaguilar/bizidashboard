@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
+import type { RebalancingReport } from '@/types/rebalancing';
 
 export const Route = createFileRoute('/dashboard/redistribucion/')({
   head: () => {
@@ -45,9 +46,9 @@ async function RedistribucionClientWrapper({
   districtNames, 
   tableParams 
 }: {
-  initialReport: any;
+  initialReport: RebalancingReport;
   districtNames: string[];
-  tableParams: any;
+  tableParams: Record<string, unknown>;
 }) {
   const { RedistribucionClient } = await import('@/app/dashboard/redistribucion/_components/RedistribucionClient');
   return (

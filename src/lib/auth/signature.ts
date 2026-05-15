@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { logger } from '@/lib/logger';
 
 const DEFAULT_SECRET = 'dev-secret-do-not-use-in-production';

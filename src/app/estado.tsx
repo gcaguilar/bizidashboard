@@ -5,10 +5,8 @@ import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { combineDataStates } from '@/lib/data-state';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { buildSocialImagePath } from '@/lib/social-images';
 import { getCityName, getSiteUrl } from '@/lib/site';
 import {
   formatStatusDateTime,
@@ -55,7 +53,7 @@ export const Route = createFileRoute('/estado')({
 });
 
 export default function SystemStatusPage() {
-  const { status, stations, dataset, availableMonths, months, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount } = Route.useLoaderData();
+  const { status, stations, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount } = Route.useLoaderData();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Estado',

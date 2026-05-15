@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 export const Route = createFileRoute('/api/mobility/')({
   server: {
     handlers: {
+      // eslint-disable-next-line @typescript-eslint/require-await
       GET: async ({ request }) => {
         const { searchParams } = new URL(request.url)
         const mobilityDays = Number(searchParams.get('mobilityDays')) || 14

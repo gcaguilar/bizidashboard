@@ -45,7 +45,7 @@ type SeoLandingContent = {
 const EMPTY_STATE_MESSAGE =
   'Todavia no hay suficiente historico o cobertura para publicar esta landing con datos consistentes.';
 
-function buildSeoFaqStructuredData(config: SeoPageConfig) {
+export function buildSeoFaqStructuredData(config: SeoPageConfig) {
   return {
     '@type': 'FAQPage',
     mainEntity: [
@@ -1091,7 +1091,7 @@ function buildSeoLandingIndexabilityInput(
   };
 }
 
-function resolveSeoLandingDestinationRole(href: string): 'dashboard' | 'hub' | 'utility' {
+export function resolveSeoLandingDestinationRole(href: string): 'dashboard' | 'hub' | 'utility' {
   if (href.startsWith('/dashboard')) {
     return 'dashboard';
   }
@@ -1107,7 +1107,7 @@ function resolveSeoLandingDestinationRole(href: string): 'dashboard' | 'hub' | '
   return 'hub';
 }
 
-function resolveSeoLandingDestination(href: string): string {
+export function resolveSeoLandingDestination(href: string): string {
   if (href.startsWith('/dashboard')) {
     return 'dashboard_view';
   }
@@ -1127,7 +1127,7 @@ function resolveSeoLandingDestination(href: string): string {
   return href === appRoutes.reports() ? 'report_archive' : 'seo_or_hub';
 }
 
-function resolveSeoLandingTransitionKind(href: string): 'to_dashboard' | 'within_public' {
+export function resolveSeoLandingTransitionKind(href: string): 'to_dashboard' | 'within_public' {
   return href.startsWith('/dashboard') ? 'to_dashboard' : 'within_public';
 }
 

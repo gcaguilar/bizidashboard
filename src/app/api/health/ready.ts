@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-async function getHandler() {
+function getHandler() {
   return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '@/lib/db'
@@ -73,6 +73,7 @@ export const Route = createFileRoute('/api/install/register/')({
           return new Response(JSON.stringify({ error: 'Failed to register installation' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
         }
       },
+      // eslint-disable-next-line @typescript-eslint/require-await
       OPTIONS: async (opts) => {
         const request = opts.request
         const rejection = rejectDisallowedMobileOrigin(request)

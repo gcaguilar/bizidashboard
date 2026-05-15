@@ -1,7 +1,7 @@
 import { cache } from 'react';
+import type { CoverageSummary, HistoryMetadata, SharedDataSource } from './types';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
-import type { CoverageSummary, HistoryMetadata, SharedDataSource } from './types';
 
 const CACHE_KEY = 'shared-data:coverage';
 const CACHE_TTL_SECONDS = 300;
@@ -57,14 +57,14 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
   return withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
     const generatedAt = new Date().toISOString();
     const [coverageRows, stationRows, hourlyDaysRows, dailyDaysRows] = await Promise.all([
-      prisma.$queryRaw<CoverageRow[]>`
+      prisma.$queryRaw<Array<CoverageRow>>`
         SELECT
           MIN("recordedAt") AS "firstRecordedAt",
           MAX("recordedAt") AS "lastRecordedAt",
           COUNT(*) AS "totalSamples"
         FROM "StationStatus";
       `,
-      prisma.$queryRaw<StationsRow[]>`
+      prisma.$queryRaw<Array<StationsRow>>`
         SELECT COUNT(*) AS "totalStations"
         FROM "Station"
         WHERE "isActive" = true;
@@ -72,7 +72,7 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
         console.warn('[SharedData] Unable to read active stations summary:', error);
         return [];
       }),
-      prisma.$queryRaw<DaysRow[]>`
+      prisma.$queryRaw<Array<DaysRow>>`
         SELECT COUNT(DISTINCT TO_CHAR("bucketStart", 'YYYY-MM-DD')) AS "totalDays"
         FROM "HourlyStationStat"
         WHERE "occupancyAvg" IS NOT NULL;
@@ -80,7 +80,7 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
         console.warn('[SharedData] Unable to read day coverage from HourlyStationStat:', error);
         return [];
       }),
-      prisma.$queryRaw<DaysRow[]>`
+      prisma.$queryRaw<Array<DaysRow>>`
         SELECT COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays"
         FROM "DailyStationStat"
         WHERE "bucketDate" IS NOT NULL;

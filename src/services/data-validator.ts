@@ -267,10 +267,10 @@ export async function validateOnly(
  * Check if the validator is properly configured
  * Used for health checks
  */
-export async function checkValidatorHealth(): Promise<{
+export function checkValidatorHealth(): {
   healthy: boolean
   errors: string[]
-}> {
+} {
   const errors: string[] = []
 
   // Check that required modules are available
