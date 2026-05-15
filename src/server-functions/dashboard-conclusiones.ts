@@ -1,4 +1,10 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
+import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
+import { appRoutes } from '@/lib/routes';
+import { getSiteUrl, SITE_NAME } from '@/lib/site';
 
 function safeNumber(value: unknown): number {
   if (typeof value === 'number') return value;
@@ -13,6 +19,8 @@ function safeNumber(value: unknown): number {
 function safeString(value: unknown): string {
   if (typeof value === 'string') return value;
   if (value == null) return '';
+  if (typeof value === 'object') return JSON.stringify(value);
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
   return String(value);
 }
 
@@ -80,14 +88,6 @@ function serializeConclusionsPayload(payload: unknown): MobilityConclusionsPaylo
     },
   };
 }
-
-import { z } from 'zod';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
-import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
-import { appRoutes } from '@/lib/routes';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
-
 const ConclusionsSearchParamsSchema = z.object({
   month: z.union([z.string(), z.array(z.string())]).optional(),
 }).default({});
