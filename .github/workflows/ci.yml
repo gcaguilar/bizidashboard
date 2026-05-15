@@ -36,8 +36,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/bizidashboard?schema=zaragoza
       CITY: zaragoza
-      JWT_SECRET: ci-jwt-secret
-      SIGNATURE_SECRET: ci-signature-secret
+      JWT_SECRET: ci-jwt-secret-that-is-at-least-32-characters-long
+      SIGNATURE_SECRET: ci-signature-secret-that-is-at-least-characters-too
       NODE_ENV: test
     steps:
       - name: Clear cache
