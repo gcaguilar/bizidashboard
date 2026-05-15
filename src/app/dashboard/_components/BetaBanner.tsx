@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   BICIRADAR_BANNER_DISMISSED_STORAGE_KEY,
@@ -114,46 +115,6 @@ function getInitialFeedbackModalState(visitCount: number): FeedbackModalState {
   return resolveInitialFeedbackModalState(visitCount, (key) => window.localStorage.getItem(key));
 }
 
-function CloseIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
-function DashboardDialogShell({
-  ariaLabel,
-  onClose,
-  children,
-}: {
-  ariaLabel: string;
-  onClose: (reason: Extract<BiciRadarModalAction, 'dismiss_icon' | 'dismiss_overlay'>) => void;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
-      onClick={() => onClose('dismiss_overlay')}
-    >
-      <div
-        className="relative w-full max-w-2xl rounded-2xl border border-[var(--primary)]/30 bg-[var(--card)] p-6 shadow-2xl md:p-8"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <Button
-          variant="ghost"
-          onClick={() => onClose('dismiss_icon')}
-          className="absolute right-3 top-3 h-9 min-h-0 w-9 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
-          aria-label={ariaLabel}
-        >
-          <CloseIcon />
-        </Button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function WelcomeModal({
   onOpen,
   onClose,
@@ -162,33 +123,39 @@ function WelcomeModal({
   onClose: (reason: BiciRadarModalAction) => void;
 }) {
   return (
-    <DashboardDialogShell ariaLabel="Cerrar dialogo de bienvenida" onClose={onClose}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">Nuevo</p>
-      <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">
-        Pedalea con menos sorpresas con BiciRadar
-      </h2>
-      <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-        Mira incidencias, cortes y avisos utiles antes de salir en bici desde la web oficial de la app.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <a
-          href={BICIRADAR_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onOpen}
-          className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-        >
-          Ver BiciRadar
-        </a>
-        <Button
-          variant="ghost"
-          onClick={() => onClose('dismiss_button')}
-          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
-        >
-          Cerrar
-        </Button>
-      </div>
-    </DashboardDialogShell>
+    <Dialog open={true} onOpenChange={() => onClose('dismiss_overlay')}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nuevo</DialogTitle>
+        </DialogHeader>
+        <div className="mt-6 text-sm">
+          <h3 className="text-2xl font-black text-[var(--foreground)] md:text-4xl">
+            Pedalea con menos sorpresas con BiciRadar
+          </h3>
+          <p className="mt-3 text-[var(--muted)] md:text-base">
+            Mira incidencias, cortes y avisos utiles antes de salir en bici desde la web oficial de la app.
+          </p>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a
+            href={BICIRADAR_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onOpen}
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+          >
+            Ver BiciRadar
+          </a>
+          <Button
+            variant="outline"
+            onClick={() => onClose('dismiss_button')}
+            className="h-auto min-h-0 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)]"
+          >
+            Cerrar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -198,34 +165,48 @@ function FeedbackModal({
   onClose: () => void;
 }) {
   return (
-    <DashboardDialogShell ariaLabel="Cerrar dialogo de feedback" onClose={onClose}>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">Feedback</p>
-      <h2 className="mt-2 text-2xl font-black text-[var(--foreground)] md:text-4xl">
-        Ayudanos a mejorar DatosBizi
-      </h2>
-      <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-        Ya conoces la web. Cuéntanos qué te falta, qué te sobra o qué cambiarías para que el
-        dashboard te resulte más útil.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <FeedbackCta
-          source="global_feedback_modal"
-          ctaId="feedback_modal_open"
-          module="global_modal"
-          className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-          pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
-        >
-          Dar feedback
-        </FeedbackCta>
-        <Button
-          variant="ghost"
-          onClick={onClose}
-          className="h-auto min-h-0 rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
-        >
-          Ahora no
-        </Button>
-      </div>
-    </DashboardDialogShell>
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Feedback</DialogTitle>
+        </DialogHeader>
+        <div className="mt-6 text-sm">
+          <h3 className="text-2xl font-black text-[var(--foreground)] md:text-4xl">
+            Ayudanos a mejorar DatosBizi
+          </h3>
+          <p className="mt-3 text-[var(--muted)] md:text-base">
+            Ya conoces la web. Cuéntanos qué te falta, qué te sobra o qué cambiarías para que el
+            dashboard te resulte más útil.
+          </p>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <FeedbackCta
+            source="global_feedback_modal"
+            ctaId="feedback_modal_open"
+            module="global_modal"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
+          >
+            Dar feedback
+          </FeedbackCta>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="h-auto min-h-0 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)]"
+          >
+            Ahora no
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
   );
 }
 
@@ -296,7 +277,7 @@ function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
 }
 
 export function BetaBanner() {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const [{ variant, visitCount }] = useState(getInitialBannerState);
   const [bannerVariant, setBannerVariant] = useState(variant);

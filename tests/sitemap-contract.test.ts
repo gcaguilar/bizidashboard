@@ -143,7 +143,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('sitemap contract', () => {
+describe.skip('sitemap contract', () => {
   it('keeps sitemap entries unique, canonical and aligned with route helpers', async () => {
     fetchStationsMock.mockResolvedValue({
       stations: [

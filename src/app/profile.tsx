@@ -1,6 +1,8 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createFileRoute } from '@tanstack/react-router'
 import { authClient } from '@/lib/auth-client'
 import { useState } from 'react'
+import { appRoutes } from '@/lib/routes'
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -21,7 +23,7 @@ function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-bold mb-4">Debes iniciar sesión</h2>
-          <a href="/login" className="text-red-600 hover:underline">Ir a login</a>
+          <a href={appRoutes.login()} className="text-red-600 hover:underline">Ir a login</a>
         </div>
       </div>
     )
@@ -47,9 +49,9 @@ function ProfilePage() {
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">Mi perfil</h2>
 
         {message && (
-          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm mb-4">
-            {message}
-          </div>
+          <Alert variant="success">
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
         )}
 
         <div className="space-y-4">

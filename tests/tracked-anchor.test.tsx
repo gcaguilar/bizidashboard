@@ -16,9 +16,13 @@ const {
   trackUmamiEventMock: vi.fn(),
 }));
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/metodologia',
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: '/metodologia' }),
+  };
+});
 
 vi.mock('@/lib/umami', () => ({
   buildCtaClickEvent: buildCtaClickEventMock,

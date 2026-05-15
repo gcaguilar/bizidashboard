@@ -18,24 +18,25 @@ const {
   usePathnameMock: vi.fn(),
 }));
 
-vi.mock('next/link', () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
-vi.mock('next/navigation', () => ({
-  usePathname: usePathnameMock,
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    Link: ({
+      children,
+      href,
+      ...props
+    }: {
+      children: React.ReactNode;
+      href: string;
+    }) => (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    ),
+    useLocation: () => ({ pathname: usePathnameMock() }),
+  };
+});
 
 vi.mock('@/lib/umami', () => ({
   buildCtaClickEvent: buildCtaClickEventMock,

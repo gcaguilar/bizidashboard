@@ -55,6 +55,9 @@ function buildHash(pathname: string, hash?: string | null): string {
 
 export const appRoutes = {
   home: () => '/',
+  login: () => '/login',
+  register: () => '/register',
+  profile: () => '/profile',
   llms: () => '/llms.txt',
   llmsFull: () => '/llms-full.txt',
   homeAlias: () => '/inicio',

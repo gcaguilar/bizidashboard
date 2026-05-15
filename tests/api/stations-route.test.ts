@@ -24,7 +24,7 @@ vi.mock('@/services/shared-data', () => ({
   getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
 }));
 
-import { GET } from '@/app/api/stations/route';
+import { GET } from '@/app/api/stations';
 import { fetchStations } from '@/lib/api';
 
 describe('GET /api/stations', () => {
