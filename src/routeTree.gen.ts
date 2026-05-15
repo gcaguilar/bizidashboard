@@ -13,13 +13,14 @@ import { Route as ViajesPorMesZaragozaRouteImport } from './app/viajes-por-mes-z
 import { Route as ViajesPorDiaZaragozaRouteImport } from './app/viajes-por-dia-zaragoza'
 import { Route as UsoBiziPorHoraRouteImport } from './app/uso-bizi-por-hora'
 import { Route as UsoBiziPorEstacionRouteImport } from './app/uso-bizi-por-estacion'
-import { Route as RegisterRouteImport } from './app/register'
+import { Route as SitemapDotxmlRouteImport } from './app/sitemap[.]xml'
+import { Route as RobotsDottxtRouteImport } from './app/robots[.]txt'
 import { Route as RedistribucionBiziZaragozaRouteImport } from './app/redistribucion-bizi-zaragoza'
 import { Route as RankingEstacionesBiziRouteImport } from './app/ranking-estaciones-bizi'
-import { Route as ProfileRouteImport } from './app/profile'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
-import { Route as LoginRouteImport } from './app/login'
+import { Route as LlmsDottxtRouteImport } from './app/llms[.]txt'
+import { Route as LlmsFullDottxtRouteImport } from './app/llms-full[.]txt'
 import { Route as InformesMensualesBiziZaragozaRouteImport } from './app/informes-mensuales-bizi-zaragoza'
 import { Route as InformesRouteImport } from './app/informes'
 import { Route as ExplorarRouteImport } from './app/explorar'
@@ -28,29 +29,49 @@ import { Route as EstadisticasBiziZaragozaRouteImport } from './app/estadisticas
 import { Route as EstacionesMasUsadasZaragozaRouteImport } from './app/estaciones-mas-usadas-zaragoza'
 import { Route as EstacionesConMasBicisRouteImport } from './app/estaciones-con-mas-bicis'
 import { Route as DevelopersRouteImport } from './app/developers'
-import { Route as DashboardRouteImport } from './app/dashboard'
 import { Route as CompararRouteImport } from './app/comparar'
 import { Route as BiciradarRouteImport } from './app/biciradar'
 import { Route as BetaRouteImport } from './app/beta'
 import { Route as BarriosBiziZaragozaRouteImport } from './app/barrios-bizi-zaragoza'
 import { Route as AboutRouteImport } from './app/about'
+import { Route as SplatRouteImport } from './app/$'
+import { Route as DashboardRouteRouteImport } from './app/dashboard/route'
 import { Route as IndexRouteImport } from './app/index'
-import { Route as DashboardStatusRouteImport } from './app/dashboard/status'
-import { Route as DashboardRedistribucionRouteImport } from './app/dashboard/redistribucion'
-import { Route as DashboardFlujoRouteImport } from './app/dashboard/flujo'
-import { Route as DashboardEstacionesRouteImport } from './app/dashboard/estaciones'
-import { Route as DashboardConclusionesRouteImport } from './app/dashboard/conclusiones'
-import { Route as DashboardAyudaRouteImport } from './app/dashboard/ayuda'
-import { Route as DashboardAlertasRouteImport } from './app/dashboard/alertas'
-import { Route as ApiStatusRouteImport } from './app/api/status'
-import { Route as ApiStationsRouteImport } from './app/api/stations'
-import { Route as ApiRankingsRouteImport } from './app/api/rankings'
-import { Route as ApiAlertsRouteImport } from './app/api/alerts'
-import { Route as InformesChar91monthChar93RouteRouteImport } from './app/informes/[month]/route'
+import { Route as DashboardIndexRouteImport } from './app/dashboard/index'
+import { Route as InformesMonthRouteImport } from './app/informes.$month'
+import { Route as EstacionesStationIdRouteImport } from './app/estaciones/$stationId'
+import { Route as BarriosDistrictSlugRouteImport } from './app/barrios/$districtSlug'
+import { Route as ApiOpenapiDotjsonRouteImport } from './app/api/openapi[.]json'
+import { Route as DashboardStatusIndexRouteImport } from './app/dashboard/status/index'
+import { Route as DashboardRedistribucionIndexRouteImport } from './app/dashboard/redistribucion/index'
+import { Route as DashboardFlujoIndexRouteImport } from './app/dashboard/flujo/index'
+import { Route as DashboardEstacionesIndexRouteImport } from './app/dashboard/estaciones/index'
+import { Route as DashboardConclusionesIndexRouteImport } from './app/dashboard/conclusiones/index'
+import { Route as DashboardAyudaIndexRouteImport } from './app/dashboard/ayuda/index'
+import { Route as DashboardAlertasIndexRouteImport } from './app/dashboard/alertas/index'
+import { Route as ApiStatusIndexRouteImport } from './app/api/status/index'
+import { Route as ApiStationsIndexRouteImport } from './app/api/stations/index'
+import { Route as ApiRebalancingReportIndexRouteImport } from './app/api/rebalancing-report/index'
+import { Route as ApiRankingsIndexRouteImport } from './app/api/rankings/index'
+import { Route as ApiPredictionsIndexRouteImport } from './app/api/predictions/index'
+import { Route as ApiPatternsIndexRouteImport } from './app/api/patterns/index'
+import { Route as ApiMobilityIndexRouteImport } from './app/api/mobility/index'
+import { Route as ApiHistoryIndexRouteImport } from './app/api/history/index'
+import { Route as ApiHeatmapIndexRouteImport } from './app/api/heatmap/index'
+import { Route as ApiDocsIndexRouteImport } from './app/api/docs/index'
+import { Route as ApiCollectIndexRouteImport } from './app/api/collect/index'
+import { Route as ApiAppVersionsIndexRouteImport } from './app/api/app-versions/index'
+import { Route as ApiAlertsIndexRouteImport } from './app/api/alerts/index'
+import { Route as DashboardViewsModeRouteImport } from './app/dashboard/views/$mode'
+import { Route as DashboardEstacionesStationIdRouteImport } from './app/dashboard/estaciones/$stationId'
 import { Route as ApiHealthReadyRouteImport } from './app/api/health/ready'
 import { Route as ApiHealthLiveRouteImport } from './app/api/health/live'
-import { Route as DashboardViewsChar91modeChar93RouteRouteImport } from './app/dashboard/views/[mode]/route'
-import { Route as DashboardEstacionesChar91stationIdChar93RouteRouteImport } from './app/dashboard/estaciones/[stationId]/route'
+import { Route as ApiAlertsHistoryRouteRouteImport } from './app/api/alerts/history/route'
+import { Route as ApiTokenRefreshIndexRouteImport } from './app/api/token/refresh/index'
+import { Route as ApiOpsSentryTestIndexRouteImport } from './app/api/ops/sentry-test/index'
+import { Route as ApiInstallRegisterIndexRouteImport } from './app/api/install/register/index'
+import { Route as ApiGeoSearchIndexRouteImport } from './app/api/geo/search/index'
+import { Route as ApiGeoReverseIndexRouteImport } from './app/api/geo/reverse/index'
 
 const ViajesPorMesZaragozaRoute = ViajesPorMesZaragozaRouteImport.update({
   id: '/viajes-por-mes-zaragoza',
@@ -72,9 +93,14 @@ const UsoBiziPorEstacionRoute = UsoBiziPorEstacionRouteImport.update({
   path: '/uso-bizi-por-estacion',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedistribucionBiziZaragozaRoute =
@@ -88,11 +114,6 @@ const RankingEstacionesBiziRoute = RankingEstacionesBiziRouteImport.update({
   path: '/ranking-estaciones-bizi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
   id: '/metodologia',
   path: '/metodologia',
@@ -104,9 +125,14 @@ const MapaEstacionesBiziZaragozaRoute =
     path: '/mapa-estaciones-bizi-zaragoza',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InformesMensualesBiziZaragozaRoute =
@@ -152,11 +178,6 @@ const DevelopersRoute = DevelopersRouteImport.update({
   path: '/developers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CompararRoute = CompararRouteImport.update({
   id: '/comparar',
   path: '/comparar',
@@ -182,71 +203,160 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardStatusRoute = DashboardStatusRouteImport.update({
-  id: '/status',
-  path: '/status',
-  getParentRoute: () => DashboardRoute,
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardRedistribucionRoute = DashboardRedistribucionRouteImport.update({
-  id: '/redistribucion',
-  path: '/redistribucion',
-  getParentRoute: () => DashboardRoute,
+const InformesMonthRoute = InformesMonthRouteImport.update({
+  id: '/$month',
+  path: '/$month',
+  getParentRoute: () => InformesRoute,
 } as any)
-const DashboardFlujoRoute = DashboardFlujoRouteImport.update({
-  id: '/flujo',
-  path: '/flujo',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardEstacionesRoute = DashboardEstacionesRouteImport.update({
-  id: '/estaciones',
-  path: '/estaciones',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardConclusionesRoute = DashboardConclusionesRouteImport.update({
-  id: '/conclusiones',
-  path: '/conclusiones',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAyudaRoute = DashboardAyudaRouteImport.update({
-  id: '/ayuda',
-  path: '/ayuda',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAlertasRoute = DashboardAlertasRouteImport.update({
-  id: '/alertas',
-  path: '/alertas',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const ApiStatusRoute = ApiStatusRouteImport.update({
-  id: '/api/status',
-  path: '/api/status',
+const EstacionesStationIdRoute = EstacionesStationIdRouteImport.update({
+  id: '/estaciones/$stationId',
+  path: '/estaciones/$stationId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiStationsRoute = ApiStationsRouteImport.update({
-  id: '/api/stations',
-  path: '/api/stations',
+const BarriosDistrictSlugRoute = BarriosDistrictSlugRouteImport.update({
+  id: '/barrios/$districtSlug',
+  path: '/barrios/$districtSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiRankingsRoute = ApiRankingsRouteImport.update({
-  id: '/api/rankings',
-  path: '/api/rankings',
+const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
+  id: '/api/openapi.json',
+  path: '/api/openapi.json',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAlertsRoute = ApiAlertsRouteImport.update({
-  id: '/api/alerts',
-  path: '/api/alerts',
+const DashboardStatusIndexRoute = DashboardStatusIndexRouteImport.update({
+  id: '/status/',
+  path: '/status/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardRedistribucionIndexRoute =
+  DashboardRedistribucionIndexRouteImport.update({
+    id: '/redistribucion/',
+    path: '/redistribucion/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardFlujoIndexRoute = DashboardFlujoIndexRouteImport.update({
+  id: '/flujo/',
+  path: '/flujo/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardEstacionesIndexRoute =
+  DashboardEstacionesIndexRouteImport.update({
+    id: '/estaciones/',
+    path: '/estaciones/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardConclusionesIndexRoute =
+  DashboardConclusionesIndexRouteImport.update({
+    id: '/conclusiones/',
+    path: '/conclusiones/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAyudaIndexRoute = DashboardAyudaIndexRouteImport.update({
+  id: '/ayuda/',
+  path: '/ayuda/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAlertasIndexRoute = DashboardAlertasIndexRouteImport.update({
+  id: '/alertas/',
+  path: '/alertas/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const ApiStatusIndexRoute = ApiStatusIndexRouteImport.update({
+  id: '/api/status/',
+  path: '/api/status/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InformesChar91monthChar93RouteRoute =
-  InformesChar91monthChar93RouteRouteImport.update({
-    id: '/month',
-    path: '/month',
-    getParentRoute: () => InformesRoute,
+const ApiStationsIndexRoute = ApiStationsIndexRouteImport.update({
+  id: '/api/stations/',
+  path: '/api/stations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRebalancingReportIndexRoute =
+  ApiRebalancingReportIndexRouteImport.update({
+    id: '/api/rebalancing-report/',
+    path: '/api/rebalancing-report/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiRankingsIndexRoute = ApiRankingsIndexRouteImport.update({
+  id: '/api/rankings/',
+  path: '/api/rankings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPredictionsIndexRoute = ApiPredictionsIndexRouteImport.update({
+  id: '/api/predictions/',
+  path: '/api/predictions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPatternsIndexRoute = ApiPatternsIndexRouteImport.update({
+  id: '/api/patterns/',
+  path: '/api/patterns/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMobilityIndexRoute = ApiMobilityIndexRouteImport.update({
+  id: '/api/mobility/',
+  path: '/api/mobility/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHistoryIndexRoute = ApiHistoryIndexRouteImport.update({
+  id: '/api/history/',
+  path: '/api/history/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHeatmapIndexRoute = ApiHeatmapIndexRouteImport.update({
+  id: '/api/heatmap/',
+  path: '/api/heatmap/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsIndexRoute = ApiDocsIndexRouteImport.update({
+  id: '/api/docs/',
+  path: '/api/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCollectIndexRoute = ApiCollectIndexRouteImport.update({
+  id: '/api/collect/',
+  path: '/api/collect/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAppVersionsIndexRoute = ApiAppVersionsIndexRouteImport.update({
+  id: '/api/app-versions/',
+  path: '/api/app-versions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAlertsIndexRoute = ApiAlertsIndexRouteImport.update({
+  id: '/api/alerts/',
+  path: '/api/alerts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardViewsModeRoute = DashboardViewsModeRouteImport.update({
+  id: '/views/$mode',
+  path: '/views/$mode',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardEstacionesStationIdRoute =
+  DashboardEstacionesStationIdRouteImport.update({
+    id: '/estaciones/$stationId',
+    path: '/estaciones/$stationId',
+    getParentRoute: () => DashboardRouteRoute,
   } as any)
 const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
   id: '/api/health/ready',
@@ -258,27 +368,46 @@ const ApiHealthLiveRoute = ApiHealthLiveRouteImport.update({
   path: '/api/health/live',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardViewsChar91modeChar93RouteRoute =
-  DashboardViewsChar91modeChar93RouteRouteImport.update({
-    id: '/views/mode',
-    path: '/views/mode',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardEstacionesChar91stationIdChar93RouteRoute =
-  DashboardEstacionesChar91stationIdChar93RouteRouteImport.update({
-    id: '/stationId',
-    path: '/stationId',
-    getParentRoute: () => DashboardEstacionesRoute,
-  } as any)
+const ApiAlertsHistoryRouteRoute = ApiAlertsHistoryRouteRouteImport.update({
+  id: '/api/alerts/history',
+  path: '/api/alerts/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTokenRefreshIndexRoute = ApiTokenRefreshIndexRouteImport.update({
+  id: '/api/token/refresh/',
+  path: '/api/token/refresh/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOpsSentryTestIndexRoute = ApiOpsSentryTestIndexRouteImport.update({
+  id: '/api/ops/sentry-test/',
+  path: '/api/ops/sentry-test/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInstallRegisterIndexRoute = ApiInstallRegisterIndexRouteImport.update({
+  id: '/api/install/register/',
+  path: '/api/install/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoSearchIndexRoute = ApiGeoSearchIndexRouteImport.update({
+  id: '/api/geo/search/',
+  path: '/api/geo/search/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoReverseIndexRoute = ApiGeoReverseIndexRouteImport.update({
+  id: '/api/geo/reverse/',
+  path: '/api/geo/reverse/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/developers': typeof DevelopersRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
@@ -287,42 +416,62 @@ export interface FileRoutesByFullPath {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
-  '/login': typeof LoginRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
-  '/profile': typeof ProfileRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
-  '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
-  '/informes/month': typeof InformesChar91monthChar93RouteRoute
-  '/api/alerts': typeof ApiAlertsRoute
-  '/api/rankings': typeof ApiRankingsRoute
-  '/api/stations': typeof ApiStationsRoute
-  '/api/status': typeof ApiStatusRoute
-  '/dashboard/alertas': typeof DashboardAlertasRoute
-  '/dashboard/ayuda': typeof DashboardAyudaRoute
-  '/dashboard/conclusiones': typeof DashboardConclusionesRoute
-  '/dashboard/estaciones': typeof DashboardEstacionesRouteWithChildren
-  '/dashboard/flujo': typeof DashboardFlujoRoute
-  '/dashboard/redistribucion': typeof DashboardRedistribucionRoute
-  '/dashboard/status': typeof DashboardStatusRoute
-  '/dashboard/estaciones/stationId': typeof DashboardEstacionesChar91stationIdChar93RouteRoute
-  '/dashboard/views/mode': typeof DashboardViewsChar91modeChar93RouteRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
+  '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/informes/$month': typeof InformesMonthRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
+  '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/api/alerts/': typeof ApiAlertsIndexRoute
+  '/api/app-versions/': typeof ApiAppVersionsIndexRoute
+  '/api/collect/': typeof ApiCollectIndexRoute
+  '/api/docs/': typeof ApiDocsIndexRoute
+  '/api/heatmap/': typeof ApiHeatmapIndexRoute
+  '/api/history/': typeof ApiHistoryIndexRoute
+  '/api/mobility/': typeof ApiMobilityIndexRoute
+  '/api/patterns/': typeof ApiPatternsIndexRoute
+  '/api/predictions/': typeof ApiPredictionsIndexRoute
+  '/api/rankings/': typeof ApiRankingsIndexRoute
+  '/api/rebalancing-report/': typeof ApiRebalancingReportIndexRoute
+  '/api/stations/': typeof ApiStationsIndexRoute
+  '/api/status/': typeof ApiStatusIndexRoute
+  '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
+  '/dashboard/ayuda/': typeof DashboardAyudaIndexRoute
+  '/dashboard/conclusiones/': typeof DashboardConclusionesIndexRoute
+  '/dashboard/estaciones/': typeof DashboardEstacionesIndexRoute
+  '/dashboard/flujo/': typeof DashboardFlujoIndexRoute
+  '/dashboard/redistribucion/': typeof DashboardRedistribucionIndexRoute
+  '/dashboard/status/': typeof DashboardStatusIndexRoute
+  '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
+  '/api/geo/search/': typeof ApiGeoSearchIndexRoute
+  '/api/install/register/': typeof ApiInstallRegisterIndexRoute
+  '/api/ops/sentry-test/': typeof ApiOpsSentryTestIndexRoute
+  '/api/token/refresh/': typeof ApiTokenRefreshIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/developers': typeof DevelopersRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
@@ -331,43 +480,64 @@ export interface FileRoutesByTo {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
-  '/login': typeof LoginRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
-  '/profile': typeof ProfileRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
-  '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
-  '/informes/month': typeof InformesChar91monthChar93RouteRoute
-  '/api/alerts': typeof ApiAlertsRoute
-  '/api/rankings': typeof ApiRankingsRoute
-  '/api/stations': typeof ApiStationsRoute
-  '/api/status': typeof ApiStatusRoute
-  '/dashboard/alertas': typeof DashboardAlertasRoute
-  '/dashboard/ayuda': typeof DashboardAyudaRoute
-  '/dashboard/conclusiones': typeof DashboardConclusionesRoute
-  '/dashboard/estaciones': typeof DashboardEstacionesRouteWithChildren
-  '/dashboard/flujo': typeof DashboardFlujoRoute
-  '/dashboard/redistribucion': typeof DashboardRedistribucionRoute
-  '/dashboard/status': typeof DashboardStatusRoute
-  '/dashboard/estaciones/stationId': typeof DashboardEstacionesChar91stationIdChar93RouteRoute
-  '/dashboard/views/mode': typeof DashboardViewsChar91modeChar93RouteRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
+  '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/informes/$month': typeof InformesMonthRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
+  '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/api/alerts': typeof ApiAlertsIndexRoute
+  '/api/app-versions': typeof ApiAppVersionsIndexRoute
+  '/api/collect': typeof ApiCollectIndexRoute
+  '/api/docs': typeof ApiDocsIndexRoute
+  '/api/heatmap': typeof ApiHeatmapIndexRoute
+  '/api/history': typeof ApiHistoryIndexRoute
+  '/api/mobility': typeof ApiMobilityIndexRoute
+  '/api/patterns': typeof ApiPatternsIndexRoute
+  '/api/predictions': typeof ApiPredictionsIndexRoute
+  '/api/rankings': typeof ApiRankingsIndexRoute
+  '/api/rebalancing-report': typeof ApiRebalancingReportIndexRoute
+  '/api/stations': typeof ApiStationsIndexRoute
+  '/api/status': typeof ApiStatusIndexRoute
+  '/dashboard/alertas': typeof DashboardAlertasIndexRoute
+  '/dashboard/ayuda': typeof DashboardAyudaIndexRoute
+  '/dashboard/conclusiones': typeof DashboardConclusionesIndexRoute
+  '/dashboard/estaciones': typeof DashboardEstacionesIndexRoute
+  '/dashboard/flujo': typeof DashboardFlujoIndexRoute
+  '/dashboard/redistribucion': typeof DashboardRedistribucionIndexRoute
+  '/dashboard/status': typeof DashboardStatusIndexRoute
+  '/api/geo/reverse': typeof ApiGeoReverseIndexRoute
+  '/api/geo/search': typeof ApiGeoSearchIndexRoute
+  '/api/install/register': typeof ApiInstallRegisterIndexRoute
+  '/api/ops/sentry-test': typeof ApiOpsSentryTestIndexRoute
+  '/api/token/refresh': typeof ApiTokenRefreshIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/developers': typeof DevelopersRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
@@ -376,44 +546,65 @@ export interface FileRoutesById {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
-  '/login': typeof LoginRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
-  '/profile': typeof ProfileRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
-  '/register': typeof RegisterRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
-  '/informes/month': typeof InformesChar91monthChar93RouteRoute
-  '/api/alerts': typeof ApiAlertsRoute
-  '/api/rankings': typeof ApiRankingsRoute
-  '/api/stations': typeof ApiStationsRoute
-  '/api/status': typeof ApiStatusRoute
-  '/dashboard/alertas': typeof DashboardAlertasRoute
-  '/dashboard/ayuda': typeof DashboardAyudaRoute
-  '/dashboard/conclusiones': typeof DashboardConclusionesRoute
-  '/dashboard/estaciones': typeof DashboardEstacionesRouteWithChildren
-  '/dashboard/flujo': typeof DashboardFlujoRoute
-  '/dashboard/redistribucion': typeof DashboardRedistribucionRoute
-  '/dashboard/status': typeof DashboardStatusRoute
-  '/dashboard/estaciones/stationId': typeof DashboardEstacionesChar91stationIdChar93RouteRoute
-  '/dashboard/views/mode': typeof DashboardViewsChar91modeChar93RouteRoute
+  '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
+  '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/informes/$month': typeof InformesMonthRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
+  '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/api/alerts/': typeof ApiAlertsIndexRoute
+  '/api/app-versions/': typeof ApiAppVersionsIndexRoute
+  '/api/collect/': typeof ApiCollectIndexRoute
+  '/api/docs/': typeof ApiDocsIndexRoute
+  '/api/heatmap/': typeof ApiHeatmapIndexRoute
+  '/api/history/': typeof ApiHistoryIndexRoute
+  '/api/mobility/': typeof ApiMobilityIndexRoute
+  '/api/patterns/': typeof ApiPatternsIndexRoute
+  '/api/predictions/': typeof ApiPredictionsIndexRoute
+  '/api/rankings/': typeof ApiRankingsIndexRoute
+  '/api/rebalancing-report/': typeof ApiRebalancingReportIndexRoute
+  '/api/stations/': typeof ApiStationsIndexRoute
+  '/api/status/': typeof ApiStatusIndexRoute
+  '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
+  '/dashboard/ayuda/': typeof DashboardAyudaIndexRoute
+  '/dashboard/conclusiones/': typeof DashboardConclusionesIndexRoute
+  '/dashboard/estaciones/': typeof DashboardEstacionesIndexRoute
+  '/dashboard/flujo/': typeof DashboardFlujoIndexRoute
+  '/dashboard/redistribucion/': typeof DashboardRedistribucionIndexRoute
+  '/dashboard/status/': typeof DashboardStatusIndexRoute
+  '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
+  '/api/geo/search/': typeof ApiGeoSearchIndexRoute
+  '/api/install/register/': typeof ApiInstallRegisterIndexRoute
+  '/api/ops/sentry-test/': typeof ApiOpsSentryTestIndexRoute
+  '/api/token/refresh/': typeof ApiTokenRefreshIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
+    | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
     | '/beta'
     | '/biciradar'
     | '/comparar'
-    | '/dashboard'
     | '/developers'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
@@ -422,42 +613,62 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
-    | '/login'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
-    | '/profile'
     | '/ranking-estaciones-bizi'
     | '/redistribucion-bizi-zaragoza'
-    | '/register'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
-    | '/informes/month'
-    | '/api/alerts'
-    | '/api/rankings'
-    | '/api/stations'
-    | '/api/status'
-    | '/dashboard/alertas'
-    | '/dashboard/ayuda'
-    | '/dashboard/conclusiones'
-    | '/dashboard/estaciones'
-    | '/dashboard/flujo'
-    | '/dashboard/redistribucion'
-    | '/dashboard/status'
-    | '/dashboard/estaciones/stationId'
-    | '/dashboard/views/mode'
+    | '/api/openapi.json'
+    | '/barrios/$districtSlug'
+    | '/estaciones/$stationId'
+    | '/informes/$month'
+    | '/dashboard/'
+    | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/dashboard/estaciones/$stationId'
+    | '/dashboard/views/$mode'
+    | '/api/alerts/'
+    | '/api/app-versions/'
+    | '/api/collect/'
+    | '/api/docs/'
+    | '/api/heatmap/'
+    | '/api/history/'
+    | '/api/mobility/'
+    | '/api/patterns/'
+    | '/api/predictions/'
+    | '/api/rankings/'
+    | '/api/rebalancing-report/'
+    | '/api/stations/'
+    | '/api/status/'
+    | '/dashboard/alertas/'
+    | '/dashboard/ayuda/'
+    | '/dashboard/conclusiones/'
+    | '/dashboard/estaciones/'
+    | '/dashboard/flujo/'
+    | '/dashboard/redistribucion/'
+    | '/dashboard/status/'
+    | '/api/geo/reverse/'
+    | '/api/geo/search/'
+    | '/api/install/register/'
+    | '/api/ops/sentry-test/'
+    | '/api/token/refresh/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
     | '/beta'
     | '/biciradar'
     | '/comparar'
-    | '/dashboard'
     | '/developers'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
@@ -466,20 +677,39 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
-    | '/login'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
-    | '/profile'
     | '/ranking-estaciones-bizi'
     | '/redistribucion-bizi-zaragoza'
-    | '/register'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
-    | '/informes/month'
+    | '/api/openapi.json'
+    | '/barrios/$districtSlug'
+    | '/estaciones/$stationId'
+    | '/informes/$month'
+    | '/dashboard'
+    | '/api/alerts/history'
+    | '/api/health/live'
+    | '/api/health/ready'
+    | '/dashboard/estaciones/$stationId'
+    | '/dashboard/views/$mode'
     | '/api/alerts'
+    | '/api/app-versions'
+    | '/api/collect'
+    | '/api/docs'
+    | '/api/heatmap'
+    | '/api/history'
+    | '/api/mobility'
+    | '/api/patterns'
+    | '/api/predictions'
     | '/api/rankings'
+    | '/api/rebalancing-report'
     | '/api/stations'
     | '/api/status'
     | '/dashboard/alertas'
@@ -489,19 +719,21 @@ export interface FileRouteTypes {
     | '/dashboard/flujo'
     | '/dashboard/redistribucion'
     | '/dashboard/status'
-    | '/dashboard/estaciones/stationId'
-    | '/dashboard/views/mode'
-    | '/api/health/live'
-    | '/api/health/ready'
+    | '/api/geo/reverse'
+    | '/api/geo/search'
+    | '/api/install/register'
+    | '/api/ops/sentry-test'
+    | '/api/token/refresh'
   id:
     | '__root__'
     | '/'
+    | '/dashboard'
+    | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
     | '/beta'
     | '/biciradar'
     | '/comparar'
-    | '/dashboard'
     | '/developers'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
@@ -510,43 +742,64 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
-    | '/login'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
-    | '/profile'
     | '/ranking-estaciones-bizi'
     | '/redistribucion-bizi-zaragoza'
-    | '/register'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
-    | '/informes/month'
-    | '/api/alerts'
-    | '/api/rankings'
-    | '/api/stations'
-    | '/api/status'
-    | '/dashboard/alertas'
-    | '/dashboard/ayuda'
-    | '/dashboard/conclusiones'
-    | '/dashboard/estaciones'
-    | '/dashboard/flujo'
-    | '/dashboard/redistribucion'
-    | '/dashboard/status'
-    | '/dashboard/estaciones/stationId'
-    | '/dashboard/views/mode'
+    | '/api/openapi.json'
+    | '/barrios/$districtSlug'
+    | '/estaciones/$stationId'
+    | '/informes/$month'
+    | '/dashboard/'
+    | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/dashboard/estaciones/$stationId'
+    | '/dashboard/views/$mode'
+    | '/api/alerts/'
+    | '/api/app-versions/'
+    | '/api/collect/'
+    | '/api/docs/'
+    | '/api/heatmap/'
+    | '/api/history/'
+    | '/api/mobility/'
+    | '/api/patterns/'
+    | '/api/predictions/'
+    | '/api/rankings/'
+    | '/api/rebalancing-report/'
+    | '/api/stations/'
+    | '/api/status/'
+    | '/dashboard/alertas/'
+    | '/dashboard/ayuda/'
+    | '/dashboard/conclusiones/'
+    | '/dashboard/estaciones/'
+    | '/dashboard/flujo/'
+    | '/dashboard/redistribucion/'
+    | '/dashboard/status/'
+    | '/api/geo/reverse/'
+    | '/api/geo/search/'
+    | '/api/install/register/'
+    | '/api/ops/sentry-test/'
+    | '/api/token/refresh/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  SplatRoute: typeof SplatRoute
   AboutRoute: typeof AboutRoute
   BarriosBiziZaragozaRoute: typeof BarriosBiziZaragozaRoute
   BetaRoute: typeof BetaRoute
   BiciradarRoute: typeof BiciradarRoute
   CompararRoute: typeof CompararRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
   DevelopersRoute: typeof DevelopersRoute
   EstacionesConMasBicisRoute: typeof EstacionesConMasBicisRoute
   EstacionesMasUsadasZaragozaRoute: typeof EstacionesMasUsadasZaragozaRoute
@@ -555,23 +808,42 @@ export interface RootRouteChildren {
   ExplorarRoute: typeof ExplorarRoute
   InformesRoute: typeof InformesRouteWithChildren
   InformesMensualesBiziZaragozaRoute: typeof InformesMensualesBiziZaragozaRoute
-  LoginRoute: typeof LoginRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
   MetodologiaRoute: typeof MetodologiaRoute
-  ProfileRoute: typeof ProfileRoute
   RankingEstacionesBiziRoute: typeof RankingEstacionesBiziRoute
   RedistribucionBiziZaragozaRoute: typeof RedistribucionBiziZaragozaRoute
-  RegisterRoute: typeof RegisterRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UsoBiziPorEstacionRoute: typeof UsoBiziPorEstacionRoute
   UsoBiziPorHoraRoute: typeof UsoBiziPorHoraRoute
   ViajesPorDiaZaragozaRoute: typeof ViajesPorDiaZaragozaRoute
   ViajesPorMesZaragozaRoute: typeof ViajesPorMesZaragozaRoute
-  ApiAlertsRoute: typeof ApiAlertsRoute
-  ApiRankingsRoute: typeof ApiRankingsRoute
-  ApiStationsRoute: typeof ApiStationsRoute
-  ApiStatusRoute: typeof ApiStatusRoute
+  ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  BarriosDistrictSlugRoute: typeof BarriosDistrictSlugRoute
+  EstacionesStationIdRoute: typeof EstacionesStationIdRoute
+  ApiAlertsHistoryRouteRoute: typeof ApiAlertsHistoryRouteRoute
   ApiHealthLiveRoute: typeof ApiHealthLiveRoute
   ApiHealthReadyRoute: typeof ApiHealthReadyRoute
+  ApiAlertsIndexRoute: typeof ApiAlertsIndexRoute
+  ApiAppVersionsIndexRoute: typeof ApiAppVersionsIndexRoute
+  ApiCollectIndexRoute: typeof ApiCollectIndexRoute
+  ApiDocsIndexRoute: typeof ApiDocsIndexRoute
+  ApiHeatmapIndexRoute: typeof ApiHeatmapIndexRoute
+  ApiHistoryIndexRoute: typeof ApiHistoryIndexRoute
+  ApiMobilityIndexRoute: typeof ApiMobilityIndexRoute
+  ApiPatternsIndexRoute: typeof ApiPatternsIndexRoute
+  ApiPredictionsIndexRoute: typeof ApiPredictionsIndexRoute
+  ApiRankingsIndexRoute: typeof ApiRankingsIndexRoute
+  ApiRebalancingReportIndexRoute: typeof ApiRebalancingReportIndexRoute
+  ApiStationsIndexRoute: typeof ApiStationsIndexRoute
+  ApiStatusIndexRoute: typeof ApiStatusIndexRoute
+  ApiGeoReverseIndexRoute: typeof ApiGeoReverseIndexRoute
+  ApiGeoSearchIndexRoute: typeof ApiGeoSearchIndexRoute
+  ApiInstallRegisterIndexRoute: typeof ApiInstallRegisterIndexRoute
+  ApiOpsSentryTestIndexRoute: typeof ApiOpsSentryTestIndexRoute
+  ApiTokenRefreshIndexRoute: typeof ApiTokenRefreshIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -604,11 +876,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsoBiziPorEstacionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redistribucion-bizi-zaragoza': {
@@ -625,13 +904,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RankingEstacionesBiziRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/metodologia': {
       id: '/metodologia'
       path: '/metodologia'
@@ -646,11 +918,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapaEstacionesBiziZaragozaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/informes-mensuales-bizi-zaragoza': {
@@ -709,13 +988,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/comparar': {
       id: '/comparar'
       path: '/comparar'
@@ -751,6 +1023,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -758,89 +1044,194 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/status': {
-      id: '/dashboard/status'
-      path: '/status'
-      fullPath: '/dashboard/status'
-      preLoaderRoute: typeof DashboardStatusRouteImport
-      parentRoute: typeof DashboardRoute
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/redistribucion': {
-      id: '/dashboard/redistribucion'
-      path: '/redistribucion'
-      fullPath: '/dashboard/redistribucion'
-      preLoaderRoute: typeof DashboardRedistribucionRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/flujo': {
-      id: '/dashboard/flujo'
-      path: '/flujo'
-      fullPath: '/dashboard/flujo'
-      preLoaderRoute: typeof DashboardFlujoRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/estaciones': {
-      id: '/dashboard/estaciones'
-      path: '/estaciones'
-      fullPath: '/dashboard/estaciones'
-      preLoaderRoute: typeof DashboardEstacionesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/conclusiones': {
-      id: '/dashboard/conclusiones'
-      path: '/conclusiones'
-      fullPath: '/dashboard/conclusiones'
-      preLoaderRoute: typeof DashboardConclusionesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/ayuda': {
-      id: '/dashboard/ayuda'
-      path: '/ayuda'
-      fullPath: '/dashboard/ayuda'
-      preLoaderRoute: typeof DashboardAyudaRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/alertas': {
-      id: '/dashboard/alertas'
-      path: '/alertas'
-      fullPath: '/dashboard/alertas'
-      preLoaderRoute: typeof DashboardAlertasRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/api/status': {
-      id: '/api/status'
-      path: '/api/status'
-      fullPath: '/api/status'
-      preLoaderRoute: typeof ApiStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/stations': {
-      id: '/api/stations'
-      path: '/api/stations'
-      fullPath: '/api/stations'
-      preLoaderRoute: typeof ApiStationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/rankings': {
-      id: '/api/rankings'
-      path: '/api/rankings'
-      fullPath: '/api/rankings'
-      preLoaderRoute: typeof ApiRankingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/alerts': {
-      id: '/api/alerts'
-      path: '/api/alerts'
-      fullPath: '/api/alerts'
-      preLoaderRoute: typeof ApiAlertsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/informes/month': {
-      id: '/informes/month'
-      path: '/month'
-      fullPath: '/informes/month'
-      preLoaderRoute: typeof InformesChar91monthChar93RouteRouteImport
+    '/informes/$month': {
+      id: '/informes/$month'
+      path: '/$month'
+      fullPath: '/informes/$month'
+      preLoaderRoute: typeof InformesMonthRouteImport
       parentRoute: typeof InformesRoute
+    }
+    '/estaciones/$stationId': {
+      id: '/estaciones/$stationId'
+      path: '/estaciones/$stationId'
+      fullPath: '/estaciones/$stationId'
+      preLoaderRoute: typeof EstacionesStationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/barrios/$districtSlug': {
+      id: '/barrios/$districtSlug'
+      path: '/barrios/$districtSlug'
+      fullPath: '/barrios/$districtSlug'
+      preLoaderRoute: typeof BarriosDistrictSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/openapi.json': {
+      id: '/api/openapi.json'
+      path: '/api/openapi.json'
+      fullPath: '/api/openapi.json'
+      preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/status/': {
+      id: '/dashboard/status/'
+      path: '/status'
+      fullPath: '/dashboard/status/'
+      preLoaderRoute: typeof DashboardStatusIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/redistribucion/': {
+      id: '/dashboard/redistribucion/'
+      path: '/redistribucion'
+      fullPath: '/dashboard/redistribucion/'
+      preLoaderRoute: typeof DashboardRedistribucionIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/flujo/': {
+      id: '/dashboard/flujo/'
+      path: '/flujo'
+      fullPath: '/dashboard/flujo/'
+      preLoaderRoute: typeof DashboardFlujoIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/estaciones/': {
+      id: '/dashboard/estaciones/'
+      path: '/estaciones'
+      fullPath: '/dashboard/estaciones/'
+      preLoaderRoute: typeof DashboardEstacionesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/conclusiones/': {
+      id: '/dashboard/conclusiones/'
+      path: '/conclusiones'
+      fullPath: '/dashboard/conclusiones/'
+      preLoaderRoute: typeof DashboardConclusionesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ayuda/': {
+      id: '/dashboard/ayuda/'
+      path: '/ayuda'
+      fullPath: '/dashboard/ayuda/'
+      preLoaderRoute: typeof DashboardAyudaIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/alertas/': {
+      id: '/dashboard/alertas/'
+      path: '/alertas'
+      fullPath: '/dashboard/alertas/'
+      preLoaderRoute: typeof DashboardAlertasIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/api/status/': {
+      id: '/api/status/'
+      path: '/api/status'
+      fullPath: '/api/status/'
+      preLoaderRoute: typeof ApiStatusIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stations/': {
+      id: '/api/stations/'
+      path: '/api/stations'
+      fullPath: '/api/stations/'
+      preLoaderRoute: typeof ApiStationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rebalancing-report/': {
+      id: '/api/rebalancing-report/'
+      path: '/api/rebalancing-report'
+      fullPath: '/api/rebalancing-report/'
+      preLoaderRoute: typeof ApiRebalancingReportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rankings/': {
+      id: '/api/rankings/'
+      path: '/api/rankings'
+      fullPath: '/api/rankings/'
+      preLoaderRoute: typeof ApiRankingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/predictions/': {
+      id: '/api/predictions/'
+      path: '/api/predictions'
+      fullPath: '/api/predictions/'
+      preLoaderRoute: typeof ApiPredictionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/patterns/': {
+      id: '/api/patterns/'
+      path: '/api/patterns'
+      fullPath: '/api/patterns/'
+      preLoaderRoute: typeof ApiPatternsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mobility/': {
+      id: '/api/mobility/'
+      path: '/api/mobility'
+      fullPath: '/api/mobility/'
+      preLoaderRoute: typeof ApiMobilityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/history/': {
+      id: '/api/history/'
+      path: '/api/history'
+      fullPath: '/api/history/'
+      preLoaderRoute: typeof ApiHistoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/heatmap/': {
+      id: '/api/heatmap/'
+      path: '/api/heatmap'
+      fullPath: '/api/heatmap/'
+      preLoaderRoute: typeof ApiHeatmapIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/docs/': {
+      id: '/api/docs/'
+      path: '/api/docs'
+      fullPath: '/api/docs/'
+      preLoaderRoute: typeof ApiDocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/collect/': {
+      id: '/api/collect/'
+      path: '/api/collect'
+      fullPath: '/api/collect/'
+      preLoaderRoute: typeof ApiCollectIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/app-versions/': {
+      id: '/api/app-versions/'
+      path: '/api/app-versions'
+      fullPath: '/api/app-versions/'
+      preLoaderRoute: typeof ApiAppVersionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/alerts/': {
+      id: '/api/alerts/'
+      path: '/api/alerts'
+      fullPath: '/api/alerts/'
+      preLoaderRoute: typeof ApiAlertsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/views/$mode': {
+      id: '/dashboard/views/$mode'
+      path: '/views/$mode'
+      fullPath: '/dashboard/views/$mode'
+      preLoaderRoute: typeof DashboardViewsModeRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/estaciones/$stationId': {
+      id: '/dashboard/estaciones/$stationId'
+      path: '/estaciones/$stationId'
+      fullPath: '/dashboard/estaciones/$stationId'
+      preLoaderRoute: typeof DashboardEstacionesStationIdRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/api/health/ready': {
       id: '/api/health/ready'
@@ -856,68 +1247,87 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthLiveRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/views/mode': {
-      id: '/dashboard/views/mode'
-      path: '/views/mode'
-      fullPath: '/dashboard/views/mode'
-      preLoaderRoute: typeof DashboardViewsChar91modeChar93RouteRouteImport
-      parentRoute: typeof DashboardRoute
+    '/api/alerts/history': {
+      id: '/api/alerts/history'
+      path: '/api/alerts/history'
+      fullPath: '/api/alerts/history'
+      preLoaderRoute: typeof ApiAlertsHistoryRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/dashboard/estaciones/stationId': {
-      id: '/dashboard/estaciones/stationId'
-      path: '/stationId'
-      fullPath: '/dashboard/estaciones/stationId'
-      preLoaderRoute: typeof DashboardEstacionesChar91stationIdChar93RouteRouteImport
-      parentRoute: typeof DashboardEstacionesRoute
+    '/api/token/refresh/': {
+      id: '/api/token/refresh/'
+      path: '/api/token/refresh'
+      fullPath: '/api/token/refresh/'
+      preLoaderRoute: typeof ApiTokenRefreshIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ops/sentry-test/': {
+      id: '/api/ops/sentry-test/'
+      path: '/api/ops/sentry-test'
+      fullPath: '/api/ops/sentry-test/'
+      preLoaderRoute: typeof ApiOpsSentryTestIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/install/register/': {
+      id: '/api/install/register/'
+      path: '/api/install/register'
+      fullPath: '/api/install/register/'
+      preLoaderRoute: typeof ApiInstallRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo/search/': {
+      id: '/api/geo/search/'
+      path: '/api/geo/search'
+      fullPath: '/api/geo/search/'
+      preLoaderRoute: typeof ApiGeoSearchIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo/reverse/': {
+      id: '/api/geo/reverse/'
+      path: '/api/geo/reverse'
+      fullPath: '/api/geo/reverse/'
+      preLoaderRoute: typeof ApiGeoReverseIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface DashboardEstacionesRouteChildren {
-  DashboardEstacionesChar91stationIdChar93RouteRoute: typeof DashboardEstacionesChar91stationIdChar93RouteRoute
+interface DashboardRouteRouteChildren {
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardEstacionesStationIdRoute: typeof DashboardEstacionesStationIdRoute
+  DashboardViewsModeRoute: typeof DashboardViewsModeRoute
+  DashboardAlertasIndexRoute: typeof DashboardAlertasIndexRoute
+  DashboardAyudaIndexRoute: typeof DashboardAyudaIndexRoute
+  DashboardConclusionesIndexRoute: typeof DashboardConclusionesIndexRoute
+  DashboardEstacionesIndexRoute: typeof DashboardEstacionesIndexRoute
+  DashboardFlujoIndexRoute: typeof DashboardFlujoIndexRoute
+  DashboardRedistribucionIndexRoute: typeof DashboardRedistribucionIndexRoute
+  DashboardStatusIndexRoute: typeof DashboardStatusIndexRoute
 }
 
-const DashboardEstacionesRouteChildren: DashboardEstacionesRouteChildren = {
-  DashboardEstacionesChar91stationIdChar93RouteRoute:
-    DashboardEstacionesChar91stationIdChar93RouteRoute,
+const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardEstacionesStationIdRoute: DashboardEstacionesStationIdRoute,
+  DashboardViewsModeRoute: DashboardViewsModeRoute,
+  DashboardAlertasIndexRoute: DashboardAlertasIndexRoute,
+  DashboardAyudaIndexRoute: DashboardAyudaIndexRoute,
+  DashboardConclusionesIndexRoute: DashboardConclusionesIndexRoute,
+  DashboardEstacionesIndexRoute: DashboardEstacionesIndexRoute,
+  DashboardFlujoIndexRoute: DashboardFlujoIndexRoute,
+  DashboardRedistribucionIndexRoute: DashboardRedistribucionIndexRoute,
+  DashboardStatusIndexRoute: DashboardStatusIndexRoute,
 }
 
-const DashboardEstacionesRouteWithChildren =
-  DashboardEstacionesRoute._addFileChildren(DashboardEstacionesRouteChildren)
-
-interface DashboardRouteChildren {
-  DashboardAlertasRoute: typeof DashboardAlertasRoute
-  DashboardAyudaRoute: typeof DashboardAyudaRoute
-  DashboardConclusionesRoute: typeof DashboardConclusionesRoute
-  DashboardEstacionesRoute: typeof DashboardEstacionesRouteWithChildren
-  DashboardFlujoRoute: typeof DashboardFlujoRoute
-  DashboardRedistribucionRoute: typeof DashboardRedistribucionRoute
-  DashboardStatusRoute: typeof DashboardStatusRoute
-  DashboardViewsChar91modeChar93RouteRoute: typeof DashboardViewsChar91modeChar93RouteRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAlertasRoute: DashboardAlertasRoute,
-  DashboardAyudaRoute: DashboardAyudaRoute,
-  DashboardConclusionesRoute: DashboardConclusionesRoute,
-  DashboardEstacionesRoute: DashboardEstacionesRouteWithChildren,
-  DashboardFlujoRoute: DashboardFlujoRoute,
-  DashboardRedistribucionRoute: DashboardRedistribucionRoute,
-  DashboardStatusRoute: DashboardStatusRoute,
-  DashboardViewsChar91modeChar93RouteRoute:
-    DashboardViewsChar91modeChar93RouteRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
+const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
+  DashboardRouteRouteChildren,
 )
 
 interface InformesRouteChildren {
-  InformesChar91monthChar93RouteRoute: typeof InformesChar91monthChar93RouteRoute
+  InformesMonthRoute: typeof InformesMonthRoute
 }
 
 const InformesRouteChildren: InformesRouteChildren = {
-  InformesChar91monthChar93RouteRoute: InformesChar91monthChar93RouteRoute,
+  InformesMonthRoute: InformesMonthRoute,
 }
 
 const InformesRouteWithChildren = InformesRoute._addFileChildren(
@@ -926,12 +1336,13 @@ const InformesRouteWithChildren = InformesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  SplatRoute: SplatRoute,
   AboutRoute: AboutRoute,
   BarriosBiziZaragozaRoute: BarriosBiziZaragozaRoute,
   BetaRoute: BetaRoute,
   BiciradarRoute: BiciradarRoute,
   CompararRoute: CompararRoute,
-  DashboardRoute: DashboardRouteWithChildren,
   DevelopersRoute: DevelopersRoute,
   EstacionesConMasBicisRoute: EstacionesConMasBicisRoute,
   EstacionesMasUsadasZaragozaRoute: EstacionesMasUsadasZaragozaRoute,
@@ -940,23 +1351,42 @@ const rootRouteChildren: RootRouteChildren = {
   ExplorarRoute: ExplorarRoute,
   InformesRoute: InformesRouteWithChildren,
   InformesMensualesBiziZaragozaRoute: InformesMensualesBiziZaragozaRoute,
-  LoginRoute: LoginRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
   MetodologiaRoute: MetodologiaRoute,
-  ProfileRoute: ProfileRoute,
   RankingEstacionesBiziRoute: RankingEstacionesBiziRoute,
   RedistribucionBiziZaragozaRoute: RedistribucionBiziZaragozaRoute,
-  RegisterRoute: RegisterRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   UsoBiziPorEstacionRoute: UsoBiziPorEstacionRoute,
   UsoBiziPorHoraRoute: UsoBiziPorHoraRoute,
   ViajesPorDiaZaragozaRoute: ViajesPorDiaZaragozaRoute,
   ViajesPorMesZaragozaRoute: ViajesPorMesZaragozaRoute,
-  ApiAlertsRoute: ApiAlertsRoute,
-  ApiRankingsRoute: ApiRankingsRoute,
-  ApiStationsRoute: ApiStationsRoute,
-  ApiStatusRoute: ApiStatusRoute,
+  ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  BarriosDistrictSlugRoute: BarriosDistrictSlugRoute,
+  EstacionesStationIdRoute: EstacionesStationIdRoute,
+  ApiAlertsHistoryRouteRoute: ApiAlertsHistoryRouteRoute,
   ApiHealthLiveRoute: ApiHealthLiveRoute,
   ApiHealthReadyRoute: ApiHealthReadyRoute,
+  ApiAlertsIndexRoute: ApiAlertsIndexRoute,
+  ApiAppVersionsIndexRoute: ApiAppVersionsIndexRoute,
+  ApiCollectIndexRoute: ApiCollectIndexRoute,
+  ApiDocsIndexRoute: ApiDocsIndexRoute,
+  ApiHeatmapIndexRoute: ApiHeatmapIndexRoute,
+  ApiHistoryIndexRoute: ApiHistoryIndexRoute,
+  ApiMobilityIndexRoute: ApiMobilityIndexRoute,
+  ApiPatternsIndexRoute: ApiPatternsIndexRoute,
+  ApiPredictionsIndexRoute: ApiPredictionsIndexRoute,
+  ApiRankingsIndexRoute: ApiRankingsIndexRoute,
+  ApiRebalancingReportIndexRoute: ApiRebalancingReportIndexRoute,
+  ApiStationsIndexRoute: ApiStationsIndexRoute,
+  ApiStatusIndexRoute: ApiStatusIndexRoute,
+  ApiGeoReverseIndexRoute: ApiGeoReverseIndexRoute,
+  ApiGeoSearchIndexRoute: ApiGeoSearchIndexRoute,
+  ApiInstallRegisterIndexRoute: ApiInstallRegisterIndexRoute,
+  ApiOpsSentryTestIndexRoute: ApiOpsSentryTestIndexRoute,
+  ApiTokenRefreshIndexRoute: ApiTokenRefreshIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,4 +1,4 @@
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';

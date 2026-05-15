@@ -8,7 +8,8 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import type { RankingsResponse, StationSnapshot } from '@/lib/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { RankingsResponse, StationSnapshot } from '@/lib/api-types';
 import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
@@ -28,8 +29,9 @@ type RankingTab = 'turnover' | 'availability';
 
 function RankingsTableContent({ rankings, stations, density = 'normal' }: RankingsTableProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const location = useLocation();
+  const pathname = location.pathname;
+  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
   const tabFromUrl = searchParams.get('rankingTab');
   const activeTab: RankingTab =
     tabFromUrl === 'turnover' ? 'turnover' : 'availability';
@@ -57,7 +59,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
     }
 
     const nextQuery = nextParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 
   const stationMap = useMemo(() => {
@@ -148,12 +150,12 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       <div className='flex flex-wrap items-center gap-2'>
         <div className='flex gap-2'>
           <Button
-            variant='ghost'
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            variant={activeTab === 'availability' ? 'default' : 'outline'}
+            className={`rounded-full h-auto min-h-0 ${
               activeTab === 'availability'
-                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
-                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
-            } h-auto min-h-0`}
+                ? ''
+                : ''
+            }`}
             onClick={() => {
               updateQuery({ tab: 'availability', showAll: false });
             }}
@@ -161,12 +163,12 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
             Criticas
           </Button>
           <Button
-            variant='ghost'
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+            variant={activeTab === 'turnover' ? 'default' : 'outline'}
+            className={`rounded-full h-auto min-h-0 ${
               activeTab === 'turnover'
-                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
-                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
-            } h-auto min-h-0`}
+                ? ''
+                : ''
+            }`}
             onClick={() => {
               updateQuery({ tab: 'turnover', showAll: false });
             }}
@@ -264,11 +266,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
       {rows.length > 8 ? (
         <Button
-          variant='ghost'
+          variant="cta"
           onClick={() => {
             updateQuery({ showAll: !showAll });
           }}
-          className='h-auto min-h-0 rounded-lg border border-[var(--primary)] px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white'
+          className="h-auto min-h-0 rounded-lg px-3 py-1.5 text-xs font-bold"
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}
         </Button>
@@ -279,7 +281,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
 export function RankingsTable(props: RankingsTableProps) {
   return (
-    <Suspense fallback={<div className='ui-section-card h-full animate-pulse' />}>
+    <Suspense fallback={<div className='ui-section-card h-full'><Skeleton className="h-24 w-full" /></div>}>
       <RankingsTableContent {...props} />
     </Suspense>
   );

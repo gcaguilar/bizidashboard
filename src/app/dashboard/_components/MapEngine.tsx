@@ -16,7 +16,7 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
 import { buildStationFeatureCollection } from '@/lib/map-features';
 import type { DashboardMapViewState } from '@/lib/map-view-state';

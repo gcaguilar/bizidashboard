@@ -1,5 +1,3 @@
-import 'server-only';
-
 import type { DatasetStatsSummary } from './types';
 import { getCoverageSummary } from './coverage-service';
 

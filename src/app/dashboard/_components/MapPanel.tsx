@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import { MapEngine } from './MapEngine';

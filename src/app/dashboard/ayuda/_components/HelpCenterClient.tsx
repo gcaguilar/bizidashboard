@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import type { HistoryMetadata } from '@/services/shared-data/types';
@@ -202,71 +203,76 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             </div>
           </div>
 
-          <aside className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-soft)]">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Cobertura de datos
-            </p>
-            <p className="mt-1 text-sm text-[var(--foreground)]">
-              Datos desde: <span className="font-semibold">{formatDateTime(historyMeta?.coverage?.firstRecordedAt)}</span>
-            </p>
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Ultima muestra: {formatDateTime(historyMeta?.coverage?.lastRecordedAt)}
-            </p>
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Dias disponibles: {historyMeta?.coverage?.totalDays ?? 0} · Estaciones activas:{' '}
-              {historyMeta?.coverage?.totalStations ?? 0}
-            </p>
-            <p className="mt-3 text-xs text-[var(--muted)]">
-              Fuente: {historyMeta?.source?.provider ?? 'Bizi Zaragoza GBFS'}
-            </p>
-            <TrackedAnchor
-              href={historyMeta?.source?.gbfsDiscoveryUrl ?? 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json'}
-              target="_blank"
-              rel="noreferrer"
-              trackingEvent={buildCtaClickEvent({
-                surface: 'dashboard',
-                routeKey: 'dashboard_help',
-                source: 'help_coverage',
-                ctaId: 'source_feed_open',
-                destination: 'gbfs_feed',
-                isExternal: true,
-              })}
-              className="mt-1 inline-flex text-xs font-semibold text-[var(--primary)] underline decoration-[var(--primary)]/40 underline-offset-2"
-            >
-              Ver feed de origen
-            </TrackedAnchor>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <TrackedLink
-                href={appRoutes.api.history()}
-                trackingEvent={buildExportClickEvent({
-                  surface: 'dashboard',
-                  routeKey: 'dashboard_help',
-                  source: 'help_coverage',
-                  ctaId: 'history_json',
-                  entityType: 'api',
-                  module: 'help_coverage',
-                })}
-                className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white"
-              >
-                Ver historico completo
-              </TrackedLink>
-              <TrackedLink
-                href={appRoutes.api.openApi()}
-                trackingEvent={buildCtaClickEvent({
-                  surface: 'dashboard',
-                  routeKey: 'dashboard_help',
-                  source: 'help_coverage',
-                  ctaId: 'api_open',
-                  destination: 'openapi',
-                  entityType: 'api',
-                })}
-                className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
-              >
-                Definicion API
-              </TrackedLink>
-            </div>
-          </aside>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
+                Cobertura de datos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm text-[var(--foreground)]">
+                <p>
+                  Datos desde: <span className="font-semibold">{formatDateTime(historyMeta?.coverage?.firstRecordedAt)}</span>
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Ultima muestra: {formatDateTime(historyMeta?.coverage?.lastRecordedAt)}
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  Dias disponibles: {historyMeta?.coverage?.totalDays ?? 0} · Estaciones activas:{' '}
+                  {historyMeta?.coverage?.totalStations ?? 0}
+                </p>
+                <p className="mt-3 text-xs text-[var(--muted)]">
+                  Fuente: {historyMeta?.source?.provider ?? 'Bizi Zaragoza GBFS'}
+                </p>
+                <TrackedAnchor
+                  href={historyMeta?.source?.gbfsDiscoveryUrl ?? 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json'}
+                  target="_blank"
+                  rel="noreferrer"
+                  trackingEvent={buildCtaClickEvent({
+                    surface: 'dashboard',
+                    routeKey: 'dashboard_help',
+                    source: 'help_coverage',
+                    ctaId: 'source_feed_open',
+                    destination: 'gbfs_feed',
+                    isExternal: true,
+                  })}
+                  className="mt-1 inline-flex text-xs font-semibold text-[var(--primary)] underline decoration-[var(--primary)]/40 underline-offset-2"
+                >
+                  Ver feed de origen
+                </TrackedAnchor>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <TrackedLink
+                  href={appRoutes.api.history()}
+                  trackingEvent={buildExportClickEvent({
+                    surface: 'dashboard',
+                    routeKey: 'dashboard_help',
+                    source: 'help_coverage',
+                    ctaId: 'history_json',
+                    entityType: 'api',
+                    module: 'help_coverage',
+                  })}
+                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white"
+                >
+                  Ver historico completo
+                </TrackedLink>
+                <TrackedLink
+                  href={appRoutes.api.openApi()}
+                  trackingEvent={buildCtaClickEvent({
+                    surface: 'dashboard',
+                    routeKey: 'dashboard_help',
+                    source: 'help_coverage',
+                    ctaId: 'api_open',
+                    destination: 'openapi',
+                    entityType: 'api',
+                  })}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
+                >
+                  Definicion API
+                </TrackedLink>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -302,13 +308,9 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-xl font-black text-[var(--primary)]">
                     {category.slice(0, 1)}
                   </div>
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                    isCategoryFilterActive
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]'
-                  }`}>
+                  <Badge variant={isCategoryFilterActive ? 'default' : 'muted'}>
                     {categoryMatches}/{totalInCategory}
-                  </span>
+                  </Badge>
                 </div>
                 <h3 className="text-xl font-bold text-[var(--foreground)]">{category}</h3>
                 <p className="mt-2 text-sm text-[var(--muted)]">
@@ -332,9 +334,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 <h2 className="flex items-center gap-3 text-2xl font-bold text-[var(--foreground)]">
                   <span className="h-1 w-8 rounded-full bg-[var(--primary)]" />
                   {category}
-                  <span className="rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2.5 py-1 text-[11px] font-bold text-[var(--muted)]">
-                    {items.length}
-                  </span>
+                  <Badge variant="muted">{items.length}</Badge>
                 </h2>
 
                 <Accordion

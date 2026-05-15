@@ -45,6 +45,7 @@ model StationStatus {
   @@unique([stationId, recordedAt])
   @@index([stationId, recordedAt]) // Critical for time-series queries
   @@index([recordedAt]) // For range queries across all stations
+  @@index([recordedAt, stationId, bikesAvailable, anchorsFree]) // Composite for time-range + station queries (critical episodes, rollups)
 }
 
 enum DayType {
@@ -75,6 +76,7 @@ model HourlyStationStat {
 
   @@id([stationId, bucketStart])
   @@index([bucketStart])
+  @@index([bucketStart, stationId]) // Composite for time-range queries with station filter (mobility signals, patterns)
 }
 
 model DailyStationStat {
@@ -111,6 +113,7 @@ model StationRanking {
   station Station @relation(fields: [stationId], references: [id])
 
   @@index([stationId])
+  @@index([windowEnd, stationId]) // For latest-window queries (getStationRankings)
   @@unique([stationId, windowStart, windowEnd])
 }
 
@@ -155,6 +158,7 @@ model StationAlert {
   station Station @relation(fields: [stationId], references: [id])
 
   @@index([generatedAt])
+  @@index([isActive, generatedAt]) // For active alerts queries (getActiveAlerts)
   @@unique([stationId, alertType, windowHours, generatedAt])
 }
 

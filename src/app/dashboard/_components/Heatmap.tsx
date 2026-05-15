@@ -2,7 +2,7 @@
 
 import { Link } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import type { HeatmapCell } from '@/lib/api';
+import type { HeatmapCell } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import {

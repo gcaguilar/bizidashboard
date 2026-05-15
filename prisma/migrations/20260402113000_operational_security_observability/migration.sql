@@ -10,8 +10,8 @@ ADD COLUMN "revokedAt" TIMESTAMP(3);
 
 UPDATE "Install"
 SET
-  "publicKeyFingerprint" = encode(digest("publicKey", 'sha256'), 'hex'),
-  "refreshTokenHash" = encode(digest("refreshToken", 'sha256'), 'hex'),
+  "publicKeyFingerprint" = encode(sha256("publicKey"::bytea), 'hex'),
+  "refreshTokenHash" = encode(sha256("refreshToken"::bytea), 'hex'),
   "refreshTokenIssuedAt" = COALESCE("updatedAt", "createdAt"),
   "lastSeenAt" = COALESCE("updatedAt", "createdAt"),
   "lastAuthAt" = COALESCE("updatedAt", "createdAt")

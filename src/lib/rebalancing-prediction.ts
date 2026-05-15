@@ -1,4 +1,4 @@
-import type { StationSnapshot, StationPatternRow } from '@/lib/api';
+import type { StationSnapshot, StationPatternRow } from '@/lib/api-types';
 import type { RiskAssessment, TimeBandMetrics, TargetBand } from '@/types/rebalancing';
 import { estimateStationPredictions } from '@/lib/predictions';
 import { getCurrentTimeBand } from '@/lib/target-bands';

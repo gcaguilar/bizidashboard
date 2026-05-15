@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot, RankingsResponse } from '@/lib/api-types';
 import { appRoutes } from '@/lib/routes';
 import { DemandFlowCard } from './DemandFlowCard';
 import { FlowPreviewPanel } from './FlowPreviewPanel';
@@ -26,8 +26,8 @@ type ResearchModeViewProps = {
   trendByStationId: Record<string, StationTrend>;
   nearestStationId: string | null;
   rankings: {
-    turnover: import('@/lib/api').RankingsResponse;
-    availability: import('@/lib/api').RankingsResponse;
+    turnover: RankingsResponse;
+    availability: RankingsResponse;
   };
   dailyDemand: Array<{ day: string; demandScore: number; avgOccupancy: number; sampleCount: number }>;
   systemHourlyProfile: Array<{ hour: number; avgOccupancy: number; avgBikesAvailable: number; sampleCount: number }>;

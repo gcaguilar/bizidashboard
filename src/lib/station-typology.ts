@@ -1,6 +1,6 @@
 import { DayType } from '@/analytics/types';
 import type { StationType } from '@/types/rebalancing';
-import type { StationPatternRow } from '@/lib/api';
+import type { StationPatternRow } from '@/lib/api-types';
 
 type PatternInput = Pick<StationPatternRow, 'dayType' | 'hour' | 'occupancyAvg' | 'sampleCount'>;
 

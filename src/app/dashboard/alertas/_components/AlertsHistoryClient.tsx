@@ -3,7 +3,8 @@
 import { Link } from '@tanstack/react-router';
 import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CitySwitcher } from '@/app/_components/CitySwitcher';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -207,8 +208,9 @@ function buildViewQueryFromState(state: ViewFilterState): string {
 
 export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const location = useLocation();
+  const pathname = location.pathname;
+  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
 
   const [stationId, setStationId] = useState('');
   const [alertType, setAlertType] = useState<AlertTypeFilter>('all');
@@ -318,7 +320,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const nextUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
-    router.replace(nextUrl, { scroll: false });
+    router.navigate({ to: nextUrl, replace: true });
   }, [isUrlReady, pathname, router, stations, viewQueryString]);
 
   useAbortableAsyncEffect(
@@ -488,8 +490,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             <GitHubRepoButton />
           </div>
         </div>
-
-        <CitySwitcher compact className="mt-3" />
 
         <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-6">
           <Select
@@ -719,26 +719,14 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                     </TableCell>
                     <TableCell className="whitespace-nowrap px-4 py-3">{formatAlertType(row.alertType)}</TableCell>
                     <TableCell className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
-                          row.severity >= 2
-                            ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
-                            : 'bg-amber-500/15 text-amber-500'
-                        }`}
-                      >
+                      <Badge variant={row.severity >= 2 ? 'danger' : 'warning'}>
                         {row.severity >= 2 ? 'Critica' : 'Media'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] ${
-                          row.isActive
-                            ? 'bg-emerald-500/15 text-emerald-500'
-                            : 'bg-slate-500/15 text-slate-300'
-                        }`}
-                      >
+                      <Badge variant={row.isActive ? 'success' : 'muted'}>
                         {row.isActive ? 'Activa' : 'Resuelta'}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="whitespace-nowrap px-4 py-3 text-xs">{row.metricValue.toFixed(1)}</TableCell>
                     <TableCell className="whitespace-nowrap px-4 py-3 text-xs text-[var(--muted)]">

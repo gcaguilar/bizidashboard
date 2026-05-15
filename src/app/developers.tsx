@@ -5,14 +5,8 @@ import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import {
-  fetchAvailableDataMonths,
-  fetchSharedDatasetSnapshot,
-  fetchStatus,
-} from '@/lib/api';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
-import { buildDeveloperEndpointAnchorId } from '@/lib/global-search';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
@@ -31,6 +25,7 @@ import {
   getApiVersionLabel,
   getDatasetVersionLabel,
 } from '@/lib/system-status';
+import { getDevelopersPageData } from '@/server-functions/developers';
 
 type EndpointDoc = {
   path: string;
@@ -40,6 +35,18 @@ type EndpointDoc = {
 };
 
 const OPENAPI_DESTINATION = 'openapi';
+
+function buildDeveloperEndpointAnchorId(
+  path: string,
+  method: string
+): string {
+  const normalized = `${method}-${path}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, '-')
+    .replace(/^-+|-+$/gu, '');
+
+  return `endpoint-${normalized}`;
+}
 
 function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints') {
   return {
@@ -54,138 +61,31 @@ function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints'
 }
 
 export const Route = createFileRoute('/developers')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'API y datos abiertos de Bizi Zaragoza',
-  }),
-  loader: async () => {
-    const nowIso = new Date().toISOString();
-    const siteUrl = getSiteUrl();
-    const [dataset, availableMonths, status] = await Promise.all([
-      fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
-      fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
-      fetchStatus().catch(() => buildFallbackStatus(nowIso)),
-    ]);
-    const latestMonth = availableMonths.months.filter(isValidMonthKey)[0] ?? null;
-    const endpointDocs = getEndpointDocs();
-    const datasetVersion = getDatasetVersionLabel(dataset);
-    const apiVersion = getApiVersionLabel();
-    const codeLicense = process.env.npm_package_license ?? 'GPL-3.0-only';
-    const developersDataState = combineDataStates([dataset.dataState, status.dataState]);
-    const datasetTemporalCoverage =
-      dataset.coverage.firstRecordedAt && dataset.coverage.lastRecordedAt
-        ? `${dataset.coverage.firstRecordedAt}/${dataset.coverage.lastRecordedAt}`
-        : undefined;
-    const curlExamples = [
-      `curl -s -H "X-Request-Id: docs-example-status" ${siteUrl}${appRoutes.api.status()}`,
-      `curl -sG ${siteUrl}${appRoutes.api.rankings({ type: 'turnover', limit: 20 })}`,
-      `curl -L -H "x-public-api-key: $PUBLIC_API_KEY" ${siteUrl}${appRoutes.api.historyCsv()}`,
-    ];
-    const pythonExample = `import requests\n\nbase_url = "${siteUrl}"\nresponse = requests.get(f"{base_url}${appRoutes.api.status()}", timeout=15)\nresponse.raise_for_status()\npayload = response.json()\nprint(payload["pipeline"]["healthStatus"])`;
-    const jsExample = `const response = await fetch("${siteUrl}${appRoutes.api.stations()}");\nif (!response.ok) throw new Error(\`HTTP \${response.status}\`);\nconst payload = await response.json();\nconsole.log(payload.stations.length);`;
-    const csvDownloads = [
-      {
-        label: 'Estado actual de estaciones',
-        href: appRoutes.api.stations({ format: 'csv' }),
-        detail: 'Snapshot actual en CSV con bicis, anclajes y capacidad. Acceso anonimo.',
-      },
-      {
-        label: 'Historico agregado',
-        href: appRoutes.api.historyCsv(),
-        detail: 'Serie diaria con demanda, ocupacion, balance y muestras. Requiere `X-Public-Api-Key`.',
-      },
-      {
-        label: 'Alertas historicas',
-        href: appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 }),
-        detail: 'Incidencias activas y resueltas con exportacion tabular. Requiere `X-Public-Api-Key`.',
-      },
-      {
-        label: 'Ranking de friccion',
-        href: appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' }),
-        detail: 'Horas problema y riesgo de disponibilidad por estacion. Acceso anonimo.',
-      },
-      {
-        label: 'Resumen del sistema',
-        href: appRoutes.api.status({ format: 'csv' }),
-        detail: 'Estado del pipeline, frescura y volumen reciente. Acceso anonimo.',
-      },
-    ] as const;
-    const accessPolicies = [
-      {
-        label: 'Correlacion',
-        title: 'Todas las respuestas API devuelven `X-Request-Id`',
-        detail:
-          'Si el cliente envia su propio identificador se reutiliza en logs, Sentry, auditoria y ejecuciones operativas.',
-      },
-      {
-        label: 'Ops',
-        title: '`GET/POST /api/collect` requieren `X-Ops-Api-Key`',
-        detail:
-          'La cabecera `x-collect-api-key` sigue aceptandose temporalmente como alias de compatibilidad para cron antiguos.',
-      },
-      {
-        label: 'Elevated public',
-        title: 'CSV costosos y ventanas amplias requieren `X-Public-Api-Key`',
-        detail:
-          'Afecta a historico CSV, alertas historicas CSV, movilidad extendida y rebalancing con ventanas o exportaciones amplias.',
-      },
-      {
-        label: 'Mobile',
-        title: '`Authorization` + `X-Installation-Id` en auth movil',
-        detail:
-          'Geo search y geo reverse soportan firma HMAC (`timestamp` + `signature`) y el backend puede volverla obligatoria por feature flag.',
-      },
-    ] as const;
-    const useCases = [
-      'Supervision operativa del sistema y cuadros de mando internos.',
-      'Periodismo de datos y storytelling sobre movilidad urbana.',
-      'Investigacion sobre demanda, equilibrio y comportamiento horario.',
-      'Integraciones con apps moviles, paneles de ciudad o herramientas GIS.',
-    ] as const;
-    const changelog = [
-      `v${apiVersion}: especificacion OpenAPI publicada y accesible para tooling.`,
-      'Version actual: request tracing con `X-Request-Id`, collect protegido por clave operativa y auditoria persistente para auth, rate limits y ejecuciones.',
-      `Dataset ${datasetVersion}: cobertura compartida con ${dataset.coverage.totalDays} dias y ${dataset.stats.totalSamples} muestras agregadas.`,
-    ] as const;
-    const datasetDownloadEntries = csvDownloads.map((item) => ({
-      name: item.label,
-      url: `${siteUrl}${item.href}`,
-    }));
-
+  head: () => {
+    const siteUrl = getSiteUrl()
     return {
-      siteUrl,
-      cityName: getCityName(),
-      breadcrumbs: createRootBreadcrumbs({
-        label: 'Developers',
-        href: appRoutes.developers(),
-      }),
-      latestMonth,
-      endpointDocs,
-      datasetVersion,
-      apiVersion,
-      codeLicense,
-      developersDataState,
-      datasetTemporalCoverage,
-      curlExamples,
-      pythonExample,
-      jsExample,
-      csvDownloads,
-      accessPolicies,
-      useCases,
-      changelog,
-      datasetDownloadEntries,
-      dataset,
-    };
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.',
+        },
+        { property: 'og:title', content: 'API y datos abiertos de Bizi Zaragoza' },
+        { property: 'og:description', content: 'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/developers` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'API y datos abiertos de Bizi Zaragoza' },
+        { name: 'twitter:description', content: 'Documentacion publica de la API y los datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos de uso, descargas CSV y trazabilidad del dataset.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/developers` }],
+      title: 'API y datos abiertos de Bizi Zaragoza',
+    }
   },
+  loader: () => getDevelopersPageData(),
   component: DevelopersPage,
 });
 

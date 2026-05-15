@@ -1,4 +1,4 @@
-import { AlertType, DayType, type PrismaClient } from '@prisma/client';
+import { AlertType, DayType, type PrismaClient } from '@/generated/prisma/client';
 import { createPostgresPrismaClient } from '../src/lib/prisma-client';
 
 const POLL_INTERVAL_MINUTES = 5;
@@ -343,7 +343,7 @@ async function createInBatches<T>(
 }
 
 async function resetDatabase(prisma: PrismaClient) {
-  await prisma.$transaction([
+  const tables = [
     prisma.stationAlert.deleteMany(),
     prisma.stationHeatmapCell.deleteMany(),
     prisma.stationPattern.deleteMany(),
@@ -354,7 +354,8 @@ async function resetDatabase(prisma: PrismaClient) {
     prisma.station.deleteMany(),
     prisma.analyticsWatermark.deleteMany(),
     prisma.mobilityBriefingCache.deleteMany(),
-  ]);
+  ];
+  await prisma.$transaction(tables, { timeout: 60_000 });
 }
 
 async function main() {

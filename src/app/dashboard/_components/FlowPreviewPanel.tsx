@@ -6,7 +6,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { resolveDataState } from '@/lib/data-state';
 import {
   buildStationDistrictMap,

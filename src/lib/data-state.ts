@@ -1,7 +1,7 @@
 import type {
   CoverageSummary,
   PipelineStatusSummary,
-} from '@/services/shared-data';
+} from '@/services/shared-data/types';
 
 export type DataState =
   | 'loading'

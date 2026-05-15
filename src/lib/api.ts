@@ -1,6 +1,3 @@
-import 'server-only';
-
-import { AlertType, DayType } from '@/analytics/types';
 import {
   getActiveAlerts,
   getAvailableDataMonths,
@@ -18,113 +15,51 @@ import {
   resolveRankingsDataState,
   resolveStationsDataState,
   resolveStatusDataState,
-  type DataState,
 } from '@/lib/data-state';
-import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import { buildStationDistrictMap } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 import {
   attachPeakFullHours,
   buildDistrictSpotlight,
   buildPeakFullHoursByStation,
   enrichRankingRows,
-  type DistrictSpotlightRow,
-  type EnrichedRankingRow,
 } from '@/lib/ranking-enrichment';
 import {
   getHistoryMetadata,
   getPipelineStatusSummary,
   getSharedDatasetSnapshot,
-  type CoverageSummary,
-  type HistoryMetadata as HistoryMetadataBase,
-  type PipelineStatusSummary,
-  type SharedDatasetSnapshot as SharedDatasetSnapshotBase,
 } from '@/services/shared-data';
+import type {
+  AvailableMonthsResponse,
+  HeatmapCell,
+  HistoryMetadata,
+  RankingsResponse,
+  SharedDatasetSnapshot,
+  StationPatternRow,
+  StationSnapshot,
+  StationsResponse,
+  StatusResponse,
+  AlertsResponse,
+} from '@/lib/api-types';
 
-export type StationSnapshot = {
-  id: string;
-  name: string;
-  lat: number;
-  lon: number;
-  capacity: number;
-  bikesAvailable: number;
-  anchorsFree: number;
-  recordedAt: string;
-};
-
-export type StationsResponse = {
-  stations: StationSnapshot[];
-  generatedAt: string;
-  dataState: DataState;
-};
-
-/** Fila de ranking con nombre, barrio y lectura demanda vs huecos (API /api/rankings). */
-export type RankingRow = EnrichedRankingRow;
-
-export type { DistrictSpotlightRow, PeakFullHourSlot } from '@/lib/ranking-enrichment';
-
-export type RankingsResponse = {
-  type: 'turnover' | 'availability';
-  limit: number;
-  rankings: EnrichedRankingRow[];
-  districtSpotlight: DistrictSpotlightRow[];
-  generatedAt: string;
-  dataState: DataState;
-};
-
-export type StationPatternRow = {
-  stationId: string;
-  dayType: DayType | string;
-  hour: number;
-  bikesAvg: number;
-  anchorsAvg: number;
-  occupancyAvg: number;
-  sampleCount: number;
-};
-
-export type HeatmapCell = {
-  stationId: string;
-  dayOfWeek: number;
-  hour: number;
-  bikesAvg: number;
-  anchorsAvg: number;
-  occupancyAvg: number;
-  sampleCount: number;
-};
-
-export type AlertRow = {
-  id: number;
-  stationId: string;
-  alertType: AlertType | string;
-  severity: number;
-  metricValue: number;
-  windowHours: number;
-  generatedAt: string;
-  isActive: boolean;
-};
-
-export type AlertsResponse = {
-  limit: number;
-  alerts: AlertRow[];
-  generatedAt: string;
-};
-
-export type AvailableMonthsResponse = {
-  months: string[];
-  generatedAt: string;
-};
-
-export type StatusResponse = PipelineStatusSummary & {
-  dataState: DataState;
-};
-
-export type HistoryMetadata = HistoryMetadataBase & {
-  dataState: DataState;
-};
-
-export type SharedDatasetSnapshot = SharedDatasetSnapshotBase & {
-  dataState: DataState;
-};
-
-export type { CoverageSummary };
+export type {
+  AlertRow,
+  AlertsResponse,
+  AvailableMonthsResponse,
+  CoverageSummary,
+  DistrictSpotlightRow,
+  EnrichedRankingRow,
+  HeatmapCell,
+  HistoryMetadata,
+  PeakFullHourSlot,
+  RankingRow,
+  RankingsResponse,
+  SharedDatasetSnapshot,
+  StationPatternRow,
+  StationSnapshot,
+  StationsResponse,
+  StatusResponse,
+} from '@/lib/api-types';
 
 const LIVE_CACHE_TTL_SECONDS = 60;
 const ANALYTICS_CACHE_TTL_SECONDS = 300;

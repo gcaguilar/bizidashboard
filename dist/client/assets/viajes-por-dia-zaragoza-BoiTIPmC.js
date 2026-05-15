@@ -1,0 +1,2 @@
+import{Ja as e,ro as t}from"./index-BidEj_j-.js";import{t as n}from"./SeoLandingPageComponent-D_85iQdG.js";var r=t();function i(){let{config:t,content:i,indexability:a}=e.useLoaderData();return(0,r.jsx)(n,{slug:`viajes-por-dia-zaragoza`,config:t,content:i,indexability:a})}export{i as component};
+//# sourceMappingURL=viajes-por-dia-zaragoza-BoiTIPmC.js.map

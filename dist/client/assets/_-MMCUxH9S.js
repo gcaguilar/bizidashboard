@@ -1,0 +1,2 @@
+import{Rr as e,ro as t}from"./index-BidEj_j-.js";var n=t();function r(){return(0,n.jsx)(e,{children:(0,n.jsxs)(`section`,{className:`ui-page-hero py-24 text-center`,children:[(0,n.jsx)(`h1`,{className:`text-4xl font-black text-[var(--foreground)]`,children:`Pagina no encontrada`}),(0,n.jsx)(`p`,{className:`mt-4 text-sm text-[var(--muted)]`,children:`La ruta que buscas no existe o ha sido movida.`}),(0,n.jsx)(`a`,{href:`/`,className:`ui-inline-action mt-6`,children:`Volver al inicio`})]})})}export{r as notFoundComponent};
+//# sourceMappingURL=_-MMCUxH9S.js.map

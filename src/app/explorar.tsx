@@ -11,6 +11,7 @@ import { EXPLORE_PAGE_NAV_CONFIG } from '@/lib/seo-pages';
 import { PageShell } from '@/components/layout/page-shell';
 import { formatStatusDateTime } from '@/lib/system-status';
 import { getExploreLoaderData } from '@/server-functions/explorar';
+import { getSiteUrl } from '@/lib/site';
 
 type ExploreSearch = {
   q?: string;
@@ -27,19 +28,30 @@ function getFirstSearchParam(
 }
 
 export const Route = createFileRoute('/explorar')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Explorar',
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl()
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.',
+        },
+        { property: 'og:title', content: 'Explorar - DatosBizi' },
+        { property: 'og:description', content: 'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/explorar` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Explorar - DatosBizi' },
+        { name: 'twitter:description', content: 'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/explorar` }],
+      title: 'Explorar',
+    }
+  },
   loader: () => getExploreLoaderData(),
   component: ExploreHubPage,
 });

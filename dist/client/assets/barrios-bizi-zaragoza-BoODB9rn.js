@@ -1,1 +1,0 @@
-import{t as e}from"./jsx-runtime-kJazARoa.js";var t=e();function n(){return(0,t.jsx)(`div`,{children:`barrios-bizi-zaragoza`})}export{n as component};

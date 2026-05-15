@@ -40,8 +40,6 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3000}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-better-auth-secret-minimum-32-chars}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
@@ -78,8 +76,6 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-better-auth-secret-minimum-32-chars}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
@@ -116,8 +112,6 @@ services:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3002}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-me-better-auth-secret-minimum-32-chars}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}

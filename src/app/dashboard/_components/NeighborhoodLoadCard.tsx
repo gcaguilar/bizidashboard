@@ -2,7 +2,7 @@
 
 import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -10,6 +10,7 @@ import {
 } from '@/lib/districts';
 import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type NeighborhoodLoadCardProps = {
@@ -199,7 +200,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           </div>
         </div>
 
-        <div className="max-h-44 space-y-2 overflow-y-auto pr-1 text-[11px]">
+        <ScrollArea className="max-h-44 space-y-2 pr-1 text-[11px]">
           {slices.length === 0 || totalStations === 0 ? (
             <WidgetEmptyState
               title="Sin datos de distritos"
@@ -229,7 +230,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           <p className="pt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
             Ocupacion media ciudad: {Math.round(avgOccupancy * 100)}%
           </p>
-        </div>
+        </ScrollArea>
       </div>
     </section>
   );

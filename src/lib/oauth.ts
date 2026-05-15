@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import { timingSafeEqual } from 'node:crypto';
 import { TextEncoder } from 'node:util';
 import { getPublicApiKey } from '@/lib/security/config';
+import { validateApiKey } from '@/lib/security/api-keys';
 import { getSiteUrl } from '@/lib/site';
 
 const OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS = 3600;
@@ -138,7 +139,6 @@ export async function validateOAuthClient(
     };
   }
 
-  const { validateApiKey } = await import('@/lib/security/api-keys');
   const apiKeyInfo = await validateApiKey(clientSecret);
   if (!apiKeyInfo || apiKeyInfo.keyPrefix !== clientId) {
     return null;

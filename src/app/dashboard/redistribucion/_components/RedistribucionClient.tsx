@@ -1,5 +1,6 @@
 'use client';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {
@@ -266,9 +267,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
         </div>
 
         {loadError ? (
-          <p className="mt-3 rounded-lg border border-amber-300/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-950 dark:text-amber-100">
-            {loadError}
-          </p>
+          <Alert variant="warning">{loadError}</Alert>
         ) : null}
       </div>
 

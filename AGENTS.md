@@ -117,8 +117,8 @@ npx @tanstack/intent@latest list     # Result: "No intent-enabled packages found
 
 ### Build Process
 - **Dev**: `vite dev` — TanStack Start dev server with HMR
-- **Build**: `vite build` — Generates `.output/` with Nitro server bundle
-- **Start**: `node .output/server/index.mjs` — Nitro server runtime
+- **Build**: `vite build` — Generates `dist/client/` and `dist/server/`
+- **Start**: `bun ops/start-server.mjs` — production Bun runtime serving `dist/client` assets and TanStack Start SSR
 
 ### Key Differences from Next.js
 | Aspect | Next.js | TanStack Start |

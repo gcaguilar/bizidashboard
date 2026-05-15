@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { AlertType } from '@/analytics/types';
 import { getLocalBucket } from '@/analytics/time-buckets';
 import { prisma } from '@/lib/db';
@@ -321,20 +321,18 @@ export async function getStationsWithLatestStatus(): Promise<
       recordedAt: string | Date;
     }>
   >`
-    WITH latest AS (
-      SELECT "stationId", MAX("recordedAt") AS "recordedAt"
+    SELECT s.id, s.name, s.lat, s.lon, s.capacity,
+      ss."bikesAvailable", ss."anchorsFree", ss."recordedAt"
+    FROM "Station" s
+    CROSS JOIN LATERAL (
+      SELECT "bikesAvailable", "anchorsFree", "recordedAt"
       FROM "StationStatus"
-      GROUP BY "stationId"
-    )
-    SELECT "Station".id, "Station".name, "Station".lat, "Station".lon, "Station".capacity,
-      "StationStatus"."bikesAvailable", "StationStatus"."anchorsFree", "StationStatus"."recordedAt"
-    FROM "Station"
-    INNER JOIN latest ON latest."stationId" = "Station".id
-    INNER JOIN "StationStatus"
-      ON "StationStatus"."stationId" = latest."stationId"
-      AND "StationStatus"."recordedAt" = latest."recordedAt"
-    WHERE "Station"."isActive" = true
-    ORDER BY "Station".name ASC;
+      WHERE "stationId" = s.id
+      ORDER BY "recordedAt" DESC
+      LIMIT 1
+    ) ss
+    WHERE s."isActive" = true
+    ORDER BY s.name ASC;
   `;
 
   return rows.map((row) => ({

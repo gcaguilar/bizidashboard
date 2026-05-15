@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { cache } from 'react';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/ui/metric-card';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { appRoutes } from '@/lib/routes';
 import type { RecentStationSnapshot } from '@/lib/recent-station-history';
 

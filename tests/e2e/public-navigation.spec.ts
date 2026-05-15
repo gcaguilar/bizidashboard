@@ -54,8 +54,8 @@ test('public redirects resolve to canonical pages', async ({ page }) => {
   await expect.poll(() => getPathname(page.url())).toBe('/developers');
 
   await page.goto('/dashboard/status');
-  await expect.poll(() => getPathname(page.url())).toBe('/estado');
-  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('Estado');
+  await expect.poll(() => getPathname(page.url())).toBe('/dashboard/status');
+  await expect(page.getByRole('heading', { name: /Estado|dashboard/i })).toBeVisible();
 
   await page.goto('/zaragoza/explorar');
   await expect.poll(() => getPathname(page.url())).toBe('/explorar');

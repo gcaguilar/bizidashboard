@@ -1,4 +1,5 @@
-import { Prisma } from '@prisma/client';
+import { createFileRoute } from '@tanstack/react-router';
+import { Prisma } from '@/generated/prisma/client';
 // Request/Response removed;
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -7,6 +8,14 @@ import { withApiRequest } from '@/lib/security/http';
 import { enforcePublicApiAccess } from '@/lib/security/public-api';
 
 export const dynamic = 'force-dynamic';
+
+export const Route = createFileRoute('/api/alerts/history')({
+  server: {
+    handlers: {
+      GET: ({ request }) => GET(request),
+    },
+  },
+});
 
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 2000;

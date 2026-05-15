@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation, useRouter, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
@@ -22,8 +23,9 @@ function MonthFilterContent({
   source = 'month_filter',
 }: MonthFilterProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const location = useLocation();
+  const pathname = location.pathname;
+  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
   const monthOptions = toMonthOptions(months);
 
   if (monthOptions.length === 0) {
@@ -50,7 +52,7 @@ function MonthFilterContent({
     }
 
     const nextQuery = nextParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 
   return (
@@ -91,7 +93,7 @@ function MonthFilterContent({
 
 export function MonthFilter(props: MonthFilterProps) {
   return (
-    <Suspense fallback={<div className='h-10 w-full animate-pulse rounded-xl bg-[var(--secondary)]' />}>
+    <Suspense fallback={<Skeleton className="h-10 w-full rounded-xl" />}>
       <MonthFilterContent {...props} />
     </Suspense>
   );

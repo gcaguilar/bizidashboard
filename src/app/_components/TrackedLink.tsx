@@ -19,19 +19,22 @@ import {
   type UmamiTrackedEvent,
 } from '@/lib/umami';
 
-type TrackedLinkProps = LinkProps &
-  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
-    children: ReactNode;
+type TrackedLinkProps = {
+  children: ReactNode;
+  href?: string;
   trackingEvent?: UmamiTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
   entitySelectEvent?: Omit<EntitySelectInput, 'surface' | 'routeKey'>;
   eventName?: LegacyUmamiInteractionName;
   eventData?: Record<string, UmamiEventValue>;
-  };
+  className?: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+};
 
 export function TrackedLink({
   children,
+  href,
   eventName,
   eventData,
   trackingEvent,
@@ -40,9 +43,10 @@ export function TrackedLink({
   entitySelectEvent,
   onClick,
   className,
-  ...linkProps
+  ...otherProps
 }: TrackedLinkProps) {
   const pathname = useLocation().pathname;
+  const to = href;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
@@ -89,7 +93,7 @@ export function TrackedLink({
 
   return (
     <Link
-      {...linkProps}
+      to={to}
       onClick={handleClick}
       className={`${
         className ?? ''

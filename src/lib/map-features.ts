@@ -1,4 +1,4 @@
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 
 export type StationFeatureCollection = {
   type: 'FeatureCollection';

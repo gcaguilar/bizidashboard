@@ -1,11 +1,12 @@
+import { t as getServerFnById } from "./assets/__23tanstack-start-server-fn-resolver-BYi29s5W.js";
+import { a as getStartContext, c as safeObjectMerge, d as TSS_FORMDATA_CONTEXT, f as TSS_SERVER_FUNCTION, i as flattenMiddlewares, l as FrameType, m as X_TSS_SERIALIZED, n as getDefaultSerovalPlugins, o as runWithStartContext, p as X_TSS_RAW_RESPONSE, s as createNullProtoObject, t as mergeHeaders, u as TSS_CONTENT_TYPE_FRAMED_VERSIONED } from "./assets/esm-DmkRHfL6.js";
 import "react";
 import { RouterProvider } from "@tanstack/react-router";
 import { jsx } from "react/jsx-runtime";
 import { defineHandlerCallback, renderRouterToStream } from "@tanstack/react-router/ssr/server";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { H3Event, toResponse } from "h3-v2";
-import { createRawStreamRPCPlugin, createSerializationAdapter, defaultSerovalPlugins, executeRewriteInput, getStylesheetHref, invariant, isNotFound, isRedirect, isResolvedRedirect, makeSerovalPlugin, resolveManifestAssetLink, rootRouteId } from "@tanstack/router-core";
-import { mergeHeaders } from "@tanstack/router-core/ssr/client";
+import { createRawStreamRPCPlugin, createSerializationAdapter, executeRewriteInput, getStylesheetHref, invariant, isNotFound, isRedirect, isResolvedRedirect, resolveManifestAssetLink, rootRouteId } from "@tanstack/router-core";
 import { fromJSON, toCrossJSONAsync, toCrossJSONStream } from "seroval";
 import { createMemoryHistory } from "@tanstack/history";
 import { attachRouterServerSsrUtils, getNormalizedURL, getOrigin } from "@tanstack/router-core/ssr/server";
@@ -24,9 +25,9 @@ var defaultStreamHandler = defineHandlerCallback(({ request, router, responseHea
 //#endregion
 //#region node_modules/@tanstack/start-server-core/dist/esm/request-response.js
 var GLOBAL_EVENT_STORAGE_KEY = Symbol.for("tanstack-start:event-storage");
-var globalObj$1 = globalThis;
-if (!globalObj$1[GLOBAL_EVENT_STORAGE_KEY]) globalObj$1[GLOBAL_EVENT_STORAGE_KEY] = new AsyncLocalStorage();
-var eventStorage = globalObj$1[GLOBAL_EVENT_STORAGE_KEY];
+var globalObj = globalThis;
+if (!globalObj[GLOBAL_EVENT_STORAGE_KEY]) globalObj[GLOBAL_EVENT_STORAGE_KEY] = new AsyncLocalStorage();
+var eventStorage = globalObj[GLOBAL_EVENT_STORAGE_KEY];
 function isPromiseLike(value) {
 	return typeof value.then === "function";
 }
@@ -94,7 +95,7 @@ var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-B5m10C9-.js");
+	const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-Dx1DJMBK.js");
 	const startManifest = tsrStartManifest();
 	const rootRoute = startManifest.routes[rootRouteId] = startManifest.routes[rootRouteId] || {};
 	rootRoute.assets = rootRoute.assets || [];
@@ -120,104 +121,6 @@ async function getStartManifest(matchedRoutes) {
 		clientEntry: startManifest.clientEntry,
 		injectedHeadScripts
 	};
-}
-//#endregion
-//#region \0%23tanstack-start-server-fn-resolver
-var manifest = {};
-async function getServerFnById(id, access) {
-	const serverFnInfo = manifest[id];
-	if (!serverFnInfo) throw new Error("Server function info not found for " + id);
-	const fnModule = serverFnInfo.module ?? await serverFnInfo.importer();
-	if (!fnModule) throw new Error("Server function module not resolved for " + id);
-	const action = fnModule[serverFnInfo.functionName];
-	if (!action) throw new Error("Server function module export not resolved for serverFn ID: " + id);
-	return action;
-}
-//#endregion
-//#region node_modules/@tanstack/start-client-core/dist/esm/constants.js
-var TSS_FORMDATA_CONTEXT = "__TSS_CONTEXT";
-var TSS_SERVER_FUNCTION = Symbol.for("TSS_SERVER_FUNCTION");
-var X_TSS_SERIALIZED = "x-tss-serialized";
-var X_TSS_RAW_RESPONSE = "x-tss-raw";
-/** Content-Type for multiplexed framed responses (RawStream support) */
-var TSS_CONTENT_TYPE_FRAMED = "application/x-tss-framed";
-/**
-* Frame types for binary multiplexing protocol.
-*/
-var FrameType = {
-	JSON: 0,
-	CHUNK: 1,
-	END: 2,
-	ERROR: 3
-};
-/** Full Content-Type header value with version parameter */
-var TSS_CONTENT_TYPE_FRAMED_VERSIONED = `${TSS_CONTENT_TYPE_FRAMED}; v=1`;
-//#endregion
-//#region node_modules/@tanstack/start-client-core/dist/esm/safeObjectMerge.js
-function isSafeKey(key) {
-	return key !== "__proto__" && key !== "constructor" && key !== "prototype";
-}
-/**
-* Merge target and source into a new null-proto object, filtering dangerous keys.
-*/
-function safeObjectMerge(target, source) {
-	const result = Object.create(null);
-	if (target) {
-		for (const key of Object.keys(target)) if (isSafeKey(key)) result[key] = target[key];
-	}
-	if (source && typeof source === "object") {
-		for (const key of Object.keys(source)) if (isSafeKey(key)) result[key] = source[key];
-	}
-	return result;
-}
-/**
-* Create a null-prototype object, optionally copying from source.
-*/
-function createNullProtoObject(source) {
-	if (!source) return Object.create(null);
-	const obj = Object.create(null);
-	for (const key of Object.keys(source)) if (isSafeKey(key)) obj[key] = source[key];
-	return obj;
-}
-//#endregion
-//#region node_modules/@tanstack/start-storage-context/dist/esm/async-local-storage.js
-var GLOBAL_STORAGE_KEY = Symbol.for("tanstack-start:start-storage-context");
-var globalObj = globalThis;
-if (!globalObj[GLOBAL_STORAGE_KEY]) globalObj[GLOBAL_STORAGE_KEY] = new AsyncLocalStorage();
-var startStorage = globalObj[GLOBAL_STORAGE_KEY];
-async function runWithStartContext(context, fn) {
-	return startStorage.run(context, fn);
-}
-function getStartContext(opts) {
-	const context = startStorage.getStore();
-	if (!context && opts?.throwIfNotFound !== false) throw new Error(`No Start context found in AsyncLocalStorage. Make sure you are using the function within the server runtime.`);
-	return context;
-}
-//#endregion
-//#region node_modules/@tanstack/start-client-core/dist/esm/getStartOptions.js
-var getStartOptions = () => getStartContext().startOptions;
-//#endregion
-//#region node_modules/@tanstack/start-client-core/dist/esm/createServerFn.js
-function flattenMiddlewares(middlewares, maxDepth = 100) {
-	const seen = /* @__PURE__ */ new Set();
-	const flattened = [];
-	const recurse = (middleware, depth) => {
-		if (depth > maxDepth) throw new Error(`Middleware nesting depth exceeded maximum of ${maxDepth}. Check for circular references.`);
-		middleware.forEach((m) => {
-			if (m.options.middleware) recurse(m.options.middleware, depth + 1);
-			if (!seen.has(m)) {
-				seen.add(m);
-				flattened.push(m);
-			}
-		});
-	};
-	recurse(middlewares, 0);
-	return flattened;
-}
-//#endregion
-//#region node_modules/@tanstack/start-client-core/dist/esm/getDefaultSerovalPlugins.js
-function getDefaultSerovalPlugins() {
-	return [...(getStartOptions()?.serializationAdapters)?.map(makeSerovalPlugin) ?? [], ...defaultSerovalPlugins];
 }
 //#endregion
 //#region node_modules/@tanstack/start-server-core/dist/esm/frame-protocol.js
@@ -990,9 +893,9 @@ var baseManifestPromise;
 var cachedFinalManifestPromise;
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		import("./assets/router-gTKXz8e7.js"),
-		import("./assets/start-D9OIYVPh.js"),
-		import("./assets/__23tanstack-start-plugin-adapters-3QxJs4a0.js")
+		import("./assets/router-BIRzKSzQ.js"),
+		import("./assets/start-DBZ-RhOC.js"),
+		import("./assets/__23tanstack-start-plugin-adapters-BWZzj-RW.js")
 	]);
 	return {
 		routerEntry,
@@ -1404,3 +1307,5 @@ function createServerEntry(entry) {
 var server_default = createServerEntry({ fetch });
 //#endregion
 export { createServerEntry, server_default as default };
+
+//# sourceMappingURL=server.js.map

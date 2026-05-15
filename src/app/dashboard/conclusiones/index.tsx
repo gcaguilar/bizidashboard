@@ -81,19 +81,25 @@ function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
 }
 
 export const Route = createFileRoute('/dashboard/conclusiones/')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Conclusiones de movilidad',
-  }),
+  head: () => {
+    const title = 'Conclusiones de movilidad'
+    const description = 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.'
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { name: 'robots', content: 'noindex, nofollow' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+      ],
+      title,
+    }
+  },
   loader: async ({ searchParams }) => getDashboardConclusionsPageData({ data: searchParams ? await searchParams : {} }),
   component: DashboardConclusionsPage,
 });

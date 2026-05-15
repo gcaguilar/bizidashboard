@@ -1,8 +1,26 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageShell } from '@/components/layout/page-shell'
 import { appRoutes } from '@/lib/routes'
+import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION } from '@/lib/site'
 
 export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { name: 'description', content: SEO_SITE_DESCRIPTION },
+      { property: 'og:title', content: SEO_SITE_TITLE },
+      { property: 'og:description', content: SEO_SITE_DESCRIPTION },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:url', content: getSiteUrl() },
+      { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: SEO_SITE_TITLE },
+      { name: 'twitter:description', content: SEO_SITE_DESCRIPTION },
+    ],
+    links: [{ rel: 'canonical', href: getSiteUrl() }],
+    title: SEO_SITE_TITLE,
+  }),
   component: Home,
 })
 

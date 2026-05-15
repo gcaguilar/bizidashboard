@@ -1,5 +1,3 @@
-import 'server-only';
-
 import {
   getStationGlobalMetrics,
   getStationTimeBandMetrics,
@@ -7,7 +5,8 @@ import {
   getStationDistanceMatrix,
 } from '@/analytics/queries/rebalancing';
 import { getStationsWithLatestStatus, getStationPatternsBulk } from '@/analytics/queries/read';
-import { fetchDistrictCollection, buildStationDistrictMap } from '@/lib/districts';
+import { buildStationDistrictMap } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 import { withCache } from '@/lib/cache/cache';
 
 import { inferStationType } from '@/lib/station-typology';

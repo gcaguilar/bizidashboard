@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Layer, Map as MapView, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { logger } from '@/lib/logger';
 import { hashSensitiveValue } from '@/lib/security/http';
 
@@ -88,4 +88,3 @@ export async function getSecurityEventSummary(hours = 24): Promise<{
     };
   }
 }
-

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { AlertsResponse, RankingsResponse, StationSnapshot, StatusResponse } from '@/lib/api';
+import type { AlertsResponse, RankingsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
 
 type SystemMetricsInput = {
   stations: StationSnapshot[];

@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { cache } from 'react';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';

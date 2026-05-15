@@ -4,176 +4,47 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series';
-import {
-  fetchAvailableDataMonths,
-  fetchHistoryMetadata,
-  fetchSharedDatasetSnapshot,
-  fetchStatus,
-} from '@/lib/api';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { combineDataStates, resolveDataState, shouldShowDataStateNotice } from '@/lib/data-state';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { shouldShowDataStateNotice } from '@/lib/data-state';
+import { getSiteUrl } from '@/lib/site';
+import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { buildSocialImagePath } from '@/lib/social-images';
-import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { buildItemListStructuredData } from '@/lib/structured-data';
-import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { formatInteger, formatPercent } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
-
-function resolvePublishedMonths(
-  availableMonths: string[],
-  monthlySeriesKeys: string[]
-): string[] {
-  const monthSet = new Set<string>();
-
-  for (const month of [...availableMonths, ...monthlySeriesKeys]) {
-    if (isValidMonthKey(month)) {
-      monthSet.add(month);
-    }
-  }
-
-  return Array.from(monthSet).sort((left, right) => right.localeCompare(left));
-}
-
-function resolveSnapshotMonthFallback(lastSampleAt: string | null): string[] {
-  if (!lastSampleAt) {
-    return [];
-  }
-
-  const parsed = new Date(lastSampleAt);
-  if (Number.isNaN(parsed.getTime())) {
-    return [];
-  }
-
-  const monthKey = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}`;
-  return isValidMonthKey(monthKey) ? [monthKey] : [];
-}
-
-function mergeMonthCandidates(months: string[]): string[] {
-  const set = new Set<string>();
-  for (const month of months) {
-    if (isValidMonthKey(month)) {
-      set.add(month);
-    }
-  }
-  return Array.from(set).sort((left, right) => right.localeCompare(left));
-}
+import { getReportsIndexPageData } from '@/server-functions/informes';
 
 export const Route = createFileRoute('/informes')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Archivo historico de informes mensuales de Bizi Zaragoza con URLs limpias por mes, comparativas y acceso directo a cada informe indexable.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
-  }),
-  loader: async () => {
-    const siteUrl = getSiteUrl();
-    const nowIso = new Date().toISOString();
-    const [monthsResponse, monthlySeries, dataset, historyMeta, status] = await Promise.all([
-      fetchAvailableDataMonths().catch((error) => {
-        captureExceptionWithContext(error, {
-          area: 'reports.index',
-          operation: 'fetchAvailableDataMonths',
-          dedupeKey: 'reports.index.fetchAvailableDataMonths.failed',
-        });
-        return { months: [], generatedAt: new Date().toISOString() };
-      }),
-      fetchCachedMonthlyDemandCurve(24).catch(() => []),
-      fetchSharedDatasetSnapshot().catch((error) => {
-        captureExceptionWithContext(error, {
-          area: 'reports.index',
-          operation: 'fetchSharedDatasetSnapshot',
-          dedupeKey: 'reports.index.fetchSharedDatasetSnapshot.failed',
-        });
-        return buildFallbackDatasetSnapshot(nowIso);
-      }),
-      fetchHistoryMetadata().catch(() => null),
-      fetchStatus().catch(() => null),
-    ]);
-
-    const discoveredMonths = mergeMonthCandidates(resolvePublishedMonths(
-      monthsResponse.months,
-      monthlySeries.map((row) => row.monthKey)
-    ));
-    const historyFallbackMonths = mergeMonthCandidates(
-      [historyMeta?.coverage.lastRecordedAt, status?.pipeline.lastSuccessfulPoll]
-        .filter((value): value is string => Boolean(value))
-        .map((value) => value.slice(0, 7))
-    );
-    const months =
-      discoveredMonths.length > 0
-        ? discoveredMonths
-        : mergeMonthCandidates([
-            ...historyFallbackMonths,
-            ...resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt),
-          ]);
-    const monthMap = new Map(monthlySeries.map((row) => [row.monthKey, row]));
-    const latestMonth = months[0] ?? null;
-    const reportsDataState = combineDataStates([
-      dataset.dataState,
-      resolveDataState({
-        hasCoverage: dataset.coverage.totalDays > 0 || months.length > 0,
-        hasData: months.length > 0,
-        isPartial: months.length > 0 && monthlySeries.length < months.length,
-      }),
-    ]);
-    const breadcrumbs = createRootBreadcrumbs({
-      label: 'Informes',
-      href: appRoutes.reports(),
-    });
-    const reportListEntries = months.map((month) => ({
-      name: `Informe ${formatMonthLabel(month)}`,
-      url: `${siteUrl}${appRoutes.reportMonth(month)}`,
-    }));
-
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'CollectionPage',
-          name: 'Informes Bizi Zaragoza por mes',
-          description:
-            'Archivo historico de informes mensuales de Bizi Zaragoza con enlaces persistentes por mes y acceso al dashboard filtrado.',
-          url: `${siteUrl}${appRoutes.reports()}`,
-          inLanguage: 'es',
-        },
-        buildBreadcrumbStructuredData(breadcrumbs),
-        {
-          '@type': 'Organization',
-          name: SITE_NAME,
-          url: siteUrl,
-        },
-        ...(reportListEntries.length > 0
-          ? [buildItemListStructuredData('Archivo de informes mensuales', reportListEntries)]
-          : []),
-      ],
-    };
-
+  head: () => {
+    const siteUrl = getSiteUrl()
     return {
-      months,
-      monthMap,
-      latestMonth,
-      reportsDataState,
-      breadcrumbs,
-      structuredData,
-    };
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Archivo historico de informes mensuales de Bizi Zaragoza con URLs limpias por mes, comparativas y acceso directo a cada informe indexable.',
+        },
+        { property: 'og:title', content: 'Informes mensuales de Bizi Zaragoza | Archivo historico' },
+        { property: 'og:description', content: 'Archivo historico de informes mensuales de Bizi Zaragoza con URLs limpias por mes, comparativas y acceso directo a cada informe indexable.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/informes` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Informes mensuales de Bizi Zaragoza | Archivo historico' },
+        { name: 'twitter:description', content: 'Archivo historico de informes mensuales de Bizi Zaragoza con URLs limpias por mes, comparativas y acceso directo a cada informe indexable.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/informes` }],
+      title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+    }
   },
+  loader: () => getReportsIndexPageData(),
   component: ReportsIndexPage,
 });
 
 export default function ReportsIndexPage() {
   const { months, monthMap, latestMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
+  const monthlyRows = new Map(Object.entries(monthMap));
 
   return (
     <PageShell>
@@ -300,7 +171,7 @@ export default function ReportsIndexPage() {
 
         <div className="mt-2 space-y-3">
           {months.map((month) => {
-            const row = monthMap.get(month);
+            const row = monthlyRows.get(month);
 
             return (
               <TrackedLink

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const DEV_SERVER_PORT = 3100;
+const DEV_SERVER_PORT = 3000;
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${DEV_SERVER_PORT}`;
 
 export default defineConfig({
@@ -19,10 +19,10 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: `NEXT_PUBLIC_DISABLE_BETA_WELCOME_MODAL=1 bunx vite dev --port ${DEV_SERVER_PORT}`,
-        url: `${baseURL}/dashboard`,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        command: 'bun run start',
+        url: `${baseURL}/`,
+        reuseExistingServer: true,
+        timeout: 30_000,
       },
   projects: [
     {

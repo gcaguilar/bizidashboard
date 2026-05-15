@@ -1,18 +1,19 @@
-import 'server-only';
-
 import { cache } from 'react';
 import {
   fetchHeatmap,
   fetchPatterns,
   fetchRankings,
   fetchStations,
-  type HeatmapCell,
-  type PeakFullHourSlot,
-  type RankingRow,
-  type StationPatternRow,
-  type StationSnapshot,
 } from '@/lib/api';
-import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import type {
+  HeatmapCell,
+  PeakFullHourSlot,
+  RankingRow,
+  StationPatternRow,
+  StationSnapshot,
+} from '@/lib/api-types';
+import { buildStationDistrictMap } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 import {
   getEmptyStationPredictions,
   getStationPredictions,
