@@ -112,6 +112,7 @@ type RefreshPayload<T> = {
   data: T;
 } | {
   ok: false;
+  retryAfterSeconds?: number;
 };
 
 const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
@@ -143,12 +144,12 @@ function normalizeText(value: string): string {
 
 function resolveTimeWindowId(value: string | null): string {
   if (!value) {
-    return TIME_WINDOWS[1]?.id ?? '7d';
+    return TIME_WINDOWS[2]?.id ?? '30d';
   }
 
   return TIME_WINDOWS.some((window) => window.id === value)
     ? value
-    : (TIME_WINDOWS[1]?.id ?? '7d');
+    : (TIME_WINDOWS[2]?.id ?? '30d');
 }
 
 function parseBooleanFilter(value: string | null): boolean {
@@ -319,9 +320,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
-  const [refreshCountdownMs, setRefreshCountdownMs] = useState(() =>
-    typeof window === 'undefined' ? 0 : Math.max(0, resolveHydrationNow(initialData) - Date.now())
-  );
+  const [refreshCountdownMs, setRefreshCountdownMs] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const initialRefreshAt = resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, Date.now());
+    return Math.max(0, initialRefreshAt.getTime() - Date.now());
+  });
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
@@ -753,12 +756,19 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, []);
 
   const refreshDashboardData = useCallback(async () => {
+    if (isRefreshingData) {
+      return;
+    }
+
     const fetchJson = async <T,>(url: string): Promise<RefreshPayload<T>> => {
       try {
         const response = await fetch(url, { cache: 'no-store' });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const retryAfter = response.headers.get('Retry-After');
+          throw new Error(`HTTP ${response.status}`, {
+            cause: retryAfter ? { retryAfterSeconds: parseInt(retryAfter, 10) } : undefined,
+          });
         }
 
         return {
@@ -774,7 +784,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           },
         });
         console.error(`[Dashboard] No se pudo refrescar ${url}`, error);
-        return { ok: false };
+        const retryAfterSeconds = (error as Error & { cause?: { retryAfterSeconds?: number } }).cause
+          ?.retryAfterSeconds;
+        return { ok: false, retryAfterSeconds };
       }
     };
 
@@ -843,14 +855,37 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       const latestStations = stationsResult.ok ? stationsResult.data : stationsData;
       const latestStatus = statusResult.ok ? statusResult.data : statusData;
-      setNextRefreshAt(resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus));
+      let nextRefresh = resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus);
+
+      const rateLimitSeconds = [
+        stationsResult,
+        alertsResult,
+        turnoverResult,
+        availabilityResult,
+        statusResult,
+      ]
+        .map((r) => (!r.ok ? r.retryAfterSeconds ?? 0 : 0))
+        .reduce((max, val) => Math.max(max, val), 0);
+
+      if (rateLimitSeconds > 0) {
+        const rateLimitNext = new Date(Date.now() + rateLimitSeconds * 1000);
+        if (rateLimitNext > nextRefresh) {
+          nextRefresh = rateLimitNext;
+        }
+      }
+
+      setNextRefreshAt(nextRefresh);
     } finally {
       setIsRefreshingData(false);
     }
-  }, [initialData.dataset, stationsData, statusData]);
+  }, [initialData.dataset, stationsData, statusData, isRefreshingData]);
 
   useEffect(() => {
     const delayMs = nextRefreshAt.getTime() - Date.now();
+
+    if (isRefreshingData) {
+      return;
+    }
 
     if (delayMs <= 0) {
       void refreshDashboardData();
@@ -864,7 +899,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [nextRefreshAt, refreshDashboardData]);
+  }, [nextRefreshAt, refreshDashboardData, isRefreshingData]);
 
   useEffect(() => {
     setRefreshCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));

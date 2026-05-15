@@ -16,7 +16,7 @@ import {
   getStationMetadataCount,
   upsertStations,
 } from '@/services/data-storage';
-import { DataObservabilityMetrics } from '@/lib/observability';
+import type { DataObservabilityMetrics } from '@/lib/observability';
 import { recordCollection } from '@/lib/metrics';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { acquireJobLock } from '@/analytics/job-lock';

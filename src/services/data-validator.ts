@@ -1,11 +1,11 @@
-import { storeStationStatuses, GBFSStationStatus } from './data-storage'
+import { storeStationStatuses } from './data-storage'
+import type { GBFSStationStatus } from './data-storage'
 import { 
   validateDataQuality, 
   logObservabilityMetrics,
   shouldStoreData,
-  ValidationInput,
-  DataObservabilityMetrics 
 } from '@/lib/observability'
+import type { ValidationInput, DataObservabilityMetrics } from '@/lib/observability'
 import { incrementValidationErrors } from '@/lib/metrics'
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
 import { logger } from '@/lib/logger'
