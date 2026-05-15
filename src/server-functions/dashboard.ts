@@ -44,6 +44,64 @@ function isMissingTableError(error: unknown): boolean {
   return false;
 }
 
+function serializeStationsResponse(data: unknown): DashboardInitialData['stations'] {
+  if (!data || typeof data !== 'object') {
+    return { stations: [], generatedAt: new Date().toISOString(), dataState: 'empty' };
+  }
+  const d = data as Record<string, unknown>;
+  const stations = Array.isArray(d.stations)
+    ? d.stations.map((s: unknown) => {
+        if (!s || typeof s !== 'object') return s;
+        const obj = s as Record<string, unknown>;
+        return {
+          id: String(obj.id ?? ''),
+          name: String(obj.name ?? ''),
+          lat: typeof obj.lat === 'number' ? obj.lat : Number(obj.lat) || 0,
+          lon: typeof obj.lon === 'number' ? obj.lon : Number(obj.lon) || 0,
+          capacity: Number(obj.capacity) || 0,
+          bikesAvailable: Number(obj.bikesAvailable) || 0,
+          anchorsFree: Number(obj.anchorsFree) || 0,
+          recordedAt: typeof obj.recordedAt === 'string' ? obj.recordedAt : new Date().toISOString(),
+        };
+      })
+    : [];
+  return {
+    stations,
+    generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
+    dataState: (d.dataState as string) ?? 'empty',
+  };
+}
+
+function serializeAlertsResponse(data: unknown): DashboardInitialData['alerts'] {
+  if (!data || typeof data !== 'object') {
+    return { limit: 20, alerts: [], generatedAt: new Date().toISOString() };
+  }
+  const d = data as Record<string, unknown>;
+  const alerts = Array.isArray(d.alerts) ? d.alerts : [];
+  return {
+    limit: Number(d.limit) || 20,
+    alerts,
+    generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
+  };
+}
+
+function serializeRankingsResponse(data: { turnover?: unknown; availability?: unknown }): DashboardInitialData['rankings'] {
+  const makeEmpty = (type: string): DashboardInitialData['rankings']['turnover'] => ({
+    type,
+    limit: 50,
+    rankings: [],
+    districtSpotlight: [],
+    generatedAt: new Date().toISOString(),
+    dataState: 'no_coverage',
+  });
+  const turnover = (data.turnover as Record<string, unknown> | undefined) ?? makeEmpty('turnover');
+  const availability = (data.availability as Record<string, unknown> | undefined) ?? makeEmpty('availability');
+  return {
+    turnover: turnover as DashboardInitialData['rankings']['turnover'],
+    availability: availability as DashboardInitialData['rankings']['availability'],
+  };
+}
+
 export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [api, fallbacks] = await Promise.all([
     import('@/lib/api'),
@@ -147,13 +205,10 @@ export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(as
 
   const initialData: DashboardInitialData = {
     dataset,
-    stations,
+    stations: serializeStationsResponse(stations),
     status,
-    alerts,
-    rankings: {
-      turnover,
-      availability,
-    },
+    alerts: serializeAlertsResponse(alerts),
+    rankings: serializeRankingsResponse({ turnover, availability }),
   };
 
   const isSchemaMissing = schemaMissingFlags.length > 0;
