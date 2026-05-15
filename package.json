@@ -4,7 +4,7 @@
   "license": "GPL-3.0-only",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.3.13",
+  "packageManager": "bun@1.3.14",
   "imports": {
     "#/*": "./src/*",
     "@/*": "./src/*"
