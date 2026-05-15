@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 process.env.JWT_SECRET = 'test-jwt-secret';
-process.env.SIGNATURE_SECRET = 'test-signature-secret';
+process.env.SIGNATURE_SECRET = 'test-signature-secret-with-32-chars';
 
 const {
   findUniqueMock,
@@ -128,4 +128,3 @@ describe('verifyMobileRequest', () => {
     }
   });
 });
-
