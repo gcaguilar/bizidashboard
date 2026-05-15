@@ -1,4 +1,4 @@
-# 🚲 BiziDashboard
+# BiziDashboard
 
 **BiziDashboard** is a multi-city analytics platform designed for real-time monitoring and historical data ingestion of shared bicycle systems using the **GBFS (General Bikeshare Feed Specification)** standard. 
 
@@ -6,18 +6,20 @@ Originally built for Zaragoza, it is now a generic, multi-tenant engine capable 
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 The system is built on four core pillars:
 
 1. **Ingestion Engine**: Light, standalone cron tasks (via Bun or Alpine/curl) that trigger periodic GBFS snapshots via the protected `GET/POST /api/collect` endpoint.
 2. **Storage Layer**: PostgreSQL with **Multi-Tenant by Schema** capability. Isolation is handled at the database level: each city has its own schema and tables.
 3. **Analytics Core**: Specialized SQL aggregations (Rankings, Trends, Alerts, Heatmaps, Mobility Signals) optimized for time-series bike availability data.
-4. **Visual Dashboard**: A Next.js (App Router) interface with real-time station statuses, historical graphs, and mobility reports.
+4. **Visual Dashboard**: A TanStack Start interface with real-time station statuses, historical graphs, and mobility reports.
+
+The frontend/server app runs on **TanStack Start + Vite + React 19**. Production uses **Bun 1.3.14** and Docker images based on `oven/bun:1.3.14` / `oven/bun:1.3.14-slim`.
 
 ---
 
-## 📱 Mobile App Integration
+## Mobile App Integration
 
 This project exposes specialized analytical APIs that power the **[BiziMobile](https://github.com/gcaguilar/bizimobile)** application. When a station is empty, the mobile app uses our predictions and mobility signals to help users find the nearest available bike with high confidence using historical occupancy patterns.
 
@@ -27,7 +29,7 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 
 ---
 
-## 🔐 Operational Security & API Access
+## Operational Security & API Access
 
 - Every API response includes `X-Request-Id`. Clients may send their own `X-Request-Id` to correlate calls, logs, Sentry traces, and persisted security events.
 - `GET /api/collect` and `POST /api/collect` require `X-Ops-Api-Key`. `x-collect-api-key` is still accepted as a temporary compatibility alias for existing cron jobs.
@@ -47,7 +49,7 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 
 ---
 
-## 🧾 Traceability & Observability
+## Traceability & Observability
 
 - `Install` now stores `refreshTokenHash`, `refreshTokenIssuedAt`, `lastSeenAt`, `lastAuthAt`, `revokedAt`, and `publicKeyFingerprint`.
 - `CollectionRun` persists each ingestion lifecycle with `collectionId`, trigger (`cron` or `manual`), `requestId`, snapshot metadata, counters, warnings, errors, and timestamps.
@@ -62,7 +64,7 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 
 ---
 
-## 🌍 Supported Cities
+## Supported Cities
 
 The project natively supports multiple cities out of the box. To switch cities, configure these environment variables:
 
@@ -74,7 +76,7 @@ The project natively supports multiple cities out of the box. To switch cities, 
 
 ---
 
-## 📍 Nominatim Geocoding
+## Nominatim Geocoding
 
 The public `nominatim.openstreetmap.org` service has a strict usage policy. In practice, to avoid `403` responses you should configure the app with a real application identity and stay below **1 request per second** across the whole deployment.
 
@@ -85,7 +87,7 @@ The public `nominatim.openstreetmap.org` service has a strict usage policy. In p
 
 ---
 
-## 🛠️ PostgreSQL Developer Guidelines
+## PostgreSQL Developer Guidelines
 
 Since the project uses **PostgreSQL**, strict rules apply when writing raw SQL queries to avoid syntax errors:
 
@@ -107,7 +109,7 @@ Do **not** use `VACUUM`. Use `ANALYZE` for maintaining query planner statistics,
 
 ---
 
-## 🚀 Deployment (Docker Compose)
+## Deployment (Docker Compose)
 
 The architecture supports multiple isolated city deployments in a single `docker-compose.yml`:
 
@@ -165,7 +167,7 @@ This copies operational tables from `public` into the schema from `CITY` and lea
 
 ---
 
-## ➕ Adding New Lyft/GBFS Systems
+## Adding New Lyft/GBFS Systems
 
 Adding a new compatible city is easy:
 
@@ -179,17 +181,29 @@ Adding a new compatible city is easy:
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
-- **Framework**: Next.js 16 (App Router) + React 19
-- **Runtime**: Bun (Production) / Node (Build)
+- **Framework**: TanStack Start + TanStack Router + React 19
+- **Build Tool**: Vite 8 with TanStack Start/Router plugins
+- **Runtime**: Bun `1.3.14` in local tooling, CI, and Docker
 - **Database**: PostgreSQL with Prisma ORM
 - **Cache**: Redis
-- **Testing**: Vitest
+- **Testing**: Vitest and Playwright
+- **Observability**: Sentry for TanStack Start
+
+Core commands:
+
+```bash
+bun install --frozen-lockfile
+bun run dev
+bun run lint
+bun run test
+bun run build
+```
 
 ---
 
-## 🧬 Observability (Sentry)
+## Observability (Sentry)
 
 Sentry is used for real-time error monitoring across both client and server.
 
@@ -203,7 +217,7 @@ Sentry is used for real-time error monitoring across both client and server.
 - **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
 - **CSP compatibility**: keep Sentry delivery endpoints allowed in `connect-src` (including ingest and tunnel path `/monitoring`) when hardening CSP.
 
-## 📈 Analytics (Umami)
+## Analytics (Umami)
 
 Umami is loaded only in production and only when both variables are configured:
 
@@ -212,7 +226,7 @@ Umami is loaded only in production and only when both variables are configured:
 
 If you enforce CSP, allow Umami domains in `script-src` and `connect-src` (`cloud.umami.is` and `api-gateway.umami.dev` for cloud setups).
 
-## 🛡️ CSP rollout strategy
+## CSP rollout strategy
 
 To avoid telemetry regressions while tightening CSP:
 
@@ -222,11 +236,18 @@ To avoid telemetry regressions while tightening CSP:
 
 ---
 
-## ✅ CI quality gates
+## CI Quality Gates
 
 Main CI currently runs:
 
-- lint + unit tests + build
+- dependency install with Bun `1.3.14`
+- Prisma client generation and migrations
+- QA database seed
+- lint
+- unit tests
+- production build
+
+Dependabot is configured for the current stack and groups npm updates by TanStack, Prisma, Vite/Vitest, React, Sentry, and test/lint tooling. Docker and GitHub Actions updates are tracked separately.
 
 Additional QA gates are available as scripts (`qa:validate:site-env`, `qa:audit`, `qa:audit:check`, `security:audit`) and can be executed locally or in dedicated workflows.
 
@@ -234,6 +255,6 @@ For production vitals checks, `qa:vitals:prod` captures FCP/LCP/CLS plus INP and
 
 ---
 
-## 📜 License
+## License
 
 Licensed under the **GNU General Public License v3.0 (GPLv3)**.
