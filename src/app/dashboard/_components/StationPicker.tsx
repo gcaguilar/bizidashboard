@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { appRoutes } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -240,19 +240,19 @@ export function StationPicker({
           </p>
           <div className="flex flex-wrap gap-2">
             {favoriteStations.slice(0, 8).map((station) => (
-              <Button
-                key={`favorite-${station.id}`}
-                onClick={() => onSelectStation(station.id)}
-                className={`max-w-full truncate rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                  station.id === selectedStationId
-                    ? 'border-amber-500 bg-amber-500 text-[#111827]'
-                    : 'border-amber-500/40 bg-amber-500/15 text-[var(--foreground)] hover:border-amber-500'
-                }`}
-                variant="ghost"
-                size="sm"
-              >
-                ★ {station.name}
-              </Button>
+                  <Button
+                    key={`favorite-${station.id}`}
+                    onClick={() => onSelectStation(station.id)}
+                    className={`max-w-full truncate rounded-full ${
+                      station.id === selectedStationId
+                        ? 'border-amber-500 bg-amber-500 text-[#111827]'
+                        : 'border-amber-500/40 bg-amber-500/15 text-[var(--foreground)] hover:border-amber-500'
+                    }`}
+                    variant="outline"
+                    size="sm"
+                  >
+                    ★ {station.name}
+                  </Button>
             ))}
           </div>
         </div>
@@ -403,12 +403,14 @@ export function StationPicker({
 
       {stationDetailUrl ? (
         <div className="flex justify-end">
+        <Button asChild>
           <Link
             href={stationDetailUrl}
             className="rounded-lg border border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Abrir detalle completo
           </Link>
+        </Button>
         </div>
       ) : null}
     </section>

@@ -5,25 +5,9 @@ import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import {
-  fetchAvailableDataMonths,
-  fetchHistoryMetadata,
-  fetchSharedDatasetSnapshot,
-  fetchStatus,
-} from '@/lib/api';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { combineDataStates } from '@/lib/data-state';
-import { FAQ_ITEMS } from '@/app/dashboard/ayuda/_components/help-center-content';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { buildSocialImagePath } from '@/lib/social-images';
-import {
-  buildFallbackAvailableMonths,
-  buildFallbackDatasetSnapshot,
-  buildFallbackStatus,
-} from '@/lib/shared-data-fallbacks';
-import { getSharedDataSource, type HistoryMetadata } from '@/services/shared-data';
-import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getCityName, getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import {
   formatStatusDateTime,
@@ -35,138 +19,34 @@ import {
   getObservedCadenceLabel,
   getPipelineLagLabel,
 } from '@/lib/system-status';
-
-const FAQ_IDS = [
-  'fuente-datos',
-  'actualizacion',
-  'demanda-no-viajes-reales',
-  'prediccion-que-es',
-] as const;
-
-function buildFallbackHistoryMetadata(nowIso: string): HistoryMetadata {
-  return {
-    source: getSharedDataSource(),
-    coverage: {
-      firstRecordedAt: null,
-      lastRecordedAt: null,
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    generatedAt: nowIso,
-  };
-}
-
-function getMethodologyFaqItems() {
-  return FAQ_IDS.flatMap((id) => FAQ_ITEMS.filter((item) => item.id === id));
-}
+import { getMethodologyPageData } from '@/server-functions/metodologia';
 
 export const Route = createFileRoute('/metodologia')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Metodologia y calidad de datos de Bizi Zaragoza',
-  }),
-  loader: async () => {
-    const nowIso = new Date().toISOString();
-    const [historyMeta, dataset, status, monthsResponse] = await Promise.all([
-      fetchHistoryMetadata().catch(() => buildFallbackHistoryMetadata(nowIso)),
-      fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
-      fetchStatus().catch(() => buildFallbackStatus(nowIso)),
-      fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),
-    ]);
-    const months = monthsResponse.months.filter(isValidMonthKey);
-    const latestMonth = months[0] ?? null;
-    const cityName = getCityName();
-    const siteUrl = getSiteUrl();
-    const breadcrumbs = createRootBreadcrumbs({
-      label: 'Metodologia',
-      href: appRoutes.methodology(),
-    });
-    const faqItems = getMethodologyFaqItems();
-
-    const structuredData = {
-      '@context': 'https://schema.org',
-      '@graph': [
-        buildBreadcrumbStructuredData(breadcrumbs),
-        {
-          '@type': 'TechArticle',
-          headline: `Metodologia y calidad de datos de Bizi ${cityName}`,
-          name: `Metodologia y calidad de datos de Bizi ${cityName}`,
-          description:
-            'Guia publica para interpretar la fuente, la cobertura, la frecuencia y las metricas de las paginas publicas de DatosBizi.',
-          url: `${siteUrl}${appRoutes.methodology()}`,
-          inLanguage: 'es',
-          dateModified: dataset.coverage.generatedAt ?? historyMeta.generatedAt ?? nowIso,
-          author: {
-            '@type': 'Organization',
-            name: SITE_NAME,
-            url: siteUrl,
-          },
-          publisher: {
-            '@type': 'Organization',
-            name: SITE_NAME,
-            url: siteUrl,
-          },
-        },
-        {
-          '@type': 'Dataset',
-          name: `Dataset Bizi ${cityName}`,
-          description:
-            'Cobertura historica, snapshot actual y criterios de interpretacion del dataset usado por estaciones, barrios, informes y API.',
-          url: `${siteUrl}${appRoutes.methodology()}`,
-          inLanguage: 'es',
-          isAccessibleForFree: true,
-          dateModified: dataset.coverage.generatedAt,
-          distribution: [
-            {
-              '@type': 'DataDownload',
-              name: 'OpenAPI JSON',
-              encodingFormat: 'application/json',
-              contentUrl: `${siteUrl}${appRoutes.api.openApi()}`,
-            },
-            {
-              '@type': 'DataDownload',
-              name: 'Historico CSV',
-              encodingFormat: 'text/csv',
-              contentUrl: `${siteUrl}${appRoutes.api.historyCsv()}`,
-            },
-          ],
-        },
-        {
-          '@type': 'FAQPage',
-          mainEntity: faqItems.map((item) => ({
-            '@type': 'Question',
-            name: item.question,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: item.answer,
-            },
-          })),
-        },
-      ],
-    };
-
+  head: () => {
+    const siteUrl = getSiteUrl()
     return {
-      historyMeta,
-      dataset,
-      status,
-      months,
-      latestMonth,
-      breadcrumbs,
-      faqItems,
-      structuredData,
-    };
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.',
+        },
+        { property: 'og:title', content: 'Metodologia y calidad de datos de Bizi Zaragoza' },
+        { property: 'og:description', content: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/metodologia` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Metodologia y calidad de datos de Bizi Zaragoza' },
+        { name: 'twitter:description', content: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/metodologia` }],
+      title: 'Metodologia y calidad de datos de Bizi Zaragoza',
+    }
   },
+  loader: () => getMethodologyPageData(),
   component: MethodologyPage,
 });
 

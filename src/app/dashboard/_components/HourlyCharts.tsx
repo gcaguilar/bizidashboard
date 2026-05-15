@@ -2,7 +2,7 @@
 
 import { Link } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import type { StationPatternRow } from '@/lib/api';
+import type { StationPatternRow } from '@/lib/api-types';
 import { DayType } from '@/analytics/types';
 import { formatDayType, formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';

@@ -1,4 +1,4 @@
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import type { DataState } from '@/lib/data-state';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
 

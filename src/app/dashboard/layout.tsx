@@ -1,14 +1,10 @@
-import type { ReactNode } from 'react';
+import { Outlet } from '@tanstack/react-router';
 import { ServiceWorkerRegister } from '@/app/_components/ServiceWorkerRegister';
 
-type DashboardLayoutProps = {
-  children: ReactNode;
-};
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout() {
   return (
     <>
-      {children}
+      <Outlet />
       <ServiceWorkerRegister />
     </>
   );

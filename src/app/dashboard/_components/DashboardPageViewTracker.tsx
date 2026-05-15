@@ -22,7 +22,7 @@ export function DashboardPageViewTracker({
   template,
   mode,
 }: DashboardPageViewTrackerProps) {
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const lastTrackedKey = useRef<string | null>(null);
 
   useEffect(() => {

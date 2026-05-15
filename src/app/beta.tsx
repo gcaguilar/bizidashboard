@@ -10,19 +10,28 @@ const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.gcagui
 const APP_STORE_URL = 'https://apps.apple.com/es/app/biciradar/id6760931316';
 
 export const Route = createFileRoute('/beta')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Bici Radar ya esta disponible en App Store para iPhone. En Android el acceso sigue para testers: unete al Google Group y abre desde tu telefono el enlace de Google Play.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Bici Radar - iOS disponible y Android para testers',
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl()
+    const title = 'Bici Radar - iOS disponible y Android para testers'
+    const description = 'Bici Radar ya esta disponible en App Store para iPhone. En Android el acceso sigue para testers: unete al Google Group y abre desde tu telefono el enlace de Google Play.'
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/beta` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/beta` }],
+      title,
+    }
+  },
   component: BetaPage,
 });
 

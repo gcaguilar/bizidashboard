@@ -75,16 +75,6 @@ export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(a
       detail: 'Snapshot actual en CSV con bicis, anclajes y capacidad. Acceso anonimo.',
     },
     {
-      label: 'Historico agregado',
-      href: appRoutes.api.historyCsv(),
-      detail: 'Serie diaria con demanda, ocupacion, balance y muestras. Requiere `X-Public-Api-Key`.',
-    },
-    {
-      label: 'Alertas historicas',
-      href: appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 }),
-      detail: 'Incidencias activas y resueltas con exportacion tabular. Requiere `X-Public-Api-Key`.',
-    },
-    {
       label: 'Ranking de friccion',
       href: appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' }),
       detail: 'Horas problema y riesgo de disponibilidad por estacion. Acceso anonimo.',

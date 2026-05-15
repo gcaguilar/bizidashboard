@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
 import {
@@ -8,7 +6,7 @@ import {
   fetchCachedSystemHourlyProfile,
 } from '@/lib/analytics-series';
 import { combineDataStates, type DataState } from '@/lib/data-state';
-import { fetchDistrictCollection } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { isValidMonthKey } from '@/lib/months';
 import { buildDistrictSeoRows } from '@/lib/seo-districts';

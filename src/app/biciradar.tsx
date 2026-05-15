@@ -101,19 +101,30 @@ const FEATURES = [
 ];
 
 export const Route = createFileRoute('/biciradar')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Bici Radar - App de bicis compartidas en tiempo real',
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl();
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.',
+        },
+        { property: 'og:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
+        { property: 'og:description', content: 'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/biciradar` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
+        { name: 'twitter:description', content: 'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/biciradar` }],
+      title: 'Bici Radar - App de bicis compartidas en tiempo real',
+    };
+  },
   component: BiciRadarPage,
 });
 

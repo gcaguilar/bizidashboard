@@ -1,15 +1,13 @@
-import 'server-only';
-
 import { cache } from 'react';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { fetchRankings, fetchStations } from '@/lib/api';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
   type DistrictCollection,
   DISTRICTS_GEOJSON_URL,
   isDistrictCollection,
 } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 import { parseJsonWithGuard } from '@/lib/json';
 
 export type DistrictSeoStation = {

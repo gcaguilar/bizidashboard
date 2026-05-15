@@ -11,21 +11,31 @@ import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardFlowPageData } from '@/server-functions/dashboard-flujo';
+import { getSiteUrl } from '@/lib/site';
 
 export const Route = createFileRoute('/dashboard/flujo/')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Analiza corredores de movilidad de Bizi Zaragoza, curva diaria de demanda e impacto horario del transporte publico.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Analisis de flujo',
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl()
+    const title = 'Analisis de flujo - Dashboard Bizi'
+    const description = 'Analiza corredores de movilidad de Bizi Zaragoza, curva diaria de demanda e impacto horario del transporte publico.'
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/dashboard/flujo` },
+        { name: 'robots', content: 'noindex, nofollow' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/dashboard/flujo` }],
+      title,
+    }
+  },
   loader: async ({ searchParams }) => getDashboardFlowPageData({ data: searchParams ? await searchParams : {} }),
   component: DashboardFlowPage,
 });

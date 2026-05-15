@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { AlertsResponse, StationSnapshot } from '@/lib/api';
+import type { AlertsResponse, StationSnapshot } from '@/lib/api-types';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 
@@ -27,15 +29,17 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           Estaciones criticas
         </h2>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-[var(--primary)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
+          <Badge variant="default" className="bg-[var(--primary)] text-white">
             {activeAlerts.length} accion requerida
-          </span>
-          <Link
-            href={appRoutes.dashboardAlerts()}
-            className="rounded-full border border-[var(--primary)] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
-          >
-            Historial
-          </Link>
+          </Badge>
+          <Button asChild variant="outline" size="sm">
+            <Link
+              href={appRoutes.dashboardAlerts()}
+              className="rounded-full"
+            >
+              Historial
+            </Link>
+          </Button>
         </div>
       </header>
 

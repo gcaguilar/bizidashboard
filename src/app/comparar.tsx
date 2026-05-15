@@ -1,26 +1,47 @@
 import { Link, createFileRoute, useSearch } from '@tanstack/react-router';
-import { Suspense } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
-import {
-  buildFallbackComparisonHubData,
-  getComparisonHubDataWithTimeout,
-} from '@/lib/comparison-hub';
 import { formatMonthLabel } from '@/lib/months';
-import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
-import { getCityName } from '@/lib/site';
+import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
+import { getCompareHubLoaderData } from '@/server-functions/comparar';
+import { getSiteUrl } from '@/lib/site';
 
 type CompareSearch = {
   dimension?: string | string[];
   left?: string | string[];
   right?: string | string[];
 };
+
+function buildClientFallbackComparisonSections() {
+  return [
+    {
+      id: 'current',
+      title: 'Comparativas operativas',
+      description:
+        'Lecturas directas para comparar estaciones, barrios, franjas horarias y comportamiento laboral frente al fin de semana.',
+      cards: [],
+    },
+    {
+      id: 'historical',
+      title: 'Comparativas historicas',
+      description:
+        'Cortes temporales para comparar meses, anos, periodos y grandes cambios en la red o en la demanda.',
+      cards: [],
+    },
+    {
+      id: 'changes',
+      title: 'Cambios detectados',
+      description:
+        'Deltas recientes de rankings, demanda y balance para entender si el sistema mejora, empeora o gira de lideres.',
+      cards: [],
+    },
+  ];
+}
 
 function getFirstSearchParam(
   value: string | string[] | undefined
@@ -41,7 +62,16 @@ function CompareHubFallback({
     rightId?: string | null;
   };
 }) {
-  const data = buildFallbackComparisonHubData();
+  const data = {
+    latestMonth: null,
+    generatedAt: new Date().toISOString(),
+    dataState: 'no_coverage' as const,
+    interactive: {
+      defaultDimensionId: null,
+      dimensions: [],
+    },
+    sections: buildClientFallbackComparisonSections(),
+  };
 
   return (
     <>
@@ -70,16 +100,41 @@ function CompareHubFallback({
   );
 }
 
-async function CompareHubContent({
+function CompareHubContent({
   initialQuery,
+  data,
 }: {
   initialQuery: {
     dimensionId?: string | null;
     leftId?: string | null;
     rightId?: string | null;
   };
+  data: {
+    latestMonth: string | null;
+    generatedAt: string;
+    dataState: 'no_coverage' | 'loading' | 'live_recent' | 'live_stale' | 'partial_coverage' | 'full_coverage';
+    interactive: {
+      defaultDimensionId: string | null;
+      dimensions: Array<unknown>;
+    };
+    sections: Array<{
+      id: string;
+      title: string;
+      description: string;
+      cards: Array<{
+        id: string;
+        href: string;
+        eyebrow: string;
+        title: string;
+        summary: string;
+        metricA: string;
+        metricB: string;
+        delta: string;
+        note?: string;
+      }>;
+    }>;
+  };
 }) {
-  const data = await getComparisonHubDataWithTimeout();
   const comparisonCount = data.sections.reduce((count, section) => count + section.cards.length, 0);
 
   return (
@@ -158,48 +213,36 @@ async function CompareHubContent({
 }
 
 export const Route = createFileRoute('/comparar')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Comparador',
-  }),
-  loader: async () => {
-    const cityName = getCityName();
-    const breadcrumbs = createRootBreadcrumbs({
-      label: 'Comparar',
-      href: appRoutes.compare(),
-    });
-
+  head: () => {
+    const siteUrl = getSiteUrl()
     return {
-      breadcrumbs,
-      structuredData: {
-        '@context': 'https://schema.org',
-        '@graph': [
-          buildBreadcrumbStructuredData(breadcrumbs),
-          {
-            '@type': 'CollectionPage',
-            name: `Comparador ${cityName}`,
-            description:
-              'Comparativas activas entre estaciones, barrios, periodos y cambios del sistema.',
-            url: toAbsoluteRouteUrl(appRoutes.compare()),
-          },
-        ],
-      },
-    };
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.',
+        },
+        { property: 'og:title', content: 'Comparador - DatosBizi' },
+        { property: 'og:description', content: 'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/comparar` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Comparador - DatosBizi' },
+        { name: 'twitter:description', content: 'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/comparar` }],
+      title: 'Comparador',
+    }
   },
+  loader: () => getCompareHubLoaderData(),
   component: ComparePage,
 });
 
 export default function ComparePage() {
-  const { breadcrumbs, structuredData } = Route.useLoaderData();
+  const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
   const search = useSearch({ from: Route.fullPath }) as CompareSearch;
   const initialQuery = {
     dimensionId: getFirstSearchParam(search.dimension),
@@ -255,9 +298,7 @@ export default function ComparePage() {
         </div>
       </header>
 
-      <Suspense fallback={<CompareHubFallback initialQuery={initialQuery} />}>
-        <CompareHubContent initialQuery={initialQuery} />
-      </Suspense>
+      <CompareHubContent initialQuery={initialQuery} data={comparisonData} />
     </PageShell>
   );
 }

@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { buildPanelOpenEvent } from '@/lib/umami';
@@ -43,9 +44,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
-              <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
-                {item.format}
-              </span>
+              <Badge variant="muted">{item.format}</Badge>
             </div>
             <p className="mt-2 break-all font-mono text-[11px] text-[var(--foreground)]">{item.path}</p>
             <p className="mt-2 text-xs text-[var(--muted)]">{item.description}</p>

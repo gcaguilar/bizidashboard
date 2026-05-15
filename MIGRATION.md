@@ -3,9 +3,9 @@
 ## Build Status
 ```
 ✓ built in ~1.5s
-dist/server/assets/     67+ chunks (router: 520KB, dashboard: 58KB)
-dist/server/server.js   50KB
-dist/server/.           TanStack Start Nitro server
+dist/client/assets/     client chunks + CSS
+dist/server/assets/     server chunks
+dist/server/server.js   production server entry
 ```
 
 ## Completed

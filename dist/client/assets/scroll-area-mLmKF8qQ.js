@@ -1,1 +1,0 @@
-import{a as e,n as t}from"./chunk-BNv3lrIs.js";import{t as n}from"./react-BJuGsbII.js";import{t as r}from"./jsx-runtime-kJazARoa.js";import{a as i,o as a}from"./card-CissHuAq.js";var o,s,c,l=t((()=>{o=e(n()),a(),s=r(),c=o.forwardRef(function({className:e,...t},n){return(0,s.jsx)(`div`,{ref:n,className:i(`overflow-auto`,e),...t})})}));export{l as n,c as t};

@@ -26,4 +26,4 @@ bunx prisma migrate deploy
 
 # 4. Start the application
 echo "[Entrypoint] Starting application..."
-exec bun server.js
+exec "$@"

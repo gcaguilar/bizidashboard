@@ -3,13 +3,17 @@ import type {
   SharedDatasetSnapshot,
   StationsResponse,
   StatusResponse,
-} from '@/lib/api';
+} from '@/lib/api-types';
 import {
   resolveDataState,
   resolveDatasetDataState,
   resolveStatusDataState,
 } from '@/lib/data-state';
-import { getSharedDataSource } from '@/services/shared-data';
+
+const FALLBACK_SHARED_DATA_SOURCE = {
+  provider: 'Bizi Zaragoza GBFS',
+  gbfsDiscoveryUrl: 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json',
+};
 
 export function buildFallbackStatus(nowIso: string): StatusResponse {
   const fallback = {
@@ -67,7 +71,7 @@ export function buildFallbackStatus(nowIso: string): StatusResponse {
 
 export function buildFallbackDatasetSnapshot(nowIso: string): SharedDatasetSnapshot {
   const fallback = {
-    source: getSharedDataSource(),
+    source: FALLBACK_SHARED_DATA_SOURCE,
     coverage: {
       firstRecordedAt: null,
       lastRecordedAt: null,

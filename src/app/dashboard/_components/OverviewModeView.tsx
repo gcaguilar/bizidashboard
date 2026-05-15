@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api';
+import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';

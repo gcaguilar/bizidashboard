@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { cache } from 'react';
 import { getCoverageSummary, getSharedDataSource, getHistoryMetadata } from './coverage-service';
 import { getPipelineStatusSummary } from './pipeline-status-service';

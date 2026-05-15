@@ -9,7 +9,7 @@ import { combineDataStates } from '@/lib/data-state';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildSocialImagePath } from '@/lib/social-images';
-import { getCityName } from '@/lib/site';
+import { getCityName, getSiteUrl } from '@/lib/site';
 import {
   formatStatusDateTime,
   formatStatusNumber,
@@ -26,19 +26,30 @@ import { PageShell } from '@/components/layout/page-shell';
 import { getSystemStatusPageData } from '@/server-functions/estado';
 
 export const Route = createFileRoute('/estado')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza desde una unica pagina publica.',
-      },
-      { property: 'og:type', content: 'website' },
-    ],
-    title: 'Cobertura y estado de datos de Bizi Zaragoza',
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl()
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          name: 'description',
+          content:
+            'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza desde una unica pagina publica.',
+        },
+        { property: 'og:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
+        { property: 'og:description', content: 'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: `${siteUrl}/estado` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
+        { name: 'twitter:description', content: 'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza.' },
+      ],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estado` }],
+      title: 'Cobertura y estado de datos de Bizi Zaragoza',
+    }
+  },
   loader: () => getSystemStatusPageData(),
   component: SystemStatusPage,
 });

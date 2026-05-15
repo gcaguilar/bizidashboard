@@ -1,4 +1,4 @@
-import type { AlertsResponse, StationSnapshot } from '@/lib/api';
+import type { AlertsResponse, RankingsResponse, StationSnapshot } from '@/lib/api-types';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import type { Coordinates } from '@/lib/geo';
 import { AlertsPanel } from './AlertsPanel';
@@ -28,8 +28,8 @@ type OperationsModeViewProps = {
   frictionByStationId: Record<string, number>;
   alerts: AlertsResponse;
   rankings: {
-    turnover: import('@/lib/api').RankingsResponse;
-    availability: import('@/lib/api').RankingsResponse;
+    turnover: RankingsResponse;
+    availability: RankingsResponse;
   };
   balanceIndex: number;
   criticalStationsCount: number;

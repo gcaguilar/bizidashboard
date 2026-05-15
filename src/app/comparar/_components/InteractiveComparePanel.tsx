@@ -221,7 +221,7 @@ export function InteractiveComparePanel({
     }
 
     lastSyncedHref.current = nextHref;
-    router.replace(nextHref, { scroll: false });
+    router.navigate({ to: nextHref, replace: true });
   }
 
   useEffect(() => {

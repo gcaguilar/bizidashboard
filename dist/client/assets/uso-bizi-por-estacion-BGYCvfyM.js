@@ -1,0 +1,2 @@
+import{Ka as e,ro as t}from"./index-BidEj_j-.js";import{t as n}from"./SeoLandingPageComponent-D_85iQdG.js";var r=t();function i(){let t=e.useLoaderData(),{config:i,content:a,indexability:o}=t??{};return i?(0,r.jsx)(n,{slug:`uso-bizi-por-estacion`,config:i,content:a,indexability:o}):(0,r.jsxs)(`div`,{children:[`Error: config is undefined. Data keys: `,t?Object.keys(t).join(`, `):`no data`]})}export{i as component};
+//# sourceMappingURL=uso-bizi-por-estacion-BGYCvfyM.js.map

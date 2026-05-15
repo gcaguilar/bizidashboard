@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 

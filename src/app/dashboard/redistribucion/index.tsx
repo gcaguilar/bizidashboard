@@ -3,13 +3,25 @@ import { Suspense } from 'react';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
 
 export const Route = createFileRoute('/dashboard/redistribucion/')({
-  head: () => ({
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    ],
-    title: 'Redistribución | Dashboard Bizi',
-  }),
+  head: () => {
+    const title = 'Redistribución | Dashboard Bizi'
+    const description = 'Informe de redistribución de bicicletas Bizi Zaragoza. Análisis de demanda por distrito y recomendaciones de reequilibrio.'
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:type', content: 'website' },
+        { name: 'robots', content: 'noindex, nofollow' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+      ],
+      title,
+    }
+  },
   loader: async ({ searchParams }) => getDashboardRebalancingPageData({ data: searchParams ? await searchParams : {} }),
   component: RedistribucionPage,
 });

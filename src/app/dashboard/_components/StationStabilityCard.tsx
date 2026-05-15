@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import type { RankingsResponse, StationSnapshot } from '@/lib/api';
+import type { RankingsResponse, StationSnapshot } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { Progress } from '@/components/ui/progress';

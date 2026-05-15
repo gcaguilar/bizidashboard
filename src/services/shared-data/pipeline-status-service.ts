@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { getRecentCollectionRuns } from '@/lib/collection-runs';
 import { getRedisHealthSummary } from '@/lib/cache/redis';
 import { withCache } from '@/lib/cache/cache';

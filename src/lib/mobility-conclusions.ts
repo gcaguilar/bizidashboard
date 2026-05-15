@@ -1,6 +1,4 @@
-import 'server-only';
-
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';

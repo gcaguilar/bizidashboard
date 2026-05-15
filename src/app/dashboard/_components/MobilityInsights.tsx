@@ -1,8 +1,9 @@
 'use client';
 
 import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@tanstack/react-router';
-import { useSearch } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
@@ -33,7 +34,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ChartWrapper } from './ChartWrapper';
-import type { StationSnapshot } from '@/lib/api';
+import type { StationSnapshot } from '@/lib/api-types';
 import {
   resolveMobilityDataState,
   shouldShowDataStateNotice,
@@ -78,7 +79,8 @@ function MobilityInsightsContent({
   mobilityDays = 14,
   demandDays = 30,
 }: MobilityInsightsProps) {
-  const searchParams = useSearchParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
 
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
@@ -637,7 +639,7 @@ function MobilityInsightsContent({
 
 export function MobilityInsights(props: MobilityInsightsProps) {
   return (
-    <Suspense fallback={<div className='ui-section-card h-96 animate-pulse' />}>
+    <Suspense fallback={<div className='ui-section-card h-96'><Skeleton className="h-full w-full" /></div>}>
       <MobilityInsightsContent {...props} />
     </Suspense>
   );
