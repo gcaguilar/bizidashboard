@@ -1,13 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { StyleSpecification,
-  Layer,
-  Map,
-  Marker,
-  Popup,
-  Source,
-} from 'react-map-gl/maplibre';
+import { Layer, Map, Marker, Popup, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';

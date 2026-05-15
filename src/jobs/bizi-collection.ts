@@ -6,7 +6,8 @@
  * Also provides manual trigger capability via runCollection().
  */
 
-import { schedule, ScheduledTask } from 'node-cron';
+import { schedule } from 'node-cron';
+import type { ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
 import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
 import { validateAndStore } from '@/services/data-validator';
