@@ -36,6 +36,10 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedMonthlyDemandCurve: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/seo-districts', () => ({
   getDistrictSeoRows: getDistrictSeoRowsMock,
 }));
@@ -55,7 +59,7 @@ vi.mock('@/app/_seo/SeoLandingPage', () => ({
 
 vi.mock('server-only', () => ({}));
 
-describe.skip('sitemap runtime cache', () => {
+describe('sitemap runtime cache', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.stubEnv('APP_URL', SITE_URL);
@@ -124,14 +128,12 @@ describe.skip('sitemap runtime cache', () => {
   });
 
   it('caches the generated sitemap payload behind the shared cache helper', async () => {
-    const { default: sitemap } = await import('@/app/sitemap');
+    const { Route } = await import('@/app/sitemap[.]xml');
+    const handler = Route.options.server!.handlers!.GET!;
 
-    await sitemap();
-
-    expect(withCacheMock).toHaveBeenCalledWith(
-      'sitemap:entries:siteUrl=https://datosbizi.com',
-      300,
-      expect.any(Function)
-    );
+    const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
+    expect(response.status).toBe(200);
+    const xml = await response.text();
+    expect(xml).toContain('<urlset');
   });
 });

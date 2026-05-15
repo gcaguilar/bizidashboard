@@ -46,6 +46,10 @@ vi.mock('@/lib/seo-stations', () => ({
   getStationSeoRows: getStationSeoRowsMock,
 }));
 
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedMonthlyDemandCurve: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/acquisition-landings', () => ({
   getUtilityLandingData: getUtilityLandingDataMock,
   getInsightsLandingData: getInsightsLandingDataMock,
@@ -143,7 +147,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe.skip('sitemap contract', () => {
+describe('sitemap contract', () => {
   it('keeps sitemap entries unique, canonical and aligned with route helpers', async () => {
     fetchStationsMock.mockResolvedValue({
       stations: [
@@ -173,6 +177,7 @@ describe.skip('sitemap contract', () => {
           canonicalPath: '/estaciones/101',
         },
         station: {
+          id: '101',
           recordedAt: '2026-03-25T10:00:00.000Z',
         },
       },
@@ -182,16 +187,23 @@ describe.skip('sitemap contract', () => {
           canonicalPath: '/estaciones/102',
         },
         station: {
+          id: '102',
           recordedAt: '2026-03-25T10:05:00.000Z',
         },
       },
     ]);
 
-    const { default: sitemap } = await import('@/app/sitemap');
+    const { Route } = await import('@/app/sitemap[.]xml');
+    const handler = Route.options.server!.handlers!.GET!;
     const { INDEXABLE_PUBLIC_ROUTE_REGISTRY, resolveRedirectTarget } = await import('@/lib/routes');
 
-    const entries = await sitemap();
-    const urls = entries.map((entry) => entry.url);
+    const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
+    const xml = await response.text();
+    const urlMatches = xml.matchAll(/<loc>([^<]+)<\/loc>/g);
+    const urls: string[] = [];
+    for (const match of urlMatches) {
+      urls.push(match[1]);
+    }
     const pathnames = urls.map((url) => new URL(url).pathname);
 
     expect(new Set(urls).size).toBe(urls.length);

@@ -12,10 +12,11 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe.skip('llms discovery routes', () => {
+describe('llms discovery routes', () => {
   it('serves llms.txt with discovery pointers', async () => {
-    const { GET } = await import('@/app/llms.txt/route');
-    const response = GET();
+    const { Route } = await import('@/app/llms[.]txt');
+    const handler = Route.options.server!.handlers!.GET!;
+    const response = await handler({ request: new Request('http://localhost/llms.txt') });
     const body = await response.text();
 
     expect(response.headers.get('content-type')).toContain('text/plain');
@@ -25,8 +26,9 @@ describe.skip('llms discovery routes', () => {
   });
 
   it('serves llms-full.txt with seo pages and api surface', async () => {
-    const { GET } = await import('@/app/llms-full.txt/route');
-    const response = GET();
+    const { Route } = await import('@/app/llms-full[.]txt');
+    const handler = Route.options.server!.handlers!.GET!;
+    const response = await handler({ request: new Request('http://localhost/llms-full.txt') });
     const body = await response.text();
 
     expect(response.headers.get('content-type')).toContain('text/plain');

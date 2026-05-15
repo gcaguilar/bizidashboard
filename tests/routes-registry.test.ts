@@ -55,6 +55,10 @@ vi.mock('@/lib/seo-stations', () => ({
   getStationSeoRows: getStationSeoRowsMock,
 }));
 
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedMonthlyDemandCurve: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/mobility-conclusions', () => ({
   getDailyMobilityConclusions: getDailyMobilityConclusionsMock,
 }));
@@ -142,7 +146,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe.skip('route registry', () => {
+describe('route registry', () => {
   it('keeps static routes and redirect sources unique and canonical', async () => {
     const {
       CITY_SEGMENTS,
@@ -222,6 +226,7 @@ describe.skip('route registry', () => {
           canonicalPath: '/estaciones/101',
         },
         station: {
+          id: '101',
           recordedAt: '2026-03-25T10:00:00.000Z',
         },
       },
@@ -243,10 +248,17 @@ describe.skip('route registry', () => {
       },
     }));
 
-    const { default: sitemap } = await import('@/app/sitemap');
+    const { Route } = await import('@/app/sitemap[.]xml');
+    const handler = Route.options.server!.handlers!.GET!;
 
-    const entries = await sitemap();
-    const urls = new Set(entries.map((entry) => entry.url));
+    const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
+    const xml = await response.text();
+    
+    const urlMatches = xml.matchAll(/<loc>([^<]+)<\/loc>/g);
+    const urls = new Set<string>();
+    for (const match of urlMatches) {
+      urls.add(match[1]);
+    }
 
     for (const entry of INDEXABLE_PUBLIC_ROUTE_REGISTRY) {
       expect(urls.has(`${SITE_URL}${entry.href}`)).toBe(true);

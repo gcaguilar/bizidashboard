@@ -5,33 +5,28 @@ vi.mock('server-only', () => ({}));
 const {
   getStationsWithLatestStatusMock,
   getSharedDatasetSnapshotMock,
-  withCacheMock,
 } = vi.hoisted(() => ({
   getStationsWithLatestStatusMock: vi.fn(),
   getSharedDatasetSnapshotMock: vi.fn(),
-  withCacheMock: vi.fn(),
 }));
 
 vi.mock('@/analytics/queries/read', () => ({
   getStationsWithLatestStatus: getStationsWithLatestStatusMock,
 }));
 
-vi.mock('@/lib/cache/cache', () => ({
-  withCache: withCacheMock,
-}));
-
 vi.mock('@/services/shared-data', () => ({
   getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
 }));
 
-import { GET } from '@/app/api/stations';
+import { Route } from '@/app/api/stations/index';
 import { fetchStations } from '@/lib/api';
+
+const handler = Route.options.server!.handlers!.GET!
 
 describe('GET /api/stations', () => {
   beforeEach(() => {
     getStationsWithLatestStatusMock.mockReset();
     getSharedDatasetSnapshotMock.mockReset();
-    withCacheMock.mockReset();
 
     getSharedDatasetSnapshotMock.mockResolvedValue({
       coverage: {
@@ -56,7 +51,7 @@ describe('GET /api/stations', () => {
     });
   });
 
-  it('returns stations payload through cache wrapper', async () => {
+  it('returns stations payload', async () => {
     getStationsWithLatestStatusMock.mockResolvedValue([
       {
         id: '101',
@@ -70,15 +65,10 @@ describe('GET /api/stations', () => {
       },
     ]);
 
-    withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
-      return fetcher();
-    });
-
-    const response = await GET();
+    const response = await handler({ request: new Request('http://localhost/api/stations') });
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(withCacheMock).toHaveBeenCalledWith('stations:current', 60, expect.any(Function));
     expect(payload.stations).toHaveLength(1);
     expect(payload.generatedAt).toBeTypeOf('string');
     expect(payload.dataState).toBe('ok');
@@ -100,19 +90,15 @@ describe('GET /api/stations', () => {
       },
     ]);
 
-    withCacheMock.mockImplementation(async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => {
-      return fetcher();
-    });
-
     const payload = await fetchStations();
 
     expect(payload.stations[0]?.recordedAt).toBe(recordedAt.toISOString());
   });
 
   it('returns 500 when station retrieval fails', async () => {
-    withCacheMock.mockRejectedValue(new Error('redis unavailable'));
+    getStationsWithLatestStatusMock.mockRejectedValue(new Error('db unavailable'));
 
-    const response = await GET();
+    const response = await handler({ request: new Request('http://localhost/api/stations') });
     const payload = await response.json();
 
     expect(response.status).toBe(500);
