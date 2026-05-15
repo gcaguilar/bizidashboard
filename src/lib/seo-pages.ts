@@ -41,7 +41,7 @@ export const EXPLORE_PAGE_NAV_CONFIG = {
   pageRole: 'HUB' as const,
   primaryCta: {
     href: appRoutes.dashboardView('research'),
-    label: 'Abrir analisis del dashboard',
+    label: 'Abrir analisis en el dashboard',
     destination: 'dashboard_research',
   },
 };
@@ -73,14 +73,14 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     title: 'Estaciones Bizi mas usadas en Zaragoza',
     metadataTitle: 'Estaciones Bizi mas usadas en Zaragoza | Ranking y analisis',
     description:
-      'Consulta que estaciones Bizi concentran mas actividad en Zaragoza, que puntos lideran el ranking reciente y como cambiar la demanda entre estaciones.',
+      'Consulta que estaciones Bizi concentran mas actividad en Zaragoza, que puntos lideran el ranking reciente y como cambia la demanda entre estaciones.',
     keywords: ['estaciones bizi mas usadas', 'ranking bizi zaragoza', 'estaciones con mas uso', 'bizi zaragoza hoy'],
     cadenceLabel: 'Actualizacion diaria',
     heroKicker: 'Ranking de demanda reciente',
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardStations(),
-      label: 'Ver directorio y detalle de estaciones',
+      label: 'Ver directorio de estaciones',
       destination: 'dashboard_stations',
     },
   },
@@ -96,7 +96,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'HUB',
     primaryCta: {
       href: appRoutes.dashboardFlow(),
-      label: 'Abrir flujo operativo por barrios',
+      label: 'Ver flujo por barrios',
       destination: 'dashboard_flow',
     },
   },
@@ -112,7 +112,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardView('research'),
-      label: 'Abrir analisis horario en el dashboard',
+      label: 'Ver analisis horario',
       destination: 'dashboard_research',
     },
   },
@@ -121,14 +121,14 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     title: 'Ranking de estaciones Bizi Zaragoza',
     metadataTitle: 'Estaciones Bizi mas usadas en Zaragoza | Uso y disponibilidad',
     description:
-      'Ranking operativo de estaciones Bizi Zaragoza por actividad, riesgo de vaciado o saturacion y acceso rapido a los puntos que exigen atencion.',
+      'Ranking de estaciones Bizi Zaragoza por actividad, riesgo de quedarse sin bicis o sin huecos y puntos que conviene vigilar.',
     keywords: ['ranking estaciones bizi', 'clasificacion estaciones bizi zaragoza', 'estaciones bizi disponibilidad', 'ranking bizi'],
     cadenceLabel: 'Actualizacion semanal',
     heroKicker: 'Clasificacion operativa',
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardStations(),
-      label: 'Abrir ranking y directorio de estaciones',
+      label: 'Ver ranking de estaciones',
       destination: 'dashboard_stations',
     },
   },
@@ -144,7 +144,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardConclusions(),
-      label: 'Ver resumen diario y tendencia reciente',
+      label: 'Ver tendencia diaria',
       destination: 'dashboard_conclusions',
     },
   },
@@ -160,7 +160,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.reports(),
-      label: 'Abrir informes mensuales publicados',
+      label: 'Ver informes mensuales',
       destination: 'report_archive',
     },
   },
@@ -176,7 +176,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'HUB',
     primaryCta: {
       href: appRoutes.dashboardStations(),
-      label: 'Explorar el directorio completo de estaciones',
+      label: 'Explorar estaciones',
       destination: 'dashboard_stations',
     },
   },
@@ -192,7 +192,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardStations(),
-      label: 'Abrir estaciones con disponibilidad actual',
+      label: 'Ver disponibilidad actual',
       destination: 'dashboard_stations',
     },
   },
@@ -201,14 +201,14 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     title: 'Informes mensuales de Bizi Zaragoza',
     metadataTitle: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
     description:
-      'Alias legacy del archivo mensual de Bizi Zaragoza. La version canonica concentra el historico, los informes indexables y la navegacion editorial por mes.',
+      'Archivo mensual de Bizi Zaragoza con historico, informes indexables y navegacion por mes.',
     keywords: ['informes mensuales bizi', 'archivo bizi zaragoza', 'reporte mensual bizi', 'estadisticas bizi mensuales'],
     cadenceLabel: 'Actualizacion mensual',
     heroKicker: 'Archivo de informes',
     pageRole: 'HUB',
     primaryCta: {
       href: appRoutes.reports(),
-      label: 'Abrir archivo mensual completo',
+      label: 'Ver archivo mensual',
       destination: 'report_archive',
     },
     canonicalPath: appRoutes.reports(),
@@ -219,7 +219,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     title: 'Redistribucion de bicis Bizi Zaragoza',
     metadataTitle: 'Redistribucion de bicis Bizi Zaragoza | Equilibrio y metodologia',
     description:
-      'Entiende como se redistribuyen las bicis de Bizi Zaragoza, que estaciones se desequilibran antes y que reglas usa el sistema para priorizar intervenciones.',
+      'Entiende que estaciones se desequilibran antes, donde faltan bicis o huecos y como priorizar revisiones.',
     keywords: [
       'redistribucion bizi zaragoza',
       'rebalanceo bici publica zaragoza',
@@ -232,7 +232,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardRedistribucion(),
-      label: 'Abrir panel operativo de redistribucion',
+      label: 'Ver redistribucion',
       destination: 'dashboard_redistribucion',
     },
   },

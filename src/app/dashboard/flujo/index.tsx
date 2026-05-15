@@ -16,7 +16,7 @@ export const Route = createFileRoute('/dashboard/flujo/')({
   head: () => {
     const siteUrl = getSiteUrl()
     const title = 'Analisis de flujo - Dashboard Bizi'
-    const description = 'Analiza corredores de movilidad de Bizi Zaragoza, curva diaria de demanda e impacto horario del transporte publico.'
+    const description = 'Analiza patrones de movimiento de Bizi Zaragoza, demanda por horas y diferencias entre zonas.'
     return {
       meta: [
         { charSet: 'utf-8' },

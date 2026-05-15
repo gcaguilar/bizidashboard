@@ -66,17 +66,17 @@ function CompareHubContent({
         <article className="ui-section-card">
           <p className="stat-label">Comparativas activas</p>
           <p className="stat-value">{comparisonCount}</p>
-          <p className="text-xs text-[var(--muted)]">Lecturas listas para explorar ahora mismo.</p>
+          <p className="text-xs text-[var(--muted)]">Comparaciones listas para revisar ahora mismo.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Ultimo mes</p>
           <p className="stat-value">{data.latestMonth ? formatMonthLabel(data.latestMonth) : 'Sin dato'}</p>
-          <p className="text-xs text-[var(--muted)]">Referencia temporal mas reciente publicada.</p>
+          <p className="text-xs text-[var(--muted)]">Mes mas reciente disponible para comparar.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Generado</p>
           <p className="stat-value">{new Date(data.generatedAt).toLocaleDateString('es-ES')}</p>
-          <p className="text-xs text-[var(--muted)]">Snapshot compartido del comparador.</p>
+          <p className="text-xs text-[var(--muted)]">Momento en que se preparo esta vista.</p>
         </article>
       </section>
 
@@ -84,7 +84,7 @@ function CompareHubContent({
         <DataStateNotice
           state={data.dataState}
           subject="las comparativas del hub"
-          description="El comparador usa el mismo snapshot compartido que dashboard, informes y API. Si ves cobertura parcial o dataset antiguo, las lecturas comparativas pueden no estar completas."
+          description="El comparador usa los mismos datos que dashboard, informes y API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
           href={appRoutes.status()}
           actionLabel="Revisar estado"
         />
@@ -145,16 +145,16 @@ export const Route = createFileRoute('/comparar')({
         {
           name: 'description',
           content:
-            'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.',
+            'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.',
         },
         { property: 'og:title', content: 'Comparador - DatosBizi' },
-        { property: 'og:description', content: 'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.' },
+        { property: 'og:description', content: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/comparar` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Comparador - DatosBizi' },
-        { name: 'twitter:description', content: 'Hub comparativo para leer estacion vs estacion, barrio vs barrio, mes vs mes, ano vs ano y cambios de demanda, rankings y balance.' },
+        { name: 'twitter:description', content: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/comparar` }],
       title: 'Comparador',
@@ -190,14 +190,14 @@ export default function ComparePage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Analisis comparativo
+              Comparar datos
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
               Comparador
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Superficie publica para comparar estaciones, barrios, meses, anos, horas, periodos y
-              cambios recientes de rankings, demanda y balance a partir del historico compartido.
+              Cruza estaciones, barrios, meses, horas y periodos para entender que cambia,
+              donde hay mas demanda y que zonas necesitan mas seguimiento.
             </p>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function ComparePage() {
               to={appRoutes.dashboardView('research')}
               className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
-              Abrir analisis del dashboard
+              Abrir analisis en el dashboard
             </Link>
             <Link
               to={appRoutes.explore()}

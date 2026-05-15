@@ -6,7 +6,7 @@ import type { RebalancingReport } from '@/types/rebalancing';
 export const Route = createFileRoute('/dashboard/redistribucion/')({
   head: () => {
     const title = 'Redistribución | Dashboard Bizi'
-    const description = 'Informe de redistribución de bicicletas Bizi Zaragoza. Análisis de demanda por distrito y recomendaciones de reequilibrio.'
+    const description = 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.'
     return {
       meta: [
         { charSet: 'utf-8' },

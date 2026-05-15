@@ -14,7 +14,7 @@ export const Route = createFileRoute('/barrios/$districtSlug')({
   head: ({ params }) => {
     const slug = params.districtSlug ?? ''
     const title = `Barrio ${slug} - DatosBizi`
-    const description = `Datos y estadísticas del barrio ${slug} en el sistema Bizi Zaragoza. Estaciones, disponibilidad, patrones de uso y comparativas.`
+    const description = `Estaciones, disponibilidad y patrones de uso de Bizi en el barrio ${slug} de Zaragoza.`
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -44,7 +44,7 @@ function DistrictPage() {
         <section className="ui-page-hero">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">No hay cobertura suficiente para esta ficha publica.</p>
+          <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar este barrio con confianza.</p>
           <a className="ui-inline-action mt-4" href={appRoutes.districtLanding()}>Ver comparativa de barrios</a>
         </section>
       </PageShell>
@@ -84,7 +84,7 @@ function DistrictPage() {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de barrio</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Bizi en {district.name}</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Estaciones, bicis visibles y actividad agregada del barrio.
+          Estaciones, bicis disponibles y actividad agregada del barrio.
         </p>
       </header>
       <section className="grid gap-4 md:grid-cols-4">
@@ -95,7 +95,7 @@ function DistrictPage() {
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Lectura del barrio</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Resumen del barrio</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
             <p>{district.name} concentra {district.stationCount} estaciones Bizi con {district.bikesAvailable} bicis visibles y {district.anchorsFree} anclajes libres en este momento.</p>
             <p>Su rotacion media es {formatDecimal(district.avgTurnover)} frente a {formatDecimal(cityAverageTurnover)} de media en los barrios con cobertura. El riesgo medio de disponibilidad es {formatDecimal(district.avgAvailabilityRisk)} frente a {formatDecimal(cityAverageAvailabilityRisk)}.</p>
@@ -103,8 +103,8 @@ function DistrictPage() {
         </article>
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios si quieres entender zonas con mas actividad o posibles cuellos de botella.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.dashboardView('research')}>Abrir analisis del dashboard</a>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios para entender que zonas tienen mas actividad o mas tension.</p>
+          <a className="ui-inline-action mt-4" href={appRoutes.dashboardView('research')}>Abrir analisis en el dashboard</a>
         </article>
       </section>
       <section className="ui-section-card">
@@ -129,7 +129,7 @@ function DistrictPage() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.districtLanding()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparativa de barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve al hub territorial para comparar zonas.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.districtLanding()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparativa de barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.utilityLanding()}><p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.insightsLanding()}><p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Continua con rankings e informes mensuales.</p></a>
         </div>

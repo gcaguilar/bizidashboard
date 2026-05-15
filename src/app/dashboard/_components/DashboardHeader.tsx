@@ -163,10 +163,10 @@ export function DashboardHeader({
         <div className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs text-[var(--muted)]">
           <p>
             Estaciones: {filteredStationsCount}/{totalStationsCount}
-            {hasAvailabilityFilter ? ` (filtradas ${filteredOutCount})` : ''} · Favoritas: {favoriteCount} · Alertas activas: {activeAlertsCount} · Ventana: {activeWindowLabel}
-            {isMobilityPreviewLoading ? ' (actualizando flujo...)' : ''}
+            {hasAvailabilityFilter ? ` (${filteredOutCount} ocultas por filtros)` : ''} · Favoritas: {favoriteCount} · Alertas activas: {activeAlertsCount} · Periodo: {activeWindowLabel}
+            {isMobilityPreviewLoading ? ' (actualizando movimientos...)' : ''}
           </p>
-          <p>{isRefreshingData ? 'Refrescando datos del sistema ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
+          <p>{isRefreshingData ? 'Actualizando los datos ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
           <p>{datasetSummaryLabel}</p>
         </div>
 
@@ -213,8 +213,8 @@ export function DashboardHeader({
 
         <div className="w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
-            <span>Proxima actualizacion automatica en menos de 2 min</span>
-            <span>{isRefreshingData ? 'actualizando...' : `siguiente en ${refreshCountdownLabel}`}</span>
+            <span>Actualizacion automatica</span>
+            <span>{isRefreshingData ? 'actualizando...' : `siguiente actualizacion en ${refreshCountdownLabel}`}</span>
           </div>
           <Progress
             className="bg-black/15"

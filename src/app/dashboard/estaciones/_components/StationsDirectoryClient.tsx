@@ -106,10 +106,10 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           description={
             query.trim()
               ? 'No hay estaciones que coincidan con la busqueda actual.'
-              : 'El directorio usa el mismo snapshot compartido que el dashboard principal.'
+              : 'El directorio usa los mismos datos que el dashboard principal.'
           }
           href={appRoutes.status()}
-          actionLabel="Ver estado"
+          actionLabel="Revisar estado"
         />
       ) : null}
 
@@ -127,7 +127,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   <p className="text-sm font-semibold text-[var(--foreground)]">{station.bikesAvailable}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.12em]">Anclajes</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em]">Huecos</p>
                   <p className="text-sm font-semibold text-[var(--foreground)]">{station.anchorsFree}</p>
                 </div>
                 <div>

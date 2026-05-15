@@ -33,16 +33,16 @@ export const Route = createFileRoute('/estado')({
         {
           name: 'description',
           content:
-            'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza desde una unica pagina publica.',
+            'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias que afecten al dashboard, la API o los informes.',
         },
         { property: 'og:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza.' },
+        { property: 'og:description', content: 'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias activas.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/estado` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'Revisa la cobertura, la ultima muestra, el lag del pipeline y la salud operativa de los datos de Bizi Zaragoza.' },
+        { name: 'twitter:description', content: 'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias activas.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/estado` }],
       title: 'Cobertura y estado de datos de Bizi Zaragoza',
@@ -62,14 +62,14 @@ export default function SystemStatusPage() {
   const healthLabel = getHealthLabel(status.pipeline.healthStatus);
   const summaryCards = [
     {
-      label: 'Ultima muestra',
+      label: 'Ultima muestra util',
       value: formatStatusDateTime(dataset.lastUpdated.lastSampleAt),
-      hint: 'Marca compartida por dashboard, informes y API.',
+      hint: 'Referencia que comparten dashboard, informes y API.',
     },
     {
-      label: 'Frecuencia de actualizacion',
+      label: 'Ritmo de actualizacion',
       value: getObservedCadenceLabel(status),
-      hint: `Objetivo operativo <= ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} min de frescura.`,
+      hint: `Objetivo: datos con menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} min de retraso.`,
     },
     {
       label: 'Cobertura historica',
@@ -79,17 +79,17 @@ export default function SystemStatusPage() {
     {
       label: 'Estaciones activas',
       value: formatStatusNumber(activeStationsCount),
-      hint: 'Snapshot actual con estaciones vivas o recientemente observadas.',
+      hint: 'Estaciones vistas en la muestra mas reciente.',
     },
     {
-      label: 'Numero de muestras',
+      label: 'Muestras guardadas',
       value: formatStatusNumber(dataset.stats.totalSamples),
-      hint: 'Total agregado disponible para historico, comparativas y rankings.',
+      hint: 'Base disponible para historico, comparativas y rankings.',
     },
     {
-      label: 'Lag del pipeline',
+      label: 'Retraso de datos',
       value: getPipelineLagLabel(status),
-      hint: 'Diferencia aproximada respecto a la ultima recogida valida.',
+      hint: 'Tiempo aproximado desde la ultima recogida valida.',
     },
     {
       label: 'Version dataset',
@@ -102,14 +102,14 @@ export default function SystemStatusPage() {
       hint: 'Version publicada en la especificacion OpenAPI.',
     },
     {
-      label: 'Generacion informes',
+      label: 'Informes generados',
       value: formatStatusDateTime(availableMonths.generatedAt),
       hint: latestMonth ? `Ultimo mes indexable ${formatMonthLabel(latestMonth)}.` : 'Sin meses publicados todavia.',
     },
     {
       label: 'Incidentes activos',
       value: formatStatusNumber(activeIncidentCount),
-      hint: activeIncidentCount > 0 ? 'Requieren seguimiento operativo.' : 'Sin incidencias activas detectadas.',
+      hint: activeIncidentCount > 0 ? 'Conviene revisarlas antes de usar los datos.' : 'No hay incidencias activas detectadas.',
     },
   ] as const;
 
@@ -129,7 +129,7 @@ export default function SystemStatusPage() {
                 '@type': 'Dataset',
                 name: `Estado del sistema ${cityName}`,
                 description:
-                  'Cobertura, salud del pipeline, versiones y superficie operativa de la API publica.',
+                  'Cobertura, frescura, versiones e incidencias de los datos publicos.',
                 url: appRoutes.status(),
               },
             ],
@@ -144,15 +144,14 @@ export default function SystemStatusPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Estado operativo y cobertura
+              Frescura y cobertura
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Estado del sistema {cityName}
+              Estado de los datos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Vista publica para seguir ultima muestra, lag del pipeline, cobertura historica,
-              versiones, incidentes y el estado de API, scrapers, ingestion, rankings y
-              predicciones.
+              Una vista rapida para saber si los datos estan al dia, cuanta cobertura historica hay,
+              si existen incidencias y que servicios pueden verse afectados.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -178,7 +177,7 @@ export default function SystemStatusPage() {
               }}
               className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
-              Abrir dashboard en vivo
+              Abrir dashboard
             </TrackedLink>
             <TrackedLink
               href={appRoutes.developers()}
@@ -193,7 +192,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-inline-action"
             >
-              Ver API y developers
+              Ver API y datos abiertos
             </TrackedLink>
             <TrackedLink
               href={appRoutes.methodology()}
@@ -206,7 +205,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-inline-action"
             >
-              Ver metodologia
+              Entender metodologia
             </TrackedLink>
           </div>
 
@@ -237,10 +236,10 @@ export default function SystemStatusPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Incidentes
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Incidencias y notas operativas</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Incidencias y notas importantes</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Este bloque resume lo que hoy exige seguimiento. Si no hay incidentes, actua como
-              confirmacion de estabilidad.
+              Aqui aparecen los problemas que conviene revisar antes de usar los datos. Si no hay
+              incidencias, puedes tomarlo como una senal de estabilidad.
             </p>
           </div>
 
@@ -260,9 +259,9 @@ export default function SystemStatusPage() {
         <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Fuente y versionado
+              Fuente y versiones
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Trazabilidad del dataset</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">De donde salen los datos</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
@@ -279,7 +278,7 @@ export default function SystemStatusPage() {
               </Link>
             </div>
             <div className="ui-metric-card">
-              <p className="stat-label">Version dataset</p>
+              <p className="stat-label">Version de datos</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{getDatasetVersionLabel(dataset)}</p>
             </div>
             <div className="ui-metric-card">
@@ -296,9 +295,9 @@ export default function SystemStatusPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Superficie del sistema
+              Servicios conectados
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Estado por capa</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Estado por servicio</h2>
           </div>
           <Link
             to={appRoutes.compare()}

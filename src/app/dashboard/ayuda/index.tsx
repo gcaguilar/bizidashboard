@@ -5,7 +5,7 @@ import { getDashboardHelpPageData } from '@/server-functions/dashboard-ayuda';
 export const Route = createFileRoute('/dashboard/ayuda/')({
   head: () => {
     const title = 'Centro de ayuda - Dashboard Bizi'
-    const description = 'FAQ del dashboard de Bizi Zaragoza para entender alertas, rankings, movilidad, predicciones y metodologia de calculo.'
+    const description = 'Ayuda para entender alertas, rankings, movilidad, predicciones y metodologia del dashboard de Bizi Zaragoza.'
     return {
       meta: [
         { charSet: 'utf-8' },

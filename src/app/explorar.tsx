@@ -24,16 +24,16 @@ export const Route = createFileRoute('/explorar')({
         {
           name: 'description',
           content:
-            'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.',
+            'Punto de entrada para encontrar estaciones, barrios, rankings, informes, mapas y comparativas de Bizi Zaragoza.',
         },
         { property: 'og:title', content: 'Explorar - DatosBizi' },
-        { property: 'og:description', content: 'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.' },
+        { property: 'og:description', content: 'Punto de entrada para encontrar estaciones, barrios, rankings, informes, mapas y comparativas de Bizi Zaragoza.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/explorar` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Explorar - DatosBizi' },
-        { name: 'twitter:description', content: 'Hub publico para descubrir estaciones, flujo, rankings, heatmap, comparativas, historico, mapas y KPIs del sistema.' },
+        { name: 'twitter:description', content: 'Punto de entrada para encontrar estaciones, barrios, rankings, informes, mapas y comparativas de Bizi Zaragoza.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/explorar` }],
       title: 'Explorar',
@@ -63,14 +63,14 @@ export default function ExploreHubPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Hub de analisis
+              Buscar y explorar
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
               Explorar
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Punto unico para descubrir estaciones, flujo, rankings, heatmap, historico,
-              comparador, barrios, mapas y KPIs del sistema sin navegar por rutas dispersas.
+              Encuentra estaciones, barrios, rankings, informes, mapas y comparativas desde una sola pagina.
+              Empieza por una busqueda o entra directamente en la herramienta que necesites.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -124,13 +124,13 @@ export default function ExploreHubPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-                Busqueda federada
+                Resultados de busqueda
               </p>
               <h2 className="text-xl font-black text-[var(--foreground)]">
                 Resultados para &quot;{searchResults.query}&quot;
               </h2>
               <p className="mt-1 text-sm text-[var(--muted)]">
-                El buscador cruza estaciones, barrios, informes, paginas publicas y endpoints API.
+                Buscamos en estaciones, barrios, informes, paginas publicas y endpoints de la API.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -146,7 +146,7 @@ export default function ExploreHubPage() {
 
           {searchResults.totalMatches === 0 ? (
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted)]">
-              No hemos encontrado coincidencias exactas para esta consulta. Prueba con el nombre de
+              No encontramos coincidencias exactas. Prueba con el nombre de
               una estacion, un barrio, un mes como &quot;2026-03&quot; o un endpoint como
               &quot;/api/status&quot;.
             </div>
@@ -200,24 +200,24 @@ export default function ExploreHubPage() {
         <article className="ui-section-card">
           <p className="stat-label">Herramientas disponibles</p>
           <p className="stat-value">{totalTools}</p>
-          <p className="text-xs text-[var(--muted)]">Cobertura transversal de operacion, analisis y archivo.</p>
+          <p className="text-xs text-[var(--muted)]">Accesos directos para operar, analizar y consultar historico.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Ultimo informe</p>
           <p className="stat-value">{latestMonth ? formatMonthLabel(latestMonth) : 'Sin datos'}</p>
-          <p className="text-xs text-[var(--muted)]">Serie mensual conectada con el archivo indexable.</p>
+          <p className="text-xs text-[var(--muted)]">Ultimo resumen mensual disponible en el archivo.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cobertura</p>
           <p className="stat-value">0</p>
-          <p className="text-xs text-[var(--muted)]">Estaciones con datos historicos.</p>
+          <p className="text-xs text-[var(--muted)]">Estaciones con datos historicos disponibles.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Ultima generacion</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {formatStatusDateTime('')}
           </p>
-          <p className="text-xs text-[var(--muted)]">Snapshot comun para dashboard, informes y API.</p>
+          <p className="text-xs text-[var(--muted)]">Misma base de datos que usan dashboard, informes y API.</p>
         </article>
       </section>
 

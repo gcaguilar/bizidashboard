@@ -28,7 +28,7 @@ export const Route = createFileRoute('/estaciones/$stationId')({
   head: ({ params }) => {
     const id = params.stationId ?? ''
     const title = `Estación ${id} - DatosBizi`
-    const description = `Datos, patrones y predicciones de la estación ${id} de Bizi Zaragoza. Disponibilidad, ocupación y análisis de uso.`
+    const description = `Disponibilidad, ocupacion y patrones de uso de la estacion ${id} de Bizi Zaragoza.`
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -57,8 +57,8 @@ function StationPage() {
         <section className="ui-page-hero">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estacion</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estacion {stationId}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">No hay cobertura suficiente para esta ficha publica.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.seoPage('uso-bizi-por-estacion')}>Ver hub de estaciones</a>
+          <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar esta estacion con confianza.</p>
+          <a className="ui-inline-action mt-4" href={appRoutes.seoPage('uso-bizi-por-estacion')}>Ver todas las estaciones</a>
         </section>
       </PageShell>
     )
@@ -112,7 +112,7 @@ function StationPage() {
           Disponibilidad actual, ocupacion y contexto de uso de la estacion Bizi {station.id}.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <a className="ui-inline-action" href={appRoutes.dashboardStation(station.id)}>Abrir detalle operativo</a>
+          <a className="ui-inline-action" href={appRoutes.dashboardStation(station.id)}>Abrir detalle en el dashboard</a>
           {summary.districtSlug ? <a className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)}>Ver barrio</a> : null}
         </div>
       </header>
@@ -124,10 +124,10 @@ function StationPage() {
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Lectura rapida de la estacion</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Resumen rapido</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
             <p>{station.name} tiene ahora {station.bikesAvailable} bicis y {station.anchorsFree} anclajes libres sobre una capacidad de {station.capacity}.</p>
-            <p>Su ocupacion actual esta {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha como capa publica y baja al dashboard si necesitas mapa, alertas y detalle operativo.</p>
+            <p>Su ocupacion actual esta {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha para una lectura rapida y abre el dashboard si necesitas mapa, alertas o mas detalle.</p>
           </div>
         </article>
         <article className="ui-section-card">

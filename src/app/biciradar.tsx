@@ -65,7 +65,7 @@ const FEATURES = [
   {
     icon: '🚲',
     title: 'Bicis en tiempo real',
-    description: 'Consulta el numero de bicicletas disponibles en cada estacion, actualizado en tiempo real.',
+    description: 'Mira cuantas bicicletas hay disponibles antes de acercarte a la estacion.',
   },
   {
     icon: '🅿️',
@@ -80,7 +80,7 @@ const FEATURES = [
   {
     icon: '📊',
     title: 'Historico de uso',
-    description: 'Observa patrones de uso y disponibilidad historica para planificar mejor tus viajes.',
+    description: 'Consulta patrones de uso y disponibilidad para planificar mejor tus trayectos habituales.',
   },
   {
     icon: '⚡',
@@ -109,16 +109,16 @@ export const Route = createFileRoute('/biciradar')({
         {
           name: 'description',
           content:
-            'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.',
+            'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.',
         },
         { property: 'og:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
-        { property: 'og:description', content: 'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.' },
+        { property: 'og:description', content: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/biciradar` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
-        { name: 'twitter:description', content: 'La app definitiva para encontrar estaciones de bicis compartidas. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y estaciones favoritas.' },
+        { name: 'twitter:description', content: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/biciradar` }],
       title: 'Bici Radar - App de bicis compartidas en tiempo real',
@@ -210,7 +210,7 @@ export default function BiciRadarPage() {
         '@type': 'SoftwareApplication',
         name: 'Bici Radar',
         description:
-          'App para encontrar estaciones de bicis compartidas en Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles y huecos libres en tiempo real.',
+          'App para encontrar estaciones de bicis compartidas en Zaragoza, Madrid, Barcelona, Valencia y Sevilla, con bicis y huecos libres cerca de ti.',
         applicationCategory: 'TravelApplication',
         operatingSystem: 'Android, iOS',
         url: `${siteUrl}${appRoutes.biciradar()}`,
@@ -246,7 +246,8 @@ export default function BiciRadarPage() {
             Bici Radar
           </h1>
           <p className="mt-3 max-w-xl text-base text-[var(--muted)] md:text-lg">
-            La app definitiva para encontrar bicis compartidas en tiempo real. Zaragoza, Madrid, Barcelona, Valencia y Sevilla.
+            Encuentra bicis compartidas cerca de ti y comprueba si hay bicis o huecos antes de salir.
+            Disponible para Zaragoza, Madrid, Barcelona, Valencia y Sevilla.
           </p>
           <p className="mt-3 max-w-2xl text-sm text-[var(--muted)]">
             En iOS ya puedes descargar la version publica desde la App Store. En Android el acceso sigue siendo para testers: primero
@@ -262,7 +263,7 @@ export default function BiciRadarPage() {
         <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Ciudades disponibles</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Bici Radar esta disponible en las principales ciudades de Espania</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Puedes usar Bici Radar en varias redes de bicicleta publica de Espana.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CITIES.map((city) => (
@@ -275,7 +276,7 @@ export default function BiciRadarPage() {
       <section>
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Caracteristicas</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Todo lo que necesitas para moverte en bicicleta por la ciudad</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Funciones pensadas para decidir rapido a que estacion ir.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
@@ -288,7 +289,7 @@ export default function BiciRadarPage() {
         <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descarga la app</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">iOS ya esta publicado · Android requiere acceso como tester</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">iOS ya esta publicado. En Android necesitas entrar primero al grupo de testers.</p>
         </div>
         <div className="flex flex-wrap justify-center gap-4">
           <DownloadCtas

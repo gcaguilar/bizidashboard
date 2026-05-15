@@ -60,10 +60,10 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
     <section className="ui-section-card gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Resumen del sistema</p>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Resumen de salud del sistema</h2>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estado de los datos</p>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Los datos estan {translateHealthStatus(status.pipeline.healthStatus)}</h2>
           <p className="text-xs text-[var(--muted)]">
-            Actualizacion {updatedText} · cobertura {coverage?.totalDays ?? 0} dias · entorno {status.system.environment}
+            Ultima muestra {updatedText} · cobertura {coverage?.totalDays ?? 0} dias · entorno {status.system.environment}
           </p>
         </div>
         <Badge variant={getHealthVariant(status.pipeline.healthStatus)}>
@@ -74,7 +74,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <MetricCard
           className="min-w-0"
-          label="Ultimo sondeo"
+          label="Ultima recogida"
           value={
             <span className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
               {status.pipeline.lastSuccessfulPoll
@@ -83,18 +83,18 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
             </span>
           }
         />
-        <MetricCard className="min-w-0" label="Sondeos 24h" value={status.pipeline.pollsLast24Hours} />
+        <MetricCard className="min-w-0" label="Recogidas 24h" value={status.pipeline.pollsLast24Hours} />
         <MetricCard
           className="min-w-0"
-          label="Estaciones recientes"
+          label="Estaciones vistas"
           value={status.quality.volume.recentStationCount}
-          detail={`Rango esperado ${volumeRange.min}-${volumeRange.max}`}
+          detail={`Esperadas ${volumeRange.min}-${volumeRange.max}`}
         />
-        <MetricCard className="min-w-0" label="Errores de validacion" value={status.pipeline.validationErrors} />
+        <MetricCard className="min-w-0" label="Errores detectados" value={status.pipeline.validationErrors} />
         <MetricCard className="min-w-0" label="Fallos consecutivos" value={status.pipeline.consecutiveFailures} />
         <MetricCard
           className="min-w-0"
-          label="Cobertura dataset"
+          label="Cobertura historica"
           value={coverage?.totalDays ?? 0}
           detail={`${coverage?.totalStations ?? 0} estaciones · generado ${coverageGeneratedText}`}
         />
@@ -102,7 +102,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
 
       {status.pipeline.healthReason ? (
         <Alert className="text-xs leading-relaxed text-[var(--muted)]">
-          Motivo del estado: {translateHealthReason(status.pipeline.healthReason)}
+          Motivo: {translateHealthReason(status.pipeline.healthReason)}
         </Alert>
       ) : null}
     </section>

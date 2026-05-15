@@ -31,13 +31,13 @@ function Home() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Panel publico y rutas indexables
+              Datos publicos de Bizi
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-5xl">
-              DatosBizi: Estaciones Bizi Zaragoza
+              DatosBizi: entiende Bizi Zaragoza de un vistazo
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Consulta estaciones Bizi Zaragoza, disponibilidad actual, patrones de uso, barrios, rankings, informes mensuales y datos abiertos desde una unica capa publica.
+              Consulta disponibilidad, patrones de uso, barrios, rankings, informes mensuales y datos abiertos sin perderte entre pantallas.
             </p>
           </div>
         </div>
@@ -46,13 +46,13 @@ function Home() {
             href={appRoutes.dashboard()}
             className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
-            Abrir dashboard principal
+            Abrir dashboard en vivo
           </a>
           <a
             href={appRoutes.seoPage('uso-bizi-por-estacion')}
             className="ui-inline-action"
           >
-            Explorar estaciones publicas
+            Explorar estaciones
           </a>
         </div>
       </header>
@@ -61,26 +61,26 @@ function Home() {
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-                Como usar la capa publica
+                Por donde empezar
               </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Mejor pocas rutas utiles que muchas paginas vacias
+              Rutas claras para responder preguntas reales
             </h2>
           </div>
           <p>
-            DatosBizi combina lectura rapida para usuarios y estructura clara para buscadores.
+            DatosBizi combina una lectura rapida para personas con enlaces estables para reutilizar datos, citar informes y volver a la misma vista cuando lo necesites.
           </p>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {[
-          { href: appRoutes.dashboard(), title: 'Dashboard en vivo', desc: 'Mapa, alertas, flujo y lecturas operativas del sistema actual.' },
-          { href: appRoutes.seoPage('uso-bizi-por-estacion'), title: 'Hub de estaciones', desc: 'Fichas publicas, disponibilidad, patrones y acceso al detalle operativo.' },
-          { href: appRoutes.districtLanding(), title: 'Barrios con cobertura', desc: 'Contexto territorial, estaciones destacadas y comparativa local por barrio.' },
-          { href: appRoutes.reports(), title: 'Archivo mensual', desc: 'Informes indexables por mes con enlaces persistentes y contexto historico.' },
-          { href: appRoutes.status(), title: 'Estado del sistema', desc: 'Frescura de datos, volumen reciente y diagnostico rapido.' },
-          { href: appRoutes.developers(), title: 'Developers y API', desc: 'OpenAPI, ejemplos de consumo, CSV y documentacion reutilizable.' },
+          { href: appRoutes.dashboard(), title: 'Dashboard en vivo', desc: 'Mapa, alertas, flujo y senales clave para saber como esta el sistema ahora.' },
+          { href: appRoutes.seoPage('uso-bizi-por-estacion'), title: 'Estaciones', desc: 'Busca una estacion, revisa disponibilidad y entra al detalle cuando haga falta.' },
+          { href: appRoutes.districtLanding(), title: 'Barrios', desc: 'Compara zonas, estaciones destacadas y diferencias de uso por barrio.' },
+          { href: appRoutes.reports(), title: 'Informes mensuales', desc: 'Consulta el archivo por mes con enlaces estables y contexto historico.' },
+          { href: appRoutes.status(), title: 'Estado de los datos', desc: 'Comprueba si los datos estan frescos, completos y listos para usar.' },
+          { href: appRoutes.developers(), title: 'API y descargas', desc: 'OpenAPI, ejemplos, CSV y referencias para reutilizar los datos.' },
         ].map((link) => (
           <a
             key={link.href}

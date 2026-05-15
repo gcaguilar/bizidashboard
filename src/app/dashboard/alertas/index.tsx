@@ -5,7 +5,7 @@ import { getAlertsHistoryPageData } from '@/server-functions/dashboard-alertas';
 export const Route = createFileRoute('/dashboard/alertas/')({
   head: () => {
     const title = 'Historial de alertas - Dashboard Bizi'
-    const description = 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones vacias, llenas o con riesgo operativo.'
+    const description = 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones sin bicis, sin huecos o que necesitan revision.'
     return {
       meta: [
         { charSet: 'utf-8' },
