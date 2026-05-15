@@ -23,8 +23,6 @@ function getSignatureSecret(): string {
   return raw;
 }
 
-const SIGNATURE_SECRET = getSignatureSecret();
-
 export interface SignedRequest {
   body: string;
   timestamp: number;
@@ -48,7 +46,7 @@ export function signRequest(body: unknown): SignedRequest {
       ? { ...(body as Record<string, unknown>), timestamp }
       : { body, timestamp };
   const bodyString = JSON.stringify(payload);
-  const signature = createHmac('sha256', SIGNATURE_SECRET)
+  const signature = createHmac('sha256', getSignatureSecret())
     .update(`${timestamp}.${normalizeSignedPayload(payload)}`)
     .digest('hex');
 
@@ -61,7 +59,7 @@ export function signRequest(body: unknown): SignedRequest {
 
 export function verifySignature(body: unknown, timestamp: number, signature: string): boolean {
   const bodyString = normalizeSignedPayload(body);
-  const expectedSignature = createHmac('sha256', SIGNATURE_SECRET)
+  const expectedSignature = createHmac('sha256', getSignatureSecret())
     .update(`${timestamp}.${bodyString}`)
     .digest('hex');
 

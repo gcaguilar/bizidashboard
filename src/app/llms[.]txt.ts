@@ -2,18 +2,18 @@ import { createFileRoute } from '@tanstack/react-router'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
 
-function buildLlmsTxt(): string {
+export function buildLlmsTxt(): string {
   const siteUrl = getSiteUrl()
 
   return [
     '# BiziDashboard',
     '',
-    '> Public analytics dashboard for Bizi bike-sharing operations in Zaragoza.',
+    '> Public dashboard for understanding Bizi bike-sharing activity, station health, and mobility patterns in Zaragoza.',
     '',
-    '## Canonical Site',
+    '## Main Site',
     `- ${siteUrl}`,
     '',
-    '## Primary Public Pages',
+    '## Best Starting Points',
     `- ${siteUrl}${appRoutes.home()}`,
     `- ${siteUrl}${appRoutes.dashboard()}`,
     `- ${siteUrl}${appRoutes.seoPage('uso-bizi-por-estacion')}`,
@@ -25,16 +25,16 @@ function buildLlmsTxt(): string {
     `- ${siteUrl}${appRoutes.utilityLanding()}`,
     `- ${siteUrl}${appRoutes.insightsLanding()}`,
     '',
-    '## Public Tool Surfaces',
+    '## Interactive Tools',
     `- ${siteUrl}${appRoutes.explore()}`,
     `- ${siteUrl}${appRoutes.compare()}`,
     '',
-    '## Structured Discovery',
+    '## Structured Indexes',
     `- ${siteUrl}/sitemap.xml`,
     `- ${siteUrl}${appRoutes.llmsFull()}`,
     `- ${siteUrl}${appRoutes.api.openApi()}`,
     '',
-    '## Public API Endpoints',
+    '## Public API',
     `- ${siteUrl}${appRoutes.api.status()}`,
     `- ${siteUrl}${appRoutes.api.stations()}`,
     `- ${siteUrl}${appRoutes.api.rankings()}`,
@@ -42,10 +42,10 @@ function buildLlmsTxt(): string {
     `- ${siteUrl}${appRoutes.api.history()}`,
     `- ${siteUrl}${appRoutes.api.alertsHistory()}`,
     '',
-    '## Notes for AI Assistants',
-    '- Prioritize canonical routes without city-prefixed aliases.',
-    '- Prefer data-backed pages over deprecated aliases or redirects.',
-    '- For API usage, rely on OpenAPI as source of truth.',
+    '## Guidance for AI Assistants',
+    '- Use the canonical routes listed here instead of older city-prefixed aliases.',
+    '- Prefer pages that show live or recently generated data when summarizing the current system state.',
+    '- Use the OpenAPI document as the source of truth for API parameters and response shapes.',
     '',
   ].join('\n')
 }

@@ -21,6 +21,8 @@ import { Route as MetodologiaRouteImport } from './app/metodologia'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
 import { Route as LlmsDottxtRouteImport } from './app/llms[.]txt'
 import { Route as LlmsFullDottxtRouteImport } from './app/llms-full[.]txt'
+import { Route as LlmDottxtRouteImport } from './app/llm[.]txt'
+import { Route as LlmTxtRouteImport } from './app/llm-txt'
 import { Route as InformesMensualesBiziZaragozaRouteImport } from './app/informes-mensuales-bizi-zaragoza'
 import { Route as InformesRouteImport } from './app/informes'
 import { Route as ExplorarRouteImport } from './app/explorar'
@@ -133,6 +135,16 @@ const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
 const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
   id: '/llms-full.txt',
   path: '/llms-full.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmDottxtRoute = LlmDottxtRouteImport.update({
+  id: '/llm.txt',
+  path: '/llm.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmTxtRoute = LlmTxtRouteImport.update({
+  id: '/llm-txt',
+  path: '/llm-txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InformesMensualesBiziZaragozaRoute =
@@ -416,6 +428,8 @@ export interface FileRoutesByFullPath {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
+  '/llm-txt': typeof LlmTxtRoute
+  '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
@@ -480,6 +494,8 @@ export interface FileRoutesByTo {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
+  '/llm-txt': typeof LlmTxtRoute
+  '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
@@ -546,6 +562,8 @@ export interface FileRoutesById {
   '/explorar': typeof ExplorarRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
+  '/llm-txt': typeof LlmTxtRoute
+  '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
@@ -613,6 +631,8 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
+    | '/llm-txt'
+    | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
@@ -677,6 +697,8 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
+    | '/llm-txt'
+    | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
@@ -742,6 +764,8 @@ export interface FileRouteTypes {
     | '/explorar'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
+    | '/llm-txt'
+    | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
     | '/mapa-estaciones-bizi-zaragoza'
@@ -808,6 +832,8 @@ export interface RootRouteChildren {
   ExplorarRoute: typeof ExplorarRoute
   InformesRoute: typeof InformesRouteWithChildren
   InformesMensualesBiziZaragozaRoute: typeof InformesMensualesBiziZaragozaRoute
+  LlmTxtRoute: typeof LlmTxtRoute
+  LlmDottxtRoute: typeof LlmDottxtRoute
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
@@ -930,6 +956,20 @@ declare module '@tanstack/react-router' {
       path: '/llms-full.txt'
       fullPath: '/llms-full.txt'
       preLoaderRoute: typeof LlmsFullDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llm.txt': {
+      id: '/llm.txt'
+      path: '/llm.txt'
+      fullPath: '/llm.txt'
+      preLoaderRoute: typeof LlmDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llm-txt': {
+      id: '/llm-txt'
+      path: '/llm-txt'
+      fullPath: '/llm-txt'
+      preLoaderRoute: typeof LlmTxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/informes-mensuales-bizi-zaragoza': {
@@ -1351,6 +1391,8 @@ const rootRouteChildren: RootRouteChildren = {
   ExplorarRoute: ExplorarRoute,
   InformesRoute: InformesRouteWithChildren,
   InformesMensualesBiziZaragozaRoute: InformesMensualesBiziZaragozaRoute,
+  LlmTxtRoute: LlmTxtRoute,
+  LlmDottxtRoute: LlmDottxtRoute,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
