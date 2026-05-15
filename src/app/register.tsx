@@ -1,6 +1,8 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createFileRoute } from '@tanstack/react-router'
 import { authClient } from '@/lib/auth-client'
 import { useState } from 'react'
+import { appRoutes } from '@/lib/routes'
 
 export const Route = createFileRoute('/register')({
   component: RegisterPage,
@@ -53,9 +55,9 @@ function RegisterPage() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-            {error}
-          </div>
+          <Alert variant="danger">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,7 +125,7 @@ function RegisterPage() {
 
         <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
           ¿Ya tienes cuenta?{' '}
-          <a href="/login" className="text-red-600 hover:underline">
+          <a href={appRoutes.login()} className="text-red-600 hover:underline">
             Inicia sesión
           </a>
         </p>

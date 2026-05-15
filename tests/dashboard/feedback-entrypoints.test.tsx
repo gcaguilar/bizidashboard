@@ -5,9 +5,13 @@ import { DashboardHeader } from '@/app/dashboard/_components/DashboardHeader';
 import { HelpCenterClient } from '@/app/dashboard/ayuda/_components/HelpCenterClient';
 import { DEFAULT_FEEDBACK_URL } from '@/lib/feedback';
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/dashboard',
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: '/dashboard' }),
+  };
+});
 
 vi.mock('@/app/_components/SiteBreadcrumbs', () => ({
   SiteBreadcrumbs: () => <div>Breadcrumbs</div>,

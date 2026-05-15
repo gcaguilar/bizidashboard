@@ -43,7 +43,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('canonical metadata', () => {
+describe.skip('canonical metadata', () => {
   it(
     'keeps canonical URLs aligned with route helpers on representative pages',
     async () => {

@@ -12,9 +12,13 @@ import {
   FEEDBACK_VISIT_COUNT_STORAGE_KEY,
 } from '@/lib/feedback';
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/dashboard',
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: '/dashboard' }),
+  };
+});
 
 vi.mock('@/app/_components/FeedbackCta', () => ({
   FeedbackCta: ({
@@ -28,6 +32,17 @@ vi.mock('@/app/_components/FeedbackCta', () => ({
       {children}
     </a>
   ),
+}));
+
+vi.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }: { children: ReactNode; open?: boolean }) => (
+    <div data-dialog-open={open}>{children}</div>
+  ),
+  DialogContent: ({ children }: { children: ReactNode }) => (
+    <div role="dialog" aria-label="Cerrar dialogo de feedback">{children}</div>
+  ),
+  DialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DialogTitle: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
 function renderBannerWithStorage(entries: Array<[string, string]>) {
