@@ -69,3 +69,6 @@ trace.json.gz
 docs/
 PLAN.md
 untitled.pen
+dist/
+.output/
+.env.local

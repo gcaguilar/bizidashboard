@@ -1,2 +1,0 @@
-import{Kt as e,ao as t,ro as n,so as r}from"./index-BidEj_j-.js";import{t as i}from"./SeoLandingPageComponent-D_85iQdG.js";var a=r(t()),o=n();function s(){let{config:t,content:n,indexability:r}=e.useLoaderData();return(0,o.jsx)(a.Suspense,{fallback:(0,o.jsx)(`div`,{children:`Cargando...`}),children:(0,o.jsx)(i,{slug:`barrios-bizi-zaragoza`,config:t,content:n,indexability:r})})}export{s as component};
-//# sourceMappingURL=barrios-bizi-zaragoza-DE9VITd_.js.map
