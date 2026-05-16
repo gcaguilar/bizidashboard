@@ -78,7 +78,7 @@ const PopoverTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsW
 );
 
 const PopoverClose = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'>>(
-  function PopoverClose({ onClick, ...props }: React.ComponentPropsWithoutRef<'button'>, ref: React.Ref<HTMLButtonElement>) {
+  function PopoverClose({ onClick, ...props }, ref) {
     const { setOpen } = usePopoverContext();
     return (
       <button
