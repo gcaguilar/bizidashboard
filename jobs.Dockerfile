@@ -27,9 +27,6 @@ ENV NODE_ENV=production
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
-# Install pm2 globally
-RUN bun install -g pm2
-
 # Prisma generated client
 COPY --from=builder /app/src/generated /app/src/generated
 
@@ -47,11 +44,7 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
     cp -a /app/src/generated/prisma/* /app/node_modules/.prisma/client/ && \
     echo 'module.exports = require("./client")' > /app/node_modules/.prisma/client/default.js
 
-# pm2 ecosystem config (embedded to avoid Coolify context issues)
-# Run compiled JavaScript with bun; pm2 should not parse TypeScript at runtime.
-RUN echo '{"apps":[{"name":"bizidashboard-jobs","script":"dist/jobs/standalone.js","interpreter":"bun","cwd":"/app","instances":1,"autorestart":true,"watch":false,"max_memory_restart":"1G","env":{"NODE_ENV":"production"}}]}' > /app/ecosystem.config.js
-
 EXPOSE 3000
 
-# pm2 will manage the process lifecycle (autorestart, logs, etc.)
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+# Docker/Coolify manages lifecycle; the process runs compiled JavaScript directly.
+CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && bun dist/jobs/standalone.js"]
