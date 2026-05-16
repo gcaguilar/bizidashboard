@@ -40,7 +40,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget openssl li
 
 # TanStack Start output (repo currently builds into dist/)
 COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/instrument.server.mjs /app/instrument.server.mjs
 COPY --from=builder /app/public /app/public
 # Prisma generated client (custom output in schema.prisma)
 COPY --from=builder /app/src/generated /app/src/generated
