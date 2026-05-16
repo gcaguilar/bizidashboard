@@ -43,8 +43,8 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
     cp -a /app/src/generated/prisma/* /app/node_modules/.prisma/client/ && \
     echo 'module.exports = require("./client")' > /app/node_modules/.prisma/client/default.js
 
-# pm2 ecosystem config
-COPY ecosystem.config.js /app/ecosystem.config.js
+# pm2 ecosystem config (embedded to avoid Coolify context issues)
+RUN echo '{"apps":[{"name":"bizidashboard-jobs","script":"bun","args":"src/jobs/standalone.ts","cwd":"/app","instances":1,"autorestart":true,"watch":false,"max_memory_restart":"1G","env":{"NODE_ENV":"production"}}]}' > /app/ecosystem.config.js
 
 EXPOSE 0
 
