@@ -15,6 +15,7 @@ import type {
 import {
   extractFeedUrl,
   validateDiscovery,
+  validateStationInformation,
   validateStationData,
   extractStationStatusUrl,
 } from '@/schemas/gbfs';
