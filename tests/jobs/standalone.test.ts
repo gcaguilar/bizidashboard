@@ -37,12 +37,10 @@ describe('standalone jobs', () => {
     analyticsStopMock.mockReset();
     loggerInfoMock.mockReset();
 
-    // Return a fake timer object (truthy) so shutdownJobs will try to clear it
     setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation((_fn, _ms) => {
       return { unref: () => {} } as ReturnType<typeof setTimeout>;
     });
 
-    // Track clearTimeout calls
     clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout').mockImplementation(() => {});
   });
 
