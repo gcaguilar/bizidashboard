@@ -1,5 +1,3 @@
-import '../instrument.server.mjs';
-
 import { extname, join, normalize } from 'node:path';
 import serverEntry from '../dist/server/server.js';
 

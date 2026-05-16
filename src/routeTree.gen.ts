@@ -60,6 +60,8 @@ import { Route as ApiPatternsIndexRouteImport } from './app/api/patterns/index'
 import { Route as ApiMobilityIndexRouteImport } from './app/api/mobility/index'
 import { Route as ApiHistoryIndexRouteImport } from './app/api/history/index'
 import { Route as ApiHeatmapIndexRouteImport } from './app/api/heatmap/index'
+import { Route as ApiHealthIndexRouteImport } from './app/api/health/index'
+import { Route as ApiGeoIndexRouteImport } from './app/api/geo/index'
 import { Route as ApiDocsIndexRouteImport } from './app/api/docs/index'
 import { Route as ApiCollectIndexRouteImport } from './app/api/collect/index'
 import { Route as ApiAppVersionsIndexRouteImport } from './app/api/app-versions/index'
@@ -339,6 +341,16 @@ const ApiHeatmapIndexRoute = ApiHeatmapIndexRouteImport.update({
   path: '/api/heatmap/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthIndexRoute = ApiHealthIndexRouteImport.update({
+  id: '/api/health/',
+  path: '/api/health/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoIndexRoute = ApiGeoIndexRouteImport.update({
+  id: '/api/geo/',
+  path: '/api/geo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDocsIndexRoute = ApiDocsIndexRouteImport.update({
   id: '/api/docs/',
   path: '/api/docs/',
@@ -456,6 +468,8 @@ export interface FileRoutesByFullPath {
   '/api/app-versions/': typeof ApiAppVersionsIndexRoute
   '/api/collect/': typeof ApiCollectIndexRoute
   '/api/docs/': typeof ApiDocsIndexRoute
+  '/api/geo/': typeof ApiGeoIndexRoute
+  '/api/health/': typeof ApiHealthIndexRoute
   '/api/heatmap/': typeof ApiHeatmapIndexRoute
   '/api/history/': typeof ApiHistoryIndexRoute
   '/api/mobility/': typeof ApiMobilityIndexRoute
@@ -522,6 +536,8 @@ export interface FileRoutesByTo {
   '/api/app-versions': typeof ApiAppVersionsIndexRoute
   '/api/collect': typeof ApiCollectIndexRoute
   '/api/docs': typeof ApiDocsIndexRoute
+  '/api/geo': typeof ApiGeoIndexRoute
+  '/api/health': typeof ApiHealthIndexRoute
   '/api/heatmap': typeof ApiHeatmapIndexRoute
   '/api/history': typeof ApiHistoryIndexRoute
   '/api/mobility': typeof ApiMobilityIndexRoute
@@ -590,6 +606,8 @@ export interface FileRoutesById {
   '/api/app-versions/': typeof ApiAppVersionsIndexRoute
   '/api/collect/': typeof ApiCollectIndexRoute
   '/api/docs/': typeof ApiDocsIndexRoute
+  '/api/geo/': typeof ApiGeoIndexRoute
+  '/api/health/': typeof ApiHealthIndexRoute
   '/api/heatmap/': typeof ApiHeatmapIndexRoute
   '/api/history/': typeof ApiHistoryIndexRoute
   '/api/mobility/': typeof ApiMobilityIndexRoute
@@ -659,6 +677,8 @@ export interface FileRouteTypes {
     | '/api/app-versions/'
     | '/api/collect/'
     | '/api/docs/'
+    | '/api/geo/'
+    | '/api/health/'
     | '/api/heatmap/'
     | '/api/history/'
     | '/api/mobility/'
@@ -725,6 +745,8 @@ export interface FileRouteTypes {
     | '/api/app-versions'
     | '/api/collect'
     | '/api/docs'
+    | '/api/geo'
+    | '/api/health'
     | '/api/heatmap'
     | '/api/history'
     | '/api/mobility'
@@ -792,6 +814,8 @@ export interface FileRouteTypes {
     | '/api/app-versions/'
     | '/api/collect/'
     | '/api/docs/'
+    | '/api/geo/'
+    | '/api/health/'
     | '/api/heatmap/'
     | '/api/history/'
     | '/api/mobility/'
@@ -856,6 +880,8 @@ export interface RootRouteChildren {
   ApiAppVersionsIndexRoute: typeof ApiAppVersionsIndexRoute
   ApiCollectIndexRoute: typeof ApiCollectIndexRoute
   ApiDocsIndexRoute: typeof ApiDocsIndexRoute
+  ApiGeoIndexRoute: typeof ApiGeoIndexRoute
+  ApiHealthIndexRoute: typeof ApiHealthIndexRoute
   ApiHeatmapIndexRoute: typeof ApiHeatmapIndexRoute
   ApiHistoryIndexRoute: typeof ApiHistoryIndexRoute
   ApiMobilityIndexRoute: typeof ApiMobilityIndexRoute
@@ -1231,6 +1257,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHeatmapIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health/': {
+      id: '/api/health/'
+      path: '/api/health'
+      fullPath: '/api/health/'
+      preLoaderRoute: typeof ApiHealthIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo/': {
+      id: '/api/geo/'
+      path: '/api/geo'
+      fullPath: '/api/geo/'
+      preLoaderRoute: typeof ApiGeoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/docs/': {
       id: '/api/docs/'
       path: '/api/docs'
@@ -1415,6 +1455,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppVersionsIndexRoute: ApiAppVersionsIndexRoute,
   ApiCollectIndexRoute: ApiCollectIndexRoute,
   ApiDocsIndexRoute: ApiDocsIndexRoute,
+  ApiGeoIndexRoute: ApiGeoIndexRoute,
+  ApiHealthIndexRoute: ApiHealthIndexRoute,
   ApiHeatmapIndexRoute: ApiHeatmapIndexRoute,
   ApiHistoryIndexRoute: ApiHistoryIndexRoute,
   ApiMobilityIndexRoute: ApiMobilityIndexRoute,

@@ -71,6 +71,7 @@ export default defineConfig({
       router: {
         routesDirectory: 'app',
         routeFileIgnorePattern: '(_components|_seo|head|layout|loading)',
+        serverEntry: 'src/server-entry.ts',
       },
     }),
     viteReact(),
