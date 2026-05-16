@@ -13,6 +13,7 @@ export default [
       'vite.config.ts',
       'instrument.server.mjs',
       'instrumentation-client.ts',
+      'ecosystem.config.js',
       'prisma/', 'proj4.d.ts',
       'src/jobs/jobs/**',
       'src/services/services/**',
