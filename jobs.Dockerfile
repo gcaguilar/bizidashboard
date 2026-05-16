@@ -27,8 +27,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget openssl li
 # Install pm2 globally
 RUN bun install -g pm2
 
-# Install tsx globally for TypeScript runtime compilation
-RUN bun install -g tsx
+# Install tsx locally for path alias resolution
+COPY --from=deps /app/node_modules/tsx /app/node_modules/tsx
+COPY --from=deps /app/node_modules/.bin/tsx /app/node_modules/.bin/tsx
 
 # Prisma generated client
 COPY --from=builder /app/src/generated /app/src/generated
