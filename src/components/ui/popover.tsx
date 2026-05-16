@@ -53,7 +53,7 @@ const Popover = ({ open, onOpenChange, children }: {
 };
 
 const PopoverTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'>>(
-  function PopoverTrigger({ onClick, ...props }, ref) {
+  function PopoverTrigger({ onClick, ...props }: React.ComponentPropsWithoutRef<'button'>, _ref) {
     const { open, setOpen, triggerRef } = usePopoverContext();
     const mergedRef = React.useCallback(
       (node: HTMLButtonElement | null) => {
