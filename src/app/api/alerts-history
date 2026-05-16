@@ -1,0 +1,11 @@
+import { createFileRoute, redirect } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/api/alerts-history/')({
+  server: {
+    handlers: {
+      GET: async () => {
+        throw redirect({ to: '/api/alerts/history', status: 308 })
+      },
+    },
+  },
+})

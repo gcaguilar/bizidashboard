@@ -2,16 +2,8 @@ import * as Sentry from '@sentry/tanstackstart-react';
 import { validateRuntimeConfiguration } from '@/lib/security/config';
 
 export async function register(): Promise<void> {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('../sentry.server.config');
-    validateRuntimeConfiguration();
-    const { initJobs } = await import('@/lib/jobs');
-    initJobs();
-  }
-
-  if (process.env.NEXT_RUNTIME === 'edge') {
-    await import('../sentry.edge.config');
-  }
+  await import('../sentry.server.config');
+  validateRuntimeConfiguration();
 }
 
 /** Server Components / RSC errors (Next.js 15+). */

@@ -20,9 +20,12 @@ function isAppVersionsResponse(value: unknown): value is AppVersionsResponse {
 function parseAppVersions(): AppVersionsResponse {
   const env = process.env.APP_VERSIONS
   if (!env) return DEFAULT_APP_VERSIONS
-  const parsed = tryParseJson(env)
-  if (parsed.ok && isAppVersionsResponse(parsed.value)) return parsed.value
-  captureExceptionWithContext(parsed.ok ? new Error('APP_VERSIONS must match the expected response shape.') : parsed.error, { area: 'api.app-versions', operation: 'parseAppVersions' })
+  try {
+    const parsed = tryParseJson(env)
+    if (parsed.ok && isAppVersionsResponse(parsed.value)) return parsed.value
+  } catch {
+    // ignore parse errors, fall through to defaults
+  }
   logger.warn('api.app_versions.invalid_config')
   return DEFAULT_APP_VERSIONS
 }
