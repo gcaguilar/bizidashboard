@@ -126,7 +126,7 @@ export function getExploreHubSections(options?: {
           eyebrow: 'Logistica y equilibrio',
           description:
             'Diagnostico de redistribucion con clasificacion de estaciones, predicciones y transferencias origen-destino sugeridas.',
-          href: appRoutes.seoPage('redistribucion-bizi-zaragoza'),
+          href: appRoutes.seoPage('redistribucion'),
           destinationLabel: 'Landing publica',
         },
       ],

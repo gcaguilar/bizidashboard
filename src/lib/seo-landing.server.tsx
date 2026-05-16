@@ -1063,6 +1063,7 @@ async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingCont
     case 'informes-mensuales-bizi-zaragoza':
       return buildMonthlyReportsContent(config, nowIso);
     case 'redistribucion-bizi-zaragoza':
+    case 'redistribucion':
       return buildRedistribucionContent(config, nowIso);
     default:
       return fallbackContent(config, nowIso);
