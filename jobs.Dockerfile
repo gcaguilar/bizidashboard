@@ -46,7 +46,7 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
 # pm2 ecosystem config (embedded to avoid Coolify context issues)
 RUN echo '{"apps":[{"name":"bizidashboard-jobs","script":"bun","args":"src/jobs/standalone.ts","cwd":"/app","instances":1,"autorestart":true,"watch":false,"max_memory_restart":"1G","env":{"NODE_ENV":"production"}}]}' > /app/ecosystem.config.js
 
-EXPOSE 0
+EXPOSE 3000
 
 # pm2 will manage the process lifecycle (autorestart, logs, etc.)
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
