@@ -1,5 +1,4 @@
-import { init, captureRequestError } from '@sentry/tanstackstart-react'
-import { validateRuntimeConfiguration } from '@/lib/security/config'
+import { init } from '@sentry/tanstackstart-react'
 import { initJobs, shutdownJobs } from '@/lib/jobs'
 
 init({

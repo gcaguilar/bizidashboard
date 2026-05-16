@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { isRecord, tryParseJson } from '@/lib/json'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
-import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { logger } from '@/lib/logger'
 
 export type AppVersion = { version: string; allowed: boolean; reason?: string }
@@ -24,10 +23,9 @@ function parseAppVersions(): AppVersionsResponse {
     const parsed = tryParseJson(env)
     if (parsed.ok && isAppVersionsResponse(parsed.value)) return parsed.value
   } catch {
-    // ignore parse errors, fall through to defaults
+    logger.warn('api.app_versions.invalid_config')
+    return DEFAULT_APP_VERSIONS
   }
-  logger.warn('api.app_versions.invalid_config')
-  return DEFAULT_APP_VERSIONS
 }
 
 const APP_VERSIONS = parseAppVersions()
