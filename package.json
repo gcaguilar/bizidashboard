@@ -41,6 +41,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@floating-ui/react": "^0.27.19",
+    "@floating-ui/react-dom": "^2.1.8",
     "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
