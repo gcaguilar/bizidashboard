@@ -43,7 +43,6 @@ services:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
-      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
@@ -79,7 +78,6 @@ services:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
-      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
@@ -115,7 +113,6 @@ services:
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
       - OPS_API_KEY=${OPS_API_KEY:-}
       - PUBLIC_API_KEY=${PUBLIC_API_KEY:-}
-      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
@@ -140,6 +137,54 @@ services:
       timeout: 10s
       retries: 5
       start_period: 20s
+
+  jobs-zaragoza:
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
+      - CITY=${CITY:-zaragoza}
+      - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  jobs-madrid:
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
+      - CITY=${CITY:-madrid}
+      - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  jobs-barcelona:
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
+      - CITY=${CITY:-barcelona}
+      - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   collect-zaragoza:
     image: alpine:3.21
