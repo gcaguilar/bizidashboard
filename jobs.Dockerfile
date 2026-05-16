@@ -43,6 +43,11 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
     cp -a /app/src/generated/prisma/* /app/node_modules/.prisma/client/ && \
     echo 'module.exports = require("./client")' > /app/node_modules/.prisma/client/default.js
 
+# TypeScript config and source files (needed for bun to resolve @/ aliases)
+COPY --from=builder /app/tsconfig.json /app/tsconfig.json
+COPY --from=builder /app/src /app/src
+COPY --from=builder /app/public /app/public
+
 # pm2 ecosystem config (embedded to avoid Coolify context issues)
 RUN echo '{"apps":[{"name":"bizidashboard-jobs","script":"bun","args":"src/jobs/standalone.ts","cwd":"/app","instances":1,"autorestart":true,"watch":false,"max_memory_restart":"1G","env":{"NODE_ENV":"production"}}]}' > /app/ecosystem.config.js
 
