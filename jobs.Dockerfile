@@ -39,6 +39,11 @@ COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/dist/jobs /app/dist/jobs
 
+# Entrypoint scripts create the city schema, append ?schema=<CITY>, and run migrations.
+COPY --from=builder /app/ops/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
+RUN chmod +x /app/docker-entrypoint.sh
+
 # Prisma client resolution
 RUN mkdir -p /app/node_modules/.prisma/client && \
     cp -a /app/src/generated/prisma/* /app/node_modules/.prisma/client/ && \
@@ -47,4 +52,5 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
 EXPOSE 3000
 
 # Docker/Coolify manages lifecycle; the process runs compiled JavaScript directly.
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && bun dist/jobs/standalone.js"]
