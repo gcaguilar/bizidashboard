@@ -16,13 +16,15 @@ function shouldEnableInternalJobs(): boolean {
     return false;
   }
 
-  const rawValue = process.env.ENABLE_INTERNAL_JOBS;
-
-  if (!rawValue || rawValue.trim() === '') {
-    return false;
+  if (typeof process.env.ENABLE_INTERNAL_JOBS !== 'undefined') {
+    const rawValue = process.env.ENABLE_INTERNAL_JOBS;
+    if (rawValue.trim() === '') {
+      return false;
+    }
+    return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
   }
 
-  return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
+  return true;
 }
 
 /**
