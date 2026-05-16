@@ -15,7 +15,7 @@ import { Route as UsoBiziPorHoraRouteImport } from './app/uso-bizi-por-hora'
 import { Route as UsoBiziPorEstacionRouteImport } from './app/uso-bizi-por-estacion'
 import { Route as SitemapDotxmlRouteImport } from './app/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './app/robots[.]txt'
-import { Route as RedistribucionBiziZaragozaRouteImport } from './app/redistribucion-bizi-zaragoza'
+import { Route as RedistribucionRouteImport } from './app/redistribucion'
 import { Route as RankingEstacionesBiziRouteImport } from './app/ranking-estaciones-bizi'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
@@ -107,12 +107,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RedistribucionBiziZaragozaRoute =
-  RedistribucionBiziZaragozaRouteImport.update({
-    id: '/redistribucion-bizi-zaragoza',
-    path: '/redistribucion-bizi-zaragoza',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const RedistribucionRoute = RedistribucionRouteImport.update({
+  id: '/redistribucion',
+  path: '/redistribucion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RankingEstacionesBiziRoute = RankingEstacionesBiziRouteImport.update({
   id: '/ranking-estaciones-bizi',
   path: '/ranking-estaciones-bizi',
@@ -447,7 +446,7 @@ export interface FileRoutesByFullPath {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
-  '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
+  '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
@@ -515,7 +514,7 @@ export interface FileRoutesByTo {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
-  '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
+  '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
@@ -585,7 +584,7 @@ export interface FileRoutesById {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
-  '/redistribucion-bizi-zaragoza': typeof RedistribucionBiziZaragozaRoute
+  '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/uso-bizi-por-estacion': typeof UsoBiziPorEstacionRoute
@@ -656,7 +655,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
-    | '/redistribucion-bizi-zaragoza'
+    | '/redistribucion'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
@@ -724,7 +723,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
-    | '/redistribucion-bizi-zaragoza'
+    | '/redistribucion'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
@@ -793,7 +792,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
-    | '/redistribucion-bizi-zaragoza'
+    | '/redistribucion'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/uso-bizi-por-estacion'
@@ -863,7 +862,7 @@ export interface RootRouteChildren {
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
   MetodologiaRoute: typeof MetodologiaRoute
   RankingEstacionesBiziRoute: typeof RankingEstacionesBiziRoute
-  RedistribucionBiziZaragozaRoute: typeof RedistribucionBiziZaragozaRoute
+  RedistribucionRoute: typeof RedistribucionRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UsoBiziPorEstacionRoute: typeof UsoBiziPorEstacionRoute
@@ -942,11 +941,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/redistribucion-bizi-zaragoza': {
-      id: '/redistribucion-bizi-zaragoza'
-      path: '/redistribucion-bizi-zaragoza'
-      fullPath: '/redistribucion-bizi-zaragoza'
-      preLoaderRoute: typeof RedistribucionBiziZaragozaRouteImport
+    '/redistribucion': {
+      id: '/redistribucion'
+      path: '/redistribucion'
+      fullPath: '/redistribucion'
+      preLoaderRoute: typeof RedistribucionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ranking-estaciones-bizi': {
@@ -1438,7 +1437,7 @@ const rootRouteChildren: RootRouteChildren = {
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
   MetodologiaRoute: MetodologiaRoute,
   RankingEstacionesBiziRoute: RankingEstacionesBiziRoute,
-  RedistribucionBiziZaragozaRoute: RedistribucionBiziZaragozaRoute,
+  RedistribucionRoute: RedistribucionRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   UsoBiziPorEstacionRoute: UsoBiziPorEstacionRoute,

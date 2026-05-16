@@ -18,7 +18,7 @@ export const SEO_PAGE_SLUGS = [
   'uso-bizi-por-estacion',
   'estaciones-con-mas-bicis',
   'informes-mensuales-bizi-zaragoza',
-  'redistribucion-bizi-zaragoza',
+  'redistribucion',
 ] as const;
 
 export type SeoPageSlug = (typeof SEO_PAGE_SLUGS)[number];
@@ -64,7 +64,7 @@ export const PRIMARY_SEO_PAGE_SLUGS = [
   'viajes-por-mes-zaragoza',
   'uso-bizi-por-estacion',
   'estaciones-con-mas-bicis',
-  'redistribucion-bizi-zaragoza',
+  'redistribucion',
 ] as const satisfies readonly SeoPageSlug[];
 
 export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
@@ -214,8 +214,8 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     canonicalPath: appRoutes.reports(),
     isLegacyAlias: true,
   },
-  'redistribucion-bizi-zaragoza': {
-    slug: 'redistribucion-bizi-zaragoza',
+  'redistribucion': {
+    slug: 'redistribucion',
     title: 'Redistribucion de bicis Bizi Zaragoza',
     metadataTitle: 'Redistribucion de bicis Bizi Zaragoza | Equilibrio y metodologia',
     description:
