@@ -1,24 +1,17 @@
 /**
  * Bizi Data Collection Job
- * 
+ *
  * Scheduled collection job that runs every 2 minutes to fetch,
  * validate, and store Bizi station data from the GBFS API.
  * Also provides manual trigger capability via runCollection().
+ *
+ * Responsibility: scheduling, lock acquisition, job state tracking,
+ * metrics recording, and DB persistence of collection runs.
  */
 
 import { schedule } from 'node-cron';
 import type { ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
-import { fetchDiscovery, fetchStationInformation, fetchStationStatus } from '@/services/gbfs-client';
-import { validateAndStore } from '@/services/data-validator';
-import {
-  getMissingStationIds,
-  getSnapshotCount,
-  getStationMetadataCount,
-  upsertStations,
-} from '@/services/data-storage';
-import type { DataObservabilityMetrics } from '@/lib/observability';
-import { recordCollection } from '@/lib/metrics';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { acquireJobLock } from '@/analytics/job-lock';
 import {
@@ -27,6 +20,7 @@ import {
   type CollectionRunTrigger,
 } from '@/lib/collection-runs';
 import { getCity } from '@/lib/db';
+import { recordCollection } from '@/lib/metrics';
 import { logger } from '@/lib/logger';
 import {
   getExecutionContext,
@@ -34,7 +28,7 @@ import {
   runWithExecutionContext,
   updateExecutionContext,
 } from '@/lib/request-context';
-import { ensureLockRefreshed } from './utils';
+import { createCollectionPipeline, type CollectionPipelineResult } from '@/lib/collection-pipeline';
 import type { CronOptions } from './types';
 
 /**
@@ -45,7 +39,7 @@ export interface CollectionResult {
   collectionId: string;
   stationCount: number;
   recordedAt: Date | null;
-  quality: DataObservabilityMetrics | null;
+  quality: import('@/lib/observability').DataObservabilityMetrics | null;
   duration: number;
   warnings: string[];
   error?: string;
@@ -75,7 +69,6 @@ const COLLECTION_LOCK_TTL_MS = 10 * 60 * 1000;
 const COLLECTION_LOCK_NAME = 'gbfs-collection';
 const COLLECTION_CRON_SCHEDULE = '*/2 * * * *';
 const DEFAULT_GBFS_SOURCE_URL = 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json';
-let hasSyncedStationInformationSinceStartup = false;
 
 // Job state tracking
 const jobState: JobState = {
@@ -93,18 +86,9 @@ export function getJobState(): JobState {
   return { ...jobState };
 }
 
-async function shouldSyncStationInformation(): Promise<boolean> {
-  if (!hasSyncedStationInformationSinceStartup) {
-    return true;
-  }
-
-  const stationCount = await getStationMetadataCount();
-  return stationCount === 0;
-}
-
 /**
  * Run a single collection cycle
- * Orchestrates: fetch → validate → store
+ * Orchestrates: lock → pipeline → metrics → DB update
  */
 async function executeCollection(
   requestId: string,
@@ -128,6 +112,7 @@ async function executeCollection(
   });
 
   const lock = await acquireJobLock(COLLECTION_LOCK_NAME, COLLECTION_LOCK_TTL_MS);
+  let lockReleased = false;
   if (!lock) {
     const skippedAt = new Date();
     logger.info('collection.lock_skipped');
@@ -166,65 +151,32 @@ async function executeCollection(
     sourceUrl,
   });
 
-  try {
-    // Step 1: Fetch discovery once and reuse for all feed requests
-    const discovery = await fetchDiscovery();
-    const syncStationInformation = await shouldSyncStationInformation();
-
-    // Step 2: Fetch live station status, and station metadata only on the first run
-    // after startup or when the station table is empty.
-    const stationStatusPromise = fetchStationStatus(discovery);
-    const stationInformationPromise = syncStationInformation
-      ? fetchStationInformation(discovery)
-      : Promise.resolve(null);
-
-    const [stationStatusResponse, initialStationInformation] = await Promise.all([
-      stationStatusPromise,
-      stationInformationPromise,
-    ]);
-
-    let stationInformation = initialStationInformation;
-
-    if (!stationInformation) {
-      const missingStationIds = await getMissingStationIds(
-        stationStatusResponse.data.stations.map((station) => station.station_id)
-      );
-
-      if (missingStationIds.length > 0) {
-        logger.warn('collection.station_metadata_missing', {
-          missingStationCount: missingStationIds.length,
-          missingStationIdsSample: missingStationIds.slice(0, 10),
-        });
-        stationInformation = await fetchStationInformation(discovery);
+  // Build pipeline with lock-refresh callback injected at the metadata-sync boundary
+  const pipeline = createCollectionPipeline({
+    sourceUrl,
+    lockName: COLLECTION_LOCK_NAME,
+    lockTtlMs: COLLECTION_LOCK_TTL_MS,
+    onStationMetadataSynced: async () => {
+      const refreshed = await lock.refresh();
+      if (!refreshed) {
+        throw new Error('collection lock refresh failed at stage: post-station-metadata-sync');
       }
-    }
+    },
+  });
 
-    // Step 3: Refresh station metadata sparingly. Station names/coords/capacity
-    // change infrequently, so we only sync them on deploy/startup or bootstrap.
-    if (stationInformation) {
-      await upsertStations(stationInformation);
-      hasSyncedStationInformationSinceStartup = true;
-      logger.info('collection.station_metadata_synced', {
-        stationCount: stationInformation.length,
-        reason: syncStationInformation ? 'startup_or_bootstrap' : 'missing_station_ids',
-      });
-    }
-    await ensureLockRefreshed(lock, 'post-station-metadata-sync', 'collection');
+  let pipelineResult: CollectionPipelineResult | null = null;
+  let pipelineError: Error | null = null;
 
-    const snapshotRecordedAt = new Date(stationStatusResponse.last_updated * 1000);
-    const existingSnapshotCount = await getSnapshotCount(snapshotRecordedAt);
-    const expectedStationCount = stationStatusResponse.data.stations.length;
+  try {
+    pipelineResult = await pipeline.execute(collectionId);
 
-    updateExecutionContext({
-      gbfsVersion: stationStatusResponse.version,
-    });
-
-    if (existingSnapshotCount >= expectedStationCount && expectedStationCount > 0) {
-      const skipMessage = `Snapshot ${snapshotRecordedAt.toISOString()} already ingested; skipping duplicate trigger (${existingSnapshotCount} stations)`;
+    // Handle duplicate-snapshot skip from pipeline (success + warning)
+    if (pipelineResult.success && pipelineResult.warnings.some((w) => w.includes('already ingested'))) {
       result.success = true;
-      result.stationCount = expectedStationCount;
-      result.recordedAt = snapshotRecordedAt;
-      result.warnings = [skipMessage];
+      result.stationCount = pipelineResult.stationCount;
+      result.recordedAt = pipelineResult.recordedAt;
+      result.warnings = [...pipelineResult.warnings];
+      result.duration = pipelineResult.duration;
 
       jobState.lastSuccess = new Date();
       jobState.totalSuccesses++;
@@ -232,76 +184,45 @@ async function executeCollection(
 
       await updateCollectionRun(collectionId, {
         status: 'skipped',
-        gbfsVersion: stationStatusResponse.version,
-        snapshotRecordedAt,
-        expectedStationCount,
-        insertedCount: expectedStationCount,
+        gbfsVersion: pipelineResult.quality?.lineage.gbfsVersion,
+        snapshotRecordedAt: pipelineResult.recordedAt,
+        expectedStationCount: pipelineResult.stationCount,
+        insertedCount: pipelineResult.stationCount,
         duplicateCount: 0,
         warningCount: 1,
         errorCount: 0,
-        warnings: [skipMessage],
+        warnings: pipelineResult.warnings,
         errors: [],
         durationMs: Date.now() - startTime,
         finishedAt: new Date(),
       });
 
-      logger.info('collection.snapshot_already_ingested', {
-        snapshotRecordedAt: snapshotRecordedAt.toISOString(),
-        expectedStationCount,
+      // Metrics & DB update must run before early return
+      recordCollection({
+        success: result.success,
+        stationsCollected: result.stationCount,
+        timestamp: result.timestamp,
+        error: result.error,
       });
+
       return result;
     }
 
-    if (existingSnapshotCount > 0 && existingSnapshotCount < expectedStationCount) {
-      logger.warn('collection.partial_snapshot_resume', {
-        snapshotRecordedAt: snapshotRecordedAt.toISOString(),
-        existingSnapshotCount,
-        expectedStationCount,
-      });
-    }
-    
-    // Step 4: Validate and store data
-    const validationResult = await validateAndStore(
-      stationStatusResponse,
-      {
-        sourceUrl,
-        collectionId,
-      }
-    );
-
-    // Build result from validation
-    result.success = validationResult.success;
-    result.stationCount = validationResult.storageResult?.count ?? 0;
-    result.recordedAt = validationResult.metrics?.freshness.lastUpdated ?? new Date();
-    result.quality = validationResult.metrics;
-    result.warnings = validationResult.warnings;
-
-    if (validationResult.errors.length > 0) {
-      result.warnings.push(...validationResult.errors);
-    }
-
-    if (result.success) {
-      jobState.lastSuccess = new Date();
-      jobState.totalSuccesses++;
-      jobState.consecutiveFailures = 0;
-      const duplicateOnlyWarning = result.warnings.find((warning) =>
-        warning.startsWith('Snapshot already stored;')
-      );
-      if (duplicateOnlyWarning) {
-        logger.info('collection.snapshot_duplicate', {
-          warning: duplicateOnlyWarning,
-        });
-      } else {
-        logger.info('collection.succeeded', {
-          stationCount: result.stationCount,
-          duplicateCount: validationResult.storageResult?.duplicateCount ?? 0,
-        });
-      }
-    } else {
+    // Handle errors that occurred in pipeline (validation/storage)
+    if (pipelineResult && !pipelineResult.success) {
+      result.success = false;
+      result.stationCount = pipelineResult.stationCount;
+      result.recordedAt = pipelineResult.recordedAt;
+      result.quality = pipelineResult.quality;
+      result.warnings = [...pipelineResult.warnings];
+      result.duration = pipelineResult.duration;
       jobState.consecutiveFailures++;
-      result.error = validationResult.errors.join(', ');
+
+      const errorMsg = pipelineResult.error ?? 'Collection completed with validation or storage errors';
+      result.error = errorMsg;
+
       captureExceptionWithContext(
-        new Error(result.error || 'Collection completed with validation or storage errors'),
+        new Error(errorMsg),
         {
           area: 'jobs.collection',
           operation: 'runCollection',
@@ -312,21 +233,53 @@ async function executeCollection(
           extra: {
             stationCount: result.stationCount,
             warnings: result.warnings,
-            errors: validationResult.errors,
+            errors: pipelineResult.error ? [pipelineResult.error] : [],
           },
         }
       );
       logger.warn('collection.completed_with_errors', {
-        error: result.error,
+        error: errorMsg,
         warnings: result.warnings,
       });
     }
 
+    // Handle clean success from pipeline
+    if (pipelineResult && pipelineResult.success) {
+      result.success = true;
+      result.stationCount = pipelineResult.stationCount;
+      result.recordedAt = pipelineResult.recordedAt;
+      result.quality = pipelineResult.quality;
+      result.warnings = [...pipelineResult.warnings];
+      result.duration = pipelineResult.duration;
+
+      jobState.lastSuccess = new Date();
+      jobState.totalSuccesses++;
+      jobState.consecutiveFailures = 0;
+
+      const duplicateOnlyWarning = result.warnings.find((warning) =>
+        warning.startsWith('Snapshot already stored;')
+      );
+      if (duplicateOnlyWarning) {
+        logger.info('collection.snapshot_duplicate', {
+          warning: duplicateOnlyWarning,
+        });
+      } else {
+        logger.info('collection.succeeded', {
+          stationCount: result.stationCount,
+        });
+      }
+    }
+
   } catch (error) {
+    // Fetch errors (discovery / station_status throw from pipeline)
     jobState.consecutiveFailures++;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     result.error = errorMessage;
     result.success = false;
+    result.duration = Date.now() - startTime;
+    pipelineError = error instanceof Error ? error : new Error(errorMessage);
+    void pipelineError;
+
     captureExceptionWithContext(error, {
       area: 'jobs.collection',
       operation: 'runCollection',
@@ -340,21 +293,18 @@ async function executeCollection(
       warnings: result.warnings,
     });
 
-    // Re-throw for upstream handling while still updating state
     throw error;
   } finally {
-    result.duration = Date.now() - startTime;
-    result.timestamp = new Date();
+    // ── Metrics & DB update (runs regardless of success/fetch-error) ──
+    // ── Lock release (always runs, even on error) ─────────────────────
 
-    // Record metrics for observability dashboard
     recordCollection({
       success: result.success,
       stationsCollected: result.stationCount,
       timestamp: result.timestamp,
-      error: result.error
+      error: result.error,
     });
 
-    // Warn on consecutive failures
     if (jobState.consecutiveFailures >= 3) {
       logger.warn('collection.consecutive_failures', {
         consecutiveFailures: jobState.consecutiveFailures,
@@ -378,6 +328,7 @@ async function executeCollection(
 
     try {
       await lock.release();
+      lockReleased = true;
     } catch (releaseError) {
       captureExceptionWithContext(releaseError, {
         area: 'jobs.collection',
@@ -387,7 +338,12 @@ async function executeCollection(
     }
   }
 
-  return result;
+  if (lockReleased) {
+    return result;
+  }
+
+  // If we reach here, an error was thrown and re-thrown above
+  throw new Error('unreachable');
 }
 
 export async function runCollection(

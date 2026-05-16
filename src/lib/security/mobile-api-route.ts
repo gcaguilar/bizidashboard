@@ -1,9 +1,6 @@
 // Response removed;
-import { withProtect, type RouteContext } from '@/lib/security/route-protection';
+import { withProtect } from '@/lib/security/route-protection';
 import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
-import { rejectDisallowedMobileOrigin, buildMobileCorsHeaders } from '@/lib/security/http';
-import { consumeRateLimit, getRateLimitHeaders, type RateLimitDecision } from '@/lib/security/rate-limit';
-import type { RouteResult } from '@/lib/security/route-protection';
 
 export type MobileApiRouteHandler = RouteHandler;
 

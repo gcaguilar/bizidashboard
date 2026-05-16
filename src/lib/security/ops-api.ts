@@ -1,5 +1,5 @@
 // Response removed;
-import { withProtect, type RouteContext } from '@/lib/security/route-protection';
+import { withProtect } from '@/lib/security/route-protection';
 import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
 import { getOpsApiKey } from '@/lib/security/config';
 import { isApiKeyValid, readOpsApiKey } from '@/lib/security/http';
