@@ -1,3 +1,14 @@
+/**
+ * Standalone jobs process
+ *
+ * Runs the GBFS collection and analytics aggregation cron jobs
+ * as an independent process managed by pm2.
+ *
+ * Usage:
+ *   bun run src/jobs/standalone.ts          # dev
+ *   pm2 start ecosystem.config.js           # prod
+ */
+
 import { startCollectionJob, stopCollectionJob } from '@/jobs/bizi-collection';
 import {
   startAnalyticsAggregationJob,
@@ -15,34 +26,24 @@ function shouldEnableInternalJobs(): boolean {
   if (process.env.NODE_ENV === 'test') {
     return false;
   }
-
-  if (typeof process.env.ENABLE_INTERNAL_JOBS !== 'undefined') {
-    const rawValue = process.env.ENABLE_INTERNAL_JOBS;
-    if (rawValue.trim() === '') {
-      return false;
-    }
-    return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
+  const rawValue = process.env.ENABLE_INTERNAL_JOBS;
+  if (!rawValue || rawValue.trim() === '') {
+    return false;
   }
-
-  return true;
+  return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
 }
 
-/**
- * Initialize background jobs on application startup.
- * Called from src/instrumentation.ts on Node.js runtime startup.
- */
 export function initJobs(): void {
   if (jobsInitialized) {
     return;
   }
-
   if (!shouldEnableInternalJobs()) {
     logger.info('jobs.internal_disabled');
     return;
   }
-
   logger.info('jobs.initializing');
   startCollectionJob();
+  logger.info('jobs.collection_started');
 
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
@@ -55,26 +56,32 @@ export function initJobs(): void {
   }
 
   jobsInitialized = true;
-  logger.info('jobs.collection_started');
-  logger.info('jobs.analytics_scheduled', { delayMs: ANALYTICS_START_DELAY_MS });
 }
 
-/**
- * Gracefully shut down background jobs.
- */
 export function shutdownJobs(): void {
   if (!jobsInitialized) {
     return;
   }
-
   logger.info('jobs.shutting_down');
-
   if (analyticsStartTimer) {
     clearTimeout(analyticsStartTimer);
     analyticsStartTimer = null;
   }
-
   stopCollectionJob();
   stopAnalyticsAggregationJob();
   jobsInitialized = false;
 }
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+
+initJobs();
+
+process.on('SIGTERM', () => {
+  shutdownJobs();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  shutdownJobs();
+  process.exit(0);
+});
