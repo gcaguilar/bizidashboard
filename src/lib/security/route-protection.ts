@@ -21,33 +21,29 @@ export type RouteResult =
   | { ok: false; response: Response }
   | { ok: true; ctx: RouteContext };
 
-export type RouteGuard = (request: Request) => Promise<RouteResult>;
+export type RouteGuard = (params: RouteContext) => Promise<RouteResult>;
 
 export function withProtect(
   options: ProtectedRouteOptions,
   guard: RouteGuard,
   handler: RouteHandler
 ) {
-  return async function (request: Request): Promise<Response> {
+  return async function (params: { request: Request } & Record<string, unknown>): Promise<Response> {
+    const request = params.request;
     const requestId = crypto.randomUUID();
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       ?? request.headers.get('x-real-ip')
       ?? '127.0.0.1';
     const userAgent = request.headers.get('user-agent') ?? null;
 
-    const result = await guard(request);
+    const result = await guard({ request, requestId, clientIp, userAgent });
 
     if (!result.ok) {
       return result.response;
     }
 
     try {
-      const response = await handler({
-        request,
-        requestId,
-        clientIp,
-        userAgent,
-      });
+      const response = await handler(result.ctx);
 
       if (options.cacheControl && response instanceof Response) {
         response.headers.set('Cache-Control', options.cacheControl);

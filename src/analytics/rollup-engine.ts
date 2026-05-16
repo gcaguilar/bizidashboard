@@ -38,8 +38,10 @@ export async function executeRollupPipeline<T>(
 
   let upsertedCount = 0;
   if (transformed.length > 0) {
-    for (const chunk of chunkRowsForBulkQuery(transformed, pipeline.chunkSize)) {
-      upsertedCount += await prisma.$executeRaw(pipeline.upsertQuery(chunk));
+    const chunks = chunkRowsForBulkQuery(transformed, pipeline.chunkSize);
+    for (const chunk of chunks) {
+      await prisma.$executeRaw(pipeline.upsertQuery(chunk));
+      upsertedCount += chunk.length;
     }
   }
 

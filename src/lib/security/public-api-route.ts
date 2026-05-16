@@ -1,15 +1,17 @@
 // Response removed;
 import { enforcePublicApiAccess, type PublicApiAccessResult } from '@/lib/security/public-api';
 import { withProtect, type RouteContext } from '@/lib/security/route-protection';
-import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
 
 export type PublicApiRouteHandler = (params: RouteContext & { access: PublicApiAccessResult }) => Promise<Response> | Response;
 
-export type PublicApiRouteOptions = ProtectedRouteOptions & {
+export type PublicApiRouteOptions = {
+  route: string;
+  routeGroup?: string;
   namespace: string;
   limit?: number;
   windowMs?: number;
   requireApiKey?: boolean | ((url: URL) => boolean);
+  cacheControl?: string;
 };
 
 export function withPublicApiRoute(
@@ -17,25 +19,19 @@ export function withPublicApiRoute(
   handler: PublicApiRouteHandler
 ) {
   return withProtect(
-    options,
-    async (request) => {
-      const requestId = crypto.randomUUID();
-      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        ?? request.headers.get('x-real-ip')
-        ?? '127.0.0.1';
-      const userAgent = request.headers.get('user-agent') ?? null;
-
+    { route: options.route, routeGroup: options.routeGroup, cacheControl: options.cacheControl },
+    async (ctx) => {
       const access = await enforcePublicApiAccess({
         route: options.route,
-        request,
-        requestId,
-        clientIp,
-        userAgent,
+        request: ctx.request,
+        requestId: ctx.requestId,
+        clientIp: ctx.clientIp,
+        userAgent: ctx.userAgent,
         namespace: options.namespace,
         limit: options.limit ?? 30,
         windowMs: options.windowMs ?? 60_000,
         requireApiKey: typeof options.requireApiKey === 'function'
-          ? options.requireApiKey(new URL(request.url))
+          ? options.requireApiKey(new URL(ctx.request.url))
           : (options.requireApiKey ?? false),
       });
 
@@ -43,7 +39,9 @@ export function withPublicApiRoute(
         return { ok: false, response: access.response };
       }
 
-      return { ok: true, ctx: { request, requestId, clientIp, userAgent } };
+      // Attach access to context for the handler
+      const enrichedCtx = { ...ctx, access } as RouteContext & { access: PublicApiAccessResult };
+      return { ok: true, ctx: enrichedCtx };
     },
     handler
   );

@@ -166,6 +166,7 @@ describe('runCollection', () => {
       refresh: vi.fn().mockResolvedValue(false),
       release: releaseMock,
     });
+    getStationMetadataCountMock.mockResolvedValue(0);
     getSnapshotCountMock.mockResolvedValue(0);
     validateAndStoreMock.mockResolvedValue({
       success: true,
@@ -187,7 +188,12 @@ describe('runCollection', () => {
 
   it('refreshes station metadata when the status feed references missing station ids', async () => {
     getSnapshotCountMock.mockResolvedValue(0);
+    getStationMetadataCountMock.mockResolvedValue(275);
     getMissingStationIdsMock.mockResolvedValue(['2']);
+    fetchStationInformationMock.mockResolvedValueOnce(null);
+    fetchStationInformationMock.mockResolvedValueOnce([
+      { station_id: '2', name: 'Station 2', lat: 41.6491, lon: -0.8884, capacity: 20 },
+    ]);
     validateAndStoreMock.mockResolvedValue({
       success: true,
       warnings: [],
@@ -204,7 +210,7 @@ describe('runCollection', () => {
 
     expect(result.success).toBe(true);
     expect(getMissingStationIdsMock).toHaveBeenCalledWith(['1', '2']);
-    expect(fetchStationInformationMock).toHaveBeenCalledTimes(1);
+    expect(fetchStationInformationMock).toHaveBeenCalledTimes(2);
     expect(upsertStationsMock).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ station_id: '2' }),
