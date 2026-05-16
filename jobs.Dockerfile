@@ -42,6 +42,7 @@ COPY --from=builder /app/dist/jobs /app/dist/jobs
 # Entrypoint scripts create the city schema, append ?schema=<CITY>, and run migrations.
 COPY --from=builder /app/ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
+COPY --from=builder /app/ops/start-jobs.mjs /app/ops/start-jobs.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Prisma client resolution
@@ -53,4 +54,4 @@ EXPOSE 3000
 
 # Docker/Coolify manages lifecycle; the process runs compiled JavaScript directly.
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && bun dist/jobs/standalone.js"]
+CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && bun ops/start-jobs.mjs"]
