@@ -14,8 +14,10 @@ echo "[Entrypoint] City: $CITY"
 echo "[Entrypoint] Creating schema '$CITY'..."
 bun run /app/ops/create-schema.ts
 
-# 2. Append ?schema=<city> so Prisma targets the right schema
+# 2. Append ?schema=<city> so Prisma targets the right schema.
+# If schema is already present, leave DATABASE_URL unchanged.
 case "$DATABASE_URL" in
+  *[?&]schema=*) ;;
   *\?*) export DATABASE_URL="${DATABASE_URL}&schema=${CITY}" ;;
   *)    export DATABASE_URL="${DATABASE_URL}?schema=${CITY}" ;;
 esac
