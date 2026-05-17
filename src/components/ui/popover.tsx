@@ -115,7 +115,7 @@ const PopoverContent = React.forwardRef<
     React.createElement('div', {
       ref: mergedRef,
       className: cn(
-        'z-50 min-w-[16rem] rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[var(--shadow-soft)] outline-none backdrop-blur-md',
+        'z-[9999] min-w-[16rem] rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[var(--shadow-soft)] outline-none backdrop-blur-md',
         className
       ),
       ...props,

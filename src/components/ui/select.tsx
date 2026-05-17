@@ -64,7 +64,7 @@ const SelectContent = React.forwardRef<
           ref={ref}
           className={(state) =>
             cn(
-              'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--popover)] p-1 shadow-[var(--shadow-md)] outline-none backdrop-blur-md',
+              'z-[9999] min-w-[12rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--popover)] p-1 shadow-[var(--shadow-md)] outline-none backdrop-blur-md',
               typeof className === 'function' ? className(state) : className
             )
           }
