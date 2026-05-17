@@ -33,7 +33,7 @@ const CommandList = React.forwardRef<
       ref={ref}
       className={(state) =>
         cn(
-          'mt-2 max-h-72 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-1',
+          'z-50 mt-2 max-h-72 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--card)] p-1',
           typeof className === 'function' ? className(state) : className
         )
       }
