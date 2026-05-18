@@ -58,7 +58,7 @@
     "@tanstack/router-plugin": "^1.167.35",
     "@tanstack/start-plugin": "latest",
     "jose": "^6.2.3",
-    "lucide-react": "^0.545.0",
+    "lucide-react": "^1.16.0",
     "maplibre-gl": "^5.24.0",
     "node-cron": "^4.2.1",
     "pg": "^8.20.0",
