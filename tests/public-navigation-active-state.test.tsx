@@ -69,7 +69,7 @@ describe('PublicSectionNav active state', () => {
 
     expect(desktopPrimaryLinks.map((link) => link.label)).toEqual([
       'Inicio',
-      'Explorar',
+      'Estadísticas',
       'Informes',
       'Dashboard',
     ]);
@@ -88,7 +88,7 @@ describe('PublicSectionNav active state', () => {
   it('keeps home active in the visible mobile chips and not in overflow', () => {
     const { mobileVisibleLinks, mobileOverflowLinks } = renderSectionNav('home');
 
-    expect(mobileVisibleLinks.map((link) => link.label)).toEqual(['Inicio', 'Explorar', 'Informes']);
+    expect(mobileVisibleLinks.map((link) => link.label)).toEqual(['Inicio', 'Estadísticas', 'Informes']);
     expect(getCurrentLinkLabels(mobileVisibleLinks)).toEqual(['Inicio']);
     expect(mobileOverflowLinks.map((link) => link.label)).toEqual(['Dashboard', 'Estado', 'API', 'Metodologia']);
     expect(getCurrentLinkLabels(mobileOverflowLinks)).toEqual([]);
@@ -97,7 +97,7 @@ describe('PublicSectionNav active state', () => {
   it('keeps a utility active item visible in mobile compact navigation', () => {
     const { mobileVisibleLinks, mobileOverflowLinks } = renderSectionNav('api');
 
-    expect(mobileVisibleLinks.map((link) => link.label)).toEqual(['Explorar', 'Informes', 'API']);
+    expect(mobileVisibleLinks.map((link) => link.label)).toEqual(['Estadísticas', 'Informes', 'API']);
     expect(getCurrentLinkLabels(mobileVisibleLinks)).toEqual(['API']);
     expect(mobileOverflowLinks.map((link) => link.label)).toEqual(['Inicio', 'Dashboard', 'Estado', 'Metodologia']);
     expect(getCurrentLinkLabels(mobileOverflowLinks)).toEqual([]);

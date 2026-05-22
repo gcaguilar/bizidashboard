@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes } from '@/lib/routes';
 import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 
@@ -30,45 +31,45 @@ export const Route = createFileRoute('/estadisticas/')({
 
 const STATS_CARDS = [
   {
-    href: '/estadisticas/estaciones',
+    href: appRoutes.statsEstaciones(),
     eyebrow: 'Ranking y disponibilidad',
     title: 'Estaciones',
     description: 'Estaciones más usadas, ranking y disponibilidad en tiempo real.',
   },
   {
-    href: '/estadisticas/barrios',
+    href: appRoutes.statsBarrios(),
     eyebrow: 'Contexto territorial',
     title: 'Barrios',
     description: 'Compara barrios de Zaragoza por estaciones, actividad y disponibilidad.',
   },
   {
-    href: '/estadisticas/horarios',
+    href: appRoutes.statsHorarios(),
     eyebrow: 'Patrones horarios',
     title: 'Horarios',
     description: 'Horas pico, franjas de mayor actividad y comportamiento del sistema.',
   },
   {
-    href: '/estadisticas/viajes',
+    href: appRoutes.statsViajes(),
     eyebrow: 'Serie temporal',
     title: 'Viajes',
     description: 'Tendencia diaria y mensual de viajes estimados en el sistema.',
   },
   {
-    href: '/estadisticas/mapa',
+    href: appRoutes.statsMapa(),
     eyebrow: 'Vista cartográfica',
     title: 'Mapa',
     description: 'Mapa de estaciones con disponibilidad y acceso al dashboard en vivo.',
   },
   {
-    href: '/estadisticas/redistribucion',
+    href: appRoutes.statsRedistribucion(),
     eyebrow: 'Logística y equilibrio',
     title: 'Redistribución',
     description: 'Diagnóstico de reequilibrio y estaciones que necesitan atención.',
   },
-] as const;
+];
 
 function EstadisticasHubPage() {
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: '/estadisticas' });
+  const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: appRoutes.statsHub() });
 
   return (
     <PageShell>

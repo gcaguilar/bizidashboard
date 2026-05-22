@@ -58,7 +58,7 @@ function StationPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estacion</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estacion {stationId}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar esta estacion con confianza.</p>
-          <a className="ui-inline-action mt-4" href="/estadisticas/estaciones">Ver todas las estaciones</a>
+          <a className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()}>Ver todas las estaciones</a>
         </section>
       </PageShell>
     )
@@ -94,8 +94,8 @@ function StationPage() {
     ],
   }
   const breadcrumbs = createRootBreadcrumbs(
-    { label: 'Estaciones', href: '/estadisticas/estaciones' },
-    { label: station.name, href: `/estadisticas/estaciones/${station.id}` }
+    { label: 'Estaciones', href: appRoutes.statsEstaciones() },
+    { label: station.name, href: appRoutes.statsEstacion(station.id) }
   )
 
   return (

@@ -38,7 +38,7 @@ describe('public navigation contract', () => {
   it('keeps primary and utility navigation groups stable', () => {
     expect(PUBLIC_PRIMARY_NAV_ITEMS.map((item) => item.id)).toEqual([
       'home',
-      'explore',
+      'estadisticas',
       'reports',
       'dashboard',
     ]);
@@ -49,21 +49,21 @@ describe('public navigation contract', () => {
     ]);
     expect(PUBLIC_NAV_ITEMS.map((item) => item.id)).toEqual([
       'home',
-      'explore',
+      'estadisticas',
       'reports',
       'dashboard',
       'status',
       'api',
       'help',
     ]);
-    expect(getPublicNavItem('explore').href).toBe('/explorar');
+    expect(getPublicNavItem('estadisticas').href).toBe('/estadisticas');
   });
 
   it('renders desktop and mobile navigation without exposing a long mobile primary list', () => {
-    const html = renderToStaticMarkup(<PublicSectionNav activeItemId="explore" />);
+    const html = renderToStaticMarkup(<PublicSectionNav activeItemId="estadisticas" />);
 
     expect(html).toContain('Secciones globales');
-    expect(html).toContain('>Explorar<');
+    expect(html).toContain('>Estadísticas<');
     expect(html).toContain('>Informes<');
     expect(html).toContain('>Dashboard<');
     expect(html).toContain('>Estado<');
@@ -76,7 +76,7 @@ describe('public navigation contract', () => {
   it('keeps home visible in compact navigation when home is active', () => {
     const compactNav = getMobileCompactNav('home');
 
-    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['home', 'explore', 'reports']);
+    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['home', 'estadisticas', 'reports']);
     expect(compactNav.overflowItems.map((item) => item.id)).toEqual([
       'dashboard',
       'status',
@@ -88,7 +88,7 @@ describe('public navigation contract', () => {
   it('keeps the active utility page visible in compact navigation', () => {
     const compactNav = getMobileCompactNav('api');
 
-    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['explore', 'reports', 'api']);
+    expect(compactNav.visibleItems.map((item) => item.id)).toEqual(['estadisticas', 'reports', 'api']);
     expect(compactNav.overflowItems.map((item) => item.id)).toEqual([
       'home',
       'dashboard',
