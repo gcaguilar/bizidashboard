@@ -45,7 +45,7 @@ function DistrictPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar este barrio con confianza.</p>
-          <a className="ui-inline-action mt-4" href="/estadisticas/barrios">Ver comparativa de barrios</a>
+          <a className="ui-inline-action mt-4" href={appRoutes.statsBarrios()}>Ver comparativa de barrios</a>
         </section>
       </PageShell>
     )
@@ -69,8 +69,8 @@ function DistrictPage() {
     ],
   }
   const breadcrumbs = createRootBreadcrumbs(
-    { label: 'Barrios', href: '/estadisticas/barrios' },
-    { label: district.name, href: `/estadisticas/barrios/${district.slug}` }
+    { label: 'Barrios', href: appRoutes.statsBarrios() },
+    { label: district.name, href: appRoutes.statsBarrio(district.slug) }
   )
 
   return (
@@ -129,9 +129,9 @@ function DistrictPage() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive" href="/estadisticas/barrios"><p className="text-sm font-semibold text-[var(--foreground)]">Comparativa de barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href="/estadisticas/mapa"><p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href="/estadisticas"><p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Continua con rankings e informes mensuales.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparativa de barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsMapa()}><p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsHub()}><p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Continua con rankings e informes mensuales.</p></a>
         </div>
       </section>
     </PageShell>

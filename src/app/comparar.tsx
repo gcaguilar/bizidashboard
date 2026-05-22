@@ -185,7 +185,7 @@ export default function ComparePage() {
 
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeItemId="explore" className="mt-1" />
+        <PublicSectionNav activeItemId="estadisticas" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

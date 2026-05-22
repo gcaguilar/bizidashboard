@@ -165,7 +165,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">
-        {navOverride ?? <PublicSectionNav activeItemId="explore" className="mt-1" />}
+        {navOverride ?? <PublicSectionNav activeItemId="estadisticas" className="mt-1" />}
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">

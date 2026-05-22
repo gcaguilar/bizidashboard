@@ -54,7 +54,7 @@ export const Route = createFileRoute('/estadisticas/mapa')({
 function MapaPage() {
   const landingData = Route.useLoaderData()
   const siteUrl = getSiteUrl()
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Mapa Bizi Zaragoza', href: '/estadisticas/mapa' })
+  const breadcrumbs = createRootBreadcrumbs({ label: 'Mapa Bizi Zaragoza', href: appRoutes.statsMapa() })
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -100,7 +100,7 @@ function MapaPage() {
         </div>
         <div className="flex flex-wrap gap-3">
           <a className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95" href={appRoutes.dashboardView('overview')}>Abrir dashboard en vista resumen</a>
-          <a className="ui-inline-action" href="/estadisticas/estaciones">Explorar estaciones</a>
+          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Explorar estaciones</a>
         </div>
       </header>
       <section className="grid gap-4 xl:grid-cols-3">
@@ -133,10 +133,10 @@ function MapaPage() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas utiles</h2>
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <a className="ui-surface-block ui-surface-block-interactive" href="/estadisticas/barrios"><p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p><p className="mt-1 text-[11px] text-[var(--muted)]">Entra por zona si tu decision depende mas del barrio que de una estacion concreta.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p><p className="mt-1 text-[11px] text-[var(--muted)]">Entra por zona si tu decision depende mas del barrio que de una estacion concreta.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.status()}><p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p><p className="mt-1 text-[11px] text-[var(--muted)]">Verifica cobertura y frescura del dato si notas huecos o lecturas parciales.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.biciradar()}><p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p><p className="mt-1 text-[11px] text-[var(--muted)]">App movil para seguir disponibilidad y accesos desde el telefono.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href="/estadisticas"><p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Cambia a una lectura de ranking, barrios e informes.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsHub()}><p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Cambia a una lectura de ranking, barrios e informes.</p></a>
         </div>
       </section>
     </PageShell>

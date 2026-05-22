@@ -410,7 +410,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   },
   {
     source: '/estaciones-mas-usadas',
-    destination: appRoutes.seoPage('estaciones-mas-usadas-zaragoza'),
+    destination: appRoutes.statsEstaciones(),
   },
   {
     source: appRoutes.seoPage('informes-mensuales-bizi-zaragoza'),
@@ -454,7 +454,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     },
     {
       source: appRoutes.cityExploreAlias(city),
-      destination: appRoutes.explore(),
+      destination: appRoutes.statsHub(),
     },
     {
       source: appRoutes.cityReportsAlias(city),

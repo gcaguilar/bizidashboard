@@ -5,18 +5,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { appRoutes } from '@/lib/routes';
 
 const STATS_NAV = [
-  { label: 'Estadísticas', href: '/estadisticas' },
-  { label: 'Estaciones', href: '/estadisticas/estaciones' },
-  { label: 'Barrios', href: '/estadisticas/barrios' },
-  { label: 'Horarios', href: '/estadisticas/horarios' },
-  { label: 'Viajes', href: '/estadisticas/viajes' },
-  { label: 'Mapa', href: '/estadisticas/mapa' },
-  { label: 'Redistribución', href: '/estadisticas/redistribucion' },
-] as const;
+  { label: 'Estadísticas', href: appRoutes.statsHub() },
+  { label: 'Estaciones', href: appRoutes.statsEstaciones() },
+  { label: 'Barrios', href: appRoutes.statsBarrios() },
+  { label: 'Horarios', href: appRoutes.statsHorarios() },
+  { label: 'Viajes', href: appRoutes.statsViajes() },
+  { label: 'Mapa', href: appRoutes.statsMapa() },
+  { label: 'Redistribución', href: appRoutes.statsRedistribucion() },
+];
 
-type StatsNavItem = (typeof STATS_NAV)[number];
+type StatsNavItem = { label: string; href: string };
 
 const MOBILE_VISIBLE_COUNT = 3;
 
@@ -42,8 +43,8 @@ export function StatsSecondaryNav({ className }: { className?: string }) {
   const pathname = location.pathname;
 
   function isActive(item: StatsNavItem) {
-    return item.href === '/estadisticas'
-      ? pathname === '/estadisticas' || pathname === '/estadisticas/'
+    return item.href === appRoutes.statsHub()
+      ? pathname === appRoutes.statsHub() || pathname === `${appRoutes.statsHub()}/`
       : pathname.startsWith(item.href);
   }
 

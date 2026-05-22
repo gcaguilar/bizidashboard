@@ -217,12 +217,12 @@ describe('sitemap contract', () => {
       expect(pathnames).toContain(entry.href);
     }
 
-    expect(pathnames).toContain('/estaciones/101');
-    expect(pathnames).toContain('/estaciones/102');
+    expect(pathnames).toContain('/estadisticas/estaciones/101');
+    expect(pathnames).toContain('/estadisticas/estaciones/102');
     expect(pathnames).toContain('/informes/2026-03');
     expect(pathnames).toContain('/informes/2026-02');
-    expect(pathnames).toContain('/barrios/centro');
-    expect(pathnames).toContain('/barrios/delicias');
+    expect(pathnames).toContain('/estadisticas/barrios/centro');
+    expect(pathnames).toContain('/estadisticas/barrios/delicias');
     expect(pathnames).not.toContain('/inicio');
     expect(pathnames).not.toContain('/zaragoza/dashboard');
     expect(pathnames).not.toContain('/api/docs');

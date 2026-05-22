@@ -185,7 +185,7 @@ describe('route registry', () => {
         appRoutes.dashboard()
       );
       expect(resolveRedirectTarget(appRoutes.cityExploreAlias(city))).toBe(
-        appRoutes.explore()
+        appRoutes.statsHub()
       );
       expect(resolveRedirectTarget(appRoutes.cityReportsAlias(city))).toBe(
         appRoutes.reports()
@@ -232,7 +232,6 @@ describe('route registry', () => {
       },
     ]);
 
-    const { PRIMARY_SEO_PAGE_SLUGS } = await import('@/lib/seo-pages');
     const { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } = await import('@/lib/routes');
 
     getSeoLandingPageDataMock.mockImplementation(async (requestedSlug: string) => ({
@@ -262,10 +261,6 @@ describe('route registry', () => {
 
     for (const entry of INDEXABLE_PUBLIC_ROUTE_REGISTRY) {
       expect(urls.has(`${SITE_URL}${entry.href}`)).toBe(true);
-    }
-
-    for (const slug of PRIMARY_SEO_PAGE_SLUGS) {
-      expect(urls.has(`${SITE_URL}${appRoutes.seoPage(slug)}`)).toBe(true);
     }
 
     expect(urls.has(`${SITE_URL}${appRoutes.reportMonth('2026-03')}`)).toBe(true);
