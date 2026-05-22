@@ -146,7 +146,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-inter);
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
   --font-mono: var(--font-ibm-plex-mono);
 }
 
