@@ -26,7 +26,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   return (
-    <PageShell>
+    <PageShell className="gap-8 py-8 md:py-12">
       <header className="ui-page-hero">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -44,7 +44,7 @@ function Home() {
         <div className="flex flex-wrap gap-3 mt-4">
           <a
             href={appRoutes.dashboard()}
-            className="ui-primary-button"
+            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
           >
             Abrir dashboard en vivo
           </a>
