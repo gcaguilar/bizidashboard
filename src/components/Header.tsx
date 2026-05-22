@@ -7,17 +7,17 @@ export default function Header() {
             DatosBizi
           </a>
           <nav className="hidden gap-4 text-sm md:flex">
+            <a href="/estadisticas" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
+              Estadísticas
+            </a>
+            <a href="/informes" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
+              Informes
+            </a>
             <a href="/dashboard" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
               Dashboard
             </a>
             <a href="/estado" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
               Estado
-            </a>
-            <a href="/developers" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
-              Developers
-            </a>
-            <a href="/informes" className="text-[var(--muted)] hover:text-[var(--foreground)] transition">
-              Informes
             </a>
           </nav>
         </div>
