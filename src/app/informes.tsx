@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -39,6 +40,7 @@ export const Route = createFileRoute('/informes')({
     }
   },
   loader: () => getReportsIndexPageData(),
+  pendingComponent: PublicPageLoading,
   component: ReportsIndexPage,
 });
 
@@ -52,8 +54,11 @@ export default function ReportsIndexPage() {
 
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
-      <header className="ui-page-hero">
+      <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
+      </div>
+
+      <header className="ui-page-hero">
         <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -85,7 +90,7 @@ export default function ReportsIndexPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="ui-primary-button"
             >
               Abrir ultimo informe
             </TrackedLink>

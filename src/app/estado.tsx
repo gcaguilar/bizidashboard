@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
@@ -49,6 +50,7 @@ export const Route = createFileRoute('/estado')({
     }
   },
   loader: () => getSystemStatusPageData(),
+  pendingComponent: PublicPageLoading,
   component: SystemStatusPage,
 });
 
@@ -137,8 +139,11 @@ export default function SystemStatusPage() {
         }}
       />
 
-      <header className="ui-page-hero">
+      <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
+      </div>
+
+      <header className="ui-page-hero">
         <PublicSectionNav activeItemId="status" className="mt-1" />
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -175,7 +180,7 @@ export default function SystemStatusPage() {
                 destinationRole: 'dashboard',
                 transitionKind: 'to_dashboard',
               }}
-              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="ui-primary-button"
             >
               Abrir dashboard
             </TrackedLink>
@@ -222,7 +227,7 @@ export default function SystemStatusPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
-          <article key={card.label} className="ui-section-card">
+          <article key={card.label} className="ui-metric-card">
             <p className="stat-label">{card.label}</p>
             <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{card.value}</p>
             <p className="text-xs text-[var(--muted)]">{card.hint}</p>
