@@ -23,7 +23,7 @@ export function RebalancingSummaryCards({ summary }: Props) {
     {
       label: 'Receptoras',
       value: (summary.byAction.receptor ?? 0) + (summary.byAction.peak_fill ?? 0),
-      color: 'text-red-600 dark:text-red-400',
+      color: 'text-[var(--danger)]',
       description: 'necesitan bicis',
     },
     {
@@ -41,7 +41,7 @@ export function RebalancingSummaryCards({ summary }: Props) {
     {
       label: 'Equilibradas',
       value: summary.byAction.stable ?? 0,
-      color: 'text-green-600 dark:text-green-400',
+      color: 'text-[var(--success)]',
       description: 'sin intervención necesaria',
     },
     {

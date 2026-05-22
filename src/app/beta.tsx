@@ -309,13 +309,13 @@ export default function BetaPage() {
         <article className="ui-section-card">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/12 text-lg">
-              <svg className="h-5 w-5 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <svg className="h-5 w-5 text-[var(--success)]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M17.523 2.237a.625.625 0 0 0-.857.228l-1.376 2.4A8.154 8.154 0 0 0 12 4.098c-1.153 0-2.254.264-3.29.767L7.334 2.465a.626.626 0 0 0-1.085.629l1.344 2.348A7.677 7.677 0 0 0 4 11.874h16a7.677 7.677 0 0 0-3.593-6.432l1.344-2.348a.625.625 0 0 0-.228-.857zM9 9.375a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zm6 0a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75zM4 13.125v6.25A1.875 1.875 0 0 0 5.875 21.25h.75v2.375a1.375 1.375 0 1 0 2.75 0V21.25h1.25v2.375a1.375 1.375 0 1 0 2.75 0V21.25h.75A1.875 1.875 0 0 0 20 19.375v-6.25H4zM1.375 13.125a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5zm18.5 0a1.375 1.375 0 0 1 2.75 0v4.5a1.375 1.375 0 1 1-2.75 0v-4.5z" />
               </svg>
             </span>
             <div>
               <h3 className="text-sm font-bold text-[var(--foreground)]">Android</h3>
-              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Disponible para testers</p>
+              <p className="text-xs font-semibold text-[var(--warning)]">Disponible para testers</p>
             </div>
           </div>
           <p className="text-xs text-[var(--muted)]">
@@ -350,7 +350,7 @@ export default function BetaPage() {
             </span>
             <div>
               <h3 className="text-sm font-bold text-[var(--foreground)]">iOS</h3>
-              <p className="text-xs font-semibold text-green-600 dark:text-green-400">Version publica</p>
+              <p className="text-xs font-semibold text-[var(--success)]">Version publica</p>
             </div>
           </div>
           <p className="text-xs text-[var(--muted)]">
