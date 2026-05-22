@@ -41,11 +41,11 @@ function DashboardPage() {
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
       {loadErrors.length > 0 ? (
-        <Alert variant="warning" className='mx-auto mb-6 w-full max-w-[1280px] text-amber-100'>
+        <Alert variant="warning" className='mx-auto mb-6 w-full max-w-[1280px] text-[var(--warning)]'>
           <AlertTitle className='font-semibold'>
             No se pudieron cargar algunos paneles: {loadErrors.join(', ')}.
           </AlertTitle>
-          <AlertDescription className='text-amber-200/80'>
+          <AlertDescription className='text-[var(--warning)]/80'>
             {isSchemaMissing
               ? 'La base de datos parece no estar inicializada. Ejecuta `bun prisma migrate deploy` con la misma DATABASE_URL del servidor.'
               : 'Revisa los logs del servidor para mas detalles.'}

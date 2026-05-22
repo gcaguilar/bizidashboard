@@ -247,9 +247,9 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
                 </div>
 
                 <Progress
-                  className='bg-black/25'
+                  className='bg-[var(--secondary)]'
                   value={Math.max(8, Math.min(100, barWidth))}
-                  indicatorClassName={activeTab === 'turnover' ? 'bg-[var(--primary)]' : 'bg-amber-400'}
+                  indicatorClassName={activeTab === 'turnover' ? 'bg-[var(--primary)]' : 'bg-[var(--warning)]'}
                 />
                 <p className='mt-2 text-[11px] text-[var(--muted)]'>
                   {activeTab === 'turnover'

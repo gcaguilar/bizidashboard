@@ -215,7 +215,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
                   </p>
                   <p className="text-xs font-bold text-[var(--foreground)]">{route.flow.toFixed(0)}</p>
                 </div>
-                <Progress className="bg-black/25" value={flowPct} indicatorClassName="bg-[var(--primary)]" />
+                <Progress className="bg-[var(--secondary)]" value={flowPct} indicatorClassName="bg-[var(--primary)]" />
               </Card>
             );
           })

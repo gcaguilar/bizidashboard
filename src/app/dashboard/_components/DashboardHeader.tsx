@@ -217,7 +217,7 @@ export function DashboardHeader({
             <span>{isRefreshingData ? 'actualizando...' : `siguiente actualizacion en ${refreshCountdownLabel}`}</span>
           </div>
           <Progress
-            className="bg-black/15"
+            className="bg-[var(--border)]"
             value={Math.max(0, Math.min(100, refreshProgress))}
             indicatorClassName="bg-[var(--primary)] duration-500"
           />
