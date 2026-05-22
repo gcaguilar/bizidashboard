@@ -74,8 +74,8 @@ export const appRoutes = {
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
   biciradar: () => '/biciradar',
-  utilityLanding: () => '/mapa-estaciones-bizi-zaragoza',
-  insightsLanding: () => '/estadisticas-bizi-zaragoza',
+  utilityLanding: () => '/estadisticas/mapa',
+  insightsLanding: () => '/estadisticas',
   compare: (params?: {
     dimension?: string | null;
     left?: string | null;
@@ -105,13 +105,22 @@ export const appRoutes = {
   dashboardStations: () => '/dashboard/estaciones',
   dashboardStation: (stationId: string) =>
     `/dashboard/estaciones/${encodeSegment(stationId)}`,
-  stationDetail: (stationId: string) => `/estaciones/${encodeSegment(stationId)}`,
+  stationDetail: (stationId: string) => `/estadisticas/estaciones/${encodeSegment(stationId)}`,
+  statsHub: () => '/estadisticas',
+  statsEstaciones: () => '/estadisticas/estaciones',
+  statsEstacion: (stationId: string) => `/estadisticas/estaciones/${encodeSegment(stationId)}`,
+  statsBarrios: () => '/estadisticas/barrios',
+  statsBarrio: (districtSlug: string) => `/estadisticas/barrios/${encodeSegment(districtSlug)}`,
+  statsMapa: () => '/estadisticas/mapa',
+  statsHorarios: () => '/estadisticas/horarios',
+  statsViajes: () => '/estadisticas/viajes',
+  statsRedistribucion: () => '/estadisticas/redistribucion',
   dashboardStatus: () => '/dashboard/status',
   dashboardView: (mode: DashboardViewMode | string) =>
     `/dashboard/views/${encodeSegment(mode)}`,
   dashboardRedistribucion: () => '/dashboard/redistribucion',
-  districtLanding: () => '/barrios-bizi-zaragoza',
-  districtDetail: (districtSlug: string) => `/barrios/${encodeSegment(districtSlug)}`,
+  districtLanding: () => '/estadisticas/barrios',
+  districtDetail: (districtSlug: string) => `/estadisticas/barrios/${encodeSegment(districtSlug)}`,
   seoPage: (slug: string) => `/${encodeSegment(slug)}`,
   api: {
     docs: () => '/api/docs',
@@ -226,22 +235,46 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
-    id: 'utility-landing',
-    href: appRoutes.utilityLanding(),
-    label: 'Mapa estaciones',
-    sitemap: {
-      changeFrequency: 'hourly',
-      priority: 0.79,
-    },
+    id: 'stats-hub',
+    href: '/estadisticas',
+    label: 'Estadísticas',
+    sitemap: { changeFrequency: 'daily', priority: 0.85 },
   },
   {
-    id: 'insights-landing',
-    href: appRoutes.insightsLanding(),
-    label: 'Estadisticas',
-    sitemap: {
-      changeFrequency: 'daily',
-      priority: 0.75,
-    },
+    id: 'stats-estaciones',
+    href: '/estadisticas/estaciones',
+    label: 'Estaciones',
+    sitemap: { changeFrequency: 'daily', priority: 0.80 },
+  },
+  {
+    id: 'stats-barrios',
+    href: '/estadisticas/barrios',
+    label: 'Barrios',
+    sitemap: { changeFrequency: 'daily', priority: 0.78 },
+  },
+  {
+    id: 'stats-mapa',
+    href: '/estadisticas/mapa',
+    label: 'Mapa',
+    sitemap: { changeFrequency: 'hourly', priority: 0.80 },
+  },
+  {
+    id: 'stats-horarios',
+    href: '/estadisticas/horarios',
+    label: 'Horarios',
+    sitemap: { changeFrequency: 'daily', priority: 0.76 },
+  },
+  {
+    id: 'stats-viajes',
+    href: '/estadisticas/viajes',
+    label: 'Viajes',
+    sitemap: { changeFrequency: 'daily', priority: 0.76 },
+  },
+  {
+    id: 'stats-redistribucion',
+    href: '/estadisticas/redistribucion',
+    label: 'Redistribución',
+    sitemap: { changeFrequency: 'daily', priority: 0.74 },
   },
   {
     id: 'methodology',
@@ -259,15 +292,6 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: {
       changeFrequency: 'daily',
       priority: 0.82,
-    },
-  },
-  {
-    id: 'district-landing',
-    href: appRoutes.districtLanding(),
-    label: 'Barrios',
-    sitemap: {
-      changeFrequency: 'daily',
-      priority: 0.72,
     },
   },
   {
@@ -408,6 +432,17 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
     source: appRoutes.helpAlias(),
     destination: appRoutes.methodology(),
   },
+  { source: '/estaciones-mas-usadas-zaragoza', destination: '/estadisticas/estaciones' },
+  { source: '/ranking-estaciones-bizi', destination: '/estadisticas/estaciones' },
+  { source: '/estaciones-con-mas-bicis', destination: '/estadisticas/estaciones' },
+  { source: '/uso-bizi-por-estacion', destination: '/estadisticas/estaciones' },
+  { source: '/barrios-bizi-zaragoza', destination: '/estadisticas/barrios' },
+  { source: '/mapa-estaciones-bizi-zaragoza', destination: '/estadisticas/mapa' },
+  { source: '/uso-bizi-por-hora', destination: '/estadisticas/horarios' },
+  { source: '/viajes-por-dia-zaragoza', destination: '/estadisticas/viajes' },
+  { source: '/viajes-por-mes-zaragoza', destination: '/estadisticas/viajes' },
+  { source: '/redistribucion', destination: '/estadisticas/redistribucion' },
+  { source: '/explorar', destination: '/estadisticas' },
   ...CITY_SEGMENTS.flatMap((city) => [
     {
       source: appRoutes.cityRootAlias(city),
