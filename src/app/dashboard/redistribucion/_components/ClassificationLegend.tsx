@@ -21,15 +21,15 @@ const CLASSIFICATIONS: Array<{
   {
     code: 'deficit',
     label: 'B — Déficit',
-    color: 'text-red-700 dark:text-red-400',
-    bg: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800',
+    color: 'text-[var(--danger)]',
+    bg: 'bg-[var(--danger)]/10 border-[var(--danger)]/30',
     description: 'Ocupacion baja crónica, alta presión de salida. Necesita más stock base.',
   },
   {
     code: 'peak_saturation',
     label: 'C — Saturación puntual',
-    color: 'text-amber-700 dark:text-amber-400',
-    bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800',
+    color: 'text-[var(--warning)]',
+    bg: 'bg-[var(--warning)]/10 border-[var(--warning)]/30',
     description: 'Solo se llena en franjas concretas. Fuera de esas horas, vuelve a la normalidad.',
   },
   {
@@ -42,8 +42,8 @@ const CLASSIFICATIONS: Array<{
   {
     code: 'balanced',
     label: 'E — Equilibrada',
-    color: 'text-green-700 dark:text-green-400',
-    bg: 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800',
+    color: 'text-[var(--success)]',
+    bg: 'bg-[var(--success)]/10 border-[var(--success)]/30',
     description: 'Fluctúa dentro de banda objetivo. No requiere intervención activa.',
   },
   {

@@ -34,7 +34,7 @@ export function KpiCards({ kpis, baseline }: Props) {
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">KPIs de servicio</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
-            <p className="text-2xl font-black tabular-nums text-red-600 dark:text-red-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--danger)]">
               {pct(kpis.service.systemPctTimeEmpty)}
             </p>
             <p className="text-xs text-[var(--muted)]">% tiempo vacías (sistema)</p>
@@ -65,13 +65,13 @@ export function KpiCards({ kpis, baseline }: Props) {
         <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">Impacto esperado de intervenciones</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
-            <p className="text-2xl font-black tabular-nums text-green-600 dark:text-green-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--success)]">
               {fmt(kpis.impact.totalEmptiesAvoided, 'h')}
             </p>
             <p className="text-xs text-[var(--muted)]">Horas vacías evitadas</p>
           </div>
           <div>
-            <p className="text-2xl font-black tabular-nums text-green-600 dark:text-green-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--success)]">
               {fmt(kpis.impact.totalFullsAvoided, 'h')}
             </p>
             <p className="text-xs text-[var(--muted)]">Horas llenas evitadas</p>

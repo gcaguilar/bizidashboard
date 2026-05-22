@@ -52,13 +52,13 @@ export function TransferTable({ transfers }: Props) {
           <div className="mt-3 flex flex-wrap gap-4 text-xs">
             <div>
               <span className="text-[var(--muted)]">Vaciados evitados </span>
-              <strong className="text-green-600 dark:text-green-400">
+              <strong className="text-[var(--success)]">
                 {t.expectedImpact.emptiesAvoided.toFixed(1)}h
               </strong>
             </div>
             <div>
               <span className="text-[var(--muted)]">Llenos evitados </span>
-              <strong className="text-green-600 dark:text-green-400">
+              <strong className="text-[var(--success)]">
                 {t.expectedImpact.fullsAvoided.toFixed(1)}h
               </strong>
             </div>
