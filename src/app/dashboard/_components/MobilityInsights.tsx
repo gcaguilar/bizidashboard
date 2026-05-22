@@ -375,7 +375,7 @@ function MobilityInsightsContent({
                           </span>
                           <span className="font-bold text-[var(--muted)]">{route.flow.toFixed(0)}</span>
                         </div>
-                        <Progress className="bg-black/20" value={width} indicatorClassName="bg-[var(--primary)]" />
+                        <Progress className="bg-[var(--secondary)]" value={width} indicatorClassName="bg-[var(--primary)]" />
                       </div>
                     );
                   })
@@ -473,7 +473,7 @@ function MobilityInsightsContent({
                         {net.toFixed(1)}
                       </span>
                     </div>
-                    <div className="relative h-3 w-full rounded-full bg-black/20">
+                    <div className="relative h-3 w-full rounded-full bg-[var(--secondary)]">
                       {isImporter ? (
                         <div
                           className="absolute left-1/2 h-full rounded-r-full bg-emerald-500"

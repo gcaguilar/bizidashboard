@@ -245,8 +245,8 @@ export function StationPicker({
                     onClick={() => onSelectStation(station.id)}
                     className={`max-w-full truncate rounded-full ${
                       station.id === selectedStationId
-                        ? 'border-amber-500 bg-amber-500 text-[#111827]'
-                        : 'border-amber-500/40 bg-amber-500/15 text-[var(--foreground)] hover:border-amber-500'
+                        ? 'border-[var(--warning)] bg-[var(--warning)] text-[#111827]'
+                        : 'border-[var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--foreground)] hover:border-[var(--warning)]'
                     }`}
                     variant="outline"
                     size="sm"
@@ -377,7 +377,7 @@ export function StationPicker({
             aria-pressed={favoriteStationSet.has(selectedStation.id)}
             className={`rounded-full border px-2 py-1 text-[11px] font-bold ${
               favoriteStationSet.has(selectedStation.id)
-                ? 'border-amber-500 bg-amber-500/20 text-amber-500'
+                ? 'border-[var(--warning)] bg-[var(--warning)]/20 text-[var(--warning)]'
                 : 'border-[var(--border)] text-[var(--foreground)]'
             }`}
             variant="ghost"

@@ -59,7 +59,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
                 <p className="text-xs font-bold text-[var(--foreground)]">{formatPercent(row.stabilityScore)}</p>
               </div>
               <Progress
-                className="mt-2 bg-black/15"
+                className="mt-2 bg-[var(--border)]"
                 value={Math.max(6, row.stabilityScore * 100)}
                 indicatorClassName="bg-[var(--primary)]"
               />

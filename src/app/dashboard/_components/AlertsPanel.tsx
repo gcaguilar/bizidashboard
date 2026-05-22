@@ -65,7 +65,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
             const progressValue = Math.max(0, Math.min(100, occupancy));
             const toneClass = isEmptyLike
               ? 'border-[var(--primary)]/30 bg-[var(--primary)]/8'
-              : 'border-amber-500/30 bg-amber-500/10';
+              : 'border-[var(--warning)]/30 bg-[var(--warning)]/10';
 
             return (
               <li
@@ -88,9 +88,9 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                 </div>
 
                 <Progress
-                  className="bg-black/20"
+                  className="bg-[var(--secondary)]"
                   value={progressValue}
-                  indicatorClassName={isEmptyLike ? 'bg-[var(--primary)]' : 'bg-amber-400'}
+                  indicatorClassName={isEmptyLike ? 'bg-[var(--primary)]' : 'bg-[var(--warning)]'}
                 />
 
                 <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted)]">
