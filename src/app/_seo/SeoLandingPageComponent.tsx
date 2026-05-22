@@ -1,3 +1,4 @@
+import type React from 'react';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -109,9 +110,10 @@ type SeoLandingPageProps = {
   config: SeoPageConfig;
   content: SeoLandingContent;
   indexability: { canonicalPath?: string };
+  navOverride?: React.ReactNode;
 };
 
-export function SeoLandingPageComponent({ slug, config, content, indexability }: SeoLandingPageProps) {
+export function SeoLandingPageComponent({ slug, config, content, indexability, navOverride }: SeoLandingPageProps) {
   const siteUrl = getSiteUrl();
   const canonicalPath = indexability.canonicalPath;
   const breadcrumbs = createRootBreadcrumbs({
@@ -163,7 +165,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability }:
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">
-        <PublicSectionNav activeItemId="explore" className="mt-1" />
+        {navOverride ?? <PublicSectionNav activeItemId="explore" className="mt-1" />}
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
