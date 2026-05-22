@@ -7,7 +7,7 @@ export default [
     ignores: [
       '**/dist/**', '**/.output/**', '**/.tanstack/**',
       '**/node_modules/**', '**/legacy-source/**',
-      '**/public/**', 'next-env.d.ts',
+      '**/.next/**', '**/public/**', 'next-env.d.ts',
       'tests/', 'scripts/', 'ops/',
       '*.config.ts', '*.config.mjs',
       'vite.config.ts',
