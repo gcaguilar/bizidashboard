@@ -198,7 +198,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
               destinationRole: config.primaryCta.destination.startsWith('dashboard_') ? 'dashboard' : 'hub',
               transitionKind: config.primaryCta.destination.startsWith('dashboard_') ? 'to_dashboard' : 'within_public',
             }}
-            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="ui-primary-button"
           >
             {config.primaryCta.label}
           </TrackedLink>
