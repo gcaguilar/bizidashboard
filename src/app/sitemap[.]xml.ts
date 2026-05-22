@@ -4,7 +4,6 @@ import { fetchAvailableDataMonths } from '@/lib/api'
 import { isValidMonthKey } from '@/lib/months'
 import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes'
 import { getDistrictSeoRows } from '@/lib/seo-districts'
-import { PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import { getRobotsBaseUrl } from '@/lib/site'
 
@@ -67,12 +66,6 @@ async function buildSitemapXml(): Promise<string> {
     })),
     { href: appRoutes.llms(), lastModified, changeFrequency: 'daily', priority: 0.6 },
     { href: appRoutes.llmsFull(), lastModified, changeFrequency: 'daily', priority: 0.58 },
-    ...PRIMARY_SEO_PAGE_SLUGS.map((slug) => ({
-      href: appRoutes.seoPage(slug),
-      lastModified,
-      changeFrequency: slug === 'estaciones-con-mas-bicis' ? 'hourly' : 'daily',
-      priority: 0.72,
-    })),
     ...validMonths.map((month) => ({
       href: appRoutes.reportMonth(month),
       lastModified,
@@ -82,7 +75,7 @@ async function buildSitemapXml(): Promise<string> {
     ...districts
       .filter((district) => district.stationCount > 0 && district.topStations.length > 0)
       .map((district) => ({
-        href: appRoutes.districtDetail(district.slug),
+        href: `/estadisticas/barrios/${district.slug}`,
         lastModified,
         changeFrequency: 'daily',
         priority: 0.68,
@@ -90,7 +83,7 @@ async function buildSitemapXml(): Promise<string> {
     ...stations
       .filter((station) => station.indexability.includeInSitemap)
       .map((station) => ({
-        href: appRoutes.stationDetail(station.station.id),
+        href: `/estadisticas/estaciones/${station.station.id}`,
         lastModified: station.station.recordedAt ?? lastModified,
         changeFrequency: 'hourly',
         priority: 0.66,
