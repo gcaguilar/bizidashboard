@@ -5,7 +5,7 @@
   --background-2: #efe7ea;
   --foreground: #111827;
   --muted: #475569;
-  --muted-foreground: #475569;
+  --muted-foreground: #64748b;
 
   --card: rgba(255, 255, 255, 0.92);
   --card-foreground: #111827;
@@ -21,7 +21,11 @@
   --input: rgba(169, 22, 34, 0.24);
   --ring: #0f4ed8;
 
-  --radius: 0.75rem;
+  --radius-sm: 0.55rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.1rem;
+  --radius: var(--radius-md);
 
   --success: #1f7a47;
   --warning: #9a5b00;
@@ -33,6 +37,10 @@
 
   --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
   --shadow-md: 0 10px 22px rgba(15, 23, 42, 0.08);
+
+  --blur-card: 9px;
+
+  --selection-bg: rgba(217, 10, 26, 0.18);
 
   /* Compatibility aliases while migrating to semantic tokens. */
   --surface: var(--card);
@@ -51,7 +59,7 @@
     --background-2: #18090a;
     --foreground: #f8fafc;
     --muted: #c2cfdd;
-    --muted-foreground: #c2cfdd;
+    --muted-foreground: #94a3b8;
 
     --card: rgba(35, 15, 17, 0.84);
     --card-foreground: #f8fafc;
@@ -76,6 +84,8 @@
 
     --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.35);
     --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.28);
+
+    --selection-bg: rgba(234, 6, 21, 0.22);
   }
 }
 
@@ -84,7 +94,7 @@
   --background-2: #18090a;
   --foreground: #f8fafc;
   --muted: #c2cfdd;
-  --muted-foreground: #c2cfdd;
+  --muted-foreground: #94a3b8;
 
   --card: rgba(35, 15, 17, 0.84);
   --card-foreground: #f8fafc;
@@ -109,6 +119,8 @@
 
   --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.28);
+
+  --selection-bg: rgba(234, 6, 21, 0.22);
 }
 
 .dark body {
@@ -196,14 +208,14 @@ textarea:disabled {
   flex-direction: column;
   gap: 1.2rem;
   min-width: 0;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   background:
     linear-gradient(145deg, rgba(234, 6, 21, 0.12), rgba(234, 6, 21, 0.02)),
     var(--card);
   box-shadow: var(--shadow-lg);
   padding: 1.2rem;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(var(--blur-card));
 }
 
 .ui-section-card,
@@ -212,12 +224,12 @@ textarea:disabled {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
-  border-radius: 0.9rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);
   padding: 1.05rem;
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(9px);
+  backdrop-filter: blur(var(--blur-card));
 }
 
 .ui-section-card hr,
@@ -229,7 +241,7 @@ textarea:disabled {
 .ui-metric-card,
 [data-card-variant='metric'] {
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   background: var(--secondary);
   padding: 0.78rem;
 }
@@ -533,7 +545,7 @@ table tbody tr:hover {
 .dark [data-card-variant='metric'],
 .dark .ui-legend-item,
 .dark .ui-chip {
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--blur-card));
 }
 
 .station-map-popup .maplibregl-popup-content {
@@ -580,7 +592,7 @@ table tbody tr:hover {
   .ui-page-hero,
   [data-card-variant='hero'] {
     padding: 1.35rem;
-    border-radius: 1.1rem;
+    border-radius: var(--radius-xl);
   }
 
   .ui-section-card,
