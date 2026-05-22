@@ -19,7 +19,7 @@ type PublicSectionNavProps = {
   className?: string;
 };
 
-const MOBILE_PRIMARY_NAV_IDS = ['explore', 'reports', 'dashboard'] as const;
+const MOBILE_PRIMARY_NAV_IDS = ['estadisticas', 'reports', 'dashboard'] as const;
 const MOBILE_COMPACT_NAV_LIMIT = 3;
 
 export function getMobileCompactNav(activeItemId: PublicNavItemId) {
@@ -30,7 +30,7 @@ export function getMobileCompactNav(activeItemId: PublicNavItemId) {
     return {
       visibleItems: [
         getPublicNavItem('home'),
-        getPublicNavItem('explore'),
+        getPublicNavItem('estadisticas'),
         getPublicNavItem('reports'),
       ],
       overflowItems: [getPublicNavItem('dashboard'), ...PUBLIC_UTILITY_NAV_ITEMS],
@@ -40,7 +40,7 @@ export function getMobileCompactNav(activeItemId: PublicNavItemId) {
 
   if (activeItem.section === 'utility') {
     const visibleItems = [
-      getPublicNavItem('explore'),
+      getPublicNavItem('estadisticas'),
       getPublicNavItem('reports'),
       activeItem,
     ];

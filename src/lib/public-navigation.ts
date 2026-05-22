@@ -8,7 +8,7 @@ export type PublicNavItem = {
   trackingRole: 'home' | 'hub' | 'dashboard' | 'utility';
 };
 
-export type PublicPrimaryNavItemId = 'home' | 'explore' | 'reports' | 'dashboard';
+export type PublicPrimaryNavItemId = 'home' | 'estadisticas' | 'explore' | 'reports' | 'dashboard';
 export type PublicUtilityNavItemId = 'status' | 'api' | 'help';
 export type PublicNavItemId = PublicPrimaryNavItemId | PublicUtilityNavItemId;
 
@@ -44,9 +44,10 @@ export type ExploreHubSection = {
 
 export const PUBLIC_PRIMARY_NAV_ITEMS: PublicNavItem[] = [
   { id: 'home', label: 'Inicio', href: appRoutes.home(), section: 'primary', trackingRole: 'home' },
-  { id: 'explore', label: 'Explorar', href: appRoutes.explore(), section: 'primary', trackingRole: 'hub' },
+  { id: 'estadisticas', label: 'Estadísticas', href: '/estadisticas', section: 'primary', trackingRole: 'hub' },
   { id: 'reports', label: 'Informes', href: appRoutes.reports(), section: 'primary', trackingRole: 'hub' },
   { id: 'dashboard', label: 'Dashboard', href: appRoutes.dashboard(), section: 'primary', trackingRole: 'dashboard' },
+  { id: 'explore', label: 'Explorar', href: appRoutes.explore(), section: 'primary', trackingRole: 'hub' },
 ];
 
 export const PUBLIC_UTILITY_NAV_ITEMS: PublicNavItem[] = [
