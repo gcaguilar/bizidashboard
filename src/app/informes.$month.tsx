@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
+import { PublicPageLoading } from '@/app/_components/PublicPageLoading'
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
@@ -7,6 +8,7 @@ import { shouldShowDataStateNotice } from '@/lib/data-state'
 import { formatMonthLabel } from '@/lib/months'
 import { appRoutes } from '@/lib/routes'
 import { PageShell } from '@/components/layout/page-shell'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
 import { getSiteUrl } from '@/lib/site'
 
@@ -34,12 +36,16 @@ export const Route = createFileRoute('/informes/$month')({
       title,
     }
   },
+  pendingComponent: PublicPageLoading,
   component: InformesMonthPage,
 })
 
 function InformesMonthPage() {
   const { month, dataState } = Route.useLoaderData()
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Informes', href: appRoutes.reports() })
+  const breadcrumbs = createRootBreadcrumbs(
+    { label: 'Informes', href: appRoutes.reports() },
+    { label: formatMonthLabel(month), href: appRoutes.reportMonth(month) }
+  )
 
   return (
     <PageShell>
@@ -61,9 +67,10 @@ function InformesMonthPage() {
       {shouldShowDataStateNotice(dataState) ? (
         <DataStateNotice state={dataState} subject="el informe mensual" description="Este informe depende de los datos historicos disponibles. Revisa el estado si ves huecos o cobertura parcial." href={appRoutes.status()} actionLabel="Revisar estado" />
       ) : null}
-      <section className="ui-section-card">
-        <p className="text-sm text-[var(--muted)]">Estamos preparando el detalle visual de {formatMonthLabel(month)}. Mientras tanto, puedes abrir el dashboard con este mes seleccionado desde el archivo de informes.</p>
-      </section>
+      <EmptyStateCard
+        title="Informe en preparación"
+        description="Este mes todavía no tiene informe publicado. Los informes se generan automáticamente cuando hay cobertura suficiente."
+      />
     </PageShell>
   )
 }
