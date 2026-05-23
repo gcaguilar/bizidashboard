@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   getDataStateMeta,
@@ -68,12 +67,7 @@ export function DataStateNotice({
         {href ? (
           <Link
             to={href}
-            className={buttonVariants({
-              variant: 'outline',
-              size: 'sm',
-              className:
-                'rounded-xl border-current/20 bg-black/10 px-3 py-2 text-xs font-bold text-current hover:bg-black/20',
-            })}
+            className="ui-inline-action"
           >
             {actionLabel ?? 'Ver detalle'}
           </Link>

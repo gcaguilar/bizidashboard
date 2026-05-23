@@ -72,7 +72,7 @@ export default function Header() {
               <div className="relative" data-more-dropdown>
                 <button
                   onClick={() => setMoreOpen(v => !v)}
-                  className="text-[var(--muted)] hover:text-[var(--foreground)] transition"
+                  className="ui-inline-action border-0 bg-transparent px-2 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
                 >
                   Más
                 </button>
@@ -102,7 +102,7 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Abrir menú"
               aria-expanded={mobileMenuOpen}
-              className="md:hidden inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-icon-button md:hidden"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="2" y1="4" x2="14" y2="4" />
@@ -122,7 +122,7 @@ export default function Header() {
             <button
               onClick={() => setMobileMenuOpen(false)}
               aria-label="Cerrar menú"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+              className="ui-icon-button"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="2" y1="2" x2="14" y2="14" />

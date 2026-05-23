@@ -195,10 +195,7 @@ export function PublicSearchForm({
             </ul>
           )}
         </div>
-        <Button
-          type="submit"
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-        >
+        <Button type="submit" variant="default">
           {buttonLabel}
         </Button>
       </div>
