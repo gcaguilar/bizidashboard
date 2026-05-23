@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createReportBreadcrumb } from '@/lib/breadcrumbs'
 import { shouldShowDataStateNotice } from '@/lib/data-state'
 import { formatMonthLabel } from '@/lib/months'
@@ -82,9 +83,9 @@ function InformesMonthPage() {
             <article className="ui-section-card">
               <h2 className="text-xl font-black text-[var(--foreground)]">Acciones</h2>
               <div className="mt-4 flex flex-col gap-2">
-                <a className="ui-primary-button" href={appRoutes.dashboardConclusions({ month })}>Abrir dashboard de este mes</a>
-                <a className="ui-inline-action" href={appRoutes.statsViajes()}>Ver serie acumulada</a>
-                <a className="ui-inline-action" href={appRoutes.reports()}>Volver al archivo</a>
+                <TrackedLink href={appRoutes.dashboardConclusions({ month })} ctaEvent={{ source: 'report_month', ctaId: 'open_dashboard', destination: 'dashboard_conclusions', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-primary-button">Abrir dashboard de este mes</TrackedLink>
+                <TrackedLink href={appRoutes.statsViajes()} ctaEvent={{ source: 'report_month', ctaId: 'view_series', destination: 'stats_viajes', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Ver serie acumulada</TrackedLink>
+                <TrackedLink href={appRoutes.reports()} ctaEvent={{ source: 'report_month', ctaId: 'back_to_archive', destination: 'report_archive', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Volver al archivo</TrackedLink>
               </div>
             </article>
           </section>
@@ -93,7 +94,7 @@ function InformesMonthPage() {
               <h2 className="text-xl font-black text-[var(--foreground)]">Otros informes</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {nearbyMonths.map((relatedMonth) => (
-                  <a key={relatedMonth} className="ui-inline-action" href={appRoutes.reportMonth(relatedMonth)}>{formatMonthLabel(relatedMonth)}</a>
+                  <TrackedLink key={relatedMonth} href={appRoutes.reportMonth(relatedMonth)} ctaEvent={{ source: 'report_month', ctaId: 'nearby_month', destination: 'monthly_report', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">{formatMonthLabel(relatedMonth)}</TrackedLink>
                 ))}
               </div>
             </section>

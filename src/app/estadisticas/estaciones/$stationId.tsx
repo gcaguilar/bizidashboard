@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
@@ -63,7 +64,7 @@ function StationPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estacion</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estacion {stationId}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar esta estacion con confianza.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()}>Ver todas las estaciones</a>
+          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'station_empty', ctaId: 'back_to_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver todas las estaciones</TrackedLink>
         </section>
       </PageShell>
     )
@@ -135,8 +136,8 @@ function StationPage() {
           Disponibilidad actual, ocupacion y contexto de uso de la estacion Bizi {station.id}.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <a className="ui-inline-action" href={appRoutes.dashboardStation(station.id)}>Abrir detalle en el dashboard</a>
-          {summary.districtSlug ? <a className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)}>Ver barrio</a> : null}
+          <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Abrir detalle en el dashboard</TrackedLink>
+          {summary.districtSlug ? <TrackedLink className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)} ctaEvent={{ source: 'station_detail', ctaId: 'view_district', destination: summary.districtSlug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver barrio</TrackedLink> : null}
         </div>
       </header>
       <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">

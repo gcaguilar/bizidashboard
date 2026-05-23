@@ -54,44 +54,44 @@ function EstadisticasHubPage() {
       <section className="mb-6 sm:mb-10">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Necesito una bici ahora</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsMapa()}>
+          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'stats_hub_needs_bike', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Mapa en vivo</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Encuentra estaciones con bicis disponibles cerca de ti.</p>
-          </a>
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsEstaciones()}>
+          </TrackedLink>
+          <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_needs_bike', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Estaciones con más bicis</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Filtra por bicis, huecos, favoritas o estaciones casi vacías.</p>
-          </a>
+          </TrackedLink>
         </div>
       </section>
       <section className="mb-6 sm:mb-10">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Quiero analizar uso y problemas</p>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsEstaciones()}>
+          <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_analyze', ctaId: 'station_ranking', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Ranking de estaciones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Detecta estaciones con más actividad o más horas con problemas.</p>
-          </a>
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsBarrios()}>
+          </TrackedLink>
+          <TrackedLink href={appRoutes.statsBarrios()} ctaEvent={{ source: 'stats_hub_analyze', ctaId: 'districts', destination: 'stats_barrios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Barrios de Zaragoza</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Compara actividad y disponibilidad por zona.</p>
-          </a>
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsHorarios()}>
+          </TrackedLink>
+          <TrackedLink href={appRoutes.statsHorarios()} ctaEvent={{ source: 'stats_hub_analyze', ctaId: 'horarios', destination: 'stats_horarios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Horarios y patrones</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Descubre cuándo hay más actividad.</p>
-          </a>
+          </TrackedLink>
         </div>
       </section>
       <section>
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Quiero ver evolución</p>
         <div className="grid gap-4 md:grid-cols-2">
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsViajes()}>
+          <TrackedLink href={appRoutes.statsViajes()} ctaEvent={{ source: 'stats_hub_evolution', ctaId: 'viajes', destination: 'stats_viajes', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Viajes e informes</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Tendencias diarias, mensuales y archivo de informes.</p>
-          </a>
-          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsRedistribucion()}>
+          </TrackedLink>
+          <TrackedLink href={appRoutes.statsRedistribucion()} ctaEvent={{ source: 'stats_hub_evolution', ctaId: 'redistribucion', destination: 'stats_redistribucion', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Redistribución</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">Estaciones que necesitan que se muevan bicis donde hacen falta.</p>
-          </a>
+          </TrackedLink>
         </div>
       </section>
     </PageShell>
