@@ -243,13 +243,13 @@ export function StationPicker({
                   <Button
                     key={`favorite-${station.id}`}
                     onClick={() => onSelectStation(station.id)}
+                    variant="chip"
+                    size="sm"
                     className={`max-w-full truncate rounded-full ${
                       station.id === selectedStationId
                         ? 'border-[var(--warning)] bg-[var(--warning)] text-[#111827]'
                         : 'border-[var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--foreground)] hover:border-[var(--warning)]'
                     }`}
-                    variant="outline"
-                    size="sm"
                   >
                     ★ {station.name}
                   </Button>
@@ -344,14 +344,10 @@ export function StationPicker({
         {stationSuggestions.slice(0, 5).map(({ station }) => (
           <Button
             key={station.id}
-            className={`max-w-full truncate rounded-full border px-3 py-1 text-xs transition ${
-              station.id === selectedStationId
-                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
-                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary-soft)] hover:text-[var(--foreground)]'
-            }`}
-            onClick={() => onSelectStation(station.id)}
-            variant="ghost"
+            variant={station.id === selectedStationId ? 'default' : 'chip'}
             size="sm"
+            className="max-w-full truncate rounded-full"
+            onClick={() => onSelectStation(station.id)}
           >
             {favoriteStationSet.has(station.id) ? '★ ' : ''}
             {station.name}
@@ -375,13 +371,13 @@ export function StationPicker({
           <Button
             onClick={() => onToggleFavorite(selectedStation.id)}
             aria-pressed={favoriteStationSet.has(selectedStation.id)}
+            variant="chip"
+            size="sm"
             className={`rounded-full border px-2 py-1 text-[11px] font-bold ${
               favoriteStationSet.has(selectedStation.id)
                 ? 'border-[var(--warning)] bg-[var(--warning)]/20 text-[var(--warning)]'
                 : 'border-[var(--border)] text-[var(--foreground)]'
             }`}
-            variant="ghost"
-            size="sm"
           >
             {favoriteStationSet.has(selectedStation.id) ? '★ Quitar favorita' : '☆ Marcar favorita'}
           </Button>

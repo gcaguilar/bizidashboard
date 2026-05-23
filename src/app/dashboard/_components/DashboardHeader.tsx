@@ -89,12 +89,7 @@ export function DashboardHeader({
                 key={window.id}
                 onClick={() => onChangeWindow(window.id)}
                 aria-pressed={activeWindowId === window.id}
-                className={`rounded-md px-4 py-1.5 text-xs font-semibold transition ${
-                  activeWindowId === window.id
-                    ? 'bg-[var(--primary)] text-white shadow-sm'
-                    : 'text-[var(--muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--foreground)]'
-                }`}
-                variant="ghost"
+                variant={activeWindowId === window.id ? 'default' : 'ghost'}
                 size="sm"
               >
                 {window.label}
@@ -176,10 +171,7 @@ export function DashboardHeader({
               key={window.id}
               onClick={() => onChangeWindow(window.id)}
               aria-pressed={activeWindowId === window.id}
-              className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
-                activeWindowId === window.id ? 'bg-[var(--primary)] text-white' : 'text-[var(--muted)] hover:text-[var(--foreground)]'
-              }`}
-              variant="ghost"
+              variant={activeWindowId === window.id ? 'default' : 'ghost'}
               size="sm"
             >
               {window.label}
@@ -193,8 +185,7 @@ export function DashboardHeader({
           {canJumpToNearest ? (
             <Button
               onClick={onJumpToNearest}
-              className="rounded-lg border border-[var(--primary)] px-2 py-1 text-[11px] font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
-              variant="ghost"
+              variant="cta"
               size="sm"
             >
               Ir a la mas cercana
@@ -202,8 +193,7 @@ export function DashboardHeader({
           ) : canUseGeolocation ? (
             <Button
               onClick={onUseGeolocation}
-              className="rounded-lg border border-[var(--primary)] px-2 py-1 text-[11px] font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
-              variant="ghost"
+              variant="cta"
               size="sm"
             >
               Usar mi ubicacion

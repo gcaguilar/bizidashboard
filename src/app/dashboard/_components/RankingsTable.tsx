@@ -149,11 +149,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
         <div className='flex gap-2'>
           <Button
             variant={activeTab === 'availability' ? 'default' : 'outline'}
-            className={`rounded-full h-auto min-h-0 ${
-              activeTab === 'availability'
-                ? ''
-                : ''
-            }`}
+            className="rounded-full h-auto min-h-0"
             onClick={() => {
               updateQuery({ tab: 'availability', showAll: false });
             }}
@@ -162,11 +158,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           </Button>
           <Button
             variant={activeTab === 'turnover' ? 'default' : 'outline'}
-            className={`rounded-full h-auto min-h-0 ${
-              activeTab === 'turnover'
-                ? ''
-                : ''
-            }`}
+            className="rounded-full h-auto min-h-0"
             onClick={() => {
               updateQuery({ tab: 'turnover', showAll: false });
             }}
@@ -268,7 +260,6 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           onClick={() => {
             updateQuery({ showAll: !showAll });
           }}
-          className="h-auto min-h-0 rounded-lg px-3 py-1.5 text-xs font-bold"
         >
           {showAll ? 'Mostrar menos' : 'Ver mas'}
         </Button>

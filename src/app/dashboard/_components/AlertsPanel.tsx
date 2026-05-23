@@ -48,7 +48,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
           <Link
             href={appRoutes.dashboardAlerts()}
-            className="w-full rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
+            className="ui-inline-action"
           >
             Ver historial de alertas
           </Link>

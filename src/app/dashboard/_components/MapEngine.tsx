@@ -357,18 +357,16 @@ export function MapEngine({
       <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
         <Button
           onClick={handleZoomIn}
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 bg-[var(--card)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          variant="icon-button"
+          size="default"
           aria-label="Acercar"
         >
           +
         </Button>
         <Button
           onClick={handleZoomOut}
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 bg-[var(--card)]/90 text-sm font-bold text-[var(--foreground)] backdrop-blur"
+          variant="icon-button"
+          size="default"
           aria-label="Alejar"
         >
           -
