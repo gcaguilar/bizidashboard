@@ -48,21 +48,6 @@ function ViajesPage() {
         url: toAbsoluteRouteUrl(canonicalPath),
         dateModified: content.generatedAt,
       },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'Como evoluciona el uso de Bizi Zaragoza?',
-            acceptedAnswer: { '@type': 'Answer', text: content.summary },
-          },
-          {
-            '@type': 'Question',
-            name: 'Donde puedo ver el detalle de cada mes?',
-            acceptedAnswer: { '@type': 'Answer', text: 'En la pagina de informes mensuales puedes consultar las metricas detalladas mes a mes.' },
-          },
-        ],
-      },
     ],
   };
 

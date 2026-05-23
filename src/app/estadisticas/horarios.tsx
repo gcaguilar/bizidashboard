@@ -48,26 +48,6 @@ function HorariosPage() {
         url: toAbsoluteRouteUrl(canonicalPath),
         dateModified: content.generatedAt,
       },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'A que hora hay mas actividad en Bizi Zaragoza?',
-            acceptedAnswer: { '@type': 'Answer', text: content.summary },
-          },
-          {
-            '@type': 'Question',
-            name: 'Cada cuanto se actualiza esta pagina?',
-            acceptedAnswer: { '@type': 'Answer', text: `${config.cadenceLabel}.` },
-          },
-          {
-            '@type': 'Question',
-            name: 'Donde puedo ver la ocupacion actual por estacion?',
-            acceptedAnswer: { '@type': 'Answer', text: 'Abre el mapa interactivo desde esta pagina para ver la disponibilidad en tiempo real.' },
-          },
-        ],
-      },
     ],
   };
 

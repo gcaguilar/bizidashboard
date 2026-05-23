@@ -48,21 +48,6 @@ function BarriosPage() {
         url: toAbsoluteRouteUrl(canonicalPath),
         dateModified: content.generatedAt,
       },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'Que barrios de Zaragoza tienen mas estaciones Bizi?',
-            acceptedAnswer: { '@type': 'Answer', text: content.summary },
-          },
-          {
-            '@type': 'Question',
-            name: 'Donde puedo ver la disponibilidad actual por barrio?',
-            acceptedAnswer: { '@type': 'Answer', text: 'Abre el mapa interactivo y explora la disponibilidad por zona.' },
-          },
-        ],
-      },
     ],
   };
 

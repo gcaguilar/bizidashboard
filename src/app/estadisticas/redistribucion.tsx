@@ -48,21 +48,6 @@ function RedistribucionPage() {
         url: toAbsoluteRouteUrl(canonicalPath),
         dateModified: content.generatedAt,
       },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'Que estaciones necesitan atencion por redistribucion?',
-            acceptedAnswer: { '@type': 'Answer', text: content.summary },
-          },
-          {
-            '@type': 'Question',
-            name: 'Como se detecta una estacion desequilibrada?',
-            acceptedAnswer: { '@type': 'Answer', text: 'Se analiza la ocupacion media, la frecuencia de estados vacio/lleno y la desviacion respecto a la media del sistema.' },
-          },
-        ],
-      },
     ],
   };
 
