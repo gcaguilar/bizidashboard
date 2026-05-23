@@ -52,10 +52,10 @@ export function StationFavoriteButton({ stationId }: StationFavoriteButtonProps)
   return (
     <button
       onClick={toggleFavorite}
-      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
+      className={`ui-inline-action text-xs ${
         isFavorite
           ? 'border-amber-400/50 bg-amber-500/12 text-amber-300'
-          : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40'
+          : ''
       }`}
     >
       {isFavorite ? '★ Favorita' : '☆ Marcar favorita'}
