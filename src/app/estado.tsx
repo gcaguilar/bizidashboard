@@ -301,7 +301,7 @@ export default function SystemStatusPage() {
               <p className="stat-label">Discovery GBFS</p>
               <Link
                 to={dataset.source.gbfsDiscoveryUrl}
-                className="break-all text-sm font-semibold text-[var(--primary)] transition hover:opacity-80"
+                className="ui-inline-action"
               >
                 {dataset.source.gbfsDiscoveryUrl}
               </Link>
@@ -328,7 +328,7 @@ export default function SystemStatusPage() {
           <h2 className="text-xl font-black text-[var(--foreground)]">Métricas del sistema</h2>
           <button
             onClick={() => setShowTechnical(v => !v)}
-            className="mt-2 text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+            className="ui-inline-action mt-2"
           >
             {showTechnical ? 'Ocultar detalles' : 'Mostrar detalles'}
           </button>
@@ -356,7 +356,7 @@ export default function SystemStatusPage() {
           </div>
           <Link
             to={appRoutes.compare()}
-            className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80"
+            className="ui-inline-action"
           >
             Abrir comparador
           </Link>
@@ -367,7 +367,7 @@ export default function SystemStatusPage() {
             <Link
               key={capability.id}
               to={capability.href}
-              className={`rounded-2xl border px-4 py-4 transition hover:-translate-y-0.5 ${getHealthToneClasses(capability.state)}`}
+              className={`ui-surface-block ui-surface-block-interactive ${getHealthToneClasses(capability.state)}`}
             >
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-current/80">
                 {capability.label}

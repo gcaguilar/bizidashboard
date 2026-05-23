@@ -160,7 +160,7 @@ export default function ReportsIndexPage() {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="group block transition hover:-translate-y-0.5"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <Card
                   variant="stat"

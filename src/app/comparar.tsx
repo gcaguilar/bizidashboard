@@ -106,7 +106,7 @@ function CompareHubContent({
               <Link
                 key={card.id}
                 to={card.href}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
                   {card.eyebrow}

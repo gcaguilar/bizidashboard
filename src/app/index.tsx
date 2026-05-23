@@ -157,9 +157,10 @@ function Home() {
           <p className="stat-label">Estaciones más usadas</p>
           <div className="mt-2 space-y-2">
             {mostUsedStations.map((s) => (
-              <a
+              <TrackedLink
                 key={s.station.id}
                 href={appRoutes.stationDetail(s.station.id)}
+                entitySelectEvent={{ source: 'home_most_used', entityType: 'station', entityId: s.station.id, destination: 'station_detail', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
                 className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
@@ -167,7 +168,7 @@ function Home() {
                   <span>{formatInteger(Number(s.turnover?.turnoverScore ?? 0))} puntos de actividad</span>
                   <span>{formatInteger(s.station.bikesAvailable)} bicis ahora</span>
                 </div>
-              </a>
+              </TrackedLink>
             ))}
           </div>
         </div>
@@ -178,9 +179,10 @@ function Home() {
             {problemStations.map((s) => {
               const problemHours = Number(s.availability?.emptyHours ?? 0) + Number(s.availability?.fullHours ?? 0);
               return (
-                <a
+                <TrackedLink
                   key={s.station.id}
                   href={appRoutes.stationDetail(s.station.id)}
+                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', entityId: s.station.id, destination: 'station_detail', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
                   className="ui-surface-block ui-surface-block-interactive"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
@@ -188,7 +190,7 @@ function Home() {
                     <span>{formatInteger(problemHours)} h con problemas</span>
                     <span>{formatPercent(s.currentOccupancy)} nivel de uso</span>
                   </div>
-                </a>
+                </TrackedLink>
               );
             })}
           </div>

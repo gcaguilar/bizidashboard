@@ -100,10 +100,10 @@ function MapaPage() {
         <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {landingData.featuredStations.map((row) => (
-            <a key={row.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(row.station.id)}>
+            <TrackedLink key={row.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(row.station.id)} entitySelectEvent={{ source: 'mapa_featured', entityType: 'station', entityId: row.station.id, destination: 'station_detail', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>
               <p className="font-semibold text-[var(--foreground)]">{row.station.name}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">{row.station.bikesAvailable} bicis · ocupacion {formatPercent(row.currentOccupancy)}</p>
-            </a>
+            </TrackedLink>
           ))}
         </div>
       </section>
