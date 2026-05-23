@@ -375,7 +375,7 @@ export function InteractiveComparePanel({
 
             <Link
               href={side.option.href}
-              className="mt-4 inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--primary)] transition hover:border-[var(--primary)]/40"
+              className="ui-inline-action mt-4"
             >
               Abrir {side.option.label}
             </Link>
@@ -404,13 +404,14 @@ export function InteractiveComparePanel({
                 setCopyState('error');
               }
             }}
-            className="h-auto min-h-0 rounded-xl bg-[var(--primary)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            variant="default"
+            size="sm"
           >
             Copiar enlace
           </Button>
           <Link
             href={shareHref}
-            className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--foreground)] transition hover:border-[var(--primary)]/40"
+            className="ui-inline-action"
           >
             Abrir esta seleccion
           </Link>

@@ -483,9 +483,9 @@ export function StationDetailPanel({
                 </p>
               ) : !isGeolocationEnabled ? (
                 <Button
-                  variant="ghost"
+                  variant="cta"
+                  size="sm"
                   onClick={() => setIsGeolocationEnabled(true)}
-                  className="mt-2 h-auto min-h-0 rounded-lg border border-[var(--primary)] px-2 py-1 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
                 >
                   Usar mi ubicacion para calcular distancia
                 </Button>

@@ -505,11 +505,6 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
               onClick={() => applyQuickFilter(qf.id)}
               variant={activeQuickFilter === qf.id ? 'default' : 'chip'}
               size="sm"
-              className={`min-h-7 rounded px-2 py-1 text-xs ${
-                activeQuickFilter === qf.id
-                  ? 'border-[var(--primary)]'
-                  : 'text-[var(--foreground)]'
-              }`}
             >
               {qf.label}
             </Button>

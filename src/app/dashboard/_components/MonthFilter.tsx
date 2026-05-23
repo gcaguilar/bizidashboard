@@ -61,13 +61,8 @@ function MonthFilterContent({
         <span className='text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]'>Mes</span>
         <Button
           onClick={() => updateMonth(null)}
-          className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-            activeMonth === null
-              ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
-              : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]'
-          }`}
-          variant='ghost'
-          size='sm'
+          variant={activeMonth === null ? 'default' : 'chip'}
+          size="sm"
         >
           Acumulado
         </Button>
@@ -75,13 +70,8 @@ function MonthFilterContent({
           <Button
             key={month.key}
             onClick={() => updateMonth(month.key)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition ${
-              activeMonth === month.key
-                ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
-                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)] hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]'
-            }`}
-            variant='ghost'
-            size='sm'
+            variant={activeMonth === month.key ? 'default' : 'chip'}
+            size="sm"
           >
             {month.label}
           </Button>

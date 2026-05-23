@@ -600,11 +600,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             onClick={() => applyQuickRange(1)}
             variant={activeQuickRange === 'today' ? 'default' : 'outline'}
             size="sm"
-            className={`rounded-full px-3 py-1 text-xs ${
-              activeQuickRange === 'today'
-                ? 'border-[var(--primary)]'
-                : 'hover:border-[var(--primary)]'
-            }`}
           >
             Hoy
           </Button>
@@ -612,11 +607,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             onClick={() => applyQuickRange(7)}
             variant={activeQuickRange === 'last7' ? 'default' : 'outline'}
             size="sm"
-            className={`rounded-full px-3 py-1 text-xs ${
-              activeQuickRange === 'last7'
-                ? 'border-[var(--primary)]'
-                : 'hover:border-[var(--primary)]'
-            }`}
           >
             7 dias
           </Button>
@@ -624,11 +614,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             onClick={() => applyQuickRange(30)}
             variant={activeQuickRange === 'last30' ? 'default' : 'outline'}
             size="sm"
-            className={`rounded-full px-3 py-1 text-xs ${
-              activeQuickRange === 'last30'
-                ? 'border-[var(--primary)]'
-                : 'hover:border-[var(--primary)]'
-            }`}
           >
             30 dias
           </Button>
@@ -637,7 +622,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             disabled={!hasActiveFilters}
             variant="outline"
             size="sm"
-            className="rounded-full px-3 py-1 text-xs hover:border-[var(--primary)]"
           >
             Limpiar filtros
           </Button>
@@ -673,7 +657,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             </Button>
             <a
               href={downloadCsvHref}
-              className="inline-flex rounded-lg border border-[var(--primary)] px-3 py-2 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
+              className="ui-inline-action"
             >
               CSV
             </a>

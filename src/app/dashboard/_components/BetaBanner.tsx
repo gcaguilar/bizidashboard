@@ -141,7 +141,7 @@ function WelcomeModal({
             target="_blank"
             rel="noopener noreferrer"
             onClick={onOpen}
-            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+            className="ui-primary-button"
           >
             Ver BiciRadar
           </a>
@@ -183,8 +183,8 @@ function FeedbackModal({
             source="global_feedback_modal"
             ctaId="feedback_modal_open"
             module="global_modal"
-            className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-            pendingClassName="inline-flex rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-sm font-bold text-[var(--muted)]"
+            className=""
+            pendingClassName="min-h-10 px-4 py-2 text-sm rounded-xl border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]"
           >
             Dar feedback
           </FeedbackCta>
@@ -220,19 +220,19 @@ function renderFeedbackBanner(onDismiss: () => void) {
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <FeedbackCta
-          source="global_feedback_banner"
+<FeedbackCta
+          source="feedback_banner"
           ctaId="feedback_banner_open"
           module="global_banner"
-          className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
-          pendingClassName="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]"
+          className=""
+          pendingClassName="min-h-8 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]"
         >
           Dar feedback
         </FeedbackCta>
         <Button
-          variant="ghost"
+          variant="icon-button"
+          size="default"
           onClick={onDismiss}
-          className="h-7 min-h-0 w-7 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
           aria-label="Cerrar banner de feedback"
         >
           <CloseIcon />
@@ -258,14 +258,14 @@ function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={onOpen}
-          className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
+          className="ui-primary-button text-xs px-3 py-1.5"
         >
           Ver BiciRadar
         </a>
         <Button
-          variant="ghost"
+          variant="icon-button"
+          size="default"
           onClick={onDismiss}
-          className="h-7 min-h-0 w-7 rounded-lg p-0 text-[var(--muted)] transition hover:bg-[var(--foreground)]/8 hover:text-[var(--foreground)]"
           aria-label="Cerrar banner"
         >
           <CloseIcon />

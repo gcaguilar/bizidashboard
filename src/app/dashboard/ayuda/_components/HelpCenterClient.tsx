@@ -184,18 +184,18 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               </span>
               {activeCategory ? (
                 <Button
-                  variant="ghost"
+                  variant="chip"
                   onClick={() => setActiveCategory(null)}
-                  className="h-auto min-h-0 rounded-full border border-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
+                  className="h-auto min-h-0 rounded-full"
                 >
                   Categoria: {activeCategory} ×
                 </Button>
               ) : null}
               {normalizedQuery ? (
                 <Button
-                  variant="ghost"
+                  variant="chip"
                   onClick={() => setQuery('')}
-                  className="h-auto min-h-0 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  className="h-auto min-h-0 rounded-full"
                 >
                   Buscar: {query} ×
                 </Button>
@@ -242,9 +242,9 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 </TrackedAnchor>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <TrackedLink
-                  href={appRoutes.api.history()}
-                  trackingEvent={buildExportClickEvent({
+<TrackedLink
+                  href={appRoutes.api.status()}
+                  trackingEvent={buildCtaClickEvent({
                     surface: 'dashboard',
                     routeKey: 'dashboard_help',
                     source: 'help_coverage',
@@ -252,7 +252,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                     entityType: 'api',
                     module: 'help_coverage',
                   })}
-                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white"
+                  className="ui-primary-button"
                 >
                   Ver historico completo
                 </TrackedLink>
@@ -282,9 +282,8 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             const totalInCategory = categoryCounts.get(category) ?? 0;
 
             return (
-              <Button
+              <button
                 key={category}
-                variant="ghost"
                 onClick={() => {
                   const nextCategory = activeCategory === category ? null : category;
                   trackUmamiEvent(
@@ -298,10 +297,10 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   setActiveCategory(nextCategory);
                 }}
                 aria-pressed={isCategoryFilterActive}
-                className={`h-auto min-h-0 w-full flex-col items-start justify-start rounded-xl border bg-[var(--card)] p-6 text-left transition hover:border-[var(--primary)] ${
+                className={`ui-surface-block-interactive w-full text-left ${
                   isCategoryFilterActive
                     ? 'border-[var(--primary)] bg-[var(--primary)]/6 shadow-[0_0_0_1px_var(--primary-soft)]'
-                    : 'border-[var(--border)]'
+                    : ''
                 }`}
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -318,7 +317,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                     ? `${categoryMatches} de ${totalInCategory} preguntas coinciden.`
                     : `${totalInCategory} preguntas disponibles.`}
                 </p>
-              </Button>
+              </button>
             );
           })}
         </div>
