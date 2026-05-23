@@ -61,4 +61,28 @@ describe('public UX regressions', () => {
     expect(source).toContain('datos claros sobre Bizi Zaragoza');
     expect(source).not.toMatch(/TanStack Start|TanStack Router|TanStack Query|Prisma|Sentry/);
   });
+
+  it('informes-mensuales-bizi-zaragoza is a redirect, not a landing page', () => {
+    const source = readSource('src/app/informes-mensuales-bizi-zaragoza.tsx');
+    expect(source).toContain('redirect');
+    expect(source).toContain("'/informes'");
+    expect(source).not.toMatch(/SeoLandingPageComponent/);
+  });
+
+  it('orphaned secondary nav components have been deleted', () => {
+    const sectionNavPath = path.join(process.cwd(), 'src/app/_components/PublicSectionNav.tsx');
+    const statsNavPath = path.join(process.cwd(), 'src/app/estadisticas/_components/StatsSecondaryNav.tsx');
+    expect(() => readFileSync(sectionNavPath)).toThrow();
+    expect(() => readFileSync(statsNavPath)).toThrow();
+  });
+
+  it('stale public-navigation types and getPublicNavItem are removed', () => {
+    const source = readSource('src/lib/public-navigation.ts');
+    expect(source).not.toMatch(/PublicNavItem\b/);
+    expect(source).not.toMatch(/getPublicNavItem/);
+    expect(source).not.toMatch(/PUBLIC_PRIMARY_NAV_ITEMS/);
+    expect(source).not.toMatch(/PUBLIC_UTILITY_NAV_ITEMS/);
+    expect(source).toMatch(/getExploreHubSections/);
+    expect(source).toMatch(/PUBLIC_NAV_ITEMS/);
+  });
 });
