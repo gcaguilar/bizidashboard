@@ -92,6 +92,7 @@
     "jsdom": "^28.1.0",
     "prisma": "^7.8.0",
     "proj4": "^2.20.8",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.3.0",
     "tsx": "^4.22.0",
     "typescript": "6.0.3",

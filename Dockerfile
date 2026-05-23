@@ -15,12 +15,16 @@ ARG NEXT_PUBLIC_SENTRY_DSN
 ARG NEXT_PUBLIC_UMAMI_SCRIPT_SRC
 ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
 ARG DATABASE_URL
+ARG GIT_SHA
+ARG BUILD_DATE
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_UMAMI_SCRIPT_SRC=$NEXT_PUBLIC_UMAMI_SCRIPT_SRC
 ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID
 ENV DATABASE_URL=$DATABASE_URL
+ENV GIT_SHA=$GIT_SHA
+ENV BUILD_DATE=$BUILD_DATE
 
 RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashboard" bunx prisma generate
 RUN bun run build
@@ -35,6 +39,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_SENTRY_DSN=
 ENV NEXT_PUBLIC_UMAMI_SCRIPT_SRC=
 ENV NEXT_PUBLIC_UMAMI_WEBSITE_ID=
+ENV GIT_SHA=${GIT_SHA:-dev}
+ENV BUILD_DATE=${BUILD_DATE:-}
 
 RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
@@ -67,7 +73,7 @@ COPY ops/start-server.mjs /app/ops/start-server.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 \
-  CMD wget --spider -q http://127.0.0.1:3000/api/health/live || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --spider -q http://127.0.0.1:3000/api/health/ready || exit 1
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["bun", "run", "start"]

@@ -49,6 +49,7 @@ import { Route as EstadisticasMapaRouteImport } from './app/estadisticas/mapa'
 import { Route as EstadisticasHorariosRouteImport } from './app/estadisticas/horarios'
 import { Route as EstacionesStationIdRouteImport } from './app/estaciones/$stationId'
 import { Route as BarriosDistrictSlugRouteImport } from './app/barrios/$districtSlug'
+import { Route as ApiVersionRouteImport } from './app/api/version'
 import { Route as ApiOpenapiDotjsonRouteImport } from './app/api/openapi[.]json'
 import { Route as EstadisticasEstacionesRouteRouteImport } from './app/estadisticas/estaciones/route'
 import { Route as EstadisticasBarriosRouteRouteImport } from './app/estadisticas/barrios/route'
@@ -295,6 +296,11 @@ const EstacionesStationIdRoute = EstacionesStationIdRouteImport.update({
 const BarriosDistrictSlugRoute = BarriosDistrictSlugRouteImport.update({
   id: '/barrios/$districtSlug',
   path: '/barrios/$districtSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVersionRoute = ApiVersionRouteImport.update({
+  id: '/api/version',
+  path: '/api/version',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
@@ -556,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
   '/estadisticas/horarios': typeof EstadisticasHorariosRoute
@@ -636,6 +643,7 @@ export interface FileRoutesByTo {
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
   '/estadisticas/horarios': typeof EstadisticasHorariosRoute
@@ -721,6 +729,7 @@ export interface FileRoutesById {
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
   '/estadisticas/horarios': typeof EstadisticasHorariosRoute
@@ -807,6 +816,7 @@ export interface FileRouteTypes {
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
     | '/api/openapi.json'
+    | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
     | '/estadisticas/horarios'
@@ -887,6 +897,7 @@ export interface FileRouteTypes {
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
     | '/api/openapi.json'
+    | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
     | '/estadisticas/horarios'
@@ -971,6 +982,7 @@ export interface FileRouteTypes {
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
     | '/api/openapi.json'
+    | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
     | '/estadisticas/horarios'
@@ -1054,6 +1066,7 @@ export interface RootRouteChildren {
   ViajesPorDiaZaragozaRoute: typeof ViajesPorDiaZaragozaRoute
   ViajesPorMesZaragozaRoute: typeof ViajesPorMesZaragozaRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  ApiVersionRoute: typeof ApiVersionRoute
   BarriosDistrictSlugRoute: typeof BarriosDistrictSlugRoute
   EstacionesStationIdRoute: typeof EstacionesStationIdRoute
   ApiAlertsHistoryRouteRoute: typeof ApiAlertsHistoryRouteRoute
@@ -1361,6 +1374,13 @@ declare module '@tanstack/react-router' {
       path: '/barrios/$districtSlug'
       fullPath: '/barrios/$districtSlug'
       preLoaderRoute: typeof BarriosDistrictSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/version': {
+      id: '/api/version'
+      path: '/api/version'
+      fullPath: '/api/version'
+      preLoaderRoute: typeof ApiVersionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/openapi.json': {
@@ -1797,6 +1817,7 @@ const rootRouteChildren: RootRouteChildren = {
   ViajesPorDiaZaragozaRoute: ViajesPorDiaZaragozaRoute,
   ViajesPorMesZaragozaRoute: ViajesPorMesZaragozaRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  ApiVersionRoute: ApiVersionRoute,
   BarriosDistrictSlugRoute: BarriosDistrictSlugRoute,
   EstacionesStationIdRoute: EstacionesStationIdRoute,
   ApiAlertsHistoryRouteRoute: ApiAlertsHistoryRouteRoute,

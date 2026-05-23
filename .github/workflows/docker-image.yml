@@ -112,6 +112,54 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
             NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${{ vars.NEXT_PUBLIC_UMAMI_SCRIPT_SRC }}
             NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
           cache-from: type=gha,scope=${{ runner.os }}-docker
           cache-to: type=gha,mode=max,scope=${{ runner.os }}-docker
           provenance: false
+          outputs: type=image,name=target,digest-file=/tmp/digest.txt
+
+      - name: Smoke test - run container
+        if: github.event_name != 'pull_request'
+        run: |
+          docker run --rm -d \
+            --name bizidashboard-smoke \
+            -p 3000:3000 \
+            -e DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/bizidashboard?schema=zaragoza \
+            -e CITY=zaragoza \
+            -e JWT_SECRET=ci-jwt-secret-that-is-at-least-32-characters-long \
+            -e SIGNATURE_SECRET=ci-signature-secret-that-is-at-least-characters-too \
+            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
+
+      - name: Wait for ready
+        if: github.event_name != 'pull_request'
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/api/health/ready > /dev/null 2>&1; then
+              echo "Container ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Smoke test - check endpoints
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "=== Health check ==="
+          curl -sf http://127.0.0.1:3000/api/health/ready | jq .
+          echo "=== Version ==="
+          curl -sf http://127.0.0.1:3000/api/version | jq .
+          echo "=== Home loads ==="
+          curl -sf -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/
+          echo ""
+          echo "=== Status API ==="
+          curl -sf -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/status
+          echo ""
+          echo "=== Stations API ==="
+          curl -sf -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/stations
+          echo ""
+          echo "Smoke test PASSED"
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f bizidashboard-smoke 2>/dev/null || true
