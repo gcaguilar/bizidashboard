@@ -3,6 +3,7 @@ import { PageShell } from '@/components/layout/page-shell';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { HomeFavoritesSection } from '@/app/_components/HomeFavoritesSection';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { useHasFavorites } from '@/app/_components/HomeFavoritesClient';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
@@ -100,12 +101,20 @@ function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <a href={appRoutes.statsMapa()} className="ui-primary-button">
+          <TrackedLink
+            href={appRoutes.statsMapa()}
+            ctaEvent={{ source: 'home_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+            className="ui-primary-button"
+          >
             Abrir mapa en vivo
-          </a>
-          <a href={appRoutes.statsEstaciones()} className="ui-inline-action">
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.statsEstaciones()}
+            ctaEvent={{ source: 'home_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+            className="ui-inline-action"
+          >
             Buscar estación
-          </a>
+          </TrackedLink>
         </div>
 
         <PublicSearchForm />

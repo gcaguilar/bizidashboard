@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { PageShell } from '@/components/layout/page-shell';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getSiteUrl } from '@/lib/site';
@@ -21,6 +22,9 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/estadisticas/estaciones` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
       ],
       link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/estaciones` }],
       title,
@@ -32,8 +36,10 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
 function EstadisticasEstacionesPage() {
   const stationRows = Route.useLoaderData();
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <StationsDirectory stationRows={stationRows} />
-    </div>
+    <PageShell>
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <StationsDirectory stationRows={stationRows} />
+      </div>
+    </PageShell>
   );
 }
