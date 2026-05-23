@@ -175,17 +175,6 @@ function StationPage() {
           ) : null}
         </article>
       </section>
-      <section className="ui-section-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas frecuentes</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {faqItems.map((item) => (
-            <article key={item.question} className="ui-surface-block">
-              <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">{item.answer}</p>
-            </article>
-          ))}
-        </div>
-      </section>
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Patrones horarios</h2>
@@ -209,21 +198,6 @@ function StationPage() {
           </div>
         </section>
       ) : null}
-      <section className="ui-section-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {summary.districtSlug ? (
-            <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.districtDetail(summary.districtSlug)}>
-              <p className="text-sm font-semibold text-[var(--foreground)]">Ver todas las estaciones de {summary.districtName}</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">Explora el barrio al que pertenece esta estacion.</p>
-            </a>
-          ) : null}
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsEstaciones()}>
-            <p className="text-sm font-semibold text-[var(--foreground)]">Ver ranking de estaciones</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">Compara actividad y disponibilidad entre todas las estaciones.</p>
-          </a>
-        </div>
-      </section>
     </PageShell>
   )
 }

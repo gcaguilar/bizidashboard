@@ -101,7 +101,7 @@ function Home() {
 
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <a href={appRoutes.statsMapa()} className="ui-primary-button">
-            Ver mapa en vivo
+            Abrir mapa en vivo
           </a>
           <a href={appRoutes.statsEstaciones()} className="ui-inline-action">
             Buscar estación

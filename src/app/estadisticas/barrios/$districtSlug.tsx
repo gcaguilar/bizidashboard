@@ -120,14 +120,6 @@ function DistrictPage() {
           </div>
         </section>
       ) : null}
-      <section className="ui-section-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsMapa()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver mapa de Zaragoza</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.reports()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver informes recientes</p><p className="mt-1 text-[11px] text-[var(--muted)]">Consulta el archivo de informes mensuales.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparar con otros barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
-        </div>
-      </section>
     </PageShell>
   )
 }
