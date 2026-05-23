@@ -155,7 +155,7 @@ export default function DevelopersPage() {
             <TrackedLink
               href={appRoutes.api.openApi()}
               ctaEvent={buildOpenApiCtaEvent('developers_hero')}
-              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="ui-primary-button"
             >
               Descargar OpenAPI
             </TrackedLink>
@@ -324,7 +324,7 @@ print(len(res.json()["transfers"]))`}</code>
           <TrackedLink
             href={appRoutes.api.openApi()}
             ctaEvent={buildOpenApiCtaEvent('developers_endpoints')}
-            className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80"
+            className="ui-inline-action"
           >
             Ver JSON OpenAPI
           </TrackedLink>
@@ -373,11 +373,11 @@ print(len(res.json()["transfers"]))`}</code>
                   destinationRole: 'utility',
                   transitionKind: 'within_public',
                 }}
-                className="group block transition hover:-translate-y-0.5"
+                className="ui-surface-block ui-surface-block-interactive"
               >
                 <Card
                   variant="stat"
-                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
+                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors hover:border-[var(--primary)]/40"
                 >
                   <div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
@@ -450,7 +450,7 @@ print(len(res.json()["transfers"]))`}</code>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Fuente primaria</p>
-              <Link to={dataset.source.gbfsDiscoveryUrl} className="break-all text-sm font-semibold text-[var(--primary)] transition hover:opacity-80">
+              <Link to={dataset.source.gbfsDiscoveryUrl} className="ui-inline-action">
                 {dataset.source.gbfsDiscoveryUrl}
               </Link>
             </div>
