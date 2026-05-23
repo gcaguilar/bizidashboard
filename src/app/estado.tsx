@@ -135,35 +135,6 @@ export default function SystemStatusPage() {
                   'Cobertura, frescura, versiones e incidencias de los datos publicos.',
                 url: appRoutes.status(),
               },
-              {
-                '@type': 'FAQPage',
-                mainEntity: [
-                  {
-                    '@type': 'Question',
-                    name: 'Los datos estan actualizados ahora mismo?',
-                    acceptedAnswer: {
-                      '@type': 'Answer',
-                      text: `La ultima muestra util se registro el ${formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}. La frecuencia de actualizacion objetivo es menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} minutos.`,
-                    },
-                  },
-                  {
-                    '@type': 'Question',
-                    name: 'Hay alguna incidencia activa en Bizi Zaragoza?',
-                    acceptedAnswer: {
-                      '@type': 'Answer',
-                      text: activeIncidentCount > 0 ? `Actualmente hay ${activeIncidentCount} incidencias activas. Revisa la seccion de incidencias para mas detalle.` : 'No hay incidencias activas detectadas en estos momentos.',
-                    },
-                  },
-                  {
-                    '@type': 'Question',
-                    name: 'Cuantos registros hay almacenados?',
-                    acceptedAnswer: {
-                      '@type': 'Answer',
-                      text: `Actualmente hay ${formatStatusNumber(dataset.stats.totalSamples)} registros almacenados de ${formatStatusNumber(activeStationsCount)} estaciones activas, con ${getCoverageLabel(dataset)} de cobertura historica.`,
-                    },
-                  },
-                ],
-              },
             ],
           }),
         }}
@@ -405,14 +376,6 @@ export default function SystemStatusPage() {
               <p className="mt-2 text-sm leading-relaxed text-current/90">{capability.description}</p>
             </Link>
           ))}
-        </div>
-      </section>
-      <section className="ui-section-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.developers()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver API</p><p className="mt-1 text-[11px] text-[var(--muted)]">Accede a los endpoints y documentacion abierta.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.methodology()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver metodologia</p><p className="mt-1 text-[11px] text-[var(--muted)]">Entende como se recogen y procesan los datos.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.compare()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver comparador</p><p className="mt-1 text-[11px] text-[var(--muted)]">Compara dimensiones, estaciones o periodos.</p></a>
         </div>
       </section>
     </PageShell>
