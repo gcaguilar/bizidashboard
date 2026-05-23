@@ -16,8 +16,15 @@ const FOOTER_LINKS_ROW2 = [
 
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
 
+type VersionInfo = {
+  gitSha: string;
+  version: string;
+  buildDate: string;
+};
+
 export default function Footer() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const [version, setVersion] = useState<VersionInfo | null>(null)
 
   useEffect(() => {
     fetch('/api/status')
@@ -33,6 +40,15 @@ export default function Footer() {
             minute: '2-digit',
           }))
         }
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/version')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.gitSha) setVersion(data)
       })
       .catch(() => {})
   }, [])
@@ -66,6 +82,20 @@ export default function Footer() {
                 API pública
               </a>
             </p>
+            {version && (
+              <p className="text-[10px] text-[var(--muted)]/60">
+                Build{' '}
+                <a
+                  href={`${GITHUB_REPO}/commit/${version.gitSha}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono underline hover:text-[var(--foreground)]"
+                >
+                  {version.gitSha.substring(0, 7)}
+                </a>
+                {version.buildDate && <> · {new Date(version.buildDate).toLocaleDateString('es-ES')}</>}
+              </p>
+            )}
             <p>Hecho con ❤️ por la comunidad</p>
           </div>
 

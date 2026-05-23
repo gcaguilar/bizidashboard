@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import { copyFileSync, existsSync, readdirSync, readFileSync } from 'node:fs'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { devtools } from '@tanstack/devtools-vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -76,5 +77,11 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
     syncSsrCssAssets(),
+    visualizer({
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
+      open: false,
+    }),
   ],
 })
