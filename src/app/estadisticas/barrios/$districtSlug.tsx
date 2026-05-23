@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
-import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
+import { createDistrictBreadcrumb } from '@/lib/breadcrumbs'
 import { formatDecimal } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
@@ -68,10 +68,7 @@ function DistrictPage() {
       buildItemListStructuredData('Estaciones destacadas', district.topStations.map((station) => ({ name: station.stationName, url: `${siteUrl}${appRoutes.stationDetail(station.stationId)}` }))),
     ],
   }
-  const breadcrumbs = createRootBreadcrumbs(
-    { label: 'Barrios', href: appRoutes.statsBarrios() },
-    { label: district.name, href: appRoutes.statsBarrio(district.slug) }
-  )
+  const breadcrumbs = createDistrictBreadcrumb(district.name)
 
   return (
     <PageShell>
@@ -129,9 +126,9 @@ function DistrictPage() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparativa de barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsMapa()}><p className="text-sm font-semibold text-[var(--foreground)]">Mapa y estaciones</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsHub()}><p className="text-sm font-semibold text-[var(--foreground)]">Estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Continua con rankings e informes mensuales.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsMapa()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver mapa de Zaragoza</p><p className="mt-1 text-[11px] text-[var(--muted)]">Salta a una lectura mas practica de disponibilidad.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.reports()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver informes recientes</p><p className="mt-1 text-[11px] text-[var(--muted)]">Consulta el archivo de informes mensuales.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Comparar con otros barrios</p><p className="mt-1 text-[11px] text-[var(--muted)]">Vuelve a la vista territorial para comparar zonas.</p></a>
         </div>
       </section>
     </PageShell>

@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
@@ -62,6 +63,7 @@ export default function SystemStatusPage() {
     href: appRoutes.status(),
   });
   const healthLabel = getHealthLabel(status.pipeline.healthStatus);
+  const [showTechnical, setShowTechnical] = useState(false);
   const summaryCards = [
     {
       label: 'Ultima muestra util',
@@ -69,12 +71,12 @@ export default function SystemStatusPage() {
       hint: 'Referencia que comparten dashboard, informes y API.',
     },
     {
-      label: 'Ritmo de actualizacion',
+      label: 'Frecuencia de actualización',
       value: getObservedCadenceLabel(status),
       hint: `Objetivo: datos con menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} min de retraso.`,
     },
     {
-      label: 'Cobertura historica',
+      label: 'Historial disponible',
       value: getCoverageLabel(dataset),
       hint: `${formatStatusNumber(dataset.coverage.totalStations)} estaciones con cobertura acumulada.`,
     },
@@ -84,32 +86,32 @@ export default function SystemStatusPage() {
       hint: 'Estaciones vistas en la muestra mas reciente.',
     },
     {
-      label: 'Muestras guardadas',
+      label: 'Registros almacenados',
       value: formatStatusNumber(dataset.stats.totalSamples),
       hint: 'Base disponible para historico, comparativas y rankings.',
     },
     {
-      label: 'Retraso de datos',
+      label: 'Atraso en los datos',
       value: getPipelineLagLabel(status),
       hint: 'Tiempo aproximado desde la ultima recogida valida.',
     },
     {
-      label: 'Version dataset',
+      label: 'Versión de datos',
       value: getDatasetVersionLabel(dataset),
       hint: 'Version derivada de la ultima muestra util y del volumen agregado.',
     },
     {
-      label: 'Version API',
+      label: 'Versión de la API',
       value: getApiVersionLabel(),
       hint: 'Version publicada en la especificacion OpenAPI.',
     },
     {
-      label: 'Informes generados',
+      label: 'Último informe',
       value: formatStatusDateTime(availableMonths.generatedAt),
       hint: latestMonth ? `Ultimo mes indexable ${formatMonthLabel(latestMonth)}.` : 'Sin meses publicados todavia.',
     },
     {
-      label: 'Incidentes activos',
+      label: 'Problemas activos',
       value: formatStatusNumber(activeIncidentCount),
       hint: activeIncidentCount > 0 ? 'Conviene revisarlas antes de usar los datos.' : 'No hay incidencias activas detectadas.',
     },
@@ -133,6 +135,35 @@ export default function SystemStatusPage() {
                 description:
                   'Cobertura, frescura, versiones e incidencias de los datos publicos.',
                 url: appRoutes.status(),
+              },
+              {
+                '@type': 'FAQPage',
+                mainEntity: [
+                  {
+                    '@type': 'Question',
+                    name: 'Los datos estan actualizados ahora mismo?',
+                    acceptedAnswer: {
+                      '@type': 'Answer',
+                      text: `La ultima muestra util se registro el ${formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}. La frecuencia de actualizacion objetivo es menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} minutos.`,
+                    },
+                  },
+                  {
+                    '@type': 'Question',
+                    name: 'Hay alguna incidencia activa en Bizi Zaragoza?',
+                    acceptedAnswer: {
+                      '@type': 'Answer',
+                      text: activeIncidentCount > 0 ? `Actualmente hay ${activeIncidentCount} incidencias activas. Revisa la seccion de incidencias para mas detalle.` : 'No hay incidencias activas detectadas en estos momentos.',
+                    },
+                  },
+                  {
+                    '@type': 'Question',
+                    name: 'Cuantos registros hay almacenados?',
+                    acceptedAnswer: {
+                      '@type': 'Answer',
+                      text: `Actualmente hay ${formatStatusNumber(dataset.stats.totalSamples)} registros almacenados de ${formatStatusNumber(activeStationsCount)} estaciones activas, con ${getCoverageLabel(dataset)} de cobertura historica.`,
+                    },
+                  },
+                ],
               },
             ],
           }),
@@ -225,14 +256,39 @@ export default function SystemStatusPage() {
         lastSampleAt={dataset.lastUpdated.lastSampleAt}
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {summaryCards.map((card) => (
-          <article key={card.label} className="ui-metric-card">
-            <p className="stat-label">{card.label}</p>
-            <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{card.value}</p>
-            <p className="text-xs text-[var(--muted)]">{card.hint}</p>
-          </article>
-        ))}
+      <section className="ui-section-card border-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className={`h-4 w-4 rounded-full ${status.pipeline.healthStatus === 'healthy' ? 'bg-green-500' : status.pipeline.healthStatus === 'degraded' ? 'bg-amber-500' : 'bg-red-500'}`} />
+          <p className="text-lg font-bold text-[var(--foreground)]">
+            {healthLabel === 'Saludable' ? 'Datos al día' : healthLabel === 'Degradado' ? 'Datos con retraso' : 'Datos con incidencias'}
+          </p>
+          <span className="ui-chip">
+            {activeIncidentCount > 0 ? `${activeIncidentCount} incidencias activas` : 'Sin incidencias'}
+          </span>
+          <span className="ui-chip">
+            {getPipelineLagLabel(status)}
+          </span>
+        </div>
+        {activeIncidentCount > 0 ? (
+          <p className="text-sm text-amber-200">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
+        ) : status.pipeline.healthStatus === 'healthy' ? (
+          <p className="text-sm text-green-300">Los datos están frescos y el sistema funciona con normalidad.</p>
+        ) : null}
+      </section>
+
+      <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <article className="ui-metric-card">
+          <p className="stat-label">Última muestra útil</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</p>
+        </article>
+        <article className="ui-metric-card">
+          <p className="stat-label">Retraso en los datos</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{getPipelineLagLabel(status)}</p>
+        </article>
+        <article className="ui-metric-card">
+          <p className="stat-label">Estaciones activas</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{formatStatusNumber(activeStationsCount)}</p>
+        </article>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
@@ -283,7 +339,7 @@ export default function SystemStatusPage() {
               </Link>
             </div>
             <div className="ui-metric-card">
-              <p className="stat-label">Version de datos</p>
+              <p className="stat-label">Versión de datos</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{getDatasetVersionLabel(dataset)}</p>
             </div>
             <div className="ui-metric-card">
@@ -294,6 +350,32 @@ export default function SystemStatusPage() {
             </div>
           </div>
         </article>
+      </section>
+
+      <section className="ui-section-card">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Detalles técnicos
+          </p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Métricas del sistema</h2>
+          <button
+            onClick={() => setShowTechnical(v => !v)}
+            className="mt-2 text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+          >
+            {showTechnical ? 'Ocultar detalles' : 'Mostrar detalles'}
+          </button>
+        </div>
+        {showTechnical && (
+          <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {summaryCards.map((card) => (
+              <article key={card.label} className="ui-metric-card">
+                <p className="stat-label">{card.label}</p>
+                <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{card.value}</p>
+                <p className="text-xs text-[var(--muted)]">{card.hint}</p>
+              </article>
+            ))}
+          </section>
+        )}
       </section>
 
       <section className="ui-section-card">
@@ -326,6 +408,14 @@ export default function SystemStatusPage() {
               <p className="mt-2 text-sm leading-relaxed text-current/90">{capability.description}</p>
             </Link>
           ))}
+        </div>
+      </section>
+      <section className="ui-section-card">
+        <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.developers()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver API</p><p className="mt-1 text-[11px] text-[var(--muted)]">Accede a los endpoints y documentacion abierta.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.methodology()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver metodologia</p><p className="mt-1 text-[11px] text-[var(--muted)]">Entende como se recogen y procesan los datos.</p></a>
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.compare()}><p className="text-sm font-semibold text-[var(--foreground)]">Ver comparador</p><p className="mt-1 text-[11px] text-[var(--muted)]">Compara dimensiones, estaciones o periodos.</p></a>
         </div>
       </section>
     </PageShell>

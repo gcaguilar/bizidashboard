@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -64,19 +64,15 @@ export default function ReportsIndexPage() {
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Archivo mensual</p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Informes Bizi Zaragoza por mes
+              Informes mensuales de Bizi Zaragoza
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
               Informes mensuales con contexto, comparativas de demanda estimada y acceso directo al dashboard filtrado por mes.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">{months.length} meses publicados</span>
-            {latestMonth ? <span className="ui-chip">Ultimo informe {formatMonthLabel(latestMonth)}</span> : null}
-          </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-col gap-3">
           {latestMonth ? (
             <TrackedLink
               href={appRoutes.reportMonth(latestMonth)}
@@ -90,24 +86,27 @@ export default function ReportsIndexPage() {
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
               }}
-              className="ui-primary-button"
+              className="ui-primary-button inline-flex w-fit items-center gap-2 text-base"
             >
-              Abrir ultimo informe
+              Abrir ultimo informe: {formatMonthLabel(latestMonth)}
             </TrackedLink>
           ) : null}
-          <TrackedLink
-            href={appRoutes.dashboardConclusions()}
-            navigationEvent={{
-              source: 'reports_hero',
-              destination: 'dashboard_conclusions',
-              sourceRole: 'hub',
-              destinationRole: 'dashboard',
-              transitionKind: 'to_dashboard',
-            }}
-            className="ui-inline-action"
-          >
-            Abrir conclusiones del dashboard
-          </TrackedLink>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+            <span className="ui-chip">{months.length} meses publicados</span>
+            <TrackedLink
+              href={appRoutes.dashboardConclusions()}
+              navigationEvent={{
+                source: 'reports_hero',
+                destination: 'dashboard_conclusions',
+                sourceRole: 'hub',
+                destinationRole: 'dashboard',
+                transitionKind: 'to_dashboard',
+              }}
+              className="ui-inline-action"
+            >
+              Abrir conclusiones del dashboard
+            </TrackedLink>
+          </div>
         </div>
       </header>
 
@@ -121,58 +120,31 @@ export default function ReportsIndexPage() {
         />
       ) : null}
 
-      <section className="ui-section-card">
-        <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Que aporta este archivo
-            </p>
-            <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Un lugar estable para buscar meses, comparar y enlazar
-            </h2>
-          </div>
-          <p>
-            El archivo mensual reune enlaces permanentes para consultar el historico de Bizi Zaragoza.
-            Cada informe resume un periodo concreto, conserva su propio contexto y permite navegar a
-            barrios, estaciones y rankings sin depender de filtros temporales.
-          </p>
-          <p>
-            Si llegas desde un buscador, empieza aqui para localizar el ultimo mes publicado o revisar
-            la serie historica. Si necesitas el estado actual, puedes saltar al dashboard de conclusiones.
-          </p>
-        </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="ui-section-card">
+      <section className="grid gap-3 md:grid-cols-3">
+        <article className="ui-section-card py-3">
           <p className="stat-label">Ultimo mes con informe</p>
           <p className="stat-value">{latestMonth ? formatMonthLabel(latestMonth) : 'Sin datos'}</p>
-          <p className="text-xs text-[var(--muted)]">Enlace estable para consultar y compartir.</p>
         </article>
-        <article className="ui-section-card">
+        <article className="ui-section-card py-3">
           <p className="stat-label">Meses publicados</p>
           <p className="stat-value">{months.length}</p>
-          <p className="text-xs text-[var(--muted)]">Archivo historico disponible para consulta y enlace.</p>
         </article>
-        <article className="ui-section-card">
+        <article className="ui-section-card py-3">
           <p className="stat-label">Cobertura de serie</p>
           <p className="stat-value">{months.length > 0 ? [...new Set(months.map(m => m))].length : 0}</p>
-          <p className="text-xs text-[var(--muted)]">Meses con datos agregados disponibles.</p>
         </article>
       </section>
 
       <section className="ui-section-card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">Cada informe tiene su propio enlace y abre el dashboard con el mes ya seleccionado.</p>
-          </div>
-          <Link to={appRoutes.reports()} className="text-sm font-bold text-[var(--primary)] transition hover:opacity-80">
-            Ver archivo completo
-          </Link>
+        <div className="mb-3">
+          <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            El archivo reune enlaces permanentes para consultar el historico de Bizi Zaragoza.
+            Cada informe resume un periodo concreto y permite navegar a barrios, estaciones y rankings.
+          </p>
         </div>
 
-        <div className="mt-2 space-y-3">
+        <div className="space-y-3">
           {months.map((month) => {
             const row = monthlyRows.get(month);
 
@@ -213,8 +185,58 @@ export default function ReportsIndexPage() {
       </section>
 
       <section className="ui-section-card">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas para seguir explorando</h2>
-        <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <h2 className="text-lg font-bold text-[var(--foreground)]">Mas rutas para seguir explorando</h2>
+        <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
+          {latestMonth ? (
+            <TrackedLink
+              href={appRoutes.reportMonth(latestMonth)}
+              ctaEvent={{
+                source: 'reports_related',
+                ctaId: 'report_open',
+                destination: 'monthly_report',
+                entityType: 'report',
+                monthPresent: true,
+                sourceRole: 'hub',
+                destinationRole: 'hub',
+                transitionKind: 'within_public',
+              }}
+              className="group block transition hover:-translate-y-0.5"
+            >
+              <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
+                <p className="text-sm font-semibold text-[var(--foreground)]">Ver el ultimo informe</p>
+              </Card>
+            </TrackedLink>
+          ) : null}
+          <TrackedLink
+            href={appRoutes.statsEstaciones()}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'station_ranking',
+              sourceRole: 'hub',
+              destinationRole: 'entry_seo',
+              transitionKind: 'within_public',
+            }}
+            className="group block transition hover:-translate-y-0.5"
+          >
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ver estaciones destacadas</p>
+            </Card>
+          </TrackedLink>
+          <TrackedLink
+            href={appRoutes.statsBarrios()}
+            navigationEvent={{
+              source: 'reports_related',
+              destination: 'district_hub',
+              sourceRole: 'hub',
+              destinationRole: 'hub',
+              transitionKind: 'within_public',
+            }}
+            className="group block transition hover:-translate-y-0.5"
+          >
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ver barrio mas activo</p>
+            </Card>
+          </TrackedLink>
           <TrackedLink
             href={appRoutes.seoPage('viajes-por-mes-zaragoza')}
             navigationEvent={{
@@ -226,11 +248,8 @@ export default function ReportsIndexPage() {
             }}
             className="group block transition hover:-translate-y-0.5"
           >
-            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
               <p className="text-sm font-semibold text-[var(--foreground)]">Serie mensual</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                Evolucion agregada para complementar el archivo mensual.
-              </p>
             </Card>
           </TrackedLink>
           <TrackedLink
@@ -244,11 +263,8 @@ export default function ReportsIndexPage() {
             }}
             className="group block transition hover:-translate-y-0.5"
           >
-            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
               <p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                Descubre que zonas destacan en uso y que estaciones concentran mas actividad.
-              </p>
             </Card>
           </TrackedLink>
           <TrackedLink
@@ -262,11 +278,8 @@ export default function ReportsIndexPage() {
             }}
             className="group block transition hover:-translate-y-0.5"
           >
-            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
               <p className="text-sm font-semibold text-[var(--foreground)]">Ranking de estaciones</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                Da el salto del contexto mensual al ranking actual de estaciones.
-              </p>
             </Card>
           </TrackedLink>
           <TrackedLink
@@ -282,29 +295,8 @@ export default function ReportsIndexPage() {
             }}
             className="group block transition hover:-translate-y-0.5"
           >
-            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
+            <Card variant="stat" className="px-3 py-2 transition-colors group-hover:border-[var(--primary)]/40">
               <p className="text-sm font-semibold text-[var(--foreground)]">API y datos abiertos</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                Accede a OpenAPI, CSV y origen de los mismos datos que alimentan los informes.
-              </p>
-            </Card>
-          </TrackedLink>
-          <TrackedLink
-            href={appRoutes.methodology()}
-            navigationEvent={{
-              source: 'reports_related',
-              destination: 'methodology',
-              sourceRole: 'hub',
-              destinationRole: 'utility',
-              transitionKind: 'within_public',
-            }}
-            className="group block transition hover:-translate-y-0.5"
-          >
-            <Card variant="stat" className="px-4 py-4 transition-colors group-hover:border-[var(--primary)]/40">
-              <p className="text-sm font-semibold text-[var(--foreground)]">Metodologia y calidad</p>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">
-                Revisa como leer demanda, cobertura y limites antes de interpretar la serie mensual.
-              </p>
             </Card>
           </TrackedLink>
         </div>

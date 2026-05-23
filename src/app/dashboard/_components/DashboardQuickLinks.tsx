@@ -11,9 +11,9 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <article className="ui-section-card">
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Detalle de estacion</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Detalle completo</h3>
         <p className="text-sm text-[var(--muted)]">
-          Abre la vista completa de la estacion seleccionada para ver prediccion, mapa por barrios y comparativas.
+          Predicción, mapa por barrios y comparativas.
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink
@@ -31,7 +31,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
       </article>
 
       <article className="ui-section-card">
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Flujo por barrios</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Movimientos entre barrios</h3>
         <p className="text-sm text-[var(--muted)]">
           Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
         </p>
@@ -51,7 +51,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
       </article>
 
       <article className="ui-section-card">
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Conclusiones diarias</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Resumen del día</h3>
         <p className="text-sm text-[var(--muted)]">
           Resumen ejecutivo de movilidad, tendencias semanales y recomendaciones operativas.
         </p>
@@ -91,9 +91,9 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
       </article>
 
       <article className="ui-section-card">
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Paginas SEO</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Informes y archivo mensual</h3>
         <p className="text-sm text-[var(--muted)]">
-          Rankings indexables, series temporales e informes mensuales enlazados al dashboard.
+          Consulta informes mensuales, rankings y series temporales.
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink
@@ -106,7 +106,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
               destination: 'report_archive',
             })}
           >
-            Ver informes y rankings
+            Ver informes
           </TrackedLink>
         </Button>
       </article>

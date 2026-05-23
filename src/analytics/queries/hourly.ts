@@ -1,5 +1,4 @@
 import { Prisma } from '@/generated/prisma/client';
-import { prisma } from '@/lib/db';
 import { executeRollupPipeline } from '@/analytics/rollup-engine';
 import type { RollupResult } from '@/analytics/types';
 
@@ -9,7 +8,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
   const pipeline = {
     id: 'hourly',
     watermarkKey: HOURLY_WATERMARK,
-    sourceQuery: (watermark: Date, cutoff: Date) => Prisma.sql`
+    sourceQuery: (watermark: Date, windowEnd: Date) => Prisma.sql`
       SELECT "StationStatus"."stationId" as "stationId",
         DATE_TRUNC('hour', "StationStatus"."recordedAt")::timestamp as "bucketStart",
         MIN("StationStatus"."bikesAvailable") as "bikesMin",
@@ -29,7 +28,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
       FROM "StationStatus"
       JOIN "Station" ON "StationStatus"."stationId" = "Station".id
       WHERE "StationStatus"."recordedAt" > ${watermark}
-        AND "StationStatus"."recordedAt" <= ${cutoff}
+        AND "StationStatus"."recordedAt" <= ${windowEnd}
       GROUP BY 1, 2
     `,
     sourceColumns: 'stationId,bucketStart,bikesMin,bikesMax,bikesAvg,anchorsMin,anchorsMax,anchorsAvg,occupancyAvg,sampleCount',

@@ -29,45 +29,6 @@ export const Route = createFileRoute('/estadisticas/')({
   component: EstadisticasHubPage,
 });
 
-const STATS_CARDS = [
-  {
-    href: appRoutes.statsEstaciones(),
-    eyebrow: 'Ranking y disponibilidad',
-    title: 'Estaciones',
-    description: 'Estaciones más usadas, ranking y disponibilidad en tiempo real.',
-  },
-  {
-    href: appRoutes.statsBarrios(),
-    eyebrow: 'Contexto territorial',
-    title: 'Barrios',
-    description: 'Compara barrios de Zaragoza por estaciones, actividad y disponibilidad.',
-  },
-  {
-    href: appRoutes.statsHorarios(),
-    eyebrow: 'Patrones horarios',
-    title: 'Horarios',
-    description: 'Horas pico, franjas de mayor actividad y comportamiento del sistema.',
-  },
-  {
-    href: appRoutes.statsViajes(),
-    eyebrow: 'Serie temporal',
-    title: 'Viajes',
-    description: 'Tendencia diaria y mensual de viajes estimados en el sistema.',
-  },
-  {
-    href: appRoutes.statsMapa(),
-    eyebrow: 'Vista cartográfica',
-    title: 'Mapa',
-    description: 'Mapa de estaciones con disponibilidad y acceso al dashboard en vivo.',
-  },
-  {
-    href: appRoutes.statsRedistribucion(),
-    eyebrow: 'Logística y equilibrio',
-    title: 'Redistribución',
-    description: 'Diagnóstico de reequilibrio y estaciones que necesitan atención.',
-  },
-];
-
 function EstadisticasHubPage() {
   const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: appRoutes.statsHub() });
 
@@ -78,20 +39,75 @@ function EstadisticasHubPage() {
       </div>
       <header className="ui-page-hero">
         <StatsSecondaryNav className="mt-1" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Estadísticas públicas</p>
-        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Estadísticas</h1>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Datos públicos de Bizi</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">¿Qué quieres saber de Bizi Zaragoza?</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Explora datos y análisis del sistema Bizi Zaragoza: estaciones, barrios, horarios, viajes y más.
+          Te ayudamos a encontrar lo que buscas.
         </p>
+        <div className="mt-5 flex flex-col sm:flex-row gap-3">
+          <a className="ui-primary-button" href={appRoutes.statsMapa()}>Ver mapa en vivo</a>
+          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Buscar estación</a>
+        </div>
       </header>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {STATS_CARDS.map((card) => (
-          <a key={card.href} className="ui-surface-block ui-surface-block-interactive block" href={card.href}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">{card.eyebrow}</p>
-            <p className="mt-2 text-base font-black text-[var(--foreground)]">{card.title}</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">{card.description}</p>
+<section className="mb-6 sm:mb-10">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Necesito una bici ahora</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsMapa()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Mapa en vivo</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Encuentra estaciones con bicis disponibles cerca de ti.</p>
           </a>
-        ))}
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsEstaciones()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Estaciones con más bicis</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Ver estaciones ordenadas por disponibilidad actual.</p>
+          </a>
+        </div>
+      </section>
+      <section className="mb-6 sm:mb-10">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Quiero entender el sistema</p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsEstaciones()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Estaciones más usadas</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Ranking de estaciones con mayor rotación.</p>
+          </a>
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsBarrios()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Barrios de Zaragoza</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Compara actividad y disponibilidad por zona.</p>
+          </a>
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsHorarios()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Horarios y patrones</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Descubre cuándo hay más actividad.</p>
+          </a>
+        </div>
+      </section>
+      <section className="mb-6 sm:mb-10">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Quiero entender el sistema</p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsEstaciones()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Estaciones más usadas</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Ranking de estaciones con mayor rotación.</p>
+          </a>
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsBarrios()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Barrios de Zaragoza</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Compara actividad y disponibilidad por zona.</p>
+          </a>
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsHorarios()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Horarios y patrones</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Descubre cuándo hay más actividad.</p>
+          </a>
+        </div>
+      </section>
+      <section>
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Quiero ver evolución</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsViajes()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Viajes e informes</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Tendencias diarias, mensuales y archivo de informes.</p>
+          </a>
+          <a className="ui-surface-block ui-surface-block-interactive block" href={appRoutes.statsRedistribucion()}>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Redistribución</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Estaciones que necesitan que se muevan bicis donde hacen falta.</p>
+          </a>
+        </div>
       </section>
     </PageShell>
   );

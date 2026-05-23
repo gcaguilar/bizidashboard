@@ -1,11 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { SeoLandingPageComponent } from '@/app/_seo/SeoLandingPageComponent';
 import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav';
-import { fetchSeoLandingData } from '@/server-functions/seo-landing';
+import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
+import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getSiteUrl } from '@/lib/site';
+import { getStationsDirectoryData } from '@/server-functions/estaciones';
 
 export const Route = createFileRoute('/estadisticas/estaciones/')({
-  loader: () => fetchSeoLandingData({ data: { slug: 'uso-bizi-por-estacion' } }),
+  loader: () => getStationsDirectoryData(),
+  pendingComponent: StationsSkeleton,
   head: () => {
     const siteUrl = getSiteUrl();
     const title = 'Estaciones Bizi Zaragoza - DatosBizi';
@@ -29,14 +31,13 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
 });
 
 function EstadisticasEstacionesPage() {
-  const { config, content, indexability } = Route.useLoaderData();
+  const stationRows = Route.useLoaderData();
   return (
-    <SeoLandingPageComponent
-      slug="uso-bizi-por-estacion"
-      config={config}
-      content={content}
-      indexability={indexability}
-      navOverride={<StatsSecondaryNav />}
-    />
+    <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mb-6">
+        <StatsSecondaryNav />
+      </div>
+      <StationsDirectory stationRows={stationRows} />
+    </div>
   );
 }

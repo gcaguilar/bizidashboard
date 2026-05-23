@@ -3,7 +3,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading'
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
-import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
+import { createReportBreadcrumb } from '@/lib/breadcrumbs'
 import { shouldShowDataStateNotice } from '@/lib/data-state'
 import { formatMonthLabel } from '@/lib/months'
 import { appRoutes } from '@/lib/routes'
@@ -42,10 +42,7 @@ export const Route = createFileRoute('/informes/$month')({
 
 function InformesMonthPage() {
   const { month, dataState } = Route.useLoaderData()
-  const breadcrumbs = createRootBreadcrumbs(
-    { label: 'Informes', href: appRoutes.reports() },
-    { label: formatMonthLabel(month), href: appRoutes.reportMonth(month) }
-  )
+  const breadcrumbs = createReportBreadcrumb(formatMonthLabel(month))
 
   return (
     <PageShell>

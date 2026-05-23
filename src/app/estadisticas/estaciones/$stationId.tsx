@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
-import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
+import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
+import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
+import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 
 function formatDayTypeLabel(dayType: string): string {
   return dayType === 'WEEKEND' ? 'Fin de semana' : 'Laborable'
@@ -25,6 +27,7 @@ function formatPredictionLabel(value: number | null, capacity: number): string {
 
 export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   loader: ({ params }) => getPublicStationPageData({ data: params.stationId }),
+  pendingComponent: StationDetailSkeleton,
   head: ({ params }) => {
     const id = params.stationId ?? ''
     const title = `Estación ${id} - DatosBizi`
@@ -68,6 +71,25 @@ function StationPage() {
   const station = summary.station
   const siteUrl = getSiteUrl()
   const occupancyDelta = summary.currentOccupancy - summary.cityAverageOccupancy
+  const next30Point = data.predictions.predictions.find(p => p.horizonMinutes === 30)
+  const next60Point = data.predictions.predictions.find(p => p.horizonMinutes === 60)
+  const next30 = next30Point?.predictedBikesAvailable ?? null
+  const next60 = next60Point?.predictedBikesAvailable ?? null
+  const next30Anchors = next30Point?.predictedAnchorsFree ?? null
+  const actionableMessage = station.bikesAvailable <= 0
+    ? `${station.name} está vacía ahora. No encontrarás bicis disponibles.`
+    : station.anchorsFree <= 0
+      ? `${station.name} está llena ahora. No podrás dejar bicicleta.`
+      : (next30 !== null && next30 >= station.capacity * 0.5)
+        ? `${station.name} tiene ${station.bikesAvailable} bicis y ${station.anchorsFree} huecos libres. Buena opción ahora.`
+        : `${station.name} tiene ${station.bikesAvailable} bicis y ${station.anchorsFree} huecos libres.`
+  const predictionAdvice = (() => {
+    if (next30 === null || station.capacity <= 0) return null
+    const occupancy = next30 / station.capacity
+    if (next30Anchors !== null && next30Anchors / station.capacity < 0.2) return 'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.'
+    if (occupancy < 0.2) return 'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.'
+    return 'Se espera que siga disponible la próxima hora.'
+  })()
   const faqItems = [
     {
       question: 'Cuando suele ser mas facil encontrar bici?',
@@ -93,10 +115,7 @@ function StationPage() {
       { '@type': 'FAQPage', mainEntity: faqItems.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) },
     ],
   }
-  const breadcrumbs = createRootBreadcrumbs(
-    { label: 'Estaciones', href: appRoutes.statsEstaciones() },
-    { label: station.name, href: appRoutes.statsEstacion(station.id) }
-  )
+  const breadcrumbs = createStationBreadcrumb(station.name)
 
   return (
     <PageShell>
@@ -107,7 +126,10 @@ function StationPage() {
       <StatsSecondaryNav className="mt-1" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de estacion</p>
-        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">{station.name}</h1>
+        <h1 className="mt-2 text-2xl sm:text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">{station.name}</h1>
+        <div className="mt-3 flex items-center gap-3">
+          <StationFavoriteButton stationId={station.id} />
+        </div>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
           Disponibilidad actual, ocupacion y contexto de uso de la estacion Bizi {station.id}.
         </p>
@@ -116,26 +138,44 @@ function StationPage() {
           {summary.districtSlug ? <a className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)}>Ver barrio</a> : null}
         </div>
       </header>
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <article className="ui-section-card"><p className="stat-label">Bicis</p><p className="stat-value">{station.bikesAvailable}</p></article>
         <article className="ui-section-card"><p className="stat-label">Huecos</p><p className="stat-value">{station.anchorsFree}</p></article>
         <article className="ui-section-card"><p className="stat-label">Capacidad</p><p className="stat-value">{station.capacity}</p></article>
         <article className="ui-section-card"><p className="stat-label">Ocupacion</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
+      {station.bikesAvailable <= 0 ? (
+        <p className="mt-4 text-sm text-red-400">
+          ⚠️ Esta estación está vacía ahora. No encontrarás bicis disponibles.
+        </p>
+      ) : station.anchorsFree <= 0 ? (
+        <p className="mt-4 text-sm text-blue-400">
+          ⚠️ Esta estación está llena ahora. No podrás dejar bicicleta.
+        </p>
+      ) : (
+        <p className="mt-4 text-sm text-green-400">
+          ✅ Buena opción: {station.bikesAvailable} bicis y {station.anchorsFree} huecos libres.
+        </p>
+      )}
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">Resumen rapido</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
-            <p>{station.name} tiene ahora {station.bikesAvailable} bicis y {station.anchorsFree} anclajes libres sobre una capacidad de {station.capacity}.</p>
+            <p>{actionableMessage}</p>
             <p>Su ocupacion actual esta {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha para una lectura rapida y abre el dashboard si necesitas mapa, alertas o mas detalle.</p>
           </div>
         </article>
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Prediccion</h2>
           <dl className="mt-4 space-y-3 text-sm">
-            <div><dt className="stat-label">30 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(data.predictions.next30Minutes, station.capacity)}</dd></div>
-            <div><dt className="stat-label">60 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(data.predictions.next60Minutes, station.capacity)}</dd></div>
+            <div><dt className="stat-label">30 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next30, station.capacity)}</dd></div>
+            <div><dt className="stat-label">60 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next60, station.capacity)}</dd></div>
           </dl>
+          {predictionAdvice ? (
+            <p className={`mt-2 text-xs ${predictionAdvice === 'Se espera que siga disponible la próxima hora.' ? 'text-green-400' : 'text-amber-400'}`}>
+              {predictionAdvice}
+            </p>
+          ) : null}
         </article>
       </section>
       <section className="ui-section-card">
@@ -160,7 +200,8 @@ function StationPage() {
       ) : null}
       {relatedStations.length > 0 ? (
         <section className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones relacionadas</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Alternativas cercanas</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">Si esta estación no te sirve, estas son opciones cercanas:</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {relatedStations.map((related) => (
               <a key={related.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(related.station.id)}>
@@ -171,6 +212,21 @@ function StationPage() {
           </div>
         </section>
       ) : null}
+      <section className="ui-section-card">
+        <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {summary.districtSlug ? (
+            <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.districtDetail(summary.districtSlug)}>
+              <p className="text-sm font-semibold text-[var(--foreground)]">Ver todas las estaciones de {summary.districtName}</p>
+              <p className="mt-1 text-[11px] text-[var(--muted)]">Explora el barrio al que pertenece esta estacion.</p>
+            </a>
+          ) : null}
+          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsEstaciones()}>
+            <p className="text-sm font-semibold text-[var(--foreground)]">Ver ranking de estaciones</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Compara actividad y disponibilidad entre todas las estaciones.</p>
+          </a>
+        </div>
+      </section>
     </PageShell>
   )
 }

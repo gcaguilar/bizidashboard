@@ -55,6 +55,8 @@ function buildHash(pathname: string, hash?: string | null): string {
 
 export const appRoutes = {
   home: () => '/',
+  manifest: () => '/manifest.json',
+  favicon: () => '/favicon.svg',
   login: () => '/login',
   register: () => '/register',
   profile: () => '/profile',
@@ -442,6 +444,7 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   { source: '/viajes-por-dia-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/viajes-por-mes-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/redistribucion', destination: '/estadisticas/redistribucion' },
+  { source: '/estadisticas-bizi-zaragoza', destination: '/estadisticas' },
   { source: '/explorar', destination: '/estadisticas' },
   ...CITY_SEGMENTS.flatMap((city) => [
     {
