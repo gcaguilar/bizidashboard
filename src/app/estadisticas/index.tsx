@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl } from '@/lib/site';
@@ -19,7 +20,10 @@ export const Route = createFileRoute('/estadisticas/')({
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/estadisticas` },
-        { name: 'robots', content: 'index, follow' },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
       ],
       link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas` }],
       title,
@@ -43,8 +47,8 @@ function EstadisticasHubPage() {
           Elige una entrada según lo que necesitas: encontrar bici, analizar problemas o revisar evolución histórica.
         </p>
         <div className="mt-5 flex flex-col sm:flex-row gap-3">
-          <a className="ui-primary-button" href={appRoutes.statsMapa()}>Ver mapa en vivo</a>
-          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Buscar estación</a>
+          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver mapa en vivo</TrackedLink>
+          <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Buscar estación</TrackedLink>
         </div>
       </header>
       <section className="mb-6 sm:mb-10">

@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { getSiteUrl } from '@/lib/site'
 import { PageShell } from '@/components/layout/page-shell'
 
@@ -17,6 +16,7 @@ export const Route = createFileRoute('/about')({
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/about` },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
