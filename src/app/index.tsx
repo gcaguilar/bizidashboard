@@ -100,7 +100,7 @@ function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <a href={appRoutes.dashboardView('overview')} className="ui-primary-button">
+          <a href={appRoutes.statsMapa()} className="ui-primary-button">
             Ver mapa en vivo
           </a>
           <a href={appRoutes.statsEstaciones()} className="ui-inline-action">
