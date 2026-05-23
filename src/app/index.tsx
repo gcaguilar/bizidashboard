@@ -94,7 +94,7 @@ function Home() {
               Bizi Zaragoza ahora mismo
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Disponibilidad en tiempo real, estaciones destacadas y acceso rápido al mapa.
+              Disponibilidad en tiempo real, las estaciones más usadas y acceso rápido a todo lo que necesitas.
             </p>
           </div>
         </div>
