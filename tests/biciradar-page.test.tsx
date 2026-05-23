@@ -1,23 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-const publicSectionNavSpy = vi.fn();
-
 vi.mock('server-only', () => ({}));
-
-vi.mock('@/app/_components/PublicSectionNav', () => ({
-  PublicSectionNav: ({
-    activeItemId,
-    className,
-  }: {
-    activeItemId: string;
-    className?: string;
-  }) => {
-    publicSectionNavSpy({ activeItemId, className });
-
-    return <div data-active-item-id={activeItemId} data-class-name={className ?? ''} />;
-  },
-}));
 
 vi.mock('@/app/_components/PublicPageViewTracker', () => ({
   PublicPageViewTracker: () => null,
@@ -31,10 +15,12 @@ vi.mock('@/app/_components/TrackedAnchor', () => ({
   TrackedAnchor: ({
     children,
     href,
+    ctaEvent: _ctaEvent,
     ...props
   }: {
     children: React.ReactNode;
     href: string;
+    ctaEvent?: unknown;
   }) => (
     <a href={href} {...props}>
       {children}
@@ -51,16 +37,12 @@ vi.mock('@tanstack/react-router', async () => {
 });
 
 describe('biciradar public page', () => {
-  it('renders the shared public navigation with home active', async () => {
-    publicSectionNavSpy.mockClear();
-
+  it('renders product hero without duplicating public navigation', async () => {
     const biciradarPage = await import('@/app/biciradar');
 
-    renderToStaticMarkup(biciradarPage.default());
+    const markup = renderToStaticMarkup(biciradarPage.default());
 
-    expect(publicSectionNavSpy).toHaveBeenCalledWith({
-      activeItemId: 'home',
-      className: 'mt-1',
-    });
+    expect(markup).toContain('Bici Radar');
+    expect(markup).not.toContain('data-active-item-id');
   });
 });

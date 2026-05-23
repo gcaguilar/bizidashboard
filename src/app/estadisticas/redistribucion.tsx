@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { SeoLandingPageComponent } from '@/app/_seo/SeoLandingPageComponent';
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav';
 import { fetchSeoLandingData } from '@/server-functions/seo-landing';
 import { getSiteUrl } from '@/lib/site';
+import { PageShell } from '@/components/layout/page-shell';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
+import { TrackedLink } from '@/app/_components/TrackedLink';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
+import { Card } from '@/components/ui/card';
 
 export const Route = createFileRoute('/estadisticas/redistribucion')({
   loader: () => fetchSeoLandingData({ data: { slug: 'redistribucion' } }),
@@ -25,18 +30,106 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
       title,
     };
   },
-  component: EstadisticasRedistribucionPage,
+  component: RedistribucionPage,
 });
 
-function EstadisticasRedistribucionPage() {
-  const { config, content, indexability } = Route.useLoaderData();
+function RedistribucionPage() {
+  const { config, content } = Route.useLoaderData();
+  const canonicalPath = '/estadisticas/redistribucion';
+  const breadcrumbs = createRootBreadcrumbs({ label: config.title, href: canonicalPath });
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildBreadcrumbStructuredData(breadcrumbs),
+      {
+        '@type': 'CollectionPage',
+        name: config.title,
+        description: config.description,
+        url: toAbsoluteRouteUrl(canonicalPath),
+        dateModified: content.generatedAt,
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Que estaciones necesitan atencion por redistribucion?',
+            acceptedAnswer: { '@type': 'Answer', text: content.summary },
+          },
+          {
+            '@type': 'Question',
+            name: 'Como se detecta una estacion desequilibrada?',
+            acceptedAnswer: { '@type': 'Answer', text: 'Se analiza la ocupacion media, la frecuencia de estados vacio/lleno y la desviacion respecto a la media del sistema.' },
+          },
+        ],
+      },
+    ],
+  };
+
   return (
-    <SeoLandingPageComponent
-      slug="redistribucion"
-      config={config}
-      content={content}
-      indexability={indexability}
-      navOverride={<StatsSecondaryNav />}
-    />
+    <PageShell>
+      <PublicPageViewTracker pageType="seo_hub" template="statistics_subpage" pageSlug="redistribucion" />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <SiteBreadcrumbs items={breadcrumbs} />
+
+      <header className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">{config.heroKicker}</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">{config.title}</h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">{content.summary}</p>
+        <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+          <span className="ui-chip">{config.cadenceLabel}</span>
+          <span className="ui-chip">Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}</span>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'redistribucion_page', ctaId: 'view_problem_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver estaciones con problemas</TrackedLink>
+          <TrackedLink href={appRoutes.dashboardRedistribucion()} ctaEvent={{ source: 'redistribucion_page', ctaId: 'view_full_analysis', destination: 'dashboard_redistribucion', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-inline-action">Ir al analisis completo</TrackedLink>
+        </div>
+      </header>
+
+      {content.emptyReason ? (
+        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
+          <p className="font-semibold">Datos parciales</p>
+          <p className="mt-1 text-xs text-amber-100/80">{content.emptyReason}</p>
+        </section>
+      ) : null}
+
+      {content.stats.length > 0 && (
+        <section className="grid gap-4 md:grid-cols-3">
+          {content.stats.map((stat) => (
+            <article key={stat.label} className="ui-section-card">
+              <p className="stat-label">{stat.label}</p>
+              <p className="stat-value">{stat.value}</p>
+              <p className="text-xs text-[var(--muted)]">{stat.detail}</p>
+            </article>
+          ))}
+        </section>
+      )}
+
+      {content.sectionItems.length > 0 && (
+        <section className="ui-section-card">
+          <h2 className="text-xl font-black text-[var(--foreground)]">{content.sectionTitle}</h2>
+          <div className="mt-2 grid gap-3 md:grid-cols-2">
+            {content.sectionItems.map((item) => {
+              const body = (
+                <>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
+                    <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
+                  </div>
+                </>
+              );
+              if (!item.href) {
+                return <Card key={`${item.title}-${item.detail}`} variant="stat" className="flex-row items-center justify-between gap-3 px-4 py-3">{body}</Card>;
+              }
+              return (
+                <TrackedLink key={`${item.title}-${item.href}`} href={item.href} navigationEvent={{ source: 'redistribucion_page_items', destination: item.href, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="group block transition hover:-translate-y-0.5">
+                  <Card variant="stat" className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40">{body}</Card>
+                </TrackedLink>
+              );
+            })}
+          </div>
+        </section>
+      )}
+    </PageShell>
   );
 }

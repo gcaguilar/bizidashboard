@@ -1,7 +1,6 @@
 import { Link, createFileRoute, useSearch } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
@@ -185,8 +184,6 @@ export default function ComparePage() {
 
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeItemId="estadisticas" className="mt-1" />
-
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
@@ -206,7 +203,7 @@ export default function ComparePage() {
           <div className="flex flex-wrap gap-3">
             <Link
               to={appRoutes.dashboardView('research')}
-              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
+              className="ui-primary-button"
             >
               Abrir analisis en el dashboard
             </Link>

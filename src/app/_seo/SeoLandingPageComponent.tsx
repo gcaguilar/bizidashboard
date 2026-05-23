@@ -1,5 +1,4 @@
 import type React from 'react';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -165,7 +164,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">
-        {navOverride ?? <PublicSectionNav activeItemId="estadisticas" className="mt-1" />}
+        {navOverride ?? null}
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -244,7 +243,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
               {content.sectionTitle}
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Vista con acceso rapido al dashboard y a las fichas publicas relacionadas.
+              Resumen con enlaces a las paginas relacionadas.
             </p>
           </div>
         </div>

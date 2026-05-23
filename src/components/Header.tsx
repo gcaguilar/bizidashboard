@@ -13,10 +13,11 @@ const MAIN_NAV = [
 
 const MORE_NAV = [
   { href: '/estadisticas/barrios', label: 'Barrios' },
+  { href: '/estadisticas/horarios', label: 'Horarios' },
+  { href: '/estadisticas/viajes', label: 'Viajes' },
   { href: '/estado', label: 'Estado' },
   { href: '/developers', label: 'API' },
-  { href: '/metodologia', label: 'Metodología' },
-  { href: '/biciradar', label: 'Bici Radar' },
+  { href: '/about', label: 'Sobre' },
 ];
 
 export default function Header() {

@@ -312,6 +312,7 @@ textarea:disabled {
 }
 
 .ui-surface-block-interactive {
+  text-decoration: none;
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -321,11 +322,13 @@ textarea:disabled {
 .ui-surface-block-interactive:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  text-decoration: none;
 }
 
 .ui-primary-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.375rem;
   border-radius: var(--radius-lg);
   background: var(--primary);
@@ -333,15 +336,19 @@ textarea:disabled {
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--primary-foreground);
+  text-align: center;
+  text-decoration: none;
   transition: filter 0.15s;
 }
 .ui-primary-button:hover {
   filter: brightness(0.95);
+  text-decoration: none;
 }
 
 .ui-inline-action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--secondary);
@@ -350,11 +357,14 @@ textarea:disabled {
   font-weight: 700;
   line-height: 1.25rem;
   padding: 0.5rem 1rem;
+  text-align: center;
+  text-decoration: none;
   transition: border-color 0.2s ease;
 }
 
 .ui-inline-action:hover {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  text-decoration: none;
 }
 
 .ui-icon-button,

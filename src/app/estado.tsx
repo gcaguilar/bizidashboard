@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -175,8 +174,6 @@ export default function SystemStatusPage() {
       </div>
 
       <header className="ui-page-hero">
-        <PublicSectionNav activeItemId="status" className="mt-1" />
-
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
