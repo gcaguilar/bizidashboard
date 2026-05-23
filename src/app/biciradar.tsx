@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
@@ -236,8 +235,6 @@ export default function BiciRadarPage() {
 
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeItemId="home" className="mt-1" />
-
         <div className="flex flex-col items-center text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/60 text-4xl shadow-lg shadow-[var(--primary)]/25">
             🚲

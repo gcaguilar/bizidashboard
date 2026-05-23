@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { createDistrictBreadcrumb } from '@/lib/breadcrumbs'
 import { formatDecimal } from '@/lib/format'
@@ -40,7 +39,6 @@ function DistrictPage() {
     const label = districtSlug.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
     return (
       <PageShell>
-        <StatsSecondaryNav className="mt-1" />
         <section className="ui-page-hero">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
@@ -76,7 +74,6 @@ function DistrictPage() {
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
-      <StatsSecondaryNav className="mt-1" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de barrio</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Bizi en {district.name}</h1>
@@ -101,7 +98,7 @@ function DistrictPage() {
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios para entender que zonas tienen mas actividad o mas tension.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.dashboardView('research')}>Abrir analisis en el dashboard</a>
+          <a className="ui-inline-action mt-4" href={appRoutes.statsMapa()}>Ver disponibilidad en mapa</a>
         </article>
       </section>
       <section className="ui-section-card">

@@ -1,5 +1,4 @@
 import { PageShell } from '@/components/layout/page-shell';
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav';
 
 export function StationDetailSkeleton() {
   return (
@@ -13,7 +12,6 @@ export function StationDetailSkeleton() {
           <div className="h-3 w-40 animate-pulse rounded bg-[var(--border)]" />
         </div>
       </div>
-      <StatsSecondaryNav className="mt-1" />
       <header className="ui-page-hero">
         <div className="h-3 w-36 animate-pulse rounded bg-[var(--border)]" />
         <div className="mt-2 h-8 w-64 animate-pulse rounded bg-[var(--border)]" />

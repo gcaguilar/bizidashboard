@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getSiteUrl } from '@/lib/site';
@@ -34,9 +33,6 @@ function EstadisticasEstacionesPage() {
   const stationRows = Route.useLoaderData();
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-6">
-        <StatsSecondaryNav />
-      </div>
       <StationsDirectory stationRows={stationRows} />
     </div>
   );

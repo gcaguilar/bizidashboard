@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs'
 import { formatPercent } from '@/lib/format'
@@ -89,12 +88,11 @@ function MapaPage() {
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <StatsSecondaryNav className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Landing de utilidad inmediata</p>
-            <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Mapa y estaciones Bizi Zaragoza en tiempo real</h1>
-            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Encuentra estaciones, comprueba bicis o anclajes libres y salta al mapa en vivo.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Disponibilidad ahora</p>
+            <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Mapa en vivo de Bizi Zaragoza</h1>
+            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Abre el mapa interactivo para localizar estaciones con bicis o huecos libres. Si prefieres lista, entra al directorio de estaciones.</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{landingData.stationRows.length} estaciones publicas</span>
@@ -103,15 +101,15 @@ function MapaPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <a className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95" href={appRoutes.dashboardView('overview')}>Abrir mapa en vivo</a>
-          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Estaciones con bicis</a>
-          <a className="ui-inline-action" href={appRoutes.dashboardHelp('alertas-activas')}>Estaciones casi vacias o llenas</a>
+          <a className="ui-primary-button" href={appRoutes.dashboardView('overview')}>Abrir mapa interactivo</a>
+          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Ver estaciones en lista</a>
+          <a className="ui-inline-action" href={appRoutes.status()}>Comprobar estado del dato</a>
         </div>
       </header>
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="ui-section-card"><p className="stat-label">Paso 1</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Localiza la zona</h2><p className="mt-2 text-sm text-[var(--muted)]">Mapa o por barrio.</p></article>
-        <article className="ui-section-card"><p className="stat-label">Paso 2</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Revisa disponibilidad</h2><p className="mt-2 text-sm text-[var(--muted)]">Bicis, huecos y ocupacion.</p></article>
-        <article className="ui-section-card"><p className="stat-label">Paso 3</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Detalle operativo</h2><p className="mt-2 text-sm text-[var(--muted)]">Alertas, mapas y patrones.</p></article>
+        <article className="ui-section-card"><p className="stat-label">Para coger bici</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Busca estaciones con bicis</h2><p className="mt-2 text-sm text-[var(--muted)]">Usa el mapa interactivo o filtra el directorio por estaciones con bicis disponibles.</p><a className="ui-inline-action mt-3" href={appRoutes.statsEstaciones()}>Filtrar estaciones</a></article>
+        <article className="ui-section-card"><p className="stat-label">Para devolver</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Comprueba huecos libres</h2><p className="mt-2 text-sm text-[var(--muted)]">Evita estaciones llenas revisando huecos y ocupación antes de moverte.</p><a className="ui-inline-action mt-3" href={appRoutes.statsEstaciones()}>Ver huecos</a></article>
+        <article className="ui-section-card"><p className="stat-label">Por zona</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Entra por barrio</h2><p className="mt-2 text-sm text-[var(--muted)]">Si no tienes estación concreta, revisa disponibilidad agrupada por barrios.</p><a className="ui-inline-action mt-3" href={appRoutes.statsBarrios()}>Ver barrios</a></article>
       </section>
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas para empezar</h2>

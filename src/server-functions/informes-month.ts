@@ -20,8 +20,21 @@ export const getReportMonthPageData = createServerFn({ method: 'GET' })
         import('@/lib/analytics-series'),
         import('@/lib/shared-data-fallbacks'),
       ]);
-      await fetchCachedMonthlyDemandCurve().catch(() => buildFallbackDatasetSnapshot(nowIso));
-      return { month, dataState: 'ok' as const };
+      const monthlySeries = await fetchCachedMonthlyDemandCurve(36).catch(() => {
+        buildFallbackDatasetSnapshot(nowIso);
+        return [];
+      });
+      const monthRow = monthlySeries.find((row) => row.monthKey === month) ?? null;
+
+      return {
+        month,
+        monthRow,
+        nearbyMonths: monthlySeries
+          .filter((row) => row.monthKey !== month)
+          .slice(0, 6)
+          .map((row) => row.monthKey),
+        dataState: monthRow ? ('ok' as const) : ('no_coverage' as const),
+      };
     } catch (error) {
       captureExceptionWithContext(error, { area: 'informes.month', operation: 'loader' });
       return { month, dataState: 'error' as const };

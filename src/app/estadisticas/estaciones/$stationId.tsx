@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { StatsSecondaryNav } from '@/app/estadisticas/_components/StatsSecondaryNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
@@ -56,7 +55,6 @@ function StationPage() {
   if (!data) {
     return (
       <PageShell>
-        <StatsSecondaryNav className="mt-1" />
         <section className="ui-page-hero">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estacion</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estacion {stationId}</h1>
@@ -123,7 +121,6 @@ function StationPage() {
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
-      <StatsSecondaryNav className="mt-1" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de estacion</p>
         <h1 className="mt-2 text-2xl sm:text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">{station.name}</h1>

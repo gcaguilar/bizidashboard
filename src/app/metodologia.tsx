@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatMonthLabel } from '@/lib/months';
@@ -63,8 +62,6 @@ export default function MethodologyPage() {
 
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />
-        <PublicSectionNav activeItemId="help" className="mt-1" />
-
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">

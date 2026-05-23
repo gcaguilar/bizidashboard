@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
@@ -59,7 +58,6 @@ export default function ReportsIndexPage() {
       </div>
 
       <header className="ui-page-hero">
-        <PublicSectionNav activeItemId="reports" className="mt-1" />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Archivo mensual</p>
@@ -94,7 +92,7 @@ export default function ReportsIndexPage() {
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{months.length} meses publicados</span>
             <TrackedLink
-              href={appRoutes.dashboardConclusions()}
+              href={appRoutes.statsViajes()}
               navigationEvent={{
                 source: 'reports_hero',
                 destination: 'dashboard_conclusions',
@@ -104,7 +102,7 @@ export default function ReportsIndexPage() {
               }}
               className="ui-inline-action"
             >
-              Abrir conclusiones del dashboard
+              Ver acumulado mensual
             </TrackedLink>
           </div>
         </div>
@@ -238,7 +236,7 @@ export default function ReportsIndexPage() {
             </Card>
           </TrackedLink>
           <TrackedLink
-            href={appRoutes.seoPage('viajes-por-mes-zaragoza')}
+            href={appRoutes.statsViajes()}
             navigationEvent={{
               source: 'reports_related',
               destination: 'monthly_series',

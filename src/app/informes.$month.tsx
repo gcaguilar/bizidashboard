@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading'
-import { PublicSectionNav } from '@/app/_components/PublicSectionNav'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { createReportBreadcrumb } from '@/lib/breadcrumbs'
 import { shouldShowDataStateNotice } from '@/lib/data-state'
 import { formatMonthLabel } from '@/lib/months'
 import { appRoutes } from '@/lib/routes'
+import { formatInteger, formatPercent } from '@/lib/format'
 import { PageShell } from '@/components/layout/page-shell'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
@@ -41,7 +41,7 @@ export const Route = createFileRoute('/informes/$month')({
 })
 
 function InformesMonthPage() {
-  const { month, dataState } = Route.useLoaderData()
+  const { month, monthRow, nearbyMonths, dataState } = Route.useLoaderData()
   const breadcrumbs = createReportBreadcrumb(formatMonthLabel(month))
 
   return (
@@ -49,7 +49,6 @@ function InformesMonthPage() {
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
-      <PublicSectionNav activeItemId="reports" className="mt-1" />
       <header className="ui-page-hero">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
@@ -64,10 +63,48 @@ function InformesMonthPage() {
       {shouldShowDataStateNotice(dataState) ? (
         <DataStateNotice state={dataState} subject="el informe mensual" description="Este informe depende de los datos historicos disponibles. Revisa el estado si ves huecos o cobertura parcial." href={appRoutes.status()} actionLabel="Revisar estado" />
       ) : null}
-      <EmptyStateCard
-        title="Informe en preparación"
-        description="Este mes todavía no tiene informe publicado. Los informes se generan automáticamente cuando hay cobertura suficiente."
-      />
+      {monthRow ? (
+        <>
+          <section className="grid gap-4 md:grid-cols-4">
+            <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Ocupación media</p><p className="stat-value">{formatPercent(monthRow.avgOccupancy)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Estaciones activas</p><p className="stat-value">{formatInteger(monthRow.activeStations)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Muestras</p><p className="stat-value">{formatInteger(monthRow.sampleCount)}</p></article>
+          </section>
+          <section className="grid gap-4 lg:grid-cols-3">
+            <article className="ui-section-card lg:col-span-2">
+              <h2 className="text-xl font-black text-[var(--foreground)]">Resumen del mes</h2>
+              <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
+                <p>En {formatMonthLabel(month)}, DatosBizi estima {formatInteger(monthRow.demandScore)} puntos de demanda agregada con una ocupación media del {formatPercent(monthRow.avgOccupancy)}.</p>
+                <p>La serie incluye {formatInteger(monthRow.sampleCount)} muestras y {formatInteger(monthRow.activeStations)} estaciones activas. Usa esta lectura como resumen público; para análisis operativo fino, entra al dashboard filtrado por mes.</p>
+              </div>
+            </article>
+            <article className="ui-section-card">
+              <h2 className="text-xl font-black text-[var(--foreground)]">Acciones</h2>
+              <div className="mt-4 flex flex-col gap-2">
+                <a className="ui-primary-button" href={appRoutes.dashboardConclusions({ month })}>Abrir dashboard de este mes</a>
+                <a className="ui-inline-action" href={appRoutes.statsViajes()}>Ver serie acumulada</a>
+                <a className="ui-inline-action" href={appRoutes.reports()}>Volver al archivo</a>
+              </div>
+            </article>
+          </section>
+          {nearbyMonths.length > 0 ? (
+            <section className="ui-section-card">
+              <h2 className="text-xl font-black text-[var(--foreground)]">Otros informes</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {nearbyMonths.map((relatedMonth) => (
+                  <a key={relatedMonth} className="ui-inline-action" href={appRoutes.reportMonth(relatedMonth)}>{formatMonthLabel(relatedMonth)}</a>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
+      ) : (
+        <EmptyStateCard
+          title="Informe en preparación"
+          description="Este mes todavía no tiene informe publicado. Los informes se generan automáticamente cuando hay cobertura suficiente."
+        />
+      )}
     </PageShell>
   )
 }
