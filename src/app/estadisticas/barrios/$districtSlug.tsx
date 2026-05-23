@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createDistrictBreadcrumb } from '@/lib/breadcrumbs'
 import { formatDecimal } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
@@ -47,7 +48,7 @@ function DistrictPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
           <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar este barrio con confianza.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.statsBarrios()}>Ver comparativa de barrios</a>
+          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsBarrios()} ctaEvent={{ source: 'district_empty', ctaId: 'back_to_districts', destination: 'stats_barrios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver comparativa de barrios</TrackedLink>
         </section>
       </PageShell>
     )
@@ -102,7 +103,7 @@ function DistrictPage() {
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios para entender que zonas tienen mas actividad o mas tension.</p>
-          <a className="ui-inline-action mt-4" href={appRoutes.statsMapa()}>Ver disponibilidad en mapa</a>
+          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsMapa()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver disponibilidad en mapa</TrackedLink>
         </article>
       </section>
       <section className="ui-section-card">
@@ -120,7 +121,7 @@ function DistrictPage() {
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Otros barrios</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {siblings.map((sibling) => <a key={sibling.slug} className="ui-inline-action" href={appRoutes.districtDetail(sibling.slug)}>{sibling.name}</a>)}
+            {siblings.map((sibling) => <TrackedLink key={sibling.slug} className="ui-inline-action" href={appRoutes.districtDetail(sibling.slug)} ctaEvent={{ source: 'district_detail', ctaId: 'sibling_district', destination: sibling.slug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>{sibling.name}</TrackedLink>)}
           </div>
         </section>
       ) : null}
