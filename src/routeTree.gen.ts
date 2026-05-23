@@ -37,17 +37,30 @@ import { Route as BetaRouteImport } from './app/beta'
 import { Route as BarriosBiziZaragozaRouteImport } from './app/barrios-bizi-zaragoza'
 import { Route as AboutRouteImport } from './app/about'
 import { Route as SplatRouteImport } from './app/$'
+import { Route as EstadisticasRouteRouteImport } from './app/estadisticas/route'
 import { Route as DashboardRouteRouteImport } from './app/dashboard/route'
 import { Route as IndexRouteImport } from './app/index'
+import { Route as EstadisticasIndexRouteImport } from './app/estadisticas/index'
 import { Route as DashboardIndexRouteImport } from './app/dashboard/index'
 import { Route as InformesMonthRouteImport } from './app/informes.$month'
+import { Route as EstadisticasViajesRouteImport } from './app/estadisticas/viajes'
+import { Route as EstadisticasRedistribucionRouteImport } from './app/estadisticas/redistribucion'
+import { Route as EstadisticasMapaRouteImport } from './app/estadisticas/mapa'
+import { Route as EstadisticasHorariosRouteImport } from './app/estadisticas/horarios'
 import { Route as EstacionesStationIdRouteImport } from './app/estaciones/$stationId'
 import { Route as BarriosDistrictSlugRouteImport } from './app/barrios/$districtSlug'
 import { Route as ApiOpenapiDotjsonRouteImport } from './app/api/openapi[.]json'
+import { Route as EstadisticasEstacionesRouteRouteImport } from './app/estadisticas/estaciones/route'
+import { Route as EstadisticasBarriosRouteRouteImport } from './app/estadisticas/barrios/route'
+import { Route as EstadisticasEstacionesIndexRouteImport } from './app/estadisticas/estaciones/index'
+import { Route as EstadisticasBarriosIndexRouteImport } from './app/estadisticas/barrios/index'
 import { Route as DashboardStatusIndexRouteImport } from './app/dashboard/status/index'
 import { Route as DashboardRedistribucionIndexRouteImport } from './app/dashboard/redistribucion/index'
+import { Route as DashboardOperacionesIndexRouteImport } from './app/dashboard/operaciones/index'
+import { Route as DashboardInvestigacionIndexRouteImport } from './app/dashboard/investigacion/index'
 import { Route as DashboardFlujoIndexRouteImport } from './app/dashboard/flujo/index'
 import { Route as DashboardEstacionesIndexRouteImport } from './app/dashboard/estaciones/index'
+import { Route as DashboardDatosIndexRouteImport } from './app/dashboard/datos/index'
 import { Route as DashboardConclusionesIndexRouteImport } from './app/dashboard/conclusiones/index'
 import { Route as DashboardAyudaIndexRouteImport } from './app/dashboard/ayuda/index'
 import { Route as DashboardAlertasIndexRouteImport } from './app/dashboard/alertas/index'
@@ -66,6 +79,8 @@ import { Route as ApiDocsIndexRouteImport } from './app/api/docs/index'
 import { Route as ApiCollectIndexRouteImport } from './app/api/collect/index'
 import { Route as ApiAppVersionsIndexRouteImport } from './app/api/app-versions/index'
 import { Route as ApiAlertsIndexRouteImport } from './app/api/alerts/index'
+import { Route as EstadisticasEstacionesStationIdRouteImport } from './app/estadisticas/estaciones/$stationId'
+import { Route as EstadisticasBarriosDistrictSlugRouteImport } from './app/estadisticas/barrios/$districtSlug'
 import { Route as DashboardViewsModeRouteImport } from './app/dashboard/views/$mode'
 import { Route as DashboardEstacionesStationIdRouteImport } from './app/dashboard/estaciones/$stationId'
 import { Route as ApiHealthReadyRouteImport } from './app/api/health/ready'
@@ -221,6 +236,11 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadisticasRouteRoute = EstadisticasRouteRouteImport.update({
+  id: '/estadisticas',
+  path: '/estadisticas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -231,6 +251,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadisticasIndexRoute = EstadisticasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EstadisticasRouteRoute,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -240,6 +265,27 @@ const InformesMonthRoute = InformesMonthRouteImport.update({
   id: '/$month',
   path: '/$month',
   getParentRoute: () => InformesRoute,
+} as any)
+const EstadisticasViajesRoute = EstadisticasViajesRouteImport.update({
+  id: '/viajes',
+  path: '/viajes',
+  getParentRoute: () => EstadisticasRouteRoute,
+} as any)
+const EstadisticasRedistribucionRoute =
+  EstadisticasRedistribucionRouteImport.update({
+    id: '/redistribucion',
+    path: '/redistribucion',
+    getParentRoute: () => EstadisticasRouteRoute,
+  } as any)
+const EstadisticasMapaRoute = EstadisticasMapaRouteImport.update({
+  id: '/mapa',
+  path: '/mapa',
+  getParentRoute: () => EstadisticasRouteRoute,
+} as any)
+const EstadisticasHorariosRoute = EstadisticasHorariosRouteImport.update({
+  id: '/horarios',
+  path: '/horarios',
+  getParentRoute: () => EstadisticasRouteRoute,
 } as any)
 const EstacionesStationIdRoute = EstacionesStationIdRouteImport.update({
   id: '/estaciones/$stationId',
@@ -256,6 +302,30 @@ const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
   path: '/api/openapi.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadisticasEstacionesRouteRoute =
+  EstadisticasEstacionesRouteRouteImport.update({
+    id: '/estaciones',
+    path: '/estaciones',
+    getParentRoute: () => EstadisticasRouteRoute,
+  } as any)
+const EstadisticasBarriosRouteRoute =
+  EstadisticasBarriosRouteRouteImport.update({
+    id: '/barrios',
+    path: '/barrios',
+    getParentRoute: () => EstadisticasRouteRoute,
+  } as any)
+const EstadisticasEstacionesIndexRoute =
+  EstadisticasEstacionesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => EstadisticasEstacionesRouteRoute,
+  } as any)
+const EstadisticasBarriosIndexRoute =
+  EstadisticasBarriosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => EstadisticasBarriosRouteRoute,
+  } as any)
 const DashboardStatusIndexRoute = DashboardStatusIndexRouteImport.update({
   id: '/status/',
   path: '/status/',
@@ -265,6 +335,18 @@ const DashboardRedistribucionIndexRoute =
   DashboardRedistribucionIndexRouteImport.update({
     id: '/redistribucion/',
     path: '/redistribucion/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardOperacionesIndexRoute =
+  DashboardOperacionesIndexRouteImport.update({
+    id: '/operaciones/',
+    path: '/operaciones/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardInvestigacionIndexRoute =
+  DashboardInvestigacionIndexRouteImport.update({
+    id: '/investigacion/',
+    path: '/investigacion/',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
 const DashboardFlujoIndexRoute = DashboardFlujoIndexRouteImport.update({
@@ -278,6 +360,11 @@ const DashboardEstacionesIndexRoute =
     path: '/estaciones/',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
+const DashboardDatosIndexRoute = DashboardDatosIndexRouteImport.update({
+  id: '/datos/',
+  path: '/datos/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardConclusionesIndexRoute =
   DashboardConclusionesIndexRouteImport.update({
     id: '/conclusiones/',
@@ -370,6 +457,18 @@ const ApiAlertsIndexRoute = ApiAlertsIndexRouteImport.update({
   path: '/api/alerts/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadisticasEstacionesStationIdRoute =
+  EstadisticasEstacionesStationIdRouteImport.update({
+    id: '/$stationId',
+    path: '/$stationId',
+    getParentRoute: () => EstadisticasEstacionesRouteRoute,
+  } as any)
+const EstadisticasBarriosDistrictSlugRoute =
+  EstadisticasBarriosDistrictSlugRouteImport.update({
+    id: '/$districtSlug',
+    path: '/$districtSlug',
+    getParentRoute: () => EstadisticasBarriosRouteRoute,
+  } as any)
 const DashboardViewsModeRoute = DashboardViewsModeRouteImport.update({
   id: '/views/$mode',
   path: '/views/$mode',
@@ -425,6 +524,7 @@ const ApiGeoReverseIndexRoute = ApiGeoReverseIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/estadisticas': typeof EstadisticasRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
@@ -453,16 +553,25 @@ export interface FileRoutesByFullPath {
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
+  '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
+  '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/estadisticas/horarios': typeof EstadisticasHorariosRoute
+  '/estadisticas/mapa': typeof EstadisticasMapaRoute
+  '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
+  '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/estadisticas/': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
+  '/estadisticas/estaciones/$stationId': typeof EstadisticasEstacionesStationIdRoute
   '/api/alerts/': typeof ApiAlertsIndexRoute
   '/api/app-versions/': typeof ApiAppVersionsIndexRoute
   '/api/collect/': typeof ApiCollectIndexRoute
@@ -481,10 +590,15 @@ export interface FileRoutesByFullPath {
   '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
   '/dashboard/ayuda/': typeof DashboardAyudaIndexRoute
   '/dashboard/conclusiones/': typeof DashboardConclusionesIndexRoute
+  '/dashboard/datos/': typeof DashboardDatosIndexRoute
   '/dashboard/estaciones/': typeof DashboardEstacionesIndexRoute
   '/dashboard/flujo/': typeof DashboardFlujoIndexRoute
+  '/dashboard/investigacion/': typeof DashboardInvestigacionIndexRoute
+  '/dashboard/operaciones/': typeof DashboardOperacionesIndexRoute
   '/dashboard/redistribucion/': typeof DashboardRedistribucionIndexRoute
   '/dashboard/status/': typeof DashboardStatusIndexRoute
+  '/estadisticas/barrios/': typeof EstadisticasBarriosIndexRoute
+  '/estadisticas/estaciones/': typeof EstadisticasEstacionesIndexRoute
   '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
@@ -524,13 +638,20 @@ export interface FileRoutesByTo {
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/estadisticas/horarios': typeof EstadisticasHorariosRoute
+  '/estadisticas/mapa': typeof EstadisticasMapaRoute
+  '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
+  '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/estadisticas': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
+  '/estadisticas/estaciones/$stationId': typeof EstadisticasEstacionesStationIdRoute
   '/api/alerts': typeof ApiAlertsIndexRoute
   '/api/app-versions': typeof ApiAppVersionsIndexRoute
   '/api/collect': typeof ApiCollectIndexRoute
@@ -549,10 +670,15 @@ export interface FileRoutesByTo {
   '/dashboard/alertas': typeof DashboardAlertasIndexRoute
   '/dashboard/ayuda': typeof DashboardAyudaIndexRoute
   '/dashboard/conclusiones': typeof DashboardConclusionesIndexRoute
+  '/dashboard/datos': typeof DashboardDatosIndexRoute
   '/dashboard/estaciones': typeof DashboardEstacionesIndexRoute
   '/dashboard/flujo': typeof DashboardFlujoIndexRoute
+  '/dashboard/investigacion': typeof DashboardInvestigacionIndexRoute
+  '/dashboard/operaciones': typeof DashboardOperacionesIndexRoute
   '/dashboard/redistribucion': typeof DashboardRedistribucionIndexRoute
   '/dashboard/status': typeof DashboardStatusIndexRoute
+  '/estadisticas/barrios': typeof EstadisticasBarriosIndexRoute
+  '/estadisticas/estaciones': typeof EstadisticasEstacionesIndexRoute
   '/api/geo/reverse': typeof ApiGeoReverseIndexRoute
   '/api/geo/search': typeof ApiGeoSearchIndexRoute
   '/api/install/register': typeof ApiInstallRegisterIndexRoute
@@ -563,6 +689,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/estadisticas': typeof EstadisticasRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
@@ -591,16 +718,25 @@ export interface FileRoutesById {
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
+  '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
+  '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
+  '/estadisticas/horarios': typeof EstadisticasHorariosRoute
+  '/estadisticas/mapa': typeof EstadisticasMapaRoute
+  '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
+  '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/estadisticas/': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
+  '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
+  '/estadisticas/estaciones/$stationId': typeof EstadisticasEstacionesStationIdRoute
   '/api/alerts/': typeof ApiAlertsIndexRoute
   '/api/app-versions/': typeof ApiAppVersionsIndexRoute
   '/api/collect/': typeof ApiCollectIndexRoute
@@ -619,10 +755,15 @@ export interface FileRoutesById {
   '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
   '/dashboard/ayuda/': typeof DashboardAyudaIndexRoute
   '/dashboard/conclusiones/': typeof DashboardConclusionesIndexRoute
+  '/dashboard/datos/': typeof DashboardDatosIndexRoute
   '/dashboard/estaciones/': typeof DashboardEstacionesIndexRoute
   '/dashboard/flujo/': typeof DashboardFlujoIndexRoute
+  '/dashboard/investigacion/': typeof DashboardInvestigacionIndexRoute
+  '/dashboard/operaciones/': typeof DashboardOperacionesIndexRoute
   '/dashboard/redistribucion/': typeof DashboardRedistribucionIndexRoute
   '/dashboard/status/': typeof DashboardStatusIndexRoute
+  '/estadisticas/barrios/': typeof EstadisticasBarriosIndexRoute
+  '/estadisticas/estaciones/': typeof EstadisticasEstacionesIndexRoute
   '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
@@ -634,6 +775,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/estadisticas'
     | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
@@ -662,16 +804,25 @@ export interface FileRouteTypes {
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
+    | '/estadisticas/barrios'
+    | '/estadisticas/estaciones'
     | '/api/openapi.json'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
+    | '/estadisticas/horarios'
+    | '/estadisticas/mapa'
+    | '/estadisticas/redistribucion'
+    | '/estadisticas/viajes'
     | '/informes/$month'
     | '/dashboard/'
+    | '/estadisticas/'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
+    | '/estadisticas/barrios/$districtSlug'
+    | '/estadisticas/estaciones/$stationId'
     | '/api/alerts/'
     | '/api/app-versions/'
     | '/api/collect/'
@@ -690,10 +841,15 @@ export interface FileRouteTypes {
     | '/dashboard/alertas/'
     | '/dashboard/ayuda/'
     | '/dashboard/conclusiones/'
+    | '/dashboard/datos/'
     | '/dashboard/estaciones/'
     | '/dashboard/flujo/'
+    | '/dashboard/investigacion/'
+    | '/dashboard/operaciones/'
     | '/dashboard/redistribucion/'
     | '/dashboard/status/'
+    | '/estadisticas/barrios/'
+    | '/estadisticas/estaciones/'
     | '/api/geo/reverse/'
     | '/api/geo/search/'
     | '/api/install/register/'
@@ -733,13 +889,20 @@ export interface FileRouteTypes {
     | '/api/openapi.json'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
+    | '/estadisticas/horarios'
+    | '/estadisticas/mapa'
+    | '/estadisticas/redistribucion'
+    | '/estadisticas/viajes'
     | '/informes/$month'
     | '/dashboard'
+    | '/estadisticas'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
+    | '/estadisticas/barrios/$districtSlug'
+    | '/estadisticas/estaciones/$stationId'
     | '/api/alerts'
     | '/api/app-versions'
     | '/api/collect'
@@ -758,10 +921,15 @@ export interface FileRouteTypes {
     | '/dashboard/alertas'
     | '/dashboard/ayuda'
     | '/dashboard/conclusiones'
+    | '/dashboard/datos'
     | '/dashboard/estaciones'
     | '/dashboard/flujo'
+    | '/dashboard/investigacion'
+    | '/dashboard/operaciones'
     | '/dashboard/redistribucion'
     | '/dashboard/status'
+    | '/estadisticas/barrios'
+    | '/estadisticas/estaciones'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/install/register'
@@ -771,6 +939,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/estadisticas'
     | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
@@ -799,16 +968,25 @@ export interface FileRouteTypes {
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
+    | '/estadisticas/barrios'
+    | '/estadisticas/estaciones'
     | '/api/openapi.json'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
+    | '/estadisticas/horarios'
+    | '/estadisticas/mapa'
+    | '/estadisticas/redistribucion'
+    | '/estadisticas/viajes'
     | '/informes/$month'
     | '/dashboard/'
+    | '/estadisticas/'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
+    | '/estadisticas/barrios/$districtSlug'
+    | '/estadisticas/estaciones/$stationId'
     | '/api/alerts/'
     | '/api/app-versions/'
     | '/api/collect/'
@@ -827,10 +1005,15 @@ export interface FileRouteTypes {
     | '/dashboard/alertas/'
     | '/dashboard/ayuda/'
     | '/dashboard/conclusiones/'
+    | '/dashboard/datos/'
     | '/dashboard/estaciones/'
     | '/dashboard/flujo/'
+    | '/dashboard/investigacion/'
+    | '/dashboard/operaciones/'
     | '/dashboard/redistribucion/'
     | '/dashboard/status/'
+    | '/estadisticas/barrios/'
+    | '/estadisticas/estaciones/'
     | '/api/geo/reverse/'
     | '/api/geo/search/'
     | '/api/install/register/'
@@ -841,6 +1024,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  EstadisticasRouteRoute: typeof EstadisticasRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
   AboutRoute: typeof AboutRoute
   BarriosBiziZaragozaRoute: typeof BarriosBiziZaragozaRoute
@@ -1095,6 +1279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estadisticas': {
+      id: '/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof EstadisticasRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -1109,6 +1300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estadisticas/': {
+      id: '/estadisticas/'
+      path: '/'
+      fullPath: '/estadisticas/'
+      preLoaderRoute: typeof EstadisticasIndexRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -1122,6 +1320,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/informes/$month'
       preLoaderRoute: typeof InformesMonthRouteImport
       parentRoute: typeof InformesRoute
+    }
+    '/estadisticas/viajes': {
+      id: '/estadisticas/viajes'
+      path: '/viajes'
+      fullPath: '/estadisticas/viajes'
+      preLoaderRoute: typeof EstadisticasViajesRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/estadisticas/redistribucion': {
+      id: '/estadisticas/redistribucion'
+      path: '/redistribucion'
+      fullPath: '/estadisticas/redistribucion'
+      preLoaderRoute: typeof EstadisticasRedistribucionRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/estadisticas/mapa': {
+      id: '/estadisticas/mapa'
+      path: '/mapa'
+      fullPath: '/estadisticas/mapa'
+      preLoaderRoute: typeof EstadisticasMapaRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/estadisticas/horarios': {
+      id: '/estadisticas/horarios'
+      path: '/horarios'
+      fullPath: '/estadisticas/horarios'
+      preLoaderRoute: typeof EstadisticasHorariosRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
     }
     '/estaciones/$stationId': {
       id: '/estaciones/$stationId'
@@ -1144,6 +1370,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estadisticas/estaciones': {
+      id: '/estadisticas/estaciones'
+      path: '/estaciones'
+      fullPath: '/estadisticas/estaciones'
+      preLoaderRoute: typeof EstadisticasEstacionesRouteRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/estadisticas/barrios': {
+      id: '/estadisticas/barrios'
+      path: '/barrios'
+      fullPath: '/estadisticas/barrios'
+      preLoaderRoute: typeof EstadisticasBarriosRouteRouteImport
+      parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/estadisticas/estaciones/': {
+      id: '/estadisticas/estaciones/'
+      path: '/'
+      fullPath: '/estadisticas/estaciones/'
+      preLoaderRoute: typeof EstadisticasEstacionesIndexRouteImport
+      parentRoute: typeof EstadisticasEstacionesRouteRoute
+    }
+    '/estadisticas/barrios/': {
+      id: '/estadisticas/barrios/'
+      path: '/'
+      fullPath: '/estadisticas/barrios/'
+      preLoaderRoute: typeof EstadisticasBarriosIndexRouteImport
+      parentRoute: typeof EstadisticasBarriosRouteRoute
+    }
     '/dashboard/status/': {
       id: '/dashboard/status/'
       path: '/status'
@@ -1158,6 +1412,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRedistribucionIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/operaciones/': {
+      id: '/dashboard/operaciones/'
+      path: '/operaciones'
+      fullPath: '/dashboard/operaciones/'
+      preLoaderRoute: typeof DashboardOperacionesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/investigacion/': {
+      id: '/dashboard/investigacion/'
+      path: '/investigacion'
+      fullPath: '/dashboard/investigacion/'
+      preLoaderRoute: typeof DashboardInvestigacionIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/flujo/': {
       id: '/dashboard/flujo/'
       path: '/flujo'
@@ -1170,6 +1438,13 @@ declare module '@tanstack/react-router' {
       path: '/estaciones'
       fullPath: '/dashboard/estaciones/'
       preLoaderRoute: typeof DashboardEstacionesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/datos/': {
+      id: '/dashboard/datos/'
+      path: '/datos'
+      fullPath: '/dashboard/datos/'
+      preLoaderRoute: typeof DashboardDatosIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/conclusiones/': {
@@ -1298,6 +1573,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAlertsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estadisticas/estaciones/$stationId': {
+      id: '/estadisticas/estaciones/$stationId'
+      path: '/$stationId'
+      fullPath: '/estadisticas/estaciones/$stationId'
+      preLoaderRoute: typeof EstadisticasEstacionesStationIdRouteImport
+      parentRoute: typeof EstadisticasEstacionesRouteRoute
+    }
+    '/estadisticas/barrios/$districtSlug': {
+      id: '/estadisticas/barrios/$districtSlug'
+      path: '/$districtSlug'
+      fullPath: '/estadisticas/barrios/$districtSlug'
+      preLoaderRoute: typeof EstadisticasBarriosDistrictSlugRouteImport
+      parentRoute: typeof EstadisticasBarriosRouteRoute
+    }
     '/dashboard/views/$mode': {
       id: '/dashboard/views/$mode'
       path: '/views/$mode'
@@ -1378,8 +1667,11 @@ interface DashboardRouteRouteChildren {
   DashboardAlertasIndexRoute: typeof DashboardAlertasIndexRoute
   DashboardAyudaIndexRoute: typeof DashboardAyudaIndexRoute
   DashboardConclusionesIndexRoute: typeof DashboardConclusionesIndexRoute
+  DashboardDatosIndexRoute: typeof DashboardDatosIndexRoute
   DashboardEstacionesIndexRoute: typeof DashboardEstacionesIndexRoute
   DashboardFlujoIndexRoute: typeof DashboardFlujoIndexRoute
+  DashboardInvestigacionIndexRoute: typeof DashboardInvestigacionIndexRoute
+  DashboardOperacionesIndexRoute: typeof DashboardOperacionesIndexRoute
   DashboardRedistribucionIndexRoute: typeof DashboardRedistribucionIndexRoute
   DashboardStatusIndexRoute: typeof DashboardStatusIndexRoute
 }
@@ -1391,8 +1683,11 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAlertasIndexRoute: DashboardAlertasIndexRoute,
   DashboardAyudaIndexRoute: DashboardAyudaIndexRoute,
   DashboardConclusionesIndexRoute: DashboardConclusionesIndexRoute,
+  DashboardDatosIndexRoute: DashboardDatosIndexRoute,
   DashboardEstacionesIndexRoute: DashboardEstacionesIndexRoute,
   DashboardFlujoIndexRoute: DashboardFlujoIndexRoute,
+  DashboardInvestigacionIndexRoute: DashboardInvestigacionIndexRoute,
+  DashboardOperacionesIndexRoute: DashboardOperacionesIndexRoute,
   DashboardRedistribucionIndexRoute: DashboardRedistribucionIndexRoute,
   DashboardStatusIndexRoute: DashboardStatusIndexRoute,
 }
@@ -1400,6 +1695,62 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
+
+interface EstadisticasBarriosRouteRouteChildren {
+  EstadisticasBarriosDistrictSlugRoute: typeof EstadisticasBarriosDistrictSlugRoute
+  EstadisticasBarriosIndexRoute: typeof EstadisticasBarriosIndexRoute
+}
+
+const EstadisticasBarriosRouteRouteChildren: EstadisticasBarriosRouteRouteChildren =
+  {
+    EstadisticasBarriosDistrictSlugRoute: EstadisticasBarriosDistrictSlugRoute,
+    EstadisticasBarriosIndexRoute: EstadisticasBarriosIndexRoute,
+  }
+
+const EstadisticasBarriosRouteRouteWithChildren =
+  EstadisticasBarriosRouteRoute._addFileChildren(
+    EstadisticasBarriosRouteRouteChildren,
+  )
+
+interface EstadisticasEstacionesRouteRouteChildren {
+  EstadisticasEstacionesStationIdRoute: typeof EstadisticasEstacionesStationIdRoute
+  EstadisticasEstacionesIndexRoute: typeof EstadisticasEstacionesIndexRoute
+}
+
+const EstadisticasEstacionesRouteRouteChildren: EstadisticasEstacionesRouteRouteChildren =
+  {
+    EstadisticasEstacionesStationIdRoute: EstadisticasEstacionesStationIdRoute,
+    EstadisticasEstacionesIndexRoute: EstadisticasEstacionesIndexRoute,
+  }
+
+const EstadisticasEstacionesRouteRouteWithChildren =
+  EstadisticasEstacionesRouteRoute._addFileChildren(
+    EstadisticasEstacionesRouteRouteChildren,
+  )
+
+interface EstadisticasRouteRouteChildren {
+  EstadisticasBarriosRouteRoute: typeof EstadisticasBarriosRouteRouteWithChildren
+  EstadisticasEstacionesRouteRoute: typeof EstadisticasEstacionesRouteRouteWithChildren
+  EstadisticasHorariosRoute: typeof EstadisticasHorariosRoute
+  EstadisticasMapaRoute: typeof EstadisticasMapaRoute
+  EstadisticasRedistribucionRoute: typeof EstadisticasRedistribucionRoute
+  EstadisticasViajesRoute: typeof EstadisticasViajesRoute
+  EstadisticasIndexRoute: typeof EstadisticasIndexRoute
+}
+
+const EstadisticasRouteRouteChildren: EstadisticasRouteRouteChildren = {
+  EstadisticasBarriosRouteRoute: EstadisticasBarriosRouteRouteWithChildren,
+  EstadisticasEstacionesRouteRoute:
+    EstadisticasEstacionesRouteRouteWithChildren,
+  EstadisticasHorariosRoute: EstadisticasHorariosRoute,
+  EstadisticasMapaRoute: EstadisticasMapaRoute,
+  EstadisticasRedistribucionRoute: EstadisticasRedistribucionRoute,
+  EstadisticasViajesRoute: EstadisticasViajesRoute,
+  EstadisticasIndexRoute: EstadisticasIndexRoute,
+}
+
+const EstadisticasRouteRouteWithChildren =
+  EstadisticasRouteRoute._addFileChildren(EstadisticasRouteRouteChildren)
 
 interface InformesRouteChildren {
   InformesMonthRoute: typeof InformesMonthRoute
@@ -1416,6 +1767,7 @@ const InformesRouteWithChildren = InformesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  EstadisticasRouteRoute: EstadisticasRouteRouteWithChildren,
   SplatRoute: SplatRoute,
   AboutRoute: AboutRoute,
   BarriosBiziZaragozaRoute: BarriosBiziZaragozaRoute,

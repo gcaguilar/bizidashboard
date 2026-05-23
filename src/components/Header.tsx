@@ -3,15 +3,25 @@
 import { useEffect, useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 
-const NAV_LINKS = [
-  { href: '/estadisticas', label: 'Estadísticas' },
+const MAIN_NAV = [
+  { href: '/', label: 'Inicio' },
+  { href: '/estadisticas/mapa', label: 'Mapa' },
+  { href: '/estadisticas/estaciones', label: 'Estaciones' },
   { href: '/informes', label: 'Informes' },
   { href: '/dashboard', label: 'Dashboard' },
+];
+
+const MORE_NAV = [
+  { href: '/estadisticas/barrios', label: 'Barrios' },
   { href: '/estado', label: 'Estado' },
+  { href: '/developers', label: 'API' },
+  { href: '/metodologia', label: 'Metodología' },
+  { href: '/biciradar', label: 'Bici Radar' },
 ];
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -21,6 +31,19 @@ export default function Header() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileMenuOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!moreOpen) return;
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-more-dropdown]')) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [moreOpen]);
 
   return (
     <>
@@ -33,8 +56,8 @@ export default function Header() {
             </a>
 
             {/* Desktop nav */}
-            <nav aria-label="Navegación principal" className="hidden gap-4 text-sm md:flex">
-              {NAV_LINKS.map(link => (
+            <nav aria-label="Navegación principal" className="hidden items-center gap-4 text-sm md:flex">
+              {MAIN_NAV.map(link => (
                 <a
                   key={link.href}
                   href={link.href}
@@ -43,6 +66,29 @@ export default function Header() {
                   {link.label}
                 </a>
               ))}
+
+              {/* Más dropdown */}
+              <div className="relative" data-more-dropdown>
+                <button
+                  onClick={() => setMoreOpen(v => !v)}
+                  className="text-[var(--muted)] hover:text-[var(--foreground)] transition"
+                >
+                  Más
+                </button>
+                {moreOpen && (
+                  <div className="absolute right-0 top-full mt-2 flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-lg">
+                    {MORE_NAV.map(link => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        className="rounded-lg px-3 py-2 text-sm text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
 
@@ -86,12 +132,23 @@ export default function Header() {
 
           {/* Mobile nav links */}
           <nav className="flex flex-col gap-4 mt-4">
-            {NAV_LINKS.map(link => (
+            {MAIN_NAV.map(link => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-2xl font-bold text-[var(--foreground)] hover:text-[var(--primary)] transition"
+              >
+                {link.label}
+              </a>
+            ))}
+            <div className="my-2 h-px bg-[var(--border)]" />
+            {MORE_NAV.map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-lg font-semibold text-[var(--muted)] hover:text-[var(--primary)] transition"
               >
                 {link.label}
               </a>

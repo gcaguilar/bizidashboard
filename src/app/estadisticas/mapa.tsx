@@ -19,8 +19,12 @@ const FAQ_ITEMS = [
     answer: 'Si. Las estaciones destacadas enlazan a su ficha publica y desde ahi puedes bajar al detalle operativo completo o seguir navegando por barrio.',
   },
   {
-    question: 'Que hago si busco una lectura rapida y no un analisis completo?',
-    answer: 'Lo mas util es abrir el dashboard en vista resumen o la ficha publica de una estacion concreta. Si buscas contexto adicional, usa despues el hub de barrios o el archivo mensual.',
+    question: 'Que significan los colores en el mapa?',
+    answer: 'Rojo indica desequilibrio (estacion vacia o llena), verde indica estabilidad y azul marca tus estaciones favoritas. Toca cualquier estacion para ver su detalle.',
+  },
+  {
+    question: 'Cuantas estaciones tiene Bizi Zaragoza?',
+    answer: 'Bizi Zaragoza cuenta con mas de 130 estaciones distribuidas por toda la ciudad. La cifra exacta de estaciones activas aparece en el indicador superior.',
   },
 ] as const
 
@@ -90,7 +94,7 @@ function MapaPage() {
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Landing de utilidad inmediata</p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Mapa y estaciones Bizi Zaragoza en tiempo real</h1>
-            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Encuentra estaciones, comprueba bicis o anclajes libres y salta al dashboard en vivo o a fichas publicas por estacion.</p>
+            <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Encuentra estaciones, comprueba bicis o anclajes libres y salta al mapa en vivo.</p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{landingData.stationRows.length} estaciones publicas</span>
@@ -99,14 +103,15 @@ function MapaPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <a className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95" href={appRoutes.dashboardView('overview')}>Abrir dashboard en vista resumen</a>
-          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Explorar estaciones</a>
+          <a className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95" href={appRoutes.dashboardView('overview')}>Abrir mapa en vivo</a>
+          <a className="ui-inline-action" href={appRoutes.statsEstaciones()}>Estaciones con bicis</a>
+          <a className="ui-inline-action" href={appRoutes.dashboardHelp('alertas-activas')}>Estaciones casi vacias o llenas</a>
         </div>
       </header>
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="ui-section-card"><p className="stat-label">Paso 1</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Localiza la zona</h2><p className="mt-2 text-sm text-[var(--muted)]">Usa el mapa o entra por barrio si ya sabes en que parte de Zaragoza te vas a mover.</p></article>
-        <article className="ui-section-card"><p className="stat-label">Paso 2</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Revisa disponibilidad</h2><p className="mt-2 text-sm text-[var(--muted)]">Cada ficha publica muestra bicis, anclajes libres, ocupacion y comparacion frente a la media.</p></article>
-        <article className="ui-section-card"><p className="stat-label">Paso 3</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Baja al detalle operativo</h2><p className="mt-2 text-sm text-[var(--muted)]">Salta al dashboard para ver alertas, mapas y patrones completos.</p></article>
+        <article className="ui-section-card"><p className="stat-label">Paso 1</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Localiza la zona</h2><p className="mt-2 text-sm text-[var(--muted)]">Mapa o por barrio.</p></article>
+        <article className="ui-section-card"><p className="stat-label">Paso 2</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Revisa disponibilidad</h2><p className="mt-2 text-sm text-[var(--muted)]">Bicis, huecos y ocupacion.</p></article>
+        <article className="ui-section-card"><p className="stat-label">Paso 3</p><h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Detalle operativo</h2><p className="mt-2 text-sm text-[var(--muted)]">Alertas, mapas y patrones.</p></article>
       </section>
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas para empezar</h2>
@@ -118,10 +123,14 @@ function MapaPage() {
             </a>
           ))}
         </div>
+        <a className="mt-3 inline-flex items-center gap-1 text-xs text-[var(--primary)]" href={appRoutes.biciradar()}>
+          <span className="ui-chip text-[10px]">App movil</span>
+          Buscas la app movil? Entra en BiciRadar
+        </a>
       </section>
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas habituales</h2>
-        <div className="mt-2 grid gap-3 md:grid-cols-3">
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
           {FAQ_ITEMS.map((item) => (
             <article key={item.question} className="ui-surface-block">
               <p className="text-sm font-semibold text-[var(--foreground)]">{item.question}</p>
@@ -132,10 +141,9 @@ function MapaPage() {
       </section>
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mas rutas utiles</h2>
-        <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsBarrios()}><p className="text-sm font-semibold text-[var(--foreground)]">Barrios de Zaragoza</p><p className="mt-1 text-[11px] text-[var(--muted)]">Entra por zona si tu decision depende mas del barrio que de una estacion concreta.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.status()}><p className="text-sm font-semibold text-[var(--foreground)]">Estado del sistema</p><p className="mt-1 text-[11px] text-[var(--muted)]">Verifica cobertura y frescura del dato si notas huecos o lecturas parciales.</p></a>
-          <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.biciradar()}><p className="text-sm font-semibold text-[var(--foreground)]">BiciRadar</p><p className="mt-1 text-[11px] text-[var(--muted)]">App movil para seguir disponibilidad y accesos desde el telefono.</p></a>
           <a className="ui-surface-block ui-surface-block-interactive" href={appRoutes.statsHub()}><p className="text-sm font-semibold text-[var(--foreground)]">Ir a estadisticas</p><p className="mt-1 text-[11px] text-[var(--muted)]">Cambia a una lectura de ranking, barrios e informes.</p></a>
         </div>
       </section>

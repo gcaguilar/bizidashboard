@@ -142,9 +142,7 @@ export default function DevelopersPage() {
               API y datos abiertos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Todo lo necesario para reutilizar DatosBizi: documentacion, OpenAPI, ejemplos,
-              endpoints, descargas CSV, versiones de datos, cambios recientes, licencia y
-              pautas para citar los datos.
+              Documentación, ejemplos, endpoints y descargas para consumir los datos.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -162,33 +160,7 @@ export default function DevelopersPage() {
               ctaEvent={buildOpenApiCtaEvent('developers_hero')}
               className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
             >
-              Descargar especificacion OpenAPI
-            </TrackedLink>
-            <TrackedLink
-              href={appRoutes.llms()}
-              navigationEvent={{
-                source: 'developers_hero',
-                destination: 'llms',
-                sourceRole: 'utility',
-                destinationRole: 'utility',
-                transitionKind: 'within_public',
-              }}
-              className="ui-inline-action"
-            >
-              Abrir llms.txt
-            </TrackedLink>
-            <TrackedLink
-              href={appRoutes.llmsFull()}
-              navigationEvent={{
-                source: 'developers_hero',
-                destination: 'llms_full',
-                sourceRole: 'utility',
-                destinationRole: 'utility',
-                transitionKind: 'within_public',
-              }}
-              className="ui-inline-action"
-            >
-              Abrir llms-full.txt
+              Descargar OpenAPI
             </TrackedLink>
             <TrackedLink
               href={appRoutes.status()}
@@ -201,7 +173,7 @@ export default function DevelopersPage() {
               }}
               className="ui-inline-action"
             >
-              Revisar estado de los datos
+              Ver estado del sistema
             </TrackedLink>
             <TrackedLink
               href={appRoutes.methodology()}
@@ -214,7 +186,7 @@ export default function DevelopersPage() {
               }}
               className="ui-inline-action"
             >
-              Entender la metodologia
+              Metodología
             </TrackedLink>
           </div>
           <PublicSearchForm eventSource="developers" />
@@ -230,33 +202,6 @@ export default function DevelopersPage() {
           actionLabel="Revisar estado"
         />
       ) : null}
-
-      <section className="grid gap-4 md:grid-cols-4">
-        <article className="ui-section-card">
-          <p className="stat-label">Version API</p>
-          <p className="stat-value">{apiVersion}</p>
-          <p className="text-xs text-[var(--muted)]">Version publicada en la especificacion OpenAPI.</p>
-        </article>
-        <article className="ui-section-card">
-          <p className="stat-label">Version de datos</p>
-          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{datasetVersion}</p>
-          <p className="text-xs text-[var(--muted)]">Calculada a partir de la ultima muestra util y del historico agregado.</p>
-        </article>
-        <article className="ui-section-card">
-          <p className="stat-label">Cobertura historica</p>
-          <p className="stat-value">{dataset.coverage.totalDays}</p>
-          <p className="text-xs text-[var(--muted)]">{dataset.stats.totalSamples} muestras y {dataset.stats.totalStations} estaciones.</p>
-        </article>
-        <article className="ui-section-card">
-          <p className="stat-label">Ultima generacion</p>
-          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
-            {formatStatusDateTime(dataset.coverage.generatedAt)}
-          </p>
-          <p className="text-xs text-[var(--muted)]">
-            {latestMonth ? `Ultimo mes publicado ${formatMonthLabel(latestMonth)}.` : 'Sin archivo mensual publicado.'}
-          </p>
-        </article>
-      </section>
 
       <section className="ui-section-card">
         <div>
@@ -286,6 +231,33 @@ export default function DevelopersPage() {
             </pre>
           </Card>
         </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-4">
+        <article className="ui-section-card">
+          <p className="stat-label">Version API</p>
+          <p className="stat-value">{apiVersion}</p>
+          <p className="text-xs text-[var(--muted)]">Version publicada en la especificacion OpenAPI.</p>
+        </article>
+        <article className="ui-section-card">
+          <p className="stat-label">Version de datos</p>
+          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{datasetVersion}</p>
+          <p className="text-xs text-[var(--muted)]">Calculada a partir de la ultima muestra util y del historico agregado.</p>
+        </article>
+        <article className="ui-section-card">
+          <p className="stat-label">Cobertura historica</p>
+          <p className="stat-value">{dataset.coverage.totalDays}</p>
+          <p className="text-xs text-[var(--muted)]">{dataset.stats.totalSamples} muestras y {dataset.stats.totalStations} estaciones.</p>
+        </article>
+        <article className="ui-section-card">
+          <p className="stat-label">Ultima generacion</p>
+          <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
+            {formatStatusDateTime(dataset.coverage.generatedAt)}
+          </p>
+          <p className="text-xs text-[var(--muted)]">
+            {latestMonth ? `Ultimo mes publicado ${formatMonthLabel(latestMonth)}.` : 'Sin archivo mensual publicado.'}
+          </p>
+        </article>
       </section>
 
       <section className="ui-section-card" id="rebalancing-api">

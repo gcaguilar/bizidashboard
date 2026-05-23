@@ -246,12 +246,7 @@ export default function BiciRadarPage() {
             Bici Radar
           </h1>
           <p className="mt-3 max-w-xl text-base text-[var(--muted)] md:text-lg">
-            Encuentra bicis compartidas cerca de ti y comprueba si hay bicis o huecos antes de salir.
-            Disponible para Zaragoza, Madrid, Barcelona, Valencia y Sevilla.
-          </p>
-          <p className="mt-3 max-w-2xl text-sm text-[var(--muted)]">
-            En iOS ya puedes descargar la version publica desde la App Store. En Android el acceso sigue siendo para testers: primero
-            debes unirte al Google Group y despues abrir desde tu telefono el enlace de Google Play.
+            Encuentra bicis compartidas cerca de ti. Gratis, sin publicidad.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <DownloadCtas />
@@ -312,6 +307,17 @@ export default function BiciRadarPage() {
           En Android, el enlace de Google Play solo tiene sentido despues de unirte al grupo de testers y abrirlo desde tu telefono.
         </p>
         </Card>
+      </section>
+
+      <section className="text-center">
+        <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descárgala gratis</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">Disponible en iOS para todos. En Android acceso para testers.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <DownloadCtas />
+        </div>
+        <p className="mt-8 text-xs text-[var(--muted)]">
+          <a href="/" className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</a>
+        </p>
       </section>
     </PageShell>
   );

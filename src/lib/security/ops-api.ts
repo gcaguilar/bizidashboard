@@ -1,10 +1,9 @@
 // Response removed;
 import { withProtect } from '@/lib/security/route-protection';
-import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
+import type { RouteHandler } from '@/lib/security/route-protection';
 import { getOpsApiKey } from '@/lib/security/config';
 import { isApiKeyValid, readOpsApiKey } from '@/lib/security/http';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
-import type { RouteResult } from '@/lib/security/route-protection';
 
 export type OperationalAccessOptions = {
   namespace: string;

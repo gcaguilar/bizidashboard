@@ -14,6 +14,7 @@ export function PublicPageLoading() {
           <Skeleton className="h-9 w-28 rounded-xl" />
         </div>
       </div>
+      <p className="mt-6 text-center text-sm text-[var(--muted)]">Cargando datos actualizados...</p>
       <div className="grid gap-4 md:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-24 rounded-[var(--radius-lg)]" />

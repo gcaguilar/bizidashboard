@@ -104,14 +104,17 @@ export interface CollectionPipelineConfig {
 function makeDefaultFetchAdapter(): GbfFetchAdapter {
   return {
     fetchDiscovery,
-    fetchStationStatus: (discovery) => fetchStationStatus(discovery as any) as Promise<StationStatusResponse>,
-    fetchStationInformation: (discovery) => fetchStationInformation(discovery as any) as Promise<StationInformation[]>,
+    fetchStationStatus: (discovery) =>
+      fetchStationStatus(discovery as Parameters<typeof fetchStationStatus>[0]) as Promise<StationStatusResponse>,
+    fetchStationInformation: (discovery) =>
+      fetchStationInformation(discovery as Parameters<typeof fetchStationInformation>[0]) as Promise<StationInformation[]>,
   };
 }
 
 function makeDefaultValidationAdapter(): ValidationAdapter {
   return {
-    validateAndStore: (response, options) => validateAndStore(response as any, options) as Promise<ValidationResult>,
+    validateAndStore: (response, options) =>
+      validateAndStore(response as Parameters<typeof validateAndStore>[0], options) as Promise<ValidationResult>,
   };
 }
 

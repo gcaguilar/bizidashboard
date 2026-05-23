@@ -3,21 +3,18 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { PublicSectionNav } from '@/app/_components/PublicSectionNav';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import {
-  formatStatusDateTime,
   getApiVersionLabel,
   getCoverageLabel,
   getDatasetVersionLabel,
   getHealthLabel,
   getHealthToneClasses,
   getObservedCadenceLabel,
-  getPipelineLagLabel,
 } from '@/lib/system-status';
 import { getMethodologyPageData } from '@/server-functions/metodologia';
 
@@ -92,23 +89,6 @@ export default function MethodologyPage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
-            <TrackedAnchor
-              href={historyMeta.source.gbfsDiscoveryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              ctaEvent={{
-                source: 'methodology_hero',
-                ctaId: 'dataset_source_open',
-                destination: 'gbfs_discovery',
-                isExternal: true,
-                sourceRole: 'utility',
-                destinationRole: 'utility',
-                transitionKind: 'within_public',
-              }}
-              className="inline-flex rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-bold text-white transition hover:brightness-95"
-            >
-              Ver feed GBFS oficial
-            </TrackedAnchor>
             <TrackedLink
               href={appRoutes.developers()}
               ctaEvent={{
@@ -190,12 +170,6 @@ export default function MethodologyPage() {
             disponibilidad actual, historico agregado, rankings, paginas por barrio, informes mensuales
             y endpoints API.
           </p>
-          <p>
-            La ultima muestra util hoy es {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)} y el
-            retraso visible es {getPipelineLagLabel(status)}. Cuando falta cobertura o la serie
-            es parcial, evitamos presentar paginas pobres como si fueran conclusiones solidas. Ese
-            criterio se aplica igual a estaciones, barrios, informes y landings.
-          </p>
         </div>
       </section>
 
@@ -243,7 +217,7 @@ export default function MethodologyPage() {
         </div>
 
         <div className="mt-2 grid gap-3 md:grid-cols-2">
-          {faqItems.map((item) => (
+          {faqItems.slice(0, 4).map((item) => (
             <article
               key={item.id}
               className="ui-surface-block"
@@ -263,7 +237,7 @@ export default function MethodologyPage() {
           <h2 className="text-xl font-black text-[var(--foreground)]">Rutas relacionadas</h2>
         </div>
 
-        <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-2 grid gap-3 md:grid-cols-2">
           <TrackedLink
             href={appRoutes.developers()}
             ctaEvent={{
@@ -330,38 +304,6 @@ export default function MethodologyPage() {
             <p className="text-sm font-semibold text-[var(--foreground)]">Fichas de estacion</p>
             <p className="mt-1 text-[11px] text-[var(--muted)]">
               Baja al detalle publico de disponibilidad, horas activas y comparacion con la ciudad.
-            </p>
-          </TrackedLink>
-          <TrackedLink
-            href={appRoutes.districtLanding()}
-            navigationEvent={{
-              source: 'methodology_related',
-              destination: 'district_hub',
-              sourceRole: 'utility',
-              destinationRole: 'hub',
-              transitionKind: 'within_public',
-            }}
-            className="ui-surface-block ui-surface-block-interactive"
-          >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Barrios y contexto territorial</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Interpreta comparativas por barrio sabiendo que metricas son puntuales y cuales son agregadas.
-            </p>
-          </TrackedLink>
-          <TrackedLink
-            href={appRoutes.dashboardHelp()}
-            navigationEvent={{
-              source: 'methodology_related',
-              destination: 'dashboard_help',
-              sourceRole: 'utility',
-              destinationRole: 'dashboard',
-              transitionKind: 'to_dashboard',
-            }}
-            className="ui-surface-block ui-surface-block-interactive"
-          >
-            <p className="text-sm font-semibold text-[var(--foreground)]">Ayuda completa del dashboard</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">
-              Si necesitas mas detalle o una FAQ extensa, entra en la ayuda del dashboard.
             </p>
           </TrackedLink>
         </div>
