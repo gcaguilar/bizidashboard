@@ -66,7 +66,7 @@ function HorariosPage() {
           <span className="ui-chip">Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}</span>
         </div>
         <div className="flex flex-wrap gap-3">
-          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'horarios_page', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver disponibilidad en el mapa</TrackedLink>
+          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'horarios_page', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Abrir mapa avanzado</TrackedLink>
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'horarios_page', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Buscar estaciones</TrackedLink>
         </div>
       </header>

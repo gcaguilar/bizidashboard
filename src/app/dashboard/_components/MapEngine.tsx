@@ -347,8 +347,8 @@ export function MapEngine({
 
   if (stations.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
-        No hay estaciones disponibles para los filtros actuales.
+      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[var(--muted)]">
+        No hay estaciones para los filtros actuales. Desactiva “solo con bicis” o “solo con huecos” para ampliar resultados.
       </div>
     );
   }
@@ -405,7 +405,7 @@ export function MapEngine({
 
         {userLocation ? (
           <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
-            <div className="relative flex h-4 w-4 items-center justify-center" aria-label="Tu ubicacion aproximada">
+            <div className="relative flex h-4 w-4 items-center justify-center" aria-label="Tu ubicación aproximada">
               <span className="absolute inline-flex h-7 w-7 animate-ping rounded-full bg-[var(--primary)]/35" />
               <span className="relative inline-flex h-3 w-3 rounded-full border border-white bg-[var(--primary)]" />
             </div>

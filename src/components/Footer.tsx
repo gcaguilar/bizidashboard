@@ -3,10 +3,10 @@ import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 
 const FOOTER_LINKS_ROW1 = [
-  { href: appRoutes.dashboard(), label: 'Mapa', ctaId: 'map' },
+  { href: appRoutes.dashboard(), label: 'Mapa avanzado', ctaId: 'map' },
   { href: appRoutes.statsEstaciones(), label: 'Estaciones', ctaId: 'stations' },
   { href: appRoutes.reports(), label: 'Informes', ctaId: 'reports' },
-  { href: appRoutes.dashboard(), label: 'Dashboard', ctaId: 'dashboard' },
+  { href: appRoutes.statsRedistribucion(), label: 'Redistribución', ctaId: 'redistribucion' },
 ]
 
 const FOOTER_LINKS_ROW2 = [

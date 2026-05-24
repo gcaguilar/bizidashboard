@@ -70,7 +70,7 @@ const COLUMN_VISIBILITY_LABELS: Record<string, string> = {
 
 // ─── CSV Export ────────────────────────────────────────────────────────────
 
-function copyToClipboard(diagnostics: StationDiagnostic[]) {
+async function copyToClipboard(diagnostics: StationDiagnostic[]) {
   const text = diagnostics
     .map((d) => [
       d.stationName,
@@ -83,7 +83,7 @@ function copyToClipboard(diagnostics: StationDiagnostic[]) {
       URGENCY_LABEL[d.urgency],
     ].join('\t'))
     .join('\n');
-  void navigator.clipboard.writeText(text);
+  await navigator.clipboard.writeText(text);
 }
 
 function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
@@ -358,6 +358,7 @@ function FilterSelect({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function RebalancingTable({ diagnostics, initialParams }: Props) {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [sorting, setSorting] = useState<SortingState>(() => {
     if (initialParams?.sort) {
       const [id, desc] = initialParams.sort.split(':');
@@ -588,11 +589,16 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         </Accordion>
         {totalRows > 0 && (
           <Button
-            onClick={() => {
+            onClick={async () => {
               const data = selectedCount > 0
                 ? table.getSelectedRowModel().rows.map((r) => r.original)
                 : table.getFilteredRowModel().rows.map((r) => r.original);
-              copyToClipboard(data);
+              try {
+                await copyToClipboard(data);
+                setCopyState('copied');
+              } catch {
+                setCopyState('error');
+              }
             }}
             variant="ghost"
             size="sm"
@@ -614,6 +620,13 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         {selectedCount > 0 && (
           <span className="text-xs text-[var(--muted)]">
             {selectedCount} seleccionado{selectedCount !== 1 ? 's' : ''}
+          </span>
+        )}
+        {copyState !== 'idle' && (
+          <span className="text-xs text-[var(--muted)]" role="status">
+            {copyState === 'copied'
+              ? 'Datos copiados al portapapeles.'
+              : 'No se pudo copiar automáticamente. Usa Exportar CSV como alternativa.'}
           </span>
         )}
       </div>
@@ -732,7 +745,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         </Table>
         {totalRows === 0 && (
           <p className="py-8 text-center text-sm text-[var(--muted)]">
-            No hay estaciones que mostrar con los filtros actuales.
+            No hay estaciones que mostrar con los filtros actuales. Limpia filtros o cambia clasificación y urgencia.
           </p>
         )}
       </ScrollArea>

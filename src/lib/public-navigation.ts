@@ -34,11 +34,11 @@ export const PUBLIC_NAV_ITEMS = [
   { id: 'home', label: 'Inicio', href: appRoutes.home() },
   { id: 'estadisticas', label: 'Estadísticas', href: appRoutes.statsHub() },
   { id: 'reports', label: 'Informes', href: appRoutes.reports() },
-  { id: 'dashboard', label: 'Dashboard', href: appRoutes.dashboard() },
+  { id: 'dashboard', label: 'Mapa avanzado', href: appRoutes.dashboard() },
   { id: 'explore', label: 'Explorar', href: appRoutes.exploreHub() },
   { id: 'status', label: 'Estado', href: appRoutes.status() },
   { id: 'api', label: 'API', href: appRoutes.developers() },
-  { id: 'help', label: 'Metodologia', href: appRoutes.methodology() },
+  { id: 'help', label: 'Metodología', href: appRoutes.methodology() },
 ];
 
 export function getExploreHubSections(options?: {
@@ -51,9 +51,9 @@ export function getExploreHubSections(options?: {
   return [
     {
       id: 'operations',
-      title: 'Operacion y lectura rapida',
+      title: 'Operación y lectura rápida',
       description:
-        'Herramientas para abrir el sistema en vivo, detectar friccion y moverse entre mapas y alertas sin perder contexto.',
+        'Herramientas para abrir el sistema en vivo, detectar fricción y moverse entre mapas y alertas sin perder contexto.',
       items: [
         {
           id: 'stations',
@@ -62,7 +62,7 @@ export function getExploreHubSections(options?: {
           description:
             'Busca estaciones, entra al detalle operativo y abre predicciones, mapas y comparativas.',
           href: appRoutes.dashboardStations(),
-          destinationLabel: 'Dashboard > Operaciones',
+          destinationLabel: 'Mapa avanzado > Operaciones',
         },
         {
           id: 'alerts',
@@ -78,33 +78,33 @@ export function getExploreHubSections(options?: {
           title: 'Mapas',
           eyebrow: 'Vista cartografica',
           description:
-            'Abre el mapa principal con filtros, geolocalizacion, densidad y contexto de disponibilidad.',
+            'Abre el mapa principal con filtros, geolocalización, densidad y contexto de disponibilidad.',
           href: appRoutes.dashboard(),
-          destinationLabel: 'Dashboard > Resumen',
+          destinationLabel: 'Mapa avanzado',
         },
         {
           id: 'system-kpis',
           title: 'KPIs sistema',
           eyebrow: 'Salud y cobertura',
           description:
-            'Mide cobertura, lag, volumen y estado general del sistema desde una pagina publica.',
+            'Mide cobertura, lag, volumen y estado general del sistema desde una página pública.',
           href: appRoutes.status(),
-          destinationLabel: 'Pagina publica',
+          destinationLabel: 'Página pública',
         },
         {
           id: 'redistribucion',
-          title: 'Redistribucion',
-          eyebrow: 'Logistica y equilibrio',
+          title: 'Redistribución',
+          eyebrow: 'Logística y equilibrio',
           description:
-            'Diagnostico de redistribucion con clasificacion de estaciones, predicciones y transferencias origen-destino sugeridas.',
+            'Diagnóstico de redistribución con clasificación de estaciones, predicciones y transferencias origen-destino sugeridas.',
           href: appRoutes.seoPage('redistribucion'),
-          destinationLabel: 'Landing publica',
+          destinationLabel: 'Página pública',
         },
       ],
     },
     {
       id: 'analysis',
-      title: 'Analisis y descubrimiento',
+      title: 'Análisis y descubrimiento',
       description:
         'Bloques para leer patrones temporales, comparar zonas y entender movilidad, demanda y comportamiento.',
       items: [
@@ -122,18 +122,18 @@ export function getExploreHubSections(options?: {
           title: 'Rankings',
           eyebrow: 'Priorizacion',
           description:
-            'Revisa estaciones con mayor uso, friccion o menor disponibilidad para decidir antes.',
+            'Revisa estaciones con mayor uso, fricción o menor disponibilidad para decidir antes.',
           href: appRoutes.dashboardView('operations'),
-          destinationLabel: 'Dashboard > Operaciones',
+          destinationLabel: 'Mapa avanzado > Operaciones',
         },
         {
           id: 'heatmap',
           title: 'Heatmap',
           eyebrow: 'Lectura horaria',
           description:
-            'Usa la capa de analisis para localizar horas punta, ocupacion y comportamiento por franja.',
+            'Usa la capa de análisis para localizar horas punta, ocupación y comportamiento por franja.',
           href: appRoutes.dashboardView('research'),
-          destinationLabel: 'Dashboard > Analisis',
+          destinationLabel: 'Mapa avanzado > Análisis',
         },
         {
           id: 'compare',
@@ -142,16 +142,16 @@ export function getExploreHubSections(options?: {
           description:
             'Compara estaciones y contextos con estabilidad, uso relativo y señales recientes.',
           href: appRoutes.compare(),
-          destinationLabel: 'Pagina publica',
+          destinationLabel: 'Página pública',
         },
         {
           id: 'patterns',
           title: 'Patrones',
           eyebrow: 'Comportamiento intradia',
           description:
-            'Explora tendencias horarias, volatilidad y regularidad para una estacion o el sistema.',
+            'Explora tendencias horarias, volatilidad y regularidad para una estación o el sistema.',
           href: appRoutes.dashboardView('research'),
-          destinationLabel: 'Dashboard > Analisis',
+          destinationLabel: 'Mapa avanzado > Análisis',
         },
         {
           id: 'mobility',
@@ -160,40 +160,40 @@ export function getExploreHubSections(options?: {
           description:
             'Sigue señales de salidas, llegadas y demanda agregada para lectura de movilidad urbana.',
           href: appRoutes.dashboardFlow(),
-          destinationLabel: 'Pagina dedicada',
+          destinationLabel: 'Página dedicada',
         },
         {
           id: 'districts',
           title: 'Barrios',
           eyebrow: 'Contexto territorial',
           description:
-            'Abre comparativas territoriales y paginas publicas para lectura por barrio y distrito.',
+            'Abre comparativas territoriales y páginas públicas para lectura por barrio y distrito.',
           href: appRoutes.districtLanding(),
-          destinationLabel: 'Landing publica',
+          destinationLabel: 'Página pública',
         },
       ],
     },
     {
       id: 'archive',
-      title: 'Historico y series',
+      title: 'Histórico y series',
       description:
-        'Accesos para auditar cobertura, leer la evolucion temporal y enlazar informes mensuales persistentes.',
+        'Accesos para auditar cobertura, leer la evolución temporal y enlazar informes mensuales persistentes.',
       items: [
         {
           id: 'history',
-          title: 'Historico',
-          eyebrow: 'Auditoria del dataset',
+          title: 'Histórico',
+          eyebrow: 'Auditoría del dataset',
           description:
-            'Consulta historico agregado, exportaciones y trazabilidad de los datos compartidos.',
+            'Consulta histórico agregado, exportaciones y trazabilidad de los datos compartidos.',
           href: appRoutes.dashboardView('data'),
-          destinationLabel: 'Dashboard > Datos',
+          destinationLabel: 'Mapa avanzado > Datos',
         },
         {
           id: 'time-series',
           title: 'Series temporales',
           eyebrow: 'Archivo por periodos',
           description:
-            'Entra al mes mas reciente o al archivo completo para seguir demanda, ocupacion y balance.',
+            'Entra al mes más reciente o al archivo completo para seguir demanda, ocupación y balance.',
           href: latestMonthHref,
           destinationLabel: options?.latestMonth ? `Informe ${options.latestMonth}` : 'Archivo mensual',
         },

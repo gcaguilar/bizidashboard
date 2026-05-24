@@ -72,6 +72,7 @@ export const appRoutes = {
   cityAlertsAlias: (city: string) => `/${encodeSegment(city)}/alertas`,
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
+  about: () => '/about',
   biciradar: () => '/biciradar',
   utilityLanding: () => '/estadisticas/mapa',
   insightsLanding: () => '/estadisticas',
@@ -279,7 +280,7 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
   {
     id: 'methodology',
     href: appRoutes.methodology(),
-    label: 'Metodologia',
+    label: 'Metodología',
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.64,
@@ -336,7 +337,7 @@ export const TOOL_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
   {
     id: 'dashboard',
     href: appRoutes.dashboard(),
-    label: 'Dashboard',
+    label: 'Mapa avanzado',
     sitemap: {
       changeFrequency: 'hourly',
       priority: 0.9,

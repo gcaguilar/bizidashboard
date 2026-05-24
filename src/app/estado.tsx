@@ -34,16 +34,16 @@ export const Route = createFileRoute('/estado')({
         {
           name: 'description',
           content:
-            'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias que afecten al dashboard, la API o los informes.',
+            'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias que afecten al mapa avanzado, la API o los informes.',
         },
         { property: 'og:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias activas.' },
+        { property: 'og:description', content: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/estado` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'Comprueba si los datos de Bizi Zaragoza estan frescos, que cobertura tienen y si hay incidencias activas.' },
+        { name: 'twitter:description', content: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/estado` }],
       title: 'Cobertura y estado de datos de Bizi Zaragoza',
@@ -65,9 +65,9 @@ export default function SystemStatusPage() {
   const [showTechnical, setShowTechnical] = useState(false);
   const summaryCards = [
     {
-      label: 'Ultima muestra util',
+      label: 'Última muestra útil',
       value: formatStatusDateTime(dataset.lastUpdated.lastSampleAt),
-      hint: 'Referencia que comparten dashboard, informes y API.',
+      hint: 'Referencia que comparten el mapa avanzado, los informes y la API.',
     },
     {
       label: 'Frecuencia de actualización',
@@ -82,32 +82,32 @@ export default function SystemStatusPage() {
     {
       label: 'Estaciones activas',
       value: formatStatusNumber(activeStationsCount),
-      hint: 'Estaciones vistas en la muestra mas reciente.',
+      hint: 'Estaciones vistas en la muestra más reciente.',
     },
     {
       label: 'Registros almacenados',
       value: formatStatusNumber(dataset.stats.totalSamples),
-      hint: 'Base disponible para historico, comparativas y rankings.',
+      hint: 'Base disponible para histórico, comparativas y rankings.',
     },
     {
       label: 'Atraso en los datos',
       value: getPipelineLagLabel(status),
-      hint: 'Tiempo aproximado desde la ultima recogida valida.',
+      hint: 'Tiempo aproximado desde la última recogida válida.',
     },
     {
       label: 'Versión de datos',
       value: getDatasetVersionLabel(dataset),
-      hint: 'Version derivada de la ultima muestra util y del volumen agregado.',
+      hint: 'Versión derivada de la última muestra útil y del volumen agregado.',
     },
     {
       label: 'Versión de la API',
       value: getApiVersionLabel(),
-      hint: 'Version publicada en la especificacion OpenAPI.',
+      hint: 'Versión publicada en la especificación OpenAPI.',
     },
     {
-      label: 'Ultima actualizacion de informes',
+      label: 'Última actualización de informes',
       value: formatStatusDateTime(availableMonths.generatedAt),
-      hint: latestMonth ? `Ultimo mes indexable ${formatMonthLabel(latestMonth)}.` : 'Sin meses publicados todavia.',
+      hint: latestMonth ? `Último mes indexable ${formatMonthLabel(latestMonth)}.` : 'Sin meses publicados todavía.',
     },
     {
       label: 'Problemas activos',
@@ -132,7 +132,7 @@ export default function SystemStatusPage() {
                 '@type': 'Dataset',
                 name: `Estado del sistema ${cityName}`,
                 description:
-                  'Cobertura, frescura, versiones e incidencias de los datos publicos.',
+                  'Cobertura, frescura, versiones e incidencias de los datos públicos.',
                 url: appRoutes.status(),
               },
             ],
@@ -154,16 +154,16 @@ export default function SystemStatusPage() {
               Estado de los datos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Una vista rapida para saber si los datos estan al dia, cuanta cobertura historica hay,
-              si existen incidencias y que servicios pueden verse afectados.
+              Una vista rápida para saber si los datos están al día, cuánta cobertura histórica hay,
+              si existen incidencias y qué servicios pueden verse afectados.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">Ultima muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
+            <span className="ui-chip">Última muestra {formatStatusDateTime(dataset.lastUpdated.lastSampleAt)}</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {healthLabel}
             </span>
-            <span className="ui-chip">{dataset.coverage.totalDays} dias de cobertura</span>
+            <span className="ui-chip">{dataset.coverage.totalDays} días de cobertura</span>
             <span className="ui-chip">API {getApiVersionLabel()}</span>
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-primary-button"
             >
-              Abrir dashboard
+              Abrir mapa avanzado
             </TrackedLink>
             <TrackedLink
               href={appRoutes.developers()}
@@ -209,7 +209,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-inline-action"
             >
-              Entender metodologia
+              Entender metodología
             </TrackedLink>
           </div>
 
@@ -267,8 +267,8 @@ export default function SystemStatusPage() {
             </p>
             <h2 className="text-xl font-black text-[var(--foreground)]">Incidencias y notas importantes</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Aqui aparecen los problemas que conviene revisar antes de usar los datos. Si no hay
-              incidencias, puedes tomarlo como una senal de estabilidad.
+              Aquí aparecen los problemas que conviene revisar antes de usar los datos. Si no hay
+              incidencias, puedes tomarlo como una señal de estabilidad.
             </p>
           </div>
 
@@ -290,7 +290,7 @@ export default function SystemStatusPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Fuente y versiones
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">De donde salen los datos</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">De dónde salen los datos</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
@@ -313,7 +313,7 @@ export default function SystemStatusPage() {
               <p className="text-sm font-semibold text-[var(--foreground)]">{getDatasetVersionLabel(dataset)}</p>
             </div>
             <div className="ui-metric-card">
-              <p className="stat-label">Ultimo informe publicado</p>
+              <p className="stat-label">Último informe publicado</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 {latestMonth ? formatMonthLabel(latestMonth) : 'Sin informes'}
               </p>

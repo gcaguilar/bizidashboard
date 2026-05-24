@@ -7,25 +7,24 @@ import { appRoutes } from '@/lib/routes';
 
 const MAIN_NAV = [
   { href: appRoutes.home(), label: 'Inicio', ctaId: 'home' },
-  { href: appRoutes.dashboard(), label: 'Mapa', ctaId: 'map' },
+  { href: appRoutes.dashboard(), label: 'Mapa avanzado', ctaId: 'map' },
   { href: appRoutes.statsEstaciones(), label: 'Estaciones', ctaId: 'stations' },
   { href: appRoutes.reports(), label: 'Informes', ctaId: 'reports' },
   { href: appRoutes.biciradar(), label: 'Bici Radar', ctaId: 'biciradar' },
   { href: appRoutes.exploreHub(), label: 'Explorar', ctaId: 'explore' },
-  { href: appRoutes.dashboard(), label: 'Dashboard', ctaId: 'dashboard' },
+  { href: appRoutes.statsRedistribucion(), label: 'Redistribución', ctaId: 'redistribucion' },
 ];
 
 const MORE_NAV = [
   { href: appRoutes.statsHub(), label: 'Estadísticas', ctaId: 'stats' },
-  { href: appRoutes.statsRedistribucion(), label: 'Redistribución', ctaId: 'redistribucion' },
   { href: appRoutes.compare(), label: 'Comparar', ctaId: 'compare' },
   { href: appRoutes.statsBarrios(), label: 'Barrios', ctaId: 'barrios' },
   { href: appRoutes.statsHorarios(), label: 'Horarios', ctaId: 'horarios' },
   { href: appRoutes.statsViajes(), label: 'Viajes', ctaId: 'viajes' },
   { href: appRoutes.status(), label: 'Estado', ctaId: 'status' },
   { href: appRoutes.developers(), label: 'API', ctaId: 'api' },
-  { href: appRoutes.methodology(), label: 'Metodologia', ctaId: 'methodology' },
-  { href: appRoutes.home(), label: 'Sobre', ctaId: 'about' },
+  { href: appRoutes.methodology(), label: 'Metodología', ctaId: 'methodology' },
+  { href: appRoutes.about(), label: 'Sobre', ctaId: 'about' },
 ];
 
 export default function Header() {

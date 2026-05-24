@@ -186,8 +186,8 @@ export function HourlyCharts({
           </ChartWrapper>
         ) : (
           <div className="flex h-[270px] flex-col items-center justify-center gap-2 text-sm text-[var(--muted)]">
-            <p>No hay datos de patrones para esta estacion.</p>
-            <p className="text-xs">Selecciona otra estacion para comparar.</p>
+            <p>No hay histórico suficiente para esta estación.</p>
+            <p className="text-xs">Selecciona otra estación con más muestras para comparar.</p>
           </div>
         )}
       </div>

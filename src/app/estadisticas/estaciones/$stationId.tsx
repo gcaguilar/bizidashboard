@@ -21,7 +21,7 @@ function describeOccupancyDelta(delta: number): string {
 }
 
 function formatPredictionLabel(value: number | null, capacity: number): string {
-  if (value === null || !Number.isFinite(value) || capacity <= 0) return 'Sin prediccion suficiente'
+  if (value === null || !Number.isFinite(value) || capacity <= 0) return 'Sin predicción suficiente'
   return `${Math.round(value)} bicis (${formatPercent(value / capacity)})`
 }
 
@@ -31,7 +31,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   head: ({ params }) => {
     const id = params.stationId ?? ''
     const title = `Estación ${id} - DatosBizi`
-    const description = `Disponibilidad, ocupacion y patrones de uso de la estacion ${id} de Bizi Zaragoza.`
+    const description = `Disponibilidad, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -61,9 +61,9 @@ function StationPage() {
     return (
       <PageShell>
         <section className="ui-page-hero">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estacion</p>
-          <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estacion {stationId}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar esta estacion con confianza.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estación</p>
+          <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estación {stationId}</h1>
+          <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar esta estación con confianza.</p>
           <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'station_empty', ctaId: 'back_to_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver todas las estaciones</TrackedLink>
         </section>
       </PageShell>
@@ -95,26 +95,26 @@ function StationPage() {
   })()
   const faqItems = [
     {
-      question: 'Cuando suele ser mas facil encontrar bici?',
+      question: '¿Cuándo suele ser más fácil encontrar bici?',
       answer: data.highOccupancySlots[0]
-        ? `${formatDayTypeLabel(String(data.highOccupancySlots[0].dayType))} sobre ${formatHourRange(data.highOccupancySlots[0].hour)}, con una ocupacion media del ${formatPercent(data.highOccupancySlots[0].occupancyAvg)}.`
-        : 'Todavia no hay un patron historico suficientemente estable para responderlo con precision.',
+        ? `${formatDayTypeLabel(String(data.highOccupancySlots[0].dayType))} sobre ${formatHourRange(data.highOccupancySlots[0].hour)}, con una ocupación media del ${formatPercent(data.highOccupancySlots[0].occupancyAvg)}.`
+        : 'Todavía no hay un patrón histórico suficientemente estable para responderlo con precisión.',
     },
     {
-      question: 'Cuando suele haber mas huecos para devolver?',
+      question: '¿Cuándo suele haber más huecos para devolver?',
       answer: data.lowOccupancySlots[0]
-        ? `${formatDayTypeLabel(String(data.lowOccupancySlots[0].dayType))} sobre ${formatHourRange(data.lowOccupancySlots[0].hour)}, cuando la ocupacion media baja a ${formatPercent(data.lowOccupancySlots[0].occupancyAvg)}.`
-        : 'La serie disponible todavia no permite marcar una franja clara con mas anclajes libres.',
+        ? `${formatDayTypeLabel(String(data.lowOccupancySlots[0].dayType))} sobre ${formatHourRange(data.lowOccupancySlots[0].hour)}, cuando la ocupación media baja a ${formatPercent(data.lowOccupancySlots[0].occupancyAvg)}.`
+        : 'La serie disponible todavía no permite marcar una franja clara con más anclajes libres.',
     },
     {
-      question: 'Esta por encima o por debajo de la media de Zaragoza?',
-      answer: `La ocupacion actual esta ${describeOccupancyDelta(occupancyDelta)}: ${formatPercent(summary.currentOccupancy)} frente a ${formatPercent(summary.cityAverageOccupancy)} en la ciudad.`,
+      question: '¿Está por encima o por debajo de la media de Zaragoza?',
+      answer: `La ocupación actual está ${describeOccupancyDelta(occupancyDelta)}: ${formatPercent(summary.currentOccupancy)} frente a ${formatPercent(summary.cityAverageOccupancy)} en la ciudad.`,
     },
   ]
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
-      { '@type': 'WebPage', name: `${station.name} | DatosBizi`, description: `Ficha publica de ${station.name} con disponibilidad actual y patrones de uso.`, url: `${siteUrl}/estadisticas/estaciones/${station.id}`, inLanguage: 'es' },
+      { '@type': 'WebPage', name: `${station.name} | DatosBizi`, description: `Ficha pública de ${station.name} con disponibilidad actual y patrones de uso.`, url: `${siteUrl}/estadisticas/estaciones/${station.id}`, inLanguage: 'es' },
       { '@type': 'FAQPage', mainEntity: faqItems.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) },
     ],
   }
@@ -127,16 +127,16 @@ function StationPage() {
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
       <header className="ui-page-hero">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de estacion</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha pública de estación</p>
         <h1 className="mt-2 text-2xl sm:text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">{station.name}</h1>
         <div className="mt-3 flex items-center gap-3">
           <StationFavoriteButton stationId={station.id} />
         </div>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Disponibilidad actual, ocupacion y contexto de uso de la estacion Bizi {station.id}.
+          Disponibilidad actual, ocupación y contexto de uso de la estación Bizi {station.id}.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Abrir detalle en el dashboard</TrackedLink>
+          <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Ver en mapa avanzado</TrackedLink>
           {summary.districtSlug ? <TrackedLink className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)} ctaEvent={{ source: 'station_detail', ctaId: 'view_district', destination: summary.districtSlug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver barrio</TrackedLink> : null}
         </div>
       </header>
@@ -164,7 +164,7 @@ function StationPage() {
           <h2 className="text-xl font-black text-[var(--foreground)]">Resumen rapido</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
             <p>{actionableMessage}</p>
-            <p>Su ocupacion actual esta {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha para una lectura rapida y abre el dashboard si necesitas mapa, alertas o mas detalle.</p>
+            <p>Su ocupación actual está {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha para una lectura rápida y abre el mapa avanzado si necesitas mapa, alertas o más detalle.</p>
           </div>
         </article>
         <article className="ui-section-card">
