@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
@@ -310,7 +311,7 @@ export default function BiciRadarPage() {
           <DownloadCtas />
         </div>
         <p className="mt-8 text-xs text-[var(--muted)]">
-          <a href="/" className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</a>
+          <TrackedLink href="/" ctaEvent={{ source: 'biciradar_footer', ctaId: 'back_to_home', destination: 'home', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</TrackedLink>
         </p>
       </section>
     </PageShell>

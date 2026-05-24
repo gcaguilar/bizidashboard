@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
+import { TrackedLink } from '@/app/_components/TrackedLink'
+import { appRoutes } from '@/lib/routes'
 
 const FOOTER_LINKS_ROW1 = [
-  { href: '/estadisticas/mapa', label: 'Mapa' },
-  { href: '/estadisticas/estaciones', label: 'Estaciones' },
-  { href: '/informes', label: 'Informes' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: appRoutes.dashboard(), label: 'Mapa', ctaId: 'map' },
+  { href: appRoutes.statsEstaciones(), label: 'Estaciones', ctaId: 'stations' },
+  { href: appRoutes.reports(), label: 'Informes', ctaId: 'reports' },
+  { href: appRoutes.dashboard(), label: 'Dashboard', ctaId: 'dashboard' },
 ]
 
 const FOOTER_LINKS_ROW2 = [
-  { href: '/estado', label: 'Estado' },
-  { href: '/developers', label: 'API' },
-  { href: '/metodologia', label: 'Metodología' },
-  { href: '/biciradar', label: 'Bici Radar' },
+  { href: appRoutes.status(), label: 'Estado', ctaId: 'status' },
+  { href: appRoutes.developers(), label: 'API', ctaId: 'api' },
+  { href: appRoutes.methodology(), label: 'Metodología', ctaId: 'methodology' },
+  { href: appRoutes.biciradar(), label: 'Bici Radar', ctaId: 'biciradar' },
 ]
 
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
@@ -60,16 +62,16 @@ export default function Footer() {
           <div className="flex flex-col items-center gap-2">
             <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
               {FOOTER_LINKS_ROW1.map(link => (
-                <a key={link.href} href={link.href} className="hover:text-[var(--foreground)] transition">
+                <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
                   {link.label}
-                </a>
+                </TrackedLink>
               ))}
             </nav>
             <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
               {FOOTER_LINKS_ROW2.map(link => (
-                <a key={link.href} href={link.href} className="hover:text-[var(--foreground)] transition">
+                <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
                   {link.label}
-                </a>
+                </TrackedLink>
               ))}
             </nav>
           </div>
@@ -78,9 +80,9 @@ export default function Footer() {
             {lastUpdated && <p>Última actualización: {lastUpdated}</p>}
             <p>
               Datos abiertos vía{' '}
-              <a href="/developers" className="hover:text-[var(--foreground)] transition underline underline-offset-2">
+              <TrackedLink href={appRoutes.developers()} ctaEvent={{ source: 'footer', ctaId: 'api_public', destination: 'api', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition underline underline-offset-2">
                 API pública
-              </a>
+              </TrackedLink>
             </p>
             {version && (
               <p className="text-[10px] text-[var(--muted)]/60">

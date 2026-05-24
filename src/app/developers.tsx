@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
@@ -450,9 +450,14 @@ print(len(res.json()["transfers"]))`}</code>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Fuente primaria</p>
-              <Link to={dataset.source.gbfsDiscoveryUrl} className="ui-inline-action">
+              <a
+                href={dataset.source.gbfsDiscoveryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ui-inline-action"
+              >
                 {dataset.source.gbfsDiscoveryUrl}
-              </Link>
+              </a>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Ultima actualizacion compartida</p>

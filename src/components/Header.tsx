@@ -2,22 +2,30 @@
 
 import { useEffect, useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
+import { TrackedLink } from '@/app/_components/TrackedLink';
+import { appRoutes } from '@/lib/routes';
 
 const MAIN_NAV = [
-  { href: '/', label: 'Inicio' },
-  { href: '/estadisticas/mapa', label: 'Mapa' },
-  { href: '/estadisticas/estaciones', label: 'Estaciones' },
-  { href: '/informes', label: 'Informes' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: appRoutes.home(), label: 'Inicio', ctaId: 'home' },
+  { href: appRoutes.dashboard(), label: 'Mapa', ctaId: 'map' },
+  { href: appRoutes.statsEstaciones(), label: 'Estaciones', ctaId: 'stations' },
+  { href: appRoutes.reports(), label: 'Informes', ctaId: 'reports' },
+  { href: appRoutes.biciradar(), label: 'Bici Radar', ctaId: 'biciradar' },
+  { href: appRoutes.exploreHub(), label: 'Explorar', ctaId: 'explore' },
+  { href: appRoutes.dashboard(), label: 'Dashboard', ctaId: 'dashboard' },
 ];
 
 const MORE_NAV = [
-  { href: '/estadisticas/barrios', label: 'Barrios' },
-  { href: '/estadisticas/horarios', label: 'Horarios' },
-  { href: '/estadisticas/viajes', label: 'Viajes' },
-  { href: '/estado', label: 'Estado' },
-  { href: '/developers', label: 'API' },
-  { href: '/about', label: 'Sobre' },
+  { href: appRoutes.statsHub(), label: 'Estadísticas', ctaId: 'stats' },
+  { href: appRoutes.statsRedistribucion(), label: 'Redistribución', ctaId: 'redistribucion' },
+  { href: appRoutes.compare(), label: 'Comparar', ctaId: 'compare' },
+  { href: appRoutes.statsBarrios(), label: 'Barrios', ctaId: 'barrios' },
+  { href: appRoutes.statsHorarios(), label: 'Horarios', ctaId: 'horarios' },
+  { href: appRoutes.statsViajes(), label: 'Viajes', ctaId: 'viajes' },
+  { href: appRoutes.status(), label: 'Estado', ctaId: 'status' },
+  { href: appRoutes.developers(), label: 'API', ctaId: 'api' },
+  { href: appRoutes.methodology(), label: 'Metodologia', ctaId: 'methodology' },
+  { href: appRoutes.home(), label: 'Sobre', ctaId: 'about' },
 ];
 
 export default function Header() {
@@ -33,7 +41,6 @@ export default function Header() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileMenuOpen]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     if (!moreOpen) return;
     function handleClick(e: MouseEvent) {
@@ -50,25 +57,30 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3">
-          {/* Logo */}
           <div className="flex items-center gap-6">
-            <a href="/" className="text-lg font-bold text-[var(--foreground)]">
+            <TrackedLink href={appRoutes.home()} className="text-lg font-bold text-[var(--foreground)]">
               DatosBizi
-            </a>
+            </TrackedLink>
 
-            {/* Desktop nav */}
             <nav aria-label="Navegación principal" className="hidden items-center gap-4 text-sm md:flex">
               {MAIN_NAV.map(link => (
-                <a
+                <TrackedLink
                   key={link.href}
                   href={link.href}
+                  ctaEvent={{
+                    source: 'header_main',
+                    ctaId: link.ctaId,
+                    destination: link.ctaId,
+                    sourceRole: 'utility',
+                    destinationRole: 'hub',
+                    transitionKind: 'within_public',
+                  }}
                   className="text-[var(--muted)] hover:text-[var(--foreground)] transition"
                 >
                   {link.label}
-                </a>
+                </TrackedLink>
               ))}
 
-              {/* Más dropdown */}
               <div className="relative" data-more-dropdown>
                 <button
                   onClick={() => setMoreOpen(v => !v)}
@@ -79,13 +91,21 @@ export default function Header() {
                 {moreOpen && (
                   <div className="absolute right-0 top-full mt-2 flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-lg">
                     {MORE_NAV.map(link => (
-                      <a
+                      <TrackedLink
                         key={link.href}
                         href={link.href}
+                        ctaEvent={{
+                          source: 'header_more',
+                          ctaId: link.ctaId,
+                          destination: link.ctaId,
+                          sourceRole: 'utility',
+                          destinationRole: 'hub',
+                          transitionKind: 'within_public',
+                        }}
                         className="rounded-lg px-3 py-2 text-sm text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition"
                       >
                         {link.label}
-                      </a>
+                      </TrackedLink>
                     ))}
                   </div>
                 )}
@@ -93,11 +113,9 @@ export default function Header() {
             </nav>
           </div>
 
-          {/* Right side controls */}
           <div className="flex items-center gap-2">
             <ThemeToggleButton className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-sm text-[var(--foreground)] transition hover:border-[var(--primary)]/40" />
 
-            {/* Hamburger — mobile only */}
             <button
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Abrir menú"
@@ -114,10 +132,8 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[200] flex flex-col bg-[var(--background)] p-6 gap-6 md:hidden">
-          {/* Close button */}
           <div className="flex justify-end">
             <button
               onClick={() => setMobileMenuOpen(false)}
@@ -131,28 +147,43 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Mobile nav links */}
           <nav className="flex flex-col gap-4 mt-4">
             {MAIN_NAV.map(link => (
-              <a
+              <TrackedLink
                 key={link.href}
                 href={link.href}
+                ctaEvent={{
+                  source: 'header_mobile',
+                  ctaId: link.ctaId,
+                  destination: link.ctaId,
+                  sourceRole: 'utility',
+                  destinationRole: 'hub',
+                  transitionKind: 'within_public',
+                }}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-2xl font-bold text-[var(--foreground)] hover:text-[var(--primary)] transition"
               >
                 {link.label}
-              </a>
+              </TrackedLink>
             ))}
             <div className="my-2 h-px bg-[var(--border)]" />
             {MORE_NAV.map(link => (
-              <a
+              <TrackedLink
                 key={link.href}
                 href={link.href}
+                ctaEvent={{
+                  source: 'header_mobile',
+                  ctaId: link.ctaId,
+                  destination: link.ctaId,
+                  sourceRole: 'utility',
+                  destinationRole: 'hub',
+                  transitionKind: 'within_public',
+                }}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-lg font-semibold text-[var(--muted)] hover:text-[var(--primary)] transition"
               >
                 {link.label}
-              </a>
+              </TrackedLink>
             ))}
           </nav>
         </div>

@@ -21,10 +21,6 @@ export const Route = createFileRoute('/$')({
       }
     }
 
-    if (path.startsWith('dashboard/status')) {
-      throw redirect({ to: '/estado', replace: true })
-    }
-
     throw notFound()
   },
   notFoundComponent: NotFoundPage,
