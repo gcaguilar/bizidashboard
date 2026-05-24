@@ -56,16 +56,16 @@ export const Route = createFileRoute('/developers')({
         {
           name: 'description',
             content:
-            'API publica y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de donde sale cada dato.',
+            'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.',
         },
         { property: 'og:title', content: 'API y datos abiertos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'API publica y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de donde sale cada dato.' },
+        { property: 'og:description', content: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.' },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/developers` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'API y datos abiertos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'API publica y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de donde sale cada dato.' },
+        { name: 'twitter:description', content: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/developers` }],
       title: 'API y datos abiertos de Bizi Zaragoza',
@@ -96,14 +96,14 @@ export default function DevelopersPage() {
                 '@type': 'TechArticle',
                 name: `Developers y API ${cityName}`,
                 description:
-                  'Punto de entrada para consultar la API, descargar datos y entender versiones, ejemplos y limites.',
+                  'Punto de entrada para consultar la API, descargar datos y entender versiones, ejemplos y límites.',
                 url: `${siteUrl}${appRoutes.developers()}`,
               },
               {
                 '@type': 'Dataset',
                 name: `Dataset Bizi ${cityName}`,
                 description:
-                  'Datos actuales, historico agregado y descargas CSV que alimentan el dashboard, los informes y los rankings.',
+                  'Datos actuales, histórico agregado y descargas CSV que alimentan el mapa avanzado, los informes y los rankings.',
                 url: `${siteUrl}${appRoutes.developers()}`,
                 inLanguage: 'es',
                 isAccessibleForFree: true,
@@ -193,8 +193,8 @@ export default function DevelopersPage() {
       {shouldShowDataStateNotice(developersDataState) ? (
         <DataStateNotice
           state={developersDataState}
-          subject="la API publica"
-          description="La documentacion sigue disponible, pero los datos actuales, el historico y las exportaciones dependen del mismo estado que usa el dashboard."
+          subject="la API pública"
+          description="La documentación sigue disponible, pero los datos actuales, el histórico y las exportaciones dependen del mismo estado que usa el mapa avanzado."
           href={appRoutes.status()}
           actionLabel="Revisar estado"
         />
@@ -232,27 +232,27 @@ export default function DevelopersPage() {
 
       <section className="grid gap-4 md:grid-cols-4">
         <article className="ui-section-card">
-          <p className="stat-label">Version API</p>
+          <p className="stat-label">Versión API</p>
           <p className="stat-value">{apiVersion}</p>
-          <p className="text-xs text-[var(--muted)]">Version publicada en la especificacion OpenAPI.</p>
+          <p className="text-xs text-[var(--muted)]">Versión publicada en la especificación OpenAPI.</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Version de datos</p>
+          <p className="stat-label">Versión de datos</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">{datasetVersion}</p>
-          <p className="text-xs text-[var(--muted)]">Calculada a partir de la ultima muestra util y del historico agregado.</p>
+          <p className="text-xs text-[var(--muted)]">Calculada a partir de la última muestra útil y del histórico agregado.</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Cobertura historica</p>
+          <p className="stat-label">Cobertura histórica</p>
           <p className="stat-value">{dataset.coverage.totalDays}</p>
           <p className="text-xs text-[var(--muted)]">{dataset.stats.totalSamples} muestras y {dataset.stats.totalStations} estaciones.</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Ultima generacion</p>
+          <p className="stat-label">Última generación</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {formatStatusDateTime(dataset.coverage.generatedAt)}
           </p>
           <p className="text-xs text-[var(--muted)]">
-            {latestMonth ? `Ultimo mes publicado ${formatMonthLabel(latestMonth)}.` : 'Sin archivo mensual publicado.'}
+            {latestMonth ? `Último mes publicado ${formatMonthLabel(latestMonth)}.` : 'Sin archivo mensual publicado.'}
           </p>
         </article>
       </section>
@@ -260,12 +260,12 @@ export default function DevelopersPage() {
       <section className="ui-section-card" id="rebalancing-api">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Logistica y redistribucion
+            Logística y redistribución
           </p>
           <h2 className="text-xl font-black text-[var(--foreground)]">API de reequilibrio</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
             El endpoint <code>/api/rebalancing-report</code> devuelve recomendaciones origen-destino,
-            clasificacion A-F y metricas estimadas para priorizar movimientos.
+            clasificación A-F y métricas estimadas para priorizar movimientos.
           </p>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -344,7 +344,7 @@ print(len(res.json()["transfers"]))`}</code>
               <p className="mt-2 font-mono text-sm font-semibold text-[var(--foreground)]">{endpoint.path}</p>
               <p className="mt-2 text-sm text-[var(--muted)]">{endpoint.summary}</p>
               <p className="mt-2 text-xs text-[var(--muted)]">
-                {endpoint.params.length > 0 ? `Params: ${endpoint.params.join(', ')}` : 'Sin parametros obligatorios o query destacados.'}
+                {endpoint.params.length > 0 ? `Params: ${endpoint.params.join(', ')}` : 'Sin parámetros obligatorios o query destacados.'}
               </p>
             </Card>
           ))}
@@ -357,7 +357,7 @@ print(len(res.json()["transfers"]))`}</code>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Datos y descargas
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Historico, CSV y versiones de datos</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Histórico, CSV y versiones de datos</h2>
           </div>
           <div className="space-y-3">
             {csvDownloads.map((item) => (
@@ -393,25 +393,25 @@ print(len(res.json()["transfers"]))`}</code>
         <article className="ui-section-card">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Limites y politicas
+              Límites y políticas
             </p>
             <h2 className="text-xl font-black text-[var(--foreground)]">Consumo responsable</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
-              <p className="stat-label">Lectura publica</p>
+              <p className="stat-label">Lectura pública</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">Lecturas ligeras abiertas; usos intensivos con clave</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Las consultas sencillas siguen abiertas. CSV grandes y ventanas amplias usan `X-Public-Api-Key` y limites compartidos.</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Las consultas sencillas siguen abiertas. CSV grandes y ventanas amplias usan `X-Public-Api-Key` y límites compartidos.</p>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Ingesta protegida</p>
-              <p className="text-sm font-semibold text-[var(--foreground)]">GET y POST /api/collect requieren clave interna y limite de uso</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Configuracion por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`; `x-collect-api-key` se mantiene como alias temporal.</p>
+              <p className="text-sm font-semibold text-[var(--foreground)]">GET y POST /api/collect requieren clave interna y límite de uso</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Configuración por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`; `x-collect-api-key` se mantiene como alias temporal.</p>
             </div>
             <div className="ui-metric-card">
-              <p className="stat-label">Licencia del codigo</p>
+              <p className="stat-label">Licencia del código</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{codeLicense}</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">La app es software libre. Para redistribuir datos derivados, revisa tambien los terminos del proveedor GBFS.</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">La app es software libre. Para redistribuir datos derivados, revisa también los términos del proveedor GBFS.</p>
             </div>
           </div>
         </article>
@@ -439,13 +439,13 @@ print(len(res.json()["transfers"]))`}</code>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Cita y licencia de datos
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Como citar y reutilizar</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Cómo citar y reutilizar</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
               <p className="stat-label">Cita sugerida</p>
               <p className="text-sm leading-relaxed text-[var(--foreground)]">
-                {`BiziDashboard ${cityName}, datos historicos agregados (version ${datasetVersion}), consultado el ${new Date().toLocaleDateString('es-ES')}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
+                {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${new Date().toLocaleDateString('es-ES')}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
               </p>
             </div>
             <div className="ui-metric-card">
@@ -460,7 +460,7 @@ print(len(res.json()["transfers"]))`}</code>
               </a>
             </div>
             <div className="ui-metric-card">
-              <p className="stat-label">Ultima actualizacion compartida</p>
+              <p className="stat-label">Última actualización compartida</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{formatStatusDateTime(dataset.coverage.generatedAt)}</p>
             </div>
           </div>

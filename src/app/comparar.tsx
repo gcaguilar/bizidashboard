@@ -68,14 +68,14 @@ function CompareHubContent({
           <p className="text-xs text-[var(--muted)]">Comparaciones listas para revisar ahora mismo.</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Ultimo mes</p>
+          <p className="stat-label">Último mes</p>
           <p className="stat-value">{data.latestMonth ? formatMonthLabel(data.latestMonth) : 'Sin dato'}</p>
-          <p className="text-xs text-[var(--muted)]">Mes mas reciente disponible para comparar.</p>
+          <p className="text-xs text-[var(--muted)]">Mes más reciente disponible para comparar.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Generado</p>
           <p className="stat-value">{new Date(data.generatedAt).toLocaleDateString('es-ES')}</p>
-          <p className="text-xs text-[var(--muted)]">Momento en que se preparo esta vista.</p>
+          <p className="text-xs text-[var(--muted)]">Momento en que se preparó esta vista.</p>
         </article>
       </section>
 
@@ -83,7 +83,7 @@ function CompareHubContent({
         <DataStateNotice
           state={data.dataState}
           subject="las comparativas del hub"
-          description="El comparador usa los mismos datos que dashboard, informes y API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
+          description="El comparador usa los mismos datos que el mapa avanzado, los informes y la API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
           href={appRoutes.status()}
           actionLabel="Revisar estado"
         />

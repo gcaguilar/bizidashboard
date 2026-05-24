@@ -249,6 +249,14 @@ describe('public UX regressions', () => {
     expect(source).not.toContain('buscador global');
   });
 
+  it('public search describes station search accurately', () => {
+    const source = readSource('src/app/_components/PublicSearchForm.tsx');
+    expect(source).toContain('Buscar estación');
+    expect(source).toContain('Busca una estación por nombre o ID');
+    expect(source).not.toContain('Buscador global');
+    expect(source).not.toContain('barrios, informes o endpoints API');
+  });
+
   it('public copy avoids stale dashboard wording in key visible strings', () => {
     const home = readSource('src/app/index.tsx');
     const status = readSource('src/app/estado.tsx');
@@ -261,6 +269,23 @@ describe('public UX regressions', () => {
     expect(report).not.toContain('entra al dashboard filtrado por mes');
     expect(compare).not.toContain('Abrir analisis en el dashboard');
     expect(station).not.toContain('abre el dashboard');
+  });
+
+  it('developers page uses user-facing API language consistently', () => {
+    const source = readSource('src/app/developers.tsx');
+    expect(source).toContain('API pública');
+    expect(source).toContain('Histórico, CSV y versiones de datos');
+    expect(source).toContain('DatosBizi');
+    expect(source).not.toMatch(/API publica|La documentacion|historico agregado|BiziDashboard|Version API|Ultima generacion|Limites y politicas|Licencia del codigo/);
+  });
+
+  it('dashboard search placeholders use polished Spanish', () => {
+    const header = readSource('src/app/dashboard/_components/DashboardHeader.tsx');
+    const rankings = readSource('src/app/dashboard/_components/RankingsTable.tsx');
+    expect(header).toContain('Buscar estación, ID o barrio');
+    expect(rankings).toContain('Buscar estación');
+    expect(header).not.toContain('Buscar estacion');
+    expect(rankings).not.toContain('Buscar estacion');
   });
 
   it('dashboard empty states suggest a user action', () => {
