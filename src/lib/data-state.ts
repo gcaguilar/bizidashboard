@@ -289,9 +289,9 @@ export function getDataStateMeta(
         description:
           options.loadingDescription ?? `Estamos preparando ${subject}.`,
         toneClasses:
-          'border-sky-500/30 bg-sky-500/10 text-sky-100',
+          'border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[var(--foreground)]',
         badgeClasses:
-          'border-sky-500/30 bg-sky-500/15 text-sky-100',
+          'border-[var(--primary)]/30 bg-[var(--primary)]/15 text-[var(--primary)]',
       };
     case 'empty':
       return {
@@ -302,9 +302,9 @@ export function getDataStateMeta(
           options.emptyDescription ??
           `No hay datos disponibles para ${subject} ahora mismo.`,
         toneClasses:
-          'border-slate-400/25 bg-slate-400/10 text-slate-100',
+          'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
         badgeClasses:
-          'border-slate-400/25 bg-slate-400/15 text-slate-100',
+          'border-[var(--border)] bg-[var(--muted)]/15 text-[var(--muted)]',
       };
     case 'no_coverage':
       return {
@@ -315,9 +315,9 @@ export function getDataStateMeta(
           options.noCoverageDescription ??
           `Todavia no hay historico suficiente para mostrar ${subject} con confianza.`,
         toneClasses:
-          'border-slate-400/25 bg-slate-400/10 text-slate-100',
+          'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
         badgeClasses:
-          'border-slate-400/25 bg-slate-400/15 text-slate-100',
+          'border-[var(--border)] bg-[var(--muted)]/15 text-[var(--muted)]',
       };
     case 'partial':
       return {
@@ -328,9 +328,9 @@ export function getDataStateMeta(
           options.partialDescription ??
           `Hay datos para ${subject}, pero la ventana disponible todavia no esta completa.`,
         toneClasses:
-          'border-amber-400/30 bg-amber-400/10 text-amber-100',
+          'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:
-          'border-amber-400/30 bg-amber-400/15 text-amber-100',
+          'border-[var(--warning)]/30 bg-[var(--warning)]/15 text-[var(--warning)]',
       };
     case 'stale':
       return {
@@ -341,9 +341,9 @@ export function getDataStateMeta(
           options.staleDescription ??
           `Los datos disponibles para ${subject} pueden estar desactualizados. Revisa la hora de la ultima muestra antes de usarlos.`,
         toneClasses:
-          'border-orange-400/30 bg-orange-400/10 text-orange-100',
+          'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:
-          'border-orange-400/30 bg-orange-400/15 text-orange-100',
+          'border-[var(--warning)]/30 bg-[var(--warning)]/15 text-[var(--warning)]',
       };
     case 'error':
       return {
@@ -354,9 +354,9 @@ export function getDataStateMeta(
           options.errorDescription ??
           `No se han podido cargar ${subject} ahora mismo. Intentalo de nuevo o revisa el estado del sistema.`,
         toneClasses:
-          'border-rose-500/30 bg-rose-500/10 text-rose-100',
+          'border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--foreground)]',
         badgeClasses:
-          'border-rose-500/30 bg-rose-500/15 text-rose-100',
+          'border-[var(--danger)]/30 bg-[var(--danger)]/15 text-[var(--danger)]',
       };
     case 'ok':
     default:
@@ -367,9 +367,9 @@ export function getDataStateMeta(
         description:
           options.okDescription ?? `${subject} estan disponibles y son consistentes.`,
         toneClasses:
-          'border-emerald-500/30 bg-emerald-500/10 text-emerald-100',
+          'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--foreground)]',
         badgeClasses:
-          'border-emerald-500/30 bg-emerald-500/15 text-emerald-100',
+          'border-[var(--success)]/30 bg-[var(--success)]/15 text-[var(--success)]',
       };
   }
 }

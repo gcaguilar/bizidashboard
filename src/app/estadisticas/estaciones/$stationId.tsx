@@ -147,15 +147,15 @@ function StationPage() {
         <article className="ui-section-card"><p className="stat-label">Ocupacion</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
       {station.bikesAvailable <= 0 ? (
-        <p className="mt-4 text-sm text-red-400">
+        <p className="mt-4 text-sm text-[var(--danger)]">
           ⚠️ Esta estación está vacía ahora. No encontrarás bicis disponibles.
         </p>
       ) : station.anchorsFree <= 0 ? (
-        <p className="mt-4 text-sm text-blue-400">
+        <p className="mt-4 text-sm text-[var(--primary)]">
           ⚠️ Esta estación está llena ahora. No podrás dejar bicicleta.
         </p>
       ) : (
-        <p className="mt-4 text-sm text-green-400">
+        <p className="mt-4 text-sm text-[var(--success)]">
           ✅ Buena opción: {station.bikesAvailable} bicis y {station.anchorsFree} huecos libres.
         </p>
       )}
@@ -174,7 +174,7 @@ function StationPage() {
             <div><dt className="stat-label">60 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next60, station.capacity)}</dd></div>
           </dl>
           {predictionAdvice ? (
-            <p className={`mt-2 text-xs ${predictionAdvice === 'Se espera que siga disponible la próxima hora.' ? 'text-green-400' : 'text-amber-400'}`}>
+            <p className={`mt-2 text-xs ${predictionAdvice === 'Se espera que siga disponible la próxima hora.' ? 'text-[var(--success)]' : 'text-[var(--warning)]'}`}>
               {predictionAdvice}
             </p>
           ) : null}
@@ -195,7 +195,7 @@ function StationPage() {
           <p className="mt-2 text-sm text-[var(--muted)]">Si esta estación no te sirve, estas son opciones cercanas:</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {relatedStations.map((related) => (
-              <TrackedLink key={related.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(related.station.id)} entitySelectEvent={{ source: 'station_alternatives', entityType: 'station', entityId: related.station.id, destination: 'station_detail', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>
+              <TrackedLink key={related.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(related.station.id)} entitySelectEvent={{ source: 'station_alternatives', entityType: 'station', module: related.station.id }}>
                 <p className="font-semibold text-[var(--foreground)]">{related.station.name}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{related.station.bikesAvailable} bicis · {related.station.anchorsFree} huecos</p>
               </TrackedLink>

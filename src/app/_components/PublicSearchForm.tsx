@@ -182,7 +182,7 @@ export function PublicSearchForm({
                 >
                   <span className="truncate">
                     {favoriteIds.includes(station.id) && (
-                      <span className="mr-1 text-amber-400">★</span>
+                      <span className="mr-1 text-[var(--warning)]" aria-label="Favorita">★</span>
                     )}
                     {station.name}{' '}
                     <span className="text-[11px] text-[var(--muted)]">(#{station.id})</span>

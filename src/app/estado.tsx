@@ -105,7 +105,7 @@ export default function SystemStatusPage() {
       hint: 'Version publicada en la especificacion OpenAPI.',
     },
     {
-      label: 'Último informe',
+      label: 'Ultima actualizacion de informes',
       value: formatStatusDateTime(availableMonths.generatedAt),
       hint: latestMonth ? `Ultimo mes indexable ${formatMonthLabel(latestMonth)}.` : 'Sin meses publicados todavia.',
     },
@@ -226,7 +226,7 @@ export default function SystemStatusPage() {
 
       <section className="ui-section-card border-2">
         <div className="flex flex-wrap items-center gap-3">
-          <div className={`h-4 w-4 rounded-full ${status.pipeline.healthStatus === 'healthy' ? 'bg-green-500' : status.pipeline.healthStatus === 'degraded' ? 'bg-amber-500' : 'bg-red-500'}`} />
+          <div className={`h-4 w-4 rounded-full ${status.pipeline.healthStatus === 'healthy' ? 'bg-[var(--success)]' : status.pipeline.healthStatus === 'degraded' ? 'bg-[var(--warning)]' : 'bg-[var(--danger)]'}`} />
           <p className="text-lg font-bold text-[var(--foreground)]">
             {healthLabel === 'Saludable' ? 'Datos al día' : healthLabel === 'Degradado' ? 'Datos con retraso' : 'Datos con incidencias'}
           </p>
@@ -238,9 +238,9 @@ export default function SystemStatusPage() {
           </span>
         </div>
         {activeIncidentCount > 0 ? (
-          <p className="text-sm text-amber-200">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
+          <p className="text-sm text-[var(--warning)]">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
         ) : status.pipeline.healthStatus === 'healthy' ? (
-          <p className="text-sm text-green-300">Los datos están frescos y el sistema funciona con normalidad.</p>
+          <p className="text-sm text-[var(--success)]">Los datos están frescos y el sistema funciona con normalidad.</p>
         ) : null}
       </section>
 
@@ -299,12 +299,14 @@ export default function SystemStatusPage() {
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Discovery GBFS</p>
-              <Link
-                to={dataset.source.gbfsDiscoveryUrl}
+              <a
+                href={dataset.source.gbfsDiscoveryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="ui-inline-action"
               >
                 {dataset.source.gbfsDiscoveryUrl}
-              </Link>
+              </a>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Versión de datos</p>

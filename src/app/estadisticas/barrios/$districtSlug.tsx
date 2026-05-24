@@ -110,7 +110,7 @@ function DistrictPage() {
         <h2 className="text-xl font-black text-[var(--foreground)]">Estaciones destacadas</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {district.topStations.map((station) => (
-            <TrackedLink key={station.stationId} className="ui-metric-card block" href={appRoutes.stationDetail(station.stationId)} entitySelectEvent={{ source: 'district_stations', entityType: 'station', entityId: station.stationId, destination: 'station_detail', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>
+            <TrackedLink key={station.stationId} className="ui-metric-card block" href={appRoutes.stationDetail(station.stationId)} entitySelectEvent={{ source: 'district_stations', entityType: 'station', module: station.stationId }}>
               <p className="font-semibold text-[var(--foreground)]">{station.stationName}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">{station.bikesAvailable} bicis · {station.anchorsFree} huecos</p>
             </TrackedLink>

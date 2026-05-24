@@ -60,11 +60,11 @@ export function getHealthToneClasses(
 ): string {
   switch (status) {
     case 'healthy':
-      return 'border-emerald-500/40 bg-emerald-500/12 text-emerald-200';
+      return 'border-[var(--success)]/40 bg-[var(--success)]/12 text-[var(--success)]';
     case 'degraded':
-      return 'border-amber-500/40 bg-amber-500/12 text-amber-200';
+      return 'border-[var(--warning)]/40 bg-[var(--warning)]/12 text-[var(--warning)]';
     case 'down':
-      return 'border-rose-500/40 bg-rose-500/12 text-rose-200';
+      return 'border-[var(--danger)]/40 bg-[var(--danger)]/12 text-[var(--danger)]';
     default:
       return 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]';
   }

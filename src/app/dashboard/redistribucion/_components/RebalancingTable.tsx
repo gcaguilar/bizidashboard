@@ -115,12 +115,12 @@ function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
 const CLASSIFICATION_STYLE: Record<StationClassification, string> = {
-  overstock: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
+  overstock: 'bg-[var(--warning)]/15 text-[var(--warning)]',
   deficit: 'bg-[var(--danger)]/15 text-[var(--danger)]',
   peak_saturation: 'bg-[var(--warning)]/15 text-[var(--warning)]',
-  peak_emptying: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+  peak_emptying: 'bg-[var(--warning)]/15 text-[var(--warning)]',
   balanced: 'bg-[var(--success)]/15 text-[var(--success)]',
-  data_review: 'bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400',
+  data_review: 'bg-[var(--muted)]/15 text-[var(--muted)]',
 };
 
 const CLASSIFICATION_LABEL: Record<StationClassification, string> = {
@@ -142,11 +142,11 @@ const ACTION_LABEL: Record<ActionGroup, string> = {
 };
 
 const URGENCY_STYLE: Record<Urgency, string> = {
-  critical: 'text-rose-600 dark:text-rose-400 font-bold',
+  critical: 'text-[var(--danger)] font-bold',
   high: 'text-[var(--danger)] font-semibold',
   medium: 'text-[var(--warning)]',
-  low: 'text-slate-500',
-  none: 'text-slate-400',
+  low: 'text-[var(--muted)]',
+  none: 'text-[var(--muted)]/80',
 };
 
 const URGENCY_LABEL: Record<Urgency, string> = {
@@ -200,7 +200,7 @@ function OccupancyBar({
     ? 'bg-[var(--success)]'
     : occupancy < bandMin
     ? 'bg-[var(--danger)]'
-    : 'bg-orange-500';
+    : 'bg-[var(--warning)]';
 
   return (
     <div className="flex items-center gap-2">

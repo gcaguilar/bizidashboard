@@ -40,7 +40,7 @@ export function KpiCards({ kpis, baseline }: Props) {
             <p className="text-xs text-[var(--muted)]">% tiempo vacías (sistema)</p>
           </div>
           <div>
-            <p className="text-2xl font-black tabular-nums text-orange-600 dark:text-orange-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--warning)]">
               {pct(kpis.service.systemPctTimeFull)}
             </p>
             <p className="text-xs text-[var(--muted)]">% tiempo llenas (sistema)</p>
@@ -52,7 +52,7 @@ export function KpiCards({ kpis, baseline }: Props) {
             <p className="text-xs text-[var(--muted)]">Episodio crítico promedio</p>
           </div>
           <div>
-            <p className="text-2xl font-black tabular-nums text-sky-600 dark:text-sky-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--primary)]">
               ~{kpis.service.estimatedLostUses.toFixed(0)}
             </p>
             <p className="text-xs text-[var(--muted)]">Usos perdidos estimados</p>
@@ -77,7 +77,7 @@ export function KpiCards({ kpis, baseline }: Props) {
             <p className="text-xs text-[var(--muted)]">Horas llenas evitadas</p>
           </div>
           <div>
-            <p className="text-2xl font-black tabular-nums text-sky-600 dark:text-sky-400">
+            <p className="text-2xl font-black tabular-nums text-[var(--primary)]">
               ~{(kpis.impact.totalUsesRecovered).toFixed(0)}
             </p>
             <p className="text-xs text-[var(--muted)]">Usos recuperados</p>

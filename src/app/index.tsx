@@ -127,7 +127,7 @@ function Home() {
       </div>
 
       {!hasFavorites && (
-        <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3">
+        <div className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 text-lg">💡</span>
             <div>
@@ -160,7 +160,7 @@ function Home() {
               <TrackedLink
                 key={s.station.id}
                 href={appRoutes.stationDetail(s.station.id)}
-                entitySelectEvent={{ source: 'home_most_used', entityType: 'station', entityId: s.station.id, destination: 'station_detail', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+                entitySelectEvent={{ source: 'home_most_used', entityType: 'station', module: s.station.id }}
                 className="ui-surface-block ui-surface-block-interactive"
               >
                 <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
@@ -182,7 +182,7 @@ function Home() {
                 <TrackedLink
                   key={s.station.id}
                   href={appRoutes.stationDetail(s.station.id)}
-                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', entityId: s.station.id, destination: 'station_detail', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', module: s.station.id }}
                   className="ui-surface-block ui-surface-block-interactive"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
