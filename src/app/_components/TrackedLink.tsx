@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useLocation  } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import type { MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
@@ -43,7 +43,6 @@ export function TrackedLink({
   className,
 }: TrackedLinkProps) {
   const pathname = useLocation().pathname;
-  const to = href;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
@@ -90,7 +89,7 @@ export function TrackedLink({
 
   return (
     <Link
-      to={to}
+      to={href}
       onClick={handleClick}
       className={`${
         className ?? ''

@@ -1,17 +1,17 @@
-import type { MetadataRoute } from 'next';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import { getSiteUrl } from '@/lib/site';
 
 export const CITY_SEGMENTS = ['zaragoza', 'madrid', 'barcelona'] as const;
 
 type QueryValue = string | number | boolean | null | undefined;
+type SitemapChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
 
 type StaticRouteEntry = {
   id: string;
   href: string;
   label: string;
   sitemap: {
-    changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>;
+    changeFrequency: SitemapChangeFrequency;
     priority: number;
   };
 };
@@ -57,9 +57,6 @@ export const appRoutes = {
   home: () => '/',
   manifest: () => '/manifest.json',
   favicon: () => '/favicon.svg',
-  login: () => '/login',
-  register: () => '/register',
-  profile: () => '/profile',
   llms: () => '/llms.txt',
   llmsFull: () => '/llms-full.txt',
   homeAlias: () => '/inicio',
@@ -94,6 +91,7 @@ export const appRoutes = {
   methodology: () => '/metodologia',
   explore: (params?: { q?: string | null }) =>
     buildQuery('/explorar', { q: params?.q }),
+  exploreHub: () => '/explorar',
   reports: () => '/informes',
   reportMonth: (month: string) => `/informes/${encodeSegment(month)}`,
   status: () => '/estado',
@@ -113,7 +111,7 @@ export const appRoutes = {
   statsEstacion: (stationId: string) => `/estadisticas/estaciones/${encodeSegment(stationId)}`,
   statsBarrios: () => '/estadisticas/barrios',
   statsBarrio: (districtSlug: string) => `/estadisticas/barrios/${encodeSegment(districtSlug)}`,
-  statsMapa: () => '/estadisticas/mapa',
+  statsMapa: () => '/dashboard',
   statsHorarios: () => '/estadisticas/horarios',
   statsViajes: () => '/estadisticas/viajes',
   statsRedistribucion: () => '/estadisticas/redistribucion',
@@ -443,7 +441,6 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   { source: '/uso-bizi-por-hora', destination: '/estadisticas/horarios' },
   { source: '/viajes-por-dia-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/viajes-por-mes-zaragoza', destination: '/estadisticas/viajes' },
-  { source: '/redistribucion', destination: '/estadisticas/redistribucion' },
   { source: '/estadisticas-bizi-zaragoza', destination: '/estadisticas' },
   { source: '/explorar', destination: '/estadisticas' },
   ...CITY_SEGMENTS.flatMap((city) => [
