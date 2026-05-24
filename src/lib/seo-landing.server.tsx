@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import {
   fetchCachedDailyDemandCurve,
   fetchCachedMonthlyDemandCurve,
@@ -8,7 +7,7 @@ import { fetchAvailableDataMonths, fetchRankings, fetchStations } from '@/lib/ap
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, type PageMetadata } from '@/lib/seo';
 import { average, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
@@ -1152,7 +1151,7 @@ export async function getSeoLandingPageData(slug: SeoPageSlug) {
   };
 }
 
-export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Metadata> {
+export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<PageMetadata> {
   const { config, content, path, indexabilityInput } = await getSeoLandingPageData(slug);
 
   return buildPageMetadata({
