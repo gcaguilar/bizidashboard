@@ -103,7 +103,7 @@ function DistrictPage() {
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios para entender que zonas tienen mas actividad o mas tension.</p>
-          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsMapa()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir mapa avanzado</TrackedLink>
+          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.advancedMap()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir mapa avanzado</TrackedLink>
         </article>
       </section>
       <section className="ui-section-card">

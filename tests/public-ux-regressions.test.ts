@@ -76,18 +76,20 @@ describe('public UX regressions', () => {
     expect(() => readFileSync(statsNavPath)).toThrow();
   });
 
-  it('stale public-navigation types and getPublicNavItem are removed', () => {
+  it('public navigation exposes shared header and footer sources', () => {
     const source = readSource('src/lib/public-navigation.ts');
-    expect(source).not.toMatch(/PublicNavItem\b/);
     expect(source).not.toMatch(/getPublicNavItem/);
     expect(source).not.toMatch(/PUBLIC_PRIMARY_NAV_ITEMS/);
     expect(source).not.toMatch(/PUBLIC_UTILITY_NAV_ITEMS/);
+    expect(source).toMatch(/PUBLIC_MAIN_NAV_ITEMS/);
+    expect(source).toMatch(/PUBLIC_MORE_NAV_ITEMS/);
+    expect(source).toMatch(/FOOTER_NAV_GROUPS/);
     expect(source).toMatch(/getExploreHubSections/);
     expect(source).toMatch(/PUBLIC_NAV_ITEMS/);
   });
 
   it('header exposes Bici Radar and Redistribución in main or more nav', () => {
-    const source = readSource('src/components/Header.tsx');
+    const source = readSource('src/lib/public-navigation.ts');
     expect(source).toContain('appRoutes.biciradar()');
     expect(source).toContain('appRoutes.statsRedistribucion()');
   });
@@ -95,16 +97,17 @@ describe('public UX regressions', () => {
   it('header and footer use route helpers and tracked links for internal navigation', () => {
     const header = readSource('src/components/Header.tsx');
     const footer = readSource('src/components/Footer.tsx');
+    const publicNavigation = readSource('src/lib/public-navigation.ts');
 
-    expect(header).toContain('appRoutes.');
+    expect(header).toContain('PUBLIC_MAIN_NAV_ITEMS');
     expect(header).toContain('TrackedLink');
     expect(header).not.toMatch(/href:\s*['"]\//);
     expect(header).not.toMatch(/<a\s+[^>]*href=['"]\//);
 
-    expect(footer).toContain('appRoutes.');
+    expect(footer).toContain('FOOTER_NAV_GROUPS');
     expect(footer).toContain('TrackedLink');
     expect(footer).not.toMatch(/href:\s*['"]\//);
-    expect(footer).not.toMatch(/<a\s+[^>]*href=['"]\//);
+    expect(publicNavigation).toContain('appRoutes.');
   });
 
   it('about page stays on the main design system', () => {
@@ -150,17 +153,12 @@ describe('public UX regressions', () => {
   });
 
   it('public nav avoids duplicate dashboard wording', () => {
-    const header = readSource('src/components/Header.tsx');
-    const footer = readSource('src/components/Footer.tsx');
+    const publicNavigation = readSource('src/lib/public-navigation.ts');
 
-    expect(header).toContain("label: 'Mapa avanzado'");
-    expect(header).toContain("label: 'Redistribución'");
-    expect(header).not.toContain("label: 'Panel avanzado'");
-    expect(header).not.toContain("label: 'Dashboard'");
-    expect(footer).toContain("label: 'Mapa avanzado'");
-    expect(footer).toContain("label: 'Redistribución'");
-    expect(footer).not.toContain("label: 'Panel avanzado'");
-    expect(footer).not.toContain("label: 'Dashboard'");
+    expect(publicNavigation).toContain("label: 'Mapa avanzado'");
+    expect(publicNavigation).toContain("label: 'Redistribución'");
+    expect(publicNavigation).not.toContain("label: 'Panel avanzado'");
+    expect(publicNavigation).not.toContain("label: 'Dashboard'");
   });
 
   it('public navigation labels avoid dashboard wording', () => {
@@ -170,6 +168,51 @@ describe('public UX regressions', () => {
     expect(routes).not.toContain("label: 'Dashboard'");
     expect(publicNavigation).not.toMatch(/label: 'Dashboard'|Dashboard >/);
     expect(publicNavigation).toContain("label: 'Mapa avanzado'");
+  });
+
+  it('explore destination labels distinguish dashboard tools from public pages', () => {
+    const source = readSource('src/lib/public-navigation.ts');
+    expect(source).toContain("destinationLabel: 'Mapa avanzado > Alertas'");
+    expect(source).toContain("destinationLabel: 'Mapa avanzado > Flujo'");
+    expect(source).not.toContain("destinationLabel: 'Pagina dedicada'");
+    expect(source).not.toContain("destinationLabel: 'Dashboard >");
+  });
+
+  it('redistribution navigation points to the functional statistics page', () => {
+    const source = readSource('src/lib/public-navigation.ts');
+    expect(source).toContain("href: appRoutes.statsRedistribucion()");
+    expect(source).not.toContain("href: appRoutes.seoPage('redistribucion')");
+  });
+
+  it('new map CTAs use advancedMap instead of statsMapa', () => {
+    const files = [
+      'src/app/index.tsx',
+      'src/app/estadisticas/index.tsx',
+      'src/app/estadisticas/barrios/index.tsx',
+      'src/app/estadisticas/barrios/$districtSlug.tsx',
+      'src/app/estadisticas/horarios.tsx',
+    ];
+
+    for (const file of files) {
+      const source = readSource(file);
+      expect(source, file).toContain('appRoutes.advancedMap()');
+      expect(source, file).not.toContain('appRoutes.statsMapa()');
+    }
+  });
+
+  it('route registry avoids indexable legacy map and inconsistent labels', () => {
+    const source = readSource('src/lib/routes.ts');
+    expect(source).not.toMatch(/id: 'stats-mapa',[\s\S]*?label: 'Mapa'/);
+    expect(source).not.toContain("label: 'Developers'");
+    expect(source).not.toContain("label: 'Redistribucion'");
+    expect(source).toContain("label: 'API'");
+    expect(source).toContain("label: 'Redistribución'");
+  });
+
+  it('footer clarifies data freshness timestamp', () => {
+    const source = readSource('src/components/Footer.tsx');
+    expect(source).toContain('Última muestra de datos Bizi');
+    expect(source).not.toContain('Última actualización:');
   });
 
   it('dashboard status route redirects to the public status page', () => {

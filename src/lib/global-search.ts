@@ -159,21 +159,21 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       title: item.label,
       description:
         item.id === 'help'
-          ? 'Guia publica sobre fuente de datos, frescura, metodologia y limites de interpretacion.'
+            ? 'Guía pública sobre fuente de datos, frescura, metodología y límites de interpretación.'
           : item.id === 'explore'
-            ? 'Hub publico para descubrir herramientas, mapas, rankings, comparativas y lecturas del sistema.'
-            : item.id === 'dashboard'
-              ? 'Producto operativo en tiempo real con mapa, alertas, flujo y herramientas de analisis.'
-          : `Acceso publico a ${item.label.toLowerCase()}.`,
+            ? 'Hub público para descubrir herramientas, mapas, rankings, comparativas y lecturas del sistema.'
+            : item.id === 'map'
+              ? 'Herramienta operativa en tiempo real con mapa, alertas, flujo y análisis.'
+          : `Acceso público a ${item.label.toLowerCase()}.`,
       href: item.href,
-      badge: 'Pagina publica',
+      badge: item.id === 'map' ? 'Mapa avanzado' : 'Página pública',
       keywords:
         item.id === 'help'
-          ? [item.label, item.href, 'metodologia', 'calidad datos', 'gbfs', 'faq']
+          ? [item.label, item.href, 'metodología', 'calidad datos', 'gbfs', 'faq']
           : item.id === 'explore'
             ? [item.label, item.href, 'explorar', 'herramientas', 'rankings', 'comparador']
-            : item.id === 'dashboard'
-              ? [item.label, item.href, 'mapa', 'alertas', 'dashboard', 'operaciones']
+            : item.id === 'map'
+              ? [item.label, item.href, 'mapa', 'alertas', 'operaciones']
           : [item.label, item.href],
     })),
     {
