@@ -106,6 +106,7 @@ export const appRoutes = {
   dashboardStations: () => '/dashboard/estaciones',
   dashboardStation: (stationId: string) =>
     `/dashboard/estaciones/${encodeSegment(stationId)}`,
+  advancedMap: () => '/dashboard',
   stationDetail: (stationId: string) => `/estadisticas/estaciones/${encodeSegment(stationId)}`,
   statsHub: () => '/estadisticas',
   statsEstaciones: () => '/estadisticas/estaciones',
@@ -183,7 +184,7 @@ export const appRoutes = {
 export const DASHBOARD_ROUTE_CONFIG = {
   dashboard: {
     href: appRoutes.dashboard(),
-    label: 'Inicio',
+    label: 'Resumen',
   },
   stations: {
     href: appRoutes.dashboardStations(),
@@ -229,7 +230,7 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
   {
     id: 'developers',
     href: appRoutes.developers(),
-    label: 'Developers',
+    label: 'API',
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.72,
@@ -252,12 +253,6 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     href: '/estadisticas/barrios',
     label: 'Barrios',
     sitemap: { changeFrequency: 'daily', priority: 0.78 },
-  },
-  {
-    id: 'stats-mapa',
-    href: '/estadisticas/mapa',
-    label: 'Mapa',
-    sitemap: { changeFrequency: 'hourly', priority: 0.80 },
   },
   {
     id: 'stats-horarios',
@@ -391,7 +386,7 @@ export const TOOL_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
   {
     id: 'dashboard-redistribucion',
     href: appRoutes.dashboardRedistribucion(),
-    label: 'Redistribucion',
+    label: 'Redistribución',
     sitemap: {
       changeFrequency: 'daily',
       priority: 0.75,

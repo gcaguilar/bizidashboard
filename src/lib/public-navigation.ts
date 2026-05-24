@@ -30,15 +30,44 @@ export type ExploreHubSection = {
   items: ExploreHubItem[];
 };
 
-export const PUBLIC_NAV_ITEMS = [
-  { id: 'home', label: 'Inicio', href: appRoutes.home() },
-  { id: 'estadisticas', label: 'Estadísticas', href: appRoutes.statsHub() },
-  { id: 'reports', label: 'Informes', href: appRoutes.reports() },
-  { id: 'dashboard', label: 'Mapa avanzado', href: appRoutes.dashboard() },
-  { id: 'explore', label: 'Explorar', href: appRoutes.exploreHub() },
-  { id: 'status', label: 'Estado', href: appRoutes.status() },
-  { id: 'api', label: 'API', href: appRoutes.developers() },
-  { id: 'help', label: 'Metodología', href: appRoutes.methodology() },
+export type PublicNavItem = {
+  id: string;
+  label: string;
+  href: string;
+  ctaId: string;
+};
+
+export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'home', label: 'Inicio', href: appRoutes.home(), ctaId: 'home' },
+  { id: 'map', label: 'Mapa avanzado', href: appRoutes.dashboard(), ctaId: 'map' },
+  { id: 'stations', label: 'Estaciones', href: appRoutes.statsEstaciones(), ctaId: 'stations' },
+  { id: 'reports', label: 'Informes', href: appRoutes.reports(), ctaId: 'reports' },
+  { id: 'explore', label: 'Explorar', href: appRoutes.exploreHub(), ctaId: 'explore' },
+  { id: 'status', label: 'Estado', href: appRoutes.status(), ctaId: 'status' },
+];
+
+export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'stats', label: 'Estadísticas', href: appRoutes.statsHub(), ctaId: 'stats' },
+  { id: 'redistribucion', label: 'Redistribución', href: appRoutes.statsRedistribucion(), ctaId: 'redistribucion' },
+  { id: 'compare', label: 'Comparar', href: appRoutes.compare(), ctaId: 'compare' },
+  { id: 'biciradar', label: 'Bici Radar', href: appRoutes.biciradar(), ctaId: 'biciradar' },
+  { id: 'barrios', label: 'Barrios', href: appRoutes.statsBarrios(), ctaId: 'barrios' },
+  { id: 'horarios', label: 'Horarios', href: appRoutes.statsHorarios(), ctaId: 'horarios' },
+  { id: 'viajes', label: 'Viajes', href: appRoutes.statsViajes(), ctaId: 'viajes' },
+  { id: 'api', label: 'API', href: appRoutes.developers(), ctaId: 'api' },
+  { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
+  { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
+];
+
+export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
+  [PUBLIC_MAIN_NAV_ITEMS[1], PUBLIC_MAIN_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MAIN_NAV_ITEMS[4]],
+  [PUBLIC_MORE_NAV_ITEMS[1], PUBLIC_MORE_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[5], PUBLIC_MORE_NAV_ITEMS[3]],
+  [PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8], PUBLIC_MORE_NAV_ITEMS[9]],
+];
+
+export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
+  ...PUBLIC_MAIN_NAV_ITEMS,
+  ...PUBLIC_MORE_NAV_ITEMS,
 ];
 
 export function getExploreHubSections(options?: {
@@ -67,16 +96,16 @@ export function getExploreHubSections(options?: {
         {
           id: 'alerts',
           title: 'Alertas',
-          eyebrow: 'Incidencias y friccion',
+          eyebrow: 'Incidencias y fricción',
           description:
             'Consulta alertas activas, severidad y el historial operativo para priorizar intervenciones.',
           href: appRoutes.dashboardAlerts(),
-          destinationLabel: 'Pagina dedicada',
+          destinationLabel: 'Mapa avanzado > Alertas',
         },
         {
           id: 'maps',
           title: 'Mapas',
-          eyebrow: 'Vista cartografica',
+          eyebrow: 'Vista cartográfica',
           description:
             'Abre el mapa principal con filtros, geolocalización, densidad y contexto de disponibilidad.',
           href: appRoutes.dashboard(),
@@ -97,7 +126,7 @@ export function getExploreHubSections(options?: {
           eyebrow: 'Logística y equilibrio',
           description:
             'Diagnóstico de redistribución con clasificación de estaciones, predicciones y transferencias origen-destino sugeridas.',
-          href: appRoutes.seoPage('redistribucion'),
+          href: appRoutes.statsRedistribucion(),
           destinationLabel: 'Página pública',
         },
       ],
@@ -115,12 +144,12 @@ export function getExploreHubSections(options?: {
           description:
             'Analiza movilidad agregada, corredores y balance entre zonas con una vista completa.',
           href: appRoutes.dashboardFlow(),
-          destinationLabel: 'Pagina dedicada',
+          destinationLabel: 'Mapa avanzado > Flujo',
         },
         {
           id: 'rankings',
           title: 'Rankings',
-          eyebrow: 'Priorizacion',
+          eyebrow: 'Priorización',
           description:
             'Revisa estaciones con mayor uso, fricción o menor disponibilidad para decidir antes.',
           href: appRoutes.dashboardView('operations'),
@@ -147,7 +176,7 @@ export function getExploreHubSections(options?: {
         {
           id: 'patterns',
           title: 'Patrones',
-          eyebrow: 'Comportamiento intradia',
+          eyebrow: 'Comportamiento intradía',
           description:
             'Explora tendencias horarias, volatilidad y regularidad para una estación o el sistema.',
           href: appRoutes.dashboardView('research'),
@@ -191,7 +220,7 @@ export function getExploreHubSections(options?: {
         {
           id: 'time-series',
           title: 'Series temporales',
-          eyebrow: 'Archivo por periodos',
+          eyebrow: 'Archivo por períodos',
           description:
             'Entra al mes más reciente o al archivo completo para seguir demanda, ocupación y balance.',
           href: latestMonthHref,

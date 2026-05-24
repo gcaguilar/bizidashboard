@@ -102,7 +102,7 @@ function Home() {
 
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <TrackedLink
-            href={appRoutes.statsMapa()}
+            href={appRoutes.advancedMap()}
             ctaEvent={{ source: 'home_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
             className="ui-primary-button"
           >

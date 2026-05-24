@@ -9,7 +9,7 @@ import { appRoutes } from '@/lib/routes';
 export const Route = createFileRoute('/explorar')({
   head: () => {
     const title = 'Explorar datos de Bizi Zaragoza - DatosBizi'
-    const description = 'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, historico y movilidad.'
+    const description = 'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.'
     return {
       meta: [
         { charSet: 'utf-8' },
@@ -40,8 +40,8 @@ function ExplorePage() {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Hub de herramientas</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Explorar datos de Bizi Zaragoza</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Herramientas para analizar el sistema Bizi: mapas, alertas, comparativas, historico y movilidad urbana.
-          {latestMonth ? ` Ultimo informe mensual disponible: ${latestMonth}.` : ''}
+          Herramientas para analizar el sistema Bizi: mapas, alertas, comparativas, histórico y movilidad urbana.
+          {latestMonth ? ` Último informe mensual disponible: ${latestMonth}.` : ''}
         </p>
       </header>
 

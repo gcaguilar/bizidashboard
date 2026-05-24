@@ -4,6 +4,7 @@ import { appRoutes } from '@/lib/routes';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 
 const exploreLinks = [
+  { label: 'Mapa avanzado', description: 'Mapa, filtros y estaciones cercanas', href: appRoutes.advancedMap(), ctaId: 'explore_map' },
   { label: 'Barrios', description: 'Actividad y estaciones por zona', href: appRoutes.districtLanding(), ctaId: 'explore_barrios' },
   { label: 'Horarios', description: 'Horas punta y patrones de uso', href: appRoutes.statsHorarios(), ctaId: 'explore_horarios' },
   { label: 'Viajes', description: 'Tendencia diaria y mensual', href: appRoutes.statsViajes(), ctaId: 'explore_viajes' },

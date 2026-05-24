@@ -4,28 +4,7 @@ import { useEffect, useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-
-const MAIN_NAV = [
-  { href: appRoutes.home(), label: 'Inicio', ctaId: 'home' },
-  { href: appRoutes.dashboard(), label: 'Mapa avanzado', ctaId: 'map' },
-  { href: appRoutes.statsEstaciones(), label: 'Estaciones', ctaId: 'stations' },
-  { href: appRoutes.reports(), label: 'Informes', ctaId: 'reports' },
-  { href: appRoutes.biciradar(), label: 'Bici Radar', ctaId: 'biciradar' },
-  { href: appRoutes.exploreHub(), label: 'Explorar', ctaId: 'explore' },
-  { href: appRoutes.statsRedistribucion(), label: 'Redistribución', ctaId: 'redistribucion' },
-];
-
-const MORE_NAV = [
-  { href: appRoutes.statsHub(), label: 'Estadísticas', ctaId: 'stats' },
-  { href: appRoutes.compare(), label: 'Comparar', ctaId: 'compare' },
-  { href: appRoutes.statsBarrios(), label: 'Barrios', ctaId: 'barrios' },
-  { href: appRoutes.statsHorarios(), label: 'Horarios', ctaId: 'horarios' },
-  { href: appRoutes.statsViajes(), label: 'Viajes', ctaId: 'viajes' },
-  { href: appRoutes.status(), label: 'Estado', ctaId: 'status' },
-  { href: appRoutes.developers(), label: 'API', ctaId: 'api' },
-  { href: appRoutes.methodology(), label: 'Metodología', ctaId: 'methodology' },
-  { href: appRoutes.about(), label: 'Sobre', ctaId: 'about' },
-];
+import { PUBLIC_MAIN_NAV_ITEMS, PUBLIC_MORE_NAV_ITEMS } from '@/lib/public-navigation';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -62,7 +41,7 @@ export default function Header() {
             </TrackedLink>
 
             <nav aria-label="Navegación principal" className="hidden items-center gap-4 text-sm md:flex">
-              {MAIN_NAV.map(link => (
+              {PUBLIC_MAIN_NAV_ITEMS.map(link => (
                 <TrackedLink
                   key={link.href}
                   href={link.href}
@@ -89,7 +68,7 @@ export default function Header() {
                 </button>
                 {moreOpen && (
                   <div className="absolute right-0 top-full mt-2 flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-lg">
-                    {MORE_NAV.map(link => (
+                    {PUBLIC_MORE_NAV_ITEMS.map(link => (
                       <TrackedLink
                         key={link.href}
                         href={link.href}
@@ -147,7 +126,7 @@ export default function Header() {
           </div>
 
           <nav className="flex flex-col gap-4 mt-4">
-            {MAIN_NAV.map(link => (
+            {PUBLIC_MAIN_NAV_ITEMS.map(link => (
               <TrackedLink
                 key={link.href}
                 href={link.href}
@@ -166,7 +145,7 @@ export default function Header() {
               </TrackedLink>
             ))}
             <div className="my-2 h-px bg-[var(--border)]" />
-            {MORE_NAV.map(link => (
+            {PUBLIC_MORE_NAV_ITEMS.map(link => (
               <TrackedLink
                 key={link.href}
                 href={link.href}
