@@ -60,12 +60,12 @@ const FEATURES = [
   {
     icon: '📍',
     title: 'Estaciones cercanas',
-    description: 'Encuentra las estaciones de bicicleta publica mas cercanas a tu posicion actual con distancia y direccion.',
+    description: 'Encuentra las estaciones de bicicleta pública más cercanas a tu posición actual con distancia y dirección.',
   },
   {
     icon: '🚲',
     title: 'Bicis en tiempo real',
-    description: 'Mira cuantas bicicletas hay disponibles antes de acercarte a la estacion.',
+    description: 'Mira cuántas bicicletas hay disponibles antes de acercarte a la estación.',
   },
   {
     icon: '🅿️',
@@ -75,27 +75,32 @@ const FEATURES = [
   {
     icon: '⭐',
     title: 'Estaciones favoritas',
-    description: 'Guarda tus estaciones mas usadas para acceder a su estado con un solo toque.',
+    description: 'Guarda tus estaciones más usadas para acceder a su estado con un solo toque.',
+    status: 'Disponible',
   },
   {
     icon: '📊',
-    title: 'Historico de uso',
-    description: 'Consulta patrones de uso y disponibilidad para planificar mejor tus trayectos habituales.',
+    title: 'Histórico de uso',
+    description: 'Consulta patrones de uso y disponibilidad cuando la red publica datos suficientes.',
+    status: 'Según ciudad',
   },
   {
     icon: '⚡',
-    title: 'Bicis electricas',
-    description: 'Identifica rapidamente estaciones con bicicletas electricas disponibles.',
+    title: 'Bicis eléctricas',
+    description: 'Identifica rápidamente estaciones con bicicletas eléctricas disponibles cuando la red las publica.',
+    status: 'Según ciudad',
   },
   {
     icon: '🔔',
     title: 'Alertas inteligentes',
-    description: 'Recibe notificaciones cuando una estacion muy utilizada se quede vacia o llena.',
+    description: 'Avisos para estaciones vacías o llenas. Esta función todavía está en pruebas.',
+    status: 'En pruebas',
   },
   {
     icon: '🌙',
     title: 'Modo offline',
-    description: 'Accede a tus estaciones favoritas y ultima posicion conocida sin conexion a internet.',
+    description: 'Acceso básico a la última información guardada en el móvil cuando no hay conexión.',
+    status: 'En pruebas',
   },
 ];
 
@@ -136,7 +141,7 @@ function CityCard({ city }: { city: (typeof CITIES)[number] }) {
         <div className="mt-1 flex flex-wrap gap-1.5">
           {city.supportsEbikes && (
             <Badge variant="success" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
-              Bicis electricas
+              Bicis eléctricas
             </Badge>
           )}
           {city.supportsUsagePatterns && (
@@ -157,7 +162,10 @@ function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
         {feature.icon}
       </span>
       <div>
-        <h3 className="text-sm font-bold text-[var(--foreground)]">{feature.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold text-[var(--foreground)]">{feature.title}</h3>
+          {'status' in feature && <Badge className="px-2 py-0.5 text-[10px] normal-case tracking-normal">{feature.status}</Badge>}
+        </div>
         <p className="mt-1 text-xs text-[var(--muted)]">{feature.description}</p>
       </div>
     </Card>
@@ -256,7 +264,7 @@ export default function BiciRadarPage() {
         <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Ciudades disponibles</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Puedes usar Bici Radar en varias redes de bicicleta publica de Espana.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Puedes usar Bici Radar en estas redes de bicicleta pública de España.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CITIES.map((city) => (
@@ -268,8 +276,8 @@ export default function BiciRadarPage() {
 
       <section>
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Caracteristicas</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Funciones pensadas para decidir rapido a que estacion ir.</p>
+          <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Características</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">Funciones pensadas para decidir rápido a qué estación ir. Algunas dependen de los datos que publica cada ciudad.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
@@ -282,13 +290,13 @@ export default function BiciRadarPage() {
         <Card variant="stat" className="rounded-2xl p-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descarga la app</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">iOS ya esta publicado. En Android necesitas entrar primero al grupo de testers.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">iOS ya está publicado. En Android necesitas entrar primero al grupo de testers.</p>
         </div>
         <div className="flex flex-wrap justify-center gap-4">
           <DownloadCtas
             labels={{
               google_group: '1. Unirse al grupo (Android)',
-              google_play: '2. Abrir Google Play en tu telefono',
+              google_play: '2. Abrir Google Play en tu teléfono',
               app_store: 'App Store (iOS)',
             }}
             classNameByDestination={{
@@ -299,7 +307,7 @@ export default function BiciRadarPage() {
           />
         </div>
         <p className="mt-4 text-center text-xs text-[var(--muted)]">
-          En Android, el enlace de Google Play solo tiene sentido despues de unirte al grupo de testers y abrirlo desde tu telefono.
+          En Android, el enlace de Google Play solo tiene sentido después de unirte al grupo de testers y abrirlo desde tu teléfono.
         </p>
         </Card>
       </section>

@@ -47,7 +47,7 @@ function EstadisticasHubPage() {
           Elige una entrada según lo que necesitas: encontrar bici, analizar problemas o revisar evolución histórica.
         </p>
         <div className="mt-5 flex flex-col sm:flex-row gap-3">
-          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver mapa en vivo</TrackedLink>
+          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Abrir mapa avanzado</TrackedLink>
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Buscar estación</TrackedLink>
         </div>
       </header>
@@ -55,8 +55,8 @@ function EstadisticasHubPage() {
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Necesito una bici ahora</p>
         <div className="grid gap-4 md:grid-cols-2">
           <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'stats_hub_needs_bike', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
-            <p className="mt-2 text-base font-black text-[var(--foreground)]">Mapa en vivo</p>
-            <p className="mt-1 text-[11px] text-[var(--muted)]">Encuentra estaciones con bicis disponibles cerca de ti.</p>
+            <p className="mt-2 text-base font-black text-[var(--foreground)]">Mapa avanzado</p>
+            <p className="mt-1 text-[11px] text-[var(--muted)]">Abre el panel con mapa, filtros y estaciones cercanas.</p>
           </TrackedLink>
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_needs_bike', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-surface-block ui-surface-block-interactive block">
             <p className="mt-2 text-base font-black text-[var(--foreground)]">Estaciones con más bicis</p>

@@ -205,7 +205,7 @@ export default function ComparePage() {
               to={appRoutes.dashboardView('research')}
               className="ui-primary-button"
             >
-              Abrir analisis en el dashboard
+              Abrir análisis en el mapa avanzado
             </Link>
             <Link
               to={appRoutes.explore()}

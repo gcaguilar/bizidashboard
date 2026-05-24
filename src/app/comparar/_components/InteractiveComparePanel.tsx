@@ -261,11 +261,11 @@ export function InteractiveComparePanel({
             Comparador interactivo
           </p>
           <h2 className="text-xl font-black text-[var(--foreground)]">
-            Elige dos lados y comparalos manualmente
+            Elige dos lados y compáralos manualmente
           </h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Usa selectores libres para enfrentar estaciones, barrios, meses, anos, horas o
-            periodos concretos con el mismo dataset compartido del producto.
+            Usa selectores libres para enfrentar estaciones, barrios, meses, años, horas o
+            períodos concretos con el mismo dataset compartido del producto.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -414,14 +414,14 @@ export function InteractiveComparePanel({
             href={shareHref}
             className="ui-inline-action"
           >
-            Abrir esta seleccion
+              Abrir esta selección
           </TrackedLink>
         </div>
         {copyState !== 'idle' ? (
           <p className="mt-2 text-xs text-[var(--muted)]">
             {copyState === 'copied'
               ? 'Enlace copiado al portapapeles.'
-              : 'No se pudo copiar automaticamente el enlace.'}
+              : 'No se pudo copiar automáticamente. Selecciona y copia la URL compartible de arriba.'}
           </p>
         ) : null}
       </article>

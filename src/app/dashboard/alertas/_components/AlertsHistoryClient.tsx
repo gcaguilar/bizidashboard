@@ -228,6 +228,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const [totalRows, setTotalRows] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const apiQueryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -387,7 +388,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     };
   }, [rows]);
 
-  const copyToClipboard = useCallback(() => {
+  const copyToClipboard = useCallback(async () => {
     const headers = ['Fecha', 'Estación', 'ID', 'Tipo', 'Severidad', 'Estado', 'Valor', 'Ventana'];
     const textRows = rows.map((row) => [
       formatDateTime(row.generatedAt),
@@ -400,7 +401,12 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       `${row.windowHours}h`,
     ]);
     const text = [headers, ...textRows].map((row) => row.join('\t')).join('\n');
-    void navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyState('copied');
+    } catch {
+      setCopyState('error');
+    }
   }, [rows]);
 
   const downloadCsvHref = useMemo(() => {
@@ -485,7 +491,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link to={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al dashboard">
+            <Link to={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al mapa avanzado">
               Inicio
             </Link>
             <ThemeToggleButton />
@@ -594,7 +600,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-            Fechas rapidas
+            Fechas rápidas
           </span>
           <Button
             onClick={() => applyQuickRange(1)}
@@ -608,14 +614,14 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             variant={activeQuickRange === 'last7' ? 'default' : 'outline'}
             size="sm"
           >
-            7 dias
+            7 días
           </Button>
           <Button
             onClick={() => applyQuickRange(30)}
             variant={activeQuickRange === 'last30' ? 'default' : 'outline'}
             size="sm"
           >
-            30 dias
+            30 días
           </Button>
           <Button
             onClick={clearFilters}
@@ -636,11 +642,11 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           <p className="stat-value">{totalRows}</p>
         </Card>
         <Card className="ui-section-card">
-          <p className="stat-label">Activas en esta pagina</p>
+          <p className="stat-label">Activas en esta página</p>
           <p className="stat-value">{stats.active}</p>
         </Card>
         <Card className="ui-section-card">
-          <p className="stat-label">Criticas en esta pagina</p>
+          <p className="stat-label">Críticas en esta página</p>
           <p className="stat-value">{stats.critical}</p>
         </Card>
         <Card className="ui-section-card">
@@ -662,6 +668,13 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               CSV
             </a>
           </div>
+          {copyState !== 'idle' ? (
+            <p className="mt-2 text-xs text-[var(--muted)]" role="status">
+              {copyState === 'copied'
+                ? 'Alertas copiadas al portapapeles.'
+                : 'No se pudo copiar automáticamente. Usa el CSV como alternativa.'}
+            </p>
+          ) : null}
         </Card>
       </section>
 
@@ -669,7 +682,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--secondary)] px-4 py-3">
           <p className="text-sm font-semibold text-[var(--foreground)]">Registros de alertas</p>
           <p className="text-xs text-[var(--muted)]">
-            Pagina {page + 1}/{pageCount} · {rows.length} filas
+            Página {page + 1}/{pageCount} · {rows.length} filas
           </p>
         </header>
 
@@ -678,7 +691,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         ) : errorMessage ? (
           <p className="px-4 py-6 text-sm text-[var(--muted)]">{errorMessage}</p>
         ) : rows.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-[var(--muted)]">No hay alertas para los filtros actuales.</p>
+          <p className="px-4 py-6 text-sm text-[var(--muted)]">No hay alertas para los filtros actuales. Limpia filtros o amplía el rango de fechas.</p>
         ) : (
           <ScrollArea className="overflow-x-auto max-h-[600px]">
             <Table className="min-w-full border-collapse text-sm">

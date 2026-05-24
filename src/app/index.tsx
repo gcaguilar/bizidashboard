@@ -12,16 +12,16 @@ import { getHomePageData } from '@/server-functions/home';
 
 const HOME_FAQ = [
   {
-    question: 'Como saber si hay bicis disponibles en mi estacion mas cercana?',
-    answer: 'Usa el mapa en vivo o busca el nombre de la estacion en el buscador global. Cada ficha muestra bicis disponibles, huecos libres y ocupacion en tiempo real.',
+    question: '¿Cómo saber si hay bicis disponibles en mi estación más cercana?',
+    answer: 'Usa el mapa avanzado o busca el nombre de la estación. Cada ficha muestra bicis disponibles, huecos libres y ocupación reciente.',
   },
   {
-    question: 'Que estaciones tienen mas bicis ahora mismo?',
-    answer: 'En la pagina de estadisticas de estaciones puedes filtrar por "Con bicis" para ver solo las que tienen disponibilidad, ordenadas de mayor a menor.',
+    question: '¿Qué estaciones tienen más bicis ahora mismo?',
+    answer: 'En la página de estadísticas de estaciones puedes filtrar por "Con bicis" para ver solo las que tienen disponibilidad, ordenadas de mayor a menor.',
   },
   {
-    question: 'Cada cuanto se actualizan los datos?',
-    answer: 'Los datos se actualizan cada pocos minutos desde el feed oficial de Bizi Zaragoza. La hora exacta de la ultima actualizacion aparece en la parte superior de la pagina.',
+    question: '¿Cada cuánto se actualizan los datos?',
+    answer: 'Los datos se actualizan cada pocos minutos desde el feed oficial de Bizi Zaragoza. La página de estado muestra la última muestra válida.',
   },
 ] as const;
 
@@ -106,7 +106,7 @@ function Home() {
             ctaEvent={{ source: 'home_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
             className="ui-primary-button"
           >
-            Abrir mapa en vivo
+            Abrir mapa avanzado
           </TrackedLink>
           <TrackedLink
             href={appRoutes.statsEstaciones()}
@@ -137,9 +137,9 @@ function Home() {
               <p className="mt-1 text-xs text-[var(--muted)]">
                 Desde el{' '}
                 <Link to={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
-                  dashboard
+                  mapa avanzado
                 </Link>{' '}
-                puedes marcar tus estaciones habituales como favoritas. Aparecerán aquí cada vez que entres, con su estado actual y alertas si están vacías o llenas.
+                puedes marcar tus estaciones habituales como favoritas. Se guardan solo en este navegador y aparecerán aquí con su estado actual.
               </p>
             </div>
           </div>

@@ -119,7 +119,7 @@ const REFRESH_AFTER_LAST_DATA_MS = 5 * 60_000; // 5 minutes
 const MIN_REFRESH_FALLBACK_MS = 30_000;
 
 const TIME_WINDOWS: TimeWindow[] = [
-  { id: '24h', label: 'Ultimas 24h', mobilityDays: 1, demandDays: 7 },
+  { id: '24h', label: 'Últimas 24h', mobilityDays: 1, demandDays: 7 },
   { id: '7d', label: '7 dias', mobilityDays: 7, demandDays: 14 },
   { id: '30d', label: 'Mes', mobilityDays: 30, demandDays: 30 },
   { id: '365d', label: 'Anual', mobilityDays: 365, demandDays: 365 },
@@ -492,7 +492,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
        
-      setGeolocationError('La geolocalizacion no esta disponible en este navegador.');
+      setGeolocationError('La geolocalización no está disponible en este navegador. Puedes mover el mapa manualmente.');
       return;
     }
 
@@ -505,7 +505,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         setGeolocationError(null);
       },
       (error) => {
-        setGeolocationError(error.message || 'No se pudo obtener tu ubicacion.');
+        setGeolocationError(error.message || 'No se pudo obtener tu ubicación. Puedes mover el mapa manualmente o revisar el permiso de ubicación del navegador.');
       },
       {
         enableHighAccuracy: true,
@@ -999,12 +999,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     100;
   const hasAvailabilityFilter = onlyWithBikes || onlyWithAnchors;
   const nearestMessage = nearestStationInfo && nearestStation
-    ? `📍 Estacion mas cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
+    ? `📍 Estación más cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
     : geolocationError
       ? `📍 ${geolocationError}`
       : isGeolocationEnabled
-        ? '📍 Buscando tu ubicacion para calcular la estacion mas cercana...'
-        : '📍 Activa tu ubicacion para calcular la estacion mas cercana.';
+        ? '📍 Buscando tu ubicación para calcular la estación más cercana...'
+        : '📍 Activa tu ubicación para calcular la estación más cercana. No se guarda ni se comparte.';
   const systemMetrics = useSystemMetrics({
     stations: stationsData.stations,
     rankings: rankingsData,
@@ -1019,7 +1019,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const sharedDatasetUpdatedText = datasetLastSampleAt
     ? new Date(datasetLastSampleAt).toLocaleString('es-ES', { timeZone: TIMEZONE })
     : 'sin datos';
-  const datasetSummaryLabel = `Cobertura ${initialData.dataset.coverage.totalDays} dias · ${initialData.dataset.coverage.totalStations} estaciones · ultima muestra ${sharedDatasetUpdatedText}`;
+  const datasetSummaryLabel = `Cobertura ${initialData.dataset.coverage.totalDays} días · ${initialData.dataset.coverage.totalStations} estaciones · última muestra ${sharedDatasetUpdatedText}`;
   const topFrictionStationName = systemMetrics.topFriction
     ? stationsData.stations.find((station) => station.id === systemMetrics.topFriction?.stationId)?.name ?? systemMetrics.topFriction.stationId
     : null;
@@ -1084,7 +1084,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       {shouldShowDataStateNotice(dashboardDataState) ? (
         <DataStateNotice
           state={dashboardDataState}
-          subject="el dashboard"
+          subject="el mapa avanzado"
           description="Todos los paneles comparten el mismo snapshot de cobertura, estado y rankings. Si este banner marca cobertura parcial o dataset antiguo, el resto de widgets heredan esa misma limitacion."
           href={appRoutes.status()}
           actionLabel="Abrir estado"

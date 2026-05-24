@@ -38,7 +38,7 @@ export function HomeFavoritesSection({ stationRows }: HomeFavoritesSectionProps)
       <div className="ui-section-card">
         <p className="stat-label">Tus favoritas</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Marca favoritas desde el dashboard para verlas aquí.
+          Marca favoritas desde el mapa avanzado para verlas aquí. Se guardan solo en este navegador.
         </p>
       </div>
     );

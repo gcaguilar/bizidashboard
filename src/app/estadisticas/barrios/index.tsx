@@ -66,7 +66,7 @@ function BarriosPage() {
           <span className="ui-chip">Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}</span>
         </div>
         <div className="flex flex-wrap gap-3">
-          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'barrios_page', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver mapa por barrios</TrackedLink>
+          <TrackedLink href={appRoutes.statsMapa()} ctaEvent={{ source: 'barrios_page', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Abrir mapa avanzado</TrackedLink>
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'barrios_page', ctaId: 'explore_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Explorar estaciones</TrackedLink>
         </div>
       </header>

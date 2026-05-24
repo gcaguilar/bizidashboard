@@ -62,7 +62,7 @@ function InformesMonthPage() {
         </div>
       </header>
       {shouldShowDataStateNotice(dataState) ? (
-        <DataStateNotice state={dataState} subject="el informe mensual" description="Este informe depende de los datos historicos disponibles. Revisa el estado si ves huecos o cobertura parcial." href={appRoutes.status()} actionLabel="Revisar estado" />
+        <DataStateNotice state={dataState} subject="el informe mensual" description="Este informe depende de los datos históricos disponibles. Revisa el estado si ves huecos o cobertura parcial." href={appRoutes.status()} actionLabel="Revisar estado" />
       ) : null}
       {monthRow ? (
         <>
@@ -77,13 +77,13 @@ function InformesMonthPage() {
               <h2 className="text-xl font-black text-[var(--foreground)]">Resumen del mes</h2>
               <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
                 <p>En {formatMonthLabel(month)}, DatosBizi estima {formatInteger(monthRow.demandScore)} puntos de demanda agregada con una ocupación media del {formatPercent(monthRow.avgOccupancy)}.</p>
-                <p>La serie incluye {formatInteger(monthRow.sampleCount)} muestras y {formatInteger(monthRow.activeStations)} estaciones activas. Usa esta lectura como resumen público; para análisis operativo fino, entra al dashboard filtrado por mes.</p>
+                <p>La serie incluye {formatInteger(monthRow.sampleCount)} muestras y {formatInteger(monthRow.activeStations)} estaciones activas. Usa esta lectura como resumen público; para análisis operativo fino, abre el análisis del mes.</p>
               </div>
             </article>
             <article className="ui-section-card">
               <h2 className="text-xl font-black text-[var(--foreground)]">Acciones</h2>
               <div className="mt-4 flex flex-col gap-2">
-                <TrackedLink href={appRoutes.dashboardConclusions({ month })} ctaEvent={{ source: 'report_month', ctaId: 'open_dashboard', destination: 'dashboard_conclusions', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-primary-button">Abrir dashboard de este mes</TrackedLink>
+                <TrackedLink href={appRoutes.dashboardConclusions({ month })} ctaEvent={{ source: 'report_month', ctaId: 'open_dashboard', destination: 'dashboard_conclusions', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-primary-button">Abrir análisis de este mes</TrackedLink>
                 <TrackedLink href={appRoutes.statsViajes()} ctaEvent={{ source: 'report_month', ctaId: 'view_series', destination: 'stats_viajes', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Ver serie acumulada</TrackedLink>
                 <TrackedLink href={appRoutes.reports()} ctaEvent={{ source: 'report_month', ctaId: 'back_to_archive', destination: 'report_archive', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Volver al archivo</TrackedLink>
               </div>

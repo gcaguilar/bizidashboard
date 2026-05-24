@@ -131,6 +131,107 @@ describe('public UX regressions', () => {
     expect(source).not.toContain('MapaPage');
   });
 
+  it('public map CTAs describe the dashboard destination as advanced map', () => {
+    const files = [
+      'src/app/index.tsx',
+      'src/app/estadisticas/index.tsx',
+      'src/app/estadisticas/barrios/index.tsx',
+      'src/app/estadisticas/barrios/$districtSlug.tsx',
+      'src/app/estadisticas/horarios.tsx',
+    ];
+
+    for (const file of files) {
+      const source = readSource(file);
+      expect(source, file).not.toMatch(/Ver mapa en vivo|Mapa en vivo|Abrir mapa en vivo|Ver disponibilidad en el mapa|Ver disponibilidad en mapa|Ver mapa por barrios/);
+    }
+
+    expect(readSource('src/app/index.tsx')).toContain('Abrir mapa avanzado');
+    expect(readSource('src/app/estadisticas/index.tsx')).toContain('Mapa avanzado');
+  });
+
+  it('public nav avoids duplicate dashboard wording', () => {
+    const header = readSource('src/components/Header.tsx');
+    const footer = readSource('src/components/Footer.tsx');
+
+    expect(header).toContain("label: 'Mapa avanzado'");
+    expect(header).toContain("label: 'Redistribución'");
+    expect(header).not.toContain("label: 'Panel avanzado'");
+    expect(header).not.toContain("label: 'Dashboard'");
+    expect(footer).toContain("label: 'Mapa avanzado'");
+    expect(footer).toContain("label: 'Redistribución'");
+    expect(footer).not.toContain("label: 'Panel avanzado'");
+    expect(footer).not.toContain("label: 'Dashboard'");
+  });
+
+  it('public navigation labels avoid dashboard wording', () => {
+    const routes = readSource('src/lib/routes.ts');
+    const publicNavigation = readSource('src/lib/public-navigation.ts');
+
+    expect(routes).not.toContain("label: 'Dashboard'");
+    expect(publicNavigation).not.toMatch(/label: 'Dashboard'|Dashboard >/);
+    expect(publicNavigation).toContain("label: 'Mapa avanzado'");
+  });
+
+  it('dashboard status route redirects to the public status page', () => {
+    const source = readSource('src/app/dashboard/status/index.tsx');
+    expect(source).toContain('redirect');
+    expect(source).toContain('appRoutes.status()');
+    expect(source).not.toContain('Estado del dashboard');
+  });
+
+  it('Bici Radar experimental features are explicitly labelled', () => {
+    const source = readSource('src/app/biciradar.tsx');
+    expect(source).toContain('Alertas inteligentes');
+    expect(source).toContain('Modo offline');
+    expect(source).toContain('En pruebas');
+    expect(source).toContain('Según ciudad');
+    expect(source).toContain('Bicis eléctricas');
+    expect(source).toContain('posición actual');
+  });
+
+  it('clipboard failures show a visible fallback', () => {
+    const compare = readSource('src/app/comparar/_components/InteractiveComparePanel.tsx');
+    const rebalancing = readSource('src/app/dashboard/redistribucion/_components/RebalancingTable.tsx');
+    const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
+
+    expect(compare).toContain('Selecciona y copia la URL compartible de arriba');
+    expect(rebalancing).toContain('Usa Exportar CSV como alternativa');
+    expect(alerts).toContain('Usa el CSV como alternativa');
+  });
+
+  it('home FAQ uses current navigation language', () => {
+    const source = readSource('src/app/index.tsx');
+    expect(source).toContain('mapa avanzado');
+    expect(source).not.toContain('mapa en vivo');
+    expect(source).not.toContain('buscador global');
+  });
+
+  it('public copy avoids stale dashboard wording in key visible strings', () => {
+    const home = readSource('src/app/index.tsx');
+    const status = readSource('src/app/estado.tsx');
+    const report = readSource('src/app/informes.$month.tsx');
+    const compare = readSource('src/app/comparar.tsx');
+    const station = readSource('src/app/estadisticas/estaciones/$stationId.tsx');
+
+    expect(home).not.toMatch(/mapa en vivo|buscador global/i);
+    expect(status).not.toMatch(/afecten al dashboard|Entender metodologia|Aqui aparecen|senal de estabilidad|De donde salen|Ultimo informe/i);
+    expect(report).not.toContain('entra al dashboard filtrado por mes');
+    expect(compare).not.toContain('Abrir analisis en el dashboard');
+    expect(station).not.toContain('abre el dashboard');
+  });
+
+  it('dashboard empty states suggest a user action', () => {
+    const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
+    const rebalancing = readSource('src/app/dashboard/redistribucion/_components/RebalancingTable.tsx');
+    const hourlyCharts = readSource('src/app/dashboard/_components/HourlyCharts.tsx');
+    const heatmap = readSource('src/app/dashboard/_components/Heatmap.tsx');
+
+    expect(alerts).toContain('Limpia filtros o amplía el rango de fechas');
+    expect(rebalancing).toContain('Limpia filtros o cambia clasificación y urgencia');
+    expect(hourlyCharts).toContain('Selecciona otra estación con más muestras');
+    expect(heatmap).toContain('Selecciona otra estación con más muestras');
+  });
+
   it('dashboard pages do not render the public Header', () => {
     const rootSource = readSource('src/app/__root.tsx');
     expect(rootSource).toContain('useLocation');
