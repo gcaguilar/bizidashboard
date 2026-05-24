@@ -247,7 +247,7 @@ export function StationPicker({
                     size="sm"
                     className={`max-w-full truncate rounded-full ${
                       station.id === selectedStationId
-                        ? 'border-[var(--warning)] bg-[var(--warning)] text-[#111827]'
+                        ? 'border-[var(--warning)] bg-[var(--warning)] text-[var(--background)]'
                         : 'border-[var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--foreground)] hover:border-[var(--warning)]'
                     }`}
                   >
@@ -401,8 +401,8 @@ export function StationPicker({
         <div className="flex justify-end">
         <Button asChild>
           <Link
-            href={stationDetailUrl}
-            className="rounded-lg border border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
+              to={stationDetailUrl}
+              className="rounded-lg border border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Abrir detalle completo
           </Link>

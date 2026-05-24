@@ -852,7 +852,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       const latestStations = stationsResult.ok ? stationsResult.data : stationsData;
       const latestStatus = statusResult.ok ? statusResult.data : statusData;
-      let nextRefresh = resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus);
+      let nextRefresh = resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus, Date.now());
 
       const rateLimitSeconds = [
         stationsResult,

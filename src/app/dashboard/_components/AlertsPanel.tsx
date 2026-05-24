@@ -34,7 +34,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           </Badge>
           <Button asChild variant="outline" size="sm">
             <Link
-              href={appRoutes.dashboardAlerts()}
+              to={appRoutes.dashboardAlerts()}
               className="rounded-full"
             >
               Historial
@@ -47,7 +47,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
           <Link
-            href={appRoutes.dashboardAlerts()}
+            to={appRoutes.dashboardAlerts()}
             className="ui-inline-action"
           >
             Ver historial de alertas

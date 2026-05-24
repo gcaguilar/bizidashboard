@@ -136,7 +136,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           <span className='ui-chip'>{rows.length} resultados</span>
           <div className='mt-1'>
             <Link
-              href={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
+              to={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
               className='text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline'
             >
               Entender ranking

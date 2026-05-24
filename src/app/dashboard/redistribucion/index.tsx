@@ -23,7 +23,7 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
       title,
     }
   },
-  loader: async ({ searchParams }) => getDashboardRebalancingPageData({ data: searchParams ? await searchParams : {} }),
+  loader: async ({ location }) => getDashboardRebalancingPageData({ data: Object.fromEntries(new URLSearchParams(location.searchStr)) }),
   component: RedistribucionPage,
 });
 

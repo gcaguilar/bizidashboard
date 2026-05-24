@@ -102,7 +102,7 @@ export function DemandFlowCard({
           </span>
           <div>
             <Link
-              href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+              to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Entender metrica

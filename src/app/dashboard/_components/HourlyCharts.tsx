@@ -134,7 +134,7 @@ export function HourlyCharts({
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={appRoutes.dashboardHelp('detalle-estacion')}
+            to={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
             Entender grafico
@@ -166,7 +166,7 @@ export function HourlyCharts({
                     type="monotone"
                     dataKey="weekday"
                     name={weekdayLabel}
-                    stroke="#ef4444"
+                    stroke="var(--danger)"
                     strokeWidth={2}
                     dot={false}
                     connectNulls
@@ -175,7 +175,7 @@ export function HourlyCharts({
                     type="monotone"
                     dataKey="weekend"
                     name={weekendLabel}
-                    stroke="#14b8a6"
+                    stroke="var(--success)"
                     strokeWidth={2}
                     dot={false}
                     connectNulls
