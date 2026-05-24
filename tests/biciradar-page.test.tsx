@@ -28,6 +28,23 @@ vi.mock('@/app/_components/TrackedAnchor', () => ({
   ),
 }));
 
+vi.mock('@/app/_components/TrackedLink', () => ({
+  TrackedLink: ({
+    children,
+    href,
+    ctaEvent: _ctaEvent,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    ctaEvent?: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
   return {

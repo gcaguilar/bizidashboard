@@ -65,7 +65,7 @@ describe('public UX regressions', () => {
   it('informes-mensuales-bizi-zaragoza is a redirect, not a landing page', () => {
     const source = readSource('src/app/informes-mensuales-bizi-zaragoza.tsx');
     expect(source).toContain('redirect');
-    expect(source).toContain("'/informes'");
+    expect(source).toContain("appRoutes.reports()");
     expect(source).not.toMatch(/SeoLandingPageComponent/);
   });
 
@@ -84,5 +84,85 @@ describe('public UX regressions', () => {
     expect(source).not.toMatch(/PUBLIC_UTILITY_NAV_ITEMS/);
     expect(source).toMatch(/getExploreHubSections/);
     expect(source).toMatch(/PUBLIC_NAV_ITEMS/);
+  });
+
+  it('header exposes Bici Radar and Redistribución in main or more nav', () => {
+    const source = readSource('src/components/Header.tsx');
+    expect(source).toContain('appRoutes.biciradar()');
+    expect(source).toContain('appRoutes.statsRedistribucion()');
+  });
+
+  it('header and footer use route helpers and tracked links for internal navigation', () => {
+    const header = readSource('src/components/Header.tsx');
+    const footer = readSource('src/components/Footer.tsx');
+
+    expect(header).toContain('appRoutes.');
+    expect(header).toContain('TrackedLink');
+    expect(header).not.toMatch(/href:\s*['"]\//);
+    expect(header).not.toMatch(/<a\s+[^>]*href=['"]\//);
+
+    expect(footer).toContain('appRoutes.');
+    expect(footer).toContain('TrackedLink');
+    expect(footer).not.toMatch(/href:\s*['"]\//);
+    expect(footer).not.toMatch(/<a\s+[^>]*href=['"]\//);
+  });
+
+  it('about page stays on the main design system', () => {
+    const source = readSource('src/app/about.tsx');
+    expect(source).not.toMatch(/island-|display-title|sea-/);
+    expect(source).toContain('ui-page-hero');
+    expect(source).toContain('ui-section-card');
+  });
+
+  it('legacy Next metadata types are not imported in src', () => {
+    const routeSource = readSource('src/lib/routes.ts');
+    const seoSource = readSource('src/lib/seo.ts');
+    const landingSource = readSource('src/lib/seo-landing.server.tsx');
+    expect(routeSource).not.toContain("from 'next'");
+    expect(seoSource).not.toContain("from 'next'");
+    expect(landingSource).not.toContain("from 'next'");
+  });
+
+  it('estadisticas/mapa redirects to dashboard instead of showing empty landing', () => {
+    const source = readSource('src/app/estadisticas/mapa.tsx');
+    expect(source).toContain('redirect');
+    expect(source).toContain('appRoutes.dashboard()');
+    expect(source).not.toContain('PageShell');
+    expect(source).not.toContain('MapaPage');
+  });
+
+  it('dashboard pages do not render the public Header', () => {
+    const rootSource = readSource('src/app/__root.tsx');
+    expect(rootSource).toContain('useLocation');
+    expect(rootSource).toContain('isDashboard');
+    expect(rootSource).toContain('startsWith(\'/dashboard\')');
+  });
+
+  it('dashboard route links include redistribucion in all dashboard pages', () => {
+    const dashboardPages = [
+      'src/app/dashboard/_components/DashboardHeader.tsx',
+      'src/app/dashboard/flujo/index.tsx',
+      'src/app/dashboard/conclusiones/index.tsx',
+      'src/app/dashboard/ayuda/_components/HelpCenterClient.tsx',
+      'src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx',
+      'src/app/dashboard/estaciones/_components/StationsDirectoryClient.tsx',
+    ];
+
+    for (const file of dashboardPages) {
+      const source = readSource(file);
+      expect(source, file).toMatch(/redistribucion/);
+    }
+  });
+
+  it('home explore section uses TrackedLink instead of native anchor', () => {
+    const source = readSource('src/app/_components/HomeExploreSection.tsx');
+    expect(source).toContain('TrackedLink');
+    expect(source).not.toMatch(/<a\s/);
+  });
+
+  it('informes page uses TrackedLink for monthly report navigation', () => {
+    const source = readSource('src/app/informes.tsx');
+    expect(source).toContain('TrackedLink');
+    expect(source).toContain('appRoutes.reportMonth');
   });
 });

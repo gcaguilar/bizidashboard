@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import {
   buildSeoTitle,
   evaluatePageIndexability,
@@ -10,6 +9,47 @@ import { SEO_SITE_NAME } from '@/lib/site';
 const SEO_LANGUAGE_ALTERNATES: Record<string, string> = {
   'es-ES': '/',
   'x-default': '/',
+};
+
+export type PageMetadata = {
+  title: { absolute: string };
+  description: string;
+  keywords?: string[];
+  alternates: {
+    canonical: string;
+    languages: Record<string, string>;
+  };
+  robots: {
+    index: boolean;
+    follow: boolean;
+    googleBot: {
+      index: boolean;
+      follow: boolean;
+      'max-image-preview': 'large';
+      'max-snippet': -1;
+      'max-video-preview': -1;
+    };
+  };
+  other: Record<string, string>;
+  openGraph: {
+    type: 'website';
+    siteName: string;
+    title: string;
+    description: string;
+    url: string;
+    images: Array<{
+      url: string;
+      width: number;
+      height: number;
+      alt: string;
+    }>;
+  };
+  twitter: {
+    card: 'summary_large_image';
+    title: string;
+    description: string;
+    images: string[];
+  };
 };
 
 type BuildPageMetadataOptions = {
@@ -32,7 +72,7 @@ export function buildPageMetadata({
   socialImagePath,
   socialImageAlt,
   indexability,
-}: BuildPageMetadataOptions): Metadata {
+}: BuildPageMetadataOptions): PageMetadata {
   const indexabilityDecision = evaluatePageIndexability({
     path,
     canonicalPath,
