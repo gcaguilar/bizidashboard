@@ -123,13 +123,13 @@ export function DashboardHeader({
 
         <div className="w-full">
           <label htmlFor="dashboard-search" className="sr-only">
-            Buscar estacion, identificador o barrio
+            Buscar estación, identificador o barrio
           </label>
           <Input
             id="dashboard-search"
             type="text"
             className="min-h-11 border-[var(--border)] bg-[var(--secondary)] py-2"
-            placeholder="Buscar estacion, ID o barrio..."
+            placeholder="Buscar estación, ID o barrio..."
             value={searchQuery}
             onChange={(event) => onChangeSearch(event.target.value)}
           />

@@ -81,7 +81,7 @@ export function ResearchSummaryCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>
-          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura temporal rapida</h3>
+          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura temporal rápida</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Resume cuando se concentra mas actividad y en que momento del dia se ve mas bici disponible.</p>
         </div>
         <Button asChild variant="cta" size="sm">
@@ -96,7 +96,7 @@ export function ResearchSummaryCard({
           detail={
             topDemandDay
               ? `${topDemandDay.demandScore.toFixed(1)} puntos de demanda agregada`
-              : 'Todavia no hay historico suficiente.'
+              : 'Todavía no hay histórico suficiente.'
           }
         />
         <MetricCard

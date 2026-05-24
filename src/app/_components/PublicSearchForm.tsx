@@ -29,7 +29,7 @@ type PublicSearchFormProps = {
 
 export function PublicSearchForm({
   className,
-  placeholder = 'Busca estaciones, barrios, informes o endpoints API',
+  placeholder = 'Busca una estación por nombre o ID',
   defaultQuery = '',
   buttonLabel = 'Buscar',
   eventSource = 'public_search',
@@ -135,7 +135,7 @@ export function PublicSearchForm({
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3 ${className ?? ''}`.trim()}
     >
       <label htmlFor="public-search" className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-        Buscador global
+        Buscar estación
       </label>
       <div className="relative flex flex-wrap gap-2">
         <div className="relative min-w-0 flex-1">

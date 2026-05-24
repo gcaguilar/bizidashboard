@@ -169,7 +169,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
         <Input
           className='h-8 min-h-0 min-w-[180px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs text-[var(--foreground)] outline-none placeholder:text-[var(--muted)]'
-          placeholder='Buscar estacion'
+          placeholder='Buscar estación'
           value={search}
           onChange={(event) => {
             updateQuery({ search: event.target.value, showAll: false });
