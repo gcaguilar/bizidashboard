@@ -294,7 +294,8 @@ export function MapEngine({
     }
 
     try {
-      const zoom = await source.getClusterExpansionZoom(clusterId);
+      const clusterSource = source as unknown as { getClusterExpansionZoom: (id: number) => Promise<number> };
+      const zoom = await clusterSource.getClusterExpansionZoom(clusterId);
 
       if (!Number.isFinite(zoom)) {
         return;
@@ -405,8 +406,8 @@ export function MapEngine({
         {userLocation ? (
           <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
             <div className="relative flex h-4 w-4 items-center justify-center" aria-label="Tu ubicacion aproximada">
-              <span className="absolute inline-flex h-7 w-7 animate-ping rounded-full bg-sky-500/35" />
-              <span className="relative inline-flex h-3 w-3 rounded-full border border-white bg-sky-500" />
+              <span className="absolute inline-flex h-7 w-7 animate-ping rounded-full bg-[var(--primary)]/35" />
+              <span className="relative inline-flex h-3 w-3 rounded-full border border-white bg-[var(--primary)]" />
             </div>
           </Marker>
         ) : null}

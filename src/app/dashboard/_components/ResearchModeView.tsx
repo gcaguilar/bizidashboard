@@ -78,7 +78,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
           <Link
-            href={appRoutes.dashboardFlow()}
+            to={appRoutes.dashboardFlow()}
             className={buttonVariants({
               variant: 'outline',
               size: 'sm',

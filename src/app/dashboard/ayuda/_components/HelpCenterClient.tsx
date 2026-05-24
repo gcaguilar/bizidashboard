@@ -108,7 +108,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             </div>
             <DashboardRouteLinks
               activeRoute="help"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="inline"
               className="hidden items-center gap-6 md:flex"
             />
@@ -128,7 +128,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             </label>
             <DashboardRouteLinks
               activeRoute="help"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />

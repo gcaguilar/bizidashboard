@@ -116,7 +116,7 @@ export function DashboardHeader({
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
         <DashboardRouteLinks
           activeRoute="dashboard"
-          routes={['stations', 'flow', 'conclusions', 'help']}
+          routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
           variant="chips"
           className="flex flex-wrap items-center gap-2 sm:hidden"
         />

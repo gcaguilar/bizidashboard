@@ -48,7 +48,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
           {leastStable.map((row) => (
             <Link
               key={row.stationId}
-              href={appRoutes.dashboardStation(row.stationId)}
+              to={appRoutes.dashboardStation(row.stationId)}
               className="block rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
             >
               <div className="flex items-center justify-between gap-3">

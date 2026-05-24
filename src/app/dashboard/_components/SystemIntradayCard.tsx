@@ -90,7 +90,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
           </p>
         </div>
         <Link
-          href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+          to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
           className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
         >
           Como se calcula
@@ -130,8 +130,8 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                     type="monotone"
                     dataKey="avgOccupancy"
                     name="Ocupacion media"
-                    stroke="#ea0615"
-                    fill="rgba(234, 6, 21, 0.18)"
+                    stroke="var(--primary)"
+                    fill="color-mix(in_srgb, var(--primary) 18%, transparent)"
                     strokeWidth={2}
                   />
                   <Line
@@ -139,7 +139,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                     type="monotone"
                     dataKey="avgBikesAvailable"
                     name="Bicis disponibles"
-                    stroke="#0f766e"
+                    stroke="var(--success)"
                     strokeWidth={2}
                     dot={false}
                   />

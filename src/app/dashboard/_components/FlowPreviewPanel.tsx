@@ -143,7 +143,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
   return (
     <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-2">
       <Card className="relative h-64 items-center justify-center rounded-xl border-dashed border-[var(--primary)]/35 bg-[var(--secondary)] p-0">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, #ea0615 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--primary) 0%, transparent 70%)' }} />
         <div className="relative z-10 flex flex-col items-center text-center">
           <span className="text-4xl text-[var(--primary)]">◎</span>
           <p className="mt-2 text-sm font-bold text-[var(--foreground)]">Modelo de distribucion espacial</p>
@@ -151,11 +151,11 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
           </p>
           <Link
-            href={appRoutes.dashboardFlow()}
+            to={appRoutes.dashboardFlow()}
             className={buttonVariants({
               variant: 'default',
               size: 'sm',
-              className: 'mt-4 min-h-0 bg-[#8f1018] px-4 py-2 text-xs font-bold hover:bg-[#731017]',
+              className: 'mt-4 min-h-0 px-4 py-2 text-xs font-bold',
             })}
           >
             Expandir vista completa
@@ -174,7 +174,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             </p>
           </div>
           <Link
-            href={appRoutes.dashboardHelp('calculo-rutas')}
+            to={appRoutes.dashboardHelp('calculo-rutas')}
             className={buttonVariants({
               variant: 'ghost',
               size: 'sm',

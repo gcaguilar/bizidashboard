@@ -1,7 +1,8 @@
 'use client';
 
-import { Link, useRouter  } from '@tanstack/react-router';
+import { useRouter  } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -373,12 +374,12 @@ export function InteractiveComparePanel({
               <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">{side.option.note}</p>
             ) : null}
 
-            <Link
+            <TrackedLink
               href={side.option.href}
               className="ui-inline-action mt-4"
             >
               Abrir {side.option.label}
-            </Link>
+            </TrackedLink>
           </article>
         ))}
       </div>
@@ -409,12 +410,12 @@ export function InteractiveComparePanel({
           >
             Copiar enlace
           </Button>
-          <Link
+          <TrackedLink
             href={shareHref}
             className="ui-inline-action"
           >
             Abrir esta seleccion
-          </Link>
+          </TrackedLink>
         </div>
         {copyState !== 'idle' ? (
           <p className="mt-2 text-xs text-[var(--muted)]">

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatStatusDateTime, formatStatusNumber, getCoverageLabel, getHealthLabel } from '@/lib/system-status';
 import { PageShell } from '@/components/layout/page-shell';
 import { getSystemStatusPageData } from '@/server-functions/estado';
@@ -38,8 +39,8 @@ export default function DashboardStatusPage() {
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Estado de los datos de DatosBizi</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen directo para saber si el dashboard esta usando datos recientes, completos y sin incidencias activas.</p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <a className="ui-inline-action" href={appRoutes.status()}>Abrir estado completo</a>
-          <a className="ui-inline-action" href={appRoutes.dashboard()}>Volver al dashboard</a>
+          <TrackedLink className="ui-inline-action" href={appRoutes.status()} ctaEvent={{ source: 'dashboard_status', ctaId: 'open_public_status', destination: 'status', sourceRole: 'dashboard', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir estado completo</TrackedLink>
+          <TrackedLink className="ui-inline-action" href={appRoutes.dashboard()} ctaEvent={{ source: 'dashboard_status', ctaId: 'back_to_dashboard', destination: 'dashboard', sourceRole: 'dashboard', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Volver al dashboard</TrackedLink>
         </div>
       </header>
       <section className="grid gap-4 md:grid-cols-4">

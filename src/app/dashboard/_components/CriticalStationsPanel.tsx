@@ -56,7 +56,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
             return (
               <Link
                 key={station.id}
-                href={appRoutes.dashboardStation(station.id)}
+                to={appRoutes.dashboardStation(station.id)}
                 className={`flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 ${compact ? 'py-2.5' : 'py-3'} transition hover:border-[var(--primary)]/40 hover:bg-[var(--card)]`}
               >
                 <div className="min-w-0">

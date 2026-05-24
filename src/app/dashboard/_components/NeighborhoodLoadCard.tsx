@@ -161,7 +161,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           <span>Barrios: {slices.length}</span>
           <div>
             <Link
-              href={appRoutes.dashboardHelp('estados-mapa')}
+              to={appRoutes.dashboardHelp('estados-mapa')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Como leerlo

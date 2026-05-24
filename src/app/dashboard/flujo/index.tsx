@@ -35,7 +35,7 @@ export const Route = createFileRoute('/dashboard/flujo/')({
       title,
     }
   },
-  loader: async ({ searchParams }) => getDashboardFlowPageData({ data: searchParams ? await searchParams : {} }),
+  loader: async ({ location }) => getDashboardFlowPageData({ data: Object.fromEntries(new URLSearchParams(location.searchStr)) }),
   component: DashboardFlowPage,
 });
 
@@ -58,7 +58,7 @@ export default function DashboardFlowPage() {
             </div>
             <DashboardRouteLinks
               activeRoute="flow"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="inline"
               className="hidden items-center gap-5 md:flex"
             />
@@ -66,7 +66,7 @@ export default function DashboardFlowPage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="flow"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />

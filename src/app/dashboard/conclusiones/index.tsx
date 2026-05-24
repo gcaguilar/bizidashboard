@@ -100,7 +100,7 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
       title,
     }
   },
-  loader: async ({ searchParams }) => getDashboardConclusionsPageData({ data: searchParams ? await searchParams : {} }),
+  loader: async ({ location }) => getDashboardConclusionsPageData({ data: Object.fromEntries(new URLSearchParams(location.searchStr)) }),
   component: DashboardConclusionsPage,
 });
 
@@ -127,7 +127,7 @@ export default function DashboardConclusionsPage() {
             </div>
             <DashboardRouteLinks
               activeRoute="conclusions"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="inline"
               className="hidden items-center gap-5 md:flex"
             />
@@ -136,7 +136,7 @@ export default function DashboardConclusionsPage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="conclusions"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
@@ -347,7 +347,7 @@ export default function DashboardConclusionsPage() {
               {payload.topStationsByDemand.map((station, index) => (
                 <Button asChild key={station.stationId} variant="outline" size="sm">
                   <Link
-                    href={appRoutes.dashboardStation(station.stationId)}
+                    to={appRoutes.dashboardStation(station.stationId)}
                     className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -382,7 +382,7 @@ export default function DashboardConclusionsPage() {
               {payload.leastUsedStations.map((station, index) => (
                 <Button asChild key={station.stationId} variant="outline" size="sm">
                   <Link
-                    href={appRoutes.dashboardStation(station.stationId)}
+                    to={appRoutes.dashboardStation(station.stationId)}
                     className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -408,7 +408,7 @@ export default function DashboardConclusionsPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Informes mensuales publicados</h3>
             <Link
-              href={appRoutes.reports()}
+              to={appRoutes.reports()}
               className="text-xs font-bold text-[var(--primary)] transition hover:opacity-80"
             >
               Ver archivo completo
@@ -419,7 +419,7 @@ export default function DashboardConclusionsPage() {
             {availableMonths.months.slice(0, 6).map((month) => (
               <Button asChild key={month} variant="outline" size="sm">
                 <Link
-                  href={appRoutes.reportMonth(month)}
+                  to={appRoutes.reportMonth(month)}
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                 >
                   <div>
@@ -448,7 +448,7 @@ export default function DashboardConclusionsPage() {
             ].map(([href, label]) => (
               <Button asChild key={href} variant="outline" size="sm">
                 <Link
-                  href={href}
+                  to={href}
                   className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
                 >
                   {label}

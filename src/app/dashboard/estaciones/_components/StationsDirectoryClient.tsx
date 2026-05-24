@@ -70,13 +70,13 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardRouteLinks
               activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="inline"
               className="hidden items-center gap-5 md:flex"
             />
             <DashboardRouteLinks
               activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'help']}
+              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
