@@ -36,10 +36,10 @@ const SORTS: { key: SortKey; label: string }[] = [
 ];
 
 function stationBadge(s: StationSeoSummary): { label: string; variant: string } {
-  if (s.station.bikesAvailable === 0) return { label: 'Vacía', variant: 'border-red-400 text-red-600 bg-red-50' };
-  if (s.station.anchorsFree === 0) return { label: 'Llena', variant: 'border-blue-400 text-blue-600 bg-blue-50' };
-  if (s.turnover && s.turnover.turnoverScore > 0.8) return { label: 'Muy usada', variant: 'border-amber-400 text-amber-600 bg-amber-50' };
-  return { label: 'Sin problemas', variant: 'border-green-400 text-green-600 bg-green-50' };
+  if (s.station.bikesAvailable === 0) return { label: 'Vacía', variant: 'border-[var(--danger)] text-[var(--danger)] bg-[var(--danger)]/10' };
+  if (s.station.anchorsFree === 0) return { label: 'Llena', variant: 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10' };
+  if (s.turnover && s.turnover.turnoverScore > 0.8) return { label: 'Muy usada', variant: 'border-[var(--warning)] text-[var(--warning)] bg-[var(--warning)]/10' };
+  return { label: 'Sin problemas', variant: 'border-[var(--success)] text-[var(--success)] bg-[var(--success)]/10' };
 }
 
 type StationsDirectoryProps = {
@@ -187,7 +187,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
                   href={appRoutes.stationDetail(s.station.id)}
                   className="ui-surface-block-interactive text-sm font-semibold text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
                 >
-                  {isFav && <span className="text-amber-500">★ </span>}
+                  {isFav && <span className="text-[var(--warning)]" aria-label="Favorita">★ </span>}
                   {s.station.name}
                 </a>
 

@@ -31,9 +31,9 @@ export function TransferTable({ transfers }: Props) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             {/* Transfer arrow */}
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <span className="text-orange-600 dark:text-orange-400">{t.originStationName}</span>
+              <span className="text-[var(--warning)]">{t.originStationName}</span>
               <span className="text-[var(--muted)]">→</span>
-              <span className="text-sky-600 dark:text-sky-400">{t.destinationStationName}</span>
+              <span className="text-[var(--primary)]">{t.destinationStationName}</span>
             </div>
 
             {/* Bikes to move */}
@@ -64,7 +64,7 @@ export function TransferTable({ transfers }: Props) {
             </div>
             <div>
               <span className="text-[var(--muted)]">Usos recuperados </span>
-              <strong className="text-sky-600 dark:text-sky-400">
+              <strong className="text-[var(--primary)]">
                 ~{t.expectedImpact.usesRecovered.toFixed(0)}
               </strong>
             </div>

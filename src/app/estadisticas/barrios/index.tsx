@@ -72,9 +72,9 @@ function BarriosPage() {
       </header>
 
       {content.emptyReason ? (
-        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/12 px-4 py-3 text-sm text-amber-100 shadow-[var(--shadow-soft)]">
+        <section className="rounded-2xl border border-[var(--warning)]/30 bg-[var(--warning)]/12 px-4 py-3 text-sm text-[var(--foreground)] shadow-[var(--shadow-soft)]">
           <p className="font-semibold">Datos parciales</p>
-          <p className="mt-1 text-xs text-amber-100/80">{content.emptyReason}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{content.emptyReason}</p>
         </section>
       ) : null}
 

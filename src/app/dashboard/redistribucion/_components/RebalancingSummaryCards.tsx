@@ -17,7 +17,7 @@ export function RebalancingSummaryCards({ summary }: Props) {
     {
       label: 'Donantes',
       value: (summary.byAction.donor ?? 0) + (summary.byAction.peak_remove ?? 0),
-      color: 'text-orange-600 dark:text-orange-400',
+      color: 'text-[var(--warning)]',
       description: 'tienen exceso de bicis',
     },
     {
@@ -29,13 +29,13 @@ export function RebalancingSummaryCards({ summary }: Props) {
     {
       label: 'Urgencia alta',
       value: summary.criticalUrgencyCount + summary.highUrgencyCount,
-      color: 'text-rose-600 dark:text-rose-400',
+      color: 'text-[var(--danger)]',
       description: 'requieren atención prioritaria',
     },
     {
       label: 'Transferencias',
       value: summary.stationsWithTransfer,
-      color: 'text-sky-600 dark:text-sky-400',
+      color: 'text-[var(--primary)]',
       description: 'movimientos sugeridos',
     },
     {
@@ -47,7 +47,7 @@ export function RebalancingSummaryCards({ summary }: Props) {
     {
       label: 'A revisar',
       value: summary.byAction.review ?? 0,
-      color: 'text-slate-500 dark:text-slate-400',
+      color: 'text-[var(--muted)]',
       description: 'dato anómalo, excluidas',
     },
   ];

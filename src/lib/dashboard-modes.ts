@@ -22,7 +22,7 @@ export const DASHBOARD_MODE_META: Record<
     introTitle: 'Lo importante de un vistazo',
     introDescription:
       'Para entender rapidamente como esta el sistema, si hay equilibrio y que senales merecen atencion hoy.',
-    introTone: 'from-rose-500/12 via-transparent to-transparent border-rose-500/25',
+    introTone: 'from-[var(--danger)]/12 via-transparent to-transparent border-[var(--danger)]/25',
   },
   operations: {
     label: 'Operaciones',
@@ -32,7 +32,7 @@ export const DASHBOARD_MODE_META: Record<
     introTitle: 'Priorizar antes de que el problema crezca',
     introDescription:
       'Pensado para detectar estaciones criticas, revisar alertas y decidir donde actuar primero.',
-    introTone: 'from-amber-500/14 via-transparent to-transparent border-amber-500/25',
+    introTone: 'from-[var(--warning)]/14 via-transparent to-transparent border-[var(--warning)]/25',
   },
   research: {
     label: 'Analisis',
@@ -42,7 +42,7 @@ export const DASHBOARD_MODE_META: Record<
     introTitle: 'Entender patrones y comportamiento',
     introDescription:
       'Para leer tendencias, estabilidad y movimiento entre zonas con el contexto necesario.',
-    introTone: 'from-sky-500/14 via-transparent to-transparent border-sky-500/25',
+    introTone: 'from-[var(--primary)]/14 via-transparent to-transparent border-[var(--primary)]/25',
   },
   data: {
     label: 'Datos',
@@ -52,7 +52,7 @@ export const DASHBOARD_MODE_META: Record<
     introTitle: 'Datos claros para auditar y reutilizar',
     introDescription:
       'Reune metodologia, historicos y salidas de datos para comprobar, citar o reutilizar la informacion.',
-    introTone: 'from-emerald-500/14 via-transparent to-transparent border-emerald-500/25',
+    introTone: 'from-[var(--success)]/14 via-transparent to-transparent border-[var(--success)]/25',
   },
 };
 

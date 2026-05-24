@@ -14,8 +14,8 @@ const CLASSIFICATIONS: Array<{
   {
     code: 'overstock',
     label: 'A — Sobrestock',
-    color: 'text-orange-700 dark:text-orange-400',
-    bg: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800',
+    color: 'text-[var(--warning)]',
+    bg: 'bg-[var(--warning)]/10 border-[var(--warning)]/30',
     description: 'Ocupacion alta sostenida, baja rotación e inmóvil. Bicis "paradas". Candidata a donar.',
   },
   {
@@ -35,8 +35,8 @@ const CLASSIFICATIONS: Array<{
   {
     code: 'peak_emptying',
     label: 'D — Vaciado puntual',
-    color: 'text-yellow-700 dark:text-yellow-400',
-    bg: 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800',
+    color: 'text-[var(--warning)]',
+    bg: 'bg-[var(--warning)]/10 border-[var(--warning)]/30',
     description: 'Solo se vacía en hora punta. Se recupera después sin intervención.',
   },
   {
@@ -49,8 +49,8 @@ const CLASSIFICATIONS: Array<{
   {
     code: 'data_review',
     label: 'F — Revisar dato',
-    color: 'text-slate-600 dark:text-slate-400',
-    bg: 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700',
+    color: 'text-[var(--muted)]',
+    bg: 'bg-[var(--muted)]/10 border-[var(--border)]',
     description: 'Dato anómalo o sensor sospechoso. Excluida de decisiones logísticas hasta validar.',
   },
 ];

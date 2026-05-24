@@ -53,7 +53,7 @@ export function HomeFavoritesSection({ stationRows }: HomeFavoritesSectionProps)
       <div className="flex items-center justify-between gap-2">
         <p className="stat-label">Tus favoritas</p>
         {criticalFavorites.length > 0 && (
-          <span className="rounded-full bg-red-500/12 px-2.5 py-0.5 text-[11px] font-semibold text-red-400">
+          <span className="rounded-full bg-[var(--danger)]/12 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--danger)]">
             {criticalFavorites.length} necesitan atención
           </span>
         )}
@@ -83,7 +83,7 @@ export function HomeFavoritesSection({ stationRows }: HomeFavoritesSectionProps)
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
                 {hasAlert && (
-                  <span className="shrink-0 rounded bg-red-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-400">
+                  <span className="shrink-0 rounded bg-[var(--danger)]/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--danger)]">
                     {isEmpty ? 'Vacía' : 'Llena'}
                   </span>
                 )}

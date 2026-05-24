@@ -494,7 +494,7 @@ export function StationDetailPanel({
                 className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${
                   isCritical
                     ? 'border-[var(--primary)] bg-[var(--primary)]/20 text-[var(--primary)]'
-                    : 'border-emerald-500/35 bg-emerald-500/10 text-emerald-500'
+                    : 'border-[var(--success)]/35 bg-[var(--success)]/10 text-[var(--success)]'
                 }`}
               >
                 <span className="relative flex h-2 w-2">

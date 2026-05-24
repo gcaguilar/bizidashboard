@@ -54,7 +54,7 @@ export function StationFavoriteButton({ stationId }: StationFavoriteButtonProps)
       onClick={toggleFavorite}
       className={`ui-inline-action text-xs ${
         isFavorite
-          ? 'border-amber-400/50 bg-amber-500/12 text-amber-300'
+          ? 'border-[var(--warning)]/50 bg-[var(--warning)]/12 text-[var(--warning)]'
           : ''
       }`}
     >

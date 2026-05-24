@@ -10,7 +10,7 @@ type BalanceIndexCardProps = {
 };
 
 function getBalanceTone(value: number): string {
-  if (value >= 0.8) return 'text-emerald-400';
+  if (value >= 0.8) return 'text-[var(--success)]';
   if (value >= 0.6) return 'text-[var(--warning)]';
   return 'text-[var(--primary)]';
 }

@@ -246,7 +246,7 @@ function MobilityInsightsContent({
           {PERIODS.map((period) => (
             <Link
               key={period.key}
-              href={appRoutes.dashboardFlow({
+              to={appRoutes.dashboardFlow({
                 month: selectedMonth,
                 period: period.key === 'all' ? null : period.key,
               })}
@@ -296,7 +296,7 @@ function MobilityInsightsContent({
                 <span>Barrios representados: {chordNodes.length}</span>
                 <div>
                   <Link
-                    href={appRoutes.dashboardHelp('diagrama-chord')}
+                    to={appRoutes.dashboardHelp('diagrama-chord')}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Como interpretarlo
@@ -325,14 +325,14 @@ function MobilityInsightsContent({
                       key={`${link.origin}-${link.destination}-${index}`}
                       d={`M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`}
                       fill="none"
-                      stroke={`rgba(234, 6, 21, ${opacity})`}
+                      stroke={`color-mix(in_srgb, var(--primary) ${Math.round(opacity * 100)}%, transparent)`}
                       strokeWidth={1.2 + (link.flow / (activeInsights.maxFlow || 1)) * 3}
                     />
                   );
                 })}
                 {chordNodes.map((node) => (
                   <g key={node.district}>
-                    <circle cx={node.x} cy={node.y} r="5" fill="#ea0615" />
+                    <circle cx={node.x} cy={node.y} r="5" fill="var(--primary)" />
                     <text
                       x={node.x}
                       y={node.y - 10}
@@ -413,31 +413,31 @@ function MobilityInsightsContent({
                 </p>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-rose-500">
+                <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--danger)]">
                     Mayor aporte hacia referencia
                   </p>
-                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-rose-500/80">
+                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--danger)]/80">
                     Emisor hacia {selectedDistrictName || '…'}
                   </p>
                   <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
                     {topEmitterTowardRef?.district ?? 'N/D'}
                   </p>
-                  <p className="text-xl font-black text-rose-500">
+                  <p className="text-xl font-black text-[var(--danger)]">
                     {topEmitterTowardRef ? topEmitterTowardRef.flow.toFixed(0) : '—'}
                   </p>
                 </div>
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-500">
+                <div className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/10 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--success)]">
                     Mayor destino desde referencia
                   </p>
-                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-emerald-500/80">
+                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--success)]/80">
                     Receptor desde {selectedDistrictName || '…'}
                   </p>
                   <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
                     {topReceiverFromRef?.district ?? 'N/D'}
                   </p>
-                  <p className="text-xl font-black text-emerald-500">
+                  <p className="text-xl font-black text-[var(--success)]">
                     {topReceiverFromRef ? topReceiverFromRef.flow.toFixed(0) : '—'}
                   </p>
                 </div>
@@ -468,7 +468,7 @@ function MobilityInsightsContent({
                   <div key={district.district}>
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="font-bold text-[var(--foreground)]">{district.district}</span>
-                      <span className={`font-black ${isImporter ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      <span className={`font-black ${isImporter ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
                         {net >= 0 ? '+' : ''}
                         {net.toFixed(1)}
                       </span>
@@ -476,12 +476,12 @@ function MobilityInsightsContent({
                     <div className="relative h-3 w-full rounded-full bg-[var(--secondary)]">
                       {isImporter ? (
                         <div
-                          className="absolute left-1/2 h-full rounded-r-full bg-emerald-500"
+                          className="absolute left-1/2 h-full rounded-r-full bg-[var(--success)]"
                           style={{ width: `${width}%` }}
                         />
                       ) : (
                         <div
-                          className="absolute right-1/2 h-full rounded-l-full bg-rose-500"
+                          className="absolute right-1/2 h-full rounded-l-full bg-[var(--danger)]"
                           style={{ width: `${width}%` }}
                         />
                       )}
@@ -537,7 +537,7 @@ function MobilityInsightsContent({
                               backgroundColor: getMatrixCellColor(value, activeInsights.maxFlow),
                               color:
                                 value / (activeInsights.maxFlow || 1) > 0.5
-                                  ? '#ffffff'
+                                  ? 'white'
                                   : 'var(--foreground)',
                             }}
                           >
@@ -564,7 +564,7 @@ function MobilityInsightsContent({
                 <span>{mobilityData.demandDays} dias</span>
                 <div>
                   <Link
-                    href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+                    to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Entender curva
@@ -611,8 +611,8 @@ function MobilityInsightsContent({
                           type="monotone"
                           dataKey="demandScore"
                           name="Demanda"
-                          stroke="#ea0615"
-                          fill="rgba(234, 6, 21, 0.26)"
+                          stroke="var(--primary)"
+                          fill="color-mix(in_srgb, var(--primary) 26%, transparent)"
                           strokeWidth={2}
                         />
                         <Area
@@ -620,8 +620,8 @@ function MobilityInsightsContent({
                           type="monotone"
                           dataKey="avgOccupancyRatio"
                           name="Ocupacion"
-                          stroke="#14b8a6"
-                          fill="rgba(20, 184, 166, 0.2)"
+                          stroke="var(--success)"
+                          fill="color-mix(in_srgb, var(--success) 20%, transparent)"
                           strokeWidth={2}
                         />
                       </AreaChart>
