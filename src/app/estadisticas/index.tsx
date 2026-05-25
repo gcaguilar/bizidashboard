@@ -13,6 +13,7 @@ export const Route = createFileRoute('/estadisticas/')({
     const description = 'Explora estadísticas de Bizi Zaragoza: estaciones, barrios, horarios, viajes y más.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/estadisticas/')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas` }],
       title,
     };
   },

@@ -17,6 +17,7 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
     const description = `Estaciones, disponibilidad y patrones de uso de Bizi en el barrio ${slug} de Zaragoza.`
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -29,7 +30,7 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      link: [{ rel: 'canonical', href: `${getSiteUrl()}/estadisticas/barrios/${slug}` }],
+      links: [{ rel: 'canonical', href: `${getSiteUrl()}/estadisticas/barrios/${slug}` }],
       title,
     }
   },

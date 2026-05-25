@@ -14,6 +14,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
     const description = 'Ranking y disponibilidad de estaciones Bizi Zaragoza. Consulta las más usadas con datos actualizados.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -26,7 +27,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/estaciones` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/estaciones` }],
       title,
     };
   },

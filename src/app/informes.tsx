@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -18,6 +18,7 @@ export const Route = createFileRoute('/informes')({
     const siteUrl = getSiteUrl()
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {
@@ -44,8 +45,13 @@ export const Route = createFileRoute('/informes')({
 });
 
 export default function ReportsIndexPage() {
+  const location = useLocation();
   const { months, monthMap, latestMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
   const monthlyRows = new Map(Object.entries(monthMap));
+
+  if (location.pathname !== appRoutes.reports()) {
+    return <Outlet />;
+  }
 
   return (
     <PageShell>

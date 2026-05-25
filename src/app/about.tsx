@@ -9,6 +9,7 @@ export const Route = createFileRoute('/about')({
     const description = 'DatosBizi reune datos actualizados, historico, informes y API publica del sistema de bicicletas compartidas Bizi Zaragoza.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },

@@ -9,6 +9,7 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
     const description = 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },

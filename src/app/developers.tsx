@@ -52,6 +52,7 @@ export const Route = createFileRoute('/developers')({
     const siteUrl = getSiteUrl()
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         {

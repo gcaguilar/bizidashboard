@@ -18,6 +18,7 @@ export const Route = createFileRoute('/estadisticas/viajes')({
     const description = 'Tendencia diaria y mensual de viajes estimados en el sistema Bizi Zaragoza.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/estadisticas/viajes')({
         { property: 'og:url', content: `${siteUrl}/estadisticas/viajes` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/viajes` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/viajes` }],
       title,
     };
   },

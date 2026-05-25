@@ -17,6 +17,7 @@ export const Route = createFileRoute('/dashboard/estaciones/$stationId')({
     const { stationId } = opts.params;
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],

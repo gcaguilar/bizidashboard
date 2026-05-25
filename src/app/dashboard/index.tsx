@@ -11,22 +11,25 @@ export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'Panel clasico - DatosBizi'
+    const description = 'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.' },
+        { name: 'description', content: description },
         { property: 'og:title', content: 'Dashboard Bizi Zaragoza - DatosBizi' },
-        { property: 'og:description', content: 'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.' },
+        { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: `${siteUrl}/dashboard` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Dashboard Bizi Zaragoza - DatosBizi' },
-        { name: 'twitter:description', content: 'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.' },
+        { name: 'twitter:description', content: description },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/dashboard` }],
-      title: 'Panel clasico - DatosBizi',
+      title,
     }
   },
 })
