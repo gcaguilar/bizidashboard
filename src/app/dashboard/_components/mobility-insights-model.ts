@@ -32,9 +32,9 @@ export type MobilityResponse = {
   demandDays?: number;
   selectedMonth?: string | null;
   methodology?: string;
-  hourlySignals?: Array<unknown>;
-  dailyDemand?: Array<unknown>;
-  systemHourlyProfile?: Array<unknown>;
+  hourlySignals?: MobilitySignalRow[];
+  dailyDemand?: DailyDemandRow[];
+  systemHourlyProfile?: Array<{ hour: number; avgOccupancy: number; sampleCount: number }>;
   generatedAt?: string;
   dataState?: DataState;
 };
