@@ -76,7 +76,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                fetch('/sw.js', { method: 'HEAD' }).then(function(r){if(r.ok){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})}}).catch(function(){});
+                fetch('${appRoutes.serviceWorker()}', { method: 'HEAD' }).then(function(r){if(r.ok){navigator.serviceWorker.register('${appRoutes.serviceWorker()}',{scope:'${appRoutes.home()}'}).catch(function(){})}}).catch(function(){});
               }
             `
           }}
