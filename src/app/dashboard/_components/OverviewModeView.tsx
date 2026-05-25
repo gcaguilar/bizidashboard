@@ -156,7 +156,7 @@ export function OverviewModeView({
         <DemandFlowCard
           dailyDemand={mobilityPreview.dailyDemand}
           windowLabel={activeWindowLabel}
-          requestedDays={activeWindowDemandDays}
+          requestedDays={mobilityPreview.dailyDemand.length}
         />
         <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindowLabel} />
         <NeighborhoodLoadCard stations={stations} />
