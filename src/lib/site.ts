@@ -48,10 +48,11 @@ function normalizeHttpOrigin(candidate: string, fallback: string): string {
 
 export function getSiteUrl(): string {
   const candidate =
-    process.env.APP_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
-    process.env.VERCEL_URL?.trim() ||
+    import.meta.env.VITE_APP_URL?.trim() ||
+    (typeof process !== 'undefined' && process.env.APP_URL?.trim()) ||
+    (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL?.trim()) ||
+    (typeof process !== 'undefined' && process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()) ||
+    (typeof process !== 'undefined' && process.env.VERCEL_URL?.trim()) ||
     FALLBACK_SITE_URL;
 
   return normalizeHttpOrigin(candidate, FALLBACK_SITE_URL);
