@@ -47,6 +47,10 @@ function normalizeHttpOrigin(candidate: string, fallback: string): string {
 }
 
 export function getSiteUrl(): string {
+  if (typeof window !== 'undefined' && window.location.origin !== 'http://localhost:3000') {
+    return normalizeHttpOrigin(window.location.origin, FALLBACK_SITE_URL);
+  }
+
   const candidate =
     import.meta.env.VITE_APP_URL?.trim() ||
     (typeof process !== 'undefined' && process.env.APP_URL?.trim()) ||
