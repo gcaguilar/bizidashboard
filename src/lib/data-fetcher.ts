@@ -25,6 +25,7 @@ import {
   getSharedDatasetSnapshot as _getSharedDatasetSnapshot,
 } from '@/lib/data-query';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
+import { logger } from '@/lib/logger';
 import {
   resolveDatasetDataState,
   resolveHistoryDataState,
@@ -103,11 +104,18 @@ async function fetchLiveStationsFallback(): Promise<StationSnapshot[]> {
 
 const cache = new DataCache();
 
+function logFallback<T>(label: string, fallback: T): (err: unknown) => T {
+  return (err: unknown) => {
+    logger.warn('data_fetcher_fallback', { label, error: err instanceof Error ? err.message : String(err) });
+    return fallback;
+  };
+}
+
 export async function fetchStations(): Promise<StationsResponse> {
   const payload = await cache.live('stations:current', async () => {
     const [dbStations, dataset] = await Promise.all([
-      getStationsWithLatestStatus().catch(() => []),
-      _getSharedDatasetSnapshot().catch(() => null),
+      getStationsWithLatestStatus().catch(logFallback('stations', [])),
+      _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
     ]);
     const nowIso = new Date().toISOString();
     const stations =
@@ -157,7 +165,7 @@ export async function fetchRankingsLite(
   return cache.analytics(cacheKey, async () => {
     const [rankings, dataset] = await Promise.all([
       getStationRankings(type, limit),
-      _getSharedDatasetSnapshot().catch(() => null),
+      _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
     ]);
 
     return {
@@ -192,8 +200,8 @@ export async function fetchRankings(
     const [rankings, stations, districtCollection, dataset] = await Promise.all([
       getStationRankings(type, limit),
       getStationsWithLatestStatus(),
-      fetchDistrictCollection().catch(() => null),
-      _getSharedDatasetSnapshot().catch(() => null),
+      fetchDistrictCollection().catch(logFallback('districtCollection', null)),
+      _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
     ]);
 
     const stationNameById = new Map(stations.map((s) => [s.id, s.name]));
@@ -334,7 +342,7 @@ export async function fetchHistoryMetadata(): Promise<HistoryMetadata> {
   const payload = await cache.analytics('history:metadata', async () => {
     const [historyMetadata, status] = await Promise.all([
       _getHistoryMetadata(),
-      getPipelineStatusSummary().catch(() => null),
+      getPipelineStatusSummary().catch(logFallback('pipelineStatus', null)),
     ]);
 
     return {
@@ -377,8 +385,8 @@ export class DataFetcher {
   async fetchStations(): Promise<StationsResponse> {
     const payload = await this.cache.live('stations:current', async () => {
       const [dbStations, dataset] = await Promise.all([
-        getStationsWithLatestStatus().catch(() => []),
-        _getSharedDatasetSnapshot().catch(() => null),
+        getStationsWithLatestStatus().catch(logFallback('stations', [])),
+        _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
       ]);
       const nowIso = new Date().toISOString();
       const stations =
@@ -409,7 +417,7 @@ export class DataFetcher {
     return this.cache.analytics(cacheKey, async () => {
       const [rankings, dataset] = await Promise.all([
         getStationRankings(type, limit),
-        _getSharedDatasetSnapshot().catch(() => null),
+        _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
       ]);
 
       return {
@@ -444,8 +452,8 @@ export class DataFetcher {
       const [rankings, stations, districtCollection, dataset] = await Promise.all([
         getStationRankings(type, limit),
         getStationsWithLatestStatus(),
-        fetchDistrictCollection().catch(() => null),
-        _getSharedDatasetSnapshot().catch(() => null),
+        fetchDistrictCollection().catch(logFallback('districtCollection', null)),
+        _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
       ]);
 
       const stationNameById = new Map(stations.map((s) => [s.id, s.name]));
@@ -586,7 +594,7 @@ export class DataFetcher {
     const payload = await this.cache.analytics('history:metadata', async () => {
       const [historyMetadata, status] = await Promise.all([
         _getHistoryMetadata(),
-        getPipelineStatusSummary().catch(() => null),
+        getPipelineStatusSummary().catch(logFallback('pipelineStatus', null)),
       ]);
 
       return {
