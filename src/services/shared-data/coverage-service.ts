@@ -56,7 +56,7 @@ export function getSharedDataSource(): SharedDataSource {
 export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
   return withCache(CACHE_KEY, CACHE_TTL_SECONDS, async () => {
     const generatedAt = new Date().toISOString();
-    const [coverageRows, stationRows, hourlyDaysRows, dailyDaysRows] = await Promise.all([
+    const [coverageRows, stationRows, daysRows] = await Promise.all([
       prisma.$queryRaw<CoverageRow[]>`
         SELECT
           MIN("recordedAt") AS "firstRecordedAt",
@@ -73,19 +73,10 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
         return [];
       }),
       prisma.$queryRaw<DaysRow[]>`
-        SELECT COUNT(DISTINCT TO_CHAR("bucketStart", 'YYYY-MM-DD')) AS "totalDays"
-        FROM "HourlyStationStat"
-        WHERE "occupancyAvg" IS NOT NULL;
+        SELECT COUNT(DISTINCT ("recordedAt"::date)) AS "totalDays"
+        FROM "StationStatus";
       `.catch((error) => {
-        console.warn('[SharedData] Unable to read day coverage from HourlyStationStat:', error);
-        return [];
-      }),
-      prisma.$queryRaw<DaysRow[]>`
-        SELECT COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays"
-        FROM "DailyStationStat"
-        WHERE "bucketDate" IS NOT NULL;
-      `.catch((error) => {
-        console.warn('[SharedData] Unable to read day coverage from DailyStationStat:', error);
+        console.warn('[SharedData] Unable to read day coverage from StationStatus:', error);
         return [];
       }),
     ]);
@@ -101,10 +92,7 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
       lastRecordedAt: toIsoString(coverage.lastRecordedAt),
       totalSamples: toNumber(coverage.totalSamples),
       totalStations: toNumber(stationRows[0]?.totalStations),
-      totalDays: Math.max(
-        toNumber(hourlyDaysRows[0]?.totalDays),
-        toNumber(dailyDaysRows[0]?.totalDays)
-      ),
+      totalDays: toNumber(daysRows[0]?.totalDays),
       generatedAt,
     };
   });
