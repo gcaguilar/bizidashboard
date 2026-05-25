@@ -111,19 +111,24 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshRef = useRef<number>(0);
+  const isRefreshingRef = useRef(false);
+  const onRefreshRef = useRef(onRefresh);
+  onRefreshRef.current = onRefresh;
 
   const triggerRefresh = useCallback(async () => {
-    if (isRefreshing) return;
+    if (isRefreshingRef.current) return;
     
+    isRefreshingRef.current = true;
     setIsRefreshing(true);
     try {
-      await onRefresh?.();
+      await onRefreshRef.current?.();
       lastRefreshRef.current = Date.now();
       setNextRefreshAt(new Date(Date.now() + intervalMs));
     } finally {
+      isRefreshingRef.current = false;
       setIsRefreshing(false);
     }
-  }, [isRefreshing, intervalMs, onRefresh]);
+  }, [intervalMs]);
 
   useEffect(() => {
     if (!isEnabled) {

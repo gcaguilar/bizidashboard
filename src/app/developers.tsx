@@ -447,7 +447,7 @@ print(len(res.json()["transfers"]))`}</code>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
               <p className="stat-label">Cita sugerida</p>
-              <p className="text-sm leading-relaxed text-[var(--foreground)]">
+              <p className="text-sm leading-relaxed text-[var(--foreground)]" suppressHydrationWarning>
                 {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${formatDateLabel(new Date())}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
               </p>
             </div>
