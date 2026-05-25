@@ -307,6 +307,15 @@ describe('public UX regressions', () => {
     expect(rootSource).toContain('startsWith(\'/dashboard\')');
   });
 
+  it('dashboard station detail exposes a real h1 and a defined route title', () => {
+    const routeSource = readSource('src/app/dashboard/estaciones/$stationId.tsx');
+    const panelSource = readSource('src/app/dashboard/_components/StationDetailPanel.tsx');
+
+    expect(routeSource).toContain('const title = `Estacion ${stationId} - DatosBizi`');
+    expect(routeSource).toContain('title,');
+    expect(panelSource).toContain('<h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{station.name}</h1>');
+  });
+
   it('dashboard route links include redistribucion in all dashboard pages', () => {
     const dashboardPages = [
       'src/app/dashboard/_components/DashboardHeader.tsx',

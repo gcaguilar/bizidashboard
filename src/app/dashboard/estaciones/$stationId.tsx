@@ -15,13 +15,14 @@ export const Route = createFileRoute('/dashboard/estaciones/$stationId')({
   },
   head: (opts) => {
     const { stationId } = opts.params;
+    const title = `Estacion ${stationId} - DatosBizi`;
     return {
       meta: [
         { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
-      title: `Estacion ${stationId} - DatosBizi`,
+      title,
     };
   },
   component: StationDetailRoute,
