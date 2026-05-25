@@ -90,32 +90,15 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
   const startOffsetDays = Math.max(0, safeDays - 1);
 
   return Prisma.sql`
-    WITH date_series AS (
-      SELECT TO_CHAR(day, 'YYYY-MM-DD') AS day
-      FROM generate_series(
-        (CURRENT_DATE - INTERVAL '1 day' * ${startOffsetDays})::timestamp,
-        (CURRENT_DATE)::timestamp,
-        '1 day'::interval
-      ) AS day
-    ),
-    daily AS (
-      SELECT
-        TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-        SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
-        AVG("occupancyAvg") AS "avgOccupancy",
-        SUM("sampleCount") AS "sampleCount"
-      FROM "HourlyStationStat"
-      WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${startOffsetDays}
-      GROUP BY 1
-    )
     SELECT
-      date_series.day AS day,
-      COALESCE(daily."demandScore", 0) AS "demandScore",
-      COALESCE(daily."avgOccupancy", 0) AS "avgOccupancy",
-      COALESCE(daily."sampleCount", 0) AS "sampleCount"
-    FROM date_series
-    LEFT JOIN daily ON daily.day = date_series.day
-    ORDER BY date_series.day ASC;
+      TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
+      SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+      AVG("occupancyAvg") AS "avgOccupancy",
+      SUM("sampleCount") AS "sampleCount"
+    FROM "HourlyStationStat"
+    WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${startOffsetDays}
+    GROUP BY 1
+    ORDER BY 1 ASC;
   `;
 }
 

@@ -45,16 +45,23 @@ export async function getMobilityData(options?: {
   demandDays?: number;
   monthKey?: string;
 }): Promise<MobilityPayload> {
-  const mobilityDays = Math.max(1, Math.min(365, options?.mobilityDays ?? 14));
-  const demandDays = Math.max(1, Math.min(365, options?.demandDays ?? 30));
+  const requestedMobilityDays = Math.max(1, Math.min(365, options?.mobilityDays ?? 14));
+  const requestedDemandDays = Math.max(1, Math.min(365, options?.demandDays ?? 30));
   const monthKey = options?.monthKey ?? null;
 
-  const [hourlySignals, dailyDemand, systemHourlyProfile, dataset, status] = await Promise.all([
+  const [dataset, status] = await Promise.all([
+    getSharedDatasetSnapshot().catch(() => null),
+    getPipelineStatusSummary().catch(() => null),
+  ]);
+
+  const totalCoverageDays = dataset?.coverage?.totalDays ?? 0;
+  const mobilityDays = Math.min(365, Math.max(requestedMobilityDays, totalCoverageDays));
+  const demandDays = Math.min(365, Math.max(requestedDemandDays, totalCoverageDays));
+
+  const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
     getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined).catch(() => []),
     getDailyDemandCurve(demandDays, monthKey ?? undefined).catch(() => []),
     getSystemHourlyProfile(mobilityDays, monthKey ?? undefined).catch(() => []),
-    getSharedDatasetSnapshot().catch(() => null),
-    getPipelineStatusSummary().catch(() => null),
   ]);
 
   const hasData =
