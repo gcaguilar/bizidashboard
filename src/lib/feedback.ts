@@ -131,7 +131,9 @@ export function resolveInitialFeedbackModalState(
 }
 
 export function getFeedbackUrl(): string | null {
-  const feedbackUrl = process.env.NEXT_PUBLIC_FEEDBACK_URL?.trim();
+  const feedbackUrl =
+    import.meta.env.VITE_FEEDBACK_URL?.trim() ||
+    (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FEEDBACK_URL?.trim());
   return feedbackUrl || DEFAULT_FEEDBACK_URL;
 }
 

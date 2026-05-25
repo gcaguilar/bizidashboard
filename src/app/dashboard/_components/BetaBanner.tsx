@@ -20,7 +20,7 @@ import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from
 
 const BICIRADAR_URL = 'https://biciradar.es';
 const DISABLE_WELCOME_MODAL =
-  process.env.NEXT_PUBLIC_DISABLE_BETA_WELCOME_MODAL === '1';
+  import.meta.env.VITE_DISABLE_BETA_WELCOME_MODAL === '1';
 
 export type BiciRadarBannerAction = 'open' | 'dismiss_icon';
 export type BiciRadarModalAction =

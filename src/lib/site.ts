@@ -50,7 +50,6 @@ export function getSiteUrl(): string {
   const candidate =
     import.meta.env.VITE_APP_URL?.trim() ||
     (typeof process !== 'undefined' && process.env.APP_URL?.trim()) ||
-    (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_APP_URL?.trim()) ||
     (typeof process !== 'undefined' && process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()) ||
     (typeof process !== 'undefined' && process.env.VERCEL_URL?.trim()) ||
     FALLBACK_SITE_URL;
