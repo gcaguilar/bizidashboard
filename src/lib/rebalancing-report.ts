@@ -11,7 +11,7 @@ import { withCache } from '@/lib/cache/cache';
 
 import { inferStationType } from '@/lib/station-typology';
 import { getTargetBand, getCurrentTimeBand } from '@/lib/target-bands';
-import { classifyStation } from '@/lib/station-classifier';
+import { classifyStation, precomputeRotationPercentiles } from '@/lib/station-classifier';
 import { assessStationRisk } from '@/lib/rebalancing-prediction';
 import { buildNetworkContext } from '@/lib/rebalancing-network';
 import { decideAction } from '@/lib/rebalancing-engine';
@@ -70,6 +70,8 @@ export async function buildRebalancingReport(options: {
     const currentHour = now.getHours();
     const currentTimeBand = getCurrentTimeBand(currentHour);
 
+    // Pre-compute rotation percentiles once (avoids sorting allRotations per station)
+    const rotationPercentiles = precomputeRotationPercentiles(globalMetricsMap);
     const diagnostics: StationDiagnostic[] = [];
 
     // 3. Process each station
@@ -98,7 +100,8 @@ export async function buildRebalancingReport(options: {
         globalMetrics,
         timeBandMetrics,
         targetBand,
-        globalMetricsMap
+        globalMetricsMap,
+        rotationPercentiles[station.id]
       );
 
       // Risk Assessment

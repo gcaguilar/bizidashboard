@@ -1,11 +1,31 @@
 import type { StationClassification, StationBaseMetrics, TimeBandMetrics, TargetBand } from '@/types/rebalancing';
 
-// Helper to calculate percentile of a value in an array
-function getPercentile(value: number, allValues: number[]): number {
-  if (allValues.length === 0) return 0;
-  const sorted = [...allValues].sort((a, b) => a - b);
-  const index = sorted.findIndex((v) => v >= value);
-  return index === -1 ? 1 : index / sorted.length;
+export function getRotationPercentile(
+  value: number,
+  sortedRotations: number[]
+): number {
+  if (sortedRotations.length === 0) return 0;
+  let left = 0;
+  let right = sortedRotations.length;
+  while (left < right) {
+    const mid = (left + right) >> 1;
+    if (sortedRotations[mid] < value) left = mid + 1;
+    else right = mid;
+  }
+  const index = left;
+  return index === sortedRotations.length ? 1 : index / sortedRotations.length;
+}
+
+export function precomputeRotationPercentiles(
+  globalMetricsMap: Record<string, StationBaseMetrics>
+): Record<string, number> {
+  const allRotations = Object.values(globalMetricsMap).map((m) => m.rotationPerBike);
+  const sorted = [...allRotations].sort((a, b) => a - b);
+  const result: Record<string, number> = {};
+  for (const [id, metrics] of Object.entries(globalMetricsMap)) {
+    result[id] = getRotationPercentile(metrics.rotationPerBike, sorted);
+  }
+  return result;
 }
 
 export function classifyStation(
@@ -15,7 +35,8 @@ export function classifyStation(
   globalMetricsOrRotationPercentile: StationBaseMetrics | number,
   timeBandMetricsArg?: TimeBandMetrics[],
   targetBandArg?: TargetBand,
-  allGlobalMetricsArg?: Record<string, StationBaseMetrics>
+  allGlobalMetricsArg?: Record<string, StationBaseMetrics>,
+  rotationPercentileOverride?: number
 ): { classification: StationClassification; reasons: string[] } {
   const legacyCall = typeof capacityOrGlobalMetrics !== 'number';
   const capacity = legacyCall ? 0 : capacityOrGlobalMetrics;
@@ -51,10 +72,17 @@ export function classifyStation(
     return { classification: 'data_review', reasons };
   }
 
-  // Calculate percentiles
-  const allRotations = Object.values(allGlobalMetrics).map((m) => m.rotationPerBike);
+  // Use pre-computed percentile if provided (avoids sorting allRotations per station)
   const rotationPercentile =
-    rotationPercentileLegacy ?? getPercentile(globalMetrics.rotationPerBike, allRotations);
+    rotationPercentileOverride ??
+    rotationPercentileLegacy ??
+    (() => {
+      const allRotations = Object.values(allGlobalMetrics).map((m) => m.rotationPerBike);
+      if (allRotations.length === 0) return 0;
+      const sorted = [...allRotations].sort((a, b) => a - b);
+      const index = sorted.findIndex((v) => v >= globalMetrics.rotationPerBike);
+      return index === -1 ? 1 : index / sorted.length;
+    })();
 
   // Peak bands
   const peakBands = timeBandMetrics.filter((m) => m.timeBand === 'morning_peak' || m.timeBand === 'evening_peak');
