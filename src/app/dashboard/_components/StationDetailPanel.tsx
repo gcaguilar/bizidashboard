@@ -471,7 +471,7 @@ export function StationDetailPanel({
               #{station.id}
             </div>
             <div className="flex flex-col">
-              <h2 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{station.name}</h2>
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{station.name}</h1>
               <p className="mt-1 text-sm text-[var(--muted)]">
                 ID: #{station.id}
                 {selectedDistrict ? ` · ${selectedDistrict}` : ''}
