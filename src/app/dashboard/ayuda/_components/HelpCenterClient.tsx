@@ -132,20 +132,21 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <TrackedLink
-              href={appRoutes.api.history()}
-              trackingEvent={buildExportClickEvent({
-                surface: 'dashboard',
-                routeKey: 'dashboard_help',
-                source: 'help_header',
-                ctaId: 'history_json',
-                entityType: 'api',
-                module: 'help_header',
-              })}
-              className="ui-icon-button"
-            >
-              Historico
-            </TrackedLink>
+            <Button asChild variant="outline" size="sm" className="whitespace-nowrap">
+              <TrackedLink
+                href={appRoutes.api.history()}
+                trackingEvent={buildExportClickEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_help',
+                  source: 'help_header',
+                  ctaId: 'history_json',
+                  entityType: 'api',
+                  module: 'help_header',
+                })}
+              >
+                Historico
+              </TrackedLink>
+            </Button>
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
@@ -183,20 +184,12 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 {filteredItems.length} preguntas visibles
               </span>
               {activeCategory ? (
-                <Button
-                  variant="chip"
-                  onClick={() => setActiveCategory(null)}
-                  className="h-auto min-h-0 rounded-full"
-                >
+                <Button variant="chip" size="sm" onClick={() => setActiveCategory(null)} className="rounded-full">
                   Categoria: {activeCategory} ×
                 </Button>
               ) : null}
               {normalizedQuery ? (
-                <Button
-                  variant="chip"
-                  onClick={() => setQuery('')}
-                  className="h-auto min-h-0 rounded-full"
-                >
+                <Button variant="chip" size="sm" onClick={() => setQuery('')} className="rounded-full">
                   Buscar: {query} ×
                 </Button>
               ) : null}
@@ -256,20 +249,21 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 >
                   Ver historico completo
                 </TrackedLink>
-                <TrackedLink
-                  href={appRoutes.api.openApi()}
-                  trackingEvent={buildCtaClickEvent({
-                    surface: 'dashboard',
-                    routeKey: 'dashboard_help',
-                    source: 'help_coverage',
-                    ctaId: 'api_open',
-                    destination: 'openapi',
-                    entityType: 'api',
-                  })}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-2 text-xs font-bold text-[var(--foreground)]"
-                >
-                  Definicion API
-                </TrackedLink>
+                <Button asChild variant="outline" size="sm">
+                  <TrackedLink
+                    href={appRoutes.api.openApi()}
+                    trackingEvent={buildCtaClickEvent({
+                      surface: 'dashboard',
+                      routeKey: 'dashboard_help',
+                      source: 'help_coverage',
+                      ctaId: 'api_open',
+                      destination: 'openapi',
+                      entityType: 'api',
+                    })}
+                  >
+                    Definicion API
+                  </TrackedLink>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -343,7 +337,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 >
                   {items.map((item) => (
                     <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
-                      <AccordionTrigger className="h-auto min-h-0 px-5 py-4">
+                      <AccordionTrigger>
                         <p className="text-base font-semibold text-[var(--foreground)]">{item.question}</p>
                       </AccordionTrigger>
                       <AccordionContent className="px-5 py-4 text-sm leading-relaxed text-[var(--muted)]">

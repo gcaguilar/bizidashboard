@@ -3,7 +3,7 @@
 import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
-import { buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -150,16 +150,9 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
           <p className="mt-1 max-w-sm text-xs text-[var(--muted)]">
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
           </p>
-          <Link
-            to={appRoutes.dashboardFlow()}
-            className={buttonVariants({
-              variant: 'default',
-              size: 'sm',
-              className: 'mt-4 min-h-0 px-4 py-2 text-xs font-bold',
-            })}
-          >
-            Expandir vista completa
-          </Link>
+          <Button asChild size="sm" className="mt-4 text-xs font-bold">
+            <Link to={appRoutes.dashboardFlow()}>Expandir vista completa</Link>
+          </Button>
         </div>
       </Card>
 
@@ -173,16 +166,9 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
               Rutas probables entre barrios estimadas a partir de entradas y salidas agregadas.
             </p>
           </div>
-          <Link
-            to={appRoutes.dashboardHelp('calculo-rutas')}
-            className={buttonVariants({
-              variant: 'ghost',
-              size: 'sm',
-              className: 'min-h-0 px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline',
-            })}
-          >
-            Como se calcula
-          </Link>
+          <Button asChild variant="ghost" size="sm" className="px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline">
+            <Link to={appRoutes.dashboardHelp('calculo-rutas')}>Como se calcula</Link>
+          </Button>
         </div>
 
         {!canRenderRoutes ? (

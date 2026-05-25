@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const THEME_STORAGE_KEY = 'bizidashboard-theme';
+const LEGACY_THEME_STORAGE_KEY = 'theme';
 
 type Theme = 'light' | 'dark';
 
 function getPreferredTheme(): Theme {
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
 
   if (storedTheme === 'light' || storedTheme === 'dark') {
     return storedTheme;
@@ -29,34 +30,32 @@ type ThemeToggleButtonProps = {
   className?: string;
 };
 
-export function ThemeToggleButton({ className = 'ui-icon-button' }: ThemeToggleButtonProps) {
+export function ThemeToggleButton({ className = 'ui-icon-button !h-10 !w-10 !min-h-10 !min-w-10 !p-0' }: ThemeToggleButtonProps) {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
     const resolved: Theme =
       stored === 'light' || stored === 'dark'
         ? stored
         : root.classList.contains('dark')
           ? 'dark'
           : 'light';
-    // DOM ya alineado por script en layout; solo sincronizamos estado del boton
-     
+
     setTheme(resolved);
   }, []);
 
   if (theme === null) {
     return (
       <Button type="button" className={className} aria-label="Cambiar tema" variant="icon-button" disabled>
-        <span aria-hidden="true" className="text-sm leading-none">&#8203;</span>
-        <span>&#8203;</span>
+        <span aria-hidden="true" className="text-sm leading-none">◌</span>
+        <span className="sr-only">Cambiar tema</span>
       </Button>
     );
   }
 
   const nextThemeLabel = theme === 'dark' ? 'claro' : 'oscuro';
-  const buttonLabel = theme === 'dark' ? 'Claro' : 'Oscuro';
   const icon = theme === 'dark' ? '☀' : '☾';
 
   return (
@@ -77,7 +76,7 @@ export function ThemeToggleButton({ className = 'ui-icon-button' }: ThemeToggleB
       <span aria-hidden="true" className="text-sm leading-none">
         {icon}
       </span>
-      <span>{buttonLabel}</span>
+      <span className="sr-only">{`Cambiar tema a ${nextThemeLabel}`}</span>
     </Button>
   );
 }

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useLocation } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
 import {
   trackUmamiEvent,
   buildCtaClickEvent,
@@ -50,15 +51,19 @@ export function StationFavoriteButton({ stationId }: StationFavoriteButtonProps)
   }
 
   return (
-    <button
+    <Button
+      type="button"
       onClick={toggleFavorite}
-      className={`ui-inline-action text-xs ${
+      variant="outline"
+      size="sm"
+      aria-pressed={isFavorite}
+      className={`text-xs ${
         isFavorite
-          ? 'border-[var(--warning)]/50 bg-[var(--warning)]/12 text-[var(--warning)]'
+          ? 'border-[var(--warning)]/50 bg-[var(--warning)]/12 text-[var(--warning)] hover:border-[var(--warning)]/70 hover:bg-[var(--warning)]/16'
           : ''
       }`}
     >
       {isFavorite ? '★ Favorita' : '☆ Marcar favorita'}
-    </button>
+    </Button>
   )
 }
