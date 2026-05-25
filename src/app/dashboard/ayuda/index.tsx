@@ -8,6 +8,7 @@ export const Route = createFileRoute('/dashboard/ayuda/')({
     const description = 'Ayuda para entender alertas, rankings, movilidad, predicciones y metodologia del dashboard de Bizi Zaragoza.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },

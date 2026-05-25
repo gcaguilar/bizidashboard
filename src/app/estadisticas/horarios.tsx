@@ -18,6 +18,7 @@ export const Route = createFileRoute('/estadisticas/horarios')({
     const description = 'Horas pico, franjas de mayor actividad y comportamiento del sistema Bizi Zaragoza.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/estadisticas/horarios')({
         { property: 'og:url', content: `${siteUrl}/estadisticas/horarios` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/horarios` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/horarios` }],
       title,
     };
   },

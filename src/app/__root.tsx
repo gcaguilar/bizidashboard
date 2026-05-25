@@ -28,9 +28,8 @@ const THEME_INIT_SCRIPT = `(function(){try{var modern=window.localStorage.getIte
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     meta: [
-      {
-        charSet: 'utf-8',
-      },
+      { title: 'DatosBizi' },
+      { charSet: 'utf-8' },
       {
         name: 'viewport',
         content: 'width=device-width, initial-scale=1',
@@ -44,7 +43,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap' },
       { rel: 'stylesheet', href: appCss },
     ],
-    title: 'DatosBizi',
   }),
   shellComponent: RootDocument,
 })
@@ -78,9 +76,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').catch(() => {})
-                })
+                fetch('/sw.js', { method: 'HEAD' }).then(function(r){if(r.ok){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){})}}).catch(function(){});
               }
             `
           }}

@@ -18,6 +18,7 @@ export const Route = createFileRoute('/estadisticas/barrios/')({
     const description = 'Compara barrios de Zaragoza por estaciones Bizi, actividad y disponibilidad.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/estadisticas/barrios/')({
         { property: 'og:url', content: `${siteUrl}/estadisticas/barrios` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/barrios` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/barrios` }],
       title,
     };
   },

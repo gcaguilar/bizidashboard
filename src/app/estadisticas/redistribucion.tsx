@@ -18,6 +18,7 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
     const description = 'Diagnóstico de reequilibrio y estaciones que necesitan atención en Bizi Zaragoza.';
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
         { property: 'og:url', content: `${siteUrl}/estadisticas/redistribucion` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       ],
-      link: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/redistribucion` }],
+      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/redistribucion` }],
       title,
     };
   },

@@ -19,6 +19,7 @@ export const Route = createFileRoute('/dashboard/flujo/')({
     const description = 'Analiza patrones de movimiento de Bizi Zaragoza, demanda por horas y diferencias entre zonas.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
