@@ -48,7 +48,7 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAt } = Route.useLoaderData();
+  const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAtLabel } = Route.useLoaderData();
   const hasFavorites = useHasFavorites();
 
   return (
@@ -104,14 +104,14 @@ function Home() {
           <TrackedLink
             href={appRoutes.advancedMap()}
             ctaEvent={{ source: 'home_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
-            className="ui-primary-button"
+            className="ui-primary-button w-full sm:w-auto"
           >
             Abrir mapa avanzado
           </TrackedLink>
           <TrackedLink
             href={appRoutes.statsEstaciones()}
             ctaEvent={{ source: 'home_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
-            className="ui-inline-action"
+            className="ui-inline-action w-full sm:w-auto"
           >
             Buscar estación
           </TrackedLink>
@@ -123,7 +123,7 @@ function Home() {
       <div className="flex flex-wrap gap-3 text-xs text-[var(--muted)]">
         <span className="ui-chip">{formatInteger(bikesAvailable)} bicis disponibles</span>
         <span className="ui-chip">{formatInteger(activeStationsCount)} estaciones activas</span>
-        <span className="ui-chip">Actualizado {new Date(generatedAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+        <span className="ui-chip">Actualizado {generatedAtLabel}</span>
       </div>
 
       {!hasFavorites && (

@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import type { StationSeoSummary } from '@/lib/seo-stations'
+import { formatHourMinute } from '@/lib/format'
 
 export type HomePageData = {
   mostUsedStations: StationSeoSummary[]
@@ -9,6 +10,7 @@ export type HomePageData = {
   bikesAvailable: number
   activeStationsCount: number
   generatedAt: string
+  generatedAtLabel: string
 }
 
 export const getHomePageData = createServerFn({ method: 'GET' }).handler(async () => {
@@ -38,5 +40,6 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
     bikesAvailable,
     activeStationsCount: indexable.length,
     generatedAt: new Date().toISOString(),
+    generatedAtLabel: formatHourMinute(new Date()),
   }
 })

@@ -195,7 +195,7 @@ export function PublicSearchForm({
             </ul>
           )}
         </div>
-        <Button type="submit" variant="default">
+        <Button type="submit" variant="default" className="min-h-11 shrink-0 whitespace-nowrap px-5">
           {buttonLabel}
         </Button>
       </div>
