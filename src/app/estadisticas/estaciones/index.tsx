@@ -38,7 +38,16 @@ function EstadisticasEstacionesPage() {
   const stationRows = Route.useLoaderData();
   return (
     <PageShell>
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
+        <header className="max-w-3xl space-y-3">
+          <p className="stat-label">Directorio público</p>
+          <h1 className="text-3xl font-black tracking-tight text-[var(--foreground)] md:text-4xl">
+            Estaciones Bizi Zaragoza
+          </h1>
+          <p className="text-base text-[var(--muted)] md:text-lg">
+            Ranking y disponibilidad actual de estaciones, con filtros para encontrar bicis, huecos y puntos con más actividad.
+          </p>
+        </header>
         <StationsDirectory stationRows={stationRows} />
       </div>
     </PageShell>
