@@ -730,7 +730,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
                           <div>
                             <p className="mb-1 font-semibold text-[var(--foreground)]">Red cercana</p>
                             <p className="text-[var(--muted)]">
-                              {diagnostic.network.nearbyStations.length} estaciones en radio 500m · Ajuste urgencia:{' '}
+                              {diagnostic.network.nearbyStationCount ?? diagnostic.network.nearbyStations.length} estaciones en radio 500m · Ajuste urgencia:{' '}
                               {Math.round(diagnostic.network.urgencyAdjustment * 100)}%
                             </p>
                           </div>

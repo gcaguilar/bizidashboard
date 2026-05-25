@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
+import type { RebalancingReport } from '@/types/rebalancing';
 
 const RebalancingSearchParamsSchema = z.object({
   sort: z.union([z.string(), z.array(z.string())]).optional(),
@@ -12,6 +13,21 @@ const RebalancingSearchParamsSchema = z.object({
 type RebalancingSearchParams = z.infer<typeof RebalancingSearchParamsSchema>;
 
 const getFirst = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
+
+export function compactInitialRebalancingReport(report: RebalancingReport): RebalancingReport {
+  return {
+    ...report,
+    diagnostics: report.diagnostics.map((diagnostic) => ({
+      ...diagnostic,
+      timeBandMetrics: [],
+      network: {
+        ...diagnostic.network,
+        nearbyStationCount: diagnostic.network.nearbyStations.length,
+        nearbyStations: [],
+      },
+    })),
+  };
+}
 
 export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
   .inputValidator(RebalancingSearchParamsSchema)
@@ -44,7 +60,7 @@ export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
       : [];
 
     return {
-      report,
+      report: compactInitialRebalancingReport(report),
       districtNames,
       tableParams,
     };

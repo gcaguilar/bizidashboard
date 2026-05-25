@@ -53,6 +53,7 @@ export type NearbyStation = {
 
 export type NetworkContext = {
   nearbyStations: NearbyStation[];
+  nearbyStationCount?: number;
   clusterCapacity: number;
   clusterAvailability: number;
   urgencyAdjustment: number;
