@@ -8,7 +8,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { useHasFavorites } from '@/app/_components/HomeFavoritesClient';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
-import { formatPercent, formatInteger } from '@/lib/format';
+import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { getHomePageData } from '@/server-functions/home';
 
 const HOME_FAQ = [
@@ -49,7 +49,8 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAtLabel } = Route.useLoaderData();
+  const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAt } = Route.useLoaderData();
+  const generatedAtLabel = formatHourMinute(generatedAt);
   const [mounted, setMounted] = useState(false);
   const hasFavorites = useHasFavorites();
 
