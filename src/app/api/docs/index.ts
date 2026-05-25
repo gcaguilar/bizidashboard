@@ -5,7 +5,7 @@ export const Route = createFileRoute('/api/docs/')({
     handlers: {
       // eslint-disable-next-line @typescript-eslint/require-await
       GET: async () => {
-        throw redirect({ to: '/developers', status: 308 })
+        throw redirect({ to: '/developers' })
       },
     },
   },

@@ -4,7 +4,7 @@ export const Route = createFileRoute('/api/geo/')({
   server: {
     handlers: {
       GET: () => {
-        throw redirect({ to: '/api/geo/search', status: 308 })
+        throw redirect({ to: '/api/geo/search' })
       },
     },
   },
