@@ -87,13 +87,28 @@ export function TrackedLink({
     onClick?.(event);
   }
 
+  const linkClassName = `${
+    className ?? ''
+  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim();
+  const shouldUseNativeNavigation =
+    !href ||
+    href.startsWith('/api/') ||
+    /\.(?:csv|json|txt|xml|pdf|zip)(?:[?#].*)?$/i.test(href) ||
+    /^[a-z][a-z0-9+.-]*:/i.test(href);
+
+  if (shouldUseNativeNavigation) {
+    return (
+      <a href={href} onClick={handleClick} className={linkClassName}>
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Link
       to={href}
       onClick={handleClick}
-      className={`${
-        className ?? ''
-      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim()}
+      className={linkClassName}
     >
       {children}
     </Link>

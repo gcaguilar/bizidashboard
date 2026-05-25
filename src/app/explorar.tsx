@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { getExploreLoaderData } from '@/server-functions/explorar';
-import { Card } from '@/components/ui/card';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 
@@ -12,6 +11,7 @@ export const Route = createFileRoute('/explorar')({
     const description = 'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.'
     return {
       meta: [
+        { title },
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: description },
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/explorar')({
         { property: 'og:url', content: appRoutes.explore() },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       ],
-      link: [{ rel: 'canonical', href: appRoutes.explore() }],
+      links: [{ rel: 'canonical', href: appRoutes.explore() }],
       title,
     }
   },
@@ -61,16 +61,14 @@ function ExplorePage() {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="ui-surface-block ui-surface-block-interactive group"
+                className="ui-surface-block ui-surface-block-interactive group flex items-center justify-between gap-3 px-4 py-3"
               >
-                <Card variant="stat" className="flex-row items-center justify-between gap-3 px-4 py-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">{item.eyebrow}</p>
-                    <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
-                    <p className="mt-0.5 text-[11px] text-[var(--muted)]">{item.description}</p>
-                  </div>
-                  <span className="text-xs font-bold text-[var(--primary)] group-hover:underline">{item.destinationLabel}</span>
-                </Card>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">{item.eyebrow}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">{item.title}</p>
+                  <p className="mt-0.5 text-[11px] text-[var(--muted)]">{item.description}</p>
+                </div>
+                <span className="shrink-0 text-xs font-bold text-[var(--primary)] group-hover:underline">{item.destinationLabel}</span>
               </TrackedLink>
             ))}
           </div>
