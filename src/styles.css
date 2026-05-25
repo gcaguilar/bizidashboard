@@ -305,6 +305,8 @@ textarea:disabled {
 }
 
 .ui-surface-block {
+  display: block;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--secondary);
