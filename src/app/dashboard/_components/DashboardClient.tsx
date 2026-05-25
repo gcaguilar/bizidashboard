@@ -578,7 +578,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     const nextQuery = nextParams.toString();
     const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    void     void router.navigate({ to: nextUrl, replace: true });
+    void router.navigate({ to: nextUrl, replace: true });
   }, [
     activeWindowId,
     mapViewState,
@@ -1200,9 +1200,17 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
 
-      <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
-        © {new Date().getFullYear()} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
-      </footer>
+      <FooterYear />
     </DashboardLayout>
+  );
+}
+
+function FooterYear() {
+  const [year, setYear] = useState(new Date().getFullYear());
+  useEffect(() => { setYear(new Date().getFullYear()); }, []);
+  return (
+    <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
+      &copy; {year} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
+    </footer>
   );
 }

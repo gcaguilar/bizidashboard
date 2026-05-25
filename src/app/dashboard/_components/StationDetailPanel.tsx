@@ -287,10 +287,13 @@ export function StationDetailPanel({
     ? alerts.alerts.filter((alert) => alert.stationId === station.id && alert.isActive)
     : [];
 
+  const [timeAnchor, setTimeAnchor] = useState(() => ({ dayType: getDayTypeForToday(), hour: getCurrentHour() }));
+  useEffect(() => { setTimeAnchor({ dayType: getDayTypeForToday(), hour: getCurrentHour() }); }, []);
+
   const projection = useMemo(() => {
     const currentOccupancy = toOccupancy(station);
-    const dayType = getDayTypeForToday();
-    const currentHour = getCurrentHour();
+    const dayType = timeAnchor.dayType;
+    const currentHour = timeAnchor.hour;
     const nextHour = (currentHour + 1) % 24;
     const nextTwoHours = (currentHour + 2) % 24;
 
@@ -316,7 +319,7 @@ export function StationDetailPanel({
       next60,
       confidence,
     };
-  }, [heatmap, patterns, station]);
+  }, [heatmap, patterns, station, timeAnchor]);
 
   const estimatedDestinations = useMemo(() => {
     if (!mobility || !selectedDistrict || !station) {

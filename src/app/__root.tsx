@@ -44,6 +44,26 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'stylesheet', href: appCss },
     ],
   }),
+  errorComponent: ({ error }) => (
+    <html lang="es">
+      <head>
+        <HeadContent />
+      </head>
+      <body className="font-sans antialiased [overflow-wrap:anywhere] p-8">
+        <div className="mx-auto max-w-lg space-y-4">
+          <h1 className="text-2xl font-black text-red-600">Error interno</h1>
+          <p className="text-sm text-[var(--muted)]">
+            Lo sentimos, ocurrió un error inesperado. Intenta recargar la página.
+          </p>
+          {import.meta.env.DEV && (
+            <pre className="overflow-auto rounded border border-[var(--border)] bg-[var(--card)] p-4 text-xs">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </pre>
+          )}
+        </div>
+      </body>
+    </html>
+  ),
   shellComponent: RootDocument,
 })
 

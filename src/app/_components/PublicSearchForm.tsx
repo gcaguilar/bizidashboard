@@ -152,7 +152,8 @@ export function PublicSearchForm({
               if (suggestions.length > 0) setShowSuggestions(true);
             }}
             onBlur={() => {
-              setTimeout(() => setShowSuggestions(false), 150);
+              const timer = setTimeout(() => setShowSuggestions(false), 150);
+              (document.activeElement as HTMLElement | null)?.addEventListener?.('focus', () => clearTimeout(timer), { once: true });
             }}
             onKeyDown={handleKeyDown}
             className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
