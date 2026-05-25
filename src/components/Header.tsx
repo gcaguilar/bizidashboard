@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
 import { PUBLIC_MAIN_NAV_ITEMS, PUBLIC_MORE_NAV_ITEMS } from '@/lib/public-navigation';
 
@@ -60,12 +61,15 @@ export default function Header() {
               ))}
 
               <div className="relative" data-more-dropdown>
-                <button
-                  onClick={() => setMoreOpen(v => !v)}
-                  className="ui-inline-action border-0 bg-transparent px-2 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMoreOpen((v) => !v)}
+                  className="min-h-0 px-2 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
                 >
                   Más
-                </button>
+                </Button>
                 {moreOpen && (
                   <div className="absolute right-0 top-full mt-2 flex min-w-[10rem] flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-lg">
                     {PUBLIC_MORE_NAV_ITEMS.map(link => (
@@ -92,7 +96,7 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-2">
-            <ThemeToggleButton className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-sm text-[var(--foreground)] transition hover:border-[var(--primary)]/40" />
+            <ThemeToggleButton />
 
             <button
               onClick={() => setMobileMenuOpen(true)}

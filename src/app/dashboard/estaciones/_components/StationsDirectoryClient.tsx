@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
@@ -135,24 +135,25 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   <p className="text-sm font-semibold text-[var(--foreground)]">{formatPercent(occupancy)}</p>
                 </div>
               </div>
-              <TrackedLink
-                href={appRoutes.dashboardStation(station.id)}
-                trackingEvent={buildEntitySelectEvent({
-                  surface: 'dashboard',
-                  routeKey: 'dashboard_stations',
-                  entityType: 'station',
-                  source: 'stations_directory',
-                  module: 'station_card',
-                })}
-                className={buttonVariants({
-                  variant: 'outline',
-                  size: 'sm',
-                  className:
-                    'mt-3 min-h-0 border-[var(--primary)] px-3 py-1.5 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
-                })}
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="mt-3 border-[var(--primary)] text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white"
               >
-                Ver detalle
-              </TrackedLink>
+                <TrackedLink
+                  href={appRoutes.dashboardStation(station.id)}
+                  trackingEvent={buildEntitySelectEvent({
+                    surface: 'dashboard',
+                    routeKey: 'dashboard_stations',
+                    entityType: 'station',
+                    source: 'stations_directory',
+                    module: 'station_card',
+                  })}
+                >
+                  Ver detalle
+                </TrackedLink>
+              </Button>
             </Card>
           );
         })}

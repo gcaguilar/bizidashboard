@@ -103,8 +103,8 @@ export function DashboardHeader({
             source="dashboard_header"
             ctaId="feedback_header_open"
             module="dashboard_header"
-            className="ui-icon-button hidden sm:inline-flex"
-            pendingClassName="ui-icon-button hidden cursor-not-allowed opacity-70 sm:inline-flex"
+            className="ui-inline-action hidden sm:inline-flex"
+            pendingClassName="ui-inline-action hidden cursor-not-allowed opacity-70 sm:inline-flex"
           >
             Feedback
           </FeedbackCta>

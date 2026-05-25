@@ -5,6 +5,9 @@ import { useLocation } from '@tanstack/react-router';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   trackUmamiEvent,
   buildFilterChangeEvent,
@@ -35,11 +38,11 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'nombre', label: 'Nombre' },
 ];
 
-function stationBadge(s: StationSeoSummary): { label: string; variant: string } {
-  if (s.station.bikesAvailable === 0) return { label: 'Vacía', variant: 'border-[var(--danger)] text-[var(--danger)] bg-[var(--danger)]/10' };
-  if (s.station.anchorsFree === 0) return { label: 'Llena', variant: 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10' };
-  if (s.turnover && s.turnover.turnoverScore > 0.8) return { label: 'Muy usada', variant: 'border-[var(--warning)] text-[var(--warning)] bg-[var(--warning)]/10' };
-  return { label: 'Sin problemas', variant: 'border-[var(--success)] text-[var(--success)] bg-[var(--success)]/10' };
+function stationBadge(s: StationSeoSummary): { label: string; variant: 'danger' | 'warning' | 'success' } {
+  if (s.station.bikesAvailable === 0) return { label: 'Vacía', variant: 'danger' };
+  if (s.station.anchorsFree === 0) return { label: 'Llena', variant: 'warning' };
+  if (s.turnover && s.turnover.turnoverScore > 0.8) return { label: 'Muy usada', variant: 'warning' };
+  return { label: 'Sin problemas', variant: 'success' };
 }
 
 type StationsDirectoryProps = {
@@ -112,59 +115,69 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
   return (
     <div className="space-y-6">
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2 overflow-x-auto">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => {
-              setFilter(f.key);
-              trackUmamiEvent(
-                buildFilterChangeEvent({
-                  surface: 'public',
-                  routeKey,
-                  module: 'stations_directory',
-                  source: 'filter',
-                  destination: f.key,
-                  resultCount: filteredAndSorted.length,
-                }),
-              );
-            }}
-            className={`ui-chip ${filter === f.key ? 'border-[var(--primary)] bg-[var(--primary)] text-white' : ''}`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3 shadow-[var(--shadow-soft)] lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {FILTERS.map((f) => (
+            <Button
+              key={f.key}
+              type="button"
+              variant="chip"
+              size="sm"
+              aria-pressed={filter === f.key}
+              onClick={() => {
+                setFilter(f.key);
+                trackUmamiEvent(
+                  buildFilterChangeEvent({
+                    surface: 'public',
+                    routeKey,
+                    module: 'stations_directory',
+                    source: 'filter',
+                    destination: f.key,
+                    resultCount: filteredAndSorted.length,
+                  }),
+                );
+              }}
+              className={filter === f.key ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm hover:border-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]' : ''}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
 
-      {/* Sort dropdown */}
-      <div className="flex items-center gap-2">
-        <label htmlFor="stations-sort" className="stat-label text-sm">Ordenar por:</label>
-        <select
-          id="stations-sort"
-          value={sort}
-          onChange={(e) => {
-              setSort(e.target.value as SortKey);
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <label htmlFor="stations-sort" className="stat-label text-sm">Ordenar por:</label>
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              setSort(value as SortKey);
               trackUmamiEvent(
                 buildFilterChangeEvent({
                   surface: 'public',
                   routeKey,
                   module: 'stations_directory',
                   source: 'sort',
-                  destination: e.target.value,
+                  destination: value,
                   resultCount: filteredAndSorted.length,
                 }),
               );
             }}
-          className="ui-surface-block rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm w-full sm:w-auto"
-        >
-          {SORTS.map((s) => (
-            <option key={s.key} value={s.key}>{s.label}</option>
-          ))}
-        </select>
-        <span className="ml-auto text-xs text-[var(--muted)]">
-          {filteredAndSorted.length} {filteredAndSorted.length === 1 ? 'estación' : 'estaciones'}
-        </span>
+          >
+            <SelectTrigger id="stations-sort" className="min-w-[15rem]">
+              <SelectValue />
+              <SelectIcon />
+            </SelectTrigger>
+            <SelectContent>
+              {SORTS.map((s) => (
+                <SelectItem key={s.key} value={s.key}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-[var(--muted)]">
+            {filteredAndSorted.length} {filteredAndSorted.length === 1 ? 'estación' : 'estaciones'}
+          </span>
+        </div>
       </div>
 
       {/* Empty state */}
@@ -182,10 +195,10 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
             const isFav = favoriteIds.includes(s.station.id);
 
             return (
-              <div key={s.station.id} className="ui-metric-card flex flex-col gap-2">
+              <div key={s.station.id} className="ui-metric-card gap-3 p-4">
                 <a
                   href={appRoutes.stationDetail(s.station.id)}
-                  className="ui-surface-block-interactive text-sm font-semibold text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
+                  className="ui-surface-block-interactive text-sm font-semibold leading-tight text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
                 >
                   {isFav && <span className="text-[var(--warning)]" aria-label="Favorita">★ </span>}
                   {s.station.name}
@@ -209,9 +222,9 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
                 </div>
 
                 {/* Badge */}
-                <span className={`self-start rounded-full border px-2 py-0.5 text-[10px] font-semibold ${badge.variant}`}>
+                <Badge variant={badge.variant} className="self-start">
                   {badge.label}
-                </span>
+                </Badge>
               </div>
             );
           })}

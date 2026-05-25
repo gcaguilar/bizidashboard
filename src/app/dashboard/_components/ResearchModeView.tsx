@@ -83,7 +83,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
               variant: 'outline',
               size: 'sm',
               className:
-                'min-h-0 border-[var(--primary)] bg-[var(--primary)]/12 px-3 py-2 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
+                'border-[var(--primary)] bg-[var(--primary)]/12 px-3 py-2 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
             })}
           >
             Vista completa

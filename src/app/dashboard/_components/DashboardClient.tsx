@@ -1099,7 +1099,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           }
         }}
       >
-        <ModeHeader activeMode={viewMode} />
+        <ModeHeader activeMode={viewMode} onChangeMode={handleChangeMode} />
 
         <ModeIntroBanner mode={viewMode} />
 

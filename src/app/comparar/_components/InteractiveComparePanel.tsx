@@ -289,15 +289,16 @@ export function InteractiveComparePanel({
           return (
             <Button
               key={dimension.id}
-              variant="ghost"
+              variant="chip"
+              size="sm"
               onClick={() => {
                 setActiveDimensionId(dimension.id);
                 syncCompareSelection(dimension, dimensionSelection);
               }}
               aria-pressed={isActive}
-              className={`h-auto min-h-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-full ${
                 isActive
-                  ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                  ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]'
                   : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)]'
               }`}
             >

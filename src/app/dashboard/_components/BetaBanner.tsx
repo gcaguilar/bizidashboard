@@ -136,19 +136,20 @@ function WelcomeModal({
           </p>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href={BICIRADAR_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onOpen}
-            className="ui-primary-button"
-          >
-            Ver BiciRadar
-          </a>
+          <Button asChild variant="default" size="sm">
+            <a
+              href={BICIRADAR_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={onOpen}
+            >
+              Ver BiciRadar
+            </a>
+          </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => onClose('dismiss_button')}
-            className="h-auto min-h-0 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)]"
           >
             Cerrar
           </Button>
@@ -184,14 +185,14 @@ function FeedbackModal({
             ctaId="feedback_modal_open"
             module="global_modal"
             className=""
-            pendingClassName="min-h-10 px-4 py-2 text-sm rounded-xl border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]"
+            pendingClassName="min-h-8 px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]"
           >
             Dar feedback
           </FeedbackCta>
           <Button
             variant="outline"
+            size="sm"
             onClick={onClose}
-            className="h-auto min-h-0 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)]"
           >
             Ahora no
           </Button>
@@ -220,7 +221,7 @@ function renderFeedbackBanner(onDismiss: () => void) {
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-<FeedbackCta
+        <FeedbackCta
           source="feedback_banner"
           ctaId="feedback_banner_open"
           module="global_banner"
@@ -253,15 +254,16 @@ function renderBiciRadarBanner(onOpen: () => void, onDismiss: () => void) {
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <a
-          href={BICIRADAR_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onOpen}
-          className="ui-primary-button text-xs px-3 py-1.5"
-        >
-          Ver BiciRadar
-        </a>
+        <Button asChild variant="default" size="sm">
+          <a
+            href={BICIRADAR_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onOpen}
+          >
+            Ver BiciRadar
+          </a>
+        </Button>
         <Button
           variant="icon-button"
           size="default"
