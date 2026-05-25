@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { PageShell } from '@/components/layout/page-shell';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { HomeFavoritesSection } from '@/app/_components/HomeFavoritesSection';
@@ -28,6 +29,7 @@ const HOME_FAQ = [
 export const Route = createFileRoute('/')({
   head: () => ({
     meta: [
+      { title: SEO_SITE_TITLE },
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { name: 'description', content: SEO_SITE_DESCRIPTION },
@@ -41,7 +43,6 @@ export const Route = createFileRoute('/')({
       { name: 'twitter:description', content: SEO_SITE_DESCRIPTION },
     ],
     links: [{ rel: 'canonical', href: getSiteUrl() }],
-    title: SEO_SITE_TITLE,
   }),
   loader: () => getHomePageData(),
   component: Home,
@@ -49,7 +50,16 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAtLabel } = Route.useLoaderData();
+  const [mounted, setMounted] = useState(false);
   const hasFavorites = useHasFavorites();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use client-side value only after mount to avoid hydration mismatch
+  // from localStorage-dependent rendering.
+  const showFavorites = mounted && hasFavorites;
 
   return (
     <PageShell>
@@ -123,35 +133,31 @@ function Home() {
       <div className="flex flex-wrap gap-3 text-xs text-[var(--muted)]">
         <span className="ui-chip">{formatInteger(bikesAvailable)} bicis disponibles</span>
         <span className="ui-chip">{formatInteger(activeStationsCount)} estaciones activas</span>
-        <span className="ui-chip">Actualizado {generatedAtLabel}</span>
+        <span className="ui-chip" suppressHydrationWarning>Actualizado {generatedAtLabel}</span>
       </div>
 
-      {!hasFavorites && (
-        <div className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 text-lg">💡</span>
-            <div>
-              <p className="text-sm font-semibold text-[var(--foreground)]">
-                Marca tus estaciones favoritas
-              </p>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Desde el{' '}
-                <Link to={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
-                  mapa avanzado
-                </Link>{' '}
-                puedes marcar tus estaciones habituales como favoritas. Se guardan solo en este navegador y aparecerán aquí con su estado actual.
-              </p>
-            </div>
+      <div className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3" style={{ display: showFavorites ? 'none' : undefined }}>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 text-lg">💡</span>
+          <div>
+            <p className="text-sm font-semibold text-[var(--foreground)]">
+              Marca tus estaciones favoritas
+            </p>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Desde el{' '}
+              <Link to={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
+                mapa avanzado
+              </Link>{' '}
+              puedes marcar tus estaciones habituales como favoritas. Se guardan solo en este navegador y aparecerán aquí con su estado actual.
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {hasFavorites && (
-          <div className="xl:col-span-2">
-            <HomeFavoritesSection stationRows={stationRows} />
-          </div>
-        )}
+        <div className="xl:col-span-2" style={{ display: showFavorites ? undefined : 'none' }}>
+          <HomeFavoritesSection stationRows={stationRows} />
+        </div>
 
         <div className="ui-section-card">
           <p className="stat-label">Estaciones más usadas</p>
@@ -196,7 +202,9 @@ function Home() {
           </div>
         </div>
 
-        {!hasFavorites && <HomeFavoritesSection stationRows={stationRows} />}
+        <div className="xl:col-span-2" style={{ display: showFavorites ? 'none' : undefined }}>
+          <HomeFavoritesSection stationRows={stationRows} />
+        </div>
       </section>
 
 <HomeExploreSection />

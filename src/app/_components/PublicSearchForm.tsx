@@ -144,7 +144,6 @@ export function PublicSearchForm({
             id="public-search"
             name="q"
             type="search"
-            defaultValue={defaultQuery}
             value={query}
             placeholder={placeholder}
             autoComplete="off"

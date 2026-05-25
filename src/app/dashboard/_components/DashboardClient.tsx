@@ -317,11 +317,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
-  const [refreshCountdownMs, setRefreshCountdownMs] = useState(() => {
-    if (typeof window === 'undefined') return 0;
-    const initialRefreshAt = resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, Date.now());
-    return Math.max(0, initialRefreshAt.getTime() - Date.now());
-  });
+  const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
