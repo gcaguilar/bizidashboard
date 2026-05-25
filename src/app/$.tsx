@@ -1,12 +1,13 @@
 import { createFileRoute, redirect, notFound, Link } from '@tanstack/react-router'
 import { PageShell } from '@/components/layout/page-shell'
+import { resolveRedirectTarget } from '@/lib/routes'
 
 export const Route = createFileRoute('/$')({
   loader: ({ params }) => {
     const path = params._splat ?? ''
+    const pathname = `/${path}`
 
     const redirects: Record<string, string> = {
-      inicio: '/',
       'api/docs': '/developers',
     }
 
@@ -14,11 +15,10 @@ export const Route = createFileRoute('/$')({
       throw redirect({ to: redirects[path], replace: true })
     }
 
-    if (path.startsWith('zaragoza/')) {
-      const rest = path.slice('zaragoza/'.length)
-      if (rest) {
-        throw redirect({ to: `/${rest}`, replace: true })
-      }
+    const target = resolveRedirectTarget(pathname)
+
+    if (target) {
+      throw redirect({ to: target, replace: true })
     }
 
     throw notFound()
