@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatAlertType } from '@/lib/format';
+import { formatStatusDateTime } from '@/lib/system-status';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { fetchJson, useAbortableAsyncEffect } from '@/app/dashboard/_components/useAbortableAsyncEffect';
@@ -80,13 +81,7 @@ type ViewFilterState = {
 };
 
 function formatDateTime(value: string): string {
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return parsed.toLocaleString('es-ES');
+  return formatStatusDateTime(value);
 }
 
 function parseAlertTypeFilter(value: string | null): AlertTypeFilter {

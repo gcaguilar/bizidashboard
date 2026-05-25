@@ -3,6 +3,7 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
@@ -180,9 +181,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{config.cadenceLabel}</span>
-            <span className="ui-chip">
-              Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}
-            </span>
+            <span className="ui-chip">Actualizado {formatDateLabel(content.generatedAt)}</span>
           </div>
         </div>
 

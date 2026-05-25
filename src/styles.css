@@ -330,18 +330,29 @@ textarea:disabled {
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
   border-radius: var(--radius-lg);
   background: var(--primary);
-  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-soft);
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--primary-foreground);
+  line-height: 1;
   text-align: center;
   text-decoration: none;
-  transition: filter 0.15s;
+  white-space: nowrap;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .ui-primary-button:hover {
   filter: brightness(0.95);
+  box-shadow: 0 10px 24px rgb(234 6 21 / 0.14);
   text-decoration: none;
 }
 
@@ -349,21 +360,28 @@ textarea:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--secondary);
   color: var(--foreground);
   font-size: 0.875rem;
   font-weight: 700;
-  line-height: 1.25rem;
-  padding: 0.5rem 1rem;
+  line-height: 1;
   text-align: center;
   text-decoration: none;
-  transition: border-color 0.2s ease;
+  white-space: nowrap;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .ui-inline-action:hover {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  transform: translateY(-1px);
   text-decoration: none;
 }
 

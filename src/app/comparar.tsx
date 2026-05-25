@@ -4,6 +4,7 @@ import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
+import { formatDateLabel } from '@/lib/format';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
@@ -74,7 +75,7 @@ function CompareHubContent({
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Generado</p>
-          <p className="stat-value">{new Date(data.generatedAt).toLocaleDateString('es-ES')}</p>
+          <p className="stat-value">{formatDateLabel(data.generatedAt)}</p>
           <p className="text-xs text-[var(--muted)]">Momento en que se preparó esta vista.</p>
         </article>
       </section>

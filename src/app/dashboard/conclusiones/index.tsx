@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { formatInteger, formatPercent } from '@/lib/format';
+import { formatDateLabel, formatInteger, formatPercent } from '@/lib/format';
 import { toMonthOptions } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
@@ -35,7 +35,7 @@ function formatDate(value: string | null): string {
     return value;
   }
 
-  return parsed.toLocaleDateString('es-ES');
+  return formatDateLabel(parsed);
 }
 
 function formatHourLabel(hour: number): string {

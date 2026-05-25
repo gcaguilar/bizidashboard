@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
+import { formatDateLabel } from '@/lib/format'
 
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
 
@@ -21,13 +22,7 @@ export default function Footer() {
       .then(data => {
         const ts = data?.quality?.freshness?.lastUpdated
         if (ts) {
-          setLastUpdated(new Date(ts).toLocaleString('es-ES', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }))
+          setLastUpdated(formatDateLabel(ts))
         }
       })
       .catch(() => {})
@@ -84,7 +79,7 @@ export default function Footer() {
                 >
                   {version.gitSha.substring(0, 7)}
                 </a>
-                {version.buildDate && <> · {new Date(version.buildDate).toLocaleDateString('es-ES')}</>}
+                {version.buildDate && <> · {formatDateLabel(version.buildDate)}</>}
               </p>
             )}
             <p>Hecho con ❤️ por la comunidad</p>

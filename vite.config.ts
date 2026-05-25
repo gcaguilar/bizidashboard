@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import { copyFileSync, existsSync, readdirSync, readFileSync } from 'node:fs'
-import { visualizer } from 'rollup-plugin-visualizer'
 import { devtools } from '@tanstack/devtools-vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -54,34 +53,47 @@ function syncSsrCssAssets() {
   }
 }
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '#': path.resolve(__dirname, 'src'),
-      '.prisma/client/index-browser': path.resolve(__dirname, 'src/generated/prisma/client.ts'),
-      '.prisma/client': path.resolve(__dirname, 'src/generated/prisma/client.ts'),
-    },
-  },
-  build: {
-    sourcemap: true,
-  },
-  plugins: [
-    devtools(),
-    tanstackStart({
-      router: {
-        routesDirectory: 'app',
-        routeFileIgnorePattern: '(_components|_seo|head|layout|loading)',
-      },
-    }),
-    viteReact(),
-    tailwindcss(),
-    syncSsrCssAssets(),
-    visualizer({
+async function loadVisualizerPlugin() {
+  try {
+    const { visualizer } = await import('rollup-plugin-visualizer')
+    return visualizer({
       filename: 'dist/stats.html',
       gzipSize: true,
       brotliSize: true,
       open: false,
-    }),
-  ],
+    })
+  } catch {
+    return null
+  }
+}
+
+export default defineConfig(async () => {
+  const bundleVisualizer = await loadVisualizerPlugin()
+
+  return {
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+        '#': path.resolve(__dirname, 'src'),
+        '.prisma/client/index-browser': path.resolve(__dirname, 'src/generated/prisma/client.ts'),
+        '.prisma/client': path.resolve(__dirname, 'src/generated/prisma/client.ts'),
+      },
+    },
+    build: {
+      sourcemap: true,
+    },
+    plugins: [
+      devtools(),
+      tanstackStart({
+        router: {
+          routesDirectory: 'app',
+          routeFileIgnorePattern: '(_components|_seo|head|layout|loading)',
+        },
+      }),
+      viteReact(),
+      tailwindcss(),
+      syncSsrCssAssets(),
+      bundleVisualizer,
+    ].filter(Boolean),
+  }
 })

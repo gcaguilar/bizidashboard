@@ -8,7 +8,7 @@ import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata, type PageMetadata } from '@/lib/seo';
-import { average, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
+import { average, formatDateLabel, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import {
@@ -540,7 +540,7 @@ async function buildDailyTripsContent(
         stats: [
           {
             label: 'Dia de referencia',
-            value: new Date(stationsResponse.generatedAt).toLocaleDateString('es-ES'),
+            value: formatDateLabel(stationsResponse.generatedAt),
             detail: 'Fecha del snapshot usado como respaldo de la vista diaria.',
           },
           {
@@ -557,7 +557,7 @@ async function buildDailyTripsContent(
         sectionTitle: 'Referencia diaria basada en snapshot',
         sectionItems: [
           {
-            title: new Date(stationsResponse.generatedAt).toLocaleDateString('es-ES'),
+            title: formatDateLabel(stationsResponse.generatedAt),
             detail: `${formatInteger(totalBikes)} bicis visibles · ocupacion media ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
             href: appRoutes.dashboardConclusions(),
             badge: 'Snapshot',

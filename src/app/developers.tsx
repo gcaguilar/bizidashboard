@@ -6,6 +6,7 @@ import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
+import { formatDateLabel } from '@/lib/format';
 import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
@@ -445,7 +446,7 @@ print(len(res.json()["transfers"]))`}</code>
             <div className="ui-metric-card">
               <p className="stat-label">Cita sugerida</p>
               <p className="text-sm leading-relaxed text-[var(--foreground)]">
-                {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${new Date().toLocaleDateString('es-ES')}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
+                {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${formatDateLabel(new Date())}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
               </p>
             </div>
             <div className="ui-metric-card">

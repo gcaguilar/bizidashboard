@@ -1,5 +1,7 @@
 import { AlertType, DayType } from '@/analytics/types';
 
+export const DEFAULT_TIME_ZONE = 'Europe/Madrid';
+
 export function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
 }
@@ -64,6 +66,35 @@ export function formatPercent(value?: number | null): string {
   const clamped = Math.min(100, Math.max(0, normalized));
   const rounded = Math.round(clamped);
   return `${rounded}%`;
+}
+
+export function formatHourMinute(value: string | Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Sin datos';
+  }
+
+  return date.toLocaleTimeString('es-ES', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export function formatDateLabel(value: string | Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Sin datos';
+  }
+
+  return date.toLocaleDateString('es-ES', {
+    timeZone,
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export function formatHourRange(hour: number): string {

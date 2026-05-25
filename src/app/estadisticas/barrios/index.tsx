@@ -6,6 +6,7 @@ import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 
@@ -63,7 +64,7 @@ function BarriosPage() {
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">{content.summary}</p>
         <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
           <span className="ui-chip">{config.cadenceLabel}</span>
-          <span className="ui-chip">Actualizado {new Date(content.generatedAt).toLocaleDateString('es-ES')}</span>
+          <span className="ui-chip">Actualizado {formatDateLabel(content.generatedAt)}</span>
         </div>
         <div className="flex flex-wrap gap-3">
           <TrackedLink href={appRoutes.advancedMap()} ctaEvent={{ source: 'barrios_page', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Abrir mapa avanzado</TrackedLink>
