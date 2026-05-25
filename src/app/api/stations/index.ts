@@ -39,7 +39,19 @@ export const Route = createFileRoute('/api/stations/')({
           if (format === 'csv') {
             const csv = rowsToCsv(
               ['stationId', 'stationName', 'lat', 'lon', 'capacity', 'bikesAvailable', 'anchorsFree', 'recordedAt'],
-              payload.stations
+              payload.stations.map((station) => ({
+                stationId: station.id,
+                stationName: station.name,
+                lat: station.lat,
+                lon: station.lon,
+                capacity: station.capacity,
+                bikesAvailable: station.bikesAvailable,
+                anchorsFree: station.anchorsFree,
+                recordedAt:
+                  station.recordedAt instanceof Date
+                    ? station.recordedAt.toISOString()
+                    : station.recordedAt,
+              }))
             )
             return new Response(csv, {
               status: 200,

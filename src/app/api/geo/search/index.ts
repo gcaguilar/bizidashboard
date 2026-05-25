@@ -20,6 +20,14 @@ const geoSearchSchema = z.object({
 export const Route = createFileRoute('/api/geo/search/')({
   server: {
     handlers: {
+      GET: () =>
+        new Response(JSON.stringify({ error: 'Use POST /api/geo/search with a signed JSON body.' }), {
+          status: 405,
+          headers: {
+            'Content-Type': 'application/json',
+            Allow: 'POST, OPTIONS',
+          },
+        }),
       POST: async (opts) => {
         const request = opts.request
         try {

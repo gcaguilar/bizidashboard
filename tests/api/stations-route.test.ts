@@ -74,6 +74,29 @@ describe('GET /api/stations', () => {
     expect(payload.dataState).toBe('ok');
   });
 
+  it('maps station fields correctly in CSV exports', async () => {
+    getStationsWithLatestStatusMock.mockResolvedValue([
+      {
+        id: '101',
+        name: 'Plaza Espana',
+        lat: 41.6488,
+        lon: -0.8891,
+        capacity: 20,
+        bikesAvailable: 9,
+        anchorsFree: 11,
+        recordedAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+    ]);
+
+    const response = await handler({ request: new Request('http://localhost/api/stations?format=csv') });
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('text/csv; charset=utf-8');
+    expect(body).toContain('"stationId","stationName","lat","lon","capacity","bikesAvailable","anchorsFree","recordedAt"');
+    expect(body).toContain('"101","Plaza Espana","41.6488","-0.8891","20","9","11","2026-01-01T00:00:00.000Z"');
+  });
+
   it('normalizes Date timestamps before exposing station snapshots', async () => {
     const recordedAt = new Date('2026-01-01T00:00:00.000Z');
 
