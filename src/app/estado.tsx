@@ -27,6 +27,7 @@ import { getSystemStatusPageData } from '@/server-functions/estado';
 export const Route = createFileRoute('/estado')({
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'Cobertura y estado de datos de Bizi Zaragoza'
     return {
       meta: [
         { title },
@@ -47,7 +48,7 @@ export const Route = createFileRoute('/estado')({
         { name: 'twitter:description', content: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/estado` }],
-      title: 'Cobertura y estado de datos de Bizi Zaragoza',
+      title,
     }
   },
   loader: () => getSystemStatusPageData(),

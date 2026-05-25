@@ -107,6 +107,7 @@ const FEATURES = [
 export const Route = createFileRoute('/biciradar')({
   head: () => {
     const siteUrl = getSiteUrl();
+    const title = 'Bici Radar - App de bicis compartidas en tiempo real';
     return {
       meta: [
         { title },
@@ -127,7 +128,7 @@ export const Route = createFileRoute('/biciradar')({
         { name: 'twitter:description', content: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/biciradar` }],
-      title: 'Bici Radar - App de bicis compartidas en tiempo real',
+      title,
     };
   },
   component: BiciRadarPage,

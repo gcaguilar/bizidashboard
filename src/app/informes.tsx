@@ -16,6 +16,7 @@ import { getReportsIndexPageData } from '@/server-functions/informes';
 export const Route = createFileRoute('/informes')({
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'Informes mensuales de Bizi Zaragoza | Archivo historico'
     return {
       meta: [
         { title },
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/informes')({
         { name: 'twitter:description', content: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/informes` }],
-      title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+      title,
     }
   },
   loader: () => getReportsIndexPageData(),

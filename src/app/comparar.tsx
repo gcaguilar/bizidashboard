@@ -138,6 +138,7 @@ function CompareHubContent({
 export const Route = createFileRoute('/comparar')({
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'Comparador'
     return {
       meta: [
         { title },
@@ -158,7 +159,7 @@ export const Route = createFileRoute('/comparar')({
         { name: 'twitter:description', content: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/comparar` }],
-      title: 'Comparador',
+      title,
     }
   },
   loader: () => getCompareHubLoaderData(),

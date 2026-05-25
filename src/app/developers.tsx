@@ -50,6 +50,7 @@ function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints'
 export const Route = createFileRoute('/developers')({
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'API y datos abiertos de Bizi Zaragoza'
     return {
       meta: [
         { title },
@@ -70,7 +71,7 @@ export const Route = createFileRoute('/developers')({
         { name: 'twitter:description', content: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/developers` }],
-      title: 'API y datos abiertos de Bizi Zaragoza',
+      title,
     }
   },
   loader: () => getDevelopersPageData(),

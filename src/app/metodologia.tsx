@@ -20,6 +20,7 @@ import { getMethodologyPageData } from '@/server-functions/metodologia';
 export const Route = createFileRoute('/metodologia')({
   head: () => {
     const siteUrl = getSiteUrl()
+    const title = 'Metodologia y calidad de datos de Bizi Zaragoza'
     return {
       meta: [
         { title },
@@ -40,7 +41,7 @@ export const Route = createFileRoute('/metodologia')({
         { name: 'twitter:description', content: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.' },
       ],
       links: [{ rel: 'canonical', href: `${siteUrl}/metodologia` }],
-      title: 'Metodologia y calidad de datos de Bizi Zaragoza',
+      title,
     }
   },
   loader: () => getMethodologyPageData(),
