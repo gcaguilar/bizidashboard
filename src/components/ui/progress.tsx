@@ -27,6 +27,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(function Progre
       aria-valuenow={Math.round(clamped)}
       aria-valuemin={0}
       aria-valuemax={100}
+      aria-label={`${Math.round(clamped)}%`}
       className={cn('h-1.5 w-full overflow-hidden rounded-full bg-black/20', className)}
       {...props}
     >

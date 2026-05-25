@@ -1,46 +1,69 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 const FAVORITES_KEY = 'bizidashboard-favorite-stations';
 
-export function useHasFavorites() {
-  const [hasFavorites, setHasFavorites] = useState(false);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) {
-        const ids = JSON.parse(raw);
-        setHasFavorites(Array.isArray(ids) && ids.length > 0);
-      }
-    } catch {}
-  }, []);
-  return hasFavorites;
+function readFavoriteIds(): string[] {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    if (raw) {
+      const ids = JSON.parse(raw);
+      return Array.isArray(ids) ? ids : [];
+    }
+  } catch {}
+  return [];
+}
+
+function subscribeToFavorites(cb: () => void): () => void {
+  window.addEventListener('storage', cb);
+  return () => window.removeEventListener('storage', cb);
+}
+
+export function useHasFavorites(): boolean {
+  const ids = useSyncExternalStore(
+    subscribeToFavorites,
+    () => readFavoriteIds(),
+    () => [],
+  );
+  return ids.length > 0;
 }
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
+  const subscribe = (cb: () => void) => {
     const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    setIsMobile(mq.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
+    mq.addEventListener('change', cb);
+    return () => mq.removeEventListener('change', cb);
+  };
+  const getSnapshot = () => {
+    try {
+      return window.matchMedia('(max-width: 767px)').matches;
+    } catch {
+      return false;
+    }
+  };
+  const getServerSnapshot = () => false;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function useFavorites() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const initialRead = useRef(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) {
-        const ids = JSON.parse(raw);
-        if (Array.isArray(ids)) setFavoriteIds(ids);
-      }
-    } catch {}
+    if (initialRead.current) return;
+    initialRead.current = true;
+    const ids = readFavoriteIds();
+    setFavoriteIds(ids);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      const ids = readFavoriteIds();
+      setFavoriteIds(ids);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
   const toggleFavorite = (stationId: string) => {

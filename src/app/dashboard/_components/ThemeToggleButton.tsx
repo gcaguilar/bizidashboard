@@ -46,23 +46,15 @@ export function ThemeToggleButton({ className = 'ui-icon-button !h-10 !w-10 !min
     setTheme(resolved);
   }, []);
 
-  if (theme === null) {
-    return (
-      <Button type="button" className={className} aria-label="Cambiar tema" variant="icon-button" disabled>
-        <span aria-hidden="true" className="text-sm leading-none">◌</span>
-        <span className="sr-only">Cambiar tema</span>
-      </Button>
-    );
-  }
-
-  const nextThemeLabel = theme === 'dark' ? 'claro' : 'oscuro';
-  const icon = theme === 'dark' ? '☀' : '☾';
+  const resolvedTheme = theme ?? 'light';
+  const nextThemeLabel = resolvedTheme === 'dark' ? 'claro' : 'oscuro';
 
   return (
     <Button
       type="button"
       variant="icon-button"
       className={className}
+      disabled={theme === null}
       onClick={() => {
         const activeTheme = theme ?? getPreferredTheme();
         const nextTheme: Theme = activeTheme === 'dark' ? 'light' : 'dark';
@@ -70,13 +62,15 @@ export function ThemeToggleButton({ className = 'ui-icon-button !h-10 !w-10 !min
         applyTheme(nextTheme);
         window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
       }}
-      aria-label={`Cambiar tema a ${nextThemeLabel}`}
+      aria-label={theme === null ? 'Cambiar tema' : `Cambiar tema a ${nextThemeLabel}`}
       title={`Cambiar tema a ${nextThemeLabel}`}
     >
-      <span aria-hidden="true" className="text-sm leading-none">
-        {icon}
+      <span aria-hidden="true" className="text-sm leading-none" suppressHydrationWarning>
+        {theme === null ? '◌' : (resolvedTheme === 'dark' ? '☀' : '☾')}
       </span>
-      <span className="sr-only">{`Cambiar tema a ${nextThemeLabel}`}</span>
+      <span className="sr-only" suppressHydrationWarning>
+        {theme === null ? 'Cambiar tema' : `Cambiar tema a ${nextThemeLabel}`}
+      </span>
     </Button>
   );
 }
