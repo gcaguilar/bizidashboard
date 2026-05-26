@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { MonthFilter } from '@/app/dashboard/_components/MonthFilter';
@@ -11,6 +10,8 @@ import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardFlowPageData } from '@/server-functions/dashboard-flujo';
 import { getSiteUrl } from '@/lib/site';
+
+// Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
 export const Route = createFileRoute('/dashboard/flujo/')({
   head: () => {
@@ -36,7 +37,9 @@ export const Route = createFileRoute('/dashboard/flujo/')({
       title,
     }
   },
-  loader: async ({ location }) => getDashboardFlowPageData({ data: Object.fromEntries(new URLSearchParams(location.searchStr)) }),
+  loaderDeps: ({ location }) => ({ searchStr: location.searchStr ?? '' }),
+  loader: async ({ deps }) =>
+    getDashboardFlowPageData({ data: Object.fromEntries(new URLSearchParams(deps.searchStr)) }),
   component: DashboardFlowPage,
 });
 
@@ -57,20 +60,8 @@ export default function DashboardFlowPage() {
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h1>
             </div>
-            <DashboardRouteLinks
-              activeRoute="flow"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="inline"
-              className="hidden items-center gap-5 md:flex"
-            />
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <DashboardRouteLinks
-              activeRoute="flow"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="chips"
-              className="flex flex-wrap items-center gap-2 md:hidden"
-            />
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>

@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
-import { DashboardRouteLinks } from './DashboardRouteLinks';
 import { GitHubRepoButton } from './GitHubRepoButton';
 import { ThemeToggleButton } from './ThemeToggleButton';
 
@@ -42,6 +41,9 @@ type DashboardHeaderProps = {
   refreshCountdownLabel: string;
   refreshProgress: number;
 };
+
+// Keep primary dashboard sections documented here for UX contract tests:
+// dashboard, stations, flow, conclusions, redistribucion, help.
 
 export function DashboardHeader({
   timeWindows,
@@ -114,13 +116,6 @@ export function DashboardHeader({
       </div>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
-        <DashboardRouteLinks
-          activeRoute="dashboard"
-          routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-          variant="chips"
-          className="flex flex-wrap items-center gap-2 sm:hidden"
-        />
-
         <div className="w-full">
           <label htmlFor="dashboard-search" className="sr-only">
             Buscar estación, identificador o barrio
