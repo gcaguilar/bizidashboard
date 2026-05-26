@@ -321,7 +321,7 @@ export default function BiciRadarPage() {
           <DownloadCtas />
         </div>
         <p className="mt-8 text-xs text-[var(--muted)]">
-          <TrackedLink href="/" ctaEvent={{ source: 'biciradar_footer', ctaId: 'back_to_home', destination: 'home', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</TrackedLink>
+          <TrackedLink href={appRoutes.home()} ctaEvent={{ source: 'biciradar_footer', ctaId: 'back_to_home', destination: 'home', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</TrackedLink>
         </p>
       </section>
     </PageShell>
