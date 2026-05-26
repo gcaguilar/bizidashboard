@@ -195,10 +195,10 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
             const isFav = favoriteIds.includes(s.station.id);
 
             return (
-              <div key={s.station.id} className="ui-metric-card gap-3 p-4">
+              <div key={s.station.id} className="ui-surface-block ui-surface-block-interactive space-y-3 p-4">
                 <a
                   href={appRoutes.stationDetail(s.station.id)}
-                  className="ui-surface-block-interactive text-sm font-semibold leading-tight text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
+                  className="text-sm font-semibold leading-tight text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
                 >
                   {isFav && <span className="text-[var(--warning)]" aria-label="Favorita">★ </span>}
                   {s.station.name}
