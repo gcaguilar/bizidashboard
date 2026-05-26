@@ -272,7 +272,7 @@ describe('route registry', () => {
       false
     );
     expect(urls.has(`${SITE_URL}${appRoutes.helpAlias()}`)).toBe(false);
-    expect(urls.has(`${SITE_URL}${appRoutes.dashboardView('operations')}`)).toBe(false);
+    expect(urls.has(`${SITE_URL}${appRoutes.dashboardView('operations')}`)).toBe(true);
     expect(urls.has(`${SITE_URL}${appRoutes.dashboardStation('101')}`)).toBe(false);
     expect(urls.has(`${SITE_URL}${appRoutes.compare()}`)).toBe(false);
     expect(urls.has(`${SITE_URL}${appRoutes.explore()}`)).toBe(false);
