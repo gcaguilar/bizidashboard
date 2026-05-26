@@ -208,21 +208,21 @@ bun run build
 Sentry is used for real-time error monitoring across both client and server.
 
 - **Setup**:
-  - `NEXT_PUBLIC_SENTRY_DSN` for browser events.
-  - `SENTRY_DSN` for server/edge events (falls back to `NEXT_PUBLIC_SENTRY_DSN` if not set).
+  - `VITE_SENTRY_DSN` for browser events.
+  - `SENTRY_DSN` for server/edge events (falls back to `VITE_SENTRY_DSN` if not set).
 - **Sampling**:
+  - `VITE_SENTRY_TRACE_SAMPLE_RATE`
   - `SENTRY_TRACE_SAMPLE_RATE`
-  - `NEXT_PUBLIC_SENTRY_TRACE_SAMPLE_RATE`
 - **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
-- **Docker note**: `NEXT_PUBLIC_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
+- **Docker note**: `VITE_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
 - **CSP compatibility**: keep Sentry delivery endpoints allowed in `connect-src` (including ingest and tunnel path `/monitoring`) when hardening CSP.
 
 ## Analytics (Umami)
 
 Umami is loaded only in production and only when both variables are configured:
 
-- `NEXT_PUBLIC_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
-- `NEXT_PUBLIC_UMAMI_WEBSITE_ID`
+- `VITE_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
+- `VITE_UMAMI_WEBSITE_ID`
 
 If you enforce CSP, allow Umami domains in `script-src` and `connect-src` (`cloud.umami.is` and `api-gateway.umami.dev` for cloud setups).
 

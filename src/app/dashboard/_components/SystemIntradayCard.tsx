@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useMemo } from 'react';
 import {
   Area,
@@ -89,12 +89,11 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
             Media por hora de ocupacion y bicis disponibles para la ventana {windowLabel.toLowerCase()}.
           </p>
         </div>
-        <Link
-          to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+        <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
           className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
         >
           Como se calcula
-        </Link>
+        </TrackedLink>
       </div>
 
       {chartData.length === 0 ? (

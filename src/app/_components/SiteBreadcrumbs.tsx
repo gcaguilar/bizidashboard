@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   Breadcrumb,
   BreadcrumbItem as BreadcrumbListItem,
@@ -30,12 +30,11 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                 {isLast ? (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (
-                  <Link
-                    to={item.href}
+                  <TrackedLink href={item.href}
                     className="rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                   >
                     {item.label}
-                  </Link>
+                  </TrackedLink>
                 )}
                 {!isLast ? <BreadcrumbSeparator /> : null}
               </BreadcrumbListItem>

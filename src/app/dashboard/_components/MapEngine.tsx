@@ -39,18 +39,18 @@ const FOCUS_ZOOM = 14.8;
 const MAP_STYLE_LIGHT: StyleSpecification = {
   version: 8,
   sources: {
-    cartoLight: {
+    osmLight: {
       type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: '&copy; OpenStreetMap contributors',
     },
   },
   layers: [
     {
-      id: 'carto-light',
+      id: 'osm-light',
       type: 'raster',
-      source: 'cartoLight',
+      source: 'osmLight',
     },
   ],
 };
@@ -58,18 +58,18 @@ const MAP_STYLE_LIGHT: StyleSpecification = {
 const MAP_STYLE_DARK: StyleSpecification = {
   version: 8,
   sources: {
-    cartoDark: {
+    osmDark: {
       type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: '&copy; OpenStreetMap contributors',
     },
   },
   layers: [
     {
-      id: 'carto-dark',
+      id: 'osm-dark',
       type: 'raster',
-      source: 'cartoDark',
+      source: 'osmDark',
     },
   ],
 };

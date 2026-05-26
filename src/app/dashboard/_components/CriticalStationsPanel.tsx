@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -40,9 +40,9 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones criticas</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Prioriza estaciones vacias, llenas o con ocupacion extrema para actuar antes de que aumente la friccion.</p>
         </div>
-        <Link to={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender criterio
-        </Link>
+        </TrackedLink>
       </div>
 
       {criticalStations.length === 0 ? (
@@ -54,7 +54,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
             const stateLabel = station.bikesAvailable <= 0 ? 'Vacia' : station.anchorsFree <= 0 ? 'Llena' : occupancy < 0.1 ? 'Muy baja' : 'Muy alta';
 
             return (
-              <Link
+              <TrackedLink
                 key={station.id}
                 to={appRoutes.dashboardStation(station.id)}
                 className={`flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 ${compact ? 'py-2.5' : 'py-3'} transition hover:border-[var(--primary)]/40 hover:bg-[var(--card)]`}
@@ -67,7 +67,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
                   <p className="font-bold text-[var(--foreground)]">{formatPercent(occupancy)}</p>
                   <p className="text-[var(--muted)]">{station.bikesAvailable} bicis · {station.anchorsFree} huecos</p>
                 </div>
-              </Link>
+              </TrackedLink>
             );
           })}
         </div>

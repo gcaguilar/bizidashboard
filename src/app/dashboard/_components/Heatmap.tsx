@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useMemo } from 'react';
 import type { HeatmapCell } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
@@ -162,12 +162,11 @@ export function Heatmap({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            to={appRoutes.dashboardHelp('detalle-estacion')}
+          <TrackedLink href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
             Como leerlo
-          </Link>
+          </TrackedLink>
           {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>
       </header>

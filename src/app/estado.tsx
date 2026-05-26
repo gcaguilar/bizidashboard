@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -358,17 +358,16 @@ export default function SystemStatusPage() {
             </p>
             <h2 className="text-xl font-black text-[var(--foreground)]">Estado por servicio</h2>
           </div>
-          <Link
-            to={appRoutes.compare()}
+          <TrackedLink href={appRoutes.compare()}
             className="ui-inline-action"
           >
             Abrir comparador
-          </Link>
+          </TrackedLink>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {capabilities.map((capability) => (
-            <Link
+            <TrackedLink
               key={capability.id}
               to={capability.href}
               className={`ui-surface-block ui-surface-block-interactive ${getHealthToneClasses(capability.state)}`}
@@ -378,7 +377,7 @@ export default function SystemStatusPage() {
               </p>
               <p className="mt-2 text-base font-bold text-current">{getHealthLabel(capability.state)}</p>
               <p className="mt-2 text-sm leading-relaxed text-current/90">{capability.description}</p>
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </section>

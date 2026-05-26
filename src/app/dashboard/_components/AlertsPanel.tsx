@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -33,12 +33,11 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
             {activeAlerts.length} accion requerida
           </Badge>
           <Button asChild variant="outline" size="sm">
-            <Link
-              to={appRoutes.dashboardAlerts()}
+            <TrackedLink href={appRoutes.dashboardAlerts()}
               className="rounded-full"
             >
               Historial
-            </Link>
+            </TrackedLink>
           </Button>
         </div>
       </header>
@@ -46,12 +45,11 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
       {activeAlerts.length === 0 ? (
         <div className="space-y-3 p-4">
           <p className="text-sm text-[var(--muted)]">No hay alertas activas en este momento.</p>
-          <Link
-            to={appRoutes.dashboardAlerts()}
+          <TrackedLink href={appRoutes.dashboardAlerts()}
             className="ui-inline-action"
           >
             Ver historial de alertas
-          </Link>
+          </TrackedLink>
         </div>
       ) : (
         <ScrollArea className={`max-h-[500px] p-4 ${compact ? 'space-y-2' : 'space-y-3'}`}>

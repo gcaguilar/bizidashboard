@@ -21,12 +21,12 @@ function subscribeToFavorites(cb: () => void): () => void {
 }
 
 export function useHasFavorites(): boolean {
-  const ids = useSyncExternalStore(
+  const hasFavorites = useSyncExternalStore(
     subscribeToFavorites,
-    () => readFavoriteIds(),
-    () => [],
+    () => readFavoriteIds().length > 0,
+    () => false,
   );
-  return ids.length > 0;
+  return hasFavorites;
 }
 
 export function useIsMobile() {

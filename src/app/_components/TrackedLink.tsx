@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useLocation } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import type { MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
@@ -104,9 +104,13 @@ export function TrackedLink({
     );
   }
 
+  const [internalPath, queryString = ''] = href.split('?');
+  const explicitSearch = Object.fromEntries(new URLSearchParams(queryString));
+
   return (
     <Link
-      to={href}
+      to={internalPath}
+      search={queryString ? explicitSearch : {}}
       onClick={handleClick}
       className={linkClassName}
     >

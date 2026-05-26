@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState } from '@/lib/data-state';
 import { appRoutes } from '@/lib/routes';
@@ -101,12 +101,11 @@ export function DemandFlowCard({
             {windowLabel} · {dailyDemand.length}/{requestedDays} dias
           </span>
           <div>
-            <Link
-              to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+            <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Entender metrica
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </div>

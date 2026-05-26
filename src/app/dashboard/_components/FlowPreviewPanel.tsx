@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';
@@ -151,7 +151,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
           </p>
           <Button asChild size="sm" className="mt-4 text-xs font-bold">
-            <Link to={appRoutes.dashboardFlow()}>Expandir vista completa</Link>
+            <TrackedLink href={appRoutes.dashboardFlow()}>Expandir vista completa</TrackedLink>
           </Button>
         </div>
       </Card>
@@ -167,7 +167,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             </p>
           </div>
           <Button asChild variant="ghost" size="sm" className="px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline">
-            <Link to={appRoutes.dashboardHelp('calculo-rutas')}>Como se calcula</Link>
+            <TrackedLink href={appRoutes.dashboardHelp('calculo-rutas')}>Como se calcula</TrackedLink>
           </Button>
         </div>
 

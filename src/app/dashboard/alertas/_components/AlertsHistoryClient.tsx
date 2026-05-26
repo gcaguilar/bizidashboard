@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -486,9 +486,9 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               variant="chips"
               className="flex flex-wrap items-center gap-2 md:hidden"
             />
-            <Link to={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al mapa avanzado">
+            <TrackedLink href={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al mapa avanzado">
               Inicio
-            </Link>
+            </TrackedLink>
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>

@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import {
@@ -65,12 +65,11 @@ export function DataStateNotice({
         </div>
 
         {href ? (
-          <Link
-            to={href}
+          <TrackedLink href={href}
             className="ui-inline-action"
           >
             {actionLabel ?? 'Ver detalle'}
-          </Link>
+          </TrackedLink>
         ) : null}
       </div>
     </Card>

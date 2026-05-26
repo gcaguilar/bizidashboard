@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useSearch } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -104,7 +104,7 @@ function CompareHubContent({
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {section.cards.map((card) => (
-              <Link
+              <TrackedLink
                 key={card.id}
                 to={card.href}
                 className="ui-surface-block ui-surface-block-interactive"
@@ -126,7 +126,7 @@ function CompareHubContent({
                 {card.note ? (
                   <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{card.note}</p>
                 ) : null}
-              </Link>
+              </TrackedLink>
             ))}
           </div>
         </section>
@@ -204,18 +204,16 @@ export default function ComparePage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="flex flex-wrap gap-3">
-            <Link
-              to={appRoutes.dashboardView('research')}
+            <TrackedLink href={appRoutes.dashboardView('research')}
               className="ui-primary-button"
             >
               Abrir análisis en el mapa avanzado
-            </Link>
-            <Link
-              to={appRoutes.explore()}
+            </TrackedLink>
+            <TrackedLink href={appRoutes.explore()}
               className="ui-inline-action"
             >
               Volver al hub Explorar
-            </Link>
+            </TrackedLink>
           </div>
           <PublicSearchForm />
         </div>
