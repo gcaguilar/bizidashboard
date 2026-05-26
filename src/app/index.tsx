@@ -1,5 +1,4 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 import { PageShell } from '@/components/layout/page-shell';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { HomeFavoritesSection } from '@/app/_components/HomeFavoritesSection';
@@ -51,16 +50,7 @@ export const Route = createFileRoute('/')({
 function Home() {
   const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAt } = Route.useLoaderData();
   const generatedAtLabel = formatHourMinute(generatedAt);
-  const [mounted, setMounted] = useState(false);
   const hasFavorites = useHasFavorites();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Use client-side value only after mount to avoid hydration mismatch
-  // from localStorage-dependent rendering.
-  const showFavorites = mounted && hasFavorites;
 
   return (
     <PageShell>
@@ -137,7 +127,10 @@ function Home() {
         <span className="ui-chip" suppressHydrationWarning>Actualizado {generatedAtLabel}</span>
       </div>
 
-      <div className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3" style={{ display: showFavorites ? 'none' : undefined }}>
+      <div
+        className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3"
+        style={{ display: hasFavorites ? 'none' : undefined }}
+      >
         <div className="flex items-start gap-3">
           <span className="mt-0.5 text-lg">💡</span>
           <div>
@@ -156,7 +149,7 @@ function Home() {
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="xl:col-span-2" style={{ display: showFavorites ? undefined : 'none' }}>
+        <div className="xl:col-span-2" style={{ display: hasFavorites ? undefined : 'none' }}>
           <HomeFavoritesSection stationRows={stationRows} />
         </div>
 
@@ -203,7 +196,7 @@ function Home() {
           </div>
         </div>
 
-        <div className="xl:col-span-2" style={{ display: showFavorites ? 'none' : undefined }}>
+        <div className="xl:col-span-2" style={{ display: hasFavorites ? 'none' : undefined }}>
           <HomeFavoritesSection stationRows={stationRows} />
         </div>
       </section>

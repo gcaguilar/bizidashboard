@@ -82,7 +82,17 @@ export default function Footer() {
                 {version.buildDate && <> · {formatDateLabel(version.buildDate)}</>}
               </p>
             )}
-            <p>Hecho con ❤️ por la comunidad</p>
+            <p>
+              Hecho con ❤️ por{' '}
+              <a
+                href="https://www.linkedin.com/in/guillermocastella/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-[var(--foreground)]"
+              >
+                Guillermo Castella
+              </a>
+            </p>
           </div>
 
           <div className="flex items-center gap-4 text-xs text-[var(--muted)]">

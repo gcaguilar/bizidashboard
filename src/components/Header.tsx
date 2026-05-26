@@ -8,17 +8,7 @@ import { appRoutes } from '@/lib/routes';
 import { PUBLIC_MAIN_NAV_ITEMS, PUBLIC_MORE_NAV_ITEMS } from '@/lib/public-navigation';
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMobileMenuOpen(false);
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -35,13 +25,13 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-6">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-center gap-4 md:gap-6">
             <TrackedLink href={appRoutes.home()} className="text-lg font-bold text-[var(--foreground)]">
               DatosBizi
             </TrackedLink>
 
-            <nav aria-label="Navegación principal" className="hidden items-center gap-4 text-sm md:flex">
+            <nav aria-label="Navegación principal" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
               {PUBLIC_MAIN_NAV_ITEMS.map(link => (
                 <TrackedLink
                   key={link.href}
@@ -97,79 +87,9 @@ export default function Header() {
 
           <div className="flex items-center gap-2">
             <ThemeToggleButton />
-
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Abrir menú"
-              aria-expanded={mobileMenuOpen}
-              className="ui-icon-button md:hidden"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="4" x2="14" y2="4" />
-                <line x1="2" y1="8" x2="14" y2="8" />
-                <line x1="2" y1="12" x2="14" y2="12" />
-              </svg>
-            </button>
           </div>
         </div>
       </header>
-
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[200] flex flex-col bg-[var(--background)] p-6 gap-6 md:hidden">
-          <div className="flex justify-end">
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Cerrar menú"
-              className="ui-icon-button"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="2" x2="14" y2="14" />
-                <line x1="14" y1="2" x2="2" y2="14" />
-              </svg>
-            </button>
-          </div>
-
-          <nav className="flex flex-col gap-4 mt-4">
-            {PUBLIC_MAIN_NAV_ITEMS.map(link => (
-              <TrackedLink
-                key={link.href}
-                href={link.href}
-                ctaEvent={{
-                  source: 'header_mobile',
-                  ctaId: link.ctaId,
-                  destination: link.ctaId,
-                  sourceRole: 'utility',
-                  destinationRole: 'hub',
-                  transitionKind: 'within_public',
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-2xl font-bold text-[var(--foreground)] hover:text-[var(--primary)] transition"
-              >
-                {link.label}
-              </TrackedLink>
-            ))}
-            <div className="my-2 h-px bg-[var(--border)]" />
-            {PUBLIC_MORE_NAV_ITEMS.map(link => (
-              <TrackedLink
-                key={link.href}
-                href={link.href}
-                ctaEvent={{
-                  source: 'header_mobile',
-                  ctaId: link.ctaId,
-                  destination: link.ctaId,
-                  sourceRole: 'utility',
-                  destinationRole: 'hub',
-                  transitionKind: 'within_public',
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-lg font-semibold text-[var(--muted)] hover:text-[var(--primary)] transition"
-              >
-                {link.label}
-              </TrackedLink>
-            ))}
-          </nav>
-        </div>
-      )}
     </>
   );
 }
