@@ -63,7 +63,10 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
           MAX("recordedAt") AS "lastRecordedAt",
           COUNT(*) AS "totalSamples"
         FROM "StationStatus";
-      `,
+      `.catch((error) => {
+        console.warn('[SharedData] Unable to read coverage summary from StationStatus:', error);
+        return [];
+      }),
       prisma.$queryRaw<StationsRow[]>`
         SELECT COUNT(*) AS "totalStations"
         FROM "Station"

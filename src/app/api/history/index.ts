@@ -20,8 +20,23 @@ function d<T>(v: T | null | undefined, dflt: T): T {
 }
 
 async function buildHistoryPayload() {
+  const nowIso = new Date().toISOString()
   const [historyMeta, dailyHistoryRows, status] = await Promise.all([
-    getHistoryMetadata(),
+    getHistoryMetadata().catch(() => ({
+      source: {
+        provider: 'Bizi Zaragoza GBFS',
+        gbfsDiscoveryUrl: 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json',
+      },
+      coverage: {
+        firstRecordedAt: null,
+        lastRecordedAt: null,
+        totalSamples: 0,
+        totalStations: 0,
+        totalDays: 0,
+        generatedAt: nowIso,
+      },
+      generatedAt: nowIso,
+    })),
     // Compute daily history directly from StationStatus so it always
     // reflects the latest ingested data regardless of analytics aggregation.
     prisma.$queryRaw<DailyHistoryRow[]>`
@@ -66,7 +81,7 @@ async function buildHistoryPayload() {
     source: historyMeta.source,
     coverage: historyMeta.coverage,
     history,
-    generatedAt: historyMeta.generatedAt ?? new Date().toISOString(),
+    generatedAt: historyMeta.generatedAt ?? nowIso,
     dataState: resolveHistoryDataState({
       count: history.length,
       coverage: historyMeta.coverage,
