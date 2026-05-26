@@ -1,41 +1,14 @@
-import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
 import { formatDateLabel } from '@/lib/format'
+import type { FooterData } from '@/server-functions/footer'
 
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
 
-type VersionInfo = {
-  gitSha: string;
-  version: string;
-  buildDate: string;
-};
-
-export default function Footer() {
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
-  const [version, setVersion] = useState<VersionInfo | null>(null)
-
-  useEffect(() => {
-    fetch('/api/status')
-      .then(res => res.json())
-      .then(data => {
-        const ts = data?.quality?.freshness?.lastUpdated
-        if (ts) {
-          setLastUpdated(formatDateLabel(ts))
-        }
-      })
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    fetch('/api/version')
-      .then(res => res.json())
-      .then(data => {
-        if (data?.gitSha) setVersion(data)
-      })
-      .catch(() => {})
-  }, [])
+export default function Footer({ footerData }: { footerData: FooterData | undefined }) {
+  const lastUpdated = footerData?.lastUpdated ? formatDateLabel(footerData.lastUpdated) : null
+  const version = footerData?.version ?? null
 
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--background)] py-8">
