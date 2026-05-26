@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchDistrictCollection } from '@/lib/districts';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 
 describe('fetchDistrictCollection', () => {
   beforeEach(() => {

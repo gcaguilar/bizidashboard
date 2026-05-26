@@ -4,6 +4,7 @@ import { isValidMonthKey } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { formatDateLabel } from '@/lib/format';
 import {
   buildFallbackAvailableMonths,
   buildFallbackDatasetSnapshot,
@@ -45,6 +46,7 @@ function getEndpointDocs(): EndpointDoc[] {
 export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const { fetchAvailableDataMonths, fetchSharedDatasetSnapshot, fetchStatus } = await import('@/lib/api');
   const nowIso = new Date().toISOString();
+  const consultedAtLabel = formatDateLabel(nowIso);
   const siteUrl = getSiteUrl();
   const [dataset, availableMonths, status] = await Promise.all([
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
@@ -150,5 +152,6 @@ export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(a
     changelog,
     datasetDownloadEntries,
     dataset,
+    consultedAtLabel,
   };
 });

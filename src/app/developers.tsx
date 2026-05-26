@@ -6,7 +6,6 @@ import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
-import { formatDateLabel } from '@/lib/format';
 import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
@@ -81,7 +80,7 @@ export const Route = createFileRoute('/developers')({
 
 
 export default function DevelopersPage() {
-  const { siteUrl, cityName, breadcrumbs, latestMonth, endpointDocs, datasetVersion, apiVersion, codeLicense, developersDataState, datasetTemporalCoverage, curlExamples, pythonExample, jsExample, csvDownloads, accessPolicies, useCases, changelog, datasetDownloadEntries, dataset } = Route.useLoaderData();
+  const { siteUrl, cityName, breadcrumbs, latestMonth, endpointDocs, datasetVersion, apiVersion, codeLicense, developersDataState, datasetTemporalCoverage, curlExamples, pythonExample, jsExample, csvDownloads, accessPolicies, useCases, changelog, datasetDownloadEntries, dataset, consultedAtLabel } = Route.useLoaderData();
 
   return (
     <PageShell>
@@ -447,8 +446,8 @@ print(len(res.json()["transfers"]))`}</code>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
               <p className="stat-label">Cita sugerida</p>
-              <p className="text-sm leading-relaxed text-[var(--foreground)]" suppressHydrationWarning>
-                {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${formatDateLabel(new Date())}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
+              <p className="text-sm leading-relaxed text-[var(--foreground)]">
+                {`DatosBizi ${cityName}, datos históricos agregados (versión ${datasetVersion}), consultado el ${consultedAtLabel}. Fuente primaria: ${dataset.source.gbfsDiscoveryUrl}`}
               </p>
             </div>
             <div className="ui-metric-card">
