@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocation } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import type { MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,

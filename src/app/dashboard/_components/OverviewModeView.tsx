@@ -75,7 +75,7 @@ export function OverviewModeView({
   topFrictionStationName,
   mobilityPreview,
   activeWindowLabel,
-  activeWindowDemandDays,
+  activeWindowDemandDays: _activeWindowDemandDays,
 }: OverviewModeViewProps) {
   const statusLabel =
     status.pipeline.healthStatus === 'healthy'
