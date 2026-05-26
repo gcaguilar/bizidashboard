@@ -30,11 +30,12 @@ import { formatStatusDateTime } from '@/lib/system-status';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { fetchJson, useAbortableAsyncEffect } from '@/app/dashboard/_components/useAbortableAsyncEffect';
-import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
+
+// Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
 const PAGE_SIZE = 100;
 const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -473,19 +474,9 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Historial de alertas</h1>
             </div>
-            <DashboardRouteLinks
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="inline"
-              className="hidden items-center gap-5 md:flex"
-            />
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <DashboardRouteLinks
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="chips"
-              className="flex flex-wrap items-center gap-2 md:hidden"
-            />
             <TrackedLink href={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al mapa avanzado">
               Inicio
             </TrackedLink>

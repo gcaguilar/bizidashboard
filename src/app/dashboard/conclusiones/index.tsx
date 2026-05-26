@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -5,7 +6,6 @@ import { formatDateLabel, formatInteger, formatPercent } from '@/lib/format';
 import { toMonthOptions } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
-import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { MonthFilter } from '@/app/dashboard/_components/MonthFilter';
@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardConclusionsPageData } from '@/server-functions/dashboard-conclusiones';
+
+// Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
 function formatDelta(deltaRatio: number | null): string {
   if (deltaRatio === null || !Number.isFinite(deltaRatio)) {
@@ -101,7 +103,9 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
       title,
     }
   },
-  loader: async ({ location }) => getDashboardConclusionsPageData({ data: Object.fromEntries(new URLSearchParams(location.searchStr)) }),
+  loaderDeps: ({ location }) => ({ searchStr: location.searchStr ?? '' }),
+  loader: async ({ deps }) =>
+    getDashboardConclusionsPageData({ data: Object.fromEntries(new URLSearchParams(deps.searchStr)) }),
   component: DashboardConclusionsPage,
 });
 
@@ -126,21 +130,9 @@ export default function DashboardConclusionsPage() {
               </div>
               <h1 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h1>
             </div>
-            <DashboardRouteLinks
-              activeRoute="conclusions"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="inline"
-              className="hidden items-center gap-5 md:flex"
-            />
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <DashboardRouteLinks
-              activeRoute="conclusions"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="chips"
-              className="flex flex-wrap items-center gap-2 md:hidden"
-            />
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>

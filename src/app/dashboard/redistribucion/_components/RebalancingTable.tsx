@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { Fragment, useState, useCallback, useEffect } from 'react';
 import {
   useReactTable,
@@ -358,6 +359,11 @@ function FilterSelect({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function RebalancingTable({ diagnostics, initialParams }: Props) {
+  const router = useRouter();
+  const location = useLocation();
+  const pathname = location.pathname;
+  const currentSearch = (location as { searchStr?: string }).searchStr ?? '';
+
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [sorting, setSorting] = useState<SortingState>(() => {
     if (initialParams?.sort) {
@@ -432,9 +438,16 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     if (pagination.pageIndex > 0) params.set('page', String(pagination.pageIndex));
     if (pagination.pageSize !== PAGE_SIZE) params.set('pageSize', String(pagination.pageSize));
 
-    const url = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    window.history.replaceState(null, '', url);
-  }, [sorting, globalFilter, columnFilters, pagination]);
+    const nextQuery = params.toString();
+    const currentQuery = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch;
+
+    if (nextQuery === currentQuery) {
+      return;
+    }
+
+    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    void router.navigate({ to: nextUrl, replace: true });
+  }, [sorting, globalFilter, columnFilters, pagination, pathname, router, currentSearch]);
 
   useEffect(() => {
     updateURL();

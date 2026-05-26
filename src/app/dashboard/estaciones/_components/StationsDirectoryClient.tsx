@@ -12,11 +12,12 @@ import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { buildEntitySelectEvent } from '@/lib/umami';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
-import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
+
+// Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
 type StationsDirectoryClientProps = {
   stations: StationSnapshot[];
@@ -68,18 +69,6 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
             <h1 className="text-xl font-bold text-[var(--foreground)]">Directorio de estaciones</h1>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <DashboardRouteLinks
-              activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="inline"
-              className="hidden items-center gap-5 md:flex"
-            />
-            <DashboardRouteLinks
-              activeRoute="stations"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="chips"
-              className="flex flex-wrap items-center gap-2 md:hidden"
-            />
             <ThemeToggleButton />
             <GitHubRepoButton />
           </div>

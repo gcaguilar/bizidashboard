@@ -24,11 +24,12 @@ import {
   trackUmamiEvent,
 } from '@/lib/umami';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
-import { DashboardRouteLinks } from '@/app/dashboard/_components/DashboardRouteLinks';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { FAQ_ITEMS } from './help-center-content';
+
+// Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 import {
   buildHelpCenterFaqStructuredData,
   filterHelpCenterFaqItems,
@@ -106,12 +107,6 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               </div>
               <h2 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h2>
             </div>
-            <DashboardRouteLinks
-              activeRoute="help"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="inline"
-              className="hidden items-center gap-6 md:flex"
-            />
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
@@ -126,12 +121,6 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 placeholder="Buscar ayuda..."
               />
             </label>
-            <DashboardRouteLinks
-              activeRoute="help"
-              routes={['dashboard', 'stations', 'flow', 'conclusions', 'redistribucion', 'help']}
-              variant="chips"
-              className="flex flex-wrap items-center gap-2 md:hidden"
-            />
             <Button asChild variant="outline" size="sm" className="whitespace-nowrap">
               <TrackedLink
                 href={appRoutes.api.history()}

@@ -1,3 +1,4 @@
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
