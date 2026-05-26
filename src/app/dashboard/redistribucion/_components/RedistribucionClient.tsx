@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert } from '@/components/ui/alert';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {
   Select,
@@ -40,7 +40,7 @@ type TableParams = {
 };
 
 type Props = {
-  initialReport: RebalancingReport;
+  initialReport: RebalancingReport | null;
   districtNames: string[];
   tableParams?: TableParams;
 };
@@ -49,23 +49,17 @@ const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
 const ALL_DISTRICTS_VALUE = '__all_districts__';
 
 export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
-  const [report, setReport] = useState<RebalancingReport>(initialReport);
+  const [report, setReport] = useState<RebalancingReport | null>(initialReport);
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
   const [selectedDistrict, setSelectedDistrict] = useState<string>(
-    initialReport.districtFilter ?? ''
+    initialReport?.districtFilter ?? ''
   );
-  const [selectedDays, setSelectedDays] = useState<number>(initialReport.analysisWindowDays);
+  const [selectedDays, setSelectedDays] = useState<number>(initialReport?.analysisWindowDays ?? 15);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const didMountRef = useRef(false);
 
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-
     const controller = new AbortController();
     let isActive = true;
 
@@ -143,8 +137,8 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
   const isUpdatingReport = isReportLoading || isPending;
 
   const tabs: Array<{ id: Tab; label: string }> = [
-    { id: 'estaciones', label: `Estaciones (${report.summary.totalStations})` },
-    { id: 'transferencias', label: `Transferencias (${report.transfers.length})` },
+    { id: 'estaciones', label: `Estaciones (${report?.summary.totalStations ?? 0})` },
+    { id: 'transferencias', label: `Transferencias (${report?.transfers.length ?? 0})` },
     { id: 'kpis', label: 'KPIs e impacto' },
     { id: 'metodologia', label: 'Metodología' },
   ];
@@ -162,12 +156,12 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           <div>
             <h1 className="text-2xl font-black text-[var(--foreground)]">Redistribución</h1>
             <p className="mt-0.5 text-sm text-[var(--muted)]">
-              Diagnóstico operativo de estaciones · ventana {report.analysisWindowDays} días ·{' '}
-              <time dateTime={report.generatedAt}>
-                {new Date(report.generatedAt).toLocaleString('es-ES', {
+              Diagnóstico operativo de estaciones · ventana {selectedDays} días ·{' '}
+              <time dateTime={report?.generatedAt ?? ''}>
+                {report ? new Date(report.generatedAt).toLocaleString('es-ES', {
                   dateStyle: 'short',
                   timeStyle: 'short',
-                })}
+                }) : 'Cargando…'}
               </time>
             </p>
           </div>
@@ -272,9 +266,17 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
       </div>
 
       {/* Summary cards */}
-      <div className="mb-6">
-        <RebalancingSummaryCards summary={report.summary} />
-      </div>
+      {report ? (
+        <div className="mb-6">
+          <RebalancingSummaryCards summary={report.summary} />
+        </div>
+      ) : (
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-24 rounded-xl border border-[var(--border)] bg-[var(--card)] animate-pulse" />
+          ))}
+        </div>
+      )}
 
       <Tabs
         value={activeTab}
@@ -310,15 +312,23 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
 
         <TabsContent className="space-y-6" value="estaciones">
           <ClassificationLegend />
-          <RebalancingTable diagnostics={report.diagnostics} initialParams={tableParams} />
+          {report ? (
+            <RebalancingTable diagnostics={report.diagnostics} initialParams={tableParams} />
+          ) : (
+            <div className="space-y-2">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="h-12 rounded bg-[var(--border)] opacity-60" />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent className="space-y-6" value="transferencias">
-          <TransferTable transfers={report.transfers} />
+          {report ? <TransferTable transfers={report.transfers} /> : null}
         </TabsContent>
 
         <TabsContent className="space-y-6" value="kpis">
-          <KpiCards kpis={report.kpis} baseline={report.baselineComparison} />
+          {report ? <KpiCards kpis={report.kpis} baseline={report.baselineComparison} /> : null}
         </TabsContent>
 
         <TabsContent className="space-y-6" value="metodologia">
