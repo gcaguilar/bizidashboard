@@ -73,7 +73,7 @@ async function RedistribucionClientWrapper({
   districtNames, 
   tableParams 
 }: {
-  initialReport: RebalancingReport;
+  initialReport: RebalancingReport | null;
   districtNames: string[];
   tableParams: Record<string, unknown>;
 }) {

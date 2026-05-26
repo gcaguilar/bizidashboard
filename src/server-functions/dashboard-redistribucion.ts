@@ -45,12 +45,8 @@ export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
       pageSize: pageSize ? Number(pageSize) : undefined,
     };
 
-    const { buildRebalancingReport } = await import('@/lib/rebalancing-report');
     const { fetchDistrictCollection } = await import('@/lib/districts.server');
-    const [report, districtCollection] = await Promise.all([
-      buildRebalancingReport({ days: 15 }),
-      fetchDistrictCollection().catch(() => null),
-    ]);
+    const districtCollection = await fetchDistrictCollection().catch(() => null);
 
     const districtNames = districtCollection
       ? [...new Set(districtCollection.features
@@ -60,7 +56,8 @@ export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
       : [];
 
     return {
-      report: compactInitialRebalancingReport(report),
+      // Keep SSR lightweight; full report is fetched client-side on mount.
+      report: null as RebalancingReport | null,
       districtNames,
       tableParams,
     };
