@@ -1,7 +1,7 @@
 'use client';
 
-import {}  from '@tanstack/react-router';
 import { useMemo } from 'react';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { HeatmapCell } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';

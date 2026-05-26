@@ -3,6 +3,7 @@
 import { Suspense, useMemo  } from 'react';
 import { useLocation, useRouter } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
@@ -56,7 +57,12 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       nextParams.delete('rankingShowAll');
     }
 
+    const currentQuery = searchParams.toString();
     const nextQuery = nextParams.toString();
+    if (nextQuery === currentQuery) {
+      return;
+    }
+
     void router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 

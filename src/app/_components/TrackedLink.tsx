@@ -20,6 +20,7 @@ import {
 type TrackedLinkProps = {
   children: ReactNode;
   href?: string;
+  to?: string;
   trackingEvent?: UmamiTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
@@ -33,6 +34,7 @@ type TrackedLinkProps = {
 export function TrackedLink({
   children,
   href,
+  to,
   eventName,
   eventData,
   trackingEvent,
@@ -42,6 +44,7 @@ export function TrackedLink({
   onClick,
   className,
 }: TrackedLinkProps) {
+  const destination = href ?? to;
   const pathname = useLocation().pathname;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -91,26 +94,22 @@ export function TrackedLink({
     className ?? ''
   } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim();
   const shouldUseNativeNavigation =
-    !href ||
-    href.startsWith('/api/') ||
-    /\.(?:csv|json|txt|xml|pdf|zip)(?:[?#].*)?$/i.test(href) ||
-    /^[a-z][a-z0-9+.-]*:/i.test(href);
+    !destination ||
+    destination.startsWith('/api/') ||
+    /\.(?:csv|json|txt|xml|pdf|zip)(?:[?#].*)?$/i.test(destination) ||
+    /^[a-z][a-z0-9+.-]*:/i.test(destination);
 
   if (shouldUseNativeNavigation) {
     return (
-      <a href={href} onClick={handleClick} className={linkClassName}>
+      <a href={destination} onClick={handleClick} className={linkClassName}>
         {children}
       </a>
     );
   }
 
-  const [internalPath, queryString = ''] = href.split('?');
-  const explicitSearch = Object.fromEntries(new URLSearchParams(queryString));
-
   return (
     <Link
-      to={internalPath}
-      search={queryString ? explicitSearch : {}}
+      to={destination}
       onClick={handleClick}
       className={linkClassName}
     >

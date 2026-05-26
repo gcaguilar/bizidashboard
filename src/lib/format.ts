@@ -97,6 +97,23 @@ export function formatDateLabel(value: string | Date, timeZone: string = DEFAULT
   });
 }
 
+export function formatDateTimeLabel(value: string | Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Sin datos';
+  }
+
+  return date.toLocaleString('es-ES', {
+    timeZone,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function formatHourRange(hour: number): string {
   const nextHour = (hour + 1) % 24;
   return `${String(hour).padStart(2, '0')}:00-${String(nextHour).padStart(2, '0')}:00`;

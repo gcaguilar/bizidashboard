@@ -1,7 +1,7 @@
 'use client';
 
-import {}  from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import {
   Command,

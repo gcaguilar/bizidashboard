@@ -62,7 +62,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
         pageType="dashboard"
         template="stations_directory"
       />
-      <PageHeaderCard className="z-40 bg-[var(--card)]">
+      <PageHeaderCard className="bg-[var(--card)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estaciones</p>

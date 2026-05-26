@@ -53,13 +53,9 @@ export default function DashboardFlowPage() {
       <PageHeaderCard>
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 text-[var(--primary)]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-sm font-black text-white">
-                B
-              </div>
-              <h1 className="text-lg font-bold text-[var(--foreground)]">Bizi Zaragoza</h1>
-            </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
+            <h1 className="text-lg font-bold text-[var(--foreground)]">Flujo</h1>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <ThemeToggleButton />
@@ -74,6 +70,7 @@ export default function DashboardFlowPage() {
           activeMonth={activeMonth}
           routeKey="dashboard_flow"
           source="dashboard_flow"
+          preservedSearchKeys={['period']}
         />
       </Suspense>
 

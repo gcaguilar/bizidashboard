@@ -1,8 +1,8 @@
 'use client';
 
-import {}  from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
