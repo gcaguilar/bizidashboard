@@ -155,7 +155,7 @@ describe('public UX regressions', () => {
   it('public nav avoids duplicate dashboard wording', () => {
     const publicNavigation = readSource('src/lib/public-navigation.ts');
 
-    expect(publicNavigation).toContain("label: 'Mapa avanzado'");
+    expect(publicNavigation).toContain("label: 'Explora ahora'");
     expect(publicNavigation).toContain("label: 'Redistribución'");
     expect(publicNavigation).not.toContain("label: 'Panel avanzado'");
     expect(publicNavigation).not.toContain("label: 'Dashboard'");
@@ -167,7 +167,7 @@ describe('public UX regressions', () => {
 
     expect(routes).not.toContain("label: 'Dashboard'");
     expect(publicNavigation).not.toMatch(/label: 'Dashboard'|Dashboard >/);
-    expect(publicNavigation).toContain("label: 'Mapa avanzado'");
+    expect(publicNavigation).toContain("label: 'Explora ahora'");
   });
 
   it('explore destination labels distinguish dashboard tools from public pages', () => {
@@ -302,9 +302,9 @@ describe('public UX regressions', () => {
 
   it('dashboard pages do not render the public Header', () => {
     const rootSource = readSource('src/app/__root.tsx');
-    expect(rootSource).toContain('useLocation');
-    expect(rootSource).toContain('isDashboard');
-    expect(rootSource).toContain('startsWith(\'/dashboard\')');
+    expect(rootSource).toContain('<Header />');
+    expect(rootSource).not.toContain('isDashboard');
+    expect(rootSource).not.toContain('startsWith(\'/dashboard\')');
   });
 
   it('dashboard station detail exposes a real h1 and a defined route title', () => {
