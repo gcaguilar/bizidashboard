@@ -9,7 +9,7 @@ export function StationsSkeleton() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="ui-metric-card animate-pulse space-y-3 p-4">
+          <div key={i} className="ui-surface-block animate-pulse space-y-3 p-4">
             <div className="h-4 w-3/4 rounded bg-[var(--border)]" />
             <div className="flex gap-2">
               <div className="h-3 w-16 rounded bg-[var(--border)]" />
