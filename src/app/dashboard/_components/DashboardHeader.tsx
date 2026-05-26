@@ -78,11 +78,9 @@ export function DashboardHeader({
     <PageHeaderCard>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-6">
-          <div className="flex items-center gap-3 text-[var(--primary)]">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary)] text-sm font-black text-white">
-              B
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Bizi Zaragoza</h1>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
+            <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Resumen operativo</h1>
           </div>
 
           <div className="hidden items-center gap-2 rounded-lg bg-[var(--primary)]/10 p-1 lg:flex">

@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,9 +79,10 @@ function MobilityInsightsContent({
   demandDays = 30,
 }: MobilityInsightsProps) {
   const location = useLocation();
+  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
   const searchParams = useMemo(
-    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
-    [location]
+    () => new URLSearchParams(searchStr),
+    [searchStr]
   );
 
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);

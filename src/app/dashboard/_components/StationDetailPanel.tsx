@@ -287,13 +287,15 @@ export function StationDetailPanel({
     ? alerts.alerts.filter((alert) => alert.stationId === station.id && alert.isActive)
     : [];
 
-  const [timeAnchor, setTimeAnchor] = useState(() => ({ dayType: getDayTypeForToday(), hour: getCurrentHour() }));
-  useEffect(() => { setTimeAnchor({ dayType: getDayTypeForToday(), hour: getCurrentHour() }); }, []);
+  const [timeAnchor, setTimeAnchor] = useState<{ dayType: string; hour: number } | null>(null);
+  useEffect(() => {
+    setTimeAnchor({ dayType: getDayTypeForToday(), hour: getCurrentHour() });
+  }, []);
 
   const projection = useMemo(() => {
     const currentOccupancy = toOccupancy(station);
-    const dayType = timeAnchor.dayType;
-    const currentHour = timeAnchor.hour;
+    const dayType = timeAnchor?.dayType ?? 'WEEKDAY';
+    const currentHour = timeAnchor?.hour ?? 12;
     const nextHour = (currentHour + 1) % 24;
     const nextTwoHours = (currentHour + 2) % 24;
 

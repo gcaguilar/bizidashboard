@@ -6,7 +6,7 @@ import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
-import { formatPercent } from '@/lib/format';
+import { DEFAULT_TIME_ZONE, formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { buildExportClickEvent, buildPanelOpenEvent } from '@/lib/umami';
 import { ChartWrapper } from './ChartWrapper';
@@ -33,7 +33,7 @@ function formatDayLabel(value: string): string {
     return value;
   }
 
-  return parsed.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+  return parsed.toLocaleDateString('es-ES', { timeZone: DEFAULT_TIME_ZONE, day: '2-digit', month: '2-digit' });
 }
 
 export function DataHistoryCard() {

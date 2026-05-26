@@ -24,13 +24,15 @@ vi.mock('@tanstack/react-router', async () => {
     ...actual,
     Link: ({
       children,
+      to,
       href,
       ...props
     }: {
       children: React.ReactNode;
-      href: string;
+      to?: string;
+      href?: string;
     }) => (
-      <a href={href} {...props}>
+      <a href={to ?? href} {...props}>
         {children}
       </a>
     ),
@@ -234,5 +236,23 @@ describe('TrackedLink', () => {
     expect(buildCtaClickEventMock).not.toHaveBeenCalled();
     expect(buildEntitySelectEventMock).not.toHaveBeenCalled();
     expect(buildLegacyInteractionEventMock).not.toHaveBeenCalled();
+  });
+
+  it('supports `to` prop as alias for navigation destination', async () => {
+    const { TrackedLink } = await import('@/app/_components/TrackedLink');
+    const link = TrackedLink({
+      to: '/dashboard/flujo?period=night',
+      children: 'Flujo noche',
+      navigationEvent: {
+        source: 'dashboard_home',
+        destination: 'dashboard_flow',
+        transitionKind: 'within_dashboard',
+      },
+    });
+
+    expect(link.props.to).toBe('/dashboard/flujo?period=night');
+    link.props.onClick({ type: 'click' });
+
+    expect(trackUmamiEventMock).toHaveBeenCalled();
   });
 });

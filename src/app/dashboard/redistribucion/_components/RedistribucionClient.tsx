@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { formatDateTimeLabel } from '@/lib/format';
 import type { RebalancingReport } from '@/types/rebalancing';
 import {
   buildExportClickEvent,
@@ -155,10 +156,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
             <p className="mt-0.5 text-sm text-[var(--muted)]">
               Diagnóstico operativo de estaciones · ventana {selectedDays} días ·{' '}
               <time dateTime={report?.generatedAt ?? ''}>
-                {report ? new Date(report.generatedAt).toLocaleString('es-ES', {
-                  dateStyle: 'short',
-                  timeStyle: 'short',
-                }) : 'Cargando…'}
+                {report ? formatDateTimeLabel(report.generatedAt) : 'Cargando…'}
               </time>
             </p>
           </div>

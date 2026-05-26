@@ -1,7 +1,7 @@
 'use client';
 
-import {}  from '@tanstack/react-router';
 import { useMemo } from 'react';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationPatternRow } from '@/lib/api-types';
 import { DayType } from '@/analytics/types';
 import { formatDayType, formatPercent } from '@/lib/format';

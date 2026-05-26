@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -205,9 +206,10 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const router = useRouter();
   const location = useLocation();
   const pathname = location.pathname;
+  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
   const searchParams = useMemo(
-    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
-    [location]
+    () => new URLSearchParams(searchStr),
+    [searchStr]
   );
 
   const [stationId, setStationId] = useState('');
@@ -311,16 +313,20 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const currentViewQuery = buildViewQueryFromState(
-      parseViewStateFromSearchParams(new URLSearchParams(window.location.search), stations)
+      parseViewStateFromSearchParams(new URLSearchParams(searchParams.toString()), stations)
     );
 
     if (currentViewQuery === viewQueryString) {
       return;
     }
 
+    const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;
     const nextUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
+    if (nextUrl === currentUrl) {
+      return;
+    }
     void router.navigate({ to: nextUrl, replace: true });
-  }, [isUrlReady, pathname, router, stations, viewQueryString]);
+  }, [isUrlReady, pathname, router, searchParams, stations, viewQueryString]);
 
   useAbortableAsyncEffect(
     async (signal, isActive) => {

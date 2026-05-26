@@ -200,6 +200,13 @@ describe('public UX regressions', () => {
     }
   });
 
+  it('dashboard footer year avoids client-only state hydration pattern', () => {
+    const source = readSource('src/app/dashboard/_components/DashboardClient.tsx');
+    expect(source).toContain('function FooterYear()');
+    expect(source).not.toMatch(/FooterYear[\s\S]*useState\(/);
+    expect(source).not.toMatch(/FooterYear[\s\S]*setYear\(/);
+  });
+
   it('route registry avoids indexable legacy map and inconsistent labels', () => {
     const source = readSource('src/lib/routes.ts');
     expect(source).not.toMatch(/id: 'stats-mapa',[\s\S]*?label: 'Mapa'/);
@@ -240,6 +247,12 @@ describe('public UX regressions', () => {
     expect(compare).toContain('Selecciona y copia la URL compartible de arriba');
     expect(rebalancing).toContain('Usa Exportar CSV como alternativa');
     expect(alerts).toContain('Usa el CSV como alternativa');
+  });
+
+  it('alerts history avoids redundant URL replace navigation', () => {
+    const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
+    expect(alerts).toContain('const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;');
+    expect(alerts).toContain('if (nextUrl === currentUrl) {');
   });
 
   it('home FAQ uses current navigation language', () => {

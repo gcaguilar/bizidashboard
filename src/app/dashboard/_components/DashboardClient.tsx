@@ -10,7 +10,7 @@ import type {
   StatusResponse,
 } from '@/lib/api-types';
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
-import { TIMEZONE } from '@/lib/timezone';
+import { formatStatusDateTime } from '@/lib/system-status';
 import {
   buildStationDistrictMap,
   fetchDistrictCollection,
@@ -284,10 +284,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
   const location = useLocation();
   const pathname = location.pathname;
+  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
   const router = useRouter();
   const searchParams = useMemo(
-    () => new URLSearchParams((location as { searchStr?: string }).searchStr ?? ''),
-    [location]
+    () => new URLSearchParams(searchStr),
+    [searchStr]
   );
 
   const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
@@ -922,10 +923,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           demandDays: String(activeWindow.demandDays),
         });
 
-        const selectedMonth = new URLSearchParams(window.location.search).get('month');
+        const selectedMonth = searchParams.get('month');
 
         if (selectedMonth) {
-          searchParams.set('month', selectedMonth);
+          params.set('month', selectedMonth);
         }
 
         const response = await fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
@@ -1010,10 +1011,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const datasetLastSampleAt =
     statusData.quality.freshness.lastUpdated ?? initialData.dataset.lastUpdated.lastSampleAt;
   const updatedText = statusData.quality.freshness.lastUpdated
-    ? new Date(statusData.quality.freshness.lastUpdated).toLocaleString('es-ES', { timeZone: TIMEZONE })
+    ? formatStatusDateTime(statusData.quality.freshness.lastUpdated)
     : 'sin datos';
   const sharedDatasetUpdatedText = datasetLastSampleAt
-    ? new Date(datasetLastSampleAt).toLocaleString('es-ES', { timeZone: TIMEZONE })
+    ? formatStatusDateTime(datasetLastSampleAt)
     : 'sin datos';
   const datasetSummaryLabel = `Cobertura ${initialData.dataset.coverage.totalDays} días · ${initialData.dataset.coverage.totalStations} estaciones · última muestra ${sharedDatasetUpdatedText}`;
   const topFrictionStationName = systemMetrics.topFriction
@@ -1206,8 +1207,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 }
 
 function FooterYear() {
-  const [year, setYear] = useState(new Date().getFullYear());
-  useEffect(() => { setYear(new Date().getFullYear()); }, []);
+  const year = new Date().getFullYear();
   return (
     <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
       &copy; {year} Bizi Zaragoza - Sistema de analitica de movilidad urbana.

@@ -13,6 +13,7 @@ type MonthFilterProps = {
   className?: string;
   routeKey?: string;
   source?: string;
+  preservedSearchKeys?: string[];
 };
 
 function MonthFilterContent({
@@ -21,6 +22,7 @@ function MonthFilterContent({
   className,
   routeKey = 'dashboard_unknown',
   source = 'month_filter',
+  preservedSearchKeys = [],
 }: MonthFilterProps) {
   const router = useRouter();
   const location = useLocation();
@@ -35,7 +37,7 @@ function MonthFilterContent({
   }
 
   const updateMonth = (nextMonth: string | null) => {
-    const nextParams = new URLSearchParams(searchParams.toString());
+    const nextParams = new URLSearchParams();
 
     trackUmamiEvent(
       buildFilterChangeEvent({
@@ -47,13 +49,25 @@ function MonthFilterContent({
       })
     );
 
+    for (const key of preservedSearchKeys) {
+      const value = searchParams.get(key);
+      if (value !== null) {
+        nextParams.set(key, value);
+      }
+    }
+
     if (nextMonth) {
       nextParams.set('month', nextMonth);
     } else {
       nextParams.delete('month');
     }
 
+    const currentQuery = searchParams.toString();
     const nextQuery = nextParams.toString();
+    if (nextQuery === currentQuery) {
+      return;
+    }
+
     void router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
   };
 
