@@ -43,10 +43,22 @@ async function buildSitemapXml(): Promise<string> {
   const siteUrl = getRobotsBaseUrl()
   const lastModified = new Date().toISOString()
   const [monthsResponse, monthlySeries, districts, stations] = await Promise.all([
-    fetchAvailableDataMonths().catch(() => ({ months: [] })),
-    fetchCachedMonthlyDemandCurve(36).catch(() => []),
-    getDistrictSeoRows().catch(() => []),
-    getStationSeoRows().catch(() => []),
+    fetchAvailableDataMonths().catch((error) => {
+      console.error('[sitemap.xml] fetchAvailableDataMonths failed:', error)
+      return { months: [] }
+    }),
+    fetchCachedMonthlyDemandCurve(36).catch((error) => {
+      console.error('[sitemap.xml] fetchCachedMonthlyDemandCurve failed:', error)
+      return []
+    }),
+    getDistrictSeoRows().catch((error) => {
+      console.error('[sitemap.xml] getDistrictSeoRows failed:', error)
+      return []
+    }),
+    getStationSeoRows().catch((error) => {
+      console.error('[sitemap.xml] getStationSeoRows failed:', error)
+      return []
+    }),
   ])
   const validMonths = Array.from(
     new Set(

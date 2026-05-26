@@ -44,6 +44,12 @@ function mergeMonthCandidates(months: string[]): string[] {
   return Array.from(set).sort((left, right) => right.localeCompare(left));
 }
 
+function filterMonthsWithSeries(months: string[], monthlySeries: Array<{ monthKey: string }>): string[] {
+  const seriesMonthSet = new Set(monthlySeries.map((row) => row.monthKey));
+  const filtered = months.filter((month) => seriesMonthSet.has(month));
+  return filtered.length > 0 ? filtered : months;
+}
+
 export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [{ fetchCachedMonthlyDemandCurve }, { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus }] = await Promise.all([
     import('@/lib/analytics-series'),
@@ -82,13 +88,12 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
       .filter((value): value is string => Boolean(value))
       .map((value) => value.slice(0, 7))
   );
-  const months =
-    discoveredMonths.length > 0
-      ? discoveredMonths
-      : mergeMonthCandidates([
-          ...historyFallbackMonths,
-          ...resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt),
-        ]);
+  const fallbackMonths = mergeMonthCandidates([
+    ...historyFallbackMonths,
+    ...resolveSnapshotMonthFallback(dataset.lastUpdated.lastSampleAt),
+  ]);
+  const monthsSource = discoveredMonths.length > 0 ? discoveredMonths : fallbackMonths;
+  const months = filterMonthsWithSeries(monthsSource, monthlySeries);
   const monthMap = Object.fromEntries(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
   const reportsDataState = combineDataStates([

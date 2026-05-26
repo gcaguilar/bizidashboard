@@ -20,7 +20,7 @@ export const getReportMonthPageData = createServerFn({ method: 'GET' })
         import('@/lib/analytics-series'),
         import('@/lib/shared-data-fallbacks'),
       ]);
-      const monthlySeries = await fetchCachedMonthlyDemandCurve(36).catch(() => {
+      const monthlySeries = await fetchCachedMonthlyDemandCurve(12).catch(() => {
         buildFallbackDatasetSnapshot(nowIso);
         return [];
       });
