@@ -274,6 +274,30 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: { changeFrequency: 'daily', priority: 0.74 },
   },
   {
+    id: 'dashboard-view-overview',
+    href: appRoutes.dashboardView('overview'),
+    label: 'Dashboard overview',
+    sitemap: { changeFrequency: 'hourly', priority: 0.72 },
+  },
+  {
+    id: 'dashboard-view-operations',
+    href: appRoutes.dashboardView('operations'),
+    label: 'Dashboard operations',
+    sitemap: { changeFrequency: 'hourly', priority: 0.72 },
+  },
+  {
+    id: 'dashboard-view-research',
+    href: appRoutes.dashboardView('research'),
+    label: 'Dashboard research',
+    sitemap: { changeFrequency: 'hourly', priority: 0.72 },
+  },
+  {
+    id: 'dashboard-view-data',
+    href: appRoutes.dashboardView('data'),
+    label: 'Dashboard data',
+    sitemap: { changeFrequency: 'hourly', priority: 0.72 },
+  },
+  {
     id: 'methodology',
     href: appRoutes.methodology(),
     label: 'Metodología',

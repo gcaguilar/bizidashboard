@@ -19,6 +19,7 @@ import { Route as RedistribucionRouteImport } from './app/redistribucion'
 import { Route as RankingEstacionesBiziRouteImport } from './app/ranking-estaciones-bizi'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
+import { Route as ManifestDotjsonRouteImport } from './app/manifest[.]json'
 import { Route as LlmsDottxtRouteImport } from './app/llms[.]txt'
 import { Route as LlmsFullDottxtRouteImport } from './app/llms-full[.]txt'
 import { Route as LlmDottxtRouteImport } from './app/llm[.]txt'
@@ -144,6 +145,11 @@ const MapaEstacionesBiziZaragozaRoute =
     path: '/mapa-estaciones-bizi-zaragoza',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ManifestDotjsonRoute = ManifestDotjsonRouteImport.update({
+  id: '/manifest.json',
+  path: '/manifest.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
   id: '/llms.txt',
   path: '/llms.txt',
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
@@ -632,6 +639,7 @@ export interface FileRoutesByTo {
   '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
@@ -716,6 +724,7 @@ export interface FileRoutesById {
   '/llm.txt': typeof LlmDottxtRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
@@ -803,6 +812,7 @@ export interface FileRouteTypes {
     | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
@@ -886,6 +896,7 @@ export interface FileRouteTypes {
     | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
@@ -969,6 +980,7 @@ export interface FileRouteTypes {
     | '/llm.txt'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
@@ -1055,6 +1067,7 @@ export interface RootRouteChildren {
   LlmDottxtRoute: typeof LlmDottxtRoute
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
+  ManifestDotjsonRoute: typeof ManifestDotjsonRoute
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
   MetodologiaRoute: typeof MetodologiaRoute
   RankingEstacionesBiziRoute: typeof RankingEstacionesBiziRoute
@@ -1164,6 +1177,13 @@ declare module '@tanstack/react-router' {
       path: '/mapa-estaciones-bizi-zaragoza'
       fullPath: '/mapa-estaciones-bizi-zaragoza'
       preLoaderRoute: typeof MapaEstacionesBiziZaragozaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manifest.json': {
+      id: '/manifest.json'
+      path: '/manifest.json'
+      fullPath: '/manifest.json'
+      preLoaderRoute: typeof ManifestDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/llms.txt': {
@@ -1806,6 +1826,7 @@ const rootRouteChildren: RootRouteChildren = {
   LlmDottxtRoute: LlmDottxtRoute,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
+  ManifestDotjsonRoute: ManifestDotjsonRoute,
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
   MetodologiaRoute: MetodologiaRoute,
   RankingEstacionesBiziRoute: RankingEstacionesBiziRoute,

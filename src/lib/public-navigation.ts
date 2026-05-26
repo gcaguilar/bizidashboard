@@ -39,7 +39,7 @@ export type PublicNavItem = {
 
 export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
   { id: 'home', label: 'Inicio', href: appRoutes.home(), ctaId: 'home' },
-  { id: 'map', label: 'Mapa avanzado', href: appRoutes.dashboard(), ctaId: 'map' },
+  { id: 'map', label: 'Explora ahora', href: appRoutes.dashboard(), ctaId: 'map' },
   { id: 'stations', label: 'Estaciones', href: appRoutes.statsEstaciones(), ctaId: 'stations' },
   { id: 'reports', label: 'Informes', href: appRoutes.reports(), ctaId: 'reports' },
   { id: 'explore', label: 'Explorar', href: appRoutes.exploreHub(), ctaId: 'explore' },

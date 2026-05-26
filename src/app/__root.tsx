@@ -68,8 +68,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  const isDashboard = location.pathname.startsWith('/dashboard')
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -77,7 +75,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[var(--selection-bg)]">
-        {isDashboard ? null : <Header />}
+        <Header />
         {children}
         <Footer />
         <TanStackDevtools
