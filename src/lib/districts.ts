@@ -1,5 +1,3 @@
-import { parseJsonWithGuard } from '@/lib/json';
-
 export const DISTRICTS_GEOJSON_URL = '/data/distritos-zaragoza.geojson';
 
 export type Coordinate = number[];
@@ -140,19 +138,6 @@ export function isDistrictCollection(value: unknown): value is DistrictCollectio
 }
 
 async function loadDistrictCollection(): Promise<DistrictCollection | null> {
-  if (typeof window === 'undefined') {
-    const [{ readFile }, path] = await Promise.all([
-      import('node:fs/promises'),
-      import('node:path'),
-    ]);
-    const geoJsonPath = path.join(
-      process.cwd(),
-      'public',
-      DISTRICTS_GEOJSON_URL.replace(/^\/+/, '')
-    );
-    return parseJsonWithGuard(await readFile(geoJsonPath, 'utf8'), isDistrictCollection);
-  }
-
   const response = await fetch(DISTRICTS_GEOJSON_URL);
 
   if (!response.ok) {
