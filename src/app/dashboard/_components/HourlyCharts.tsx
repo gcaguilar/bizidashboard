@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useMemo } from 'react';
 import type { StationPatternRow } from '@/lib/api-types';
 import { DayType } from '@/analytics/types';
@@ -133,12 +133,11 @@ export function HourlyCharts({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            to={appRoutes.dashboardHelp('detalle-estacion')}
+          <TrackedLink href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
             Entender grafico
-          </Link>
+          </TrackedLink>
           {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>
       </header>

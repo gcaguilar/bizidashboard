@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { HomeFavoritesSection } from '@/app/_components/HomeFavoritesSection';
@@ -139,9 +139,9 @@ function Home() {
             </p>
             <p className="mt-1 text-xs text-[var(--muted)]">
               Desde el{' '}
-              <Link to={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
+              <TrackedLink href={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
                 mapa avanzado
-              </Link>{' '}
+              </TrackedLink>{' '}
               puedes marcar tus estaciones habituales como favoritas. Se guardan solo en este navegador y aparecerán aquí con su estado actual.
             </p>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
@@ -160,12 +160,11 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
         <div className="text-right text-xs text-[var(--muted)]">
           <span>Barrios: {slices.length}</span>
           <div>
-            <Link
-              to={appRoutes.dashboardHelp('estados-mapa')}
+            <TrackedLink href={appRoutes.dashboardHelp('estados-mapa')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
               Como leerlo
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </div>

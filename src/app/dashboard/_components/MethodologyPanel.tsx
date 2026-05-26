@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { ALERT_THRESHOLDS, ANALYTICS_WINDOWS } from '@/analytics/types';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
@@ -41,7 +41,7 @@ export function MethodologyPanel() {
           </p>
         </div>
         <Button asChild variant="cta" size="sm" className="rounded-full">
-          <Link to={appRoutes.dashboardHelp()}>Ir a la ayuda completa</Link>
+          <TrackedLink href={appRoutes.dashboardHelp()}>Ir a la ayuda completa</TrackedLink>
         </Button>
       </header>
 

@@ -77,18 +77,18 @@ const STATION_POINTS_LAYER_PROPS =
 const MINI_MAP_STYLE: StyleSpecification = {
   version: 8,
   sources: {
-    cartoDark: {
+    osmMini: {
       type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: '&copy; OpenStreetMap contributors',
     },
   },
   layers: [
     {
-      id: 'carto-dark',
+      id: 'osm-mini',
       type: 'raster',
-      source: 'cartoDark',
+      source: 'osmMini',
     },
   ],
 };

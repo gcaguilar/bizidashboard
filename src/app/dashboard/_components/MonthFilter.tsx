@@ -26,6 +26,8 @@ function MonthFilterContent({
   const location = useLocation();
   const pathname = location.pathname;
   const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
+  const activeMonthFromUrl = searchParams.get('month');
+  const currentActiveMonth = activeMonthFromUrl ?? activeMonth;
   const monthOptions = toMonthOptions(months);
 
   if (monthOptions.length === 0) {
@@ -61,7 +63,7 @@ function MonthFilterContent({
         <span className='text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]'>Mes</span>
         <Button
           onClick={() => updateMonth(null)}
-          variant={activeMonth === null ? 'default' : 'chip'}
+          variant={currentActiveMonth === null ? 'default' : 'chip'}
           size="sm"
         >
           Acumulado
@@ -70,7 +72,7 @@ function MonthFilterContent({
           <Button
             key={month.key}
             onClick={() => updateMonth(month.key)}
-            variant={activeMonth === month.key ? 'default' : 'chip'}
+            variant={currentActiveMonth === month.key ? 'default' : 'chip'}
             size="sm"
           >
             {month.label}

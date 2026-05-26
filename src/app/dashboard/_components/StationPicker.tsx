@@ -1,6 +1,6 @@
 'use client';
 
-import { Link } from '@tanstack/react-router';
+import {}  from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -400,12 +400,11 @@ export function StationPicker({
       {stationDetailUrl ? (
         <div className="flex justify-end">
         <Button asChild>
-          <Link
-              to={stationDetailUrl}
+          <TrackedLink href={stationDetailUrl}
               className="rounded-lg border border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-1.5 text-xs font-bold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-white"
           >
             Abrir detalle completo
-          </Link>
+          </TrackedLink>
         </Button>
         </div>
       ) : null}

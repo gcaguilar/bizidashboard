@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useMemo  } from 'react';
-import { Link, useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,12 +135,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
         <div className='text-right'>
           <span className='ui-chip'>{rows.length} resultados</span>
           <div className='mt-1'>
-            <Link
-              to={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
+            <TrackedLink href={appRoutes.dashboardHelp('ranking-rotacion-vs-criticidad')}
               className='text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline'
             >
               Entender ranking
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </header>

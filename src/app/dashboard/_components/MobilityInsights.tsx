@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState  } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Link, useLocation  } from '@tanstack/react-router';
+import { useLocation  } from '@tanstack/react-router';
 import {
   Area,
   AreaChart,
@@ -106,7 +106,7 @@ function MobilityInsightsContent({
         });
 
         if (selectedMonth) {
-          searchParams.set('month', selectedMonth);
+          params.set('month', selectedMonth);
         }
 
         const [mobilityResponse, districtsPayload] = await Promise.all([
@@ -167,7 +167,7 @@ function MobilityInsightsContent({
       isActive = false;
       controller.abort();
     };
-  }, [demandDays, mobilityDays, selectedMonth, searchParams]);
+  }, [demandDays, mobilityDays, selectedMonth]);
 
   const stationDistrictMap = useMemo(() => {
     return buildStationDistrictLookup(stations, districts);
@@ -244,7 +244,7 @@ function MobilityInsightsContent({
         </div>
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)]/80 p-1">
           {PERIODS.map((period) => (
-            <Link
+            <TrackedLink
               key={period.key}
               to={appRoutes.dashboardFlow({
                 month: selectedMonth,
@@ -258,7 +258,7 @@ function MobilityInsightsContent({
               }`}
             >
               {period.label}
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       </header>
@@ -295,12 +295,11 @@ function MobilityInsightsContent({
               <div className="text-right text-xs text-[var(--muted)]">
                 <span>Barrios representados: {chordNodes.length}</span>
                 <div>
-                  <Link
-                    to={appRoutes.dashboardHelp('diagrama-chord')}
+                  <TrackedLink href={appRoutes.dashboardHelp('diagrama-chord')}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Como interpretarlo
-                  </Link>
+                  </TrackedLink>
                 </div>
               </div>
             </div>
@@ -563,12 +562,11 @@ function MobilityInsightsContent({
               <div className="text-right text-xs text-[var(--muted)]">
                 <span>{mobilityData.demandDays} dias</span>
                 <div>
-                  <Link
-                    to={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+                  <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Entender curva
-                  </Link>
+                  </TrackedLink>
                 </div>
               </div>
             </div>

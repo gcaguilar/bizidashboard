@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { getSiteUrl } from '@/lib/site'
 import { PageShell } from '@/components/layout/page-shell'
 
@@ -58,7 +58,7 @@ function About() {
           Los datos provienen del sistema GBFS de Bizi Zaragoza y se recogen de forma automatica
           cada pocos minutos. La cobertura historica depende de la fecha de inicio de la recogida
           y de la estabilidad del sistema. Consulta la pagina de{' '}
-          <Link to="/estado" className="text-[var(--primary)] underline underline-offset-2">Estado</Link>{' '}
+          <TrackedLink href="/estado" className="text-[var(--primary)] underline underline-offset-2">Estado</TrackedLink>{' '}
           para ver la frescura actual y cualquier incidencia activa.
         </p>
       </section>
@@ -66,9 +66,9 @@ function About() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Enlaces de interes</h2>
         <ul className="mt-4 space-y-3 text-sm">
-          <li><Link to="/metodologia" className="text-[var(--primary)] underline underline-offset-2">Metodologia</Link> <span className="text-[var(--muted)]">— como se calculan las metricas y los informes.</span></li>
-          <li><Link to="/developers" className="text-[var(--primary)] underline underline-offset-2">API publica</Link> <span className="text-[var(--muted)]">— documentacion para acceder a los datos.</span></li>
-          <li><Link to="/estado" className="text-[var(--primary)] underline underline-offset-2">Estado del sistema</Link> <span className="text-[var(--muted)]">— cobertura, frescura e incidencias.</span></li>
+          <li><TrackedLink href="/metodologia" className="text-[var(--primary)] underline underline-offset-2">Metodologia</TrackedLink> <span className="text-[var(--muted)]">— como se calculan las metricas y los informes.</span></li>
+          <li><TrackedLink href="/developers" className="text-[var(--primary)] underline underline-offset-2">API publica</TrackedLink> <span className="text-[var(--muted)]">— documentacion para acceder a los datos.</span></li>
+          <li><TrackedLink href="/estado" className="text-[var(--primary)] underline underline-offset-2">Estado del sistema</TrackedLink> <span className="text-[var(--muted)]">— cobertura, frescura e incidencias.</span></li>
           <li><a href="https://github.com/gcaguilar/bizidashboard" target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] underline underline-offset-2">GitHub</a> <span className="text-[var(--muted)]">— codigo fuente del proyecto.</span></li>
         </ul>
       </section>

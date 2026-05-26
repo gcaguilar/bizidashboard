@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert } from '@/components/ui/alert';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {
   Select,
@@ -57,7 +57,6 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
   const [selectedDays, setSelectedDays] = useState<number>(initialReport?.analysisWindowDays ?? 15);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,9 +88,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           return;
         }
 
-        startTransition(() => {
-          setReport(nextReport);
-        });
+        setReport(nextReport);
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return;
@@ -124,7 +121,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
       isActive = false;
       controller.abort();
     };
-  }, [selectedDays, selectedDistrict, startTransition]);
+  }, [selectedDays, selectedDistrict]);
 
   function handleDistrictChange(value: string) {
     setSelectedDistrict(value);
@@ -134,7 +131,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
     setSelectedDays(value);
   }
 
-  const isUpdatingReport = isReportLoading || isPending;
+  const isUpdatingReport = isReportLoading;
 
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: 'estaciones', label: `Estaciones (${report?.summary.totalStations ?? 0})` },

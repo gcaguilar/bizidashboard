@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { RankingsResponse, StationSnapshot } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -36,9 +36,9 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estacion</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Una estacion es menos estable cuando pasa muchas horas vacia o llena respecto a su ventana observada.</p>
         </div>
-        <Link to={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Como leerlo
-        </Link>
+        </TrackedLink>
       </div>
 
       {leastStable.length === 0 ? (
@@ -46,7 +46,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
       ) : (
         <div className="mt-4 space-y-3">
           {leastStable.map((row) => (
-            <Link
+            <TrackedLink
               key={row.stationId}
               to={appRoutes.dashboardStation(row.stationId)}
               className="block rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
@@ -63,7 +63,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
                 value={Math.max(6, row.stabilityScore * 100)}
                 indicatorClassName="bg-[var(--primary)]"
               />
-            </Link>
+            </TrackedLink>
           ))}
         </div>
       )}

@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { formatDateLabel, formatInteger, formatPercent } from '@/lib/format';
@@ -347,8 +347,7 @@ export default function DashboardConclusionsPage() {
             <div className="mt-4 space-y-2">
               {payload.topStationsByDemand.map((station, index) => (
                 <Button asChild key={station.stationId} variant="outline" size="sm">
-                  <Link
-                    to={appRoutes.dashboardStation(station.stationId)}
+                  <TrackedLink href={appRoutes.dashboardStation(station.stationId)}
                     className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -361,7 +360,7 @@ export default function DashboardConclusionsPage() {
                       </div>
                     </div>
                     <p className="text-xs font-bold text-[var(--foreground)]">Indice {station.avgDemand.toFixed(1)}</p>
-                  </Link>
+                  </TrackedLink>
                 </Button>
               ))}
             </div>
@@ -382,8 +381,7 @@ export default function DashboardConclusionsPage() {
             <div className="mt-4 space-y-2">
               {payload.leastUsedStations.map((station, index) => (
                 <Button asChild key={station.stationId} variant="outline" size="sm">
-                  <Link
-                    to={appRoutes.dashboardStation(station.stationId)}
+                  <TrackedLink href={appRoutes.dashboardStation(station.stationId)}
                     className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -396,7 +394,7 @@ export default function DashboardConclusionsPage() {
                       </div>
                     </div>
                     <p className="text-xs font-bold text-[var(--foreground)]">Indice {station.avgDemand.toFixed(1)}</p>
-                  </Link>
+                  </TrackedLink>
                 </Button>
               ))}
             </div>
@@ -408,19 +406,17 @@ export default function DashboardConclusionsPage() {
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Informes mensuales publicados</h3>
-            <Link
-              to={appRoutes.reports()}
+            <TrackedLink href={appRoutes.reports()}
               className="text-xs font-bold text-[var(--primary)] transition hover:opacity-80"
             >
               Ver archivo completo
-            </Link>
+            </TrackedLink>
           </div>
 
           <div className="mt-4 space-y-2">
             {availableMonths.months.slice(0, 6).map((month) => (
               <Button asChild key={month} variant="outline" size="sm">
-                <Link
-                  to={appRoutes.reportMonth(month)}
+                <TrackedLink href={appRoutes.reportMonth(month)}
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
                 >
                   <div>
@@ -428,7 +424,7 @@ export default function DashboardConclusionsPage() {
                     <p className="text-[11px] text-[var(--muted)]">Enlace permanente con resumen y accesos al dashboard filtrado.</p>
                   </div>
                   <span className="text-xs font-bold text-[var(--primary)]">Abrir</span>
-                </Link>
+                </TrackedLink>
               </Button>
             ))}
           </div>
@@ -448,12 +444,11 @@ export default function DashboardConclusionsPage() {
               [appRoutes.reports(), 'Viajes por mes'],
             ].map(([href, label]) => (
               <Button asChild key={href} variant="outline" size="sm">
-                <Link
-                  to={href}
+                <TrackedLink href={href}
                   className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:-translate-y-0.5 hover:border-[var(--primary)]/40 hover:bg-[var(--card)]"
                 >
                   {label}
-                </Link>
+                </TrackedLink>
               </Button>
             ))}
           </div>

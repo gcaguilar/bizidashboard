@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { StationSnapshot, RankingsResponse } from '@/lib/api-types';
@@ -77,8 +77,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
-          <Link
-            to={appRoutes.dashboardFlow()}
+          <TrackedLink href={appRoutes.dashboardFlow()}
             className={buttonVariants({
               variant: 'outline',
               size: 'sm',
@@ -87,7 +86,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             })}
           >
             Vista completa
-          </Link>
+          </TrackedLink>
         </div>
         <FlowPreviewPanel stations={props.stations} hourlySignals={props.hourlySignals} />
       </Card>

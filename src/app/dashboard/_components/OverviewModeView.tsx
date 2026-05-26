@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
@@ -118,7 +118,7 @@ export function OverviewModeView({
           </div>
 
           <Button asChild variant="cta" size="sm">
-            <Link to={appRoutes.status()}>Abrir pagina de estado</Link>
+            <TrackedLink href={appRoutes.status()}>Abrir pagina de estado</TrackedLink>
           </Button>
         </div>
       </section>
@@ -146,7 +146,7 @@ export function OverviewModeView({
           <div className="ui-section-card h-full">
             <p className="text-sm text-[var(--muted)]">Resumen visual rapido disponible en el modo Operaciones y el historial completo en la pagina de alertas.</p>
             <Button asChild variant="cta" size="sm" className="mt-auto">
-              <Link to={appRoutes.dashboardAlerts()}>Abrir alertas completas</Link>
+              <TrackedLink href={appRoutes.dashboardAlerts()}>Abrir alertas completas</TrackedLink>
             </Button>
           </div>
         </div>
@@ -169,7 +169,7 @@ export function OverviewModeView({
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
           <Button asChild variant="cta" size="sm">
-            <Link to={appRoutes.dashboardFlow()}>Vista completa</Link>
+            <TrackedLink href={appRoutes.dashboardFlow()}>Vista completa</TrackedLink>
           </Button>
         </div>
         <FlowPreviewPanel stations={stations} hourlySignals={mobilityPreview.hourlySignals} />
