@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   dashboardSearchSchema,
   parseDashboardClientSearch,
+  parseDashboardMonthPeriodSearch,
   parseDashboardRankingSearch,
 } from '@/lib/dashboard-search';
 
@@ -85,6 +86,28 @@ describe('dashboard search schema', () => {
       tab: 'turnover',
       search: '101',
       showAll: true,
+    });
+  });
+
+  it('normalizes month and period search state', () => {
+    const parsed = parseDashboardMonthPeriodSearch(
+      new URLSearchParams('month=2026-05&period=night')
+    );
+
+    expect(parsed).toEqual({
+      month: '2026-05',
+      period: 'night',
+    });
+  });
+
+  it('falls back for invalid month and period values', () => {
+    const parsed = parseDashboardMonthPeriodSearch(
+      new URLSearchParams('month=bad&period=invalid')
+    );
+
+    expect(parsed).toEqual({
+      month: null,
+      period: 'all',
     });
   });
 });

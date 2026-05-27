@@ -42,6 +42,11 @@ export type DashboardRankingSearchState = {
   showAll: boolean;
 };
 
+export type DashboardMonthPeriodSearchState = {
+  month: string | null;
+  period: (typeof PERIODS)[number]['key'];
+};
+
 export function parseDashboardClientSearch(
   params: URLSearchParams | { get: (name: string) => string | null }
 ): DashboardClientSearchState {
@@ -81,5 +86,17 @@ export function parseDashboardRankingSearch(
     tab: rankingTab.success ? rankingTab.data ?? 'availability' : 'availability',
     search: rankingSearch.success ? rankingSearch.data ?? '' : '',
     showAll: rankingShowAll.success ? rankingShowAll.data === '1' : false,
+  };
+}
+
+export function parseDashboardMonthPeriodSearch(
+  params: URLSearchParams | { get: (name: string) => string | null }
+): DashboardMonthPeriodSearchState {
+  const month = dashboardSearchSchema.shape.month.safeParse(params.get('month') ?? undefined);
+  const period = dashboardSearchSchema.shape.period.safeParse(params.get('period') ?? undefined);
+
+  return {
+    month: month.success ? month.data ?? null : null,
+    period: period.success ? period.data ?? 'all' : 'all',
   };
 }
