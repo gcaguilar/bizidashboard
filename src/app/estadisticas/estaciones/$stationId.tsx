@@ -51,8 +51,25 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
       title,
     }
   },
+  errorComponent: StationErrorPage,
   component: StationPage,
 })
+
+function StationErrorPage() {
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Estación no disponible</p>
+        <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">No se pudo cargar esta estación</h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">Intenta de nuevo en unos minutos o vuelve al listado público de estaciones.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink className="ui-primary-button" href={appRoutes.statsEstaciones()}>Ver estaciones</TrackedLink>
+          <TrackedLink className="ui-inline-action" href={appRoutes.status()}>Ver estado</TrackedLink>
+        </div>
+      </section>
+    </PageShell>
+  );
+}
 
 function StationPage() {
   const data = Route.useLoaderData()
