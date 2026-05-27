@@ -6,7 +6,7 @@ import { appRoutes } from '@/lib/routes';
 import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 
-export const Route = createFileRoute('/estadisticas/')({
+export const Route = createFileRoute('/estadisticas')({
   head: () => {
     const siteUrl = getSiteUrl();
     const title = 'Estadísticas Bizi Zaragoza - DatosBizi';
