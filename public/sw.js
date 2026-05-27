@@ -1,5 +1,5 @@
-const CACHE_NAME = 'datosbizi-v1'
-const urlsToCache = ['/']
+const CACHE_NAME = 'datosbizi-v2'
+const urlsToCache = []
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -8,8 +8,22 @@ self.addEventListener('install', event => {
 })
 
 self.addEventListener('fetch', event => {
+  const request = event.request
+  const acceptsHtml = request.headers.get('accept')?.includes('text/html')
+  const isDocumentNavigation =
+    request.mode === 'navigate' ||
+    request.destination === 'document' ||
+    acceptsHtml
+
+  if (isDocumentNavigation) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    )
+    return
+  }
+
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(request).then(response => response || fetch(request))
   )
 })
 

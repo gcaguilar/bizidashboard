@@ -10,6 +10,9 @@ import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/l
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { getHomePageData } from '@/server-functions/home';
 
+export const HOME_CACHE_CONTROL =
+  'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
+
 const HOME_FAQ = [
   {
     question: '¿Cómo saber si hay bicis disponibles en mi estación más cercana?',
@@ -26,6 +29,9 @@ const HOME_FAQ = [
 ] as const;
 
 export const Route = createFileRoute('/')({
+  headers: () => ({
+    'Cache-Control': HOME_CACHE_CONTROL,
+  }),
   head: () => ({
     meta: [
       { title: SEO_SITE_TITLE },
