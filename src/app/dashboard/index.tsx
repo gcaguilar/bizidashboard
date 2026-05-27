@@ -8,6 +8,8 @@ import { PageShell } from '@/components/layout/page-shell'
 import { getDashboardPageData } from '@/server-functions/dashboard'
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes'
 import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model'
+import { TrackedLink } from '@/app/_components/TrackedLink'
+import { appRoutes } from '@/lib/routes'
 
 export const Route = createFileRoute('/dashboard/')({
   validateSearch: z.object({
@@ -27,6 +29,7 @@ export const Route = createFileRoute('/dashboard/')({
     rankingShowAll: z.enum(['1']).optional(),
   }),
   loader: () => getDashboardPageData(),
+  errorComponent: DashboardErrorPage,
   component: DashboardPage,
   head: () => {
     const siteUrl = getSiteUrl()
@@ -52,6 +55,26 @@ export const Route = createFileRoute('/dashboard/')({
     }
   },
 })
+
+function DashboardErrorPage() {
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Panel no disponible</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+          No se pudo cargar el dashboard
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+          Intenta recargar en unos minutos o revisa el estado del sistema.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.status()} className="ui-primary-button">Ver estado</TrackedLink>
+          <TrackedLink href={appRoutes.explore()} className="ui-inline-action">Ir a explorar</TrackedLink>
+        </div>
+      </section>
+    </PageShell>
+  )
+}
 
 function DashboardPage() {
   const { breadcrumbs, initialData, isSchemaMissing, loadErrors, structuredData } = Route.useLoaderData()
