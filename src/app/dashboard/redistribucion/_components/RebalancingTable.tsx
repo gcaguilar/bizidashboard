@@ -443,8 +443,8 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     if (search.sort) currentParams.set('sort', search.sort);
     if (search.filter) currentParams.set('filter', search.filter);
     if (search.search) currentParams.set('search', search.search);
-    if (search.page) currentParams.set('page', search.page);
-    if (search.pageSize) currentParams.set('pageSize', search.pageSize);
+    if (typeof search.page === 'number') currentParams.set('page', String(search.page));
+    if (typeof search.pageSize === 'number') currentParams.set('pageSize', String(search.pageSize));
 
     const nextQuery = params.toString();
     const currentQuery = currentParams.toString();
@@ -460,8 +460,8 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         sort: params.get('sort') ?? undefined,
         filter: params.get('filter') ?? undefined,
         search: params.get('search') ?? undefined,
-        page: params.get('page') ?? undefined,
-        pageSize: params.get('pageSize') ?? undefined,
+        page: params.get('page') ? Number(params.get('page')) : undefined,
+        pageSize: params.get('pageSize') ? Number(params.get('pageSize')) : undefined,
       },
     });
   }, [sorting, globalFilter, columnFilters, pagination, pathname, router, search]);
