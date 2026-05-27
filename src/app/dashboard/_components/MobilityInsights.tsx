@@ -61,7 +61,6 @@ import {
   getMatrixCellColor,
   isMobilityResponse,
   PERIODS,
-  resolvePeriod,
   resolveSelectedDistrictName,
   type MobilityResponse,
   type PeriodInsights,
