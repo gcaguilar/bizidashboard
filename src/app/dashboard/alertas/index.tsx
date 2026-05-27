@@ -15,7 +15,7 @@ export const Route = createFileRoute('/dashboard/alertas/')({
     severity: z.enum(['all', '1', '2']).optional(),
     from: z.string().optional(),
     to: z.string().optional(),
-    page: z.string().optional(),
+    page: z.coerce.number().int().min(1).optional(),
   }),
   head: () => {
     const title = 'Historial de alertas - Dashboard Bizi'

@@ -9,8 +9,8 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
     sort: z.string().optional(),
     filter: z.string().optional(),
     search: z.string().optional(),
-    page: z.string().optional(),
-    pageSize: z.string().optional(),
+    page: z.coerce.number().int().min(0).optional(),
+    pageSize: z.coerce.number().int().min(1).max(200).optional(),
   }),
   head: () => {
     const title = 'Redistribución | Dashboard Bizi'

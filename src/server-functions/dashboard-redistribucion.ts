@@ -3,16 +3,14 @@ import { z } from 'zod';
 import type { RebalancingReport } from '@/types/rebalancing';
 
 const RebalancingSearchParamsSchema = z.object({
-  sort: z.union([z.string(), z.array(z.string())]).optional(),
-  filter: z.union([z.string(), z.array(z.string())]).optional(),
-  search: z.union([z.string(), z.array(z.string())]).optional(),
-  page: z.union([z.string(), z.array(z.string())]).optional(),
-  pageSize: z.union([z.string(), z.array(z.string())]).optional(),
+  sort: z.string().optional(),
+  filter: z.string().optional(),
+  search: z.string().optional(),
+  page: z.number().int().min(0).optional(),
+  pageSize: z.number().int().min(1).max(200).optional(),
 }).default({});
 
 type RebalancingSearchParams = z.infer<typeof RebalancingSearchParamsSchema>;
-
-const getFirst = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
 
 export function compactInitialRebalancingReport(report: RebalancingReport): RebalancingReport {
   return {
@@ -32,17 +30,17 @@ export function compactInitialRebalancingReport(report: RebalancingReport): Reba
 export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
   .inputValidator(RebalancingSearchParamsSchema)
   .handler(async ({ data: params }: { data: RebalancingSearchParams | undefined }) => {
-    const sort = getFirst(params?.sort);
-    const filter = getFirst(params?.filter);
-    const search = getFirst(params?.search);
-    const page = getFirst(params?.page);
-    const pageSize = getFirst(params?.pageSize);
+    const sort = params?.sort;
+    const filter = params?.filter;
+    const search = params?.search;
+    const page = params?.page;
+    const pageSize = params?.pageSize;
     const tableParams = {
       sort: sort?.includes(':') ? sort : undefined,
       filter: filter?.includes(':') ? filter : undefined,
       search,
-      page: page ? Number(page) : undefined,
-      pageSize: pageSize ? Number(pageSize) : undefined,
+      page,
+      pageSize,
     };
 
     const { fetchDistrictCollection } = await import('@/lib/districts.server');
