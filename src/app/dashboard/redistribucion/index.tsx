@@ -24,9 +24,26 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
       title,
     }
   },
-  loaderDeps: ({ location }) => ({ searchStr: location.searchStr ?? '' }),
+  loaderDeps: ({ location }) => {
+    const params = new URLSearchParams(location?.searchStr ?? '');
+    return {
+      sort: params.get('sort') ?? undefined,
+      filter: params.get('filter') ?? undefined,
+      search: params.get('search') ?? undefined,
+      page: params.get('page') ?? undefined,
+      pageSize: params.get('pageSize') ?? undefined,
+    };
+  },
   loader: async ({ deps }) =>
-    getDashboardRebalancingPageData({ data: Object.fromEntries(new URLSearchParams(deps.searchStr)) }),
+    getDashboardRebalancingPageData({
+      data: {
+        sort: deps.sort,
+        filter: deps.filter,
+        search: deps.search,
+        page: deps.page,
+        pageSize: deps.pageSize,
+      },
+    }),
   component: RedistribucionPage,
 });
 

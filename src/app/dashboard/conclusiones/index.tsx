@@ -103,9 +103,14 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
       title,
     }
   },
-  loaderDeps: ({ location }) => ({ searchStr: location.searchStr ?? '' }),
+  loaderDeps: ({ location }) => {
+    const params = new URLSearchParams(location?.searchStr ?? '');
+    return {
+      month: params.get('month') ?? undefined,
+    };
+  },
   loader: async ({ deps }) =>
-    getDashboardConclusionsPageData({ data: Object.fromEntries(new URLSearchParams(deps.searchStr)) }),
+    getDashboardConclusionsPageData({ data: { month: deps.month } }),
   component: DashboardConclusionsPage,
 });
 
