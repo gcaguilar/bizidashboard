@@ -34,6 +34,12 @@ export type DashboardClientSearchState = {
   onlyWithAnchors: boolean;
 };
 
+export type DashboardRankingSearchState = {
+  tab: (typeof DASHBOARD_RANKING_TABS)[number];
+  search: string;
+  showAll: boolean;
+};
+
 export function parseDashboardClientSearch(
   params: URLSearchParams | { get: (name: string) => string | null }
 ): DashboardClientSearchState {
@@ -64,5 +70,29 @@ export function parseDashboardClientSearch(
     timeWindow: parsed.data.timeWindow ?? '30d',
     onlyWithBikes: Boolean(parsed.data.onlyWithBikes),
     onlyWithAnchors: Boolean(parsed.data.onlyWithAnchors),
+  };
+}
+
+export function parseDashboardRankingSearch(
+  params: URLSearchParams | { get: (name: string) => string | null }
+): DashboardRankingSearchState {
+  const parsed = dashboardSearchSchema.safeParse({
+    rankingTab: params.get('rankingTab') ?? undefined,
+    rankingSearch: params.get('rankingSearch') ?? undefined,
+    rankingShowAll: params.get('rankingShowAll') ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      tab: 'availability',
+      search: '',
+      showAll: false,
+    };
+  }
+
+  return {
+    tab: parsed.data.rankingTab ?? 'availability',
+    search: parsed.data.rankingSearch ?? '',
+    showAll: parsed.data.rankingShowAll === '1',
   };
 }

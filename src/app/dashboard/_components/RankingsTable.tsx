@@ -14,6 +14,7 @@ import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
 import { calculateFrictionScore } from './useSystemMetrics';
+import { parseDashboardRankingSearch } from '@/lib/dashboard-search';
 
 type RankingsTableProps = {
   rankings: {
@@ -31,11 +32,10 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
   const location = useLocation();
   const pathname = location.pathname;
   const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
-  const tabFromUrl = searchParams.get('rankingTab');
-  const activeTab: RankingTab =
-    tabFromUrl === 'turnover' ? 'turnover' : 'availability';
-  const search = searchParams.get('rankingSearch') ?? '';
-  const showAll = searchParams.get('rankingShowAll') === '1';
+  const parsedSearch = parseDashboardRankingSearch(searchParams);
+  const activeTab: RankingTab = parsedSearch.tab;
+  const search = parsedSearch.search;
+  const showAll = parsedSearch.showAll;
 
   const updateQuery = (next: { tab?: RankingTab; search?: string; showAll?: boolean }) => {
     const nextParams = new URLSearchParams(searchParams.toString());
