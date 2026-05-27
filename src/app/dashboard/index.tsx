@@ -7,10 +7,24 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PageShell } from '@/components/layout/page-shell'
 import { getDashboardPageData } from '@/server-functions/dashboard'
 import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes'
+import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model'
 
 export const Route = createFileRoute('/dashboard/')({
   validateSearch: z.object({
     mode: z.enum(DASHBOARD_VIEW_MODES).optional(),
+    stationId: z.string().trim().min(1).optional(),
+    q: z.string().trim().max(120).optional(),
+    timeWindow: z.enum(['24h', '7d', '30d', '365d']).optional(),
+    onlyWithBikes: z.enum(['1', 'true']).optional(),
+    onlyWithAnchors: z.enum(['1', 'true']).optional(),
+    mapLat: z.coerce.number().min(-90).max(90).optional(),
+    mapLng: z.coerce.number().min(-180).max(180).optional(),
+    mapZoom: z.coerce.number().min(3).max(19).optional(),
+    month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+    period: z.enum(PERIODS.map((period) => period.key) as [string, ...string[]]).optional(),
+    rankingTab: z.enum(['turnover', 'availability']).optional(),
+    rankingSearch: z.string().trim().max(120).optional(),
+    rankingShowAll: z.enum(['1']).optional(),
   }),
   loader: () => getDashboardPageData(),
   component: DashboardPage,
