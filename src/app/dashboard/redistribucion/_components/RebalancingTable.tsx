@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { getRouteApi, useLocation, useRouter } from '@tanstack/react-router';
 import { Fragment, useState, useCallback, useEffect } from 'react';
 import {
   useReactTable,
@@ -56,6 +56,7 @@ type Props = {
 
 const PAGE_SIZE = 20;
 const SELECT_ALL_VALUE = '__all__';
+const rebalancingRouteApi = getRouteApi('/dashboard/redistribucion/');
 const COLUMN_VISIBILITY_LABELS: Record<string, string> = {
   select: '☑',
   stationName: 'Estación',
@@ -361,8 +362,8 @@ function FilterSelect({
 export function RebalancingTable({ diagnostics, initialParams }: Props) {
   const router = useRouter();
   const location = useLocation();
+  const search = rebalancingRouteApi.useSearch();
   const pathname = location.pathname;
-  const currentSearch = (location as { searchStr?: string }).searchStr ?? '';
 
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [sorting, setSorting] = useState<SortingState>(() => {
@@ -428,6 +429,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
 
   const updateURL = useCallback(() => {
     const params = new URLSearchParams();
+    const currentParams = new URLSearchParams();
     if (sorting.length > 0) {
       params.set('sort', `${sorting[0].id}:${sorting[0].desc ? 'desc' : 'asc'}`);
     }
@@ -438,16 +440,31 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     if (pagination.pageIndex > 0) params.set('page', String(pagination.pageIndex));
     if (pagination.pageSize !== PAGE_SIZE) params.set('pageSize', String(pagination.pageSize));
 
+    if (search.sort) currentParams.set('sort', search.sort);
+    if (search.filter) currentParams.set('filter', search.filter);
+    if (search.search) currentParams.set('search', search.search);
+    if (search.page) currentParams.set('page', search.page);
+    if (search.pageSize) currentParams.set('pageSize', search.pageSize);
+
     const nextQuery = params.toString();
-    const currentQuery = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch;
+    const currentQuery = currentParams.toString();
 
     if (nextQuery === currentQuery) {
       return;
     }
 
-    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    void router.navigate({ to: nextUrl, replace: true });
-  }, [sorting, globalFilter, columnFilters, pagination, pathname, router, currentSearch]);
+    void router.navigate({
+      to: pathname,
+      replace: true,
+      search: {
+        sort: params.get('sort') ?? undefined,
+        filter: params.get('filter') ?? undefined,
+        search: params.get('search') ?? undefined,
+        page: params.get('page') ?? undefined,
+        pageSize: params.get('pageSize') ?? undefined,
+      },
+    });
+  }, [sorting, globalFilter, columnFilters, pagination, pathname, router, search]);
 
   useEffect(() => {
     updateURL();
