@@ -1,12 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { z } from 'zod'
 import { getSiteUrl } from '@/lib/site'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { DashboardClient } from '@/app/dashboard/_components/DashboardClient'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PageShell } from '@/components/layout/page-shell'
 import { getDashboardPageData } from '@/server-functions/dashboard'
+import { DASHBOARD_VIEW_MODES } from '@/lib/dashboard-modes'
 
 export const Route = createFileRoute('/dashboard/')({
+  validateSearch: z.object({
+    mode: z.enum(DASHBOARD_VIEW_MODES).optional(),
+  }),
   loader: () => getDashboardPageData(),
   component: DashboardPage,
   head: () => {
