@@ -293,6 +293,19 @@ function hasValidDoctype(html: string): boolean {
   return /^\s*<!doctype\s+html>/iu.test(html);
 }
 
+function dedupeBrokenLinks(entries: BrokenLinkEntry[]): BrokenLinkEntry[] {
+  const unique = new Map<string, BrokenLinkEntry>();
+
+  for (const entry of entries) {
+    const key = `${entry.target}|${entry.finalUrl}|${entry.status}`;
+    if (!unique.has(key)) {
+      unique.set(key, entry);
+    }
+  }
+
+  return Array.from(unique.values());
+}
+
 function extractSitemapUrls(xml: string, baseOrigin: string): string[] {
   const urls = new Set<string>();
 
@@ -742,6 +755,8 @@ async function main() {
     }
   }
 
+  const dedupedBrokenLinks = dedupeBrokenLinks(brokenLinks);
+
   for (const [exactUrl, result] of settledChecks) {
     if (result.redirects.length === 0) {
       continue;
@@ -1046,7 +1061,7 @@ async function main() {
       checked_urls: settledChecks.size,
       sitemap_entries: sitemapUrls.length,
     },
-    broken_links: buildSummary(brokenLinks),
+    broken_links: buildSummary(dedupedBrokenLinks),
     redirects: buildSummary(redirects),
     orphan_pages: buildSummary(orphanPages),
     sitemap_mismatch: {
