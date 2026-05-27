@@ -1,11 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { getExploreLoaderData } from '@/server-functions/explorar';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 
 export const Route = createFileRoute('/explorar')({
+  ssr: 'data-only',
+  validateSearch: z.object({
+    q: z.string().optional(),
+  }),
   head: () => {
     const title = 'Explorar datos de Bizi Zaragoza - DatosBizi'
     const description = 'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.'
@@ -26,6 +32,7 @@ export const Route = createFileRoute('/explorar')({
     }
   },
   loader: () => getExploreLoaderData(),
+  pendingComponent: PublicPageLoading,
   component: ExplorePage,
 });
 

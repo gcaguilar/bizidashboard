@@ -1,6 +1,8 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
@@ -137,6 +139,12 @@ function CompareHubContent({
 }
 
 export const Route = createFileRoute('/comparar')({
+  ssr: 'data-only',
+  validateSearch: z.object({
+    dimension: z.string().optional(),
+    left: z.string().optional(),
+    right: z.string().optional(),
+  }),
   head: () => {
     const siteUrl = getSiteUrl()
     const title = 'Comparador'
@@ -164,12 +172,13 @@ export const Route = createFileRoute('/comparar')({
     }
   },
   loader: () => getCompareHubLoaderData(),
+  pendingComponent: PublicPageLoading,
   component: ComparePage,
 });
 
 export default function ComparePage() {
   const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
-  const search = useSearch({ from: Route.fullPath });
+  const search = Route.useSearch();
   const initialQuery = {
     dimensionId: getFirstSearchParam(search.dimension),
     leftId: getFirstSearchParam(search.left),
