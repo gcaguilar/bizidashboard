@@ -33,8 +33,29 @@ export const Route = createFileRoute('/explorar')({
   },
   loader: () => getExploreLoaderData(),
   pendingComponent: PublicPageLoading,
+  errorComponent: ExploreErrorPage,
   component: ExplorePage,
 });
+
+function ExploreErrorPage() {
+  return (
+    <PageShell>
+      <header className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Hub no disponible</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+          No se pudo cargar Explorar
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+          Intenta recargar en unos minutos o revisa el estado de datos del sistema.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.status()} className="ui-primary-button">Ver estado</TrackedLink>
+          <TrackedLink href={appRoutes.statsHub()} className="ui-inline-action">Ir a estadísticas</TrackedLink>
+        </div>
+      </header>
+    </PageShell>
+  );
+}
 
 function ExplorePage() {
   const { sections, breadcrumbs, latestMonth } = Route.useLoaderData();

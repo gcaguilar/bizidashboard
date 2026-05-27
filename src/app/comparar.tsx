@@ -173,8 +173,29 @@ export const Route = createFileRoute('/comparar')({
   },
   loader: () => getCompareHubLoaderData(),
   pendingComponent: PublicPageLoading,
+  errorComponent: CompareErrorPage,
   component: ComparePage,
 });
+
+function CompareErrorPage() {
+  return (
+    <PageShell>
+      <header className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Comparador no disponible</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+          No se pudo cargar el comparador
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+          Vuelve a intentarlo en unos minutos o revisa el estado general de cobertura.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.status()} className="ui-primary-button">Ver estado</TrackedLink>
+          <TrackedLink href={appRoutes.explore()} className="ui-inline-action">Ir a explorar</TrackedLink>
+        </div>
+      </header>
+    </PageShell>
+  );
+}
 
 export default function ComparePage() {
   const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
