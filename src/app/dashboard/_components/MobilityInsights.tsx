@@ -46,6 +46,7 @@ import {
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
 import {
   buildChordLinks,
   buildChordNodes,
@@ -84,14 +85,18 @@ function MobilityInsightsContent({
     () => new URLSearchParams(searchStr),
     [searchStr]
   );
+  const parsedSearch = useMemo(
+    () => parseDashboardMonthPeriodSearch(searchParams),
+    [searchParams]
+  );
 
   const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
-  const selectedMonth = searchParams.get('month');
-  const activePeriod = resolvePeriod(searchParams.get('period'));
+  const selectedMonth = parsedSearch.month;
+  const activePeriod = parsedSearch.period;
 
   useEffect(() => {
     const controller = new AbortController();

@@ -6,6 +6,7 @@ import { useLocation, useRouter } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
+import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
 
 type MonthFilterProps = {
   months: string[];
@@ -28,7 +29,8 @@ function MonthFilterContent({
   const location = useLocation();
   const pathname = location.pathname;
   const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
-  const activeMonthFromUrl = searchParams.get('month');
+  const parsedSearch = parseDashboardMonthPeriodSearch(searchParams);
+  const activeMonthFromUrl = parsedSearch.month;
   const currentActiveMonth = activeMonthFromUrl ?? activeMonth;
   const monthOptions = toMonthOptions(months);
 
