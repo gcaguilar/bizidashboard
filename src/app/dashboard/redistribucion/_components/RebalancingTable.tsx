@@ -1,6 +1,6 @@
 'use client';
 
-import { getRouteApi, useLocation, useRouter } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { Fragment, useState, useCallback, useEffect } from 'react';
 import {
   useReactTable,
@@ -360,10 +360,8 @@ function FilterSelect({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function RebalancingTable({ diagnostics, initialParams }: Props) {
-  const router = useRouter();
-  const location = useLocation();
+  const navigate = useNavigate();
   const search = rebalancingRouteApi.useSearch();
-  const pathname = location.pathname;
 
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [sorting, setSorting] = useState<SortingState>(() => {
@@ -453,8 +451,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       return;
     }
 
-    void router.navigate({
-      to: pathname,
+    void navigate({
       replace: true,
       search: {
         sort: params.get('sort') ?? undefined,
@@ -464,7 +461,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         pageSize: params.get('pageSize') ? Number(params.get('pageSize')) : undefined,
       },
     });
-  }, [sorting, globalFilter, columnFilters, pagination, pathname, router, search]);
+  }, [sorting, globalFilter, columnFilters, navigate, pagination, search]);
 
   useEffect(() => {
     updateURL();

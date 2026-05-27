@@ -221,10 +221,8 @@ export function InteractiveComparePanel({
     }
 
     lastSyncedHref.current = nextHref;
-    const [navPath, navSearch] = nextHref.split('?');
     void router.navigate({
-      to: navPath,
-      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+      to: nextHref,
       replace: true,
     });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -114,9 +114,8 @@ function parseViewStateFromSearchParams(
 }
 
 export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const location = useLocation();
-  const pathname = location.pathname;
   const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
 
   const [stationId, setStationId] = useState('');
@@ -227,18 +226,14 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       return;
     }
 
-    const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;
-    const navUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
-    if (navUrl === currentUrl) {
+    if (viewQueryString === searchParams.toString()) {
       return;
     }
-    const [navPath, navSearch] = navUrl.split('?');
-    void router.navigate({
-      to: navPath,
-      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+    void navigate({
+      search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as Record<string, unknown> : {},
       replace: true,
     });
-  }, [isUrlReady, pathname, router, searchParams, stations, viewQueryString]);
+  }, [isUrlReady, navigate, searchParams, stations, viewQueryString]);
 
   useAbortableAsyncEffect(
     async (signal, isActive) => {

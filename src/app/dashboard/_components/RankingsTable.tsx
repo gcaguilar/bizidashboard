@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useMemo  } from 'react';
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
@@ -29,9 +29,8 @@ type RankingsTableProps = {
 type RankingTab = 'turnover' | 'availability';
 
 function RankingsTableContent({ rankings, stations, density = 'normal' }: RankingsTableProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const location = useLocation();
-  const pathname = location.pathname;
   const searchParams = getLocationSearchParams(location);
   const parsedSearch = parseDashboardRankingSearch(searchParams);
   const activeTab: RankingTab = parsedSearch.tab;
@@ -64,11 +63,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       return;
     }
 
-    const navUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    const [navPath, navSearch] = navUrl.split('?');
-    void router.navigate({
-      to: navPath,
-      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+    void navigate({
+      search: Object.fromEntries(nextParams) as Record<string, unknown>,
       replace: true,
     });
   };
