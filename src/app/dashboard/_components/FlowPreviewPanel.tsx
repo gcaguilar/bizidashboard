@@ -63,7 +63,6 @@ export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: Flow
           area: 'dashboard.flow-preview',
           operation: 'loadDistricts',
         });
-        console.error('[Dashboard] No se pudo cargar distritos para preview de flujo.', error);
         setDistrictError('No se pudieron cargar los distritos para el resumen de flujo.');
       },
       onSettled: () => {

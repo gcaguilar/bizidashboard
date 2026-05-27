@@ -10,6 +10,7 @@ import {
   type DistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
+import { isAbortError } from './useAbortableAsyncEffect';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const DISTRICT_FILL_LAYER = {
@@ -142,7 +143,7 @@ export function NeighborhoodMiniMap({
 
         setDistricts(payload);
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (isAbortError(error)) {
           return;
         }
 
@@ -150,7 +151,6 @@ export function NeighborhoodMiniMap({
           area: 'dashboard.neighborhood-mini-map',
           operation: 'loadDistricts',
         });
-        console.error('[Dashboard] No se pudo cargar el mapa de distritos.', error);
 
         if (isActive) {
           setErrorMessage('No se pudo cargar el mapa de barrios.');

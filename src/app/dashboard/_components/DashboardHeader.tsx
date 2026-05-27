@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,8 +39,8 @@ type DashboardHeaderProps = {
   canUseGeolocation: boolean;
   onJumpToNearest: () => void;
   canJumpToNearest: boolean;
-  refreshCountdownLabel: string;
-  refreshProgress: number;
+  nextRefreshAt?: Date;
+  refreshDurationMs?: number;
 };
 
 // Keep primary dashboard sections documented here for UX contract tests:
@@ -69,10 +70,23 @@ export function DashboardHeader({
   canUseGeolocation,
   onJumpToNearest,
   canJumpToNearest,
-  refreshCountdownLabel,
-  refreshProgress,
+  nextRefreshAt = new Date(),
+  refreshDurationMs = 300_000,
 }: DashboardHeaderProps) {
   const hasAvailabilityFilter = filteredOutCount > 0;
+  const [countdownMs, setCountdownMs] = useState(() => Math.max(0, nextRefreshAt.getTime() - Date.now()));
+
+  useEffect(() => {
+    setCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
+    const id = window.setInterval(() => {
+      setCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [nextRefreshAt]);
+
+  const refreshProgress = ((refreshDurationMs - Math.max(0, countdownMs)) / refreshDurationMs) * 100;
+  const safeMs = Math.max(0, countdownMs);
+  const refreshCountdownLabel = safeMs < 60_000 ? `${Math.ceil(safeMs / 1000)}s` : `${Math.ceil(safeMs / 60_000)} min`;
 
   return (
     <PageHeaderCard>

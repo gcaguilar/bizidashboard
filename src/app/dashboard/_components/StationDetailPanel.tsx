@@ -158,7 +158,6 @@ export function StationDetailPanel({
             selectedMonth,
           },
         });
-        console.error('[Dashboard] Error cargando detalle de estacion', error);
       },
     }
   );

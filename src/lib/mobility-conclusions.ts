@@ -1,7 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
-import { buildStationDistrictMap, DISTRICTS_GEOJSON_URL, isDistrictCollection } from '@/lib/districts';
+import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { getCoverageSummary } from '@/services/shared-data';
@@ -163,23 +163,6 @@ function formatDelta(deltaRatio: number | null): string {
 
   const prefix = deltaRatio >= 0 ? '+' : '';
   return `${prefix}${Math.round(deltaRatio * 100)}%`;
-}
-
-async function getDistrictCollection() {
-  try {
-    const response = await fetch(DISTRICTS_GEOJSON_URL, {
-      next: { revalidate: 86400 },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = await response.json();
-    return isDistrictCollection(payload) ? payload : null;
-  } catch {
-    return null;
-  }
 }
 
 function toDateOrNull(value: string | null): Date | null {
@@ -457,7 +440,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         GROUP BY "stationId"
         ORDER BY "demandScore" DESC;
       `.catch(() => []),
-      getDistrictCollection(),
+      fetchDistrictCollection().catch(() => null),
     ]);
 
   const demandLast7Days = toNumber(demandLastRows[0]?.value);

@@ -47,12 +47,14 @@ export function PublicSearchForm({
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch(appRoutes.api.stations())
+    const controller = new AbortController();
+    fetch(appRoutes.api.stations(), { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         if (data?.stations) setStations(data.stations);
       })
       .catch(() => {})
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {

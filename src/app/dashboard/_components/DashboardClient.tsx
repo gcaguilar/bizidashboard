@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo, useState  } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -21,6 +21,7 @@ import { type DashboardViewMode } from '@/lib/dashboard-modes';
 import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
 import { parseDashboardClientSearch } from '@/lib/dashboard-search';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { isAbortError } from './useAbortableAsyncEffect';
 import { appRoutes } from '@/lib/routes';
 import { getLocationSearchParams } from '@/lib/router-search';
 import { DashboardLayout } from './DashboardLayout';
@@ -48,10 +49,10 @@ import {
 import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 
-import { OverviewModeView } from './OverviewModeView';
-import { OperationsModeView } from './OperationsModeView';
-import { ResearchModeView } from './ResearchModeView';
-import { DataModeView } from './DataModeView';
+const OverviewModeView = lazy(() => import('./OverviewModeView').then(m => ({ default: m.OverviewModeView })));
+const OperationsModeView = lazy(() => import('./OperationsModeView').then(m => ({ default: m.OperationsModeView })));
+const ResearchModeView = lazy(() => import('./ResearchModeView').then(m => ({ default: m.ResearchModeView })));
+const DataModeView = lazy(() => import('./DataModeView').then(m => ({ default: m.DataModeView })));
 
 export type DashboardInitialData = {
   dataset: SharedDatasetSnapshot;
@@ -254,17 +255,6 @@ function resolveHydrationNow(initialData: DashboardInitialData): number {
   return Date.now();
 }
 
-function formatCountdown(valueMs: number): string {
-  const safeMs = Math.max(0, valueMs);
-
-  if (safeMs < 60_000) {
-    return `${Math.ceil(safeMs / 1000)}s`;
-  }
-
-  const minutes = Math.ceil(safeMs / 60_000);
-  return `${minutes} min`;
-}
-
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
   const navigate = useNavigate();
@@ -302,7 +292,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
-  const [refreshCountdownMs, setRefreshCountdownMs] = useState(0);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
@@ -392,7 +381,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
         setDistricts(payload);
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (isAbortError(error)) {
           return;
         }
 
@@ -403,7 +392,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             searchQuery,
           },
         });
-        console.error('[Dashboard] No se pudieron cargar distritos para busqueda por barrio.', error);
       }
     };
 
@@ -761,7 +749,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             url,
           },
         });
-        console.error(`[Dashboard] No se pudo refrescar ${url}`, error);
         const retryAfterSeconds = (error as Error & { cause?: { retryAfterSeconds?: number } }).cause
           ?.retryAfterSeconds;
         return { ok: false, retryAfterSeconds };
@@ -880,19 +867,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [nextRefreshAt, refreshDashboardData, isRefreshingData]);
 
   useEffect(() => {
-    setRefreshCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
-
-    const timerId = window.setInterval(() => {
-      const remaining = Math.max(0, nextRefreshAt.getTime() - Date.now());
-      setRefreshCountdownMs(remaining);
-    }, 1000);
-
-    return () => {
-      window.clearInterval(timerId);
-    };
-  }, [nextRefreshAt]);
-
-  useEffect(() => {
     const controller = new AbortController();
     let isActive = true;
 
@@ -935,7 +909,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             : [],
         });
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (isAbortError(error)) {
           return;
         }
 
@@ -947,7 +921,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             demandDays: activeWindow.demandDays,
           },
         });
-        console.error('Error al refrescar vista previa de flujo.', error);
 
         if (isActive) {
           setMobilityPreview(EMPTY_MOBILITY_PREVIEW);
@@ -975,9 +948,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const nearestStationInfo = nearestStation
     ? stationsData.stations.find((station) => station.id === nearestStation.stationId) ?? null
     : null;
-  const refreshProgress =
-    ((REFRESH_AFTER_LAST_DATA_MS - Math.max(0, refreshCountdownMs)) / REFRESH_AFTER_LAST_DATA_MS) *
-    100;
   const hasAvailabilityFilter = onlyWithBikes || onlyWithAnchors;
   const nearestMessage = nearestStationInfo && nearestStation
     ? `📍 Estación más cercana: ${nearestStationInfo.name} · A ${formatDistanceMeters(nearestStation.distanceMeters)} de ti`
@@ -1058,8 +1028,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           selectStationWithTracking(nearestStationInfo.id, 'nearest_station', 'geolocation');
         }}
         canJumpToNearest={Boolean(nearestStationInfo && nearestStation)}
-        refreshCountdownLabel={formatCountdown(refreshCountdownMs)}
-        refreshProgress={refreshProgress}
+        nextRefreshAt={nextRefreshAt}
+        refreshDurationMs={REFRESH_AFTER_LAST_DATA_MS}
       />
 
       {shouldShowDataStateNotice(dashboardDataState) ? (
@@ -1086,7 +1056,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
         <TabsContent value="overview">
           {viewMode === 'overview' ? (
-            <OverviewModeView
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              <OverviewModeView
               status={statusData}
               stationsGeneratedAt={stationsData.generatedAt}
               totalStations={totalStationsCount}
@@ -1113,12 +1084,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               activeWindowDemandDays={activeWindow.demandDays}
               currentMonth={parsedSearch.month}
             />
+            </Suspense>
           ) : null}
         </TabsContent>
 
         <TabsContent value="operations">
           {viewMode === 'operations' ? (
-            <OperationsModeView
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              <OperationsModeView
               stations={stationsData.stations}
               filteredStations={filteredStations}
               totalStations={totalStationsCount}
@@ -1143,12 +1116,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               topFrictionStationName={topFrictionStationName}
               activeAlertsCount={systemMetrics.activeAlerts.length}
             />
+            </Suspense>
           ) : null}
         </TabsContent>
 
         <TabsContent value="research">
           {viewMode === 'research' ? (
-            <ResearchModeView
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              <ResearchModeView
               stations={stationsData.stations}
               filteredStations={filteredStations}
               selectedStationId={selectedStationId}
@@ -1168,12 +1143,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               recentSnapshots={recentSnapshots}
               currentMonth={parsedSearch.month}
             />
+            </Suspense>
           ) : null}
         </TabsContent>
 
         <TabsContent value="data">
           {viewMode === 'data' ? (
-            <DataModeView
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              <DataModeView
               stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
               frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
               historyJsonUrl={appRoutes.api.history()}
@@ -1181,6 +1158,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
               statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
             />
+            </Suspense>
           ) : null}
         </TabsContent>
       </Tabs>

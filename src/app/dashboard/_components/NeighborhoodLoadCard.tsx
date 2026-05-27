@@ -11,6 +11,7 @@ import {
 import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { isAbortError } from './useAbortableAsyncEffect';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type NeighborhoodLoadCardProps = {
@@ -61,7 +62,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
 
         setDistricts(payload);
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (isAbortError(error)) {
           return;
         }
 
@@ -69,7 +70,6 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
           area: 'dashboard.neighborhood-load-card',
           operation: 'loadDistricts',
         });
-        console.error('[Dashboard] No se pudo cargar distritos para el donut.', error);
       }
     };
 
@@ -178,9 +178,9 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
               stroke="rgba(234, 6, 21, 0.12)"
               strokeWidth="4"
             />
-            {donutSlices.map((slice, index) => (
+            {donutSlices.map((slice) => (
               <path
-                key={index}
+                key={slice.district}
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
                 stroke={slice.color}

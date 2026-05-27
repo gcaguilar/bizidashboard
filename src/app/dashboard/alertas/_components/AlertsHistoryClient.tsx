@@ -266,7 +266,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             query: apiQueryString,
           },
         });
-        console.error('[Dashboard] Error cargando historial de alertas.', error);
         setRows([]);
         setTotalRows(0);
         setErrorMessage('No hemos podido cargar el historial de alertas.');
