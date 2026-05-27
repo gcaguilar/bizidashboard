@@ -433,8 +433,8 @@ export default function DashboardConclusionsPage() {
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {[
               [appRoutes.dashboardStations(), 'Estaciones mas usadas'],
-              [`${appRoutes.dashboard()}?rankingTab=turnover`, 'Ranking de estaciones'],
-              [appRoutes.dashboardFlow(), 'Viajes por dia'],
+              [`${appRoutes.dashboard()}${activeMonth ? `?month=${activeMonth}&` : '?'}rankingTab=turnover`, 'Ranking de estaciones'],
+              [appRoutes.dashboardFlow({ month: activeMonth || undefined }), 'Viajes por dia'],
               [appRoutes.reports(), 'Viajes por mes'],
             ].map(([href, label]) => (
               <Button asChild key={href} variant="outline" size="sm">

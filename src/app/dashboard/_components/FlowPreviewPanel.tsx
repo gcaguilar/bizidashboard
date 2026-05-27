@@ -28,6 +28,7 @@ type HourlySignalRow = {
 type FlowPreviewPanelProps = {
   stations: StationSnapshot[];
   hourlySignals: HourlySignalRow[];
+  currentMonth?: string | null;
 };
 
 type RouteRow = {
@@ -36,7 +37,7 @@ type RouteRow = {
   flow: number;
 };
 
-export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelProps) {
+export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: FlowPreviewPanelProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(true);
   const [districtError, setDistrictError] = useState<string | null>(null);
@@ -151,7 +152,7 @@ export function FlowPreviewPanel({ stations, hourlySignals }: FlowPreviewPanelPr
             Vista simplificada de la distribucion de trayectos entre los principales barrios.
           </p>
           <Button asChild size="sm" className="mt-4 text-xs font-bold">
-            <TrackedLink href={appRoutes.dashboardFlow()}>Expandir vista completa</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}>Expandir vista completa</TrackedLink>
           </Button>
         </div>
       </Card>

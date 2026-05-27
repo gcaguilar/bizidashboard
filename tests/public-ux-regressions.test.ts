@@ -252,7 +252,7 @@ describe('public UX regressions', () => {
   it('alerts history avoids redundant URL replace navigation', () => {
     const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
     expect(alerts).toContain('const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;');
-    expect(alerts).toContain('if (nextUrl === currentUrl) {');
+    expect(alerts).toContain('if (navUrl === currentUrl) {');
   });
 
   it('home FAQ uses current navigation language', () => {

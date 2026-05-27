@@ -35,9 +35,10 @@ type ResearchModeViewProps = {
   windowLabel: string;
   requestedDays: number;
   recentSnapshots: RecentStationSnapshot[];
+  currentMonth?: string | null;
 };
 
-export function ResearchModeView(props: ResearchModeViewProps) {
+export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewProps) {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -77,7 +78,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
-          <TrackedLink href={appRoutes.dashboardFlow()}
+          <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}
             className={buttonVariants({
               variant: 'outline',
               size: 'sm',
@@ -88,7 +89,7 @@ export function ResearchModeView(props: ResearchModeViewProps) {
             Vista completa
           </TrackedLink>
         </div>
-        <FlowPreviewPanel stations={props.stations} hourlySignals={props.hourlySignals} />
+        <FlowPreviewPanel stations={props.stations} hourlySignals={props.hourlySignals} currentMonth={currentMonth} />
       </Card>
     </>
   );

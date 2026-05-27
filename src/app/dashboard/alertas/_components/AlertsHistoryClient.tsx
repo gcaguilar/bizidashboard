@@ -228,11 +228,16 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;
-    const nextUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
-    if (nextUrl === currentUrl) {
+    const navUrl = viewQueryString.length > 0 ? `${pathname}?${viewQueryString}` : pathname;
+    if (navUrl === currentUrl) {
       return;
     }
-    void router.navigate({ to: nextUrl, replace: true });
+    const [navPath, navSearch] = navUrl.split('?');
+    void router.navigate({
+      to: navPath,
+      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+      replace: true,
+    });
   }, [isUrlReady, pathname, router, searchParams, stations, viewQueryString]);
 
   useAbortableAsyncEffect(

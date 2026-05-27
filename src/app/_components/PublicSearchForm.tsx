@@ -89,7 +89,7 @@ export function PublicSearchForm({
     (station: StationSuggestion) => {
       setShowSuggestions(false);
       setQuery('');
-      void router.navigate({ to: appRoutes.stationDetail(station.id) });
+      void router.navigate({ to: appRoutes.stationDetail(station.id), search: {} });
     },
     [router],
   );
