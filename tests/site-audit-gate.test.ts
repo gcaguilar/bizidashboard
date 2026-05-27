@@ -62,6 +62,7 @@ describe('site audit gate', () => {
     expect(result.ok).toBe(true);
     expect(result.failures).toEqual([]);
     expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.likely_infra_outage.detected).toBe(false);
   });
 
   it('fails on broken links, sitemap mismatches and api errors', () => {
@@ -102,6 +103,7 @@ describe('site audit gate', () => {
     expect(result.failures).toContain('1 enlaces internos rotos.');
     expect(result.failures).toContain('1 entradas del sitemap devuelven error.');
     expect(result.failures).toContain('1 endpoints criticos de API fallan.');
+    expect(result.likely_infra_outage.detected).toBe(false);
   });
 
   it('classifies critical orphan pages from the canonical route set', () => {
@@ -128,5 +130,32 @@ describe('site audit gate', () => {
     const result = evaluateSiteAuditReport(report);
     expect(result.ok).toBe(false);
     expect(result.failures).toContain('1 paginas huerfanas criticas.');
+  });
+
+  it('flags likely infrastructure outage when 5xx dominates broken links', () => {
+    const report = createReport({
+      broken_links: Array.from({ length: 40 }, (_, index) => ({
+        source: `https://datosbizi.com/page-${index}`,
+        href: '/dashboard',
+        target: 'https://datosbizi.com/dashboard',
+        finalUrl: 'https://datosbizi.com/dashboard',
+        status: 502,
+        redirects: [],
+        reason: 'HTTP 502',
+      })),
+      api_errors: [
+        {
+          endpoint: 'https://datosbizi.com/api/status',
+          status: 502,
+          reason: 'HTTP 502',
+        },
+      ],
+    });
+
+    const result = evaluateSiteAuditReport(report);
+    expect(result.likely_infra_outage.detected).toBe(true);
+    expect(result.warnings).toContain(
+      'Se detecta un posible outage de infraestructura (predominio de errores 5xx).'
+    );
   });
 });

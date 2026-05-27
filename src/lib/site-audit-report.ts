@@ -162,7 +162,50 @@ export type SiteAuditGateResult = {
   counts: ReturnType<typeof summarizeAuditReport>;
   critical_orphan_pages: OrphanPageEntry[];
   api_errors: ApiErrorEntry[];
+  likely_infra_outage: {
+    detected: boolean;
+    five_xx_broken_links: number;
+    total_broken_links: number;
+    five_xx_ratio: number;
+    notes: string[];
+  };
 };
+
+function isFiveXxStatus(status: number): boolean {
+  return status >= 500 && status <= 599;
+}
+
+function buildInfraOutageDiagnosis(report: AuditReport, apiErrors: ApiErrorEntry[]) {
+  const fiveXxBrokenLinks = report.broken_links.filter((entry) => isFiveXxStatus(entry.status)).length;
+  const totalBrokenLinks = report.broken_links.length;
+  const fiveXxRatio = totalBrokenLinks > 0 ? fiveXxBrokenLinks / totalBrokenLinks : 0;
+  const apiFiveXxCount = apiErrors.filter((entry) => isFiveXxStatus(entry.status)).length;
+
+  const detected =
+    (totalBrokenLinks >= 30 && fiveXxRatio >= 0.8) ||
+    (totalBrokenLinks >= 10 && fiveXxRatio >= 0.9 && apiFiveXxCount > 0);
+
+  const notes: string[] = [];
+  if (detected) {
+    notes.push(
+      `Predominio de 5xx en links rotos (${fiveXxBrokenLinks}/${totalBrokenLinks}, ${(fiveXxRatio * 100).toFixed(1)}%).`
+    );
+    if (apiFiveXxCount > 0) {
+      notes.push(`${apiFiveXxCount} endpoint(s) criticos de API también devuelven 5xx.`);
+    }
+    notes.push(
+      'Esto apunta primero a incidencia de origin/proxy/infra. Validar disponibilidad base antes de tratarlo como regresión funcional.'
+    );
+  }
+
+  return {
+    detected,
+    five_xx_broken_links: fiveXxBrokenLinks,
+    total_broken_links: totalBrokenLinks,
+    five_xx_ratio: Number(fiveXxRatio.toFixed(4)),
+    notes,
+  };
+}
 
 export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResult {
   const failures: string[] = [];
@@ -170,6 +213,7 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
   const criticalOrphanPages = findCriticalOrphanPages(report);
   const apiErrors = getApiErrors(report);
   const htmlShellIssues = getHtmlShellIssues(report);
+  const infraDiagnosis = buildInfraOutageDiagnosis(report, apiErrors);
 
   if (report.broken_links.length > 0) {
     failures.push(`${report.broken_links.length} enlaces internos rotos.`);
@@ -227,6 +271,10 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
     );
   }
 
+  if (infraDiagnosis.detected) {
+    warnings.push('Se detecta un posible outage de infraestructura (predominio de errores 5xx).');
+  }
+
   return {
     ok: failures.length === 0,
     failures,
@@ -234,5 +282,6 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
     counts: summarizeAuditReport(report),
     critical_orphan_pages: criticalOrphanPages,
     api_errors: apiErrors,
+    likely_infra_outage: infraDiagnosis,
   };
 }
