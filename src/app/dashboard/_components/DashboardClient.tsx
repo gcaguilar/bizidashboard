@@ -22,6 +22,7 @@ import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
 import { parseDashboardClientSearch } from '@/lib/dashboard-search';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { appRoutes } from '@/lib/routes';
+import { getLocationSearchParams } from '@/lib/router-search';
 import { DashboardLayout } from './DashboardLayout';
 import { DashboardHeader } from './DashboardHeader';
 import { ModeIntroBanner } from './ModeIntroBanner';
@@ -268,12 +269,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
   const location = useLocation();
   const pathname = location.pathname;
-  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
   const router = useRouter();
-  const searchParams = useMemo(
-    () => new URLSearchParams(searchStr),
-    [searchStr]
-  );
+  const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
   const parsedSearch = useMemo(
     () => parseDashboardClientSearch(searchParams),
     [searchParams]

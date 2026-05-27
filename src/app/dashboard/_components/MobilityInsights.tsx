@@ -46,6 +46,7 @@ import {
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import { getLocationSearchParams } from '@/lib/router-search';
 import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
 import {
   buildChordLinks,
@@ -80,11 +81,7 @@ function MobilityInsightsContent({
   demandDays = 30,
 }: MobilityInsightsProps) {
   const location = useLocation();
-  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
-  const searchParams = useMemo(
-    () => new URLSearchParams(searchStr),
-    [searchStr]
-  );
+  const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
   const parsedSearch = useMemo(
     () => parseDashboardMonthPeriodSearch(searchParams),
     [searchParams]

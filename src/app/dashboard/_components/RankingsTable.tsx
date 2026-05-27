@@ -14,6 +14,7 @@ import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
 import { calculateFrictionScore } from './useSystemMetrics';
+import { getLocationSearchParams } from '@/lib/router-search';
 import { parseDashboardRankingSearch } from '@/lib/dashboard-search';
 
 type RankingsTableProps = {
@@ -31,7 +32,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
   const router = useRouter();
   const location = useLocation();
   const pathname = location.pathname;
-  const searchParams = new URLSearchParams((location as { searchStr?: string }).searchStr ?? '');
+  const searchParams = getLocationSearchParams(location);
   const parsedSearch = parseDashboardRankingSearch(searchParams);
   const activeTab: RankingTab = parsedSearch.tab;
   const search = parsedSearch.search;
