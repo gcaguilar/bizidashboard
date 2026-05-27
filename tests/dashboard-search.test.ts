@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dashboardSearchSchema } from '@/lib/dashboard-search';
+import { dashboardSearchSchema, parseDashboardClientSearch } from '@/lib/dashboard-search';
 
 describe('dashboard search schema', () => {
   it('accepts valid dashboard URL params', () => {
@@ -36,5 +36,20 @@ describe('dashboard search schema', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('normalizes client search state with safe defaults', () => {
+    const parsed = parseDashboardClientSearch(
+      new URLSearchParams('mode=operations&timeWindow=7d&onlyWithBikes=true&q=  plaza  ')
+    );
+
+    expect(parsed).toEqual({
+      mode: 'operations',
+      stationId: null,
+      q: 'plaza',
+      timeWindow: '7d',
+      onlyWithBikes: true,
+      onlyWithAnchors: false,
+    });
   });
 });
