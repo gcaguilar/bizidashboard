@@ -147,7 +147,6 @@ function MobilityInsightsContent({
             selectedMonth,
           },
         });
-        console.error('[Dashboard] Error cargando movilidad', error);
         setErrorMessage('No se pudieron cargar los insights de movilidad.');
       } finally {
         if (isActive()) {

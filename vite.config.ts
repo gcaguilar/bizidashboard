@@ -80,7 +80,16 @@ export default defineConfig(async () => {
       },
     },
     build: {
-      sourcemap: true,
+      sourcemap: 'hidden',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-recharts': ['recharts'],
+            'vendor-tanstack': ['@tanstack/react-router'],
+          },
+        },
+      },
     },
     plugins: [
       devtools(),
