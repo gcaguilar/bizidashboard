@@ -37,9 +37,14 @@ export const Route = createFileRoute('/dashboard/flujo/')({
       title,
     }
   },
-  loaderDeps: ({ location }) => ({ searchStr: location.searchStr ?? '' }),
+  loaderDeps: ({ location }) => {
+    const params = new URLSearchParams(location?.searchStr ?? '');
+    return {
+      month: params.get('month') ?? undefined,
+    };
+  },
   loader: async ({ deps }) =>
-    getDashboardFlowPageData({ data: Object.fromEntries(new URLSearchParams(deps.searchStr)) }),
+    getDashboardFlowPageData({ data: { month: deps.month } }),
   component: DashboardFlowPage,
 });
 
