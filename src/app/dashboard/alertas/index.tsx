@@ -6,17 +6,10 @@ import { DashboardPageLoading } from '@/app/dashboard/_components/DashboardPageL
 import { PageShell } from '@/components/layout/page-shell';
 import { appRoutes } from '@/lib/routes';
 import { getAlertsHistoryPageData } from '@/server-functions/dashboard-alertas';
+import { dashboardAlertsSearchSchema } from '@/lib/dashboard-alerts-search';
 
 export const Route = createFileRoute('/dashboard/alertas/')({
-  validateSearch: z.object({
-    stationId: z.string().optional(),
-    alertType: z.enum(['all', 'LOW_BIKES', 'LOW_ANCHORS']).optional(),
-    state: z.enum(['all', 'active', 'resolved']).optional(),
-    severity: z.enum(['all', '1', '2']).optional(),
-    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    page: z.coerce.number().int().min(1).optional(),
-  }),
+  validateSearch: z.object(dashboardAlertsSearchSchema.shape),
   head: () => {
     const title = 'Historial de alertas - Dashboard Bizi'
     const description = 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones sin bicis, sin huecos o que necesitan revision.'
