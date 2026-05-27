@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState  } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation  } from '@tanstack/react-router';
 import {
@@ -33,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ChartWrapper } from './ChartWrapper';
+import { useAbortableAsyncEffect, fetchJson } from './useAbortableAsyncEffect';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   resolveMobilityDataState,
@@ -95,11 +96,8 @@ function MobilityInsightsContent({
   const selectedMonth = parsedSearch.month;
   const activePeriod = parsedSearch.period;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadData = async () => {
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
       try {
         setIsLoading(true);
         setErrorMessage(null);
@@ -113,20 +111,15 @@ function MobilityInsightsContent({
           params.set('month', selectedMonth);
         }
 
-        const [mobilityResponse, districtsPayload] = await Promise.all([
-          fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
-            signal: controller.signal,
-          }),
-          fetchDistrictCollection(controller.signal),
+        const [mobilityPayload, districtsPayload] = await Promise.all([
+          fetchJson<MobilityResponse>(
+            `${appRoutes.api.mobility()}?${params.toString()}`,
+            { signal, errorMessage: 'No se pudieron cargar los datos de movilidad.' }
+          ),
+          fetchDistrictCollection(signal),
         ]);
 
-        if (!mobilityResponse.ok || !districtsPayload) {
-          throw new Error('No se pudieron cargar los datos de movilidad.');
-        }
-
-        const mobilityPayload = (await mobilityResponse.json()) as unknown;
-
-        if (!isActive) {
+        if (!isActive()) {
           return;
         }
 
@@ -141,7 +134,7 @@ function MobilityInsightsContent({
         setMobilityData(mobilityPayload);
         setDistricts(districtsPayload);
       } catch (error) {
-        if ((error as Error).name === 'AbortError') {
+        if (!isActive()) {
           return;
         }
 
@@ -155,23 +148,15 @@ function MobilityInsightsContent({
           },
         });
         console.error('[Dashboard] Error cargando movilidad', error);
-        if (isActive) {
-          setErrorMessage('No se pudieron cargar los insights de movilidad.');
-        }
+        setErrorMessage('No se pudieron cargar los insights de movilidad.');
       } finally {
-        if (isActive) {
+        if (isActive()) {
           setIsLoading(false);
         }
       }
-    };
-
-    void loadData();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [demandDays, mobilityDays, selectedMonth]);
+    },
+    [demandDays, mobilityDays, selectedMonth]
+  );
 
   const stationDistrictMap = useMemo(() => {
     return buildStationDistrictLookup(stations, districts);

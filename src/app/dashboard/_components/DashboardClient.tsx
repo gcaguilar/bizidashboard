@@ -907,7 +907,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           demandDays: String(activeWindow.demandDays),
         });
 
-        const selectedMonth = searchParams.get('month');
+        const selectedMonth = parsedSearch.month;
 
         if (selectedMonth) {
           params.set('month', selectedMonth);
@@ -965,7 +965,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       isActive = false;
       controller.abort();
     };
-  }, [activeWindow.demandDays, activeWindow.mobilityDays, searchParams]);
+  }, [activeWindow.demandDays, activeWindow.mobilityDays, parsedSearch.month]);
 
   const selectedStationDetailUrl = selectedStation
     ? appRoutes.dashboardStation(selectedStation.id)

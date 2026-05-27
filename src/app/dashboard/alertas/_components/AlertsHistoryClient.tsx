@@ -117,6 +117,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
+  const searchQueryString = useMemo(() => searchParams.toString(), [searchParams]);
 
   const [stationId, setStationId] = useState('');
   const [alertType, setAlertType] = useState<AlertTypeFilter>('all');
@@ -181,7 +182,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   );
 
   useEffect(() => {
-    const serialized = searchParams.toString();
+    const serialized = searchQueryString;
     const urlChanged = lastSyncedUrlRef.current === null || serialized !== lastSyncedUrlRef.current;
     const stationsJustHydrated =
       prevStationsLengthRef.current === 0 && stations.length > 0 && !urlChanged;
@@ -211,7 +212,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
     prevStationsLengthRef.current = stations.length;
     setIsUrlReady(true);
-  }, [searchParams, stations]);
+  }, [searchQueryString, stations]);
 
   useEffect(() => {
     if (!isUrlReady) {
@@ -219,21 +220,21 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     }
 
     const currentViewQuery = buildDashboardAlertsViewQuery(
-      parseViewStateFromSearchParams(new URLSearchParams(searchParams.toString()), stations)
+      parseViewStateFromSearchParams(new URLSearchParams(searchQueryString), stations)
     );
 
     if (currentViewQuery === viewQueryString) {
       return;
     }
 
-    if (viewQueryString === searchParams.toString()) {
+    if (viewQueryString === searchQueryString) {
       return;
     }
     void navigate({
       search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as Record<string, unknown> : {},
       replace: true,
     });
-  }, [isUrlReady, navigate, searchParams, stations, viewQueryString]);
+  }, [isUrlReady, navigate, searchQueryString, stations, viewQueryString]);
 
   useAbortableAsyncEffect(
     async (signal, isActive) => {

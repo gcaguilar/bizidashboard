@@ -11,7 +11,7 @@ import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { getHomePageData } from '@/server-functions/home';
 
 export const HOME_CACHE_CONTROL =
-  'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
+  'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600';
 
 const HOME_FAQ = [
   {

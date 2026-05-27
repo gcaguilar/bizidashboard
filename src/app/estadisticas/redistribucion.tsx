@@ -11,7 +11,7 @@ import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 
 export const REDISTRIBUCION_CACHE_CONTROL =
-  'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
+  'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600';
 
 export const Route = createFileRoute('/estadisticas/redistribucion')({
   headers: () => ({
