@@ -17,7 +17,7 @@ import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model';
 
 export const Route = createFileRoute('/dashboard/flujo/')({
   validateSearch: z.object({
-    month: z.string().optional(),
+    month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
     period: z.enum(PERIODS.map((period) => period.key) as [string, ...string[]]).optional(),
   }),
   head: () => {
