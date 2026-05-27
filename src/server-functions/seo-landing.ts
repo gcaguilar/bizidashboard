@@ -1,9 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getSeoLandingPageData } from '@/lib/seo-landing.server';
+import { withCache } from '@/lib/cache/cache';
 import type { SeoPageSlug } from '@/lib/seo-pages';
 
 const SeoLandingInputSchema = z.object({ slug: z.string() });
+const REDISTRIBUCION_SEO_CACHE_TTL_SECONDS = 300;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
   .inputValidator(SeoLandingInputSchema)
@@ -11,7 +13,14 @@ export const fetchSeoLandingData = createServerFn({ method: 'GET' })
     if (!slug) {
       throw new Error('Missing slug in input');
     }
-    const data = await getSeoLandingPageData(slug);
+    const data =
+      slug === 'redistribucion'
+        ? await withCache(
+            'seo-landing:redistribucion:snapshot',
+            REDISTRIBUCION_SEO_CACHE_TTL_SECONDS,
+            () => getSeoLandingPageData(slug)
+          )
+        : await getSeoLandingPageData(slug);
     return {
       path: data.path,
       config: data.config,

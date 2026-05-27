@@ -953,7 +953,7 @@ async function buildMonthlyReportsContent(
   };
 }
 
-async function buildRedistribucionContent(
+export async function buildRedistribucionContent(
   config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
@@ -961,10 +961,12 @@ async function buildRedistribucionContent(
   let stationCount = 0;
   let pctTimeEmpty = 0;
   let pctTimeFull = 0;
+  let generatedAt = nowIso;
 
   try {
     const { buildRebalancingReport } = await import('@/lib/rebalancing-report');
     const report = await buildRebalancingReport({ days: 15 });
+    generatedAt = report.generatedAt;
     stationCount = report.summary.totalStations;
     pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
     pctTimeFull = report.kpis.service.systemPctTimeFull;
@@ -973,6 +975,7 @@ async function buildRedistribucionContent(
       stations: [],
       generatedAt: nowIso,
     }));
+    generatedAt = stationsResponse.generatedAt;
     if (stationsResponse.stations.length > 0) {
       stationCount = stationsResponse.stations.length;
       const occupancyValues = stationsResponse.stations
@@ -1013,7 +1016,7 @@ async function buildRedistribucionContent(
   ];
 
   return {
-    generatedAt: nowIso,
+    generatedAt,
     summary:
       'Metodologia y datos del sistema de redistribucion de Bizi Zaragoza: como se clasifican las estaciones, que reglas deciden cuando intervenir y como se calculan los movimientos sugeridos.',
     stats: [

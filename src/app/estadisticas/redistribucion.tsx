@@ -10,7 +10,13 @@ import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 
+export const REDISTRIBUCION_CACHE_CONTROL =
+  'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400';
+
 export const Route = createFileRoute('/estadisticas/redistribucion')({
+  headers: () => ({
+    'Cache-Control': REDISTRIBUCION_CACHE_CONTROL,
+  }),
   loader: () => fetchSeoLandingData({ data: { slug: 'redistribucion' } }),
   head: () => {
     const siteUrl = getSiteUrl();

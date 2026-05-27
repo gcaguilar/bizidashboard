@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
@@ -26,7 +26,7 @@ function MonthFilterContent({
   source = 'month_filter',
   preservedSearchKeys = [],
 }: MonthFilterProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = getLocationSearchParams(location);
   const parsedSearch = parseDashboardMonthPeriodSearch(searchParams);
@@ -70,7 +70,7 @@ function MonthFilterContent({
       return;
     }
 
-    void router.navigate({
+    void navigate({
       search: Object.fromEntries(nextParams) as Record<string, unknown>,
       replace: true,
     });

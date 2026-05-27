@@ -13,9 +13,7 @@ vi.mock('@tanstack/react-router', async () => {
   return {
     ...actual,
     useLocation: () => useLocationMock(),
-    useRouter: () => ({
-      navigate: navigateMock,
-    }),
+    useNavigate: () => navigateMock,
   };
 });
 

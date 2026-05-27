@@ -1,7 +1,7 @@
 'use client';
 
 import { Link, useLocation } from '@tanstack/react-router';
-import type { MouseEvent, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
 import {
   buildCtaClickEvent,
   buildEntitySelectEvent,
@@ -17,7 +17,7 @@ import {
   type UmamiTrackedEvent,
 } from '@/lib/umami';
 
-type TrackedLinkProps = {
+type TrackedLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'onClick'> & {
   children: ReactNode;
   href?: string;
   to?: string;
@@ -31,6 +31,20 @@ type TrackedLinkProps = {
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
+function splitInternalDestination(destination: string): {
+  to: string;
+  search: Record<string, string>;
+  hash?: string;
+} {
+  const url = new URL(destination, 'http://datosbizi.local');
+
+  return {
+    to: url.pathname,
+    search: Object.fromEntries(url.searchParams),
+    hash: url.hash ? url.hash.slice(1) : undefined,
+  };
+}
+
 export function TrackedLink({
   children,
   href,
@@ -43,6 +57,7 @@ export function TrackedLink({
   entitySelectEvent,
   onClick,
   className,
+  ...anchorProps
 }: TrackedLinkProps) {
   const destination = href ?? to;
   const pathname = useLocation().pathname;
@@ -95,29 +110,30 @@ export function TrackedLink({
   } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim();
   const shouldUseNativeNavigation =
     !destination ||
+    destination.startsWith('//') ||
+    !destination.startsWith('/') ||
     destination.startsWith('/api/') ||
     /\.(?:csv|json|txt|xml|pdf|zip)(?:[?#].*)?$/i.test(destination) ||
     /^[a-z][a-z0-9+.-]*:/i.test(destination);
 
   if (shouldUseNativeNavigation) {
     return (
-      <a href={destination} onClick={handleClick} className={linkClassName}>
+      <a href={destination} onClick={handleClick} className={linkClassName} {...anchorProps}>
         {children}
       </a>
     );
   }
 
-  const [toPath, searchString] = destination.split('?');
-  const toSearch = searchString
-    ? Object.fromEntries(new URLSearchParams(searchString))
-    : {};
+  const linkDestination = splitInternalDestination(destination);
 
   return (
     <Link
-      to={toPath}
-      search={toSearch}
+      to={linkDestination.to}
+      search={linkDestination.search}
+      hash={linkDestination.hash}
       onClick={handleClick}
       className={linkClassName}
+      {...anchorProps}
     >
       {children}
     </Link>

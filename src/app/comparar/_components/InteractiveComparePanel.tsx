@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter  } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
@@ -117,7 +117,7 @@ export function InteractiveComparePanel({
   data,
   initialQuery,
 }: InteractiveComparePanelProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [activeDimensionId, setActiveDimensionId] = useState(() =>
     resolveDimension(data, initialQuery?.dimensionId)?.id ??
     data.defaultDimensionId ??
@@ -221,8 +221,13 @@ export function InteractiveComparePanel({
     }
 
     lastSyncedHref.current = nextHref;
-    void router.navigate({
-      to: nextHref,
+    void navigate({
+      to: appRoutes.compare(),
+      search: {
+        dimension: dimension.id,
+        left: selection.leftId,
+        right: selection.rightId,
+      },
       replace: true,
     });
   }
