@@ -250,7 +250,8 @@ describe('TrackedLink', () => {
       },
     });
 
-    expect(link.props.to).toBe('/dashboard/flujo?period=night');
+    expect(link.props.to).toBe('/dashboard/flujo');
+    expect(link.props.search).toEqual({ period: 'night' });
     link.props.onClick({ type: 'click' });
 
     expect(trackUmamiEventMock).toHaveBeenCalled();

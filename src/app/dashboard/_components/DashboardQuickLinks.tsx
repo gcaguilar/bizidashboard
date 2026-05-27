@@ -5,9 +5,10 @@ import { buildPanelOpenEvent } from '@/lib/umami';
 
 type DashboardQuickLinksProps = {
   selectedStationDetailUrl: string;
+  currentMonth?: string | null;
 };
 
-export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuickLinksProps) {
+export function DashboardQuickLinks({ selectedStationDetailUrl, currentMonth }: DashboardQuickLinksProps) {
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <article className="ui-section-card">
@@ -37,7 +38,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink
-            href={appRoutes.dashboardFlow()}
+            href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}
             trackingEvent={buildPanelOpenEvent({
               surface: 'dashboard',
               routeKey: 'dashboard_home',
@@ -57,7 +58,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl }: DashboardQuick
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink
-            href={appRoutes.dashboardConclusions()}
+            href={appRoutes.dashboardConclusions({ month: currentMonth || undefined })}
             trackingEvent={buildPanelOpenEvent({
               surface: 'dashboard',
               routeKey: 'dashboard_home',

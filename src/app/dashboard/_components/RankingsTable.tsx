@@ -64,7 +64,13 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       return;
     }
 
-    void router.navigate({ to: nextQuery ? `${pathname}?${nextQuery}` : pathname, replace: true });
+    const navUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    const [navPath, navSearch] = navUrl.split('?');
+    void router.navigate({
+      to: navPath,
+      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+      replace: true,
+    });
   };
 
   const stationMap = useMemo(() => {

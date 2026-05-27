@@ -107,9 +107,15 @@ export function TrackedLink({
     );
   }
 
+  const [toPath, searchString] = destination.split('?');
+  const toSearch = searchString
+    ? Object.fromEntries(new URLSearchParams(searchString))
+    : {};
+
   return (
     <Link
-      to={destination}
+      to={toPath}
+      search={toSearch}
       onClick={handleClick}
       className={linkClassName}
     >

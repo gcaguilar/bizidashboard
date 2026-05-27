@@ -563,8 +563,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }
 
     const nextQuery = nextParams.toString();
-    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    void router.navigate({ to: nextUrl, replace: true });
+    const navUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    const [navPath, navSearch] = navUrl.split('?');
+    void router.navigate({
+      to: navPath,
+      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+      replace: true,
+    });
   }, [
     activeWindowId,
     mapViewState,
@@ -1112,6 +1117,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               mobilityPreview={mobilityPreview}
               activeWindowLabel={activeWindow.label}
               activeWindowDemandDays={activeWindow.demandDays}
+              currentMonth={parsedSearch.month}
             />
           ) : null}
         </TabsContent>
@@ -1166,6 +1172,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               windowLabel={activeWindow.label}
               requestedDays={activeWindow.demandDays}
               recentSnapshots={recentSnapshots}
+              currentMonth={parsedSearch.month}
             />
           ) : null}
         </TabsContent>
@@ -1184,7 +1191,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         </TabsContent>
       </Tabs>
 
-      <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} />
+      <DashboardQuickLinks selectedStationDetailUrl={selectedStationDetailUrl} currentMonth={parsedSearch.month} />
 
       <FooterYear />
     </DashboardLayout>

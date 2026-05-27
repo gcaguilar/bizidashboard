@@ -52,6 +52,7 @@ type OverviewModeViewProps = {
   };
   activeWindowLabel: string;
   activeWindowDemandDays: number;
+  currentMonth?: string | null;
 };
 
 export function OverviewModeView({
@@ -76,6 +77,7 @@ export function OverviewModeView({
   mobilityPreview,
   activeWindowLabel,
   activeWindowDemandDays: _activeWindowDemandDays,
+  currentMonth,
 }: OverviewModeViewProps) {
   const statusLabel =
     status.pipeline.healthStatus === 'healthy'
@@ -169,10 +171,10 @@ export function OverviewModeView({
             <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
           </div>
           <Button asChild variant="cta" size="sm">
-            <TrackedLink href={appRoutes.dashboardFlow()}>Vista completa</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}>Vista completa</TrackedLink>
           </Button>
         </div>
-        <FlowPreviewPanel stations={stations} hourlySignals={mobilityPreview.hourlySignals} />
+        <FlowPreviewPanel stations={stations} hourlySignals={mobilityPreview.hourlySignals} currentMonth={currentMonth} />
       </section>
     </>
   );
