@@ -35,6 +35,7 @@ import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
+import { getLocationSearchParams } from '@/lib/router-search';
 import {
   buildDashboardAlertsViewQuery,
   parseDashboardAlertsSearch,
@@ -116,11 +117,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const router = useRouter();
   const location = useLocation();
   const pathname = location.pathname;
-  const searchStr = (location as { searchStr?: string }).searchStr ?? '';
-  const searchParams = useMemo(
-    () => new URLSearchParams(searchStr),
-    [searchStr]
-  );
+  const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
 
   const [stationId, setStationId] = useState('');
   const [alertType, setAlertType] = useState<AlertTypeFilter>('all');
