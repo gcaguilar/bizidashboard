@@ -6,9 +6,9 @@ import type { RebalancingReport } from '@/types/rebalancing';
 
 export const Route = createFileRoute('/dashboard/redistribucion/')({
   validateSearch: z.object({
-    sort: z.string().optional(),
-    filter: z.string().optional(),
-    search: z.string().optional(),
+    sort: z.string().regex(/^[a-zA-Z0-9_]+:(asc|desc)$/).optional(),
+    filter: z.string().regex(/^[a-zA-Z0-9_]+:[^:]+$/).optional(),
+    search: z.string().trim().max(120).optional(),
     page: z.coerce.number().int().min(0).optional(),
     pageSize: z.coerce.number().int().min(1).max(200).optional(),
   }),

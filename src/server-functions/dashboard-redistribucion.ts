@@ -3,9 +3,9 @@ import { z } from 'zod';
 import type { RebalancingReport } from '@/types/rebalancing';
 
 const RebalancingSearchParamsSchema = z.object({
-  sort: z.string().optional(),
-  filter: z.string().optional(),
-  search: z.string().optional(),
+  sort: z.string().regex(/^[a-zA-Z0-9_]+:(asc|desc)$/).optional(),
+  filter: z.string().regex(/^[a-zA-Z0-9_]+:[^:]+$/).optional(),
+  search: z.string().trim().max(120).optional(),
   page: z.number().int().min(0).optional(),
   pageSize: z.number().int().min(1).max(200).optional(),
 }).default({});
@@ -36,8 +36,8 @@ export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
     const page = params?.page;
     const pageSize = params?.pageSize;
     const tableParams = {
-      sort: sort?.includes(':') ? sort : undefined,
-      filter: filter?.includes(':') ? filter : undefined,
+      sort,
+      filter,
       search,
       page,
       pageSize,
