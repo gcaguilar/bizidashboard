@@ -13,6 +13,7 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
   loader: ({ params }) => getPublicDistrictPageData({ data: params.districtSlug }),
   head: ({ params }) => {
     const slug = params.districtSlug ?? ''
+    const districtPath = appRoutes.districtDetail(slug)
     const title = `Barrio ${slug} - DatosBizi`
     const description = `Estaciones, disponibilidad y patrones de uso de Bizi en el barrio ${slug} de Zaragoza.`
     return {
@@ -24,13 +25,13 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${getSiteUrl()}/estadisticas/barrios/${slug}` },
+        { property: 'og:url', content: `${getSiteUrl()}${districtPath}` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      links: [{ rel: 'canonical', href: `${getSiteUrl()}/estadisticas/barrios/${slug}` }],
+      links: [{ rel: 'canonical', href: `${getSiteUrl()}${districtPath}` }],
       title,
     }
   },

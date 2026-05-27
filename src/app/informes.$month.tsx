@@ -17,6 +17,7 @@ export const Route = createFileRoute('/informes/$month')({
   loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
   head: (opts) => {
     const month = opts.params.month ?? ''
+    const monthPath = appRoutes.reportMonth(month)
     const title = `Informe ${formatMonthLabel(month)} - DatosBizi`
     const description = `Informe mensual de Bizi Zaragoza para ${formatMonthLabel(month)}: demanda estimada, estaciones y patrones de uso.`
     return {
@@ -28,13 +29,13 @@ export const Route = createFileRoute('/informes/$month')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${getSiteUrl()}/informes/${month}` },
+        { property: 'og:url', content: `${getSiteUrl()}${monthPath}` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      links: [{ rel: 'canonical', href: `${getSiteUrl()}/informes/${month}` }],
+      links: [{ rel: 'canonical', href: `${getSiteUrl()}${monthPath}` }],
       title,
     }
   },

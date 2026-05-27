@@ -4,6 +4,7 @@ import type {
   ApiErrorEntry,
   AuditReport,
   BrokenLinkEntry,
+  HtmlShellIssueEntry,
   InconsistentDataEntry,
   NoDataPageEntry,
   OrphanPageEntry,
@@ -286,6 +287,10 @@ function extractLinks(html: string, pageUrl: string, baseOrigin: string): Intern
   }
 
   return links;
+}
+
+function hasValidDoctype(html: string): boolean {
+  return /^\s*<!doctype\s+html>/iu.test(html);
 }
 
 function extractSitemapUrls(xml: string, baseOrigin: string): string[] {
@@ -980,6 +985,23 @@ async function main() {
 
   const sitemapBrokenEntries: SitemapMismatchEntry[] = [];
   const sitemapRedirectedEntries: SitemapMismatchEntry[] = [];
+  const htmlShellIssues: HtmlShellIssueEntry[] = [];
+
+  for (const page of crawledPages.values()) {
+    const check = settledChecks.get(page.url);
+    if (!check || check.status !== 200 || !isHtmlContentType(check.contentType) || !check.body) {
+      continue;
+    }
+
+    if (!hasValidDoctype(check.body)) {
+      htmlShellIssues.push({
+        url: page.url,
+        reason: 'La respuesta HTML no comienza con <!doctype html>.',
+        starts_with: check.body.slice(0, 120).replace(/\s+/gu, ' ').trim(),
+      });
+    }
+  }
+
   for (const sitemapEntry of sitemapUrls) {
     const check = settledChecks.get(sitemapEntry);
     if (!check) {
@@ -1037,6 +1059,7 @@ async function main() {
     pages_with_no_data: buildSummary(pagesWithNoData),
     api_vs_frontend_diff: buildSummary(apiVsFrontendDiff),
     api_errors: buildSummary(apiErrors),
+    html_shell_issues: buildSummary(htmlShellIssues),
   };
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -1059,6 +1082,7 @@ async function main() {
           pages_with_no_data: report.pages_with_no_data.length,
           api_vs_frontend_diff: report.api_vs_frontend_diff.length,
           api_errors: report.api_errors?.length ?? 0,
+          html_shell_issues: report.html_shell_issues?.length ?? 0,
         },
       },
       null,

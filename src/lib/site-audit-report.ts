@@ -65,6 +65,12 @@ export type ApiErrorEntry = {
   reason: string;
 };
 
+export type HtmlShellIssueEntry = {
+  url: string;
+  reason: string;
+  starts_with: string;
+};
+
 export type AuditReport = {
   generated_at: string;
   base_url: string;
@@ -86,6 +92,7 @@ export type AuditReport = {
   pages_with_no_data: NoDataPageEntry[];
   api_vs_frontend_diff: ApiVsFrontendDiffEntry[];
   api_errors?: ApiErrorEntry[];
+  html_shell_issues?: HtmlShellIssueEntry[];
 };
 
 export const CRITICAL_ORPHAN_ROUTE_PATHS = [
@@ -116,6 +123,10 @@ export function getApiErrors(report: AuditReport): ApiErrorEntry[] {
   return report.api_errors ?? [];
 }
 
+export function getHtmlShellIssues(report: AuditReport): HtmlShellIssueEntry[] {
+  return report.html_shell_issues ?? [];
+}
+
 export function findCriticalOrphanPages(report: AuditReport): OrphanPageEntry[] {
   const criticalRoutes = new Set<string>(CRITICAL_ORPHAN_ROUTE_PATHS);
 
@@ -125,6 +136,7 @@ export function findCriticalOrphanPages(report: AuditReport): OrphanPageEntry[] 
 export function summarizeAuditReport(report: AuditReport) {
   const criticalOrphanPages = findCriticalOrphanPages(report);
   const apiErrors = getApiErrors(report);
+  const htmlShellIssues = getHtmlShellIssues(report);
 
   return {
     broken_links: report.broken_links.length,
@@ -139,6 +151,7 @@ export function summarizeAuditReport(report: AuditReport) {
     pages_with_no_data: report.pages_with_no_data.length,
     api_vs_frontend_diff: report.api_vs_frontend_diff.length,
     api_errors: apiErrors.length,
+    html_shell_issues: htmlShellIssues.length,
   };
 }
 
@@ -156,6 +169,7 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
   const warnings: string[] = [];
   const criticalOrphanPages = findCriticalOrphanPages(report);
   const apiErrors = getApiErrors(report);
+  const htmlShellIssues = getHtmlShellIssues(report);
 
   if (report.broken_links.length > 0) {
     failures.push(`${report.broken_links.length} enlaces internos rotos.`);
@@ -189,6 +203,10 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
 
   if (apiErrors.length > 0) {
     failures.push(`${apiErrors.length} endpoints criticos de API fallan.`);
+  }
+
+  if (htmlShellIssues.length > 0) {
+    failures.push(`${htmlShellIssues.length} paginas HTML responden sin doctype valido.`);
   }
 
   if (report.redirects.length > 0) {
