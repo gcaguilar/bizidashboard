@@ -59,7 +59,6 @@ const TRACKING_QUERY_PARAMS = new Set([
 ]);
 
 const DUPLICATE_CANONICAL_PATHS: Record<string, string> = {
-  [appRoutes.beta()]: appRoutes.biciradar(),
   [appRoutes.seoPage('informes-mensuales-bizi-zaragoza')]: appRoutes.reports(),
 };
 
