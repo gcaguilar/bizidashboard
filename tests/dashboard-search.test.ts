@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { dashboardSearchSchema, parseDashboardClientSearch } from '@/lib/dashboard-search';
+import {
+  dashboardSearchSchema,
+  parseDashboardClientSearch,
+  parseDashboardRankingSearch,
+} from '@/lib/dashboard-search';
 
 describe('dashboard search schema', () => {
   it('accepts valid dashboard URL params', () => {
@@ -50,6 +54,18 @@ describe('dashboard search schema', () => {
       timeWindow: '7d',
       onlyWithBikes: true,
       onlyWithAnchors: false,
+    });
+  });
+
+  it('normalizes ranking search state with safe defaults', () => {
+    const parsed = parseDashboardRankingSearch(
+      new URLSearchParams('rankingTab=turnover&rankingSearch= 101 &rankingShowAll=1')
+    );
+
+    expect(parsed).toEqual({
+      tab: 'turnover',
+      search: '101',
+      showAll: true,
     });
   });
 });
