@@ -30,6 +30,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   pendingComponent: StationDetailSkeleton,
   head: ({ params }) => {
     const id = params.stationId ?? ''
+    const stationPath = appRoutes.stationDetail(id)
     const title = `Estación ${id} - DatosBizi`
     const description = `Disponibilidad, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
     return {
@@ -41,13 +42,13 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${getSiteUrl()}/estadisticas/estaciones/${id}` },
+        { property: 'og:url', content: `${getSiteUrl()}${stationPath}` },
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
-      links: [{ rel: 'canonical', href: `${getSiteUrl()}/estadisticas/estaciones/${id}` }],
+      links: [{ rel: 'canonical', href: `${getSiteUrl()}${stationPath}` }],
       title,
     }
   },
