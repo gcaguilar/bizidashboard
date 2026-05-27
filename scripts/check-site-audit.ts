@@ -43,6 +43,7 @@ async function main() {
         warnings: evaluation.warnings,
         critical_orphan_pages: evaluation.critical_orphan_pages,
         api_errors: evaluation.api_errors,
+        likely_infra_outage: evaluation.likely_infra_outage,
       },
       null,
       2
