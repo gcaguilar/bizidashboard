@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState  } from 'react';
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
   AlertsResponse,
@@ -267,9 +267,8 @@ function formatCountdown(valueMs: number): string {
 
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
+  const navigate = useNavigate();
   const location = useLocation();
-  const pathname = location.pathname;
-  const router = useRouter();
   const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
   const parsedSearch = useMemo(
     () => parseDashboardClientSearch(searchParams),
@@ -562,21 +561,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       return;
     }
 
-    const nextQuery = nextParams.toString();
-    const navUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    const [navPath, navSearch] = navUrl.split('?');
-    void router.navigate({
-      to: navPath,
-      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+    void navigate({
+      search: Object.fromEntries(nextParams) as Record<string, unknown>,
       replace: true,
     });
   }, [
     activeWindowId,
     mapViewState,
+    navigate,
     onlyWithAnchors,
     onlyWithBikes,
-    pathname,
-    router,
     searchParams,
     searchQuery,
     selectedStationId,

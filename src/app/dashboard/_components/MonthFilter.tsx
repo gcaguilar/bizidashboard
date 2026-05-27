@@ -28,7 +28,6 @@ function MonthFilterContent({
 }: MonthFilterProps) {
   const router = useRouter();
   const location = useLocation();
-  const pathname = location.pathname;
   const searchParams = getLocationSearchParams(location);
   const parsedSearch = parseDashboardMonthPeriodSearch(searchParams);
   const activeMonthFromUrl = parsedSearch.month;
@@ -71,11 +70,8 @@ function MonthFilterContent({
       return;
     }
 
-    const navUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    const [navPath, navSearch] = navUrl.split('?');
     void router.navigate({
-      to: navPath,
-      search: navSearch ? Object.fromEntries(new URLSearchParams(navSearch)) : {},
+      search: Object.fromEntries(nextParams) as Record<string, unknown>,
       replace: true,
     });
   };

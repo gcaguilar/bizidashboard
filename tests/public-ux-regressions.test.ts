@@ -251,8 +251,9 @@ describe('public UX regressions', () => {
 
   it('alerts history avoids redundant URL replace navigation', () => {
     const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
-    expect(alerts).toContain('const currentUrl = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;');
-    expect(alerts).toContain('if (navUrl === currentUrl) {');
+    expect(alerts).toContain('if (viewQueryString === searchParams.toString()) {');
+    expect(alerts).toContain('return;');
+    expect(alerts).not.toContain('navUrl === currentUrl');
   });
 
   it('home FAQ uses current navigation language', () => {

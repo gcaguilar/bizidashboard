@@ -50,7 +50,6 @@ describe('MonthFilter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'abril de 2026' }));
 
     expect(navigateMock).toHaveBeenCalledWith({
-      to: '/dashboard/flujo',
       search: { period: 'night', month: '2026-04' },
       replace: true,
     });
@@ -76,7 +75,6 @@ describe('MonthFilter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Acumulado' }));
 
     expect(navigateMock).toHaveBeenCalledWith({
-      to: '/dashboard/flujo',
       search: { period: 'night' },
       replace: true,
     });
@@ -101,7 +99,6 @@ describe('MonthFilter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'abril de 2026' }));
 
     expect(navigateMock).toHaveBeenCalledWith({
-      to: '/dashboard/conclusiones',
       search: { month: '2026-04' },
       replace: true,
     });
@@ -127,7 +124,6 @@ describe('MonthFilter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'abril de 2026' }));
 
     expect(navigateMock).toHaveBeenCalledWith({
-      to: '/dashboard/flujo',
       search: { period: '0', month: '2026-04' },
       replace: true,
     });

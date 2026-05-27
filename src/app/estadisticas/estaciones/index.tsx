@@ -5,7 +5,7 @@ import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/Stat
 import { getSiteUrl } from '@/lib/site';
 import { getStationsDirectoryData } from '@/server-functions/estaciones';
 
-export const Route = createFileRoute('/estadisticas/estaciones')({
+export const Route = createFileRoute('/estadisticas/estaciones/')({
   loader: () => getStationsDirectoryData(),
   pendingComponent: StationsSkeleton,
   head: () => {
