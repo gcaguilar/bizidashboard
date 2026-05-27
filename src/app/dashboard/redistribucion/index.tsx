@@ -32,16 +32,13 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
       title,
     }
   },
-  loaderDeps: ({ location }) => {
-    const params = new URLSearchParams(location?.searchStr ?? '');
-    return {
-      sort: params.get('sort') ?? undefined,
-      filter: params.get('filter') ?? undefined,
-      search: params.get('search') ?? undefined,
-      page: params.get('page') ?? undefined,
-      pageSize: params.get('pageSize') ?? undefined,
-    };
-  },
+  loaderDeps: ({ search }) => ({
+    sort: search.sort,
+    filter: search.filter,
+    search: search.search,
+    page: search.page,
+    pageSize: search.pageSize,
+  }),
   loader: async ({ deps }) =>
     getDashboardRebalancingPageData({
       data: {

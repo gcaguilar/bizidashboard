@@ -14,18 +14,6 @@ import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
 import { getSiteUrl } from '@/lib/site';
 
-
-
-function getFirstSearchParam(
-  value: string | string[] | undefined
-): string | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
-  return value ?? null;
-}
-
 function CompareHubContent({
   initialQuery,
   data,
@@ -201,9 +189,9 @@ export default function ComparePage() {
   const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
   const search = Route.useSearch();
   const initialQuery = {
-    dimensionId: getFirstSearchParam(search.dimension),
-    leftId: getFirstSearchParam(search.left),
-    rightId: getFirstSearchParam(search.right),
+    dimensionId: search.dimension ?? null,
+    leftId: search.left ?? null,
+    rightId: search.right ?? null,
   };
 
   return (
