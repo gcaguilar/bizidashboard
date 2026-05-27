@@ -1,9 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
+import { z } from 'zod';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
 import type { RebalancingReport } from '@/types/rebalancing';
 
 export const Route = createFileRoute('/dashboard/redistribucion/')({
+  validateSearch: z.object({
+    sort: z.string().optional(),
+    filter: z.string().optional(),
+    search: z.string().optional(),
+    page: z.string().optional(),
+    pageSize: z.string().optional(),
+  }),
   head: () => {
     const title = 'Redistribución | Dashboard Bizi'
     const description = 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.'
