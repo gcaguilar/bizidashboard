@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
+import { z } from 'zod';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { formatDateLabel, formatInteger, formatPercent } from '@/lib/format';
 import { toMonthOptions } from '@/lib/months';
@@ -83,6 +84,9 @@ function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
 }
 
 export const Route = createFileRoute('/dashboard/conclusiones/')({
+  validateSearch: z.object({
+    month: z.string().optional(),
+  }),
   head: () => {
     const title = 'Conclusiones de movilidad'
     const description = 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.'
