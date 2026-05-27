@@ -17,8 +17,9 @@ import {
   type DistrictCollection,
 } from '@/lib/districts';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
-import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
+import { type DashboardViewMode } from '@/lib/dashboard-modes';
 import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
+import { parseDashboardClientSearch } from '@/lib/dashboard-search';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { appRoutes } from '@/lib/routes';
 import { DashboardLayout } from './DashboardLayout';
@@ -137,20 +138,6 @@ function normalizeText(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
-}
-
-function resolveTimeWindowId(value: string | null): string {
-  if (!value) {
-    return TIME_WINDOWS[2]?.id ?? '30d';
-  }
-
-  return TIME_WINDOWS.some((window) => window.id === value)
-    ? value
-    : (TIME_WINDOWS[2]?.id ?? '30d');
-}
-
-function parseBooleanFilter(value: string | null): boolean {
-  return value === '1' || value === 'true';
 }
 
 function resolveStationId(stations: StationsResponse['stations'], value: string | null): string {
@@ -290,6 +277,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     () => new URLSearchParams(searchStr),
     [searchStr]
   );
+  const parsedSearch = useMemo(
+    () => parseDashboardClientSearch(searchParams),
+    [searchParams]
+  );
 
   const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
   const [statusData, setStatusData] = useState<StatusResponse>(initialData.status);
@@ -297,18 +288,18 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [rankingsData, setRankingsData] = useState(initialData.rankings);
 
   const [selectedStationId, setSelectedStationId] = useState(() =>
-    resolveStationId(initialData.stations.stations, searchParams.get('stationId'))
+    resolveStationId(initialData.stations.stations, parsedSearch.stationId)
   );
   const [viewMode, setViewMode] = useState<DashboardViewMode>(() =>
-    resolveDashboardViewMode(searchParams.get('mode'))
+    parsedSearch.mode
   );
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') ?? '');
+  const [searchQuery, setSearchQuery] = useState(parsedSearch.q);
   const [activeWindowId, setActiveWindowId] = useState(() =>
-    resolveTimeWindowId(searchParams.get('timeWindow'))
+    parsedSearch.timeWindow
   );
   const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
-  const [onlyWithBikes, setOnlyWithBikes] = useState(() => parseBooleanFilter(searchParams.get('onlyWithBikes')));
-  const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parseBooleanFilter(searchParams.get('onlyWithAnchors')));
+  const [onlyWithBikes, setOnlyWithBikes] = useState(() => parsedSearch.onlyWithBikes);
+  const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parsedSearch.onlyWithAnchors);
   const [mapViewState, setMapViewState] = useState<DashboardMapViewState>(() =>
     resolveDashboardMapViewState(searchParams)
   );
@@ -532,12 +523,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [filteredStations, selectedStationId]);
 
   useEffect(() => {
-    const stationIdFromUrl = resolveStationId(stationsData.stations, searchParams.get('stationId'));
-    const windowIdFromUrl = resolveTimeWindowId(searchParams.get('timeWindow'));
-    const modeFromUrl = resolveDashboardViewMode(searchParams.get('mode'));
-    const queryFromUrl = searchParams.get('q') ?? '';
-    const onlyWithBikesFromUrl = parseBooleanFilter(searchParams.get('onlyWithBikes'));
-    const onlyWithAnchorsFromUrl = parseBooleanFilter(searchParams.get('onlyWithAnchors'));
+    const stationIdFromUrl = resolveStationId(stationsData.stations, parsedSearch.stationId);
+    const windowIdFromUrl = parsedSearch.timeWindow;
+    const modeFromUrl = parsedSearch.mode;
+    const queryFromUrl = parsedSearch.q;
+    const onlyWithBikesFromUrl = parsedSearch.onlyWithBikes;
+    const onlyWithAnchorsFromUrl = parsedSearch.onlyWithAnchors;
     const mapViewFromUrl = resolveDashboardMapViewState(searchParams);
 
     setSelectedStationId((current) =>
@@ -558,7 +549,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         ? current
         : mapViewFromUrl
     );
-  }, [searchParams, stationsData.stations]);
+  }, [parsedSearch, searchParams, stationsData.stations]);
 
   useEffect(() => {
     const nextParams = buildDashboardUrlSearchParams(searchParams, {
