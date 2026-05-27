@@ -34,7 +34,6 @@ import { Route as EstacionesConMasBicisRouteImport } from './app/estaciones-con-
 import { Route as DevelopersRouteImport } from './app/developers'
 import { Route as CompararRouteImport } from './app/comparar'
 import { Route as BiciradarRouteImport } from './app/biciradar'
-import { Route as BetaRouteImport } from './app/beta'
 import { Route as BarriosBiziZaragozaRouteImport } from './app/barrios-bizi-zaragoza'
 import { Route as AboutRouteImport } from './app/about'
 import { Route as SplatRouteImport } from './app/$'
@@ -221,11 +220,6 @@ const CompararRoute = CompararRouteImport.update({
 const BiciradarRoute = BiciradarRouteImport.update({
   id: '/biciradar',
   path: '/biciradar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BetaRoute = BetaRouteImport.update({
-  id: '/beta',
-  path: '/beta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BarriosBiziZaragozaRoute = BarriosBiziZaragozaRouteImport.update({
@@ -540,7 +534,6 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
-  '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
   '/developers': typeof DevelopersRoute
@@ -624,7 +617,6 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
-  '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
   '/developers': typeof DevelopersRoute
@@ -709,7 +701,6 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
-  '/beta': typeof BetaRoute
   '/biciradar': typeof BiciradarRoute
   '/comparar': typeof CompararRoute
   '/developers': typeof DevelopersRoute
@@ -797,7 +788,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
-    | '/beta'
     | '/biciradar'
     | '/comparar'
     | '/developers'
@@ -881,7 +871,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
-    | '/beta'
     | '/biciradar'
     | '/comparar'
     | '/developers'
@@ -965,7 +954,6 @@ export interface FileRouteTypes {
     | '/$'
     | '/about'
     | '/barrios-bizi-zaragoza'
-    | '/beta'
     | '/biciradar'
     | '/comparar'
     | '/developers'
@@ -1052,7 +1040,6 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AboutRoute: typeof AboutRoute
   BarriosBiziZaragozaRoute: typeof BarriosBiziZaragozaRoute
-  BetaRoute: typeof BetaRoute
   BiciradarRoute: typeof BiciradarRoute
   CompararRoute: typeof CompararRoute
   DevelopersRoute: typeof DevelopersRoute
@@ -1282,13 +1269,6 @@ declare module '@tanstack/react-router' {
       path: '/biciradar'
       fullPath: '/biciradar'
       preLoaderRoute: typeof BiciradarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/beta': {
-      id: '/beta'
-      path: '/beta'
-      fullPath: '/beta'
-      preLoaderRoute: typeof BetaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/barrios-bizi-zaragoza': {
@@ -1811,7 +1791,6 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AboutRoute: AboutRoute,
   BarriosBiziZaragozaRoute: BarriosBiziZaragozaRoute,
-  BetaRoute: BetaRoute,
   BiciradarRoute: BiciradarRoute,
   CompararRoute: CompararRoute,
   DevelopersRoute: DevelopersRoute,

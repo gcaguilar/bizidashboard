@@ -83,10 +83,16 @@ export default defineConfig(async () => {
       sourcemap: 'hidden',
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-recharts': ['recharts'],
-            'vendor-tanstack': ['@tanstack/react-router'],
+          manualChunks(id) {
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+              return 'vendor-react';
+            }
+            if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
+              return 'vendor-recharts';
+            }
+            if (id.includes('node_modules/@tanstack/react-router')) {
+              return 'vendor-tanstack';
+            }
           },
         },
       },
