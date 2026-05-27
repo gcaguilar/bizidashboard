@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DASHBOARD_VIEW_MODES, resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
 import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model';
+import { DEFAULT_DASHBOARD_MAP_VIEW, type DashboardMapViewState } from '@/lib/map-view-state';
 
 export const DASHBOARD_TIME_WINDOWS = ['24h', '7d', '30d', '365d'] as const;
 export const DASHBOARD_RANKING_TABS = ['turnover', 'availability'] as const;
@@ -32,6 +33,7 @@ export type DashboardClientSearchState = {
   timeWindow: (typeof DASHBOARD_TIME_WINDOWS)[number];
   onlyWithBikes: boolean;
   onlyWithAnchors: boolean;
+  mapViewState: DashboardMapViewState;
 };
 
 export type DashboardRankingSearchState = {
@@ -43,56 +45,41 @@ export type DashboardRankingSearchState = {
 export function parseDashboardClientSearch(
   params: URLSearchParams | { get: (name: string) => string | null }
 ): DashboardClientSearchState {
-  const parsed = dashboardSearchSchema.safeParse({
-    mode: params.get('mode') ?? undefined,
-    stationId: params.get('stationId') ?? undefined,
-    q: params.get('q') ?? undefined,
-    timeWindow: params.get('timeWindow') ?? undefined,
-    onlyWithBikes: params.get('onlyWithBikes') ?? undefined,
-    onlyWithAnchors: params.get('onlyWithAnchors') ?? undefined,
-  });
-
-  if (!parsed.success) {
-    return {
-      mode: 'overview',
-      stationId: null,
-      q: '',
-      timeWindow: '30d',
-      onlyWithBikes: false,
-      onlyWithAnchors: false,
-    };
-  }
+  const mode = dashboardSearchSchema.shape.mode.safeParse(params.get('mode') ?? undefined);
+  const stationId = dashboardSearchSchema.shape.stationId.safeParse(params.get('stationId') ?? undefined);
+  const q = dashboardSearchSchema.shape.q.safeParse(params.get('q') ?? undefined);
+  const timeWindow = dashboardSearchSchema.shape.timeWindow.safeParse(params.get('timeWindow') ?? undefined);
+  const onlyWithBikes = dashboardSearchSchema.shape.onlyWithBikes.safeParse(params.get('onlyWithBikes') ?? undefined);
+  const onlyWithAnchors = dashboardSearchSchema.shape.onlyWithAnchors.safeParse(params.get('onlyWithAnchors') ?? undefined);
+  const mapLat = dashboardSearchSchema.shape.mapLat.safeParse(params.get('mapLat') ?? undefined);
+  const mapLng = dashboardSearchSchema.shape.mapLng.safeParse(params.get('mapLng') ?? undefined);
+  const mapZoom = dashboardSearchSchema.shape.mapZoom.safeParse(params.get('mapZoom') ?? undefined);
 
   return {
-    mode: resolveDashboardViewMode(parsed.data.mode),
-    stationId: parsed.data.stationId ?? null,
-    q: parsed.data.q ?? '',
-    timeWindow: parsed.data.timeWindow ?? '30d',
-    onlyWithBikes: Boolean(parsed.data.onlyWithBikes),
-    onlyWithAnchors: Boolean(parsed.data.onlyWithAnchors),
+    mode: resolveDashboardViewMode(mode.success ? mode.data : undefined),
+    stationId: stationId.success ? stationId.data ?? null : null,
+    q: q.success ? q.data ?? '' : '',
+    timeWindow: timeWindow.success ? timeWindow.data ?? '30d' : '30d',
+    onlyWithBikes: onlyWithBikes.success ? Boolean(onlyWithBikes.data) : false,
+    onlyWithAnchors: onlyWithAnchors.success ? Boolean(onlyWithAnchors.data) : false,
+    mapViewState: {
+      latitude: mapLat.success ? mapLat.data ?? DEFAULT_DASHBOARD_MAP_VIEW.latitude : DEFAULT_DASHBOARD_MAP_VIEW.latitude,
+      longitude: mapLng.success ? mapLng.data ?? DEFAULT_DASHBOARD_MAP_VIEW.longitude : DEFAULT_DASHBOARD_MAP_VIEW.longitude,
+      zoom: mapZoom.success ? mapZoom.data ?? DEFAULT_DASHBOARD_MAP_VIEW.zoom : DEFAULT_DASHBOARD_MAP_VIEW.zoom,
+    },
   };
 }
 
 export function parseDashboardRankingSearch(
   params: URLSearchParams | { get: (name: string) => string | null }
 ): DashboardRankingSearchState {
-  const parsed = dashboardSearchSchema.safeParse({
-    rankingTab: params.get('rankingTab') ?? undefined,
-    rankingSearch: params.get('rankingSearch') ?? undefined,
-    rankingShowAll: params.get('rankingShowAll') ?? undefined,
-  });
-
-  if (!parsed.success) {
-    return {
-      tab: 'availability',
-      search: '',
-      showAll: false,
-    };
-  }
+  const rankingTab = dashboardSearchSchema.shape.rankingTab.safeParse(params.get('rankingTab') ?? undefined);
+  const rankingSearch = dashboardSearchSchema.shape.rankingSearch.safeParse(params.get('rankingSearch') ?? undefined);
+  const rankingShowAll = dashboardSearchSchema.shape.rankingShowAll.safeParse(params.get('rankingShowAll') ?? undefined);
 
   return {
-    tab: parsed.data.rankingTab ?? 'availability',
-    search: parsed.data.rankingSearch ?? '',
-    showAll: parsed.data.rankingShowAll === '1',
+    tab: rankingTab.success ? rankingTab.data ?? 'availability' : 'availability',
+    search: rankingSearch.success ? rankingSearch.data ?? '' : '',
+    showAll: rankingShowAll.success ? rankingShowAll.data === '1' : false,
   };
 }

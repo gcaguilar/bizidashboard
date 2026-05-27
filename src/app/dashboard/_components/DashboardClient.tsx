@@ -29,10 +29,7 @@ import { DashboardQuickLinks } from './DashboardQuickLinks';
 import { ModeHeader } from './ModeHeader';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useSystemMetrics } from './useSystemMetrics';
-import {
-  resolveDashboardMapViewState,
-  type DashboardMapViewState,
-} from '@/lib/map-view-state';
+import { type DashboardMapViewState } from '@/lib/map-view-state';
 import {
   buildDashboardModeChangeEvent,
   buildEntitySelectEvent,
@@ -301,7 +298,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [onlyWithBikes, setOnlyWithBikes] = useState(() => parsedSearch.onlyWithBikes);
   const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parsedSearch.onlyWithAnchors);
   const [mapViewState, setMapViewState] = useState<DashboardMapViewState>(() =>
-    resolveDashboardMapViewState(searchParams)
+    parsedSearch.mapViewState
   );
   const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
   const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
@@ -529,7 +526,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const queryFromUrl = parsedSearch.q;
     const onlyWithBikesFromUrl = parsedSearch.onlyWithBikes;
     const onlyWithAnchorsFromUrl = parsedSearch.onlyWithAnchors;
-    const mapViewFromUrl = resolveDashboardMapViewState(searchParams);
+    const mapViewFromUrl = parsedSearch.mapViewState;
 
     setSelectedStationId((current) =>
       current === stationIdFromUrl ? current : stationIdFromUrl
@@ -549,7 +546,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         ? current
         : mapViewFromUrl
     );
-  }, [parsedSearch, searchParams, stationsData.stations]);
+  }, [parsedSearch, stationsData.stations]);
 
   useEffect(() => {
     const nextParams = buildDashboardUrlSearchParams(searchParams, {

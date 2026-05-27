@@ -54,6 +54,25 @@ describe('dashboard search schema', () => {
       timeWindow: '7d',
       onlyWithBikes: true,
       onlyWithAnchors: false,
+      mapViewState: {
+        latitude: 41.65,
+        longitude: -0.88,
+        zoom: 12,
+      },
+    });
+  });
+
+  it('keeps independent client params when map values are invalid', () => {
+    const parsed = parseDashboardClientSearch(
+      new URLSearchParams('mode=operations&timeWindow=7d&mapLat=999&mapLng=abc&mapZoom=-1')
+    );
+
+    expect(parsed.mode).toBe('operations');
+    expect(parsed.timeWindow).toBe('7d');
+    expect(parsed.mapViewState).toEqual({
+      latitude: 41.65,
+      longitude: -0.88,
+      zoom: 12,
     });
   });
 
