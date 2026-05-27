@@ -35,16 +35,20 @@ import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
+import {
+  buildDashboardAlertsViewQuery,
+  parseDashboardAlertsSearch,
+  type DashboardAlertsViewState,
+} from '@/lib/dashboard-alerts-search';
 
 // Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
 const PAGE_SIZE = 100;
-const DATE_INPUT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ALL_STATIONS_VALUE = '__all_stations__';
 
-type AlertTypeFilter = 'all' | 'LOW_BIKES' | 'LOW_ANCHORS';
-type AlertStateFilter = 'all' | 'active' | 'resolved';
-type SeverityFilter = 'all' | '1' | '2';
+type AlertTypeFilter = DashboardAlertsViewState['alertType'];
+type AlertStateFilter = DashboardAlertsViewState['stateFilter'];
+type SeverityFilter = DashboardAlertsViewState['severityFilter'];
 
 type AlertHistoryRow = {
   id: number;
@@ -72,64 +76,8 @@ type AlertsHistoryClientProps = {
   stations: StationSnapshot[];
 };
 
-type ViewFilterState = {
-  stationId: string;
-  alertType: AlertTypeFilter;
-  stateFilter: AlertStateFilter;
-  severityFilter: SeverityFilter;
-  fromDate: string;
-  toDate: string;
-  page: number;
-};
-
 function formatDateTime(value: string): string {
   return formatStatusDateTime(value);
-}
-
-function parseAlertTypeFilter(value: string | null): AlertTypeFilter {
-  if (value === 'LOW_BIKES' || value === 'LOW_ANCHORS') {
-    return value;
-  }
-
-  return 'all';
-}
-
-function parseStateFilter(value: string | null): AlertStateFilter {
-  if (value === 'active' || value === 'resolved') {
-    return value;
-  }
-
-  return 'all';
-}
-
-function parseSeverityFilter(value: string | null): SeverityFilter {
-  if (value === '1' || value === '2') {
-    return value;
-  }
-
-  return 'all';
-}
-
-function parseDateInput(value: string | null): string {
-  if (!value || !DATE_INPUT_PATTERN.test(value)) {
-    return '';
-  }
-
-  return value;
-}
-
-function parsePageIndex(value: string | null): number {
-  if (!value) {
-    return 0;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isInteger(parsed) || parsed < 1) {
-    return 0;
-  }
-
-  return parsed - 1;
 }
 
 function toLocalDateInputValue(date: Date): string {
@@ -151,55 +99,17 @@ function getRangeForLastDays(days: number): { fromDate: string; toDate: string }
 function parseViewStateFromSearchParams(
   params: URLSearchParams,
   stations: StationSnapshot[]
-): ViewFilterState {
-  const stationIdCandidate = (params.get('stationId') ?? '').trim();
+): DashboardAlertsViewState {
+  const parsed = parseDashboardAlertsSearch(params);
+  const stationIdCandidate = parsed.stationId;
   const hasStation =
     Boolean(stationIdCandidate) &&
     (stations.length === 0 || stations.some((station) => station.id === stationIdCandidate));
 
   return {
+    ...parsed,
     stationId: hasStation ? stationIdCandidate : '',
-    alertType: parseAlertTypeFilter(params.get('alertType')),
-    stateFilter: parseStateFilter(params.get('state')),
-    severityFilter: parseSeverityFilter(params.get('severity')),
-    fromDate: parseDateInput(params.get('from')),
-    toDate: parseDateInput(params.get('to')),
-    page: parsePageIndex(params.get('page')),
   };
-}
-
-function buildViewQueryFromState(state: ViewFilterState): string {
-  const params = new URLSearchParams();
-
-  if (state.stationId) {
-    params.set('stationId', state.stationId);
-  }
-
-  if (state.alertType !== 'all') {
-    params.set('alertType', state.alertType);
-  }
-
-  if (state.stateFilter !== 'all') {
-    params.set('state', state.stateFilter);
-  }
-
-  if (state.severityFilter !== 'all') {
-    params.set('severity', state.severityFilter);
-  }
-
-  if (state.fromDate) {
-    params.set('from', state.fromDate);
-  }
-
-  if (state.toDate) {
-    params.set('to', state.toDate);
-  }
-
-  if (state.page > 0) {
-    params.set('page', String(state.page + 1));
-  }
-
-  return params.toString();
 }
 
 export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
@@ -262,7 +172,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
 
   const viewQueryString = useMemo(
     () =>
-      buildViewQueryFromState({
+      buildDashboardAlertsViewQuery({
         stationId,
         alertType,
         stateFilter,
@@ -312,7 +222,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       return;
     }
 
-    const currentViewQuery = buildViewQueryFromState(
+    const currentViewQuery = buildDashboardAlertsViewQuery(
       parseViewStateFromSearchParams(new URLSearchParams(searchParams.toString()), stations)
     );
 
