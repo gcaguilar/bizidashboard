@@ -85,7 +85,7 @@ function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
 
 export const Route = createFileRoute('/dashboard/conclusiones/')({
   validateSearch: z.object({
-    month: z.string().optional(),
+    month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
   }),
   head: () => {
     const title = 'Conclusiones de movilidad'

@@ -13,8 +13,8 @@ export const Route = createFileRoute('/dashboard/alertas/')({
     alertType: z.enum(['all', 'LOW_BIKES', 'LOW_ANCHORS']).optional(),
     state: z.enum(['all', 'active', 'resolved']).optional(),
     severity: z.enum(['all', '1', '2']).optional(),
-    from: z.string().optional(),
-    to: z.string().optional(),
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
     page: z.coerce.number().int().min(1).optional(),
   }),
   head: () => {
