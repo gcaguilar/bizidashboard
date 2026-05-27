@@ -8,6 +8,10 @@ function getSearchParam(url: string, key: string): string | null {
   return new URL(url).searchParams.get(key);
 }
 
+function getSearchKeys(url: string): string[] {
+  return Array.from(new URL(url).searchParams.keys()).sort();
+}
+
 test('shared navigation links work across internal pages', async ({ page }) => {
   await page.goto('/dashboard/flujo');
 
@@ -58,4 +62,27 @@ test('flow period filter is reflected in query string', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Mañana' }).click();
   await expect.poll(() => getPathname(page.url())).toBe('/dashboard/flujo');
+});
+
+test('dashboard section navigation clears unrelated search params', async ({ page }) => {
+  await page.goto('/dashboard?mode=operations&q=plaza&timeWindow=7d&period=night');
+
+  await page
+    .getByRole('navigation', { name: 'Secciones del dashboard' })
+    .getByRole('link', { name: 'Flujo' })
+    .first()
+    .click();
+
+  await expect.poll(() => getPathname(page.url())).toBe('/dashboard/flujo');
+  await expect.poll(() => getSearchKeys(page.url())).toEqual([]);
+
+  await page.goto('/dashboard/flujo?period=night&month=2026-05');
+  await page
+    .getByRole('navigation', { name: 'Secciones del dashboard' })
+    .getByRole('link', { name: 'Redistribución' })
+    .first()
+    .click();
+
+  await expect.poll(() => getPathname(page.url())).toBe('/dashboard/redistribucion');
+  await expect.poll(() => getSearchKeys(page.url())).toEqual([]);
 });

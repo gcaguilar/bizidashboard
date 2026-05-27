@@ -256,4 +256,28 @@ describe('TrackedLink', () => {
 
     expect(trackUmamiEventMock).toHaveBeenCalled();
   });
+
+  it('splits internal destinations into TanStack pathname, search, and hash parts', async () => {
+    const { TrackedLink } = await import('@/app/_components/TrackedLink');
+    const link = TrackedLink({
+      href: '/dashboard/ayuda?month=2026-05#demanda-no-viajes-reales',
+      children: 'Ayuda demanda',
+    });
+
+    expect(link.props.to).toBe('/dashboard/ayuda');
+    expect(link.props.search).toEqual({ month: '2026-05' });
+    expect(link.props.hash).toBe('demanda-no-viajes-reales');
+  });
+
+  it('clears search params for internal destinations without query strings', async () => {
+    const { TrackedLink } = await import('@/app/_components/TrackedLink');
+    const link = TrackedLink({
+      href: '/dashboard/flujo',
+      children: 'Flujo',
+    });
+
+    expect(link.props.to).toBe('/dashboard/flujo');
+    expect(link.props.search).toEqual({});
+    expect(link.props.hash).toBeUndefined();
+  });
 });

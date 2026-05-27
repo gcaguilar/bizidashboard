@@ -47,13 +47,23 @@ export function PublicPageViewTracker({
 
     lastTrackedKey.current = trackingKey;
 
-    trackUmamiEvent(
-      buildPublicPageViewEvent({
-        routeKey: resolvedRouteKey,
-        pageType,
-        template,
-      })
-    );
+    const track = () => {
+      trackUmamiEvent(
+        buildPublicPageViewEvent({
+          routeKey: resolvedRouteKey,
+          pageType,
+          template,
+        })
+      );
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleCallbackId = window.requestIdleCallback(track, { timeout: 2000 });
+      return () => window.cancelIdleCallback(idleCallbackId);
+    }
+
+    const timeoutId = window.setTimeout(track, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [entityId, pageSlug, pageType, pathname, routeKey, template]);
 
   return null;

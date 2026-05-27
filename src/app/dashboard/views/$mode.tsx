@@ -5,9 +5,9 @@ import { appRoutes } from '@/lib/routes'
 export const Route = createFileRoute('/dashboard/views/$mode')({
   loader: ({ params }) => {
     const mode = resolveDashboardViewMode(params.mode)
-    const location = DASHBOARD_VIEW_MODES.includes(mode)
-      ? `${appRoutes.dashboard()}?mode=${encodeURIComponent(mode)}`
-      : appRoutes.dashboard()
-    throw redirect({ to: location })
+    throw redirect({
+      to: appRoutes.dashboard(),
+      search: DASHBOARD_VIEW_MODES.includes(mode) ? { mode } : {},
+    })
   },
 })

@@ -3,6 +3,6 @@ import { appRoutes } from '@/lib/routes'
 
 export const Route = createFileRoute('/dashboard/investigacion/')({
   loader: () => {
-    throw redirect({ href: `${appRoutes.dashboard()}?mode=${encodeURIComponent('research')}` })
+    throw redirect({ to: appRoutes.dashboard(), search: { mode: 'research' } })
   },
 })

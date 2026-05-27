@@ -17,7 +17,15 @@ export function buildDashboardUrlSearchParams(
   currentParams: URLSearchParams | ReadonlyURLSearchParamsLike,
   state: DashboardUrlState
 ): URLSearchParams {
-  const nextParams = new URLSearchParams(currentParams.toString());
+  const currentSearchParams = new URLSearchParams(currentParams.toString());
+  const nextParams = new URLSearchParams();
+
+  for (const key of ['month', 'period', 'rankingTab', 'rankingSearch', 'rankingShowAll']) {
+    const value = currentSearchParams.get(key);
+    if (value !== null) {
+      nextParams.set(key, value);
+    }
+  }
 
   nextParams.set('timeWindow', state.activeWindowId);
   nextParams.set('mode', state.viewMode);

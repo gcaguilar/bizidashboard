@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ export function PublicSearchForm({
   eventSource = 'public_search',
 }: PublicSearchFormProps) {
   const pathname = useLocation().pathname;
-  const router = useRouter();
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -89,9 +89,9 @@ export function PublicSearchForm({
     (station: StationSuggestion) => {
       setShowSuggestions(false);
       setQuery('');
-      void router.navigate({ to: appRoutes.stationDetail(station.id) });
+      void navigate({ to: appRoutes.stationDetail(station.id) });
     },
-    [router],
+    [navigate],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
