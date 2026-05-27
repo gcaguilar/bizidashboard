@@ -57,7 +57,6 @@ export const appRoutes = {
   home: () => '/',
   manifest: () => '/manifest.json',
   favicon: () => '/favicon.svg',
-  serviceWorker: () => '/sw.js',
   llms: () => '/llms.txt',
   llmsFull: () => '/llms-full.txt',
   homeAlias: () => '/inicio',

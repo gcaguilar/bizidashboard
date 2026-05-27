@@ -82,7 +82,7 @@ describe('redistribucion public landing cache contract', () => {
 
     expect(headers['Cache-Control']).toBe(REDISTRIBUCION_CACHE_CONTROL);
     expect(headers['Cache-Control']).toBe(
-      'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+      'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600'
     );
   });
 

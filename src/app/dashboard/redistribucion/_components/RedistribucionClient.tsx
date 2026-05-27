@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert } from '@/components/ui/alert';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {
   Select,
@@ -16,6 +16,7 @@ import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatDateTimeLabel } from '@/lib/format';
 import type { RebalancingReport } from '@/types/rebalancing';
+import { useAbortableAsyncEffect, fetchJson } from '@/app/dashboard/_components/useAbortableAsyncEffect';
 import {
   buildExportClickEvent,
   buildFilterChangeEvent,
@@ -59,39 +60,27 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const refreshReport = async () => {
+  useAbortableAsyncEffect(
+    async (signal, isActive) => {
       setLoadError(null);
       setIsReportLoading(true);
 
       try {
-        const response = await fetch(
+        const nextReport = await fetchJson<RebalancingReport>(
           appRoutes.api.rebalancingReport({
             district: selectedDistrict || null,
             days: selectedDays,
           }),
-          {
-            cache: 'no-store',
-            signal: controller.signal,
-          }
+          { signal, cache: 'no-store', errorMessage: `HTTP fetch failed` }
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const nextReport: RebalancingReport = await response.json();
-
-        if (!isActive) {
+        if (!isActive()) {
           return;
         }
 
         setReport(nextReport);
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
+        if (!isActive()) {
           return;
         }
 
@@ -104,25 +93,15 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           },
         });
 
-        if (!isActive) {
-          return;
-        }
-
         setLoadError('No se pudo actualizar el informe. Mostramos la ultima version disponible.');
       } finally {
-        if (isActive) {
+        if (isActive()) {
           setIsReportLoading(false);
         }
       }
-    };
-
-    void refreshReport();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [selectedDays, selectedDistrict]);
+    },
+    [selectedDays, selectedDistrict]
+  );
 
   function handleDistrictChange(value: string) {
     setSelectedDistrict(value);

@@ -93,15 +93,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             TanStackQueryDevtools,
           ]}
         />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                fetch('${appRoutes.serviceWorker()}', { method: 'HEAD' }).then(function(r){if(r.ok){navigator.serviceWorker.register('${appRoutes.serviceWorker()}',{scope:'${appRoutes.home()}'}).catch(function(){})}}).catch(function(){});
-              }
-            `
-          }}
-        />
         <Scripts />
       </body>
     </html>
