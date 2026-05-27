@@ -34,8 +34,25 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
       title,
     }
   },
+  errorComponent: DistrictErrorPage,
   component: DistrictPage,
 })
+
+function DistrictErrorPage() {
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Barrio no disponible</p>
+        <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">No se pudo cargar esta ficha de barrio</h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">Intenta de nuevo en unos minutos o vuelve a la comparativa general de barrios.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink className="ui-primary-button" href={appRoutes.statsBarrios()}>Ver barrios</TrackedLink>
+          <TrackedLink className="ui-inline-action" href={appRoutes.status()}>Ver estado</TrackedLink>
+        </div>
+      </section>
+    </PageShell>
+  );
+}
 
 function DistrictPage() {
   const { district, districts } = Route.useLoaderData()

@@ -39,8 +39,29 @@ export const Route = createFileRoute('/informes/$month')({
     }
   },
   pendingComponent: PublicPageLoading,
+  errorComponent: InformesMonthErrorPage,
   component: InformesMonthPage,
 })
+
+function InformesMonthErrorPage() {
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Informe no disponible</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+          No se pudo cargar este informe mensual
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+          Intenta recargar en unos minutos o vuelve al archivo de informes para abrir otro periodo.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.reports()} className="ui-primary-button">Volver al archivo</TrackedLink>
+          <TrackedLink href={appRoutes.status()} className="ui-inline-action">Ver estado</TrackedLink>
+        </div>
+      </section>
+    </PageShell>
+  );
+}
 
 function InformesMonthPage() {
   const { month, monthRow, nearbyMonths, dataState } = Route.useLoaderData()
