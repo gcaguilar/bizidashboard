@@ -32,8 +32,29 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
       title,
     };
   },
+  errorComponent: RedistribucionErrorPage,
   component: RedistribucionPage,
 });
+
+function RedistribucionErrorPage() {
+  return (
+    <PageShell>
+      <header className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Datos parciales</p>
+        <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
+          Redistribución temporalmente no disponible
+        </h1>
+        <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
+          No pudimos cargar esta página ahora mismo. Vuelve a intentarlo en unos minutos o revisa el estado del sistema.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <TrackedLink href={appRoutes.status()} className="ui-primary-button">Ver estado</TrackedLink>
+          <TrackedLink href={appRoutes.statsHub()} className="ui-inline-action">Volver a estadísticas</TrackedLink>
+        </div>
+      </header>
+    </PageShell>
+  );
+}
 
 function RedistribucionPage() {
   const { config, content } = Route.useLoaderData();
