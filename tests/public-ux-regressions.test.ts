@@ -356,4 +356,27 @@ describe('public UX regressions', () => {
     expect(source).toContain('TrackedLink');
     expect(source).toContain('appRoutes.reportMonth');
   });
+
+  it('interactive routes keep selective SSR and typed search schemas', () => {
+    const dashboardRoute = readSource('src/app/dashboard/route.tsx');
+    const dashboardIndex = readSource('src/app/dashboard/index.tsx');
+    const flow = readSource('src/app/dashboard/flujo/index.tsx');
+    const conclusions = readSource('src/app/dashboard/conclusiones/index.tsx');
+    const rebalancing = readSource('src/app/dashboard/redistribucion/index.tsx');
+    const alerts = readSource('src/app/dashboard/alertas/index.tsx');
+    const compare = readSource('src/app/comparar.tsx');
+    const explore = readSource('src/app/explorar.tsx');
+
+    expect(dashboardRoute).toContain("ssr: 'data-only'");
+    expect(compare).toContain("ssr: 'data-only'");
+    expect(explore).toContain("ssr: 'data-only'");
+
+    expect(dashboardIndex).toContain('validateSearch: z.object(');
+    expect(flow).toContain('validateSearch: z.object(');
+    expect(conclusions).toContain('validateSearch: z.object(');
+    expect(rebalancing).toContain('validateSearch: z.object(');
+    expect(alerts).toContain('validateSearch: z.object(');
+    expect(compare).toContain('validateSearch: z.object(');
+    expect(explore).toContain('validateSearch: z.object(');
+  });
 });
