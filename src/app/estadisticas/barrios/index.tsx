@@ -10,7 +10,7 @@ import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 
-export const Route = createFileRoute('/estadisticas/barrios/')({
+export const Route = createFileRoute('/estadisticas/barrios')({
   loader: () => fetchSeoLandingData({ data: { slug: 'barrios-bizi-zaragoza' } }),
   head: () => {
     const siteUrl = getSiteUrl();
