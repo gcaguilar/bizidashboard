@@ -57,7 +57,7 @@ export function PublicPageViewTracker({
       );
     };
 
-    if ('requestIdleCallback' in window) {
+    if (typeof window.requestIdleCallback === 'function') {
       const idleCallbackId = window.requestIdleCallback(track, { timeout: 2000 });
       return () => window.cancelIdleCallback(idleCallbackId);
     }

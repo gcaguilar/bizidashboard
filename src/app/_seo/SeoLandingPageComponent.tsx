@@ -118,7 +118,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
   const canonicalPath = indexability.canonicalPath;
   const breadcrumbs = createRootBreadcrumbs({
     label: config.title,
-    href: canonicalPath,
+    href: canonicalPath ?? null,
   });
   const relatedPages = PRIMARY_SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
@@ -138,7 +138,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
         name: config.title,
         description: config.description,
         inLanguage: 'es',
-        url: toAbsoluteRouteUrl(canonicalPath),
+        url: toAbsoluteRouteUrl(canonicalPath ?? ''),
         dateModified: content.generatedAt,
         publisher: {
           '@type': 'Organization',

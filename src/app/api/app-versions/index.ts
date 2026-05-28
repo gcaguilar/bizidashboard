@@ -24,8 +24,8 @@ function parseAppVersions(): AppVersionsResponse {
     if (parsed.ok && isAppVersionsResponse(parsed.value)) return parsed.value
   } catch {
     logger.warn('api.app_versions.invalid_config')
-    return DEFAULT_APP_VERSIONS
   }
+  return DEFAULT_APP_VERSIONS
 }
 
 const APP_VERSIONS = parseAppVersions()
