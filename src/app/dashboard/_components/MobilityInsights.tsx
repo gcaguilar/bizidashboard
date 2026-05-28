@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { appRoutes } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -225,8 +226,7 @@ function MobilityInsightsContent({
           {PERIODS.map((period) => (
             <TrackedLink
               key={period.key}
-                to={'/dashboard/flow' as any}
-              onClick={() => {}}
+              to={appRoutes.dashboardFlow({ month: selectedMonth, period: period.key === 'all' ? null : period.key })}
               aria-current={activePeriod === period.key ? 'page' : undefined}
               className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
                 activePeriod === period.key

@@ -1,8 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { z } from 'zod';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
 import type { RebalancingReport } from '@/types/rebalancing';
+
+const RedistribucionClient = lazy(() =>
+  import('@/app/dashboard/redistribucion/_components/RedistribucionClient').then(m => ({ default: m.RedistribucionClient }))
+);
 
 export const Route = createFileRoute('/dashboard/redistribucion/')({
   validateSearch: z.object({
@@ -92,7 +96,7 @@ function RebalancingSkeleton() {
   );
 }
 
-async function RedistribucionClientWrapper({ 
+function RedistribucionClientWrapper({ 
   initialReport, 
   districtNames, 
   tableParams 
@@ -101,7 +105,6 @@ async function RedistribucionClientWrapper({
   districtNames: string[];
   tableParams: Record<string, unknown>;
 }) {
-  const { RedistribucionClient } = await import('@/app/dashboard/redistribucion/_components/RedistribucionClient');
   return (
     <RedistribucionClient
       initialReport={initialReport}
