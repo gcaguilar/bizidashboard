@@ -33,7 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ChartWrapper } from './ChartWrapper';
-import { useAbortableAsyncEffect, fetchJson } from './useAbortableAsyncEffect';
+import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   resolveMobilityDataState,

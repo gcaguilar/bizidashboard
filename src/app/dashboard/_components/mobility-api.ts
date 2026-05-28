@@ -101,7 +101,7 @@ function isValidatedMobilityPayload(value: unknown): value is ValidatedMobilityP
   return hasMethodology || hasPreviewArray;
 }
 
-function normalizeArray<Row>(value: unknown, isRow: (row: unknown) => row is Row): Row[] {
+function normalizeArray<TRow>(value: unknown, isRow: (row: unknown) => row is TRow): TRow[] {
   if (!Array.isArray(value)) {
     return [];
   }
