@@ -54,6 +54,36 @@ test('dashboard syncs selected window and station with URL', async ({ page }) =>
   await expect.poll(() => getSearchParam(page.url(), 'timeWindow')).toBe('30d');
 });
 
+test('dashboard does not loop mobility requests on initial load', async ({ page }) => {
+  const mobilityRequests: string[] = [];
+  const reactErrors: string[] = [];
+
+  page.on('request', (request) => {
+    if (request.url().includes('/api/mobility')) {
+      mobilityRequests.push(request.url());
+    }
+  });
+
+  page.on('console', (message) => {
+    if (message.type() === 'error' && message.text().includes('Minified React error #185')) {
+      reactErrors.push(message.text());
+    }
+  });
+
+  await page.goto('/dashboard');
+
+  await expect(page.getByRole('heading', { name: 'Resumen operativo' })).toBeVisible({ timeout: 15_000 });
+
+  await page.waitForTimeout(2500);
+  const requestCountAfterLoad = mobilityRequests.length;
+
+  await page.waitForTimeout(1500);
+
+  expect(reactErrors).toEqual([]);
+  expect(mobilityRequests.length).toBe(requestCountAfterLoad);
+  expect(mobilityRequests.length).toBeGreaterThan(0);
+});
+
 test('flow period filter is reflected in query string', async ({ page }) => {
   await page.goto('/dashboard/flujo?period=night');
 
