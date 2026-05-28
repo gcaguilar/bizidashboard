@@ -36,7 +36,7 @@ export function WebMcpProvider() {
     const registrations: Array<{ unregister?: () => void } | void> = [];
     const tools: WebMcpTool[] = WEB_MCP_TOOLS.map((tool) => ({
       ...tool,
-      execute: (input) => {
+      execute: async (input) => {
         const target = resolveToolNavigationTarget(tool.name, input);
         if (!target) {
           return {
@@ -52,13 +52,17 @@ export function WebMcpProvider() {
     }));
 
     if (typeof modelContext.provideContext === 'function') {
-      modelContext.provideContext({
-        tools,
-        signal: abortController.signal,
-      });
+      try {
+        modelContext.provideContext({
+          tools,
+          signal: abortController.signal,
+        });
+      } catch {}
     } else if (typeof modelContext.registerTool === 'function') {
       for (const tool of tools) {
-        registrations.push(modelContext.registerTool(tool));
+        try {
+          registrations.push(modelContext.registerTool(tool));
+        } catch {}
       }
     }
 

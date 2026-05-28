@@ -114,6 +114,7 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
   const isRefreshingRef = useRef(false);
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
+  const countdownRef = useRef(0);
 
   const triggerRefresh = useCallback(async () => {
     if (isRefreshingRef.current) return;
@@ -140,15 +141,17 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
     }
 
     setNextRefreshAt(new Date(Date.now() + intervalMs));
+    countdownRef.current = intervalMs;
 
     intervalRef.current = setInterval(() => {
-      setCountdownMs((prev) => {
-        if (prev <= 1000) {
-          void triggerRefresh();
-          return intervalMs;
-        }
-        return prev - 1000;
-      });
+      countdownRef.current = Math.max(0, countdownRef.current - 1000);
+      setCountdownMs(countdownRef.current);
+
+      if (countdownRef.current <= 0) {
+        void triggerRefresh();
+        countdownRef.current = intervalMs;
+        setCountdownMs(intervalMs);
+      }
     }, 1000);
 
     return () => {
