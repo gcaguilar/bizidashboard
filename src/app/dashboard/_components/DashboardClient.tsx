@@ -859,10 +859,18 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         .map((r) => (!r.ok ? r.retryAfterSeconds ?? 0 : 0))
         .reduce((max, val) => Math.max(max, val), 0);
 
+      const allFailed = [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult]
+        .every((r) => !r.ok);
+
       if (rateLimitSeconds > 0) {
         const rateLimitNext = new Date(Date.now() + rateLimitSeconds * 1000);
         if (rateLimitNext > nextRefresh) {
           nextRefresh = rateLimitNext;
+        }
+      } else if (allFailed) {
+        const backoffNext = new Date(Date.now() + Math.max(60_000, REFRESH_AFTER_LAST_DATA_MS));
+        if (backoffNext > nextRefresh) {
+          nextRefresh = backoffNext;
         }
       }
 
