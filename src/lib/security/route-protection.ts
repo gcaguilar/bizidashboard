@@ -17,19 +17,19 @@ export type RouteContext = {
 
 export type RouteHandler = (ctx: RouteContext) => Promise<Response> | Response;
 
-export type RouteResult =
+export type RouteResult<T extends RouteContext = RouteContext> =
   | { ok: false; response: Response }
-  | { ok: true; ctx: RouteContext };
+  | { ok: true; ctx: T };
 
-export type RouteGuard = (params: RouteContext) => Promise<RouteResult>;
+export type RouteGuard<T extends RouteContext = RouteContext> = (params: RouteContext) => Promise<RouteResult<T>>;
 
-export function withProtect(
+export function withProtect<T extends RouteContext = RouteContext>(
   options: ProtectedRouteOptions,
-  guard: RouteGuard,
-  handler: RouteHandler
+  guard: RouteGuard<T>,
+  handler: (ctx: T) => Promise<Response> | Response
 ) {
-  return async function (params: { request: Request } & Record<string, unknown>): Promise<Response> {
-    const request = params.request;
+  return async function (params: object): Promise<Response> {
+    const request = (params as Record<string, unknown>).request as Request;
     const requestId = crypto.randomUUID();
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       ?? request.headers.get('x-real-ip')
