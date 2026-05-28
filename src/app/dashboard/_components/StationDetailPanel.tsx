@@ -17,27 +17,12 @@ import {
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
-import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatStatusDateTime } from '@/lib/system-status';
 import { TIMEZONE } from '@/lib/timezone';
-import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
-
-type MobilitySignalRow = {
-  stationId: string;
-  hour: number;
-  departures: number;
-  arrivals: number;
-  sampleCount: number;
-};
-
-type MobilityResponse = {
-  mobilityDays: number;
-  demandDays: number;
-  selectedMonth?: string | null;
-  methodology: string;
-  hourlySignals: MobilitySignalRow[];
-};
+import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
+import { loadMobilityData } from './mobility-api';
+import type { MobilityResponse } from './mobility-insights-model';
 
 type StationDetailPanelProps = {
   station: StationSnapshot | null;
@@ -116,19 +101,12 @@ export function StationDetailPanel({
 
   useAbortableAsyncEffect(
     async (signal, isActive) => {
-      const params = new URLSearchParams({
-        mobilityDays: String(mobilityDays),
-        demandDays: String(demandDays),
-      });
-
-      if (selectedMonth) {
-        params.set('month', selectedMonth);
-      }
-
       const [districtPayload, mobilityPayload] = await Promise.all([
         fetchDistrictCollection(signal),
-        fetchJson<MobilityResponse>(`${appRoutes.api.mobility()}?${params.toString()}`, {
-          signal,
+        loadMobilityData(signal, {
+          mobilityDays,
+          demandDays,
+          month: selectedMonth,
         }),
       ]);
 

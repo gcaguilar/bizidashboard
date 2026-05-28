@@ -45,10 +45,10 @@ import {
   isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
-import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getLocationSearchParams } from '@/lib/router-search';
 import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
+import { loadMobilityData } from './mobility-api';
 import {
   buildChordLinks,
   buildChordNodes,
@@ -101,20 +101,12 @@ function MobilityInsightsContent({
         setIsLoading(true);
         setErrorMessage(null);
 
-        const params = new URLSearchParams({
-          mobilityDays: String(mobilityDays),
-          demandDays: String(demandDays),
-        });
-
-        if (selectedMonth) {
-          params.set('month', selectedMonth);
-        }
-
         const [mobilityPayload, districtsPayload] = await Promise.all([
-          fetchJson<MobilityResponse>(
-            `${appRoutes.api.mobility()}?${params.toString()}`,
-            { signal, errorMessage: 'No se pudieron cargar los datos de movilidad.' }
-          ),
+          loadMobilityData(signal, {
+            mobilityDays,
+            demandDays,
+            month: selectedMonth,
+          }, 'No se pudieron cargar los datos de movilidad.'),
           fetchDistrictCollection(signal),
         ]);
 

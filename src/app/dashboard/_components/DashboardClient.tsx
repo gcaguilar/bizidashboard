@@ -48,6 +48,12 @@ import {
 } from '@/lib/recent-station-history';
 import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
+import {
+  EMPTY_MOBILITY_PREVIEW,
+  loadMobilityData,
+  normalizeMobilityPreviewData,
+  type MobilityPreviewData,
+} from './mobility-api';
 
 class ViewErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
@@ -87,32 +93,6 @@ type TimeWindow = {
   demandDays: number;
 };
 
-type MobilitySignalRow = {
-  stationId: string;
-  hour: number;
-  departures: number;
-  arrivals: number;
-  sampleCount: number;
-};
-
-type DailyDemandRow = {
-  day: string;
-  demandScore: number;
-  avgOccupancy: number;
-  sampleCount: number;
-};
-
-type MobilityPreviewData = {
-  hourlySignals: MobilitySignalRow[];
-  dailyDemand: DailyDemandRow[];
-  systemHourlyProfile: Array<{
-    hour: number;
-    avgOccupancy: number;
-    avgBikesAvailable: number;
-    sampleCount: number;
-  }>;
-};
-
 type StationTrend = 'up' | 'down' | 'flat';
 
 type RefreshPayload<T> = {
@@ -136,12 +116,6 @@ const TIME_WINDOWS: TimeWindow[] = [
   { id: '365d', label: 'Anual', mobilityDays: 365, demandDays: 365 },
 ];
 
-const EMPTY_MOBILITY_PREVIEW: MobilityPreviewData = {
-  hourlySignals: [],
-  dailyDemand: [],
-  systemHourlyProfile: [],
-};
-
 function normalizeText(value: string): string {
   return value
     .normalize('NFD')
@@ -151,8 +125,10 @@ function normalizeText(value: string): string {
 }
 
 function resolveStationId(stations: StationsResponse['stations'], value: string | null): string {
-  if (value && stations.some((station) => station.id === value)) {
-    return value;
+  const normalizedValue = value?.trim().replace(/^"(.+)"$/, '$1') ?? null;
+
+  if (normalizedValue && stations.some((station) => station.id === normalizedValue)) {
+    return normalizedValue;
   }
 
   return stations[0]?.id ?? '';
@@ -287,7 +263,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
   const navigate = useNavigate();
   const location = useLocation();
-  const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
+  const locationSearch = location.searchStr ?? location.search ?? '';
+  const searchParams = useMemo(() => getLocationSearchParams({ searchStr: locationSearch }), [locationSearch]);
   const parsedSearch = useMemo(
     () => parseDashboardClientSearch(searchParams),
     [searchParams]
@@ -329,8 +306,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [mobilityPreview, setMobilityPreview] =
-    useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
+  const [mobilityPreview, setMobilityPreview] = useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
   const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
 
   const filteredStations = useMemo(() => {
@@ -556,7 +532,18 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         ? current
         : mapViewFromUrl
     );
-  }, [parsedSearch, stationsData.stations]);
+  }, [
+    parsedSearch.mode,
+    parsedSearch.q,
+    parsedSearch.stationId,
+    parsedSearch.timeWindow,
+    parsedSearch.onlyWithBikes,
+    parsedSearch.onlyWithAnchors,
+    parsedSearch.mapViewState.latitude,
+    parsedSearch.mapViewState.longitude,
+    parsedSearch.mapViewState.zoom,
+    stationsData.stations,
+  ]);
 
   useEffect(() => {
     const nextParams = buildDashboardUrlSearchParams(searchParams, {
@@ -585,7 +572,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     navigate,
     onlyWithAnchors,
     onlyWithBikes,
-    searchParams,
+    locationSearch,
     searchQuery,
     selectedStationId,
     viewMode,
@@ -646,7 +633,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
   const selectStationWithTracking = useCallback(
     (stationId: string, source: string, module = 'station_selector') => {
-      if (!stationId || stationId === selectedStationId) {
+      const normalizedStationId = stationId.trim().replace(/^"(.+)"$/, '$1');
+
+      if (!normalizedStationId || normalizedStationId === selectedStationId) {
         return;
       }
 
@@ -659,7 +648,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           module,
         })
       );
-      setSelectedStationId(stationId);
+      setSelectedStationId(normalizedStationId);
     },
     [dashboardRouteKey, selectedStationId]
   );
@@ -916,38 +905,17 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       }
 
       try {
-        const params = new URLSearchParams({
-          mobilityDays: String(activeWindow.mobilityDays),
-          demandDays: String(activeWindow.demandDays),
+        const payload = await loadMobilityData(controller.signal, {
+          mobilityDays: activeWindow.mobilityDays,
+          demandDays: activeWindow.demandDays,
+          month: parsedSearch.month,
         });
-
-        const selectedMonth = parsedSearch.month;
-
-        if (selectedMonth) {
-          params.set('month', selectedMonth);
-        }
-
-        const response = await fetch(`${appRoutes.api.mobility()}?${params.toString()}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error('No se pudo cargar la vista previa de flujo.');
-        }
-
-        const payload = (await response.json()) as Partial<MobilityPreviewData>;
 
         if (!isActive || fetchId !== mobilityFetchIdRef.current) {
           return;
         }
 
-        setMobilityPreview({
-          hourlySignals: Array.isArray(payload.hourlySignals) ? payload.hourlySignals : [],
-          dailyDemand: Array.isArray(payload.dailyDemand) ? payload.dailyDemand : [],
-          systemHourlyProfile: Array.isArray(payload.systemHourlyProfile)
-            ? payload.systemHourlyProfile
-            : [],
-        });
+        setMobilityPreview(normalizeMobilityPreviewData(payload));
       } catch (error) {
         if (isAbortError(error)) {
           return;
