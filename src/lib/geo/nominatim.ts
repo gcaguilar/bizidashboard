@@ -159,12 +159,13 @@ function buildHeaders(locale: string): HeadersInit {
   return headers;
 }
 
-async function fetchNominatim(url: URL, locale: string): Promise<Response> {
+async function fetchNominatim(url: URL, locale: string, signal?: AbortSignal): Promise<Response> {
   warnIfPublicNominatimIdentityLooksWeak();
 
   return withNominatimRateLimit(async () => {
     const response = await fetch(url.toString(), {
       headers: buildHeaders(locale),
+      signal,
     });
 
     if (!response.ok) {

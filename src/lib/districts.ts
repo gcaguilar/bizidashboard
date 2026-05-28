@@ -137,8 +137,8 @@ export function isDistrictCollection(value: unknown): value is DistrictCollectio
   });
 }
 
-async function loadDistrictCollection(): Promise<DistrictCollection | null> {
-  const response = await fetch(DISTRICTS_GEOJSON_URL);
+async function loadDistrictCollection(signal?: AbortSignal): Promise<DistrictCollection | null> {
+  const response = await fetch(DISTRICTS_GEOJSON_URL, { signal });
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
@@ -159,7 +159,7 @@ export async function fetchDistrictCollection(signal?: AbortSignal): Promise<Dis
   }
 
   if (!districtCollectionPromise) {
-    districtCollectionPromise = loadDistrictCollection()
+    districtCollectionPromise = loadDistrictCollection(signal)
       .then((collection) => {
         districtCollectionCache = collection;
         return collection;
