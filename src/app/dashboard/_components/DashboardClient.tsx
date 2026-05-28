@@ -894,12 +894,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     };
   }, [nextRefreshAt, refreshDashboardData, isRefreshingData]);
 
+  const mobilityFetchIdRef = useRef(0);
+
   useEffect(() => {
+    const fetchId = ++mobilityFetchIdRef.current;
+
     const controller = new AbortController();
     let isActive = true;
 
     const refreshMobilityPreview = async () => {
-      if (isActive) {
+      if (isActive && fetchId === mobilityFetchIdRef.current) {
         setIsMobilityPreviewLoading(true);
       }
 
@@ -925,7 +929,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
         const payload = (await response.json()) as Partial<MobilityPreviewData>;
 
-        if (!isActive) {
+        if (!isActive || fetchId !== mobilityFetchIdRef.current) {
           return;
         }
 
@@ -950,11 +954,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           },
         });
 
-        if (isActive) {
+        if (isActive && fetchId === mobilityFetchIdRef.current) {
           setMobilityPreview(EMPTY_MOBILITY_PREVIEW);
         }
       } finally {
-        if (isActive) {
+        if (isActive && fetchId === mobilityFetchIdRef.current) {
           setIsMobilityPreviewLoading(false);
         }
       }
