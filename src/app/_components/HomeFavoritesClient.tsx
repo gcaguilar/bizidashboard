@@ -30,12 +30,19 @@ export function useHasFavorites(): boolean {
 }
 
 export function useIsMobile() {
-  const [mq] = useState(() => window.matchMedia('(max-width: 767px)'));
+  const [mq] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return window.matchMedia('(max-width: 767px)');
+  });
   const subscribe = (cb: () => void) => {
-    mq.addEventListener('change', cb);
-    return () => mq.removeEventListener('change', cb);
+    const mediaQuery = mq ?? window.matchMedia('(max-width: 767px)');
+    mediaQuery.addEventListener('change', cb);
+    return () => mediaQuery.removeEventListener('change', cb);
   };
-  const getSnapshot = () => mq.matches;
+  const getSnapshot = () => {
+    if (!mq) return false;
+    return mq.matches;
+  };
   const getServerSnapshot = () => false;
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

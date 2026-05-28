@@ -121,7 +121,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
     const slicesWithStations = slices.filter((slice) => slice.stationCount > 0);
 
     if (totalStations <= 0 || slicesWithStations.length === 0) {
-      return [] as Array<{ color: string; size: number; offset: number }>;
+      return [] as Array<{ color: string; size: number; offset: number; district: string }>;
     }
 
     let currentOffset = 0;
@@ -132,6 +132,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
         color: getSliceColor(index, slicesWithStations.length),
         size,
         offset: currentOffset,
+        district: slice.district,
       };
       currentOffset += size;
       return arc;
