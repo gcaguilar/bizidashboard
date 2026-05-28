@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/tanstackstart-react';
 import { validateRuntimeConfiguration } from '@/lib/security/config';
 
-export async function register(): Promise<void> {
+export function register(): void {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('../sentry.server.config');
