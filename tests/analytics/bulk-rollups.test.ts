@@ -102,7 +102,7 @@ describe('analytics bulk rollups', () => {
     const result = await runAlertRollup(cutoff);
     const expectedAlertCount = hourlyStats.length * 2;
 
-    expect(executeRawMock).toHaveBeenCalledTimes(1 + chunkRowsForBulkQuery(new Array(expectedAlertCount), 7).length);
+    expect(executeRawMock).toHaveBeenCalledTimes(chunkRowsForBulkQuery(new Array(expectedAlertCount), 7).length);
     expect(result.processedCount).toBe(hourlyStats.length);
     expect(result.upsertedCount).toBe(expectedAlertCount);
     expect(setWatermarkMock).toHaveBeenCalledWith('alert-rollup', cutoff);

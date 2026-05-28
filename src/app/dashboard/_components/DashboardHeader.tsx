@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -74,7 +74,7 @@ export function DashboardHeader({
   refreshDurationMs = 300_000,
 }: DashboardHeaderProps) {
   const hasAvailabilityFilter = filteredOutCount > 0;
-  const refreshDate = nextRefreshAt ?? new Date(Date.now() + 300_000);
+  const refreshDate = useMemo(() => nextRefreshAt ?? new Date(Date.now() + 300_000), [nextRefreshAt]);
   const [countdownMs, setCountdownMs] = useState(() => Math.max(0, refreshDate.getTime() - Date.now()));
 
   useEffect(() => {
