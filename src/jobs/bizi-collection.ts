@@ -165,7 +165,6 @@ async function executeCollection(
   });
 
   let pipelineResult: CollectionPipelineResult | null = null;
-  let pipelineError: Error | null = null;
 
   try {
     pipelineResult = await pipeline.execute(collectionId);
@@ -277,8 +276,6 @@ async function executeCollection(
     result.error = errorMessage;
     result.success = false;
     result.duration = Date.now() - startTime;
-    pipelineError = error instanceof Error ? error : new Error(errorMessage);
-    void pipelineError;
 
     captureExceptionWithContext(error, {
       area: 'jobs.collection',

@@ -89,7 +89,6 @@ export function useDistrictData(options?: {
         return;
       }
 
-      isActiveRef.current = false;
       setError(err as Error);
       
       captureExceptionWithContext(err, {
