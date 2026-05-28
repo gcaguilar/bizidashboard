@@ -14,7 +14,7 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
   const pipeline = {
     id: 'ranking',
     watermarkKey: RANKING_WATERMARK,
-    sourceQuery: (watermark: Date, queryEnd: Date) => Prisma.sql`
+    sourceQuery: (_watermark: Date, queryEnd: Date) => Prisma.sql`
       SELECT "stationId" as "stationId",
         SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) as "turnoverScore",
         SUM(CASE WHEN "bikesAvg" <= 1 THEN 1 ELSE 0 END) as "emptyHours",

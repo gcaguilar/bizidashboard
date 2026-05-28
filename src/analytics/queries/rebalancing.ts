@@ -293,5 +293,5 @@ export function getStationDistanceMatrix(
     matrix.set(origin.id, neighbors);
   }
 
-  return matrix;
+  return Promise.resolve(matrix);
 }
