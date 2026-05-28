@@ -36,18 +36,18 @@ export function WebMcpProvider() {
     const registrations: Array<{ unregister?: () => void } | void> = [];
     const tools: WebMcpTool[] = WEB_MCP_TOOLS.map((tool) => ({
       ...tool,
-      execute: async (input) => {
+      execute: (input) => {
         const target = resolveToolNavigationTarget(tool.name, input);
         if (!target) {
-          return {
+          return Promise.resolve({
             content: [{ type: 'text', text: `Unable to resolve a target for ${tool.name}.` }],
-          };
+          });
         }
 
         window.location.assign(target);
-        return {
+        return Promise.resolve({
           content: [{ type: 'text', text: `Opened ${target}` }],
-        };
+        });
       },
     }));
 
