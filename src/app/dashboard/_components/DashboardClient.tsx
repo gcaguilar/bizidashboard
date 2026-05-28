@@ -539,6 +539,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     parsedSearch.timeWindow,
     parsedSearch.onlyWithBikes,
     parsedSearch.onlyWithAnchors,
+    parsedSearch.mapViewState,
     parsedSearch.mapViewState.latitude,
     parsedSearch.mapViewState.longitude,
     parsedSearch.mapViewState.zoom,
@@ -574,6 +575,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     onlyWithBikes,
     locationSearch,
     searchQuery,
+    searchParams,
     selectedStationId,
     viewMode,
   ]);

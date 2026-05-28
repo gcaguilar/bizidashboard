@@ -1,6 +1,6 @@
 // Response removed;
 import { enforcePublicApiAccess, type PublicApiAccessResult } from '@/lib/security/public-api';
-import { withProtect, type RouteContext, type RouteResult } from '@/lib/security/route-protection';
+import { withProtect, type RouteContext } from '@/lib/security/route-protection';
 
 type PublicApiCtx = RouteContext & { access: Extract<PublicApiAccessResult, { ok: true }> };
 
