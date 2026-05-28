@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocation  } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import {
   Area,
   AreaChart,
@@ -225,10 +225,8 @@ function MobilityInsightsContent({
           {PERIODS.map((period) => (
             <TrackedLink
               key={period.key}
-              to={appRoutes.dashboardFlow({
-                month: selectedMonth,
-                period: period.key === 'all' ? null : period.key,
-              })}
+                to={'/dashboard/flow' as any}
+              onClick={() => {}}
               aria-current={activePeriod === period.key ? 'page' : undefined}
               className={`rounded-md px-4 py-1.5 text-xs font-bold transition ${
                 activePeriod === period.key
@@ -256,7 +254,7 @@ function MobilityInsightsContent({
                   ? 'Las curvas estan disponibles, pero el dataset actual no esta fresco.'
                   : 'No hay datos de movilidad suficientes para esta ventana.')
           }
-          href={appRoutes.status()}
+          href={'/status'}
           actionLabel="Ver estado"
         />
       ) : null}
@@ -274,7 +272,7 @@ function MobilityInsightsContent({
               <div className="text-right text-xs text-[var(--muted)]">
                 <span>Barrios representados: {chordNodes.length}</span>
                 <div>
-                  <TrackedLink href={appRoutes.dashboardHelp('diagrama-chord')}
+                  <TrackedLink href={'/dashboard/ayuda/diagrama-chord'}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Como interpretarlo
@@ -541,7 +539,7 @@ function MobilityInsightsContent({
               <div className="text-right text-xs text-[var(--muted)]">
                 <span>{mobilityData.demandDays} dias</span>
                 <div>
-                  <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
+                  <TrackedLink href={'/dashboard/ayuda/demanda-no-viajes-reales'}
                     className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
                   >
                     Entender curva

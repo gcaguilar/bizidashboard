@@ -4,7 +4,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
-import type { HistoryMetadata } from '@/services/shared-data/types';
+import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 
 const FAQ_IDS = [
   'fuente-datos',
@@ -13,7 +13,7 @@ const FAQ_IDS = [
   'prediccion-que-es',
 ] as const;
 
-function buildFallbackHistoryMetadata(nowIso: string, source: string): HistoryMetadata {
+function buildFallbackHistoryMetadata(nowIso: string, source: SharedDataSource): HistoryMetadata {
   return {
     source,
     coverage: {
@@ -51,9 +51,10 @@ export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(
   } = fallbacks;
   const nowIso = new Date().toISOString();
   const [historyMeta, dataset, status, monthsResponse] = await Promise.all([
-    fetchHistoryMetadata().catch(() =>
-      buildFallbackHistoryMetadata(nowIso, sharedData.getSharedDataSource())
-    ),
+    fetchHistoryMetadata().catch(() => {
+      const dataSource = sharedData.getSharedDataSource();
+      return buildFallbackHistoryMetadata(nowIso, dataSource);
+    }),
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
     fetchStatus().catch(() => buildFallbackStatus(nowIso)),
     fetchAvailableDataMonths().catch(() => buildFallbackAvailableMonths(nowIso)),

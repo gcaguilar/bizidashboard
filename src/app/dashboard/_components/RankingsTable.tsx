@@ -63,10 +63,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       return;
     }
 
-    void navigate({
-      search: Object.fromEntries(nextParams) as Record<string, unknown>,
-      replace: true,
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
   };
 
   const stationMap = useMemo(() => {

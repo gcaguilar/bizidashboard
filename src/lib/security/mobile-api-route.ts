@@ -1,6 +1,8 @@
 // Response removed;
-import { withProtect } from '@/lib/security/route-protection';
+import { withProtect, type RouteContext } from '@/lib/security/route-protection';
 import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
+import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
+import { buildMobileCorsHeaders, rejectDisallowedMobileOrigin } from '@/lib/security/http';
 
 export type MobileApiRouteHandler = RouteHandler;
 
@@ -10,25 +12,28 @@ export type MobileApiRouteOptions = ProtectedRouteOptions & {
   windowMs?: number;
 };
 
+type MobileApiCtx = RouteContext & { requestId: string; clientIp: string; userAgent: string | null };
+
 const DEFAULT_MOBILE_RATE_LIMIT = { limit: 30, windowMs: 60_000 };
 
 export function withMobileApiRoute(
   options: MobileApiRouteOptions,
   handler: MobileApiRouteHandler
 ) {
-  return withProtect(
+  return withProtect<MobileApiCtx>(
     options,
-    async (request) => {
-      const originRejection = rejectDisallowedMobileOrigin(request);
+    async (ctx) => {
+      const req = ctx.request;
+      const originRejection = rejectDisallowedMobileOrigin(req);
       if (originRejection) {
         return { ok: false, response: originRejection };
       }
 
       const requestId = crypto.randomUUID();
-      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        ?? request.headers.get('x-real-ip')
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        ?? req.headers.get('x-real-ip')
         ?? '127.0.0.1';
-      const userAgent = request.headers.get('user-agent') ?? null;
+      const userAgent = req.headers.get('user-agent') ?? null;
 
       const limit = options.limit ?? DEFAULT_MOBILE_RATE_LIMIT.limit;
       const windowMs = options.windowMs ?? DEFAULT_MOBILE_RATE_LIMIT.windowMs;
@@ -42,7 +47,7 @@ export function withMobileApiRoute(
         }),
         consumeRateLimit({
           namespace: `${options.namespace}:token`,
-          identifierParts: [request.headers.get('x-refresh-token-fingerprint') ?? 'missing'],
+          identifierParts: [req.headers.get('x-refresh-token-fingerprint') ?? 'missing'],
           limit,
           windowMs,
         }),
@@ -56,7 +61,7 @@ export function withMobileApiRoute(
           ok: false,
           response: Response.json(
             { error: 'Service temporarily unavailable' },
-            { status: 503, headers: { ...buildMobileCorsHeaders(request), ...headers } }
+            { status: 503, headers: { ...buildMobileCorsHeaders(req), ...headers } }
           ),
         };
       }
@@ -68,7 +73,7 @@ export function withMobileApiRoute(
             { error: 'Too many requests' },
             {
               headers: {
-                ...buildMobileCorsHeaders(request),
+                ...buildMobileCorsHeaders(req),
                 ...headers,
                 'Retry-After': String(effectiveDecision.retryAfterSeconds),
               },
@@ -77,7 +82,7 @@ export function withMobileApiRoute(
         };
       }
 
-      return { ok: true, ctx: { request, requestId, clientIp, userAgent } };
+      return { ok: true, ctx: { ...ctx, requestId, clientIp, userAgent } };
     },
     async (ctx) => {
       const response = await handler(ctx);

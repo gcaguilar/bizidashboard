@@ -954,10 +954,9 @@ async function buildMonthlyReportsContent(
 }
 
 export async function buildRedistribucionContent(
-  config: SeoPageConfig,
+  _config: SeoPageConfig,
   nowIso: string
 ): Promise<SeoLandingContent> {
-  // Fetch a lightweight summary (uses cached report assembler)
   let stationCount = 0;
   let pctTimeEmpty = 0;
   let pctTimeFull = 0;
@@ -1064,7 +1063,6 @@ async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingCont
       return buildMostBikesContent(config, nowIso);
     case 'informes-mensuales-bizi-zaragoza':
       return buildMonthlyReportsContent(config, nowIso);
-    case 'redistribucion-bizi-zaragoza':
     case 'redistribucion':
       return buildRedistribucionContent(config, nowIso);
     default:

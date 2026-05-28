@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
-import type { HistoryMetadata } from '@/services/shared-data/types';
+import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 
-function buildFallbackHistoryMetadata(nowIso: string, source: string): HistoryMetadata {
+function buildFallbackHistoryMetadata(nowIso: string, source: SharedDataSource): HistoryMetadata {
   return {
     source,
     coverage: {
@@ -22,8 +22,9 @@ export const getDashboardHelpPageData = createServerFn({ method: 'GET' }).handle
     import('@/services/shared-data'),
   ]);
   const nowIso = new Date().toISOString();
+  const dataSource = getSharedDataSource();
   const historyMeta = await fetchHistoryMetadata().catch(() =>
-    buildFallbackHistoryMetadata(nowIso, getSharedDataSource())
+    buildFallbackHistoryMetadata(nowIso, dataSource)
   );
 
   return { historyMeta };

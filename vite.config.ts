@@ -67,7 +67,7 @@ async function loadVisualizerPlugin() {
   }
 }
 
-export default defineConfig(async () => {
+export default defineConfig(async (): Promise<import('vite').UserConfig> => {
   const bundleVisualizer = await loadVisualizerPlugin()
 
   return {
@@ -83,7 +83,7 @@ export default defineConfig(async () => {
       sourcemap: 'hidden',
       rollupOptions: {
         output: {
-          manualChunks(id) {
+          manualChunks(id: string) {
             if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
               return 'vendor-react';
             }

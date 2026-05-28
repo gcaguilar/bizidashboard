@@ -59,7 +59,10 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) setFavoriteIds(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setFavoriteIds(parsed);
+      }
     } catch {}
   }, []);
 
@@ -156,7 +159,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
                   routeKey,
                   module: 'stations_directory',
                   source: 'sort',
-                  destination: value,
+                  destination: value as string,
                   resultCount: filteredAndSorted.length,
                 }),
               );

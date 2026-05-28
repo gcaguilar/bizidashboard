@@ -46,10 +46,10 @@ function serializeConclusionsPayload(payload: unknown): MobilityConclusionsPaylo
     metrics: {
       demandLast7Days: safeNumber(metrics.demandLast7Days),
       demandPrevious7Days: safeNumber(metrics.demandPrevious7Days),
-      demandDeltaRatio: p.metrics.demandDeltaRatio != null ? safeNumber(p.metrics.demandDeltaRatio) : null,
+      demandDeltaRatio: metrics.demandDeltaRatio != null ? safeNumber(metrics.demandDeltaRatio) : null,
       occupancyLast7Days: safeNumber(metrics.occupancyLast7Days),
       occupancyPrevious7Days: safeNumber(metrics.occupancyPrevious7Days),
-      occupancyDeltaRatio: p.metrics.occupancyDeltaRatio != null ? safeNumber(p.metrics.occupancyDeltaRatio) : null,
+      occupancyDeltaRatio: metrics.occupancyDeltaRatio != null ? safeNumber(metrics.occupancyDeltaRatio) : null,
     },
     summary: safeString(p.summary),
     highlights: Array.isArray(p.highlights) ? p.highlights : [],
@@ -83,8 +83,8 @@ function serializeConclusionsPayload(payload: unknown): MobilityConclusionsPaylo
         avgOccupancy: safeNumber(weekend.avgOccupancy),
         daysCount: safeNumber(weekend.daysCount),
       },
-      demandGapRatio: p.weekdayWeekendProfile.demandGapRatio != null ? safeNumber(p.weekdayWeekendProfile.demandGapRatio) : null,
-      dominantPeriod: (p.weekdayWeekendProfile.dominantPeriod as 'weekday' | 'weekend' | null) ?? null,
+      demandGapRatio: weekdayWeekendProfile.demandGapRatio != null ? safeNumber(weekdayWeekendProfile.demandGapRatio) : null,
+      dominantPeriod: (weekdayWeekendProfile.dominantPeriod as 'weekday' | 'weekend' | null) ?? null,
     },
   };
 }

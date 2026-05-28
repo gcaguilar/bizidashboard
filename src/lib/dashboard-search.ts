@@ -18,7 +18,7 @@ export const dashboardSearchSchema = z.object({
   mapLng: z.coerce.number().min(-180).max(180).optional(),
   mapZoom: z.coerce.number().min(3).max(19).optional(),
   month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
-  period: z.enum(PERIODS.map((period) => period.key) as [string, ...string[]]).optional(),
+  period: z.enum(PERIODS.map((period => period.key)) as [string, ...string[]]).optional(),
   rankingTab: z.enum(DASHBOARD_RANKING_TABS).optional(),
   rankingSearch: z.string().trim().max(120).optional(),
   rankingShowAll: z.enum(['1']).optional(),
@@ -114,6 +114,6 @@ export function parseDashboardMonthPeriodSearch(
 
   return {
     month: month.success ? month.data ?? null : null,
-    period: period.success ? period.data ?? 'all' : 'all',
+    period: period.success ? (period.data ?? 'all') as DashboardMonthPeriodSearchState['period'] : 'all',
   };
 }

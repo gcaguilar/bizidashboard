@@ -453,6 +453,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     void navigate({
       replace: true,
       search: {
@@ -461,7 +462,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         search: params.get('search') ?? undefined,
         page: params.get('page') ? Number(params.get('page')) : undefined,
         pageSize: params.get('pageSize') ? Number(params.get('pageSize')) : undefined,
-      },
+      } as any,
     });
   }, [sorting, globalFilter, columnFilters, navigate, pagination, search]);
 

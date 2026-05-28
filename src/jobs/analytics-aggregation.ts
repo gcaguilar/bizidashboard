@@ -4,7 +4,8 @@
  * Runs hourly rollups and triggers daily rollups + retention after UTC day completion.
  */
 
-import { schedule, ScheduledTask } from 'node-cron';
+import { schedule } from 'node-cron';
+import type { ScheduledTask } from 'node-cron';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { acquireJobLock } from '@/analytics/job-lock';
 import { getWatermark } from '@/analytics/watermarks';

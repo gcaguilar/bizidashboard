@@ -2,9 +2,20 @@ import * as Sentry from '@sentry/tanstackstart-react';
 import { validateRuntimeConfiguration } from '@/lib/security/config';
 
 export async function register(): Promise<void> {
-  await import('../sentry.server.config');
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../sentry.server.config');
+  } catch {}
+  // Not available in this build — optional
   validateRuntimeConfiguration();
 }
 
-/** Server Components / RSC errors (Next.js 15+). */
-export const onRequestError = Sentry.captureRequestError;
+
+export const onRequestError: (error: unknown, request: Request, context?: unknown) => void = (error, request, context) => {
+  Sentry.captureException(error, {
+    contexts: {
+      request: { url: request.url, method: request.method },
+      ...(context ? { react: { componentStack: context as string } } : {}),
+    },
+  });
+};

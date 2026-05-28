@@ -2,14 +2,17 @@ import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getSeoLandingPageData } from '@/lib/seo-landing.server';
 import { withCache } from '@/lib/cache/cache';
-import type { SeoPageSlug } from '@/lib/seo-pages';
+import { isSeoPageSlug } from '@/lib/seo-pages';
 
 const SeoLandingInputSchema = z.object({ slug: z.string() });
 const REDISTRIBUCION_SEO_CACHE_TTL_SECONDS = 300;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
   .inputValidator(SeoLandingInputSchema)
-  .handler(async ({ data: { slug } }: { data: { slug: SeoPageSlug } }) => {
+  .handler(async ({ data: { slug } }: { data: { slug: string } }) => {
+    if (!isSeoPageSlug(slug)) {
+      throw new Error(`Invalid SEO page slug: ${slug}`);
+    }
     if (!slug) {
       throw new Error('Missing slug in input');
     }
