@@ -30,8 +30,10 @@ export function buildDashboardUrlSearchParams(
   nextParams.set('timeWindow', state.activeWindowId);
   nextParams.set('mode', state.viewMode);
 
-  if (state.selectedStationId) {
-    nextParams.set('stationId', state.selectedStationId);
+  const normalizedStationId = normalizeStationIdValue(state.selectedStationId);
+
+  if (normalizedStationId) {
+    nextParams.set('stationId', normalizedStationId);
   } else {
     nextParams.delete('stationId');
   }
@@ -66,3 +68,13 @@ export type ReadonlyURLSearchParamsLike = {
   get: (name: string) => string | null;
   toString: () => string;
 };
+
+function normalizeStationIdValue(value: string): string {
+  const trimmed = value.trim();
+
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}

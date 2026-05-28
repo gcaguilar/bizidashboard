@@ -64,6 +64,14 @@ describe('dashboard search schema', () => {
     });
   });
 
+  it('normalizes quoted station ids from router search state', () => {
+    const parsed = parseDashboardClientSearch(
+      new URLSearchParams('stationId=%222%22')
+    );
+
+    expect(parsed.stationId).toBe('2');
+  });
+
   it('keeps independent client params when map values are invalid', () => {
     const parsed = parseDashboardClientSearch(
       new URLSearchParams('mode=operations&timeWindow=7d&mapLat=999&mapLng=abc&mapZoom=-1')

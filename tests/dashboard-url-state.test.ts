@@ -70,4 +70,22 @@ describe('buildDashboardUrlSearchParams', () => {
     expect(params.get('sort')).toBeNull();
     expect(params.get('filter')).toBeNull();
   });
+
+  it('normalizes quoted station ids before writing them to the URL', () => {
+    const params = buildDashboardUrlSearchParams(new URLSearchParams(), {
+      activeWindowId: '30d',
+      viewMode: 'overview',
+      selectedStationId: '"2"',
+      searchQuery: '',
+      onlyWithBikes: false,
+      onlyWithAnchors: false,
+      mapViewState: {
+        latitude: 41.65,
+        longitude: -0.88,
+        zoom: 12,
+      },
+    });
+
+    expect(params.get('stationId')).toBe('2');
+  });
 });
