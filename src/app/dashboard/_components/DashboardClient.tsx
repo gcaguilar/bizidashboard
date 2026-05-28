@@ -785,7 +785,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     };
 
     try {
-      const rankingLimit = Math.max(50, Math.min(200, stationsData.stations.length || 50));
+      const rankingLimit = Math.max(50, Math.min(200, stationsDataRef.current.stations.length || 50));
 
       const [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult] =
         await Promise.all([

@@ -106,8 +106,7 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
     }
   }
 
-  await deactivateActiveAlerts();
-
+  // First upsert new alerts
   if (alerts.length > 0) {
     for (const chunk of chunkRowsForBulkQuery(alerts, 7)) {
       const values = chunk.map((alert) =>
@@ -130,6 +129,19 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
           "metricValue" = excluded."metricValue",
           "isActive" = excluded."isActive";
       `;
+    }
+  }
+
+  // Then deactivate only for stations that no longer meet criteria
+  if (aggregates.size === 0) {
+    await deactivateActiveAlerts();
+  } else {
+    const stationIdsWithIssues = new Set(alerts.map((a) => a.stationId));
+    const resolvedStations = Array.from(aggregates.keys()).filter(
+      (id: string) => !stationIdsWithIssues.has(id)
+    );
+    if (resolvedStations.length > 0) {
+      await prisma.$executeRaw`UPDATE "StationAlert" SET "isActive" = false WHERE "isActive" = true AND "stationId" IN (${Prisma.join(resolvedStations)});`;
     }
   }
 

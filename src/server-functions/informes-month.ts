@@ -14,14 +14,13 @@ export const getReportMonthPageData = createServerFn({ method: 'GET' })
       throw redirect({ to: appRoutes.reports() });
     }
 
-    const nowIso = new Date().toISOString();
     try {
-      const [{ fetchCachedMonthlyDemandCurve }, { buildFallbackDatasetSnapshot }] = await Promise.all([
+      const [{ fetchCachedMonthlyDemandCurve }] = await Promise.all([
         import('@/lib/analytics-series'),
         import('@/lib/shared-data-fallbacks'),
       ]);
-      const monthlySeries = await fetchCachedMonthlyDemandCurve(12).catch(() => {
-        buildFallbackDatasetSnapshot(nowIso);
+      const monthlySeries = await fetchCachedMonthlyDemandCurve(12).catch((error) => {
+        captureExceptionWithContext(error, { area: 'informes.month', operation: 'fetchCachedMonthlyDemandCurve' });
         return [];
       });
       const monthRow = monthlySeries.find((row) => row.monthKey === month) ?? null;
