@@ -59,7 +59,7 @@ function serializeStationsResponse(data: unknown): DashboardInitialData['station
   const d = data as Record<string, unknown>;
   const stations = Array.isArray(d.stations)
     ? d.stations.map((s: unknown) => {
-        if (!s || typeof s !== 'object') return s;
+        if (!s || typeof s !== 'object') return {} as DashboardInitialData['stations']['stations'][number];
         const obj = s as Record<string, unknown>;
         return {
           id: toStr(obj.id),
@@ -76,7 +76,7 @@ function serializeStationsResponse(data: unknown): DashboardInitialData['station
   return {
     stations,
     generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
-    dataState: (d.dataState as string) ?? 'empty',
+    dataState: (d.dataState as DashboardInitialData['stations']['dataState']) ?? 'empty',
   };
 }
 
@@ -93,21 +93,36 @@ function serializeAlertsResponse(data: unknown): DashboardInitialData['alerts'] 
   };
 }
 
-function serializeRankingsResponse(data: { turnover?: unknown; availability?: unknown }): DashboardInitialData['rankings'] {
-  const makeEmpty = (type: string): DashboardInitialData['rankings']['turnover'] => ({
-    type,
+function makeEmptyRanking(type: string): DashboardInitialData['rankings']['turnover'] {
+  return {
+    type: type as 'turnover' | 'availability',
     limit: 50,
     rankings: [],
     districtSpotlight: [],
     generatedAt: new Date().toISOString(),
     dataState: 'no_coverage',
-  });
-  const turnover = (data.turnover as Record<string, unknown> | undefined) ?? makeEmpty('turnover');
-  const availability = (data.availability as Record<string, unknown> | undefined) ?? makeEmpty('availability');
-  return {
-    turnover: turnover as DashboardInitialData['rankings']['turnover'],
-    availability: availability as DashboardInitialData['rankings']['availability'],
   };
+}
+
+function serializeRankingResponse(raw: Record<string, unknown>, type: string): DashboardInitialData['rankings']['turnover'] {
+  const rankings = Array.isArray(raw.rankings) ? raw.rankings : [];
+  const districtSpotlight = Array.isArray(raw.districtSpotlight) ? raw.districtSpotlight : [];
+  return {
+    type: type as 'turnover' | 'availability',
+    limit: Number(raw.limit) || 50,
+    rankings,
+    districtSpotlight,
+    generatedAt: typeof raw.generatedAt === 'string' ? raw.generatedAt : new Date().toISOString(),
+    dataState: typeof raw.dataState === 'string' ? raw.dataState as 'ok' | 'no_coverage' | 'empty' : 'no_coverage',
+  };
+}
+
+function serializeRankingsResponse(data: { turnover?: unknown; availability?: unknown }): DashboardInitialData['rankings'] {
+  const turnoverRaw = (data.turnover as Record<string, unknown> | undefined) ?? makeEmptyRanking('turnover');
+  const availabilityRaw = (data.availability as Record<string, unknown> | undefined) ?? makeEmptyRanking('availability');
+  const turnover = serializeRankingResponse(turnoverRaw, 'turnover');
+  const availability = serializeRankingResponse(availabilityRaw, 'availability');
+  return { turnover, availability };
 }
 
 export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(async () => {

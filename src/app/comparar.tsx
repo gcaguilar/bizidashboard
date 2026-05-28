@@ -71,9 +71,9 @@ function CompareHubContent({
         </article>
       </section>
 
-      {shouldShowDataStateNotice(data.dataState) ? (
+      {shouldShowDataStateNotice(data.dataState as any) ? (
         <DataStateNotice
-          state={data.dataState}
+          state={data.dataState as any}
           subject="las comparativas del hub"
           description="El comparador usa los mismos datos que el mapa avanzado, los informes y la API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
           href={appRoutes.status()}
@@ -81,7 +81,7 @@ function CompareHubContent({
         />
       ) : null}
 
-      <InteractiveComparePanel data={data.interactive} initialQuery={initialQuery} />
+      <InteractiveComparePanel data={data.interactive as any} initialQuery={initialQuery} />
 
       {data.sections.map((section) => (
         <section key={section.id} className="ui-section-card">
@@ -238,7 +238,7 @@ export default function ComparePage() {
         </div>
       </header>
 
-      <CompareHubContent initialQuery={initialQuery} data={comparisonData} />
+      <CompareHubContent initialQuery={initialQuery as any} data={comparisonData as any} />
     </PageShell>
   );
 }

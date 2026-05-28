@@ -6,4 +6,11 @@ Sentry.init({
   enabled: process.env.NODE_ENV === 'production',
 })
 
-export const onRequestError = Sentry.captureRequestError
+export const onRequestError: (error: unknown, request: Request, context?: unknown) => void = (error, request, context) => {
+  Sentry.captureException(error, {
+    contexts: {
+      request: { url: request.url, method: request.method },
+      ...(context ? { react: { componentStack: context as string } } : {}),
+    },
+  });
+}

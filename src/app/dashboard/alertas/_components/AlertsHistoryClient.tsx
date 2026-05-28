@@ -230,10 +230,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     if (viewQueryString === searchQueryString) {
       return;
     }
-    void navigate({
-      search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as Record<string, unknown> : {},
-      replace: true,
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    void navigate({ search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as any : {}, replace: true });
   }, [isUrlReady, navigate, searchQueryString, stations, viewQueryString]);
 
   useAbortableAsyncEffect(

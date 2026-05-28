@@ -1,5 +1,5 @@
 // Response removed;
-import { withProtect } from '@/lib/security/route-protection';
+import { withProtect, type RouteContext } from '@/lib/security/route-protection';
 import type { RouteHandler } from '@/lib/security/route-protection';
 import { getOpsApiKey } from '@/lib/security/config';
 import { isApiKeyValid, readOpsApiKey } from '@/lib/security/http';
@@ -31,18 +31,21 @@ function errorResponse(
   );
 }
 
+type OpsApiCtx = RouteContext & { requestId: string; clientIp: string; userAgent: string | null };
+
 export function withOperationalAccess(
   options: OperationalAccessOptions,
   handler: RouteHandler
 ) {
-  return withProtect(
-    { ...options, routeGroup: 'ops.api' },
-    async (request) => {
+  return withProtect<OpsApiCtx>(
+    { route: options.namespace, ...options, routeGroup: 'ops.api' },
+    async (ctx) => {
+      const req = ctx.request;
       const requestId = crypto.randomUUID();
-      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        ?? request.headers.get('x-real-ip')
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        ?? req.headers.get('x-real-ip')
         ?? '127.0.0.1';
-      const userAgent = request.headers.get('user-agent') ?? null;
+      const userAgent = req.headers.get('user-agent') ?? null;
 
       const expectedApiKey = getOpsApiKey();
       const limit = options.limit ?? DEFAULT_OPS_RATE_LIMIT.limit;
@@ -52,7 +55,7 @@ export function withOperationalAccess(
         return { ok: false, response: errorResponse(503, options.misconfiguredError ?? 'Server misconfigured: OPS_API_KEY is required.') };
       }
 
-      const providedKey = readOpsApiKey(request.headers) ?? '';
+      const providedKey = readOpsApiKey(req.headers) ?? '';
       const [ipDecision, keyDecision] = await Promise.all([
         consumeRateLimit({
           namespace: `${options.namespace}:ip`,
@@ -83,7 +86,7 @@ export function withOperationalAccess(
         return { ok: false, response: errorResponse(401, options.unauthorizedError ?? 'Unauthorized. Valid OPS_API_KEY required.', headers) };
       }
 
-      return { ok: true, ctx: { request, requestId, clientIp, userAgent } };
+      return { ok: true, ctx: { ...ctx, requestId, clientIp, userAgent } };
     },
     async (ctx) => {
       const result = await handler(ctx);

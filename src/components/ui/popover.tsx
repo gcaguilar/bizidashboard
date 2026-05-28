@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/react-dom';
 import { cn } from '@/lib/utils';
 
@@ -57,8 +58,7 @@ const PopoverTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsW
     const { open, setOpen, triggerRef } = usePopoverContext();
     const mergedRef = React.useCallback(
       (node: HTMLButtonElement | null) => {
-        if (typeof triggerRef === 'function') triggerRef(node);
-        else if (triggerRef) triggerRef.current = node;
+        if (triggerRef) (triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current = node;
       },
       [triggerRef]
     );
@@ -101,9 +101,8 @@ const PopoverContent = React.forwardRef<
   const { open, contentRef } = usePopoverContext();
   const mergedRef = React.useCallback(
     (node: HTMLDivElement | null) => {
-      if (typeof contentRef === 'function') contentRef(node);
-      else if (contentRef) contentRef.current = node;
-      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      if (contentRef) (contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
     },
     [contentRef, ref]
   );
@@ -136,7 +135,7 @@ function Portal({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return container ? React.createPortal(children, container) : null;
+  return container ? createPortal(children, container) : null;
 }
 
 export { Popover, PopoverClose, PopoverContent, PopoverTrigger };

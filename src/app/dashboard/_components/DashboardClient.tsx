@@ -9,6 +9,7 @@ import type {
   StationsResponse,
   StatusResponse,
 } from '@/lib/api-types';
+
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatStatusDateTime } from '@/lib/system-status';
 import {
@@ -563,10 +564,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       return;
     }
 
-    void navigate({
-      search: Object.fromEntries(nextParams) as Record<string, unknown>,
-      replace: true,
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
   }, [
     activeWindowId,
     mapViewState,
@@ -688,7 +687,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           timeWindow: windowId,
         })
       );
-      setActiveWindowId(windowId);
+      setActiveWindowId(windowId as typeof activeWindowId);
     },
     [activeWindowId, dashboardRouteKey]
   );
@@ -1065,119 +1064,111 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         <ModeIntroBanner mode={viewMode} />
 
         <TabsContent value="overview">
-          {viewMode === 'overview' ? (
-            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de resumen.</div>}>
-              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-                <OverviewModeView
-              status={statusData}
-              stationsGeneratedAt={stationsData.generatedAt}
-              totalStations={totalStationsCount}
-              stations={stationsData.stations}
-              filteredStations={filteredStations}
-              selectedStationId={selectedStationId}
-              onSelectStation={(stationId) =>
-                selectStationWithTracking(stationId, 'overview_mode', 'overview')
-              }
-              favoriteStationIds={favoriteStationIds}
-              onToggleFavorite={toggleFavoriteStation}
-              trendByStationId={stationTrendById}
-              nearestStationId={nearestStation?.stationId ?? null}
-              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-              userLocation={userLocation}
-              mapViewState={mapViewState}
-              onViewStateCommit={setMapViewState}
-              frictionByStationId={frictionByStationId}
-              systemMetrics={systemMetrics}
-              updatedText={updatedText}
-              topFrictionStationName={topFrictionStationName}
-              mobilityPreview={mobilityPreview}
-              activeWindowLabel={activeWindow.label}
-              activeWindowDemandDays={activeWindow.demandDays}
-              currentMonth={parsedSearch.month}
-            />
-            </Suspense>
-            </ViewErrorBoundary>
-          ) : null}
+          <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de resumen.</div>}>
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              {viewMode === 'overview' && <OverviewModeView
+            status={statusData}
+            stationsGeneratedAt={stationsData.generatedAt}
+            totalStations={totalStationsCount}
+            stations={stationsData.stations}
+            filteredStations={filteredStations}
+            selectedStationId={selectedStationId}
+            onSelectStation={(stationId) =>
+              selectStationWithTracking(stationId, 'overview_mode', 'overview')
+            }
+            favoriteStationIds={favoriteStationIds}
+            onToggleFavorite={toggleFavoriteStation}
+            trendByStationId={stationTrendById}
+            nearestStationId={nearestStation?.stationId ?? null}
+            nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+            userLocation={userLocation}
+            mapViewState={mapViewState}
+            onViewStateCommit={setMapViewState}
+            frictionByStationId={frictionByStationId}
+            systemMetrics={systemMetrics}
+            updatedText={updatedText}
+            topFrictionStationName={topFrictionStationName}
+            mobilityPreview={mobilityPreview}
+            activeWindowLabel={activeWindow.label}
+            activeWindowDemandDays={activeWindow.demandDays}
+            currentMonth={parsedSearch.month}
+          />}
+          </Suspense>
+          </ViewErrorBoundary>
         </TabsContent>
 
         <TabsContent value="operations">
-          {viewMode === 'operations' ? (
-            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de operaciones.</div>}>
-              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-                <OperationsModeView
-              stations={stationsData.stations}
-              filteredStations={filteredStations}
-              totalStations={totalStationsCount}
-              selectedStationId={selectedStationId}
-              onSelectStation={(stationId) =>
-                selectStationWithTracking(stationId, 'operations_mode', 'operations')
-              }
-              favoriteStationIds={favoriteStationIds}
-              onToggleFavorite={toggleFavoriteStation}
-              trendByStationId={stationTrendById}
-              nearestStationId={nearestStation?.stationId ?? null}
-              nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
-              userLocation={userLocation}
-              mapViewState={mapViewState}
-              onViewStateCommit={setMapViewState}
-              frictionByStationId={frictionByStationId}
-              alerts={alertsData}
-              rankings={rankingsData}
-              balanceIndex={systemMetrics.balanceIndex}
-              criticalStationsCount={systemMetrics.criticalStations.length}
-              dailyInsight={systemMetrics.dailyInsight}
-              topFrictionStationName={topFrictionStationName}
-              activeAlertsCount={systemMetrics.activeAlerts.length}
-            />
-            </Suspense>
-            </ViewErrorBoundary>
-          ) : null}
+          <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de operaciones.</div>}>
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              {viewMode === 'operations' && <OperationsModeView
+            stations={stationsData.stations}
+            filteredStations={filteredStations}
+            totalStations={totalStationsCount}
+            selectedStationId={selectedStationId}
+            onSelectStation={(stationId) =>
+              selectStationWithTracking(stationId, 'operations_mode', 'operations')
+            }
+            favoriteStationIds={favoriteStationIds}
+            onToggleFavorite={toggleFavoriteStation}
+            trendByStationId={stationTrendById}
+            nearestStationId={nearestStation?.stationId ?? null}
+            nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
+            userLocation={userLocation}
+            mapViewState={mapViewState}
+            onViewStateCommit={setMapViewState}
+            frictionByStationId={frictionByStationId}
+            alerts={alertsData}
+            rankings={rankingsData}
+            balanceIndex={systemMetrics.balanceIndex}
+            criticalStationsCount={systemMetrics.criticalStations.length}
+            dailyInsight={systemMetrics.dailyInsight}
+            topFrictionStationName={topFrictionStationName}
+            activeAlertsCount={systemMetrics.activeAlerts.length}
+          />}
+          </Suspense>
+          </ViewErrorBoundary>
         </TabsContent>
 
         <TabsContent value="research">
-          {viewMode === 'research' ? (
-            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de investigación.</div>}>
-              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-                <ResearchModeView
-              stations={stationsData.stations}
-              filteredStations={filteredStations}
-              selectedStationId={selectedStationId}
-              onSelectStation={(stationId) =>
-                selectStationWithTracking(stationId, 'research_mode', 'research')
-              }
-              favoriteStationIds={favoriteStationIds}
-              onToggleFavorite={toggleFavoriteStation}
-              trendByStationId={stationTrendById}
-              nearestStationId={nearestStation?.stationId ?? null}
-              rankings={rankingsData}
-              dailyDemand={mobilityPreview.dailyDemand}
-              systemHourlyProfile={mobilityPreview.systemHourlyProfile}
-              hourlySignals={mobilityPreview.hourlySignals}
-              windowLabel={activeWindow.label}
-              requestedDays={activeWindow.demandDays}
-              recentSnapshots={recentSnapshots}
-              currentMonth={parsedSearch.month}
-            />
-            </Suspense>
-            </ViewErrorBoundary>
-          ) : null}
+          <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de investigación.</div>}>
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              {viewMode === 'research' && <ResearchModeView
+            stations={stationsData.stations}
+            filteredStations={filteredStations}
+            selectedStationId={selectedStationId}
+            onSelectStation={(stationId) =>
+              selectStationWithTracking(stationId, 'research_mode', 'research')
+            }
+            favoriteStationIds={favoriteStationIds}
+            onToggleFavorite={toggleFavoriteStation}
+            trendByStationId={stationTrendById}
+            nearestStationId={nearestStation?.stationId ?? null}
+            rankings={rankingsData}
+            dailyDemand={mobilityPreview.dailyDemand}
+            systemHourlyProfile={mobilityPreview.systemHourlyProfile}
+            hourlySignals={mobilityPreview.hourlySignals}
+            windowLabel={activeWindow.label}
+            requestedDays={activeWindow.demandDays}
+            recentSnapshots={recentSnapshots}
+            currentMonth={parsedSearch.month}
+          />}
+          </Suspense>
+          </ViewErrorBoundary>
         </TabsContent>
 
         <TabsContent value="data">
-          {viewMode === 'data' ? (
-            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de datos.</div>}>
-              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-                <DataModeView
-              stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
-              frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
-              historyJsonUrl={appRoutes.api.history()}
-              historyCsvUrl={appRoutes.api.history({ format: 'csv' })}
-              alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
-              statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
-            />
-            </Suspense>
-            </ViewErrorBoundary>
-          ) : null}
+          <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de datos.</div>}>
+            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+              {viewMode === 'data' && <DataModeView
+            stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
+            frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
+            historyJsonUrl={appRoutes.api.history()}
+            historyCsvUrl={appRoutes.api.history({ format: 'csv' })}
+            alertsCsvUrl={appRoutes.api.alertsHistory({ format: 'csv', state: 'all', limit: 500 })}
+            statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
+          />}
+          </Suspense>
+          </ViewErrorBoundary>
         </TabsContent>
       </Tabs>
 

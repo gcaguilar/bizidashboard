@@ -71,7 +71,7 @@ export interface ValidationAdapter {
  * At the seam, the default implementation delegates to `data-storage`.
  */
 export interface StorageAdapter {
-  upsertStations: (stations: StationInformation[]) => Promise<void>;
+  upsertStations: (stations: StationInformation[]) => Promise<{ createdOrUpdated: number }>;
   getMissingStationIds: (stationIds: string[]) => Promise<string[]>;
   getSnapshotCount: (recordedAt: Date) => Promise<number>;
   getStationMetadataCount: () => Promise<number>;
@@ -120,7 +120,7 @@ function makeDefaultValidationAdapter(): ValidationAdapter {
 
 function makeDefaultStorageAdapter(): StorageAdapter {
   return {
-    upsertStations,
+    upsertStations: (stations) => upsertStations(stations),
     getMissingStationIds,
     getSnapshotCount,
     getStationMetadataCount,
