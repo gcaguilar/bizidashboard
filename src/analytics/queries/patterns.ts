@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { executeRollupPipeline } from '@/analytics/rollup-engine';
+import { getLocalBucket } from '@/analytics/time-buckets';
 import type { RollupResult } from '@/analytics/types';
 
 const PATTERN_WATERMARK = 'pattern_rollup';
@@ -20,14 +21,18 @@ export async function runPatternRollup(cutoff: Date): Promise<RollupResult> {
       WHERE "bucketStart" > ${windowStart} AND "bucketStart" <= ${windowEnd}
     `,
     sourceColumns: 'stationId,bucketStart,bikesAvg,anchorsAvg,occupancyAvg,sampleCount',
-    transform: (row: Record<string, unknown>) => ({
-      stationId: String(row.stationId),
-      bucketStart: row.bucketStart,
-      bikesAvg: Number(row.bikesAvg),
-      anchorsAvg: Number(row.anchorsAvg),
-      occupancyAvg: Number(row.occupancyAvg),
-      sampleCount: Number(row.sampleCount),
-    }),
+    transform: (row: Record<string, unknown>) => {
+      const localBucket = getLocalBucket(row.bucketStart as Date);
+      return {
+        stationId: String(row.stationId),
+        dayType: localBucket.dayType,
+        hour: localBucket.hour,
+        bikesAvg: Number(row.bikesAvg),
+        anchorsAvg: Number(row.anchorsAvg),
+        occupancyAvg: Number(row.occupancyAvg),
+        sampleCount: Number(row.sampleCount),
+      };
+    },
     upsertQuery: (rows: { stationId: string; dayType: string; hour: number; bikesAvg: number; anchorsAvg: number; occupancyAvg: number; sampleCount: number }[]) => {
       const values = rows.map((r) =>
         Prisma.sql`(${r.stationId}, ${r.dayType}, ${r.hour}, ${r.bikesAvg}, ${r.anchorsAvg}, ${r.occupancyAvg}, ${r.sampleCount})`
