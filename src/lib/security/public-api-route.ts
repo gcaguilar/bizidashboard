@@ -1,8 +1,10 @@
 // Response removed;
 import { enforcePublicApiAccess, type PublicApiAccessResult } from '@/lib/security/public-api';
-import { withProtect, type RouteContext } from '@/lib/security/route-protection';
+import { withProtect, type RouteContext, type RouteResult } from '@/lib/security/route-protection';
 
-export type PublicApiRouteHandler = (params: RouteContext & { access: PublicApiAccessResult }) => Promise<Response> | Response;
+type PublicApiCtx = RouteContext & { access: Extract<PublicApiAccessResult, { ok: true }> };
+
+export type PublicApiRouteHandler = (params: PublicApiCtx) => Promise<Response> | Response;
 
 export type PublicApiRouteOptions = {
   route: string;
@@ -18,7 +20,7 @@ export function withPublicApiRoute(
   options: PublicApiRouteOptions,
   handler: PublicApiRouteHandler
 ) {
-  return withProtect(
+  return withProtect<PublicApiCtx>(
     { route: options.route, routeGroup: options.routeGroup, cacheControl: options.cacheControl },
     async (ctx) => {
       const access = await enforcePublicApiAccess({
@@ -39,8 +41,7 @@ export function withPublicApiRoute(
         return { ok: false, response: access.response };
       }
 
-      // Attach access to context for the handler
-      const enrichedCtx = { ...ctx, access } as RouteContext & { access: PublicApiAccessResult };
+      const enrichedCtx: PublicApiCtx = { ...ctx, access };
       return { ok: true, ctx: enrichedCtx };
     },
     handler
