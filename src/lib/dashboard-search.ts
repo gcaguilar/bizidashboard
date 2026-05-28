@@ -48,6 +48,20 @@ export type DashboardMonthPeriodSearchState = {
   period: (typeof PERIODS)[number]['key'];
 };
 
+function normalizeStationIdValue(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
 export function parseDashboardClientSearch(
   params: URLSearchParams | { get: (name: string) => string | null }
 ): DashboardClientSearchState {
@@ -64,7 +78,7 @@ export function parseDashboardClientSearch(
 
   return {
     mode: resolveDashboardViewMode(mode.success ? mode.data : undefined),
-    stationId: stationId.success ? stationId.data ?? null : null,
+    stationId: stationId.success ? normalizeStationIdValue(stationId.data) : null,
     q: q.success ? q.data ?? '' : '',
     timeWindow: timeWindow.success ? timeWindow.data ?? '30d' : '30d',
     onlyWithBikes: onlyWithBikes.success ? Boolean(onlyWithBikes.data) : false,
