@@ -54,6 +54,26 @@ export const Route = createFileRoute('/api/install/register/')({
             return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
+          const existingInstall = await prisma.install.findFirst({
+            where: { publicKeyFingerprint },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          if (existingInstall) {
+            const reissuedToken = await issueRefreshToken(existingInstall.installId);
+            await prisma.install.update({
+              where: { installId: existingInstall.installId },
+              data: {
+                lastSeenAt: reissuedToken.issuedAt,
+                refreshTokenHash: hashToken(reissuedToken.token),
+                refreshTokenIssuedAt: reissuedToken.issuedAt,
+                isActive: true,
+              },
+            });
+            await recordSecurityEvent({ eventType: 'install_reregistered', route: '/api/install/register', requestId, installId: existingInstall.installId, ip: clientIp, userAgent, outcome: 'success', metadata: { platform: parsed.data.platform } });
+            return new Response(JSON.stringify({ installId: existingInstall.installId, refreshToken: reissuedToken.token }), { status: 200, headers: { 'Content-Type': 'application/json', ...baseHeaders } });
+          }
+
           const installId = randomUUID()
           const issuedRefreshToken = await issueRefreshToken(installId)
 

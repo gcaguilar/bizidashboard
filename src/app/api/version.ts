@@ -15,7 +15,6 @@ async function getHandler() {
     version: process.env.IMAGE_TAG ?? 'dev',
     gitSha: process.env.GIT_SHA ?? (await getGitShaFallback()),
     buildDate: process.env.BUILD_DATE ?? new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV ?? 'development',
     timestamp: new Date().toISOString(),
   }
   return new Response(JSON.stringify(payload), {

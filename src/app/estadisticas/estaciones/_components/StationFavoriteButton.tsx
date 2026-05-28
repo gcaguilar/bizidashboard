@@ -30,26 +30,30 @@ export function StationFavoriteButton({ stationId }: StationFavoriteButtonProps)
   }, [stationId])
 
   const toggleFavorite = () => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY)
-      const parsed = raw ? JSON.parse(raw) : []
-      const ids: string[] = Array.isArray(parsed) ? parsed : []
-      const nextFavorite = !isFavorite
-      const next = nextFavorite
-        ? [...ids, stationId]
-        : ids.filter(id => id !== stationId)
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(next))
-      setIsFavorite(nextFavorite)
-      trackUmamiEvent(
-        buildCtaClickEvent({
-          surface: 'public',
-          routeKey,
-          ctaId: nextFavorite ? 'favorite_station' : 'unfavorite_station',
-          source: 'station_detail',
-          entityType: 'station',
-        }),
-      )
-    } catch {}
+    setIsFavorite((prevFavorite) => {
+      try {
+        const raw = localStorage.getItem(FAVORITES_KEY)
+        const parsed = raw ? JSON.parse(raw) : []
+        const ids: string[] = Array.isArray(parsed) ? parsed : []
+        const nextFavorite = !prevFavorite
+        const next = nextFavorite
+          ? [...ids, stationId]
+          : ids.filter(id => id !== stationId)
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(next))
+        trackUmamiEvent(
+          buildCtaClickEvent({
+            surface: 'public',
+            routeKey,
+            ctaId: nextFavorite ? 'favorite_station' : 'unfavorite_station',
+            source: 'station_detail',
+            entityType: 'station',
+          }),
+        )
+        return nextFavorite
+      } catch {
+        return prevFavorite
+      }
+    })
   }
 
   return (

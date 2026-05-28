@@ -144,6 +144,11 @@ async function loadDistrictCollection(): Promise<DistrictCollection | null> {
     throw new Error(`HTTP ${response.status}`);
   }
 
+  const contentType = response.headers.get('content-type');
+  if (!contentType?.includes('application/json') && !contentType?.includes('geo+json')) {
+    throw new Error(`Expected GeoJSON but got ${contentType}`);
+  }
+
   const payload: unknown = await response.json();
   return isDistrictCollection(payload) ? payload : null;
 }

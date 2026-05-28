@@ -26,7 +26,11 @@ export const Route = createFileRoute('/api/status/')({
           const payload = { ...data, dataState: resolveStatusDataState(data) }
 
           if (format === 'csv') {
-            const csv = 'timestamp,lastCollection,status\n' + (payload.pipeline?.lastSuccessfulPoll || '') + ',' + (payload.pipeline?.lastSuccessfulPoll || '') + ',' + (payload.quality?.freshness?.lastUpdated || '')
+            const escapeCsv = (v: string) => v.includes(',') || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
+            const csv = 'timestamp,lastCollection,status\n'
+              + escapeCsv(new Date().toISOString()) + ','
+              + escapeCsv(payload.pipeline?.lastSuccessfulPoll ?? '') + ','
+              + escapeCsv(payload.quality?.freshness?.lastUpdated ?? '')
             return new Response(csv, {
               status: 200,
               headers: { 'Content-Type': 'text/csv; charset=utf-8', ...access.headers },

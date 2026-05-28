@@ -84,6 +84,8 @@ export async function setCachedJson(
   }
 }
 
+const inflight = new Map<string, Promise<unknown>>()
+
 export async function withCache<T>(
   key: string,
   ttlSeconds: number = DEFAULT_TTL_SECONDS,
@@ -93,7 +95,22 @@ export async function withCache<T>(
 
   if (cachedValue !== null) return cachedValue
 
-  const freshValue = await fetcher()
-  await setCachedJson(key, freshValue, ttlSeconds)
-  return freshValue
+  const namespacedKey = getNamespacedKey(key)
+  if (inflight.has(namespacedKey)) {
+    return inflight.get(namespacedKey) as Promise<T>
+  }
+
+  const promise = fetcher()
+    .then(async (freshValue) => {
+      await setCachedJson(key, freshValue, ttlSeconds)
+      inflight.delete(namespacedKey)
+      return freshValue
+    })
+    .catch((error) => {
+      inflight.delete(namespacedKey)
+      throw error
+    })
+
+  inflight.set(namespacedKey, promise)
+  return promise
 }

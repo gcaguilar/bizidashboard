@@ -1,5 +1,5 @@
 'use client';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, Component, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, Component, type ReactNode } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -317,6 +317,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
   const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const isRefreshingRef = useRef(false);
+  const stationsDataRef = useRef(stationsData);
+  stationsDataRef.current = stationsData;
+  const statusDataRef = useRef(statusData);
+  statusDataRef.current = statusData;
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
@@ -517,19 +522,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, [isGeolocationEnabled]);
 
   useEffect(() => {
-     
-    if (filteredStations.length === 0) {
-       
-      setSelectedStationId('');
-      return;
-    }
-
-    if (filteredStations.some((station) => station.id === selectedStationId)) {
-      return;
-    }
-
-    setSelectedStationId(filteredStations[0]?.id ?? '');
-  }, [filteredStations, selectedStationId]);
+    setSelectedStationId((current) => {
+      if (filteredStations.length === 0) return '';
+      if (filteredStations.some((station) => station.id === current)) return current;
+      return filteredStations[0]?.id ?? '';
+    });
+  }, [filteredStations]);
 
   useEffect(() => {
     const stationIdFromUrl = resolveStationId(stationsData.stations, parsedSearch.stationId);
@@ -750,9 +748,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   }, []);
 
   const refreshDashboardData = useCallback(async () => {
-    if (isRefreshingData) {
+    if (isRefreshingRef.current) {
       return;
     }
+
+    isRefreshingRef.current = true;
+    setIsRefreshingData(true);
 
     const fetchJson = async <T,>(url: string): Promise<RefreshPayload<T>> => {
       try {
@@ -783,8 +784,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       }
     };
 
-    setIsRefreshingData(true);
-
     try {
       const rankingLimit = Math.max(50, Math.min(200, stationsData.stations.length || 50));
 
@@ -802,7 +801,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         const previousSnapshot = parseStationSnapshot(
           window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
         );
-        const fallbackSnapshot = buildStationSnapshotMap(stationsData.stations);
+        const fallbackSnapshot = buildStationSnapshotMap(stationsDataRef.current.stations);
         const trendSource = previousSnapshot ?? fallbackSnapshot;
 
         setStationTrendById(computeStationTrends(trendSource, stationsResult.data.stations));
@@ -846,8 +845,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         setStatusData(statusResult.data);
       }
 
-      const latestStations = stationsResult.ok ? stationsResult.data : stationsData;
-      const latestStatus = statusResult.ok ? statusResult.data : statusData;
+      const latestStations = stationsResult.ok ? stationsResult.data : stationsDataRef.current;
+      const latestStatus = statusResult.ok ? statusResult.data : statusDataRef.current;
       let nextRefresh = resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus, Date.now());
 
       const rateLimitSeconds = [
@@ -869,9 +868,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       setNextRefreshAt(nextRefresh);
     } finally {
+      isRefreshingRef.current = false;
       setIsRefreshingData(false);
     }
-  }, [initialData.dataset, stationsData, statusData, isRefreshingData]);
+  }, [initialData.dataset]);
 
   useEffect(() => {
     const delayMs = nextRefreshAt.getTime() - Date.now();

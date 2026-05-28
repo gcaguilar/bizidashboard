@@ -230,13 +230,25 @@ export function MapEngine({
     });
   }, [favoriteStationSet, frictionByStationId, selectedStationId, stations]);
 
-  const selectedStation = useMemo(() => {
-    if (!selectedStationId) {
-      return null;
+  const selectedStationPosition = useMemo(() => {
+    if (!selectedStationId) return null;
+    const station = stations.find((s) => s.id === selectedStationId);
+    if (!station || !Number.isFinite(station.lat) || !Number.isFinite(station.lon)) return null;
+    return { lat: station.lat, lon: station.lon };
+  }, [selectedStationId, stations]);
+
+  useEffect(() => {
+    if (!isMapReady || !selectedStationPosition) {
+      return;
     }
 
-    return stations.find((station) => station.id === selectedStationId) ?? null;
-  }, [selectedStationId, stations]);
+    mapRef.current?.flyTo({
+      center: [selectedStationPosition.lon, selectedStationPosition.lat],
+      zoom: FOCUS_ZOOM,
+      duration: 850,
+      essential: true,
+    });
+  }, [isMapReady, selectedStationPosition]);
 
   const popupStation = useMemo(() => {
     if (!selectedStationId || dismissedPopupId === selectedStationId) {
@@ -245,23 +257,6 @@ export function MapEngine({
 
     return stations.find((station) => station.id === selectedStationId) ?? null;
   }, [dismissedPopupId, selectedStationId, stations]);
-
-  useEffect(() => {
-    if (!isMapReady || !selectedStation) {
-      return;
-    }
-
-    if (!Number.isFinite(selectedStation.lat) || !Number.isFinite(selectedStation.lon)) {
-      return;
-    }
-
-    mapRef.current?.flyTo({
-      center: [selectedStation.lon, selectedStation.lat],
-      zoom: FOCUS_ZOOM,
-      duration: 850,
-      essential: true,
-    });
-  }, [isMapReady, selectedStation]);
 
   const handleZoomIn = () => {
     mapRef.current?.getMap()?.zoomIn({ duration: 240 });

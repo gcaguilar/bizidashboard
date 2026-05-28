@@ -178,6 +178,11 @@ async function fetchNominatim(url: URL, locale: string): Promise<Response> {
       throw new Error(`Nominatim API error: ${response.status}.${policyHint}${detail}`);
     }
 
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      throw new Error(`Nominatim returned non-JSON response: ${contentType}`);
+    }
+
     return response;
   });
 }
