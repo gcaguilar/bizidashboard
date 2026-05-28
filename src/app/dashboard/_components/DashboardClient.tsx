@@ -1,5 +1,5 @@
 'use client';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, Component, type ReactNode } from 'react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
@@ -49,10 +49,21 @@ import {
 import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 
+class ViewErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
 const OverviewModeView = lazy(() => import('./OverviewModeView').then(m => ({ default: m.OverviewModeView })));
 const OperationsModeView = lazy(() => import('./OperationsModeView').then(m => ({ default: m.OperationsModeView })));
 const ResearchModeView = lazy(() => import('./ResearchModeView').then(m => ({ default: m.ResearchModeView })));
 const DataModeView = lazy(() => import('./DataModeView').then(m => ({ default: m.DataModeView })));
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 export type DashboardInitialData = {
   dataset: SharedDatasetSnapshot;
@@ -1073,8 +1084,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
         <TabsContent value="overview">
           {viewMode === 'overview' ? (
-            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-              <OverviewModeView
+            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de resumen.</div>}>
+              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+                <OverviewModeView
               status={statusData}
               stationsGeneratedAt={stationsData.generatedAt}
               totalStations={totalStationsCount}
@@ -1102,13 +1114,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               currentMonth={parsedSearch.month}
             />
             </Suspense>
+            </ViewErrorBoundary>
           ) : null}
         </TabsContent>
 
         <TabsContent value="operations">
           {viewMode === 'operations' ? (
-            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-              <OperationsModeView
+            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de operaciones.</div>}>
+              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+                <OperationsModeView
               stations={stationsData.stations}
               filteredStations={filteredStations}
               totalStations={totalStationsCount}
@@ -1134,13 +1148,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               activeAlertsCount={systemMetrics.activeAlerts.length}
             />
             </Suspense>
+            </ViewErrorBoundary>
           ) : null}
         </TabsContent>
 
         <TabsContent value="research">
           {viewMode === 'research' ? (
-            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-              <ResearchModeView
+            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de investigación.</div>}>
+              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+                <ResearchModeView
               stations={stationsData.stations}
               filteredStations={filteredStations}
               selectedStationId={selectedStationId}
@@ -1161,13 +1177,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               currentMonth={parsedSearch.month}
             />
             </Suspense>
+            </ViewErrorBoundary>
           ) : null}
         </TabsContent>
 
         <TabsContent value="data">
           {viewMode === 'data' ? (
-            <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
-              <DataModeView
+            <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de datos.</div>}>
+              <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
+                <DataModeView
               stationsCsvUrl={appRoutes.api.stations({ format: 'csv' })}
               frictionCsvUrl={appRoutes.api.rankings({ type: 'availability', limit: 200, format: 'csv' })}
               historyJsonUrl={appRoutes.api.history()}
@@ -1176,6 +1194,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               statusCsvUrl={appRoutes.api.status({ format: 'csv' })}
             />
             </Suspense>
+            </ViewErrorBoundary>
           ) : null}
         </TabsContent>
       </Tabs>
@@ -1188,10 +1207,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 }
 
 function FooterYear() {
-  const year = new Date().getFullYear();
   return (
     <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
-      &copy; {year} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
+      &copy; {CURRENT_YEAR} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
     </footer>
   );
 }

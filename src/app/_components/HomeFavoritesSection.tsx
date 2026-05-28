@@ -25,7 +25,10 @@ export function HomeFavoritesSection({ stationRows }: HomeFavoritesSectionProps)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) setFavoriteIds(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setFavoriteIds(parsed);
+      }
     } catch {}
   }, []);
 

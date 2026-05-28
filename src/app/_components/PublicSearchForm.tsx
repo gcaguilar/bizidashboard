@@ -38,6 +38,7 @@ export function PublicSearchForm({
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const blurTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const [query, setQuery] = useState(defaultQuery);
   const [stations, setStations] = useState<StationSuggestion[]>([]);
@@ -49,7 +50,10 @@ export function PublicSearchForm({
   useEffect(() => {
     const controller = new AbortController();
     fetch(appRoutes.api.stations(), { signal: controller.signal })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (data?.stations) setStations(data.stations);
       })
@@ -65,6 +69,10 @@ export function PublicSearchForm({
         if (Array.isArray(ids)) setFavoriteIds(ids);
       }
     } catch {}
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeout(blurTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -155,7 +163,7 @@ export function PublicSearchForm({
             }}
             onBlur={() => {
               const timer = setTimeout(() => setShowSuggestions(false), 150);
-              (document.activeElement as HTMLElement | null)?.addEventListener?.('focus', () => clearTimeout(timer), { once: true });
+              blurTimerRef.current = timer;
             }}
             onKeyDown={handleKeyDown}
             className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"

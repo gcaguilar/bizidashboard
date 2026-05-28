@@ -19,6 +19,7 @@ function getPreferredTheme(): Theme {
 }
 
 function applyTheme(theme: Theme): void {
+  if (typeof document === 'undefined') return;
   const isDark = theme === 'dark';
   const root = document.documentElement;
 

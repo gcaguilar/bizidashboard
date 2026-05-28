@@ -108,9 +108,11 @@ function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
+  document.body.appendChild(link);
   link.href = url;
   link.download = `${filename}.csv`;
   link.click();
+  document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 

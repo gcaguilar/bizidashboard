@@ -70,19 +70,21 @@ export function DashboardHeader({
   canUseGeolocation,
   onJumpToNearest,
   canJumpToNearest,
-  nextRefreshAt = new Date(),
+  nextRefreshAt,
   refreshDurationMs = 300_000,
 }: DashboardHeaderProps) {
   const hasAvailabilityFilter = filteredOutCount > 0;
-  const [countdownMs, setCountdownMs] = useState(() => Math.max(0, nextRefreshAt.getTime() - Date.now()));
+  const refreshDate = nextRefreshAt ?? new Date(Date.now() + 300_000);
+  const [countdownMs, setCountdownMs] = useState(() => Math.max(0, refreshDate.getTime() - Date.now()));
 
   useEffect(() => {
-    setCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
+    const targetMs = Math.max(0, refreshDate.getTime() - Date.now());
+    setCountdownMs(targetMs);
     const id = window.setInterval(() => {
-      setCountdownMs(Math.max(0, nextRefreshAt.getTime() - Date.now()));
+      setCountdownMs(Math.max(0, refreshDate.getTime() - Date.now()));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [nextRefreshAt]);
+  }, [refreshDate]);
 
   const refreshProgress = ((refreshDurationMs - Math.max(0, countdownMs)) / refreshDurationMs) * 100;
   const safeMs = Math.max(0, countdownMs);
