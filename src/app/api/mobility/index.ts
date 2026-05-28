@@ -17,9 +17,10 @@ export const Route = createFileRoute('/api/mobility/')({
         },
         async ({ request }) => {
           const { searchParams } = new URL(request.url)
-          const mobilityDays = Number(searchParams.get('mobilityDays')) || 14
-          const demandDays = Number(searchParams.get('demandDays')) || 30
-          const monthKey = searchParams.get('month') ?? undefined
+          const mobilityDays = Math.min(Math.max(1, Number(searchParams.get('mobilityDays')) || 14), 365)
+          const demandDays = Math.min(Math.max(1, Number(searchParams.get('demandDays')) || 30), 365)
+          const monthKeyRaw = searchParams.get('month')
+          const monthKey = monthKeyRaw && /^\d{4}-\d{2}$/.test(monthKeyRaw) ? monthKeyRaw : undefined
 
           const payload = await getMobilityData({
             mobilityDays,

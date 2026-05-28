@@ -62,9 +62,10 @@ export const Route = createFileRoute('/api/rankings/')({
           }
 
           if (format === 'csv') {
+            const escapeCsv = (v: string | number) => String(v).includes(',') || String(v).includes('"') ? `"${String(v).replace(/"/g, '""')}"` : String(v);
             const headers = ['stationId', 'turnoverScore', 'emptyHours', 'fullHours', 'totalHours']
             const rows = payload.rankings.map((r) => [r.stationId, r.turnoverScore, r.emptyHours, r.fullHours, r.totalHours])
-            const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
+            const csv = [headers, ...rows].map((r) => r.map(escapeCsv).join(',')).join('\n')
             return new Response(csv, {
               status: 200,
               headers: { 'Content-Type': 'text/csv; charset=utf-8', ...access.headers },

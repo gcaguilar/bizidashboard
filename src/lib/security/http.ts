@@ -156,7 +156,7 @@ export function buildMobileCorsHeaders(request: Request): Record<string, string>
   }
 
   if (!allowedOrigins.includes(origin)) {
-    return {};
+    return { Vary: 'Origin' };
   }
 
   return {

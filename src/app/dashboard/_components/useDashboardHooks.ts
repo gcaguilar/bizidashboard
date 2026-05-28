@@ -70,7 +70,6 @@ export function useFavorites(options: UseFavoritesOptions = {}): UseFavoritesRes
 
   const clearFavorites = useCallback(() => {
     setFavoriteIds([]);
-    localStorage.removeItem(FAVORITES_STORAGE_KEY);
   }, []);
 
   return {

@@ -30,18 +30,12 @@ export function useHasFavorites(): boolean {
 }
 
 export function useIsMobile() {
+  const [mq] = useState(() => window.matchMedia('(max-width: 767px)'));
   const subscribe = (cb: () => void) => {
-    const mq = window.matchMedia('(max-width: 767px)');
     mq.addEventListener('change', cb);
     return () => mq.removeEventListener('change', cb);
   };
-  const getSnapshot = () => {
-    try {
-      return window.matchMedia('(max-width: 767px)').matches;
-    } catch {
-      return false;
-    }
-  };
+  const getSnapshot = () => mq.matches;
   const getServerSnapshot = () => false;
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
