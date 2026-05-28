@@ -30,7 +30,7 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                 {isLast ? (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (
-                  <TrackedLink href={item.href}
+                  <TrackedLink href={item.href ?? undefined}
                     className="rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                   >
                     {item.label}
