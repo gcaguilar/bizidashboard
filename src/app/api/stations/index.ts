@@ -47,7 +47,9 @@ export const Route = createFileRoute('/api/stations/')({
                 capacity: station.capacity,
                 bikesAvailable: station.bikesAvailable,
                 anchorsFree: station.anchorsFree,
-                recordedAt: station.recordedAt,
+                recordedAt: (station.recordedAt as unknown as Date) instanceof Date
+                  ? (station.recordedAt as unknown as Date).toISOString()
+                  : station.recordedAt,
               }))
             )
             return new Response(csv, {
