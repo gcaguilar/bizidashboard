@@ -194,6 +194,23 @@ function writeJsonStorageItem(storage: Storage, key: string, value: unknown): vo
   }
 }
 
+function areSearchParamsEqual(a: URLSearchParams, b: URLSearchParams): boolean {
+  const aEntries = Array.from(a.entries()).sort(([ka, va], [kb, vb]) => ka.localeCompare(kb) || va.localeCompare(vb));
+  const bEntries = Array.from(b.entries()).sort(([ka, va], [kb, vb]) => ka.localeCompare(kb) || va.localeCompare(vb));
+
+  if (aEntries.length !== bEntries.length) {
+    return false;
+  }
+
+  for (let i = 0; i < aEntries.length; i++) {
+    if (aEntries[i][0] !== bEntries[i][0] || aEntries[i][1] !== bEntries[i][1]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function toTimestamp(value: string | null | undefined): number | null {
   if (!value) {
     return null;
@@ -543,7 +560,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       mapViewState,
     });
 
-    const hasChanges = nextParams.toString() !== searchParams.toString();
+    const hasChanges = !areSearchParamsEqual(nextParams, searchParams);
 
     if (!hasChanges) {
       return;

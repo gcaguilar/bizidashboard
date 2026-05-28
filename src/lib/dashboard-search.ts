@@ -34,6 +34,7 @@ export type DashboardClientSearchState = {
   onlyWithBikes: boolean;
   onlyWithAnchors: boolean;
   mapViewState: DashboardMapViewState;
+  month: string | null;
 };
 
 export type DashboardRankingSearchState = {
@@ -59,6 +60,7 @@ export function parseDashboardClientSearch(
   const mapLat = dashboardSearchSchema.shape.mapLat.safeParse(params.get('mapLat') ?? undefined);
   const mapLng = dashboardSearchSchema.shape.mapLng.safeParse(params.get('mapLng') ?? undefined);
   const mapZoom = dashboardSearchSchema.shape.mapZoom.safeParse(params.get('mapZoom') ?? undefined);
+  const month = dashboardSearchSchema.shape.month.safeParse(params.get('month') ?? undefined);
 
   return {
     mode: resolveDashboardViewMode(mode.success ? mode.data : undefined),
@@ -72,6 +74,7 @@ export function parseDashboardClientSearch(
       longitude: mapLng.success ? mapLng.data ?? DEFAULT_DASHBOARD_MAP_VIEW.longitude : DEFAULT_DASHBOARD_MAP_VIEW.longitude,
       zoom: mapZoom.success ? mapZoom.data ?? DEFAULT_DASHBOARD_MAP_VIEW.zoom : DEFAULT_DASHBOARD_MAP_VIEW.zoom,
     },
+    month: month.success ? month.data ?? null : null,
   };
 }
 
