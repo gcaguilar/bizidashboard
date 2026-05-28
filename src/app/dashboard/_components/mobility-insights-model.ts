@@ -32,8 +32,8 @@ export type MobilityResponse = {
   demandDays?: number;
   selectedMonth?: string | null;
   methodology?: string;
-  hourlySignals?: MobilitySignalRow[];
-  dailyDemand?: DailyDemandRow[];
+  hourlySignals: MobilitySignalRow[];
+  dailyDemand: DailyDemandRow[];
   systemHourlyProfile?: Array<{ hour: number; avgOccupancy: number; sampleCount: number }>;
   generatedAt?: string;
   dataState?: DataState;
@@ -130,10 +130,7 @@ export function isMobilityResponse(value: unknown): value is MobilityResponse {
   const hasMethodology = typeof obj.methodology === 'string';
   const hasHourlySignals = Array.isArray(obj.hourlySignals);
   const hasDailyDemand = Array.isArray(obj.dailyDemand);
-  if (!hasMethodology && !hasDailyDemand) {
-    return false;
-  }
-  if (!hasHourlySignals && !hasDailyDemand) {
+  if (!hasMethodology || !hasHourlySignals || !hasDailyDemand) {
     return false;
   }
   return true;

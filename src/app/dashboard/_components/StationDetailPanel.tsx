@@ -21,8 +21,7 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatStatusDateTime } from '@/lib/system-status';
 import { TIMEZONE } from '@/lib/timezone';
 import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
-import { loadMobilityData } from './mobility-api';
-import type { MobilityResponse } from './mobility-insights-model';
+import { loadMobilityData, normalizeMobilityPreviewData, type MobilityPreviewData } from './mobility-api';
 
 type StationDetailPanelProps = {
   station: StationSnapshot | null;
@@ -95,7 +94,7 @@ export function StationDetailPanel({
   selectedMonth = null,
 }: StationDetailPanelProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [mobility, setMobility] = useState<MobilityResponse | null>(null);
+  const [mobility, setMobility] = useState<MobilityPreviewData | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
 
@@ -110,7 +109,7 @@ export function StationDetailPanel({
         }),
       ]);
 
-      if (!districtPayload || !Array.isArray(mobilityPayload.hourlySignals)) {
+      if (!districtPayload) {
         throw new Error('No se pudieron cargar datos auxiliares de estacion.');
       }
 
@@ -122,7 +121,7 @@ export function StationDetailPanel({
         setDistricts(districtPayload);
       }
 
-      setMobility(mobilityPayload);
+      setMobility(normalizeMobilityPreviewData(mobilityPayload));
     },
     [demandDays, mobilityDays, selectedMonth],
     {
