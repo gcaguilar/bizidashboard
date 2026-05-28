@@ -60,6 +60,7 @@ describe('dashboard search schema', () => {
         longitude: -0.88,
         zoom: 12,
       },
+      month: null,
     });
   });
 
