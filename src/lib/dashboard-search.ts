@@ -11,7 +11,7 @@ export const DASHBOARD_DENSITIES = ['quick', 'full'] as const;
 
 export const dashboardSearchSchema = z.object({
   mode: z.enum(DASHBOARD_VIEW_MODES).optional(),
-  stationId: z.string().trim().min(1).optional(),
+  stationId: z.coerce.string().trim().min(1).optional(),
   q: z.string().trim().max(120).optional(),
   timeWindow: z.enum(DASHBOARD_TIME_WINDOWS).optional(),
   onlyWithBikes: z.enum(DASHBOARD_BOOLEAN_FILTER_VALUES).optional(),
