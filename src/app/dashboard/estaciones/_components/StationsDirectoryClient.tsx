@@ -13,7 +13,6 @@ import { appRoutes } from '@/lib/routes';
 import { buildEntitySelectEvent } from '@/lib/umami';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
-import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 
@@ -69,7 +68,6 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
             <h1 className="text-xl font-bold text-[var(--foreground)]">Directorio de estaciones</h1>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
         </div>
