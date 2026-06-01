@@ -40,7 +40,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones criticas</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Prioriza estaciones vacias, llenas o con ocupacion extrema para actuar antes de que aumente la friccion.</p>
         </div>
-        <TrackedLink href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
           Entender criterio
         </TrackedLink>
       </div>
