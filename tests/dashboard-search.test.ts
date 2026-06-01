@@ -95,6 +95,19 @@ describe('dashboard search schema', () => {
     expect(normalizeStationIdValue(null)).toBeNull();
   });
 
+  it('accepts numeric stationId values from router JSON parsing', () => {
+    const parsedFromNumber = parseDashboardClientSearch(
+      new URLSearchParams('stationId=2')
+    );
+    expect(parsedFromNumber.stationId).toBe('2');
+
+    const schemaParsed = dashboardSearchSchema.shape.stationId.safeParse(2);
+    expect(schemaParsed.success).toBe(true);
+    if (schemaParsed.success) {
+      expect(schemaParsed.data).toBe('2');
+    }
+  });
+
   it('keeps independent client params when map values are invalid', () => {
     const parsed = parseDashboardClientSearch(
       new URLSearchParams('mode=operations&timeWindow=7d&mapLat=999&mapLng=abc&mapZoom=-1')
