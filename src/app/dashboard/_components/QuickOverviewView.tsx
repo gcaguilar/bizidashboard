@@ -1,10 +1,12 @@
+'use client';
+
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
-import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
+import type { AlertsResponse, StationSnapshot } from '@/lib/api-types';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import { appRoutes } from '@/lib/routes';
-import { AlertsTopList } from './AlertsTopList';
+import { AlertsTopList, QuickViewErrorBoundary } from './AlertsTopList';
 import { BalanceIndexCard } from './BalanceIndexCard';
 import { DailyInsightsCard } from './DailyInsightsCard';
 import { MapPanel } from './MapPanel';
@@ -12,11 +14,9 @@ import { SystemHealthCard } from './SystemHealthCard';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
-type OverviewModeViewProps = {
-  status: StatusResponse;
-  totalStations: number;
-  stations: StationSnapshot[];
+type QuickOverviewViewProps = {
   filteredStations: StationSnapshot[];
+  totalStations: number;
   selectedStationId: string;
   onSelectStation: (stationId: string) => void;
   favoriteStationIds: string[];
@@ -43,11 +43,9 @@ type OverviewModeViewProps = {
   alerts: AlertsResponse;
 };
 
-export function OverviewModeView({
-  status,
-  totalStations,
-  stations: _stations,
+export function QuickOverviewView({
   filteredStations,
+  totalStations,
   selectedStationId,
   onSelectStation,
   favoriteStationIds,
@@ -63,16 +61,7 @@ export function OverviewModeView({
   updatedText,
   topFrictionStationName,
   alerts,
-}: OverviewModeViewProps) {
-  const statusLabel =
-    status.pipeline.healthStatus === 'healthy'
-      ? 'saludable'
-      : status.pipeline.healthStatus === 'degraded'
-        ? 'degradado'
-        : status.pipeline.healthStatus === 'down'
-          ? 'caido'
-          : 'desconocido';
-
+}: QuickOverviewViewProps) {
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-3">
@@ -94,40 +83,32 @@ export function OverviewModeView({
         />
       </div>
 
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del sistema</p>
-            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnostico rapido fuera del panel principal</h2>
-            <p className="text-sm text-[var(--muted)]">
-              Estado actual: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · ultima referencia {updatedText}
-            </p>
-          </div>
-
-          <Button asChild variant="cta" size="sm">
-            <TrackedLink href={appRoutes.status()}>Abrir pagina de estado</TrackedLink>
-          </Button>
-        </div>
-      </section>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:items-stretch">
         <div className="min-w-0 lg:col-span-3">
-          <MapPanel
-            stations={filteredStations}
-            totalStations={totalStations}
-            viewMode="overview"
-            initialViewState={mapViewState}
-            frictionByStationId={frictionByStationId}
-            selectedStationId={selectedStationId}
-            onSelectStation={onSelectStation}
-            favoriteStationIds={favoriteStationIds}
-            onToggleFavorite={onToggleFavorite}
-            trendByStationId={trendByStationId}
-            nearestStationId={nearestStationId}
-            nearestDistanceMeters={nearestDistanceMeters}
-            userLocation={userLocation}
-            onViewStateCommit={onViewStateCommit}
-          />
+          <QuickViewErrorBoundary
+            fallback={
+              <div className="flex h-[560px] items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">
+                No se pudo cargar el mapa rapido.
+              </div>
+            }
+          >
+            <MapPanel
+              stations={filteredStations}
+              totalStations={totalStations}
+              viewMode="overview"
+              initialViewState={mapViewState}
+              frictionByStationId={frictionByStationId}
+              selectedStationId={selectedStationId}
+              onSelectStation={onSelectStation}
+              favoriteStationIds={favoriteStationIds}
+              onToggleFavorite={onToggleFavorite}
+              trendByStationId={trendByStationId}
+              nearestStationId={nearestStationId}
+              nearestDistanceMeters={nearestDistanceMeters}
+              userLocation={userLocation}
+              onViewStateCommit={onViewStateCommit}
+            />
+          </QuickViewErrorBoundary>
         </div>
         <div className="min-w-0 lg:col-span-1">
           <AlertsTopList alerts={alerts} limit={5} />

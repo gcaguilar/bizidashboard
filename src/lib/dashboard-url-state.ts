@@ -20,7 +20,7 @@ export function buildDashboardUrlSearchParams(
   const currentSearchParams = new URLSearchParams(currentParams.toString());
   const nextParams = new URLSearchParams();
 
-  for (const key of ['month', 'period', 'rankingTab', 'rankingSearch', 'rankingShowAll']) {
+  for (const key of ['month', 'period', 'rankingTab', 'rankingSearch', 'rankingShowAll', 'density']) {
     const value = currentSearchParams.get(key);
     if (value !== null) {
       nextParams.set(key, value);

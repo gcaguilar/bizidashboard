@@ -24,6 +24,7 @@ describe('dashboard search schema', () => {
       rankingTab: 'turnover',
       rankingSearch: 'delicias',
       rankingShowAll: '1',
+      density: 'quick',
     });
 
     expect(parsed.mode).toBe('data');
@@ -32,6 +33,7 @@ describe('dashboard search schema', () => {
     expect(parsed.mapLng).toBe(-0.8812);
     expect(parsed.mapZoom).toBe(12.3);
     expect(parsed.rankingTab).toBe('turnover');
+    expect(parsed.density).toBe('quick');
   });
 
   it('rejects invalid numeric and enum params', () => {
@@ -39,6 +41,7 @@ describe('dashboard search schema', () => {
       timeWindow: '90d',
       mapLat: '999',
       rankingTab: 'invalid',
+      density: 'compact',
     });
 
     expect(result.success).toBe(false);
@@ -62,7 +65,20 @@ describe('dashboard search schema', () => {
         zoom: 12,
       },
       month: null,
+      density: 'full',
     });
+  });
+
+  it('parses quick density when present in URL', () => {
+    const parsed = parseDashboardClientSearch(new URLSearchParams('density=quick'));
+
+    expect(parsed.density).toBe('quick');
+  });
+
+  it('falls back to full density for invalid values', () => {
+    const parsed = parseDashboardClientSearch(new URLSearchParams('density=compact'));
+
+    expect(parsed.density).toBe('full');
   });
 
   it('normalizes quoted station ids from router search state', () => {
@@ -91,6 +107,7 @@ describe('dashboard search schema', () => {
       longitude: -0.88,
       zoom: 12,
     });
+    expect(parsed.density).toBe('full');
   });
 
   it('normalizes ranking search state with safe defaults', () => {
