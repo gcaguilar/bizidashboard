@@ -36,7 +36,7 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estacion</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Una estacion es menos estable cuando pasa muchas horas vacia o llena respecto a su ventana observada.</p>
         </div>
-        <TrackedLink href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
           Como leerlo
         </TrackedLink>
       </div>

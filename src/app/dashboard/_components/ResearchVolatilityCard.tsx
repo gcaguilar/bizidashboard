@@ -37,7 +37,7 @@ export function ResearchVolatilityCard({ rankings }: ResearchVolatilityCardProps
             Resume cuanta inestabilidad acumula la red cuando una parte importante de estaciones pasa demasiadas horas vacia o llena.
           </p>
         </div>
-        <TrackedLink href={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
           Como leerlo
         </TrackedLink>
       </div>
