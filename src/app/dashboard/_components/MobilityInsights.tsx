@@ -281,8 +281,8 @@ function MobilityInsightsContent({
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--secondary)] py-4">
-              <svg viewBox="0 0 280 280" className="h-[260px] w-[260px]">
+            <div className="mt-4 flex items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--secondary)] py-6">
+              <svg viewBox="0 0 280 280" className="h-[400px] w-[400px]">
                 <circle cx="140" cy="140" r="116" fill="none" stroke="rgba(234,6,21,0.22)" />
                 {chordLinks.map((link, index) => {
                   const from = chordNodes.find((node) => node.district === link.origin);
