@@ -32,7 +32,6 @@ import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { fetchJson, useAbortableAsyncEffect } from '@/app/dashboard/_components/useAbortableAsyncEffect';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
-import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getLocationSearchParams } from '@/lib/router-search';
@@ -391,7 +390,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             <TrackedLink href={appRoutes.dashboard()} className="ui-icon-button" aria-label="Volver al mapa avanzado">
               Inicio
             </TrackedLink>
-            <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
         </div>
