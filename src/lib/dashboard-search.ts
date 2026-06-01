@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { DASHBOARD_VIEW_MODES, resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
 import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model';
 import { DEFAULT_DASHBOARD_MAP_VIEW, type DashboardMapViewState } from '@/lib/map-view-state';
+import { normalizeStationIdValue } from '@/lib/dashboard-url-state';
 
 export const DASHBOARD_TIME_WINDOWS = ['24h', '7d', '30d', '365d'] as const;
 export const DASHBOARD_RANKING_TABS = ['turnover', 'availability'] as const;
@@ -47,20 +48,6 @@ export type DashboardMonthPeriodSearchState = {
   month: string | null;
   period: (typeof PERIODS)[number]['key'];
 };
-
-function normalizeStationIdValue(value: string | null | undefined): string | null {
-  if (!value) {
-    return null;
-  }
-
-  const trimmed = value.trim();
-
-  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    return trimmed.slice(1, -1);
-  }
-
-  return trimmed;
-}
 
 export function parseDashboardClientSearch(
   params: URLSearchParams | { get: (name: string) => string | null }

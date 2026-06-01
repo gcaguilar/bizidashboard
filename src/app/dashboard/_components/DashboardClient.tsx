@@ -19,7 +19,7 @@ import {
 } from '@/lib/districts';
 import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { type DashboardViewMode } from '@/lib/dashboard-modes';
-import { buildDashboardUrlSearchParams } from '@/lib/dashboard-url-state';
+import { buildDashboardUrlSearchParams, normalizeStationIdValue } from '@/lib/dashboard-url-state';
 import { parseDashboardClientSearch } from '@/lib/dashboard-search';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { isAbortError } from './useAbortableAsyncEffect';
@@ -309,6 +309,24 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [districts, setDistricts] = useState<DistrictCollection | null>(null);
   const [mobilityPreview, setMobilityPreview] = useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
   const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    const normalizedSearchStationId = normalizeStationIdValue(parsedSearch.stationId ?? '');
+
+    setSelectedStationId((current) => {
+      const normalizedCurrent = normalizeStationIdValue(current);
+
+      if (!normalizedSearchStationId) {
+        return normalizedCurrent;
+      }
+
+      if (normalizedCurrent === normalizedSearchStationId) {
+        return normalizedCurrent;
+      }
+
+      return resolveStationId(initialData.stations.stations, normalizedSearchStationId);
+    });
+  }, [initialData.stations.stations, parsedSearch.stationId]);
 
   const filteredStations = useMemo(() => {
     return stationsData.stations.filter((station) => {
@@ -634,7 +652,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
   const selectStationWithTracking = useCallback(
     (stationId: string, source: string, module = 'station_selector') => {
-      const normalizedStationId = stationId.trim().replace(/^"(.+)"$/, '$1');
+      const normalizedStationId = normalizeStationIdValue(stationId);
 
       if (!normalizedStationId || normalizedStationId === selectedStationId) {
         return;
