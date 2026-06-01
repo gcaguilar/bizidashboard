@@ -7,8 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
+import { DASHBOARD_MODE_META, type DashboardViewMode } from '@/lib/dashboard-modes';
 import { GitHubRepoButton } from './GitHubRepoButton';
-import { ThemeToggleButton } from './ThemeToggleButton';
 
 type TimeWindowOption = {
   id: string;
@@ -41,6 +41,7 @@ type DashboardHeaderProps = {
   canJumpToNearest: boolean;
   nextRefreshAt?: Date;
   refreshDurationMs?: number;
+  mode?: DashboardViewMode;
 };
 
 // Keep primary dashboard sections documented here for UX contract tests:
@@ -72,6 +73,7 @@ export function DashboardHeader({
   canJumpToNearest,
   nextRefreshAt,
   refreshDurationMs = 300_000,
+  mode = 'overview',
 }: DashboardHeaderProps) {
   const hasAvailabilityFilter = filteredOutCount > 0;
   const refreshDate = useMemo(() => nextRefreshAt ?? new Date(Date.now() + 300_000), [nextRefreshAt]);
@@ -93,28 +95,14 @@ export function DashboardHeader({
   return (
     <PageHeaderCard>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-6">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
-            <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">Resumen operativo</h1>
-          </div>
-
-          <div className="hidden items-center gap-2 rounded-lg bg-[var(--primary)]/10 p-1 lg:flex">
-            {timeWindows.map((window) => (
-              <Button
-                key={window.id}
-                onClick={() => onChangeWindow(window.id)}
-                aria-pressed={activeWindowId === window.id}
-                variant={activeWindowId === window.id ? 'default' : 'ghost'}
-                size="sm"
-              >
-                {window.label}
-              </Button>
-            ))}
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
+          <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
+            {mode === 'overview' ? 'Resumen operativo' : `Vista de ${DASHBOARD_MODE_META[mode].label.toLowerCase()}`}
+          </h1>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <FeedbackCta
             source="dashboard_header"
             ctaId="feedback_header_open"
@@ -124,9 +112,26 @@ export function DashboardHeader({
           >
             Feedback
           </FeedbackCta>
-          <ThemeToggleButton />
           <GitHubRepoButton />
         </div>
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Ventana temporal"
+        className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--primary)]/8 p-1"
+      >
+        {timeWindows.map((window) => (
+          <Button
+            key={window.id}
+            onClick={() => onChangeWindow(window.id)}
+            aria-pressed={activeWindowId === window.id}
+            variant={activeWindowId === window.id ? 'default' : 'ghost'}
+            size="sm"
+          >
+            {window.label}
+          </Button>
+        ))}
       </div>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
@@ -172,20 +177,6 @@ export function DashboardHeader({
           </p>
           <p>{isRefreshingData ? 'Actualizando los datos ahora...' : 'Resumen operativo disponible justo debajo.'}</p>
           <p>{datasetSummaryLabel}</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--primary)]/10 p-1 lg:hidden">
-          {timeWindows.map((window) => (
-            <Button
-              key={window.id}
-              onClick={() => onChangeWindow(window.id)}
-              aria-pressed={activeWindowId === window.id}
-              variant={activeWindowId === window.id ? 'default' : 'ghost'}
-              size="sm"
-            >
-              {window.label}
-            </Button>
-          ))}
         </div>
 
         <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-2">
