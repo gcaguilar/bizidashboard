@@ -27,12 +27,14 @@ export default function Header() {
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-4 md:gap-6">
-            <TrackedLink href={appRoutes.home()} className="text-lg font-bold text-[var(--foreground)]">
+            <TrackedLink href={appRoutes.home()} className="whitespace-nowrap shrink-0 text-lg font-bold text-[var(--foreground)]">
               DatosBizi
             </TrackedLink>
 
             <nav aria-label="Navegación principal" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-              {PUBLIC_MAIN_NAV_ITEMS.map(link => (
+              {PUBLIC_MAIN_NAV_ITEMS.map((link, index) => {
+                const responsiveClass = index === 1 || index === 3 || index === 4 ? 'hidden sm:inline-flex' : '';
+                return (
                 <TrackedLink
                   key={link.href}
                   href={link.href}
@@ -44,11 +46,12 @@ export default function Header() {
                     destinationRole: 'hub',
                     transitionKind: 'within_public',
                   }}
-                  className="text-[var(--muted)] hover:text-[var(--foreground)] transition"
+                  className={`text-[var(--muted)] hover:text-[var(--foreground)] transition ${responsiveClass}`}
                 >
                   {link.label}
                 </TrackedLink>
-              ))}
+                );
+              })}
 
               <div className="relative" data-more-dropdown>
                 <Button
