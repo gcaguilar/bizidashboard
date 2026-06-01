@@ -10,7 +10,7 @@ type DashboardQuickLinksProps = {
 
 export function DashboardQuickLinks({ selectedStationDetailUrl, currentMonth }: DashboardQuickLinksProps) {
   return (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Detalle completo</h3>
         <p className="text-sm text-[var(--muted)]">
