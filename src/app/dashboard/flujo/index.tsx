@@ -6,7 +6,6 @@ import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardP
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { MonthFilter } from '@/app/dashboard/_components/MonthFilter';
 import { MobilityInsights } from '@/app/dashboard/_components/MobilityInsights';
-import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardFlowPageData } from '@/server-functions/dashboard-flujo';
@@ -66,7 +65,6 @@ export default function DashboardFlowPage() {
             <h1 className="text-lg font-bold text-[var(--foreground)]">Flujo</h1>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
         </div>
