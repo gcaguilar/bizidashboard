@@ -43,7 +43,7 @@ export function BalanceIndexCard({
           </div>
           <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
         </div>
-        <TrackedLink href={appRoutes.dashboardHelp('balance-index')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
+        <TrackedLink href={appRoutes.dashboardHelp('balance-index')} className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender formula
         </TrackedLink>
       </div>
