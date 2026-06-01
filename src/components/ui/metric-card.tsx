@@ -24,9 +24,10 @@ const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(function Me
   );
 });
 
-const MetricGrid = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  function MetricGrid({ className, ...props }, ref) {
-    return <div ref={ref} className={cn('mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4', className)} {...props} />;
+const MetricGrid = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { columns?: 2 | 3 | 4 }>(
+  function MetricGrid({ className, columns = 4, ...props }, ref) {
+    const colsClass = columns === 2 ? 'sm:grid-cols-2' : columns === 3 ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-4';
+    return <div ref={ref} className={cn('mt-4 grid gap-3', colsClass, className)} {...props} />;
   }
 );
 
