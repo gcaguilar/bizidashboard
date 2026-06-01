@@ -112,7 +112,7 @@ export function DataHistoryCard() {
                 module: 'balance_help',
                 source: 'data_history',
               })}
-              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+              className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap"
             >
               Entender balance
             </TrackedLink>
