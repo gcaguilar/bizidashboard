@@ -30,7 +30,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
             module: 'api_documentation',
             source: 'api_catalog',
           })}
-          className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+          className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap"
         >
           Ver ayuda
         </TrackedLink>
