@@ -272,7 +272,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           setActiveTab(nextTab);
         }}
       >
-        <TabsList className="mb-4 gap-1 border-b border-[var(--border)]" aria-label="Secciones del informe de redistribucion">
+        <TabsList className="mb-4 gap-1" aria-label="Secciones del informe de redistribucion">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
