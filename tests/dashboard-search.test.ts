@@ -5,6 +5,7 @@ import {
   parseDashboardMonthPeriodSearch,
   parseDashboardRankingSearch,
 } from '@/lib/dashboard-search';
+import { normalizeStationIdValue } from '@/lib/dashboard-url-state';
 
 describe('dashboard search schema', () => {
   it('accepts valid dashboard URL params', () => {
@@ -70,6 +71,12 @@ describe('dashboard search schema', () => {
     );
 
     expect(parsed.stationId).toBe('2');
+  });
+
+  it('strips repeated wrapping quotes from station ids', () => {
+    expect(normalizeStationIdValue('""2""')).toBe('2');
+    expect(normalizeStationIdValue('"2"')).toBe('2');
+    expect(normalizeStationIdValue(null)).toBeNull();
   });
 
   it('keeps independent client params when map values are invalid', () => {

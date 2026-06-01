@@ -69,12 +69,16 @@ export type ReadonlyURLSearchParamsLike = {
   toString: () => string;
 };
 
-function normalizeStationIdValue(value: string): string {
-  const trimmed = value.trim();
-
-  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
-    return trimmed.slice(1, -1);
+export function normalizeStationIdValue(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
   }
 
-  return trimmed;
+  let normalized = value.trim();
+
+  while (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  return normalized || null;
 }
