@@ -24,15 +24,15 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
 
   return (
     <section className="h-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
-      <header className={`flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 ${compact ? 'py-3' : 'py-4'}`}>
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
+      <header className={`flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 ${compact ? 'py-3' : 'py-4'}`}>
+        <h2 className="min-w-0 text-sm font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
           Estaciones criticas
         </h2>
-        <div className="flex items-center gap-2">
-          <Badge variant="default" className="bg-[var(--primary)] text-white">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="default" className="bg-[var(--primary)] text-white whitespace-nowrap shrink-0">
             {activeAlerts.length} accion requerida
           </Badge>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="shrink-0 whitespace-nowrap">
             <TrackedLink href={appRoutes.dashboardAlerts()}
               className="rounded-full"
             >
