@@ -299,13 +299,13 @@ export default function SystemStatusPage() {
               <p className="stat-label">Proveedor</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">{dataset.source.provider}</p>
             </div>
-            <div className="ui-metric-card">
+            <div className="ui-metric-card min-w-0">
               <p className="stat-label">Discovery GBFS</p>
               <a
                 href={dataset.source.gbfsDiscoveryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ui-inline-action"
+                className="ui-inline-action break-all min-w-0"
               >
                 {dataset.source.gbfsDiscoveryUrl}
               </a>
