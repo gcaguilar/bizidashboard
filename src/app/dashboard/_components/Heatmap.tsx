@@ -163,7 +163,7 @@ export function Heatmap({
         </div>
         <div className="flex items-center gap-2">
           <TrackedLink href={appRoutes.dashboardHelp('detalle-estacion')}
-            className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+            className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap"
           >
             Como leerlo
           </TrackedLink>
