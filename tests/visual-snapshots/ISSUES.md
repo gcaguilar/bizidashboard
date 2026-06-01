@@ -5,12 +5,12 @@ Viewport de referencia: 1440x900 (desktop estándar)
 Modo: build (fixes aplicados al código local, pendientes de deploy para ver en prod)
 
 ## Resumen
-- Issues totales identificados: 15
-- Issues arreglados en local: 14 (H1, H2, H2-2, H3, H3-2, M1, M2, M3, M4, M5, M6, M7, M8, L2)
-- Issues descartados: 1 (L1 — falso positivo, no existe el bug)
+- Issues totales identificados: 16
+- Issues arreglados en local: 14 (H1, H2, H2-2, H3, H3-2, M1, M2, M3, M4, M6, M7, M8, L2)
+- Issues descartados: 2 (L1 — falso positivo, no existe el bug; M5 — falso positivo, los KPIs caben en 1 línea)
 - Severidad alta: 4 ✅
 - Severidad media: 8 ✅
-- Severidad baja: 1 ✅ / 1 descartado
+- Severidad baja: 1 ✅ / 2 descartados
 
 ---
 
@@ -148,17 +148,14 @@ Limpieza: `src/app/dashboard/redistribucion/_components/RedistribucionClient.tsx
 
 ---
 
-## M5 — Grid 6-col de KPIs en /estado con labels en 2 líneas [MEDIA] ✅ ARREGLADO
-**Síntoma**: En `https://datosbizi.com/estado` (página pública), el grid de 6 KPIs (Cobertura 24h, Bicis en sistema, Estaciones activas, Lag desde feed, Frecuencia de muestreo, Edad de la ultima muestra) se renderiza en una sola fila horizontal muy estrecha. 5 de 6 labels aparecen partidos en 2 líneas ("Estaciones / activas", "Bicis en / sistema", "Frecuencia / de muestreo", "Lag desde / feed", "Edad de la / ultima muestra"). Solo "Cobertura 24h" cabe en 1 línea.
+## M5 — Falso positivo: 6-col KPI grid en /estado [MEDIA] ❌ NO EXISTE
+**Síntoma reportado (sesión actual)**: En `https://datosbizi.com/estado` (página pública), el grid de 6 KPIs se renderizaba en una sola fila horizontal muy estrecha. 5 de 6 labels aparecían partidos en 2 líneas.
 
-**Causa**: `MetricGrid` default es 6 cols en ese viewport, pero los labels son demasiado largos para caber en 1/6 del ancho del card (que es ~190px de ancho disponible para el texto). En desktop `1440` el contenedor principal ocupa `max-w-[1280px]` y cada celda termina con ~190px, insuficiente para los labels con `.stat-label` (uppercase + tracking).
+**Investigación de seguimiento**: Al re-revisar el screenshot `16-status-1440.png`, los 6 KPIs de `/estado` (ULTIMA RECOGIDA, RECOGIDAS 24H, ESTACIONES VISTAS, ERRORES DETECTADOS, FALLOS CONSECUTIVOS, COBERTURA HISTORICA) caben en 1 línea cada uno. Todos los labels son cortos (1 palabra + sufijo numérico), `xl:grid-cols-6` les da ~200px por celda que es suficiente.
 
-**Fix aplicado** (`src/app/estado/_components/StatusKpiGrid.tsx`): Cambiar `MetricGrid` (default 4 cols) por `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3` directo, para que en desktop los 6 KPIs se vean en 3 cols x 2 filas, con celdas de ~400px de ancho (espacio de sobra para los labels en 1 línea).
+**Conclusión**: M5 fue un falso positivo. La confusión vino del grid de 6 KPIs del `StatusBanner` en `/dashboard?mode=operations` (que SÍ renderiza los badges partidos — ese es M7). Pero el `/estado` no tiene ese problema.
 
-**Verificación**: Ver `tests/visual-snapshots/14-estado.png` (estado original con bug) y comparar con el reload tras el fix.
-
-**Archivos modificados**:
-- `src/app/estado/_components/StatusKpiGrid.tsx`
+**Nota**: Si en el futuro alguien ve KPIs partidos en /estado, verificar primero que no sea en /dashboard (que tiene `StatusBanner` con el problema real de M7).
 
 ---
 
