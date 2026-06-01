@@ -25,7 +25,6 @@ import {
 } from '@/lib/umami';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
-import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { FAQ_ITEMS } from './help-center-content';
 
@@ -136,7 +135,6 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 Historico
               </TrackedLink>
             </Button>
-            <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
         </div>
