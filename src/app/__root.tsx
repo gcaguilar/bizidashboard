@@ -25,6 +25,19 @@ interface MyRouterContext {
 
 const THEME_INIT_SCRIPT = `(function(){try{var modern=window.localStorage.getItem('bizidashboard-theme');var legacy=window.localStorage.getItem('theme');var stored=modern||legacy;var mode=(stored==='light'||stored==='dark')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;if(!modern&&legacy&&(mode==='light'||mode==='dark')){try{window.localStorage.setItem('bizidashboard-theme',mode)}catch(e){}}}catch(e){}})();`
 
+function getUmamiConfig() {
+  const scriptSrc =
+    import.meta.env.VITE_UMAMI_SCRIPT_SRC ?? import.meta.env.NEXT_PUBLIC_UMAMI_SCRIPT_SRC;
+  const websiteId =
+    import.meta.env.VITE_UMAMI_WEBSITE_ID ?? import.meta.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+
+  if (import.meta.env.DEV || !scriptSrc || !websiteId) {
+    return null;
+  }
+
+  return { scriptSrc, websiteId };
+}
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   loader: () => getFooterData(),
   head: () => ({
@@ -70,11 +83,20 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
+  const umamiConfig = getUmamiConfig()
 
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {umamiConfig ? (
+          <script
+            async
+            defer
+            src={umamiConfig.scriptSrc}
+            data-website-id={umamiConfig.websiteId}
+          />
+        ) : null}
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[var(--selection-bg)]">
