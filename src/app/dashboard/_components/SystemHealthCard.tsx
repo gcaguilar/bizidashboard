@@ -22,7 +22,7 @@ export function SystemHealthCard({
       <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Salud general del sistema</h3>
       <p className="mt-1 text-sm text-[var(--muted)]">Resumen rapido para entender cuantas estaciones hay, cuantas bicis quedan y como de equilibrada esta la red.</p>
 
-      <MetricGrid>
+      <MetricGrid columns={2}>
         <MetricCard label="Estaciones activas" value={totalStations} />
         <MetricCard label="Bicis disponibles" value={bikesAvailable} />
         <MetricCard label="Anclajes libres" value={anchorsFree} />
