@@ -7,6 +7,7 @@ import { normalizeStationIdValue } from '@/lib/dashboard-url-state';
 export const DASHBOARD_TIME_WINDOWS = ['24h', '7d', '30d', '365d'] as const;
 export const DASHBOARD_RANKING_TABS = ['turnover', 'availability'] as const;
 export const DASHBOARD_BOOLEAN_FILTER_VALUES = ['1', 'true'] as const;
+export const DASHBOARD_DENSITIES = ['quick', 'full'] as const;
 
 export const dashboardSearchSchema = z.object({
   mode: z.enum(DASHBOARD_VIEW_MODES).optional(),
@@ -23,6 +24,7 @@ export const dashboardSearchSchema = z.object({
   rankingTab: z.enum(DASHBOARD_RANKING_TABS).optional(),
   rankingSearch: z.string().trim().max(120).optional(),
   rankingShowAll: z.enum(['1']).optional(),
+  density: z.enum(DASHBOARD_DENSITIES).optional(),
 });
 
 export type DashboardSearch = z.infer<typeof dashboardSearchSchema>;
@@ -36,6 +38,7 @@ export type DashboardClientSearchState = {
   onlyWithAnchors: boolean;
   mapViewState: DashboardMapViewState;
   month: string | null;
+  density: (typeof DASHBOARD_DENSITIES)[number];
 };
 
 export type DashboardRankingSearchState = {
@@ -62,6 +65,7 @@ export function parseDashboardClientSearch(
   const mapLng = dashboardSearchSchema.shape.mapLng.safeParse(params.get('mapLng') ?? undefined);
   const mapZoom = dashboardSearchSchema.shape.mapZoom.safeParse(params.get('mapZoom') ?? undefined);
   const month = dashboardSearchSchema.shape.month.safeParse(params.get('month') ?? undefined);
+  const density = dashboardSearchSchema.shape.density.safeParse(params.get('density') ?? undefined);
 
   return {
     mode: resolveDashboardViewMode(mode.success ? mode.data : undefined),
@@ -76,6 +80,7 @@ export function parseDashboardClientSearch(
       zoom: mapZoom.success ? mapZoom.data ?? DEFAULT_DASHBOARD_MAP_VIEW.zoom : DEFAULT_DASHBOARD_MAP_VIEW.zoom,
     },
     month: month.success ? month.data ?? null : null,
+    density: density.success ? density.data ?? 'full' : 'full',
   };
 }
 

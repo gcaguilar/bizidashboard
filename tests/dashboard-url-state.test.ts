@@ -88,4 +88,23 @@ describe('buildDashboardUrlSearchParams', () => {
 
     expect(params.get('stationId')).toBe('2');
   });
+
+  it('preserves density value across URL rebuilds', () => {
+    const params = buildDashboardUrlSearchParams(new URLSearchParams('density=quick&month=2026-05'), {
+      activeWindowId: '30d',
+      viewMode: 'overview',
+      selectedStationId: '',
+      searchQuery: '',
+      onlyWithBikes: false,
+      onlyWithAnchors: false,
+      mapViewState: {
+        latitude: 41.65,
+        longitude: -0.88,
+        zoom: 12,
+      },
+    });
+
+    expect(params.get('density')).toBe('quick');
+    expect(params.get('month')).toBe('2026-05');
+  });
 });

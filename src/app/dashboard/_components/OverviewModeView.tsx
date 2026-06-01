@@ -1,24 +1,19 @@
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
-import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import { appRoutes } from '@/lib/routes';
+import { AlertsTopList } from './AlertsTopList';
 import { BalanceIndexCard } from './BalanceIndexCard';
 import { DailyInsightsCard } from './DailyInsightsCard';
-import { DemandFlowCard } from './DemandFlowCard';
-import { FlowPreviewPanel } from './FlowPreviewPanel';
 import { MapPanel } from './MapPanel';
-import { NeighborhoodLoadCard } from './NeighborhoodLoadCard';
 import { SystemHealthCard } from './SystemHealthCard';
-import { SystemIntradayCard } from './SystemIntradayCard';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
 type OverviewModeViewProps = {
   status: StatusResponse;
-  stationsGeneratedAt: string;
   totalStations: number;
   stations: StationSnapshot[];
   filteredStations: StationSnapshot[];
@@ -45,20 +40,13 @@ type OverviewModeViewProps = {
   };
   updatedText: string;
   topFrictionStationName: string | null;
-  mobilityPreview: {
-    dailyDemand: Array<{ day: string; demandScore: number; avgOccupancy: number; sampleCount: number }>;
-    systemHourlyProfile: Array<{ hour: number; avgOccupancy: number; avgBikesAvailable: number; sampleCount: number }>;
-    hourlySignals: Array<{ stationId: string; hour: number; departures: number; arrivals: number; sampleCount: number }>;
-  };
-  activeWindowLabel: string;
-  activeWindowDemandDays: number;
-  currentMonth?: string | null;
+  alerts: AlertsResponse;
 };
 
 export function OverviewModeView({
   status,
   totalStations,
-  stations,
+  stations: _stations,
   filteredStations,
   selectedStationId,
   onSelectStation,
@@ -74,10 +62,7 @@ export function OverviewModeView({
   systemMetrics,
   updatedText,
   topFrictionStationName,
-  mobilityPreview,
-  activeWindowLabel,
-  activeWindowDemandDays: _activeWindowDemandDays,
-  currentMonth,
+  alerts,
 }: OverviewModeViewProps) {
   const statusLabel =
     status.pipeline.healthStatus === 'healthy'
@@ -130,7 +115,7 @@ export function OverviewModeView({
           <MapPanel
             stations={filteredStations}
             totalStations={totalStations}
-            viewMode={'overview' satisfies DashboardViewMode}
+            viewMode="overview"
             initialViewState={mapViewState}
             frictionByStationId={frictionByStationId}
             selectedStationId={selectedStationId}
@@ -145,36 +130,30 @@ export function OverviewModeView({
           />
         </div>
         <div className="min-w-0 lg:col-span-1">
-          <div className="ui-section-card h-full">
-            <p className="text-sm text-[var(--muted)]">Resumen visual rapido disponible en el modo Operaciones y el historial completo en la pagina de alertas.</p>
-            <Button asChild variant="cta" size="sm" className="mt-auto">
-              <TrackedLink href={appRoutes.dashboardAlerts()}>Abrir alertas completas</TrackedLink>
-            </Button>
-          </div>
+          <AlertsTopList alerts={alerts} limit={5} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <DemandFlowCard
-          dailyDemand={mobilityPreview.dailyDemand}
-          windowLabel={activeWindowLabel}
-          requestedDays={mobilityPreview.dailyDemand.length}
-        />
-        <SystemIntradayCard rows={mobilityPreview.systemHourlyProfile} windowLabel={activeWindowLabel} />
-        <NeighborhoodLoadCard stations={stations} />
-      </div>
-
-      <section className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 py-4">
-          <div>
-            <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Analisis de flujo y corredores populares</h2>
-            <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
-          </div>
-          <Button asChild variant="cta" size="sm">
-            <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}>Vista completa</TrackedLink>
+      <section className="grid gap-4 md:grid-cols-2">
+        <article className="ui-section-card">
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Operaciones</h3>
+          <p className="text-sm text-[var(--muted)]">
+            Revisa alertas activas, prioriza redistribucion y resuelve friccion en estaciones criticas.
+          </p>
+          <Button asChild variant="cta" size="sm" className="mt-auto">
+            <TrackedLink href={appRoutes.dashboardAlerts()}>Operaciones</TrackedLink>
           </Button>
-        </div>
-        <FlowPreviewPanel stations={stations} hourlySignals={mobilityPreview.hourlySignals} currentMonth={currentMonth} />
+        </article>
+
+        <article className="ui-section-card">
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Analisis</h3>
+          <p className="text-sm text-[var(--muted)]">
+            Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
+          </p>
+          <Button asChild variant="cta" size="sm" className="mt-auto">
+            <TrackedLink href={appRoutes.dashboardFlow()}>Analisis</TrackedLink>
+          </Button>
+        </article>
       </section>
     </>
   );
