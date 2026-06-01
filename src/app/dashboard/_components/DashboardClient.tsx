@@ -1071,6 +1071,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             canJumpToNearest={Boolean(nearestStationInfo && nearestStation)}
             nextRefreshAt={nextRefreshAt}
             refreshDurationMs={REFRESH_AFTER_LAST_DATA_MS}
+            mode={viewMode}
           />
 
           {shouldShowDataStateNotice(dashboardDataState) ? (
