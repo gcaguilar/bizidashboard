@@ -10,7 +10,6 @@ import { appRoutes } from '@/lib/routes';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { MonthFilter } from '@/app/dashboard/_components/MonthFilter';
-import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { Button } from '@/components/ui/button';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
@@ -135,7 +134,6 @@ export default function DashboardConclusionsPage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <ThemeToggleButton />
             <GitHubRepoButton />
           </div>
         </div>
