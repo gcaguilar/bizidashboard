@@ -8,7 +8,7 @@ function getJwtSecret(): Uint8Array {
   const raw = process.env.JWT_SECRET;
 
   if (!raw) {
-    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+    if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET is required in production');
     }
     logger.warn('jwt.using_insecure_default');

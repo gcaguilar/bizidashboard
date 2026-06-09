@@ -42,9 +42,6 @@ export const Route = createFileRoute('/api/install/register/')({
           const rateLimitDecision = !ipDecision.allowed ? ipDecision : deviceDecision
           const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision) }
 
-          if (rateLimitDecision.backend === 'unavailable') {
-            return new Response(JSON.stringify({ error: 'Rate limiting backend unavailable' }), { status: 503, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
-          }
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit', metadata: { publicKeyFingerprint } })
             return new Response(JSON.stringify({ error: 'Too many installation registration attempts' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
@@ -54,39 +51,33 @@ export const Route = createFileRoute('/api/install/register/')({
             return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const existingInstall = await prisma.install.findFirst({
-            where: { publicKeyFingerprint },
-            orderBy: { createdAt: 'desc' },
-          });
-
-          if (existingInstall) {
-            const reissuedToken = await issueRefreshToken(existingInstall.installId);
-            await prisma.install.update({
-              where: { installId: existingInstall.installId },
-              data: {
-                lastSeenAt: reissuedToken.issuedAt,
-                refreshTokenHash: hashToken(reissuedToken.token),
-                refreshTokenIssuedAt: reissuedToken.issuedAt,
-                isActive: true,
-              },
-            });
-            await recordSecurityEvent({ eventType: 'install_reregistered', route: '/api/install/register', requestId, installId: existingInstall.installId, ip: clientIp, userAgent, outcome: 'success', metadata: { platform: parsed.data.platform } });
-            return new Response(JSON.stringify({ installId: existingInstall.installId, refreshToken: reissuedToken.token }), { status: 200, headers: { 'Content-Type': 'application/json', ...baseHeaders } });
-          }
-
           const installId = randomUUID()
           const issuedRefreshToken = await issueRefreshToken(installId)
 
-          await prisma.install.create({
-            data: {
+          const install = await prisma.install.upsert({
+            where: { publicKeyFingerprint },
+            create: {
               installId, platform: parsed.data.platform, appVersion: parsed.data.appVersion, osVersion: parsed.data.osVersion,
-              publicKey: parsed.data.publicKey, publicKeyFingerprint, refreshTokenHash: hashToken(issuedRefreshToken.token),
+              publicKey: hashPublicKey(parsed.data.publicKey), publicKeyFingerprint, refreshTokenHash: hashToken(issuedRefreshToken.token),
               refreshTokenIssuedAt: issuedRefreshToken.issuedAt, lastSeenAt: issuedRefreshToken.issuedAt, lastAuthAt: issuedRefreshToken.issuedAt, isActive: true,
             },
-          })
+            update: {
+              lastSeenAt: issuedRefreshToken.issuedAt,
+              refreshTokenHash: hashToken(issuedRefreshToken.token),
+              refreshTokenIssuedAt: issuedRefreshToken.issuedAt,
+              isActive: true,
+            },
+          });
 
-          await recordSecurityEvent({ eventType: 'install_registered', route: '/api/install/register', requestId, installId, ip: clientIp, userAgent, outcome: 'success', metadata: { platform: parsed.data.platform, appVersion: parsed.data.appVersion } })
-          return new Response(JSON.stringify({ installId, refreshToken: issuedRefreshToken.token }), { status: 201, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          const isNew = install.installId === installId
+          await recordSecurityEvent({
+            eventType: isNew ? 'install_registered' : 'install_reregistered',
+            route: '/api/install/register', requestId, installId: install.installId, ip: clientIp, userAgent,
+            outcome: 'success', metadata: { platform: parsed.data.platform, ...(isNew ? { appVersion: parsed.data.appVersion } : {}) }
+          });
+          return new Response(JSON.stringify({ installId: install.installId, refreshToken: issuedRefreshToken.token }), {
+            status: isNew ? 201 : 200, headers: { 'Content-Type': 'application/json', ...baseHeaders },
+          })
         } catch (error) {
           captureExceptionWithContext(error, { area: 'api.install-register', operation: 'POST /api/install/register' })
           logger.error('api.install_register.failed', { error })

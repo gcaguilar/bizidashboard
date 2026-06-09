@@ -3,7 +3,6 @@ import { validateRuntimeConfiguration } from '@/lib/security/config';
 
 export function register(): void {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('../sentry.server.config');
   } catch {}
   // Not available in this build — optional

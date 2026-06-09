@@ -118,13 +118,14 @@ describe('GET /api/stations', () => {
     expect(payload.stations[0]?.recordedAt).toBe(recordedAt.toISOString());
   });
 
-  it('returns 500 when station retrieval fails', async () => {
+  it('returns an empty degraded payload when station retrieval fails', async () => {
     getStationsWithLatestStatusMock.mockRejectedValue(new Error('db unavailable'));
 
     const response = await handler({ request: new Request('http://localhost/api/stations') });
     const payload = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(payload.error).toBe('Internal server error');
+    expect(response.status).toBe(200);
+    expect(payload.stations).toEqual([]);
+    expect(payload.dataState).toBe('empty');
   });
 });

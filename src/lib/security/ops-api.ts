@@ -74,11 +74,7 @@ export function withOperationalAccess(
       const effectiveDecision = !ipDecision.allowed ? ipDecision : keyDecision;
       const headers = getRateLimitHeaders(effectiveDecision);
 
-      if (effectiveDecision.backend === 'unavailable') {
-        return { ok: false, response: errorResponse(503, 'Rate limiting backend unavailable.', headers) };
-      }
-
-      if (!effectiveDecision.allowed) {
+      if (!effectiveDecision.allowed && effectiveDecision.backend !== 'unavailable') {
         return { ok: false, response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', { ...headers, 'Retry-After': String(effectiveDecision.retryAfterSeconds) }) };
       }
 
@@ -125,11 +121,7 @@ export async function enforceOperationalAccess(
   const effectiveDecision = !ipDecision.allowed ? ipDecision : keyDecision;
   const headers = getRateLimitHeaders(effectiveDecision);
 
-  if (effectiveDecision.backend === 'unavailable') {
-    return { ok: false, response: errorResponse(503, 'Rate limiting backend unavailable.', headers) };
-  }
-
-  if (!effectiveDecision.allowed) {
+  if (!effectiveDecision.allowed && effectiveDecision.backend !== 'unavailable') {
     return { ok: false, response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', { ...headers, 'Retry-After': String(effectiveDecision.retryAfterSeconds) }) };
   }
 

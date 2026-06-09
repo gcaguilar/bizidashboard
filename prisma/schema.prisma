@@ -40,10 +40,9 @@ model StationStatus {
   recordedAt      DateTime // Snapshot timestamp from GBFS response last_updated
   createdAt       DateTime @default(now()) // When we recorded it
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@unique([stationId, recordedAt])
-  @@index([stationId, recordedAt]) // Critical for time-series queries
   @@index([recordedAt]) // For range queries across all stations
   @@index([recordedAt, stationId, bikesAvailable, anchorsFree]) // Composite for time-range + station queries (critical episodes, rollups)
 }
@@ -72,7 +71,7 @@ model HourlyStationStat {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@id([stationId, bucketStart])
   @@index([bucketStart])
@@ -93,7 +92,7 @@ model DailyStationStat {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@id([stationId, bucketDate])
   @@index([bucketDate])
@@ -110,7 +109,7 @@ model StationRanking {
   windowEnd     DateTime
   updatedAt     DateTime @updatedAt
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@index([stationId])
   @@index([windowEnd, stationId]) // For latest-window queries (getStationRankings)
@@ -126,7 +125,7 @@ model StationPattern {
   occupancyAvg Float
   sampleCount  Int
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@id([stationId, dayType, hour])
 }
@@ -140,7 +139,7 @@ model StationHeatmapCell {
   occupancyAvg Float
   sampleCount  Int
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@id([stationId, dayOfWeek, hour])
 }
@@ -155,7 +154,7 @@ model StationAlert {
   generatedAt  DateTime  @default(now())
   isActive     Boolean   @default(true)
 
-  station Station @relation(fields: [stationId], references: [id])
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@index([generatedAt])
   @@index([isActive, generatedAt]) // For active alerts queries (getActiveAlerts)
@@ -170,7 +169,7 @@ model AnalyticsWatermark {
 
 model MobilityBriefingCache {
   dateKey       String   @id
-  payload       String
+  payload       Json
   sourceLastDay DateTime?
   generatedAt   DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -192,7 +191,7 @@ model Install {
   appVersion          String
   osVersion           String
   publicKey           String
-  publicKeyFingerprint String
+  publicKeyFingerprint String   @unique
   refreshTokenHash    String   @unique
   refreshTokenIssuedAt DateTime
   lastSeenAt          DateTime?
@@ -202,7 +201,6 @@ model Install {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  @@index([publicKeyFingerprint])
   @@index([revokedAt])
 }
 
@@ -252,6 +250,7 @@ model SecurityEvent {
   @@index([eventType, createdAt])
   @@index([route, createdAt])
   @@index([installId, createdAt])
+  @@index([outcome, createdAt])
 }
 
 model ApiKey {

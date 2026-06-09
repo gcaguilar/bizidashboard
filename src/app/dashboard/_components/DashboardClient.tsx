@@ -301,12 +301,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const isRefreshingRef = useRef(false);
   const isMountedRef = useRef(true);
   const stationsDataRef = useRef(stationsData);
-  stationsDataRef.current = stationsData;
   const statusDataRef = useRef(statusData);
-  statusDataRef.current = statusData;
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
+  useEffect(() => { stationsDataRef.current = stationsData; }, [stationsData]);
+  useEffect(() => { statusDataRef.current = statusData; }, [statusData]);
   useEffect(() => () => { isMountedRef.current = false; }, []);
 
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
@@ -323,7 +323,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     const normalizedSearchStationId = normalizeStationIdValue(parsedSearch.stationId ?? '');
 
     setSelectedStationId((current) => {
-      const normalizedCurrent = normalizeStationIdValue(current);
+      const normalizedCurrent = normalizeStationIdValue(current) ?? '';
 
       if (!normalizedSearchStationId) {
         return normalizedCurrent;
@@ -333,7 +333,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return normalizedCurrent;
       }
 
-      return resolveStationId(initialData.stations.stations, normalizedSearchStationId);
+      return resolveStationId(initialData.stations.stations, normalizedSearchStationId) ?? normalizedCurrent;
     });
   }, [initialData.stations.stations, parsedSearch.stationId]);
 

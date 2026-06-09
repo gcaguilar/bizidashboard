@@ -35,8 +35,8 @@ export const Route = createFileRoute('/api/rankings/')({
           const format = new URL(request.url).searchParams.get('format')
 
           const [rankings, stations, districtCollection, dataset] = await Promise.all([
-            getStationRankings(type, limit),
-            getStationsWithLatestStatus(),
+            getStationRankings(type, limit).catch(() => []),
+            getStationsWithLatestStatus().catch(() => []),
             fetchDistrictCollection().catch(() => null),
             getSharedDatasetSnapshot().catch(() => null),
           ])

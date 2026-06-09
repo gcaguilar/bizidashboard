@@ -454,16 +454,17 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nextSearch: Record<string, string | number | undefined> = {
+      sort: params.get('sort') ?? undefined,
+      filter: params.get('filter') ?? undefined,
+      search: params.get('search') ?? undefined,
+      page: params.get('page') ? Number(params.get('page')) : undefined,
+      pageSize: params.get('pageSize') ? Number(params.get('pageSize')) : undefined,
+    };
+
     void navigate({
       replace: true,
-      search: {
-        sort: params.get('sort') ?? undefined,
-        filter: params.get('filter') ?? undefined,
-        search: params.get('search') ?? undefined,
-        page: params.get('page') ? Number(params.get('page')) : undefined,
-        pageSize: params.get('pageSize') ? Number(params.get('pageSize')) : undefined,
-      } as any,
+      search: nextSearch as never,
     });
   }, [sorting, globalFilter, columnFilters, navigate, pagination, search]);
 

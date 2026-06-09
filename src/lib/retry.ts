@@ -21,6 +21,15 @@ export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export class HttpError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'HttpError'
+    this.status = status
+  }
+}
+
 /**
  * Check if an error is retryable
  * - Network errors (TypeError from fetch)
@@ -31,6 +40,10 @@ function isRetryableError(error: unknown): boolean {
   // Network errors from fetch throw TypeError
   if (error instanceof TypeError) {
     return true;
+  }
+
+  if (error instanceof HttpError) {
+    return error.status >= 500 || error.status === 429;
   }
 
   // HTTP errors with status code

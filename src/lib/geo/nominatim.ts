@@ -205,35 +205,41 @@ export async function searchLocations(
   url.searchParams.set('limit', String(limit));
   applyCommonParams(url, locale);
 
-  const response = await fetchNominatim(url, locale);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetchNominatim(url, locale, controller.signal);
 
-  const data = (await response.json()) as Array<{
-    place_id: string;
-    display_name: string;
-    lat: string;
-    lon: string;
-    type: string;
-    address?: {
-      city?: string;
-      town?: string;
-      village?: string;
-      neighbourhood?: string;
-      suburb?: string;
-    };
-  }>;
+    const data = (await response.json()) as Array<{
+      place_id: string;
+      display_name: string;
+      lat: string;
+      lon: string;
+      type: string;
+      address?: {
+        city?: string;
+        town?: string;
+        village?: string;
+        neighbourhood?: string;
+        suburb?: string;
+      };
+    }>;
 
-  const results: GeoSearchResult[] = data.map((item) => ({
-    id: String(item.place_id),
-    name: item.display_name.split(',')[0] || item.display_name,
-    address: item.display_name,
-    lat: parseFloat(item.lat),
-    lon: parseFloat(item.lon),
-    type: item.type === 'house' || item.type === 'building' ? 'address' : 'place',
-  }));
+    const results: GeoSearchResult[] = data.map((item) => ({
+      id: String(item.place_id),
+      name: item.display_name.split(',')[0] || item.display_name,
+      address: item.display_name,
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+      type: item.type === 'house' || item.type === 'building' ? 'address' : 'place',
+    }));
 
-  await setCachedJson(cacheKey, results, CACHE_TTL_SECONDS);
+    await setCachedJson(cacheKey, results, CACHE_TTL_SECONDS);
 
-  return results;
+    return results;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function reverseGeocode(
@@ -253,31 +259,37 @@ export async function reverseGeocode(
   url.searchParams.set('lon', String(lon));
   applyCommonParams(url, locale);
 
-  const response = await fetchNominatim(url, locale);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetchNominatim(url, locale, controller.signal);
 
-  const data = (await response.json()) as {
-    display_name: string;
-    address?: {
-      city?: string;
-      town?: string;
-      village?: string;
-      neighbourhood?: string;
-      suburb?: string;
+    const data = (await response.json()) as {
+      display_name: string;
+      address?: {
+        city?: string;
+        town?: string;
+        village?: string;
+        neighbourhood?: string;
+        suburb?: string;
+      };
     };
-  };
 
-  const city = data.address?.city || data.address?.town || data.address?.village || '';
-  const district = data.address?.neighbourhood || data.address?.suburb;
+    const city = data.address?.city || data.address?.town || data.address?.village || '';
+    const district = data.address?.neighbourhood || data.address?.suburb;
 
-  const result: GeoReverseResult = {
-    address: data.display_name,
-    city,
-    district,
-    lat,
-    lon,
-  };
+    const result: GeoReverseResult = {
+      address: data.display_name,
+      city,
+      district,
+      lat,
+      lon,
+    };
 
-  await setCachedJson(cacheKey, result, CACHE_TTL_SECONDS);
+    await setCachedJson(cacheKey, result, CACHE_TTL_SECONDS);
 
-  return result;
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }

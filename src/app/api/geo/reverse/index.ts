@@ -56,9 +56,6 @@ export const Route = createFileRoute('/api/geo/reverse/')({
           const rateLimitDecision = !ipDecision.allowed ? ipDecision : installDecision
           const headers = { ...baseHeaders, ...getRateLimitHeaders(rateLimitDecision) }
 
-          if (rateLimitDecision.backend === 'unavailable') {
-            return new Response(JSON.stringify({ error: 'Rate limiting backend unavailable' }), { status: 503, headers: { 'Content-Type': 'application/json', ...headers } })
-          }
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/geo/reverse', requestId, installId: authResult.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
             return new Response(JSON.stringify({ error: 'Too many reverse geocoding requests' }), { status: 429, headers: { 'Content-Type': 'application/json', ...headers, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })

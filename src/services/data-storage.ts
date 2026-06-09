@@ -152,23 +152,33 @@ export async function upsertStations(
 ): Promise<{ createdOrUpdated: number }> {
   if (stations.length === 0) return { createdOrUpdated: 0 };
 
-  const values = stations.map(station => 
-    Prisma.sql`(${station.station_id}, ${station.name}, ${station.lat}, ${station.lon}, ${station.capacity ?? 0}, true, NOW(), NOW())`
-  );
+  try {
+    const values = stations.map(station => 
+      Prisma.sql`(${station.station_id}, ${station.name}, ${station.lat}, ${station.lon}, ${station.capacity ?? 0}, true, NOW(), NOW())`
+    );
 
-  await prisma.$executeRaw`
-    INSERT INTO "Station" (id, name, lat, lon, capacity, "isActive", "createdAt", "updatedAt")
-    VALUES ${Prisma.join(values)}
-    ON CONFLICT (id) DO UPDATE SET
-      name = EXCLUDED.name,
-      lat = EXCLUDED.lat,
-      lon = EXCLUDED.lon,
-      capacity = EXCLUDED.capacity,
-      "isActive" = EXCLUDED."isActive",
-      "updatedAt" = NOW();
-  `;
+    await prisma.$executeRaw`
+      INSERT INTO "Station" (id, name, lat, lon, capacity, "isActive", "createdAt", "updatedAt")
+      VALUES ${Prisma.join(values)}
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        lat = EXCLUDED.lat,
+        lon = EXCLUDED.lon,
+        capacity = EXCLUDED.capacity,
+        "isActive" = EXCLUDED."isActive",
+        "updatedAt" = NOW();
+    `;
 
-  return { createdOrUpdated: stations.length };
+    return { createdOrUpdated: stations.length };
+  } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'data-storage',
+      operation: 'upsertStations',
+      extra: { stationCount: stations.length },
+    });
+    logger.error('data-storage.upsert_stations_failed', { error, stationCount: stations.length });
+    throw error;
+  }
 }
 
 export async function getStationMetadataCount(): Promise<number> {

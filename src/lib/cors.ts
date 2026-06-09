@@ -25,6 +25,13 @@ export function getCorsHeaders(origin: string | null, mode: 'mobile' | 'public')
     };
   }
 
+  if (mode === 'mobile') {
+    return {
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+  }
+
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',

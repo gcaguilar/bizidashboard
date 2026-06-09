@@ -6,13 +6,14 @@ import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
-import { shouldShowDataStateNotice } from '@/lib/data-state';
+import { shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatDateLabel } from '@/lib/format';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
 import { getSiteUrl } from '@/lib/site';
+import type { ComparisonHubData } from '@/lib/comparison-hub';
 
 function CompareHubContent({
   initialQuery,
@@ -23,31 +24,7 @@ function CompareHubContent({
     leftId?: string | null;
     rightId?: string | null;
   };
-  data: {
-    latestMonth: string | null;
-    generatedAt: string;
-    dataState: 'no_coverage' | 'loading' | 'live_recent' | 'live_stale' | 'partial_coverage' | 'full_coverage';
-    interactive: {
-      defaultDimensionId: string | null;
-      dimensions: Array<unknown>;
-    };
-    sections: Array<{
-      id: string;
-      title: string;
-      description: string;
-      cards: Array<{
-        id: string;
-        href: string;
-        eyebrow: string;
-        title: string;
-        summary: string;
-        metricA: string;
-        metricB: string;
-        delta: string;
-        note?: string;
-      }>;
-    }>;
-  };
+  data: ComparisonHubData;
 }) {
   const comparisonCount = data.sections.reduce((count, section) => count + section.cards.length, 0);
 
@@ -71,9 +48,9 @@ function CompareHubContent({
         </article>
       </section>
 
-      {shouldShowDataStateNotice(data.dataState as any) ? (
+      {shouldShowDataStateNotice(data.dataState as DataState) ? (
         <DataStateNotice
-          state={data.dataState as any}
+          state={data.dataState as DataState}
           subject="las comparativas del hub"
           description="El comparador usa los mismos datos que el mapa avanzado, los informes y la API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
           href={appRoutes.status()}
@@ -81,7 +58,7 @@ function CompareHubContent({
         />
       ) : null}
 
-      <InteractiveComparePanel data={data.interactive as any} initialQuery={initialQuery} />
+      <InteractiveComparePanel data={data.interactive} initialQuery={initialQuery} />
 
       {data.sections.map((section) => (
         <section key={section.id} className="ui-section-card">
@@ -238,7 +215,7 @@ export default function ComparePage() {
         </div>
       </header>
 
-      <CompareHubContent initialQuery={initialQuery as any} data={comparisonData as any} />
+      <CompareHubContent initialQuery={initialQuery} data={comparisonData} />
     </PageShell>
   );
 }
