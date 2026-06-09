@@ -23,8 +23,22 @@ interface AlertRow {
 
 const ALERT_WATERMARK = 'alert-rollup';
 
+const DEACTIVATE_BATCH_SIZE = 50;
+
 export async function deactivateActiveAlerts(): Promise<void> {
-  await prisma.$executeRaw`UPDATE "StationAlert" SET "isActive" = false WHERE "isActive" = true;`;
+  let updated: number;
+  do {
+    const result = await prisma.$executeRaw`
+      UPDATE "StationAlert" SET "isActive" = false
+      WHERE "id" IN (
+        SELECT "id" FROM "StationAlert"
+        WHERE "isActive" = true
+        LIMIT ${DEACTIVATE_BATCH_SIZE}
+        FOR UPDATE SKIP LOCKED
+      )
+    `;
+    updated = Number(result);
+  } while (updated >= DEACTIVATE_BATCH_SIZE);
 }
 
 export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
