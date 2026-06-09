@@ -299,6 +299,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const isRefreshingRef = useRef(false);
+  const isMountedRef = useRef(true);
   const stationsDataRef = useRef(stationsData);
   stationsDataRef.current = stationsData;
   const statusDataRef = useRef(statusData);
@@ -306,6 +307,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
     resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
   );
+  useEffect(() => () => { isMountedRef.current = false; }, []);
+
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
@@ -810,6 +813,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           fetchJson<StatusResponse>(appRoutes.api.status()),
         ]);
 
+      if (!isMountedRef.current) return;
+
       if (stationsResult.ok) {
         const nextStationSnapshot = buildStationSnapshotMap(stationsResult.data.stations);
         const previousSnapshot = parseStationSnapshot(
@@ -891,7 +896,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       setNextRefreshAt(nextRefresh);
     } finally {
       isRefreshingRef.current = false;
-      setIsRefreshingData(false);
+      if (isMountedRef.current) {
+        setIsRefreshingData(false);
+      }
     }
   }, [initialData.dataset]);
 
