@@ -85,7 +85,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.1.1",
     "prisma": "^7.8.0",
     "proj4": "^2.20.9",
     "rollup-plugin-visualizer": "^7.0.1",
