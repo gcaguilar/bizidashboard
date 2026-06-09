@@ -1,7 +1,7 @@
 'use client';
 
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
-import { Fragment, useState, useCallback, useEffect } from 'react';
+import { Fragment, useState, useCallback, useEffect, useRef } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -381,6 +381,7 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     return [];
   });
   const [globalFilter, setGlobalFilter] = useState(initialParams?.search ?? '');
+  const isInitialMount = useRef(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     pageIndex: initialParams?.page ?? 0,
@@ -467,6 +468,10 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
   }, [sorting, globalFilter, columnFilters, navigate, pagination, search]);
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     updateURL();
   }, [updateURL]);
 
