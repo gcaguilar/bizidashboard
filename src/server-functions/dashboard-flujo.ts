@@ -13,7 +13,7 @@ const FlowSearchParamsSchema = z.object({
 type FlowSearchParams = z.infer<typeof FlowSearchParamsSchema>;
 
 export const getDashboardFlowPageData = createServerFn({ method: 'GET' })
-  .inputValidator(FlowSearchParamsSchema)
+  .validator(FlowSearchParamsSchema)
   .handler(async ({ data: searchParams }: { data: FlowSearchParams | undefined }) => {
 
     const siteUrl = getSiteUrl();

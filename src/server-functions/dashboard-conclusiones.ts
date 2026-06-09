@@ -133,7 +133,7 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
 }
 
 export const getDashboardConclusionsPageData = createServerFn({ method: 'GET' })
-  .inputValidator(ConclusionsSearchParamsSchema)
+  .validator(ConclusionsSearchParamsSchema)
   .handler(async ({ data: searchParams }: { data: ConclusionsSearchParams | undefined }) => {
 
     const siteUrl = getSiteUrl();

@@ -8,7 +8,7 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 const MonthInputSchema = z.string().optional();
 
 export const getReportMonthPageData = createServerFn({ method: 'GET' })
-  .inputValidator(MonthInputSchema)
+  .validator(MonthInputSchema)
   .handler(async ({ data: month }: { data: string | undefined }) => {
     if (!month || !isValidMonthKey(month)) {
       throw redirect({ to: appRoutes.reports() });
