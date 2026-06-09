@@ -123,6 +123,20 @@ export async function validateApiKey(
 
   const record = await prisma.apiKey.findUnique({
     where: { keyHash },
+    select: {
+      id: true,
+      name: true,
+      keyPrefix: true,
+      description: true,
+      ownerEmail: true,
+      isActive: true,
+      revokedAt: true,
+      lastUsedAt: true,
+      requestCount: true,
+      createdAt: true,
+      customRateLimit: true,
+      customRateWindow: true,
+    },
   });
 
   if (!record) {

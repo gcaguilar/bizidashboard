@@ -21,44 +21,48 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
   const hourlyCutoff = new Date(now - HOURLY_RETENTION_DAYS * 24 * 60 * 60 * 1000);
   const alertCutoff = new Date(now - ALERT_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
-  const stationStatusResult = await prisma.stationStatus.deleteMany({
-    where: {
-      recordedAt: {
-        lt: rawCutoff,
+  const result = await prisma.$transaction(async (tx) => {
+    const stationStatusResult = await tx.stationStatus.deleteMany({
+      where: {
+        recordedAt: {
+          lt: rawCutoff,
+        },
       },
-    },
+    });
+
+    const hourlyStatsDeleted = await tx.$executeRaw`
+      DELETE FROM "HourlyStationStat"
+      WHERE "bucketStart" < ${hourlyCutoff};
+    `;
+
+    const stationAlertsDeleted = await tx.$executeRaw`
+      DELETE FROM "StationAlert"
+      WHERE "generatedAt" < ${alertCutoff};
+    `;
+
+    const stationRankingsDeleted = await tx.$executeRaw`
+      DELETE FROM "StationRanking"
+      WHERE "windowEnd" < (
+        (SELECT MAX("windowEnd") FROM "StationRanking") - ${RANKING_SNAPSHOT_RETENTION_DAYS} * INTERVAL '1 day'
+      );
+    `;
+
+    return {
+      stationStatusDeleted: stationStatusResult.count,
+      hourlyStatsDeleted: Number(hourlyStatsDeleted),
+      stationAlertsDeleted: Number(stationAlertsDeleted),
+      stationRankingsDeleted: Number(stationRankingsDeleted),
+    };
   });
-
-  const hourlyStatsDeleted = await prisma.$executeRaw`
-    DELETE FROM "HourlyStationStat"
-    WHERE "bucketStart" < ${hourlyCutoff};
-  `;
-
-  const stationAlertsDeleted = await prisma.$executeRaw`
-    DELETE FROM "StationAlert"
-    WHERE "generatedAt" < ${alertCutoff};
-  `;
-
-  const stationRankingsDeleted = await prisma.$executeRaw`
-    DELETE FROM "StationRanking"
-    WHERE "windowEnd" < (
-      (SELECT MAX("windowEnd") FROM "StationRanking") - ${RANKING_SNAPSHOT_RETENTION_DAYS} * INTERVAL '1 day'
-    );
-  `;
 
   logger.info('analytics.retention.completed', {
-    stationStatusDeleted: stationStatusResult.count,
-    hourlyStatsDeleted: Number(hourlyStatsDeleted),
-    stationAlertsDeleted: Number(stationAlertsDeleted),
-    stationRankingsDeleted: Number(stationRankingsDeleted),
+    stationStatusDeleted: result.stationStatusDeleted,
+    hourlyStatsDeleted: result.hourlyStatsDeleted,
+    stationAlertsDeleted: result.stationAlertsDeleted,
+    stationRankingsDeleted: result.stationRankingsDeleted,
   });
 
-  return {
-    stationStatusDeleted: stationStatusResult.count,
-    hourlyStatsDeleted: Number(hourlyStatsDeleted),
-    stationAlertsDeleted: Number(stationAlertsDeleted),
-    stationRankingsDeleted: Number(stationRankingsDeleted),
-  };
+  return result;
 }
 
 export async function runVacuumIfDue(): Promise<boolean> {

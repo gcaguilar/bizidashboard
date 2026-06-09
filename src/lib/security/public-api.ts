@@ -95,17 +95,7 @@ export async function enforcePublicApiAccess(
     });
     const headers = getRateLimitHeaders(keyDecision);
 
-    if (keyDecision.backend === 'unavailable') {
-      return {
-        ok: false,
-        response: Response.json(
-          { error: 'Rate limiting backend unavailable.' },
-          { status: 503, headers }
-        ),
-      };
-    }
-
-    if (!keyDecision.allowed) {
+    if (!keyDecision.allowed && keyDecision.backend !== 'unavailable') {
       return {
         ok: false,
         response: Response.json(
@@ -173,17 +163,7 @@ export async function enforcePublicApiAccess(
 
   const headers = getRateLimitHeaders(keyDecision);
 
-  if (keyDecision.backend === 'unavailable') {
-    return {
-      ok: false,
-      response: Response.json(
-        { error: 'Rate limiting backend unavailable.' },
-        { status: 503, headers }
-      ),
-    };
-  }
-
-  if (!keyDecision.allowed) {
+  if (!keyDecision.allowed && keyDecision.backend !== 'unavailable') {
     await recordSecurityEvent({
       eventType: 'rate_limit_exceeded',
       route: options.route,

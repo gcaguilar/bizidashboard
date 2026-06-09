@@ -51,7 +51,7 @@ type DayTypeProfileRow = {
 };
 
 type CachedBriefingRecord = {
-  payload: string;
+  payload: unknown;
   sourceLastDay: Date | null;
 };
 
@@ -643,9 +643,9 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   };
 }
 
-function parseCachedPayload(rawPayload: string): MobilityConclusionsPayload | null {
+function parseCachedPayload(rawPayload: unknown): MobilityConclusionsPayload | null {
   try {
-    const parsed = JSON.parse(rawPayload);
+    const parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
     return hasCacheShape(parsed) ? parsed : null;
   } catch {
     return null;
@@ -785,11 +785,11 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
         where: { dateKey },
         create: {
           dateKey,
-          payload: JSON.stringify(payload),
+          payload,
           sourceLastDay,
         },
         update: {
-          payload: JSON.stringify(payload),
+          payload,
           sourceLastDay,
         },
       });

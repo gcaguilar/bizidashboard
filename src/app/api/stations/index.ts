@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/stations/')({
           const format = new URL(request.url).searchParams.get('format')
 
           const [stations, dataset] = await Promise.all([
-            getStationsWithLatestStatus(),
+            getStationsWithLatestStatus().catch(() => []),
             getSharedDatasetSnapshot().catch(() => null),
           ])
 

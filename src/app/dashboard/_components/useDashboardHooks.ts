@@ -112,7 +112,7 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
   const lastRefreshRef = useRef<number>(0);
   const isRefreshingRef = useRef(false);
   const onRefreshRef = useRef(onRefresh);
-  onRefreshRef.current = onRefresh;
+  useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
   const countdownRef = useRef(0);
 
   const triggerRefresh = useCallback(async () => {

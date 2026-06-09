@@ -37,9 +37,6 @@ export const Route = createFileRoute('/api/token/refresh/')({
           const rateLimitDecision = !ipDecision.allowed ? ipDecision : tokenDecision
           const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision) }
 
-          if (rateLimitDecision.backend === 'unavailable') {
-            return new Response(JSON.stringify({ error: 'Rate limiting backend unavailable' }), { status: 503, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
-          }
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/token/refresh', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
             return new Response(JSON.stringify({ error: 'Too many refresh attempts' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
@@ -54,22 +51,46 @@ export const Route = createFileRoute('/api/token/refresh/')({
             return new Response(JSON.stringify({ error: 'Invalid or expired refresh token' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const install = await prisma.install.findUnique({ where: { installId: payload.installId } })
-          if (!install || !install.isActive || install.revokedAt) {
+          const incomingHash = hashToken(parsed.data.refreshToken)
+
+          const [issuedRefreshToken, accessToken] = await Promise.all([issueRefreshToken(payload.installId), generateAccessToken(payload.installId)])
+
+          const updated = await prisma.$transaction(async (tx) => {
+            const install = await tx.install.findUnique({ where: { installId: payload.installId } })
+            if (!install || !install.isActive || install.revokedAt) {
+              return { error: 'install_inactive' as const }
+            }
+
+            if (install.refreshTokenHash !== incomingHash) {
+              await tx.install.update({ where: { installId: install.installId }, data: { isActive: false, revokedAt: new Date() } })
+              return { error: 'token_reuse' as const }
+            }
+
+            await tx.install.update({
+              where: { installId: install.installId },
+              data: {
+                refreshTokenHash: hashToken(issuedRefreshToken.token),
+                refreshTokenIssuedAt: issuedRefreshToken.issuedAt,
+                lastSeenAt: issuedRefreshToken.issuedAt,
+                lastAuthAt: issuedRefreshToken.issuedAt,
+                revokedAt: null,
+                isActive: true,
+              },
+            })
+
+            return { error: null as null, installId: install.installId }
+          })
+
+          if (updated.error === 'install_inactive') {
             await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/token/refresh', requestId, installId: payload.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'install_inactive' })
             return new Response(JSON.stringify({ error: 'Installation not found or inactive' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const incomingHash = hashToken(parsed.data.refreshToken)
-          if (install.refreshTokenHash !== incomingHash) {
-            await prisma.install.update({ where: { installId: install.installId }, data: { isActive: false, revokedAt: new Date() } })
-            await recordSecurityEvent({ eventType: 'token_reuse_detected', route: '/api/token/refresh', requestId, installId: install.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'refresh_token_reuse' })
+          if (updated.error === 'token_reuse') {
+            await recordSecurityEvent({ eventType: 'token_reuse_detected', route: '/api/token/refresh', requestId, installId: payload.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'refresh_token_reuse' })
             return new Response(JSON.stringify({ error: 'Refresh token revoked' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
-
-          const [issuedRefreshToken, accessToken] = await Promise.all([issueRefreshToken(install.installId), generateAccessToken(install.installId)])
-          await prisma.install.update({ where: { installId: install.installId }, data: { refreshTokenHash: hashToken(issuedRefreshToken.token), refreshTokenIssuedAt: issuedRefreshToken.issuedAt, lastSeenAt: issuedRefreshToken.issuedAt, lastAuthAt: issuedRefreshToken.issuedAt, revokedAt: null, isActive: true } })
-          await recordSecurityEvent({ eventType: 'token_refreshed', route: '/api/token/refresh', requestId, installId: install.installId, ip: clientIp, userAgent, outcome: 'success' })
+          await recordSecurityEvent({ eventType: 'token_refreshed', route: '/api/token/refresh', requestId, installId: updated.installId, ip: clientIp, userAgent, outcome: 'success' })
 
           return new Response(JSON.stringify({ accessToken, refreshToken: issuedRefreshToken.token, expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS }), { status: 200, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
         } catch (error) {

@@ -8,6 +8,7 @@ let cachedClient: RedisClient | null = null
 let cachedClientPromise: Promise<RedisClient | null> | null = null
 let warnedMissingUrl = false
 let connectionFailures = 0
+let connectionPending = false
 const MAX_CONNECTION_RETRIES = 3
 let warnedConnectionFailure = false
 
@@ -36,9 +37,7 @@ export async function getRedisClient(): Promise<RedisClient | null> {
         captureWarningWithContext('REDIS_URL is not set; Redis cache is disabled in production.', {
           area: 'cache.redis',
           operation: 'getRedisClient',
-          tags: {
-            handled: true,
-          },
+          tags: { handled: true },
           dedupeKey: 'cache.redis.missing-url.production',
         })
       }
@@ -51,6 +50,11 @@ export async function getRedisClient(): Promise<RedisClient | null> {
   if (cachedClient) return cachedClient
   if (cachedClientPromise) return cachedClientPromise
 
+  if (connectionPending) {
+    return null
+  }
+
+  connectionPending = true
   const client = createClient({
     url: redisUrl,
     socket: {
@@ -73,9 +77,11 @@ export async function getRedisClient(): Promise<RedisClient | null> {
     .connect()
     .then(() => {
       cachedClient = client
+      connectionPending = false
       return client
     })
     .catch((error: unknown) => {
+      client.quit().catch(() => {})
       if (!warnedConnectionFailure) {
         captureExceptionWithContext(error, {
           area: 'cache.redis',
@@ -86,6 +92,8 @@ export async function getRedisClient(): Promise<RedisClient | null> {
       }
       connectionFailures++
       cachedClientPromise = null
+      cachedClient = null
+      connectionPending = false
       return null
     })
 

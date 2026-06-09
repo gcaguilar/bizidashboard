@@ -119,6 +119,7 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
 
   const install = await prisma.install.findUnique({
     where: { installId },
+    select: { installId: true, isActive: true, revokedAt: true },
   });
 
   if (!install || !install.isActive || install.revokedAt) {

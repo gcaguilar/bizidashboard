@@ -56,17 +56,7 @@ export function withMobileApiRoute(
       const effectiveDecision = !ipDecision.allowed ? ipDecision : tokenDecision;
       const headers = getRateLimitHeaders(effectiveDecision);
 
-      if (effectiveDecision.backend === 'unavailable') {
-        return {
-          ok: false,
-          response: Response.json(
-            { error: 'Service temporarily unavailable' },
-            { status: 503, headers: { ...buildMobileCorsHeaders(req), ...headers } }
-          ),
-        };
-      }
-
-      if (!effectiveDecision.allowed) {
+      if (!effectiveDecision.allowed && effectiveDecision.backend !== 'unavailable') {
         return {
           ok: false,
           response: Response.json(

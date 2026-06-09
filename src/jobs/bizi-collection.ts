@@ -112,7 +112,6 @@ async function executeCollection(
   });
 
   const lock = await acquireJobLock(COLLECTION_LOCK_NAME, COLLECTION_LOCK_TTL_MS);
-  let lockReleased = false;
   if (!lock) {
     const skippedAt = new Date();
     logger.info('collection.lock_skipped');
@@ -268,7 +267,6 @@ async function executeCollection(
         });
       }
     }
-
   } catch (error) {
     // Fetch errors (discovery / station_status throw from pipeline)
     jobState.consecutiveFailures++;
@@ -325,7 +323,6 @@ async function executeCollection(
 
     try {
       await lock.release();
-      lockReleased = true;
     } catch (releaseError) {
       captureExceptionWithContext(releaseError, {
         area: 'jobs.collection',
@@ -335,12 +332,7 @@ async function executeCollection(
     }
   }
 
-  if (lockReleased) {
-    return result;
-  }
-
-  // If we reach here, an error was thrown and re-thrown above
-  throw new Error('unreachable');
+  return result;
 }
 
 export async function runCollection(

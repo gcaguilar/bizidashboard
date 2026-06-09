@@ -7,7 +7,7 @@ function getSignatureSecret(): string {
   const raw = process.env.SIGNATURE_SECRET;
 
   if (!raw) {
-    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+    if (process.env.NODE_ENV === 'production') {
       throw new Error('SIGNATURE_SECRET is required in production');
     }
     logger.warn('signature.using_insecure_default');

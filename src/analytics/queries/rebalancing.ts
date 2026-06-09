@@ -12,7 +12,13 @@ export type CriticalEpisodeRow = {
   episodeCount: number;
 };
 
-function buildRangeFilter(column: string, days: number): Prisma.Sql {
+const ALLOWED_RANGE_COLUMNS = ['bucketStart', 'recordedAt'] as const;
+type AllowedRangeColumn = (typeof ALLOWED_RANGE_COLUMNS)[number];
+
+function buildRangeFilter(column: AllowedRangeColumn, days: number): Prisma.Sql {
+  if (!ALLOWED_RANGE_COLUMNS.includes(column)) {
+    throw new Error(`Invalid column name: ${column}`);
+  }
   const safeDays = Math.max(1, Math.min(90, Math.floor(days)));
   return Prisma.sql`${Prisma.raw(`"${column}"`)} >= NOW() - INTERVAL '1 day' * ${safeDays}`;
 }

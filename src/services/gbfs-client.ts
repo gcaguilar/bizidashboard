@@ -5,7 +5,7 @@
  * and response validation with automatic retry logic.
  */
 
-import { withRetry } from '@/lib/retry';
+import { withRetry, HttpError } from '@/lib/retry';
 import { logger } from '@/lib/logger';
 import type {
   GBFSDiscovery,
@@ -134,8 +134,8 @@ export async function fetchDiscovery(): Promise<GBFSDiscovery> {
   });
   
   const response = await withRetry(
-    () =>
-      fetchWithTimeout(
+    async () => {
+      const res = await fetchWithTimeout(
         DISCOVERY_URL,
         {
           headers: {
@@ -144,15 +144,17 @@ export async function fetchDiscovery(): Promise<GBFSDiscovery> {
           },
         },
         REQUEST_TIMEOUT
-      ),
+      );
+      if (!res.ok) {
+        throw new HttpError(
+          `Failed to fetch GBFS discovery: ${res.status} ${res.statusText} (${DISCOVERY_URL})`,
+          res.status
+        );
+      }
+      return res;
+    },
     { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
   );
-  
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch GBFS discovery: ${response.status} ${response.statusText} (${DISCOVERY_URL})`
-    );
-  }
   
   let data: unknown;
   try {
@@ -207,8 +209,8 @@ export async function fetchStationStatus(
   });
   
   const response = await withRetry(
-    () =>
-      fetchWithTimeout(
+    async () => {
+      const res = await fetchWithTimeout(
         stationStatusUrl,
         {
           headers: {
@@ -217,15 +219,17 @@ export async function fetchStationStatus(
           },
         },
         REQUEST_TIMEOUT
-      ),
+      );
+      if (!res.ok) {
+        throw new HttpError(
+          `Failed to fetch station status: ${res.status} ${res.statusText} (${stationStatusUrl})`,
+          res.status
+        );
+      }
+      return res;
+    },
     { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
   );
-  
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch station status: ${response.status} ${response.statusText} (${stationStatusUrl})`
-    );
-  }
   
   let data: unknown;
   try {
@@ -262,8 +266,8 @@ export async function fetchStationInformation(
   });
 
   const response = await withRetry(
-    () =>
-      fetchWithTimeout(
+    async () => {
+      const res = await fetchWithTimeout(
         stationInformationUrl,
         {
           headers: {
@@ -272,15 +276,17 @@ export async function fetchStationInformation(
           },
         },
         REQUEST_TIMEOUT
-      ),
+      );
+      if (!res.ok) {
+        throw new HttpError(
+          `Failed to fetch station information: ${res.status} ${res.statusText} (${stationInformationUrl})`,
+          res.status
+        );
+      }
+      return res;
+    },
     { maxRetries: MAX_RETRIES, baseDelay: BASE_DELAY }
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch station information: ${response.status} ${response.statusText} (${stationInformationUrl})`
-    );
-  }
 
   let data: unknown;
   try {
