@@ -70,6 +70,25 @@ export async function buildRebalancingReport(options: {
     const currentHour = now.getHours();
     const currentTimeBand = getCurrentTimeBand(currentHour);
 
+    // Build fallback metrics from live snapshot when no hourly rollup data exists
+    if (Object.keys(globalMetricsMap).length === 0) {
+      for (const station of stations) {
+        const occ = station.capacity > 0 ? station.bikesAvailable / station.capacity : 0;
+        globalMetricsMap[station.id] = {
+          occupancyAvg: occ,
+          pctTimeEmpty: occ === 0 ? 1 : 0,
+          pctTimeFull: occ >= 1 ? 1 : 0,
+          rotation: 0,
+          rotationPerBike: 0,
+          persistenceProxy: 0,
+          criticalEpisodeAvgMinutes: 0,
+          netImbalance: 0,
+          variability: 0,
+          unsatisfiedDemandProxy: 0,
+        };
+      }
+    }
+
     // Pre-compute rotation percentiles once (avoids sorting allRotations per station)
     const rotationPercentiles = precomputeRotationPercentiles(globalMetricsMap);
     const diagnostics: StationDiagnostic[] = [];
