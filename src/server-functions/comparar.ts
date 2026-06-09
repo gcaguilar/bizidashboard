@@ -2,9 +2,10 @@ import { createServerFn } from '@tanstack/react-start';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { getCityName } from '@/lib/site';
+import { buildFallbackComparisonHubData, getComparisonHubDataWithTimeout } from '@/lib/comparison-hub';
 
 export const getCompareHubLoaderData = createServerFn({ method: 'GET' }).handler(async () => {
-  const { buildFallbackComparisonHubData, getComparisonHubDataWithTimeout } = await import('@/lib/comparison-hub');
+
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Comparar',

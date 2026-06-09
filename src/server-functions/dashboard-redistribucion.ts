@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import type { RebalancingReport } from '@/types/rebalancing';
+import { fetchDistrictCollection } from '@/lib/districts.server';
 
 const RebalancingSearchParamsSchema = z.object({
   sort: z.string().regex(/^[a-zA-Z0-9_]+:(asc|desc)$/).optional(),
@@ -43,7 +44,6 @@ export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
       pageSize,
     };
 
-    const { fetchDistrictCollection } = await import('@/lib/districts.server');
     const districtCollection = await fetchDistrictCollection().catch(() => null);
 
     const districtNames = districtCollection

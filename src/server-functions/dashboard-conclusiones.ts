@@ -5,6 +5,8 @@ import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { fetchAvailableDataMonths } from '@/lib/api';
+import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 
 function safeNumber(value: unknown): number {
   if (typeof value === 'number') return value;
@@ -133,10 +135,7 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
 export const getDashboardConclusionsPageData = createServerFn({ method: 'GET' })
   .inputValidator(ConclusionsSearchParamsSchema)
   .handler(async ({ data: searchParams }: { data: ConclusionsSearchParams | undefined }) => {
-    const [{ fetchAvailableDataMonths }, { getDailyMobilityConclusions }] = await Promise.all([
-      import('@/lib/api'),
-      import('@/lib/mobility-conclusions'),
-    ]);
+
     const siteUrl = getSiteUrl();
     const fallbackPayload = buildFallbackPayload();
     const availableMonths = await fetchAvailableDataMonths().catch(() => ({

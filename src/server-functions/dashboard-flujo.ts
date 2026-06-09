@@ -4,6 +4,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 
 const FlowSearchParamsSchema = z.object({
   month: z.union([z.string(), z.array(z.string())]).optional(),
@@ -14,7 +15,7 @@ type FlowSearchParams = z.infer<typeof FlowSearchParamsSchema>;
 export const getDashboardFlowPageData = createServerFn({ method: 'GET' })
   .inputValidator(FlowSearchParamsSchema)
   .handler(async ({ data: searchParams }: { data: FlowSearchParams | undefined }) => {
-    const { fetchAvailableDataMonths, fetchStations } = await import('@/lib/api');
+
     const siteUrl = getSiteUrl();
 
     const [stations, availableMonths] = await Promise.all([

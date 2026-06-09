@@ -5,6 +5,9 @@ import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
 import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
+import { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
+import { getSharedDataSource } from '@/services/shared-data';
 
 const FAQ_IDS = [
   'fuente-datos',
@@ -33,26 +36,11 @@ function getMethodologyFaqItems() {
 }
 
 export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [api, fallbacks, sharedData] = await Promise.all([
-    import('@/lib/api'),
-    import('@/lib/shared-data-fallbacks'),
-    import('@/services/shared-data'),
-  ]);
-  const {
-    fetchAvailableDataMonths,
-    fetchHistoryMetadata,
-    fetchSharedDatasetSnapshot,
-    fetchStatus,
-  } = api;
-  const {
-    buildFallbackAvailableMonths,
-    buildFallbackDatasetSnapshot,
-    buildFallbackStatus,
-  } = fallbacks;
+
   const nowIso = new Date().toISOString();
   const [historyMeta, dataset, status, monthsResponse] = await Promise.all([
     fetchHistoryMetadata().catch(() => {
-      const dataSource = sharedData.getSharedDataSource();
+      const dataSource = getSharedDataSource();
       return buildFallbackHistoryMetadata(nowIso, dataSource);
     }),
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
