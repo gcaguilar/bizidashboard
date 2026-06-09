@@ -5,6 +5,14 @@ const port = Number(process.env.PORT || 3000);
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 const clientDir = join(process.cwd(), 'dist/client');
 
+const UMAMI_SCRIPT_ORIGINS = [
+  'https://cloud.umami.is',
+];
+const UMAMI_CONNECT_ORIGINS = [
+  ...UMAMI_SCRIPT_ORIGINS,
+  'https://api-gateway.umami.dev',
+];
+
 function addSecurityHeaders(response) {
   const headers = new Headers(response.headers);
   headers.set('X-Content-Type-Options', 'nosniff');
@@ -14,7 +22,15 @@ function addSecurityHeaders(response) {
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   if (!headers.has('Content-Security-Policy')) {
-    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://umami.datosbizi.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://nominatim.openstreetmap.org; frame-ancestors 'none'");
+    headers.set('Content-Security-Policy', [
+      "default-src 'self'",
+      `script-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${UMAMI_SCRIPT_ORIGINS.join(' ')}`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      `connect-src 'self' https://nominatim.openstreetmap.org ${UMAMI_CONNECT_ORIGINS.join(' ')}`,
+      "frame-ancestors 'none'",
+    ].join('; '));
   }
   return new Response(response.body, {
     status: response.status,

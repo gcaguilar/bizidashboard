@@ -16,6 +16,7 @@ import {
 
 describe('umami tracking helpers', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -159,6 +160,35 @@ describe('umami tracking helpers', () => {
         timeWindow: '30d',
       })
     );
+
+    expect(track).toHaveBeenCalledWith('filter_change', {
+      surface: 'dashboard',
+      route_key: 'dashboard_home',
+      module: 'time_window',
+      source: 'dashboard_header',
+      time_window: '30d',
+    });
+  });
+
+  it('buffers events until the Umami script exposes window.umami', () => {
+    vi.useFakeTimers();
+    const track = vi.fn();
+    vi.stubGlobal('window', {});
+
+    trackUmamiEvent(
+      buildFilterChangeEvent({
+        surface: 'dashboard',
+        routeKey: 'dashboard_home',
+        module: 'time_window',
+        source: 'dashboard_header',
+        timeWindow: '30d',
+      })
+    );
+
+    expect(track).not.toHaveBeenCalled();
+
+    Object.assign(window, { umami: { track } });
+    vi.advanceTimersByTime(250);
 
     expect(track).toHaveBeenCalledWith('filter_change', {
       surface: 'dashboard',

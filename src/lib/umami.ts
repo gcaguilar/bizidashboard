@@ -163,6 +163,11 @@ declare global {
   }
 }
 
+type PendingUmamiEvent = {
+  name: UmamiTrackedEventName;
+  payload?: UmamiEventPayload;
+};
+
 const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
   'surface',
   'route_key',
@@ -187,6 +192,13 @@ const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
 ];
 
 const ALLOWED_PAYLOAD_KEY_SET = new Set<string>(ALLOWED_PAYLOAD_KEYS);
+const MAX_PENDING_UMAMI_EVENTS = 50;
+const UMAMI_FLUSH_DELAY_MS = 250;
+const UMAMI_MAX_FLUSH_ATTEMPTS = 20;
+
+let pendingUmamiEvents: PendingUmamiEvent[] = [];
+let umamiFlushTimer: ReturnType<typeof setTimeout> | null = null;
+let umamiFlushAttempts = 0;
 
 function basePayload(surface: UmamiSurface, routeKey: string): UmamiEventPayload {
   return {
@@ -685,5 +697,44 @@ export function trackUmamiEvent(event: UmamiTrackedEvent): void {
     return;
   }
 
-  window.umami?.track(event.name, sanitizeUmamiPayload(event.payload));
+  const payload = sanitizeUmamiPayload(event.payload);
+  const track = window.umami?.track;
+
+  if (typeof track === 'function') {
+    track(event.name, payload);
+    return;
+  }
+
+  pendingUmamiEvents = [
+    ...pendingUmamiEvents.slice(-(MAX_PENDING_UMAMI_EVENTS - 1)),
+    { name: event.name, payload },
+  ];
+  scheduleUmamiFlush();
+}
+
+function scheduleUmamiFlush(): void {
+  if (umamiFlushTimer || umamiFlushAttempts >= UMAMI_MAX_FLUSH_ATTEMPTS) {
+    return;
+  }
+
+  umamiFlushTimer = setTimeout(() => {
+    umamiFlushTimer = null;
+    flushPendingUmamiEvents();
+  }, UMAMI_FLUSH_DELAY_MS);
+}
+
+function flushPendingUmamiEvents(): void {
+  const track = window.umami?.track;
+  if (typeof track !== 'function') {
+    umamiFlushAttempts++;
+    scheduleUmamiFlush();
+    return;
+  }
+
+  const events = pendingUmamiEvents;
+  pendingUmamiEvents = [];
+  umamiFlushAttempts = 0;
+  for (const event of events) {
+    track(event.name, event.payload);
+  }
 }
