@@ -154,6 +154,8 @@ async function loadDistrictCollection(signal?: AbortSignal): Promise<DistrictCol
 }
 
 export async function fetchDistrictCollection(signal?: AbortSignal): Promise<DistrictCollection | null> {
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+
   if (districtCollectionCache) {
     return districtCollectionCache;
   }
