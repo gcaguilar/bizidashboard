@@ -969,6 +969,7 @@ export async function buildRedistribucionContent(
     stationCount = report.summary.totalStations;
     pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
     pctTimeFull = report.kpis.service.systemPctTimeFull;
+    if (stationCount === 0) throw new Error('Empty report');
   } catch {
     const stationsResponse = await fetchStations().catch(() => ({
       stations: [],
