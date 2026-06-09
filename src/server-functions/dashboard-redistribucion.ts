@@ -29,7 +29,7 @@ export function compactInitialRebalancingReport(report: RebalancingReport): Reba
 }
 
 export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
-  .inputValidator(RebalancingSearchParamsSchema)
+  .validator(RebalancingSearchParamsSchema)
   .handler(async ({ data: params }: { data: RebalancingSearchParams | undefined }) => {
     const sort = params?.sort;
     const filter = params?.filter;

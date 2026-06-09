@@ -13,7 +13,7 @@ export const getStationsDirectoryPageData = createServerFn({ method: 'GET' }).ha
 });
 
 export const getStationDetailPageData = createServerFn({ method: 'GET' })
-  .inputValidator((stationId: string) => stationId)
+  .validator((stationId: string) => stationId)
   .handler(async ({ data: stationId }) => {
     const [{ fetchAlerts, fetchHeatmap, fetchPatterns, fetchRankings, fetchStations }, { buildFallbackStations }] = await Promise.all([
       import('@/lib/api'),

@@ -8,7 +8,7 @@ const SeoLandingInputSchema = z.object({ slug: z.string() });
 const REDISTRIBUCION_SEO_CACHE_TTL_SECONDS = 300;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
-  .inputValidator(SeoLandingInputSchema)
+  .validator(SeoLandingInputSchema)
   .handler(async ({ data: { slug } }: { data: { slug: string } }) => {
     if (!isSeoPageSlug(slug)) {
       throw new Error(`Invalid SEO page slug: ${slug}`);

@@ -4,14 +4,14 @@ import { z } from 'zod'
 const IdInputSchema = z.string().min(1)
 
 export const getPublicStationPageData = createServerFn({ method: 'GET' })
-  .inputValidator(IdInputSchema)
+  .validator(IdInputSchema)
   .handler(async ({ data: stationId }: { data: string }) => {
     const { getStationSeoPageData } = await import('@/lib/seo-stations')
     return getStationSeoPageData(stationId).catch(() => null)
   })
 
 export const getPublicDistrictPageData = createServerFn({ method: 'GET' })
-  .inputValidator(IdInputSchema)
+  .validator(IdInputSchema)
   .handler(async ({ data: districtSlug }: { data: string }) => {
     const { getDistrictSeoRowBySlug, getDistrictSeoRows } = await import('@/lib/seo-districts')
     const [district, districts] = await Promise.all([

@@ -12,6 +12,14 @@ const UMAMI_CONNECT_ORIGINS = [
   ...UMAMI_SCRIPT_ORIGINS,
   'https://api-gateway.umami.dev',
 ];
+const SENTRY_CONNECT_ORIGINS = [
+  'https://*.ingest.sentry.io',
+  'https://*.ingest.us.sentry.io',
+];
+
+const CSP_HEADER = process.env.CSP_REPORT_ONLY === 'true'
+  ? 'Content-Security-Policy-Report-Only'
+  : 'Content-Security-Policy';
 
 function addSecurityHeaders(response) {
   const headers = new Headers(response.headers);
@@ -21,14 +29,14 @@ function addSecurityHeaders(response) {
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  if (!headers.has('Content-Security-Policy')) {
-    headers.set('Content-Security-Policy', [
+  if (!headers.has('Content-Security-Policy') && !headers.has('Content-Security-Policy-Report-Only')) {
+    headers.set(CSP_HEADER, [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${UMAMI_SCRIPT_ORIGINS.join(' ')}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      `connect-src 'self' https://nominatim.openstreetmap.org ${UMAMI_CONNECT_ORIGINS.join(' ')}`,
+      `connect-src 'self' https://nominatim.openstreetmap.org ${UMAMI_CONNECT_ORIGINS.join(' ')} ${SENTRY_CONNECT_ORIGINS.join(' ')}`,
       "frame-ancestors 'none'",
     ].join('; '));
   }
