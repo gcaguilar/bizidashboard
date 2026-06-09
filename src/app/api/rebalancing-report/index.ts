@@ -77,6 +77,7 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           const { searchParams } = new URL(request.url)
           const format = searchParams.get('format')
           const daysParam = searchParams.get('days')
+          const district = searchParams.get('district')
 
           const days = parseDays(daysParam)
           if (days === null) {
@@ -87,7 +88,7 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
             return new Response(JSON.stringify({ error: 'Invalid format. Use json or csv.' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
           }
 
-          const report = await buildRebalancingReport({ days })
+          const report = await buildRebalancingReport({ days, district })
 
           if (format === 'csv') {
             const diagCsv = toCsvDiagnostics(report.diagnostics)

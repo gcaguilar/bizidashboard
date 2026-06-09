@@ -10,7 +10,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
     watermarkKey: HOURLY_WATERMARK,
     sourceQuery: (watermark: Date, windowEnd: Date) => Prisma.sql`
       SELECT "StationStatus"."stationId" as "stationId",
-        DATE_TRUNC('hour', "StationStatus"."recordedAt")::timestamp as "bucketStart",
+        DATE_TRUNC('hour', "StationStatus"."recordedAt") as "bucketStart",
         MIN("StationStatus"."bikesAvailable") as "bikesMin",
         MAX("StationStatus"."bikesAvailable") as "bikesMax",
         AVG("StationStatus"."bikesAvailable"::float) as "bikesAvg",
