@@ -5,6 +5,8 @@ import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import type { DashboardInitialData } from '@/app/dashboard/_components/DashboardClient';
+import { fetchAlerts, fetchSharedDatasetSnapshot, fetchRankings, fetchStations, fetchStatus } from '@/lib/api';
+import { buildFallbackDatasetSnapshot, buildFallbackStatus, buildFallbackStations } from '@/lib/shared-data-fallbacks';
 
 type ErrorWithMeta = {
   cause?: unknown;
@@ -126,22 +128,6 @@ function serializeRankingsResponse(data: { turnover?: unknown; availability?: un
 }
 
 export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [api, fallbacks] = await Promise.all([
-    import('@/lib/api'),
-    import('@/lib/shared-data-fallbacks'),
-  ]);
-  const {
-    fetchAlerts,
-    fetchSharedDatasetSnapshot,
-    fetchRankings,
-    fetchStations,
-    fetchStatus,
-  } = api;
-  const {
-    buildFallbackDatasetSnapshot,
-    buildFallbackStatus,
-    buildFallbackStations,
-  } = fallbacks;
   const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
   const fallbackStations = buildFallbackStations(nowIso);

@@ -4,12 +4,11 @@ import { isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { getCityName } from '@/lib/site';
+import { fetchAvailableDataMonths } from '@/lib/api';
+import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 
 export const getExploreLoaderData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [{ fetchAvailableDataMonths }, { buildFallbackAvailableMonths }] = await Promise.all([
-    import('@/lib/api'),
-    import('@/lib/shared-data-fallbacks'),
-  ]);
+
   const nowIso = new Date().toISOString();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
