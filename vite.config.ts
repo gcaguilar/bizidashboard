@@ -67,8 +67,9 @@ async function loadVisualizerPlugin() {
   }
 }
 
-export default defineConfig(async (): Promise<import('vite').UserConfig> => {
+export default defineConfig(async ({ command }): Promise<import('vite').UserConfig> => {
   const bundleVisualizer = await loadVisualizerPlugin()
+  const isDevServer = command === 'serve'
 
   return {
     resolve: {
@@ -98,7 +99,7 @@ export default defineConfig(async (): Promise<import('vite').UserConfig> => {
       },
     },
     plugins: [
-      devtools(),
+      isDevServer ? devtools() : null,
       tanstackStart({
         router: {
           routesDirectory: 'app',
