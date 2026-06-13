@@ -16,6 +16,9 @@ const SENTRY_CONNECT_ORIGINS = [
   'https://*.ingest.sentry.io',
   'https://*.ingest.us.sentry.io',
 ];
+const MAP_TILE_CONNECT_ORIGINS = [
+  'https://tile.openstreetmap.org',
+];
 
 const CSP_HEADER = process.env.CSP_REPORT_ONLY === 'true'
   ? 'Content-Security-Policy-Report-Only'
@@ -36,7 +39,8 @@ function addSecurityHeaders(response) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      `connect-src 'self' https://nominatim.openstreetmap.org ${UMAMI_CONNECT_ORIGINS.join(' ')} ${SENTRY_CONNECT_ORIGINS.join(' ')}`,
+      `connect-src 'self' https://nominatim.openstreetmap.org ${MAP_TILE_CONNECT_ORIGINS.join(' ')} ${UMAMI_CONNECT_ORIGINS.join(' ')} ${SENTRY_CONNECT_ORIGINS.join(' ')}`,
+      "worker-src 'self' blob:",
       "frame-ancestors 'none'",
     ].join('; '));
   }
