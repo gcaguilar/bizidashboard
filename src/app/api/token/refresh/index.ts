@@ -5,7 +5,7 @@ import { generateAccessToken, hashToken, issueRefreshToken, verifyRefreshToken }
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { buildMobileCorsHeaders, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
 const ACCESS_TOKEN_EXPIRY_SECONDS = 900
@@ -96,15 +96,15 @@ export const Route = createFileRoute('/api/token/refresh/')({
         } catch (error) {
           captureExceptionWithContext(error, { area: 'api.token-refresh', operation: 'POST /api/token/refresh' })
           logger.error('api.token_refresh.failed', { error })
-          return new Response(JSON.stringify({ error: 'Failed to refresh token' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          return applyMobileCors(
+            request,
+            new Response(JSON.stringify({ error: 'Failed to refresh token' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          )
         }
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       OPTIONS: async (opts) => {
-        const request = opts.request
-        const rejection = rejectDisallowedMobileOrigin(request)
-        if (rejection) return rejection
-        return new Response(null, { status: 204, headers: buildMobileCorsHeaders(request) })
+        return handleMobilePreflight(opts.request)
       },
     },
   },

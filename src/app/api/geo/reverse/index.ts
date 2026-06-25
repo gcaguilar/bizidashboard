@@ -4,7 +4,7 @@ import { reverseGeocode } from '@/lib/geo/nominatim'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { buildMobileCorsHeaders, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { verifyMobileRequest } from '@/lib/security/mobile-auth'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
@@ -66,15 +66,15 @@ export const Route = createFileRoute('/api/geo/reverse/')({
         } catch (error) {
           captureExceptionWithContext(error, { area: 'api.geo-reverse', operation: 'POST /api/geo/reverse' })
           logger.error('api.geo_reverse.failed', { error })
-          return new Response(JSON.stringify({ error: 'Failed to reverse geocode' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          return applyMobileCors(
+            request,
+            new Response(JSON.stringify({ error: 'Failed to reverse geocode' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          )
         }
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       OPTIONS: async (opts) => {
-        const request = opts.request
-        const rejection = rejectDisallowedMobileOrigin(request)
-        if (rejection) return rejection
-        return new Response(null, { status: 204, headers: buildMobileCorsHeaders(request) })
+        return handleMobilePreflight(opts.request)
       },
     },
   },

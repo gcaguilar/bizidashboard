@@ -6,7 +6,7 @@ import { issueRefreshToken, hashPublicKey, hashToken } from '@/lib/auth/jwt'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { buildMobileCorsHeaders, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
 const REGISTER_RATE_LIMIT = { limit: 10, windowMs: 5 * 60 * 1000 }
@@ -81,15 +81,15 @@ export const Route = createFileRoute('/api/install/register/')({
         } catch (error) {
           captureExceptionWithContext(error, { area: 'api.install-register', operation: 'POST /api/install/register' })
           logger.error('api.install_register.failed', { error })
-          return new Response(JSON.stringify({ error: 'Failed to register installation' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          return applyMobileCors(
+            request,
+            new Response(JSON.stringify({ error: 'Failed to register installation' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+          )
         }
       },
       // eslint-disable-next-line @typescript-eslint/require-await
       OPTIONS: async (opts) => {
-        const request = opts.request
-        const rejection = rejectDisallowedMobileOrigin(request)
-        if (rejection) return rejection
-        return new Response(null, { status: 204, headers: buildMobileCorsHeaders(request) })
+        return handleMobilePreflight(opts.request)
       },
     },
   },

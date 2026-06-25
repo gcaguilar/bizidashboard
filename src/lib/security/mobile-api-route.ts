@@ -2,7 +2,7 @@
 import { withProtect, type RouteContext } from '@/lib/security/route-protection';
 import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
-import { buildMobileCorsHeaders, rejectDisallowedMobileOrigin } from '@/lib/security/http';
+import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http';
 
 export type MobileApiRouteHandler = RouteHandler;
 
@@ -62,6 +62,7 @@ export function withMobileApiRoute(
           response: Response.json(
             { error: 'Too many requests' },
             {
+              status: 429,
               headers: {
                 ...buildMobileCorsHeaders(req),
                 ...headers,
@@ -78,14 +79,7 @@ export function withMobileApiRoute(
       const response = await handler(ctx);
       
       if (response instanceof Response) {
-        const newHeaders = new Headers(response.headers);
-        Object.entries(buildMobileCorsHeaders(ctx.request)).forEach(([key, value]) => {
-          newHeaders.set(key, value);
-        });
-        return new Response(response.body, {
-          status: response.status,
-          headers: newHeaders,
-        });
+        return applyMobileCors(ctx.request, response);
       }
       
       return response;
@@ -94,10 +88,7 @@ export function withMobileApiRoute(
 }
 
 export function withMobileOptions() {
-  return function (_request: Request): Response {
-    return new Response(null, {
-      status: 204,
-      headers: buildMobileCorsHeaders(_request),
-    });
+  return function (request: Request): Response {
+    return handleMobilePreflight(request);
   };
 }

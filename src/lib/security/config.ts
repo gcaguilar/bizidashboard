@@ -48,6 +48,13 @@ export function getMobileAllowedOrigins(): string[] {
   return Array.from(new Set(configuredOrigins));
 }
 
+export function getConfiguredMobileOrigins(): string[] {
+  return (process.env.MOBILE_API_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 export function getMobileAllowedHeaders(): string {
   return DEFAULT_MOBILE_ALLOWED_HEADERS.join(', ');
 }
@@ -60,6 +67,9 @@ export function validateRuntimeConfiguration(): void {
   const problems: string[] = [];
   const appUrl = process.env.APP_URL?.trim();
   const opsApiKey = getOpsApiKey();
+  const mobileApiExpected =
+    isTruthyEnv(process.env.MOBILE_API_ENABLED) ||
+    shouldRequireSignedMobileRequests();
 
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('change-me')) {
     problems.push('JWT_SECRET must be configured with a non-default value in production.');
@@ -90,8 +100,35 @@ export function validateRuntimeConfiguration(): void {
     }
   }
 
+  const configuredMobileOrigins = getConfiguredMobileOrigins();
+  for (const origin of configuredMobileOrigins) {
+    try {
+      const parsed = new URL(origin);
+      const normalizedOrigin = parsed.origin === 'null'
+        ? `${parsed.protocol}//${parsed.host}`
+        : parsed.origin;
+      if (
+        !parsed.protocol ||
+        !parsed.host ||
+        normalizedOrigin !== origin ||
+        (parsed.pathname !== '' && parsed.pathname !== '/') ||
+        parsed.search ||
+        parsed.hash
+      ) {
+        problems.push(`MOBILE_API_ALLOWED_ORIGINS contains an invalid origin: ${origin}.`);
+      }
+    } catch {
+      problems.push(`MOBILE_API_ALLOWED_ORIGINS contains an invalid origin: ${origin}.`);
+    }
+  }
+
+  if (mobileApiExpected && configuredMobileOrigins.length === 0) {
+    problems.push(
+      'MOBILE_API_ALLOWED_ORIGINS is required when MOBILE_API_ENABLED or REQUIRE_SIGNED_MOBILE_REQUESTS is enabled.'
+    );
+  }
+
   if (problems.length > 0) {
     throw new Error(`Invalid runtime configuration: ${problems.join(' ')}`);
   }
 }
-
