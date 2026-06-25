@@ -31,12 +31,14 @@ function getUmamiConfig() {
     import.meta.env.VITE_UMAMI_SCRIPT_SRC ?? import.meta.env.NEXT_PUBLIC_UMAMI_SCRIPT_SRC;
   const websiteId =
     import.meta.env.VITE_UMAMI_WEBSITE_ID ?? import.meta.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const hostUrl =
+    import.meta.env.VITE_UMAMI_HOST_URL ?? import.meta.env.NEXT_PUBLIC_UMAMI_HOST_URL;
 
-  if (import.meta.env.DEV || !scriptSrc || !websiteId) {
+  if (import.meta.env.DEV || !scriptSrc || !websiteId || !hostUrl) {
     return null;
   }
 
-  return { scriptSrc, websiteId };
+  return { scriptSrc, websiteId, hostUrl };
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -96,6 +98,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             defer
             src={umamiConfig.scriptSrc}
             data-website-id={umamiConfig.websiteId}
+            data-host-url={umamiConfig.hostUrl}
           />
         ) : null}
         <HeadContent />
