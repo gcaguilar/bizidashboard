@@ -46,6 +46,8 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
   - `GET /api/mobility` when `mobilityDays > 30` or `demandDays > 60`
 - `GET /api/health/live` and `GET /api/health/ready` stay unauthenticated for orchestration probes, but only expose probe-safe payloads. Use `GET /api/status` for richer operational visibility.
 - Sensitive routes (`/api/install/register`, `/api/token/refresh`, `/api/geo/*`, `/api/collect`, and elevated public routes) use shared Redis-backed rate limiting, structured audit events, and explicit CORS allowlists for mobile/auth surfaces.
+- Set `MOBILE_API_ENABLED=true` when mobile clients are deployed and list every browser origin in `MOBILE_API_ALLOWED_ORIGINS` (comma-separated). Production startup fails if mobile access is enabled without explicit origins. `APP_URL` is also accepted for same-origin calls.
+- Mobile CORS applies only to `/api/install/register`, `/api/token/refresh`, and `/api/geo/*`; public read APIs remain same-origin and never emit wildcard CORS.
 
 ---
 
@@ -219,12 +221,13 @@ Sentry is used for real-time error monitoring across both client and server.
 
 ## Analytics (Umami)
 
-Umami is loaded only in production and only when both variables are configured:
+Umami is loaded only in production and only when all three variables are configured:
 
 - `VITE_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
 - `VITE_UMAMI_WEBSITE_ID`
+- `VITE_UMAMI_HOST_URL` (cloud default: `https://api-gateway.umami.dev`)
 
-If you enforce CSP, allow Umami domains in `script-src` and `connect-src` (`cloud.umami.is` and `api-gateway.umami.dev` for cloud setups).
+The CSP derives `script-src` from the configured script URL and `connect-src` from the configured collector URL. Self-hosted Umami therefore needs no code change. `NEXT_PUBLIC_UMAMI_*` remains a temporary Docker/CI compatibility alias; new deployments should use `VITE_UMAMI_*`.
 
 ## CSP rollout strategy
 
@@ -232,7 +235,18 @@ To avoid telemetry regressions while tightening CSP:
 
 - Keep Sentry and Umami domains explicitly allowlisted.
 - Use `CSP_REPORT_ONLY=true` first to emit `Content-Security-Policy-Report-Only`.
+- Add exceptional script or connection origins only through `CSP_SCRIPT_SRC_ORIGINS` or `CSP_CONNECT_SRC_ORIGINS`; invalid URLs stop server startup.
 - Review violations in staging, then enable strict enforcement in production.
+
+After deployment, run the production security smoke test with the same expected analytics values:
+
+```bash
+SMOKE_MOBILE_ORIGIN=capacitor://app.example \
+VITE_UMAMI_SCRIPT_SRC=https://cloud.umami.is/script.js \
+VITE_UMAMI_WEBSITE_ID=your-site-id \
+VITE_UMAMI_HOST_URL=https://api-gateway.umami.dev \
+bun run qa:security:smoke -- --base-url https://datosbizi.com
+```
 
 ---
 

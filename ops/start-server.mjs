@@ -1,28 +1,16 @@
 import { extname, join, normalize } from 'node:path';
 import serverEntry from '../dist/server/server.js';
+import {
+  buildContentSecurityPolicy,
+  getContentSecurityPolicyHeader,
+} from '../src/lib/security/csp.mjs';
 
 const port = Number(process.env.PORT || 3000);
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 const clientDir = join(process.cwd(), 'dist/client');
 
-const UMAMI_SCRIPT_ORIGINS = [
-  'https://cloud.umami.is',
-];
-const UMAMI_CONNECT_ORIGINS = [
-  ...UMAMI_SCRIPT_ORIGINS,
-  'https://api-gateway.umami.dev',
-];
-const SENTRY_CONNECT_ORIGINS = [
-  'https://*.ingest.sentry.io',
-  'https://*.ingest.us.sentry.io',
-];
-const MAP_TILE_CONNECT_ORIGINS = [
-  'https://tile.openstreetmap.org',
-];
-
-const CSP_HEADER = process.env.CSP_REPORT_ONLY === 'true'
-  ? 'Content-Security-Policy-Report-Only'
-  : 'Content-Security-Policy';
+const CSP_HEADER = getContentSecurityPolicyHeader();
+const CSP_VALUE = buildContentSecurityPolicy();
 
 function addSecurityHeaders(response) {
   const headers = new Headers(response.headers);
@@ -33,16 +21,7 @@ function addSecurityHeaders(response) {
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   if (!headers.has('Content-Security-Policy') && !headers.has('Content-Security-Policy-Report-Only')) {
-    headers.set(CSP_HEADER, [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${UMAMI_SCRIPT_ORIGINS.join(' ')}`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https:",
-      `connect-src 'self' https://nominatim.openstreetmap.org ${MAP_TILE_CONNECT_ORIGINS.join(' ')} ${UMAMI_CONNECT_ORIGINS.join(' ')} ${SENTRY_CONNECT_ORIGINS.join(' ')}`,
-      "worker-src 'self' blob:",
-      "frame-ancestors 'none'",
-    ].join('; '));
+    headers.set(CSP_HEADER, CSP_VALUE);
   }
   return new Response(response.body, {
     status: response.status,

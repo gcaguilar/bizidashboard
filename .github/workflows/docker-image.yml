@@ -109,9 +109,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            VITE_SENTRY_DSN=${{ vars.VITE_SENTRY_DSN || vars.NEXT_PUBLIC_SENTRY_DSN }}
+            VITE_SENTRY_TRACE_SAMPLE_RATE=${{ vars.VITE_SENTRY_TRACE_SAMPLE_RATE }}
+            VITE_UMAMI_SCRIPT_SRC=${{ vars.VITE_UMAMI_SCRIPT_SRC || vars.NEXT_PUBLIC_UMAMI_SCRIPT_SRC }}
+            VITE_UMAMI_WEBSITE_ID=${{ vars.VITE_UMAMI_WEBSITE_ID || vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
+            VITE_UMAMI_HOST_URL=${{ vars.VITE_UMAMI_HOST_URL || vars.NEXT_PUBLIC_UMAMI_HOST_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
             NEXT_PUBLIC_UMAMI_SCRIPT_SRC=${{ vars.NEXT_PUBLIC_UMAMI_SCRIPT_SRC }}
             NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ vars.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
+            NEXT_PUBLIC_UMAMI_HOST_URL=${{ vars.NEXT_PUBLIC_UMAMI_HOST_URL }}
             GIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
           cache-from: type=gha,scope=${{ runner.os }}-docker

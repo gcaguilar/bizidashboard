@@ -32,6 +32,7 @@
     "qa:seed": "tsx scripts/seed-qa-db.ts",
     "qa:audit": "bun scripts/site-audit.ts",
     "qa:audit:check": "bun scripts/check-site-audit.ts",
+    "qa:security:smoke": "node scripts/security-smoke.mjs",
     "qa:validate:site-env": "node scripts/validate-site-env.mjs",
     "qa:vitals:prod": "node scripts/collect-dashboard-vitals.mjs",
     "qa:vitals:check": "node scripts/check-dashboard-vitals.mjs",
