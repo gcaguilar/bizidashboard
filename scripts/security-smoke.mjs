@@ -4,9 +4,9 @@ const baseUrl = (
   baseUrlIndex >= 0 ? args[baseUrlIndex + 1] : process.env.PLAYWRIGHT_BASE_URL
 )?.replace(/\/$/, '');
 const mobileOrigin = process.env.SMOKE_MOBILE_ORIGIN?.trim();
-const umamiScriptSrc = process.env.VITE_UMAMI_SCRIPT_SRC?.trim();
-const umamiWebsiteId = process.env.VITE_UMAMI_WEBSITE_ID?.trim();
-const umamiHostUrl = process.env.VITE_UMAMI_HOST_URL?.trim();
+const umamiScriptSrc = process.env.UMAMI_SCRIPT_SRC?.trim();
+const umamiWebsiteId = process.env.UMAMI_WEBSITE_ID?.trim();
+const umamiHostUrl = process.env.UMAMI_HOST_URL?.trim();
 
 if (!baseUrl) {
   throw new Error('Provide --base-url or PLAYWRIGHT_BASE_URL.');
@@ -15,7 +15,7 @@ if (!mobileOrigin) {
   throw new Error('SMOKE_MOBILE_ORIGIN is required.');
 }
 if (!umamiScriptSrc || !umamiWebsiteId || !umamiHostUrl) {
-  throw new Error('VITE_UMAMI_SCRIPT_SRC, VITE_UMAMI_WEBSITE_ID and VITE_UMAMI_HOST_URL are required.');
+  throw new Error('UMAMI_SCRIPT_SRC, UMAMI_WEBSITE_ID and UMAMI_HOST_URL are required.');
 }
 
 function assert(condition, message) {

@@ -33,9 +33,6 @@ jobs:
       JWT_SECRET: ci-jwt-secret-that-is-at-least-32-characters-long
       SIGNATURE_SECRET: ci-signature-secret-that-is-at-least-characters-too
       NODE_ENV: test
-      VITE_UMAMI_SCRIPT_SRC: https://analytics.example.com/script.js
-      VITE_UMAMI_WEBSITE_ID: ci-website-id
-      VITE_UMAMI_HOST_URL: https://analytics.example.com
     steps:
       - name: Checkout
         uses: actions/checkout@v6

@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { resolveStatusDataState } from '@/lib/data-state'
+import { resolveUmamiRuntimeConfig, type UmamiRuntimeConfig } from '@/lib/umami-config'
 import { getPipelineStatusSummary } from '@/services/shared-data'
 
 export type FooterVersionInfo = {
@@ -11,6 +12,7 @@ export type FooterVersionInfo = {
 export type FooterData = {
   lastUpdated: string | null
   version: FooterVersionInfo | null
+  umami: UmamiRuntimeConfig | null
 }
 
 async function getGitShaFallback(): Promise<string> {
@@ -44,5 +46,9 @@ export const getFooterData = createServerFn({ method: 'GET' }).handler(async ():
     buildDate: process.env.BUILD_DATE ?? new Date().toISOString(),
   }
 
-  return { lastUpdated, version }
+  return {
+    lastUpdated,
+    version,
+    umami: resolveUmamiRuntimeConfig(process.env),
+  }
 })
