@@ -26,21 +26,6 @@ const Devtools = import.meta.env.DEV
   ? lazy(() => import('../components/Devtools'))
   : null
 
-function getUmamiConfig() {
-  const scriptSrc =
-    import.meta.env.VITE_UMAMI_SCRIPT_SRC ?? import.meta.env.NEXT_PUBLIC_UMAMI_SCRIPT_SRC;
-  const websiteId =
-    import.meta.env.VITE_UMAMI_WEBSITE_ID ?? import.meta.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-  const hostUrl =
-    import.meta.env.VITE_UMAMI_HOST_URL ?? import.meta.env.NEXT_PUBLIC_UMAMI_HOST_URL;
-
-  if (import.meta.env.DEV || !scriptSrc || !websiteId || !hostUrl) {
-    return null;
-  }
-
-  return { scriptSrc, websiteId, hostUrl };
-}
-
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   loader: () => getFooterData(),
   head: () => ({
@@ -86,7 +71,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
-  const umamiConfig = getUmamiConfig()
+  const umamiConfig = footerData.umami
 
   return (
     <html lang="es" suppressHydrationWarning>

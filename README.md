@@ -221,13 +221,13 @@ Sentry is used for real-time error monitoring across both client and server.
 
 ## Analytics (Umami)
 
-Umami is loaded only in production and only when all three variables are configured:
+Umami is loaded by the server at runtime only in production and only when all three variables are configured:
 
-- `VITE_UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
-- `VITE_UMAMI_WEBSITE_ID`
-- `VITE_UMAMI_HOST_URL` (cloud default: `https://api-gateway.umami.dev`)
+- `UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
+- `UMAMI_WEBSITE_ID`
+- `UMAMI_HOST_URL` (cloud default: `https://api-gateway.umami.dev`)
 
-The CSP derives `script-src` from the configured script URL and `connect-src` from the configured collector URL. Self-hosted Umami therefore needs no code change. `NEXT_PUBLIC_UMAMI_*` remains a temporary Docker/CI compatibility alias; new deployments should use `VITE_UMAMI_*`.
+The CSP derives `script-src` from the configured script URL and `connect-src` from the configured collector URL. Self-hosted Umami therefore needs no code change. `VITE_UMAMI_*` and `NEXT_PUBLIC_UMAMI_*` remain temporary runtime compatibility aliases; new deployments should use `UMAMI_*`. These values are no longer Docker build arguments.
 
 ## CSP rollout strategy
 
@@ -242,9 +242,9 @@ After deployment, run the production security smoke test with the same expected 
 
 ```bash
 SMOKE_MOBILE_ORIGIN=capacitor://app.example \
-VITE_UMAMI_SCRIPT_SRC=https://cloud.umami.is/script.js \
-VITE_UMAMI_WEBSITE_ID=your-site-id \
-VITE_UMAMI_HOST_URL=https://api-gateway.umami.dev \
+UMAMI_SCRIPT_SRC=https://cloud.umami.is/script.js \
+UMAMI_WEBSITE_ID=your-site-id \
+UMAMI_HOST_URL=https://api-gateway.umami.dev \
 bun run qa:security:smoke -- --base-url https://datosbizi.com
 ```
 

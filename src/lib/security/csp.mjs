@@ -41,14 +41,17 @@ function unique(values) {
 
 export function resolveExternalServiceConfig(env = process.env) {
   const umamiScriptSrc = readFirst(env, [
+    'UMAMI_SCRIPT_SRC',
     'VITE_UMAMI_SCRIPT_SRC',
     'NEXT_PUBLIC_UMAMI_SCRIPT_SRC',
   ]);
   const umamiWebsiteId = readFirst(env, [
+    'UMAMI_WEBSITE_ID',
     'VITE_UMAMI_WEBSITE_ID',
     'NEXT_PUBLIC_UMAMI_WEBSITE_ID',
   ]);
   const umamiHostUrl = readFirst(env, [
+    'UMAMI_HOST_URL',
     'VITE_UMAMI_HOST_URL',
     'NEXT_PUBLIC_UMAMI_HOST_URL',
   ]);
@@ -72,10 +75,10 @@ export function buildContentSecurityPolicy(env = process.env) {
   const connectOrigins = DEFAULT_CONNECT_URLS.map((value) => new URL(value).origin);
 
   if (config.umamiScriptSrc) {
-    scriptOrigins.push(parseHttpUrl(config.umamiScriptSrc, 'VITE_UMAMI_SCRIPT_SRC').origin);
+    scriptOrigins.push(parseHttpUrl(config.umamiScriptSrc, 'UMAMI_SCRIPT_SRC').origin);
   }
   if (config.umamiHostUrl) {
-    connectOrigins.push(parseHttpUrl(config.umamiHostUrl, 'VITE_UMAMI_HOST_URL').origin);
+    connectOrigins.push(parseHttpUrl(config.umamiHostUrl, 'UMAMI_HOST_URL').origin);
   }
   if (config.sentryDsn) {
     connectOrigins.push(parseHttpUrl(config.sentryDsn, 'SENTRY_DSN').origin);

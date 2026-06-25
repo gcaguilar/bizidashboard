@@ -7,9 +7,9 @@ import {
 describe('content security policy', () => {
   it('derives exact Umami and Sentry origins from effective configuration', () => {
     const policy = buildContentSecurityPolicy({
-      VITE_UMAMI_SCRIPT_SRC: 'https://analytics.example.com/custom/script.js',
-      VITE_UMAMI_HOST_URL: 'https://collector.example.net/analytics',
-      VITE_UMAMI_WEBSITE_ID: 'site-id',
+      UMAMI_SCRIPT_SRC: 'https://analytics.example.com/custom/script.js',
+      UMAMI_HOST_URL: 'https://collector.example.net/analytics',
+      UMAMI_WEBSITE_ID: 'site-id',
       SENTRY_DSN: 'https://public-key@errors.example.org/123',
     });
 
@@ -34,7 +34,7 @@ describe('content security policy', () => {
 
   it('rejects invalid configured URLs', () => {
     expect(() =>
-      buildContentSecurityPolicy({ VITE_UMAMI_SCRIPT_SRC: 'javascript:alert(1)' })
+      buildContentSecurityPolicy({ UMAMI_SCRIPT_SRC: 'javascript:alert(1)' })
     ).toThrow(/http or https/);
     expect(() =>
       buildContentSecurityPolicy({ CSP_CONNECT_SRC_ORIGINS: 'not-a-url' })
