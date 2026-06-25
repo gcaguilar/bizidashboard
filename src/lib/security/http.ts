@@ -167,6 +167,19 @@ export function buildMobileCorsHeaders(request: Request): Record<string, string>
   };
 }
 
+export function applyMobileCors(request: Request, response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(buildMobileCorsHeaders(request))) {
+    headers.set(name, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export function rejectDisallowedMobileOrigin(request: Request): Response | null {
   const origin = request.headers.get('origin');
 
@@ -190,3 +203,10 @@ export function rejectDisallowedMobileOrigin(request: Request): Response | null 
   );
 }
 
+export function handleMobilePreflight(request: Request): Response {
+  return rejectDisallowedMobileOrigin(request) ??
+    new Response(null, {
+      status: 204,
+      headers: buildMobileCorsHeaders(request),
+    });
+}
