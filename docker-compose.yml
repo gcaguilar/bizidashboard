@@ -162,7 +162,7 @@ services:
   jobs-zaragoza:
     build:
       context: .
-      dockerfile: Dockerfile.jobs
+      dockerfile: jobs.Dockerfile
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
@@ -178,7 +178,7 @@ services:
   jobs-madrid:
     build:
       context: .
-      dockerfile: Dockerfile.jobs
+      dockerfile: jobs.Dockerfile
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
@@ -194,7 +194,7 @@ services:
   jobs-barcelona:
     build:
       context: .
-      dockerfile: Dockerfile.jobs
+      dockerfile: jobs.Dockerfile
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
