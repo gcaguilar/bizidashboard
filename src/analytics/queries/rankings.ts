@@ -37,7 +37,7 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
     }),
     upsertQuery: (rows: { stationId: string; turnoverScore: number; emptyHours: number; fullHours: number; totalHours: number; windowStart: Date; windowEnd: Date }[]) => {
       const values = rows.map((r) =>
-        Prisma.sql`(${r.stationId}, ${r.turnoverScore}, ${r.emptyHours}, ${r.fullHours}, ${r.totalHours}, ${r.windowStart}, ${r.windowEnd})`
+        Prisma.sql`(${r.stationId}, ${r.turnoverScore}, ${r.emptyHours}, ${r.fullHours}, ${r.totalHours}, ${r.windowStart}, ${r.windowEnd}, CURRENT_TIMESTAMP)`
       );
       return Prisma.sql`
         INSERT INTO "StationRanking" ("stationId", "turnoverScore", "emptyHours", "fullHours", "totalHours", "windowStart", "windowEnd", "updatedAt")
