@@ -10,7 +10,26 @@ Sentry.init({
   enabled: process.env.NODE_ENV === 'production',
 })
 
+function isClientAbortError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    (error as { name?: unknown }).name === 'AbortError'
+  );
+}
+
 export const onRequestError: (error: unknown, request: Request, context?: unknown) => void = (error, request, context) => {
+  // A client disconnecting mid-stream (closed tab, cancelled navigation) surfaces
+  // here as an SSR-stream AbortError. It's expected client behavior, not a server
+  // bug, so skip it to avoid drowning real errors in Sentry noise.
+  if (isClientAbortError(error)) {
+    return;
+  }
+
   Sentry.captureException(error, {
     contexts: {
       request: { url: request.url, method: request.method },
