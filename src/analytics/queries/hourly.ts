@@ -46,7 +46,7 @@ export async function runHourlyRollup(cutoff: Date): Promise<RollupResult> {
     }),
     upsertQuery: (rows: { stationId: string; bucketStart: unknown; bikesMin: number; bikesMax: number; bikesAvg: number; anchorsMin: number; anchorsMax: number; anchorsAvg: number; occupancyAvg: number; sampleCount: number }[]) => {
       const values = rows.map((r) =>
-        Prisma.sql`(${r.stationId}, ${r.bucketStart}, ${r.bikesMin}, ${r.bikesMax}, ${r.bikesAvg}, ${r.anchorsMin}, ${r.anchorsMax}, ${r.anchorsAvg}, ${r.occupancyAvg}, ${r.sampleCount})`
+        Prisma.sql`(${r.stationId}, ${r.bucketStart}, ${r.bikesMin}, ${r.bikesMax}, ${r.bikesAvg}, ${r.anchorsMin}, ${r.anchorsMax}, ${r.anchorsAvg}, ${r.occupancyAvg}, ${r.sampleCount}, CURRENT_TIMESTAMP)`
       );
       return Prisma.sql`
         INSERT INTO "HourlyStationStat" ("stationId", "bucketStart", "bikesMin", "bikesMax", "bikesAvg", "anchorsMin", "anchorsMax", "anchorsAvg", "occupancyAvg", "sampleCount", "updatedAt")
