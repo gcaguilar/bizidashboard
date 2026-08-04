@@ -6,6 +6,7 @@ import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { getExploreLoaderData } from '@/server-functions/explorar';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import type { GlobalSearchResponse } from '@/lib/global-search';
 
 export const Route = createFileRoute('/explorar')({
   ssr: 'data-only',
@@ -31,7 +32,8 @@ export const Route = createFileRoute('/explorar')({
       title,
     }
   },
-  loader: () => getExploreLoaderData(),
+  loaderDeps: ({ search }) => ({ q: search.q }),
+  loader: ({ deps }) => getExploreLoaderData({ data: { q: deps.q } }),
   pendingComponent: PublicPageLoading,
   errorComponent: ExploreErrorPage,
   component: ExplorePage,
@@ -57,8 +59,60 @@ function ExploreErrorPage() {
   );
 }
 
+function ExploreSearchResults({
+  searchQuery,
+  searchResults,
+}: {
+  searchQuery: string;
+  searchResults: GlobalSearchResponse;
+}) {
+  const hasMatches = searchResults.totalMatches > 0;
+
+  return (
+    <section className="ui-section-card">
+      <h2 className="text-xl font-black text-[var(--foreground)]">
+        Resultados para &ldquo;{searchQuery}&rdquo;
+      </h2>
+      {!hasMatches && (
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          No hay resultados para esta búsqueda. Prueba con el nombre o ID de una estación, un barrio o una herramienta.
+        </p>
+      )}
+      {searchResults.groups
+        .filter((group) => group.results.length > 0)
+        .map((group) => (
+          <div key={group.id} className="mt-4">
+            <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">{group.title}</h3>
+            <div className="mt-2 grid gap-3 md:grid-cols-2">
+              {group.results.map((result) => (
+                <TrackedLink
+                  key={result.id}
+                  href={result.href}
+                  navigationEvent={{
+                    source: 'explore_search',
+                    destination: result.id,
+                    sourceRole: 'hub',
+                    destinationRole: 'hub',
+                    transitionKind: 'within_public',
+                  }}
+                  className="ui-surface-block ui-surface-block-interactive flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--primary)]">{result.badge}</p>
+                    <p className="mt-0.5 text-sm font-semibold text-[var(--foreground)]">{result.title}</p>
+                    <p className="mt-0.5 text-[11px] text-[var(--muted)]">{result.description}</p>
+                  </div>
+                </TrackedLink>
+              ))}
+            </div>
+          </div>
+        ))}
+    </section>
+  );
+}
+
 function ExplorePage() {
-  const { sections, breadcrumbs, latestMonth } = Route.useLoaderData();
+  const { sections, breadcrumbs, latestMonth, searchQuery, searchResults } = Route.useLoaderData();
 
   return (
     <PageShell>
@@ -72,6 +126,10 @@ function ExplorePage() {
           {latestMonth ? ` Último informe mensual disponible: ${latestMonth}.` : ''}
         </p>
       </header>
+
+      {searchQuery && searchResults && (
+        <ExploreSearchResults searchQuery={searchQuery} searchResults={searchResults} />
+      )}
 
       {sections.map((section) => (
         <section key={section.id} className="ui-section-card">

@@ -1,5 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { searchGlobalContent } from '@/lib/global-search';
 import { isValidMonthKey } from '@/lib/months';
 import { getExploreHubSections } from '@/lib/public-navigation';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
@@ -7,7 +9,13 @@ import { getCityName } from '@/lib/site';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 
-export const getExploreLoaderData = createServerFn({ method: 'GET' }).handler(async () => {
+const ExploreSearchParamsSchema = z.object({
+  q: z.string().optional(),
+});
+
+export const getExploreLoaderData = createServerFn({ method: 'GET' })
+  .validator(ExploreSearchParamsSchema)
+  .handler(async ({ data: { q } }) => {
 
   const nowIso = new Date().toISOString();
   const cityName = getCityName();
@@ -25,9 +33,14 @@ export const getExploreLoaderData = createServerFn({ method: 'GET' }).handler(as
   const totalTools = sections.reduce((count, section) => count + section.items.length, 0);
   const itemList = sections.flatMap((section) => section.items);
 
+  const trimmedQuery = q?.trim() ?? '';
+  const searchResults = trimmedQuery
+    ? await searchGlobalContent(trimmedQuery).catch(() => null)
+    : null;
+
   return {
-    searchQuery: '',
-    searchResults: null,
+    searchQuery: trimmedQuery,
+    searchResults,
     latestMonth,
     sections,
     totalTools,
