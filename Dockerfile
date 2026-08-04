@@ -1,13 +1,16 @@
+# syntax=docker/dockerfile:1
 # ── deps: install all dependencies (dev + prod) ─────────────────────
 FROM oven/bun:1.3.14 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install
 
 # ── builder: generate prisma client & build TanStack Start ───────────
 FROM oven/bun:1.3.14 AS builder
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -44,7 +47,8 @@ ENV NEXT_PUBLIC_SENTRY_DSN=
 ENV GIT_SHA=${GIT_SHA:-dev}
 ENV BUILD_DATE=${BUILD_DATE:-}
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
 
 # TanStack Start output (repo currently builds into dist/)
 COPY --from=builder /app/dist /app/dist
