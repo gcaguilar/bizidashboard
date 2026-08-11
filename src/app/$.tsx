@@ -1,7 +1,5 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
-import { TrackedLink } from '@/app/_components/TrackedLink';
-import { PageShell } from '@/components/layout/page-shell'
-import { appRoutes, resolveRedirectTarget } from '@/lib/routes'
+import { resolveRedirectTarget } from '@/lib/routes'
 
 export const Route = createFileRoute('/$')({
   loader: ({ params }) => {
@@ -24,17 +22,4 @@ export const Route = createFileRoute('/$')({
 
     throw notFound()
   },
-  notFoundComponent: NotFoundPage,
 })
-
-function NotFoundPage() {
-  return (
-    <PageShell>
-      <section className="ui-page-hero py-24 text-center">
-        <h1 className="text-4xl font-black text-[var(--foreground)]">Pagina no encontrada</h1>
-        <p className="mt-4 text-sm text-[var(--muted)]">La ruta que buscas no existe o ha sido movida.</p>
-        <TrackedLink href={appRoutes.home()} className="ui-inline-action mt-6">Volver al inicio</TrackedLink>
-      </section>
-    </PageShell>
-  )
-}
