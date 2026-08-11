@@ -5,7 +5,7 @@ import { withPublicApiRoute } from '@/lib/security/public-api-route'
 async function checkDatabase(): Promise<{ ok: boolean; error?: string; durationMs: number }> {
   const start = Date.now()
   try {
-    const { prisma } = await import('@/db')
+    const { prisma } = await import('@/lib/db')
     await prisma.$queryRaw`SELECT 1`
     return { ok: true, durationMs: Date.now() - start }
   } catch (err: unknown) {
