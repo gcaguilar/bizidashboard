@@ -63,9 +63,9 @@ function normalizeStations(
 
 async function fetchLiveStationsFallback(): Promise<StationSnapshot[]> {
   try {
-    const [{ fetchDiscovery, fetchStationInformation, fetchStationStatus }] = await Promise.all([
-      import('@/services/gbfs-client'),
-    ]);
+    const { fetchDiscovery, fetchStationInformation, fetchStationStatus } = await import(
+      '@/services/gbfs-client'
+    );
     const discovery = await fetchDiscovery();
     const [stationStatus, stationInformation] = await Promise.all([
       fetchStationStatus(discovery),

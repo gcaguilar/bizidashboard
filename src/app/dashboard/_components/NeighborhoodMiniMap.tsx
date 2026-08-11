@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Layer, Map as MapView, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
+  districtCollectionQueryOptions,
   type DistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
-import { isAbortError } from './useAbortableAsyncEffect';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 const DISTRICT_FILL_LAYER = {
@@ -121,50 +121,21 @@ export function NeighborhoodMiniMap({
   stations,
   selectedStationId,
 }: NeighborhoodMiniMapProps) {
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const districtsQuery = useQuery(districtCollectionQueryOptions);
+  const districts = districtsQuery.data ?? null;
+  const errorMessage =
+    districtsQuery.error || (districtsQuery.isSuccess && !districts)
+      ? 'No se pudo cargar el mapa de barrios.'
+      : null;
 
   useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadDistricts = async () => {
-      try {
-        setErrorMessage(null);
-        const payload = await fetchDistrictCollection(controller.signal);
-
-        if (!payload) {
-          throw new Error('GeoJSON de distritos invalido.');
-        }
-
-        if (!isActive) {
-          return;
-        }
-
-        setDistricts(payload);
-      } catch (error) {
-        if (isAbortError(error)) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.neighborhood-mini-map',
-          operation: 'loadDistricts',
-        });
-
-        if (isActive) {
-          setErrorMessage('No se pudo cargar el mapa de barrios.');
-        }
-      }
-    };
-
-    void loadDistricts();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, []);
+    if (districtsQuery.error) {
+      captureExceptionWithContext(districtsQuery.error, {
+        area: 'dashboard.neighborhood-mini-map',
+        operation: 'loadDistricts',
+      });
+    }
+  }, [districtsQuery.error]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
@@ -234,7 +205,7 @@ export function NeighborhoodMiniMap({
         return {
           ...feature,
           properties: {
-            ...(feature.properties ?? {}),
+            ...feature.properties,
             bikesScore,
             stationCount,
             relativeScore,

@@ -70,7 +70,7 @@ function levenshteinDistance(a: string, b: string): number {
   }
 
   const previousRow = Array.from({ length: b.length + 1 }, (_, idx) => idx);
-  const currentRow = new Array<number>(b.length + 1);
+  const currentRow = Array.from({ length: b.length + 1 }, () => 0);
 
   for (let i = 1; i <= a.length; i += 1) {
     currentRow[0] = i;
