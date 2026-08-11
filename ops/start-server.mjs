@@ -84,16 +84,54 @@ async function serveStaticAsset(request) {
   return new Response(file, { headers });
 }
 
+// Cuando el cliente corta la conexion, h3 propaga un AbortError envuelto en un
+// HTTPError 500. Sin esto Bun lo vuelca entero como error no controlado y ese
+// ruido tapa los fallos reales del servidor.
+function isClientAbort(error, request) {
+  if (request?.signal?.aborted) {
+    return true;
+  }
+
+  let current = error;
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    const message = typeof current.message === 'string' ? current.message : '';
+    if (current.name === 'AbortError' || message.includes('The connection was closed')) {
+      return true;
+    }
+    current = current.cause;
+  }
+
+  return false;
+}
+
 Bun.serve({
   hostname,
   port,
   async fetch(request) {
-    const staticResponse = await serveStaticAsset(request);
-    if (staticResponse) {
-      return addSecurityHeaders(staticResponse);
+    try {
+      const staticResponse = await serveStaticAsset(request);
+      if (staticResponse) {
+        return addSecurityHeaders(staticResponse);
+      }
+
+      return addSecurityHeaders(await serverEntry.fetch(request));
+    } catch (error) {
+      if (isClientAbort(error, request)) {
+        // 499: el cliente cerro la conexion, no hay nadie leyendo la respuesta.
+        return new Response(null, { status: 499 });
+      }
+
+      console.error(`[Server] Unhandled error on ${request.method} ${request.url}:`, error);
+      return new Response('Internal Server Error', { status: 500 });
+    }
+  },
+  error(error) {
+    if (isClientAbort(error)) {
+      return new Response(null, { status: 499 });
     }
 
-    return addSecurityHeaders(await serverEntry.fetch(request));
+    console.error('[Server] Fatal error:', error);
+    return new Response('Internal Server Error', { status: 500 });
   },
 });
 
