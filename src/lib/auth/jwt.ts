@@ -85,7 +85,12 @@ export async function issueRefreshToken(installId: string): Promise<IssuedRefres
 
 export async function verifyAccessToken(token: string): Promise<AccessTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    // A refresh token lives 7 days; accepting one here would let it act as a
+    // long-lived access token and bypass the rotation/reuse detection.
+    if (payload.type === 'refresh' || typeof payload.installId !== 'string') {
+      return null;
+    }
     return payload as AccessTokenPayload;
   } catch {
     return null;
@@ -94,8 +99,8 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenPaylo
 
 export async function verifyRefreshToken(token: string): Promise<RefreshTokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.type !== 'refresh') {
+    const { payload } = await jwtVerify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    if (payload.type !== 'refresh' || typeof payload.installId !== 'string') {
       return null;
     }
     return payload as RefreshTokenPayload;
