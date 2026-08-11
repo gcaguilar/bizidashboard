@@ -13,7 +13,7 @@ export const openApiDocument = {
         in: 'header',
         name: 'x-ops-api-key',
         description:
-          'Required for GET/POST /api/collect. x-collect-api-key is accepted temporarily as a compatibility alias.'
+          'Required for GET/POST /api/collect.'
       },
       PublicApiKey: {
         type: 'apiKey',

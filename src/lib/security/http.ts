@@ -75,7 +75,7 @@ export function isApiKeyValid(
 }
 
 export function readOpsApiKey(headers: Headers): string | null {
-  return readHeader(headers, ['x-ops-api-key', 'x-collect-api-key']);
+  return readHeader(headers, ['x-ops-api-key']);
 }
 
 export function readPublicApiKey(headers: Headers): string | null {

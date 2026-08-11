@@ -32,7 +32,7 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 ## Operational Security & API Access
 
 - Every API response includes `X-Request-Id`. Clients may send their own `X-Request-Id` to correlate calls, logs, Sentry traces, and persisted security events.
-- `GET /api/collect` and `POST /api/collect` require `X-Ops-Api-Key`. `x-collect-api-key` is still accepted as a temporary compatibility alias for existing cron jobs.
+- `GET /api/collect` and `POST /api/collect` require `X-Ops-Api-Key`.
 - Low-cost read endpoints remain anonymous: `GET /api/status`, `GET /api/stations`, `GET /api/rankings`, `GET /api/alerts`, `GET /api/patterns`, `GET /api/heatmap`, `GET /api/openapi.json`, `GET /api/docs`, and `GET /api/app-versions`.
 - Elevated public access requires `X-Public-Api-Key` on:
   - `GET /api/stations?format=csv`
