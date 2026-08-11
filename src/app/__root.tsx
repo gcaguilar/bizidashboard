@@ -27,6 +27,9 @@ const Devtools = import.meta.env.DEV
   : null
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  // version/umami are static per server process (env vars, build metadata);
+  // resolve once and never revalidate on navigation.
+  staleTime: Infinity,
   loader: () => getFooterData(),
   head: () => ({
     meta: [
