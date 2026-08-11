@@ -40,6 +40,7 @@ import { Route as UsoBiziPorEstacionRouteImport } from './app/uso-bizi-por-estac
 import { Route as UsoBiziPorHoraRouteImport } from './app/uso-bizi-por-hora'
 import { Route as ViajesPorDiaZaragozaRouteImport } from './app/viajes-por-dia-zaragoza'
 import { Route as ViajesPorMesZaragozaRouteImport } from './app/viajes-por-mes-zaragoza'
+import { Route as DotwellKnownOauthProtectedResourceRouteImport } from './app/[.]well-known/oauth-protected-resource'
 import { Route as ApiOpenapiDotjsonRouteImport } from './app/api/openapi[.]json'
 import { Route as ApiVersionRouteImport } from './app/api/version'
 import { Route as BarriosDistrictSlugRouteImport } from './app/barrios/$districtSlug'
@@ -92,6 +93,7 @@ import { Route as ApiAuthLoginIndexRouteImport } from './app/api/auth/login/inde
 import { Route as ApiAuthLogoutIndexRouteImport } from './app/api/auth/logout/index'
 import { Route as ApiAuthSessionIndexRouteImport } from './app/api/auth/session/index'
 import { Route as ApiDeveloperRegisterIndexRouteImport } from './app/api/developer/register/index'
+import { Route as ApiDeveloperRevokeIndexRouteImport } from './app/api/developer/revoke/index'
 import { Route as ApiGeoReverseIndexRouteImport } from './app/api/geo/reverse/index'
 import { Route as ApiGeoSearchIndexRouteImport } from './app/api/geo/search/index'
 import { Route as ApiInstallRegisterIndexRouteImport } from './app/api/install/register/index'
@@ -257,6 +259,12 @@ const ViajesPorMesZaragozaRoute = ViajesPorMesZaragozaRouteImport.update({
   path: '/viajes-por-mes-zaragoza',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthProtectedResourceRoute =
+  DotwellKnownOauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
   id: '/api/openapi.json',
   path: '/api/openapi.json',
@@ -532,6 +540,11 @@ const ApiDeveloperRegisterIndexRoute =
     path: '/api/developer/register/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDeveloperRevokeIndexRoute = ApiDeveloperRevokeIndexRouteImport.update({
+  id: '/api/developer/revoke/',
+  path: '/api/developer/revoke/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGeoReverseIndexRoute = ApiGeoReverseIndexRouteImport.update({
   id: '/api/geo/reverse/',
   path: '/api/geo/reverse/',
@@ -592,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
@@ -642,6 +656,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout/': typeof ApiAuthLogoutIndexRoute
   '/api/auth/session/': typeof ApiAuthSessionIndexRoute
   '/api/developer/register/': typeof ApiDeveloperRegisterIndexRoute
+  '/api/developer/revoke/': typeof ApiDeveloperRevokeIndexRoute
   '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
@@ -678,6 +693,7 @@ export interface FileRoutesByTo {
   '/uso-bizi-por-hora': typeof UsoBiziPorHoraRoute
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
@@ -728,6 +744,7 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutIndexRoute
   '/api/auth/session': typeof ApiAuthSessionIndexRoute
   '/api/developer/register': typeof ApiDeveloperRegisterIndexRoute
+  '/api/developer/revoke': typeof ApiDeveloperRevokeIndexRoute
   '/api/geo/reverse': typeof ApiGeoReverseIndexRoute
   '/api/geo/search': typeof ApiGeoSearchIndexRoute
   '/api/install/register': typeof ApiInstallRegisterIndexRoute
@@ -769,6 +786,7 @@ export interface FileRoutesById {
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
@@ -819,6 +837,7 @@ export interface FileRoutesById {
   '/api/auth/logout/': typeof ApiAuthLogoutIndexRoute
   '/api/auth/session/': typeof ApiAuthSessionIndexRoute
   '/api/developer/register/': typeof ApiDeveloperRegisterIndexRoute
+  '/api/developer/revoke/': typeof ApiDeveloperRevokeIndexRoute
   '/api/geo/reverse/': typeof ApiGeoReverseIndexRoute
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
@@ -861,6 +880,7 @@ export interface FileRouteTypes {
     | '/viajes-por-mes-zaragoza'
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
+    | '/.well-known/oauth-protected-resource'
     | '/api/openapi.json'
     | '/api/version'
     | '/barrios/$districtSlug'
@@ -911,6 +931,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout/'
     | '/api/auth/session/'
     | '/api/developer/register/'
+    | '/api/developer/revoke/'
     | '/api/geo/reverse/'
     | '/api/geo/search/'
     | '/api/install/register/'
@@ -947,6 +968,7 @@ export interface FileRouteTypes {
     | '/uso-bizi-por-hora'
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
+    | '/.well-known/oauth-protected-resource'
     | '/api/openapi.json'
     | '/api/version'
     | '/barrios/$districtSlug'
@@ -997,6 +1019,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/session'
     | '/api/developer/register'
+    | '/api/developer/revoke'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/install/register'
@@ -1037,6 +1060,7 @@ export interface FileRouteTypes {
     | '/viajes-por-mes-zaragoza'
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
+    | '/.well-known/oauth-protected-resource'
     | '/api/openapi.json'
     | '/api/version'
     | '/barrios/$districtSlug'
@@ -1087,6 +1111,7 @@ export interface FileRouteTypes {
     | '/api/auth/logout/'
     | '/api/auth/session/'
     | '/api/developer/register/'
+    | '/api/developer/revoke/'
     | '/api/geo/reverse/'
     | '/api/geo/search/'
     | '/api/install/register/'
@@ -1126,6 +1151,7 @@ export interface RootRouteChildren {
   UsoBiziPorHoraRoute: typeof UsoBiziPorHoraRoute
   ViajesPorDiaZaragozaRoute: typeof ViajesPorDiaZaragozaRoute
   ViajesPorMesZaragozaRoute: typeof ViajesPorMesZaragozaRoute
+  DotwellKnownOauthProtectedResourceRoute: typeof DotwellKnownOauthProtectedResourceRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
   ApiVersionRoute: typeof ApiVersionRoute
   BarriosDistrictSlugRoute: typeof BarriosDistrictSlugRoute
@@ -1153,6 +1179,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutIndexRoute: typeof ApiAuthLogoutIndexRoute
   ApiAuthSessionIndexRoute: typeof ApiAuthSessionIndexRoute
   ApiDeveloperRegisterIndexRoute: typeof ApiDeveloperRegisterIndexRoute
+  ApiDeveloperRevokeIndexRoute: typeof ApiDeveloperRevokeIndexRoute
   ApiGeoReverseIndexRoute: typeof ApiGeoReverseIndexRoute
   ApiGeoSearchIndexRoute: typeof ApiGeoSearchIndexRoute
   ApiInstallRegisterIndexRoute: typeof ApiInstallRegisterIndexRoute
@@ -1377,6 +1404,13 @@ declare module '@tanstack/react-router' {
       path: '/viajes-por-mes-zaragoza'
       fullPath: '/viajes-por-mes-zaragoza'
       preLoaderRoute: typeof ViajesPorMesZaragozaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/openapi.json': {
@@ -1743,6 +1777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeveloperRegisterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/developer/revoke/': {
+      id: '/api/developer/revoke/'
+      path: '/api/developer/revoke'
+      fullPath: '/api/developer/revoke/'
+      preLoaderRoute: typeof ApiDeveloperRevokeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/geo/reverse/': {
       id: '/api/geo/reverse/'
       path: '/api/geo/reverse'
@@ -1917,6 +1958,8 @@ const rootRouteChildren: RootRouteChildren = {
   UsoBiziPorHoraRoute: UsoBiziPorHoraRoute,
   ViajesPorDiaZaragozaRoute: ViajesPorDiaZaragozaRoute,
   ViajesPorMesZaragozaRoute: ViajesPorMesZaragozaRoute,
+  DotwellKnownOauthProtectedResourceRoute:
+    DotwellKnownOauthProtectedResourceRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
   ApiVersionRoute: ApiVersionRoute,
   BarriosDistrictSlugRoute: BarriosDistrictSlugRoute,
@@ -1944,6 +1987,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutIndexRoute: ApiAuthLogoutIndexRoute,
   ApiAuthSessionIndexRoute: ApiAuthSessionIndexRoute,
   ApiDeveloperRegisterIndexRoute: ApiDeveloperRegisterIndexRoute,
+  ApiDeveloperRevokeIndexRoute: ApiDeveloperRevokeIndexRoute,
   ApiGeoReverseIndexRoute: ApiGeoReverseIndexRoute,
   ApiGeoSearchIndexRoute: ApiGeoSearchIndexRoute,
   ApiInstallRegisterIndexRoute: ApiInstallRegisterIndexRoute,
