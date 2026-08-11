@@ -219,13 +219,25 @@ export async function revokeApiClient(clientId: string): Promise<boolean> {
       data: { isActive: false, revokedAt: new Date() },
     });
 
+    // The ApiClient row is already revoked at this point, so the allow-list
+    // check in enforcePublicApiAccess blocks this client regardless of what
+    // happens below — but we still want to know if Auth0-side cleanup failed
+    // and left an orphaned M2M application in the tenant.
     const managementToken = await getManagementApiToken();
     const domain = getAuth0Domain();
 
-    await fetch(`https://${domain}/api/v2/clients/${record.auth0ClientId}`, {
+    const deleteResponse = await fetch(`https://${domain}/api/v2/clients/${record.auth0ClientId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${managementToken}` },
     });
+
+    if (!deleteResponse.ok && deleteResponse.status !== 404) {
+      logger.warn('api_client.auth0_delete_failed', {
+        clientId,
+        auth0ClientId: record.auth0ClientId,
+        status: deleteResponse.status,
+      });
+    }
 
     logger.info('api_client.revoked', { clientId });
     return true;
