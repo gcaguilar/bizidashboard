@@ -43,8 +43,7 @@ model StationStatus {
   station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@unique([stationId, recordedAt])
-  @@index([recordedAt]) // For range queries across all stations
-  @@index([recordedAt, stationId, bikesAvailable, anchorsFree]) // Composite for time-range + station queries (critical episodes, rollups)
+  @@index([recordedAt, stationId, bikesAvailable, anchorsFree]) // Composite for time-range + station queries (critical episodes, rollups); also covers plain recordedAt range scans
 }
 
 enum DayType {
@@ -74,8 +73,7 @@ model HourlyStationStat {
   station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
   @@id([stationId, bucketStart])
-  @@index([bucketStart])
-  @@index([bucketStart, stationId]) // Composite for time-range queries with station filter (mobility signals, patterns)
+  @@index([bucketStart, stationId]) // Composite for time-range queries with station filter (mobility signals, patterns); also covers plain bucketStart range scans
 }
 
 model DailyStationStat {
