@@ -58,11 +58,8 @@ jobs:
       - name: Seed QA database
         run: bun run qa:seed
 
-      # TODO: typescript-eslint / @tanstack/eslint-config don't support TypeScript 7 yet
-      # (crashes on internal compiler APIs). Re-enable once upstream catches up.
       - name: Lint
         run: bun run lint
-        continue-on-error: true
 
       - name: Unit tests
         run: bun run test
