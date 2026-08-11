@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
@@ -7,8 +10,30 @@ import type { FooterData } from '@/server-functions/footer'
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
 
 export default function Footer({ footerData }: { footerData: FooterData | undefined }) {
-  const lastUpdated = footerData?.lastUpdated ? formatDateLabel(footerData.lastUpdated) : null
+  const [lastUpdatedIso, setLastUpdatedIso] = useState<string | null>(null)
   const version = footerData?.version ?? null
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch(appRoutes.api.status())
+      .then((response) => response.json())
+      .then((data: { quality?: { freshness?: { lastUpdated?: string | null } } }) => {
+        const timestamp = data?.quality?.freshness?.lastUpdated
+        if (!cancelled && typeof timestamp === 'string' && timestamp.length > 0) {
+          setLastUpdatedIso(timestamp)
+        }
+      })
+      .catch(() => {
+        // Non-critical footer metadata must not break the page.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const lastUpdated = lastUpdatedIso ? formatDateLabel(lastUpdatedIso) : null
 
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--background)] py-8">
