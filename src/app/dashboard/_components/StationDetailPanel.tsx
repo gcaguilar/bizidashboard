@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import type {
   AlertsResponse,
@@ -11,8 +12,7 @@ import type {
 } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
-  type DistrictCollection,
+  districtCollectionQueryOptions,
   isDistrictCollection,
 } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
@@ -20,8 +20,7 @@ import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from 
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatStatusDateTime } from '@/lib/system-status';
 import { TIMEZONE } from '@/lib/timezone';
-import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
-import { loadMobilityData, normalizeMobilityPreviewData, type MobilityPreviewData } from './mobility-api';
+import { mobilityQueryOptions } from './mobility-api';
 
 type StationDetailPanelProps = {
   station: StationSnapshot | null;
@@ -93,51 +92,31 @@ export function StationDetailPanel({
   demandDays = 30,
   selectedMonth = null,
 }: StationDetailPanelProps) {
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [mobility, setMobility] = useState<MobilityPreviewData | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      const [districtPayload, mobilityPayload] = await Promise.all([
-        fetchDistrictCollection(signal),
-        loadMobilityData(signal, {
+  const districtsQuery = useQuery(districtCollectionQueryOptions);
+  const mobilityQuery = useQuery(
+    mobilityQueryOptions({ mobilityDays, demandDays, month: selectedMonth })
+  );
+
+  const districts = isDistrictCollection(districtsQuery.data) ? districtsQuery.data : null;
+  const mobility = mobilityQuery.data ?? null;
+  const loadError = districtsQuery.error ?? mobilityQuery.error;
+
+  useEffect(() => {
+    if (loadError) {
+      captureExceptionWithContext(loadError, {
+        area: 'dashboard.station-detail',
+        operation: 'loadExtraData',
+        extra: {
           mobilityDays,
           demandDays,
-          month: selectedMonth,
-        }),
-      ]);
-
-      if (!districtPayload) {
-        throw new Error('No se pudieron cargar datos auxiliares de estacion.');
-      }
-
-      if (!isActive()) {
-        return;
-      }
-
-      if (isDistrictCollection(districtPayload)) {
-        setDistricts(districtPayload);
-      }
-
-      setMobility(normalizeMobilityPreviewData(mobilityPayload));
-    },
-    [demandDays, mobilityDays, selectedMonth],
-    {
-      onError: (error) => {
-        captureExceptionWithContext(error, {
-          area: 'dashboard.station-detail',
-          operation: 'loadExtraData',
-          extra: {
-            mobilityDays,
-            demandDays,
-            selectedMonth,
-          },
-        });
-      },
+          selectedMonth,
+        },
+      });
     }
-  );
+  }, [demandDays, loadError, mobilityDays, selectedMonth]);
 
   useEffect(() => {
     if (!isGeolocationEnabled) {

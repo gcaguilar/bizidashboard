@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocation } from '@tanstack/react-router';
+import { getRouteApi } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import {
   Area,
   AreaChart,
@@ -34,22 +35,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ChartWrapper } from './ChartWrapper';
-import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   resolveMobilityDataState,
   shouldShowDataStateNotice,
 } from '@/lib/data-state';
-import {
-  fetchDistrictCollection,
-  type DistrictCollection,
-  isDistrictCollection,
-} from '@/lib/districts';
+import { districtCollectionQueryOptions, isDistrictCollection } from '@/lib/districts';
 import { formatPercent } from '@/lib/format';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { getLocationSearchParams } from '@/lib/router-search';
-import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
-import { loadMobilityData } from './mobility-api';
+import { mobilityDataQueryOptions } from './mobility-api';
 import {
   buildChordLinks,
   buildChordNodes,
@@ -68,6 +62,8 @@ import {
 } from './mobility-insights-model';
 import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
+const flowRouteApi = getRouteApi('/dashboard/flujo/');
+
 type MobilityInsightsProps = {
   stations: StationSnapshot[];
   selectedStationId?: string;
@@ -81,73 +77,51 @@ function MobilityInsightsContent({
   mobilityDays = 14,
   demandDays = 30,
 }: MobilityInsightsProps) {
-  const location = useLocation();
-  const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
-  const parsedSearch = useMemo(
-    () => parseDashboardMonthPeriodSearch(searchParams),
-    [searchParams]
-  );
+  const flowSearch = flowRouteApi.useSearch({
+    select: (search) => ({
+      month: search.month ?? null,
+      period: search.period ?? 'all',
+    }),
+  });
 
-  const [mobilityData, setMobilityData] = useState<MobilityResponse | null>(null);
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
-  const selectedMonth = parsedSearch.month;
-  const activePeriod = parsedSearch.period;
+  const selectedMonth = flowSearch.month;
+  const activePeriod = flowSearch.period as PeriodInsights['key'];
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-
-        const [mobilityPayload, districtsPayload] = await Promise.all([
-          loadMobilityData(signal, {
-            mobilityDays,
-            demandDays,
-            month: selectedMonth,
-          }, 'No se pudieron cargar los datos de movilidad.'),
-          fetchDistrictCollection(signal),
-        ]);
-
-        if (!isActive()) {
-          return;
-        }
-
-        if (!isMobilityResponse(mobilityPayload)) {
-          throw new Error('Respuesta de movilidad invalida.');
-        }
-
-        if (!isDistrictCollection(districtsPayload)) {
-          throw new Error('GeoJSON de distritos invalido.');
-        }
-
-        setMobilityData(mobilityPayload);
-        setDistricts(districtsPayload);
-      } catch (error) {
-        if (!isActive()) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.mobility-insights',
-          operation: 'loadData',
-          extra: {
-            mobilityDays,
-            demandDays,
-            selectedMonth,
-          },
-        });
-        setErrorMessage('No se pudieron cargar los insights de movilidad.');
-      } finally {
-        if (isActive()) {
-          setIsLoading(false);
-        }
+  const mobilityQuery = useQuery({
+    ...mobilityDataQueryOptions(
+      { mobilityDays, demandDays, month: selectedMonth },
+      'No se pudieron cargar los datos de movilidad.'
+    ),
+    select: (payload): MobilityResponse => {
+      if (!isMobilityResponse(payload)) {
+        throw new Error('Respuesta de movilidad invalida.');
       }
+
+      return payload;
     },
-    [demandDays, mobilityDays, selectedMonth]
-  );
+  });
+  const districtsQuery = useQuery(districtCollectionQueryOptions);
+
+  const mobilityData = mobilityQuery.data ?? null;
+  const districts = isDistrictCollection(districtsQuery.data) ? districtsQuery.data : null;
+  const isLoading = mobilityQuery.isPending || districtsQuery.isPending;
+  const loadError = mobilityQuery.error ?? districtsQuery.error;
+  const errorMessage = loadError ? 'No se pudieron cargar los insights de movilidad.' : null;
+
+  useEffect(() => {
+    if (loadError) {
+      captureExceptionWithContext(loadError, {
+        area: 'dashboard.mobility-insights',
+        operation: 'loadData',
+        extra: {
+          mobilityDays,
+          demandDays,
+          selectedMonth,
+        },
+      });
+    }
+  }, [demandDays, loadError, mobilityDays, selectedMonth]);
 
   const stationDistrictMap = useMemo(() => {
     return buildStationDistrictLookup(stations, districts);

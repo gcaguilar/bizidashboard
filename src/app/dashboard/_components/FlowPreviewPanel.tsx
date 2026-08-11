@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,10 @@ import type { StationSnapshot } from '@/lib/api-types';
 import { resolveDataState } from '@/lib/data-state';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
-  type DistrictCollection,
+  districtCollectionQueryOptions,
 } from '@/lib/districts';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { useAbortableAsyncEffect } from './useAbortableAsyncEffect';
 
 type HourlySignalRow = {
   stationId: string;
@@ -38,38 +37,21 @@ type RouteRow = {
 };
 
 export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: FlowPreviewPanelProps) {
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [isLoadingDistricts, setIsLoadingDistricts] = useState(true);
-  const [districtError, setDistrictError] = useState<string | null>(null);
+  const districtsQuery = useQuery(districtCollectionQueryOptions);
+  const districts = districtsQuery.data ?? null;
+  const isLoadingDistricts = districtsQuery.isPending;
+  const districtError = districtsQuery.error
+    ? 'No se pudieron cargar los distritos para el resumen de flujo.'
+    : null;
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      const payload = await fetchDistrictCollection(signal);
-
-      if (!payload || !isActive()) {
-        return;
-      }
-
-      setDistricts(payload);
-    },
-    [],
-    {
-      onStart: () => {
-        setIsLoadingDistricts(true);
-        setDistrictError(null);
-      },
-      onError: (error) => {
-        captureExceptionWithContext(error, {
-          area: 'dashboard.flow-preview',
-          operation: 'loadDistricts',
-        });
-        setDistrictError('No se pudieron cargar los distritos para el resumen de flujo.');
-      },
-      onSettled: () => {
-        setIsLoadingDistricts(false);
-      },
+  useEffect(() => {
+    if (districtsQuery.error) {
+      captureExceptionWithContext(districtsQuery.error, {
+        area: 'dashboard.flow-preview',
+        operation: 'loadDistricts',
+      });
     }
-  );
+  }, [districtsQuery.error]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {

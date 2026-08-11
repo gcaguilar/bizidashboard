@@ -1,17 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
-  type DistrictCollection,
+  districtCollectionQueryOptions,
 } from '@/lib/districts';
 import { appRoutes } from '@/lib/routes';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { isAbortError } from './useAbortableAsyncEffect';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type NeighborhoodLoadCardProps = {
@@ -46,40 +45,17 @@ function getOccupancy(station: StationSnapshot): number {
 }
 
 export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
+  const districtsQuery = useQuery(districtCollectionQueryOptions);
+  const districts = districtsQuery.data ?? null;
 
   useEffect(() => {
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadDistricts = async () => {
-      try {
-        const payload = await fetchDistrictCollection(controller.signal);
-
-        if (!payload || !isActive) {
-          return;
-        }
-
-        setDistricts(payload);
-      } catch (error) {
-        if (isAbortError(error)) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.neighborhood-load-card',
-          operation: 'loadDistricts',
-        });
-      }
-    };
-
-    void loadDistricts();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, []);
+    if (districtsQuery.error) {
+      captureExceptionWithContext(districtsQuery.error, {
+        area: 'dashboard.neighborhood-load-card',
+        operation: 'loadDistricts',
+      });
+    }
+  }, [districtsQuery.error]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {

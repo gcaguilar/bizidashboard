@@ -8,17 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { DASHBOARD_MODE_META, type DashboardViewMode } from '@/lib/dashboard-modes';
+import type { DashboardTimeWindow } from '@/lib/dashboard-search';
 import { GitHubRepoButton } from './GitHubRepoButton';
 
 type TimeWindowOption = {
-  id: string;
+  id: DashboardTimeWindow;
   label: string;
 };
 
 type DashboardHeaderProps = {
   timeWindows: TimeWindowOption[];
-  activeWindowId: string;
-  onChangeWindow: (windowId: string) => void;
+  activeWindowId: DashboardTimeWindow;
+  onChangeWindow: (windowId: DashboardTimeWindow) => void;
   searchQuery: string;
   onChangeSearch: (value: string) => void;
   onlyWithBikes: boolean;

@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { DASHBOARD_DENSITIES } from '@/lib/dashboard-search';
-import { getLocationSearchParams } from '@/lib/router-search';
+
+const dashboardRouteApi = getRouteApi('/dashboard/');
 
 export type DashboardDensity = (typeof DASHBOARD_DENSITIES)[number];
 
@@ -45,10 +46,8 @@ export type UseDashboardDensityResult = {
 };
 
 export function useDashboardDensity(): UseDashboardDensityResult {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = getLocationSearchParams(location);
-  const urlDensity = searchParams.get('density');
+  const navigate = useNavigate({ from: '/dashboard/' });
+  const urlDensity = dashboardRouteApi.useSearch({ select: (search) => search.density });
   const urlValid = isDashboardDensity(urlDensity);
 
   const [storedDensity, setStoredDensity] = useState<DashboardDensity>('full');
@@ -74,13 +73,12 @@ export function useDashboardDensity(): UseDashboardDensityResult {
       persistDensity(next);
       setStoredDensity(next);
 
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.set('density', next);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
+      void navigate({
+        replace: true,
+        search: (prev) => (prev.density === next ? prev : { ...prev, density: next }),
+      });
     },
-    [navigate, searchParams]
+    [navigate]
   );
 
   return { density, setDensity, mounted };
