@@ -21,6 +21,9 @@ export function DeveloperApiRegistration() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [revokeTargetId, setRevokeTargetId] = useState('');
+  const [revoking, setRevoking] = useState(false);
+  const [revokeMessage, setRevokeMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +69,35 @@ export function DeveloperApiRegistration() {
     }
   }
 
+  async function handleRevoke(auth0ClientId: string) {
+    setRevokeMessage(null);
+    setRevoking(true);
+
+    try {
+      const response = await fetch(appRoutes.api.developerRevoke(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auth0ClientId }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setRevokeMessage(data.error ?? 'No se pudo revocar el cliente.');
+        return;
+      }
+
+      setRevokeMessage('Cliente revocado. El client_id ya no podrá obtener nuevos tokens.');
+      if (credentials?.clientId === auth0ClientId) {
+        setCredentials(null);
+      }
+      setRevokeTargetId('');
+    } catch {
+      setRevokeMessage('No se pudo revocar el cliente. Inténtalo de nuevo.');
+    } finally {
+      setRevoking(false);
+    }
+  }
+
   return (
     <section className="ui-section-card" id="register-api">
       <div>
@@ -98,6 +130,14 @@ export function DeveloperApiRegistration() {
               <p><span className="font-bold">audience:</span> <code className="break-all">{credentials.audience}</code></p>
             ) : null}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={revoking}
+            onClick={() => handleRevoke(credentials.clientId)}
+          >
+            {revoking ? 'Revocando…' : 'Revocar este cliente'}
+          </Button>
         </Card>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
@@ -126,6 +166,32 @@ export function DeveloperApiRegistration() {
       )}
 
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
+
+      {session.status === 'authenticated' ? (
+        <div className="flex flex-wrap items-end gap-3 border-t border-[var(--border)] pt-4">
+          <div className="flex-1 min-w-[200px]">
+            <label htmlFor="developer-revoke-id" className="text-xs font-semibold text-[var(--muted)]">
+              Revocar un client_id existente
+            </label>
+            <Input
+              id="developer-revoke-id"
+              value={revokeTargetId}
+              onChange={(event) => setRevokeTargetId(event.target.value)}
+              placeholder="client_id a revocar"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={revoking || revokeTargetId.trim().length === 0}
+            onClick={() => handleRevoke(revokeTargetId.trim())}
+          >
+            {revoking ? 'Revocando…' : 'Revocar'}
+          </Button>
+        </div>
+      ) : null}
+
+      {revokeMessage ? <p className="text-sm text-[var(--muted)]">{revokeMessage}</p> : null}
     </section>
   );
 }
