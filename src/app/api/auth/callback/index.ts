@@ -13,6 +13,10 @@ function isSafeReturnTo(value: string | undefined): value is string {
   return !!value && value.startsWith('/') && !value.startsWith('//')
 }
 
+function textResponse(body: string, status: number): Response {
+  return new Response(body, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
+}
+
 export const Route = createFileRoute('/api/auth/callback/')({
   server: {
     handlers: {
@@ -30,7 +34,7 @@ export const Route = createFileRoute('/api/auth/callback/')({
         deleteCookie(RETURN_TO_COOKIE, { path: '/' })
 
         if (!code || !state || !expectedState || state !== expectedState) {
-          return new Response('Invalid or expired login attempt. Please try again.', { status: 400 })
+          return textResponse('Invalid or expired login attempt. Please try again.', 400)
         }
 
         try {
@@ -38,7 +42,7 @@ export const Route = createFileRoute('/api/auth/callback/')({
           const identity = await verifyIdToken(tokens.id_token)
 
           if (!identity) {
-            return new Response('Could not verify your identity (unverified email).', { status: 401 })
+            return textResponse('Could not verify your identity (unverified email).', 401)
           }
 
           await setDeveloperSession(identity.email)
@@ -53,7 +57,7 @@ export const Route = createFileRoute('/api/auth/callback/')({
             operation: 'GET /api/auth/callback',
           })
           logger.error('api.auth_callback.failed', { error })
-          return new Response('Login failed. Please try again.', { status: 500 })
+          return textResponse('Login failed. Please try again.', 500)
         }
       },
     },
