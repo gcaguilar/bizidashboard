@@ -6,7 +6,7 @@ import { getSecurityEventSummary } from '@/lib/security/audit';
 import type { PipelineStatusSummary } from './types';
 
 const CACHE_KEY = 'shared-data:pipeline-status';
-const CACHE_TTL_SECONDS = 60;
+const CACHE_TTL_SECONDS = 120;
 
 function toIsoString(value: string | Date | null | undefined): string | null {
   if (!value) {

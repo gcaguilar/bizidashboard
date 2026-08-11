@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
+import { queryOptions } from '@tanstack/react-query';
 import type { AlertsResponse, RankingsResponse } from '@/lib/api-types';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
@@ -44,87 +45,6 @@ function isMissingTableError(error: unknown): boolean {
   }
 
   return false;
-}
-
-function toStr(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (value == null) return '';
-  if (typeof value === 'object') return JSON.stringify(value);
-  // eslint-disable-next-line @typescript-eslint/no-base-to-string
-  return String(value);
-}
-
-function serializeStationsResponse(data: unknown): DashboardInitialData['stations'] {
-  if (!data || typeof data !== 'object') {
-    return { stations: [], generatedAt: new Date().toISOString(), dataState: 'empty' };
-  }
-  const d = data as Record<string, unknown>;
-  const stations = Array.isArray(d.stations)
-    ? d.stations.map((s: unknown) => {
-        if (!s || typeof s !== 'object') return {} as DashboardInitialData['stations']['stations'][number];
-        const obj = s as Record<string, unknown>;
-        return {
-          id: toStr(obj.id),
-          name: toStr(obj.name),
-          lat: typeof obj.lat === 'number' ? obj.lat : Number(obj.lat) || 0,
-          lon: typeof obj.lon === 'number' ? obj.lon : Number(obj.lon) || 0,
-          capacity: Number(obj.capacity) || 0,
-          bikesAvailable: Number(obj.bikesAvailable) || 0,
-          anchorsFree: Number(obj.anchorsFree) || 0,
-          recordedAt: typeof obj.recordedAt === 'string' ? obj.recordedAt : new Date().toISOString(),
-        };
-      })
-    : [];
-  return {
-    stations,
-    generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
-    dataState: (d.dataState as DashboardInitialData['stations']['dataState']) ?? 'empty',
-  };
-}
-
-function serializeAlertsResponse(data: unknown): DashboardInitialData['alerts'] {
-  if (!data || typeof data !== 'object') {
-    return { limit: 20, alerts: [], generatedAt: new Date().toISOString() };
-  }
-  const d = data as Record<string, unknown>;
-  const alerts = Array.isArray(d.alerts) ? d.alerts : [];
-  return {
-    limit: Number(d.limit) || 20,
-    alerts,
-    generatedAt: typeof d.generatedAt === 'string' ? d.generatedAt : new Date().toISOString(),
-  };
-}
-
-function makeEmptyRanking(type: string): DashboardInitialData['rankings']['turnover'] {
-  return {
-    type: type as 'turnover' | 'availability',
-    limit: 50,
-    rankings: [],
-    districtSpotlight: [],
-    generatedAt: new Date().toISOString(),
-    dataState: 'no_coverage',
-  };
-}
-
-function serializeRankingResponse(raw: Record<string, unknown>, type: string): DashboardInitialData['rankings']['turnover'] {
-  const rankings = Array.isArray(raw.rankings) ? raw.rankings : [];
-  const districtSpotlight = Array.isArray(raw.districtSpotlight) ? raw.districtSpotlight : [];
-  return {
-    type: type as 'turnover' | 'availability',
-    limit: Number(raw.limit) || 50,
-    rankings,
-    districtSpotlight,
-    generatedAt: typeof raw.generatedAt === 'string' ? raw.generatedAt : new Date().toISOString(),
-    dataState: typeof raw.dataState === 'string' ? raw.dataState as 'ok' | 'no_coverage' | 'empty' : 'no_coverage',
-  };
-}
-
-function serializeRankingsResponse(data: { turnover?: unknown; availability?: unknown }): DashboardInitialData['rankings'] {
-  const turnoverRaw = (data.turnover as Record<string, unknown> | undefined) ?? makeEmptyRanking('turnover');
-  const availabilityRaw = (data.availability as Record<string, unknown> | undefined) ?? makeEmptyRanking('availability');
-  const turnover = serializeRankingResponse(turnoverRaw, 'turnover');
-  const availability = serializeRankingResponse(availabilityRaw, 'availability');
-  return { turnover, availability };
 }
 
 export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(async () => {
@@ -214,10 +134,10 @@ export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(as
 
   const initialData: DashboardInitialData = {
     dataset,
-    stations: serializeStationsResponse(stations),
+    stations,
     status,
-    alerts: serializeAlertsResponse(alerts),
-    rankings: serializeRankingsResponse({ turnover, availability }),
+    alerts,
+    rankings: { turnover, availability },
   };
 
   const isSchemaMissing = schemaMissingFlags.length > 0;
@@ -265,4 +185,10 @@ export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(as
     loadErrors,
     structuredData,
   };
+});
+
+export const dashboardPageQueryOptions = queryOptions({
+  queryKey: ['dashboard', 'page-data'] as const,
+  queryFn: () => getDashboardPageData(),
+  staleTime: 30_000,
 });

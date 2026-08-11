@@ -1,4 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
+
+const StationIdSchema = z.string().trim().min(1).max(64);
 
 export const getStationsDirectoryPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [{ fetchStations }, { buildFallbackStations }] = await Promise.all([
@@ -13,7 +16,7 @@ export const getStationsDirectoryPageData = createServerFn({ method: 'GET' }).ha
 });
 
 export const getStationDetailPageData = createServerFn({ method: 'GET' })
-  .validator((stationId: string) => stationId)
+  .validator(StationIdSchema)
   .handler(async ({ data: stationId }) => {
     const [{ fetchAlerts, fetchHeatmap, fetchPatterns, fetchRankings, fetchStations }, { buildFallbackStations }] = await Promise.all([
       import('@/lib/api'),
