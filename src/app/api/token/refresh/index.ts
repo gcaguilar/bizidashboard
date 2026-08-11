@@ -5,7 +5,7 @@ import { generateAccessToken, hashToken, issueRefreshToken, verifyRefreshToken }
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
 const ACCESS_TOKEN_EXPIRY_SECONDS = 900
@@ -20,7 +20,7 @@ export const Route = createFileRoute('/api/token/refresh/')({
         const request = opts.request
         try {
           const requestId = ''
-          const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ''
+          const clientIp = getClientIp(request.headers)
           const userAgent = request.headers.get('user-agent') || ''
 
           const originRejection = rejectDisallowedMobileOrigin(request)

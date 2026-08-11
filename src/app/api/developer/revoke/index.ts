@@ -4,7 +4,7 @@ import { requireDeveloperSession } from '@/lib/auth/developer-session'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { rejectCrossOriginRequest } from '@/lib/security/http'
+import { getClientIp, rejectCrossOriginRequest } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 import { RATE_LIMITS } from '@/lib/security/rate-limits'
 import { revokeOwnApiClient } from '@/lib/security/api-clients'
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/api/developer/revoke/')({
       POST: async (opts) => {
         const request = opts.request
         const requestId = ''
-        const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ''
+        const clientIp = getClientIp(request.headers)
         const userAgent = request.headers.get('user-agent') || ''
 
         const originRejection = rejectCrossOriginRequest(request)

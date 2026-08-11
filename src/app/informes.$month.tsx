@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
-import { PublicPageLoading } from '@/app/_components/PublicPageLoading'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createReportBreadcrumb } from '@/lib/breadcrumbs'
@@ -39,7 +38,6 @@ export const Route = createFileRoute('/informes/$month')({
       title,
     }
   },
-  pendingComponent: PublicPageLoading,
   errorComponent: InformesMonthErrorPage,
   component: InformesMonthPage,
 })

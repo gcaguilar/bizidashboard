@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { fetchSeoLandingData } from '@/server-functions/seo-landing';
-import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -18,26 +18,12 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
     'Cache-Control': REDISTRIBUCION_CACHE_CONTROL,
   }),
   loader: () => fetchSeoLandingData({ data: { slug: 'redistribucion' } }),
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Redistribución Bizi Zaragoza - DatosBizi';
-    const description = 'Diagnóstico de reequilibrio y estaciones que necesitan atención en Bizi Zaragoza.';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estadisticas/redistribucion` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/redistribucion` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Redistribución Bizi Zaragoza - DatosBizi',
+      description: 'Diagnóstico de reequilibrio y estaciones que necesitan atención en Bizi Zaragoza.',
+      path: appRoutes.statsRedistribucion(),
+    }),
   errorComponent: RedistribucionErrorPage,
   component: RedistribucionPage,
 });

@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
@@ -105,32 +106,12 @@ const FEATURES = [
 ];
 
 export const Route = createFileRoute('/biciradar')({
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Bici Radar - App de bicis compartidas en tiempo real';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content:
-            'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.',
-        },
-        { property: 'og:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
-        { property: 'og:description', content: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/biciradar` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Bici Radar - App de bicis compartidas en tiempo real' },
-        { name: 'twitter:description', content: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/biciradar` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Bici Radar - App de bicis compartidas en tiempo real',
+      description: 'App para encontrar estaciones de bicis compartidas cerca de ti. Zaragoza, Madrid, Barcelona, Valencia y Sevilla. Bicis disponibles, huecos libres y favoritas.',
+      path: appRoutes.biciradar(),
+    }),
   component: BiciRadarPage,
 });
 

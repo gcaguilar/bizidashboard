@@ -1,11 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { getCityName, getSiteUrl } from '@/lib/site';
+import { getCityName } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import {
   getApiVersionLabel,
@@ -18,32 +19,12 @@ import {
 import { getMethodologyPageData } from '@/server-functions/metodologia';
 
 export const Route = createFileRoute('/metodologia')({
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Metodologia y calidad de datos de Bizi Zaragoza'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content:
-            'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.',
-        },
-        { property: 'og:title', content: 'Metodologia y calidad de datos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/metodologia` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Metodologia y calidad de datos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/metodologia` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Metodologia y calidad de datos de Bizi Zaragoza',
+      description: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.',
+      path: appRoutes.methodology(),
+    }),
   loader: () => getMethodologyPageData(),
   component: MethodologyPage,
 });

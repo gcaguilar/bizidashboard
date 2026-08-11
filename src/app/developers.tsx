@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { DeveloperApiRegistration } from '@/app/_components/DeveloperApiRegistration';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -11,7 +12,7 @@ import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
 import {
@@ -48,32 +49,12 @@ function buildOpenApiCtaEvent(source: 'developers_hero' | 'developers_endpoints'
 }
 
 export const Route = createFileRoute('/developers')({
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'API y datos abiertos de Bizi Zaragoza'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-            content:
-            'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.',
-        },
-        { property: 'og:title', content: 'API y datos abiertos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/developers` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'API y datos abiertos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/developers` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'API y datos abiertos de Bizi Zaragoza',
+      description: 'API pública y datos abiertos de Bizi Zaragoza, con OpenAPI, ejemplos, descargas CSV y notas para entender de dónde sale cada dato.',
+      path: appRoutes.developers(),
+    }),
   loader: () => getDevelopersPageData(),
   component: DevelopersPage,
 });

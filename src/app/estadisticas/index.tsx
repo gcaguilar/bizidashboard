@@ -1,35 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
-import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 
 export const Route = createFileRoute('/estadisticas/')({
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Estadísticas Bizi Zaragoza - DatosBizi';
-    const description = 'Explora estadísticas de Bizi Zaragoza: estaciones, barrios, horarios, viajes y más.';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estadisticas` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Estadísticas Bizi Zaragoza - DatosBizi',
+      description: 'Explora estadísticas de Bizi Zaragoza: estaciones, barrios, horarios, viajes y más.',
+      path: appRoutes.statsHub(),
+    }),
   component: EstadisticasHubPage,
 });
 

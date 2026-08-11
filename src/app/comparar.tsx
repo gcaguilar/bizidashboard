@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { z } from 'zod';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
-import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { InteractiveComparePanel } from '@/app/comparar/_components/InteractiveComparePanel';
@@ -12,7 +12,6 @@ import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
-import { getSiteUrl } from '@/lib/site';
 import type { ComparisonHubData } from '@/lib/comparison-hub';
 
 function CompareHubContent({
@@ -110,34 +109,14 @@ export const Route = createFileRoute('/comparar')({
     left: z.string().optional(),
     right: z.string().optional(),
   }),
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Comparador'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content:
-            'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.',
-        },
-        { property: 'og:title', content: 'Comparador - DatosBizi' },
-        { property: 'og:description', content: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/comparar` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Comparador - DatosBizi' },
-        { name: 'twitter:description', content: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/comparar` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Comparador',
+      socialTitle: 'Comparador - DatosBizi',
+      description: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.',
+      path: appRoutes.compare(),
+    }),
   loader: () => getCompareHubLoaderData(),
-  pendingComponent: PublicPageLoading,
   errorComponent: CompareErrorPage,
   component: ComparePage,
 });
