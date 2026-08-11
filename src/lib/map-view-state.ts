@@ -18,26 +18,11 @@ function roundZoom(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-export function resolveDashboardMapViewState(searchParams: URLSearchParams | ReadonlyURLSearchParamsLike): DashboardMapViewState {
-  const lat = Number(searchParams.get('mapLat'));
-  const lng = Number(searchParams.get('mapLng'));
-  const zoom = Number(searchParams.get('mapZoom'));
-
+/** Recorta la precision antes de escribir el estado del mapa en la URL. */
+export function roundDashboardMapViewState(state: DashboardMapViewState): DashboardMapViewState {
   return {
-    latitude: Number.isFinite(lat) && lat >= -90 && lat <= 90 ? lat : DEFAULT_DASHBOARD_MAP_VIEW.latitude,
-    longitude: Number.isFinite(lng) && lng >= -180 && lng <= 180 ? lng : DEFAULT_DASHBOARD_MAP_VIEW.longitude,
-    zoom: Number.isFinite(zoom) && zoom >= 3 && zoom <= 19 ? zoom : DEFAULT_DASHBOARD_MAP_VIEW.zoom,
+    latitude: roundCoordinate(state.latitude),
+    longitude: roundCoordinate(state.longitude),
+    zoom: roundZoom(state.zoom),
   };
 }
-
-export function serializeDashboardMapViewState(state: DashboardMapViewState): Record<string, string> {
-  return {
-    mapLat: String(roundCoordinate(state.latitude)),
-    mapLng: String(roundCoordinate(state.longitude)),
-    mapZoom: String(roundZoom(state.zoom)),
-  };
-}
-
-export type ReadonlyURLSearchParamsLike = {
-  get: (name: string) => string | null;
-};
