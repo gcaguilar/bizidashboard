@@ -42,36 +42,32 @@ export async function getStationGlobalMetrics(days: number = 15): Promise<Record
     WITH with_lag AS (
       SELECT
         "stationId",
-        "bucketStart",
+        "bikesMin",
+        "bikesMax",
+        "bikesAvg",
+        "anchorsMin",
+        "anchorsMax",
+        "occupancyAvg",
         "bikesAvg" - LAG("bikesAvg") OVER (
           PARTITION BY "stationId"
           ORDER BY "bucketStart"
         ) AS delta
       FROM "HourlyStationStat"
       WHERE ${filter}
-    ),
-    imbalance AS (
-      SELECT
-        "stationId",
-        SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END) - SUM(CASE WHEN delta < 0 THEN ABS(delta) ELSE 0 END) AS "netImbalance"
-      FROM with_lag
-      WHERE delta IS NOT NULL
-      GROUP BY "stationId"
     )
     SELECT
-      h."stationId",
-      COALESCE(AVG(h."occupancyAvg"), 0) AS "occupancyAvg",
-      COALESCE(COUNT(h."stationId") FILTER (WHERE h."bikesMin" <= 0)::float / NULLIF(COUNT(h."stationId"), 0), 0) AS "pctTimeEmpty",
-      COALESCE(COUNT(h."stationId") FILTER (WHERE h."anchorsMin" <= 0)::float / NULLIF(COUNT(h."stationId"), 0), 0) AS "pctTimeFull",
-      COALESCE(SUM((h."bikesMax" - h."bikesMin") + (h."anchorsMax" - h."anchorsMin")), 0) AS "rotation",
-      COALESCE(SUM((h."bikesMax" - h."bikesMin") + (h."anchorsMax" - h."anchorsMin")) / NULLIF(AVG(h."bikesAvg"), 0), 0) AS "rotationPerBike",
-      COALESCE(COUNT(h."stationId") FILTER (WHERE h."bikesMax" = h."bikesMin")::float / NULLIF(COUNT(h."stationId"), 0), 0) AS "persistenceProxy",
-      COALESCE(STDDEV_POP(h."occupancyAvg"), 0) AS "variability",
-      COALESCE(MAX(i."netImbalance"), 0) AS "netImbalance"
-    FROM "HourlyStationStat" h
-    LEFT JOIN imbalance i ON h."stationId" = i."stationId"
-    WHERE ${filter}
-    GROUP BY h."stationId"
+      "stationId",
+      COALESCE(AVG("occupancyAvg"), 0) AS "occupancyAvg",
+      COALESCE(COUNT(*) FILTER (WHERE "bikesMin" <= 0)::float / NULLIF(COUNT(*), 0), 0) AS "pctTimeEmpty",
+      COALESCE(COUNT(*) FILTER (WHERE "anchorsMin" <= 0)::float / NULLIF(COUNT(*), 0), 0) AS "pctTimeFull",
+      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "rotation",
+      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) / NULLIF(AVG("bikesAvg"), 0), 0) AS "rotationPerBike",
+      COALESCE(COUNT(*) FILTER (WHERE "bikesMax" = "bikesMin")::float / NULLIF(COUNT(*), 0), 0) AS "persistenceProxy",
+      COALESCE(STDDEV_POP("occupancyAvg"), 0) AS "variability",
+      COALESCE(SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END), 0)
+        - COALESCE(SUM(CASE WHEN delta < 0 THEN ABS(delta) ELSE 0 END), 0) AS "netImbalance"
+    FROM with_lag
+    GROUP BY "stationId"
   `;
 
   const map: Record<string, StationBaseMetrics> = {};
@@ -263,10 +259,22 @@ export async function getCriticalEpisodes(days: number = 15): Promise<Record<str
   return map;
 }
 
+let distanceMatrixCache: {
+  key: string;
+  matrix: Map<string, NearbyStation[]>;
+} | null = null;
+
 export function getStationDistanceMatrix(
   stations: Array<{ id: string; lat: number; lon: number }>,
   maxDistanceMeters: number = 3000
-): Promise<Map<string, NearbyStation[]>> {
+): Map<string, NearbyStation[]> {
+  const cacheKey = `${maxDistanceMeters}:${stations
+    .map((s) => `${s.id},${s.lat},${s.lon}`)
+    .join(';')}`;
+  if (distanceMatrixCache?.key === cacheKey) {
+    return distanceMatrixCache.matrix;
+  }
+
   const matrix = new Map<string, NearbyStation[]>();
 
   for (const origin of stations) {
@@ -299,5 +307,6 @@ export function getStationDistanceMatrix(
     matrix.set(origin.id, neighbors);
   }
 
-  return Promise.resolve(matrix);
+  distanceMatrixCache = { key: cacheKey, matrix };
+  return matrix;
 }
