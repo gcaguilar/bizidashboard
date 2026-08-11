@@ -1,4 +1,12 @@
+import { queryOptions } from '@tanstack/react-query';
+
 export const DISTRICTS_GEOJSON_URL = '/data/distritos-zaragoza.geojson';
+
+export const districtCollectionQueryOptions = queryOptions({
+  queryKey: ['districts', 'collection'],
+  queryFn: ({ signal }) => fetchDistrictCollection(signal),
+  staleTime: Infinity,
+});
 
 export type Coordinate = number[];
 

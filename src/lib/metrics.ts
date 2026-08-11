@@ -118,12 +118,23 @@ export type StatusResponse = {
 }
 
 /**
- * Get the total count of rows in StationStatus table
+ * Get the total count of rows in StationStatus table.
+ * Uses the planner estimate: an exact COUNT(*) scans the whole table and this
+ * figure is observability-only. reltuples is -1 until the first VACUUM/ANALYZE,
+ * so fall back to an exact count in that case.
  */
 async function getTotalRowsCollected(): Promise<number> {
   try {
-    const count = await prisma.stationStatus.count()
-    return count
+    const rows = await prisma.$queryRaw<Array<{ estimate: bigint | number }>>`
+      SELECT reltuples::bigint AS estimate
+      FROM pg_class
+      WHERE oid = '"StationStatus"'::regclass;
+    `
+    const estimate = Number(rows[0]?.estimate ?? -1)
+    if (estimate >= 0) {
+      return estimate
+    }
+    return await prisma.stationStatus.count()
   } catch (error) {
     reportMetricsErrorOnce('getTotalRowsCollected', error)
     logger.error('metrics.total_rows_failed', { error })
@@ -138,17 +149,14 @@ async function getTotalRowsCollected(): Promise<number> {
 async function getPollsLast24Hours(): Promise<number> {
   try {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    
-    const result = await prisma.stationStatus.groupBy({
-      by: ['recordedAt'],
-      where: {
-        recordedAt: {
-          gte: twentyFourHoursAgo
-        }
-      }
-    })
-    
-    return result.length
+
+    const rows = await prisma.$queryRaw<Array<{ pollCount: bigint | number }>>`
+      SELECT COUNT(DISTINCT "recordedAt") AS "pollCount"
+      FROM "StationStatus"
+      WHERE "recordedAt" >= ${twentyFourHoursAgo};
+    `
+
+    return Number(rows[0]?.pollCount ?? 0)
   } catch (error) {
     reportMetricsErrorOnce('getPollsLast24Hours', error)
     logger.error('metrics.polls_last_24h_failed', { error })
@@ -184,28 +192,13 @@ async function getLastSuccessfulPoll(): Promise<Date | null> {
  */
 async function getLastStationCount(): Promise<number> {
   try {
-    // Get the most recent recordedAt timestamp
-    const latestTimestamp = await prisma.stationStatus.findFirst({
-      orderBy: {
-        recordedAt: 'desc'
-      },
-      select: {
-        recordedAt: true
-      }
-    })
-    
-    if (!latestTimestamp) {
-      return 0
-    }
-    
-    // Count stations at that timestamp
-    const count = await prisma.stationStatus.count({
-      where: {
-        recordedAt: latestTimestamp.recordedAt
-      }
-    })
-    
-    return count
+    const rows = await prisma.$queryRaw<Array<{ stationCount: bigint | number }>>`
+      SELECT COUNT(*) AS "stationCount"
+      FROM "StationStatus"
+      WHERE "recordedAt" = (SELECT MAX("recordedAt") FROM "StationStatus");
+    `
+
+    return Number(rows[0]?.stationCount ?? 0)
   } catch (error) {
     reportMetricsErrorOnce('getLastStationCount', error)
     logger.error('metrics.last_station_count_failed', { error })
@@ -220,24 +213,13 @@ async function getAverageStationsPerPoll(): Promise<number> {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-    const groupedPolls = await prisma.stationStatus.groupBy({
-      by: ['recordedAt'],
-      where: {
-        recordedAt: {
-          gte: sevenDaysAgo
-        }
-      },
-      _count: {
-        _all: true
-      }
-    })
+    const rows = await prisma.$queryRaw<Array<{ avgStations: number | null }>>`
+      SELECT COUNT(*)::float / NULLIF(COUNT(DISTINCT "recordedAt"), 0) AS "avgStations"
+      FROM "StationStatus"
+      WHERE "recordedAt" >= ${sevenDaysAgo};
+    `
 
-    if (groupedPolls.length === 0) {
-      return 0
-    }
-
-    const totalStations = groupedPolls.reduce((sum, poll) => sum + poll._count._all, 0)
-    return Math.round(totalStations / groupedPolls.length)
+    return Math.round(Number(rows[0]?.avgStations ?? 0))
   } catch (error) {
     reportMetricsErrorOnce('getAverageStationsPerPoll', error)
     logger.error('metrics.average_stations_failed', { error })
@@ -248,18 +230,15 @@ async function getAverageStationsPerPoll(): Promise<number> {
 /**
  * Check if the latest data is fresh (within 10 minutes)
  */
-async function isDataFresh(): Promise<{ isFresh: boolean; lastUpdated: Date | null }> {
-  const lastPoll = await getLastSuccessfulPoll()
-  
+function computeDataFreshness(lastPoll: Date | null): { isFresh: boolean; lastUpdated: Date | null } {
   if (!lastPoll) {
     return { isFresh: false, lastUpdated: null }
   }
-  
-  const maxAgeMs = FRESH_DATA_MAX_AGE_MS
+
   const ageMs = Date.now() - lastPoll.getTime()
-  
+
   return {
-    isFresh: ageMs <= maxAgeMs,
+    isFresh: ageMs <= FRESH_DATA_MAX_AGE_MS,
     lastUpdated: lastPoll
   }
 }
@@ -403,16 +382,16 @@ export async function getMetrics(): Promise<PipelineMetrics> {
     totalRowsCollected,
     pollsLast24Hours,
     lastStationCount,
-    averageStationsPerPoll,
-    freshness
+    averageStationsPerPoll
   ] = await Promise.all([
     getLastSuccessfulPoll(),
     getTotalRowsCollected(),
     getPollsLast24Hours(),
     getLastStationCount(),
-    getAverageStationsPerPoll(),
-    isDataFresh()
+    getAverageStationsPerPoll()
   ])
+
+  const freshness = computeDataFreshness(lastSuccessfulPoll)
   
   const { status: healthStatus, reason: healthReason } = calculateHealthStatus(
     lastSuccessfulPoll,

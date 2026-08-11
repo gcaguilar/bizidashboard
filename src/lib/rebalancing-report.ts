@@ -64,7 +64,7 @@ export async function buildRebalancingReport(options: {
 
     // 2. Build distance matrix
     const stationCoords = stations.map(s => ({ id: s.id, lat: s.lat, lon: s.lon }));
-    const distanceMatrix = await getStationDistanceMatrix(stationCoords, DEFAULT_LOGISTICS_CONFIG.maxTransferDistanceMeters);
+    const distanceMatrix = getStationDistanceMatrix(stationCoords, DEFAULT_LOGISTICS_CONFIG.maxTransferDistanceMeters);
 
     const now = new Date();
     const currentHour = now.getHours();
