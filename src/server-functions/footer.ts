@@ -1,7 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { resolveStatusDataState } from '@/lib/data-state'
 import { resolveUmamiRuntimeConfig, type UmamiRuntimeConfig } from '@/lib/umami-config'
-import { getPipelineStatusSummary } from '@/services/shared-data'
 
 export type FooterVersionInfo = {
   gitSha: string
@@ -10,36 +8,30 @@ export type FooterVersionInfo = {
 }
 
 export type FooterData = {
-  lastUpdated: string | null
   version: FooterVersionInfo | null
   umami: UmamiRuntimeConfig | null
 }
 
+let cachedGitSha: string | null = null
+
 async function getGitShaFallback(): Promise<string> {
+  if (cachedGitSha) {
+    return cachedGitSha
+  }
+
   try {
     const { execSync } = await import('node:child_process')
-    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+    cachedGitSha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
   } catch {
-    return 'unknown'
+    cachedGitSha = 'unknown'
   }
+
+  return cachedGitSha
 }
 
+// Static per server process (env vars / build metadata) — resolved once and
+// never revalidated; see `staleTime: Infinity` on the root route loader.
 export const getFooterData = createServerFn({ method: 'GET' }).handler(async (): Promise<FooterData> => {
-  let lastUpdated: string | null = null
-
-  try {
-    const status = await getPipelineStatusSummary()
-    if (status && typeof status === 'object') {
-      const payload = { ...status, dataState: resolveStatusDataState(status) }
-      const timestamp = payload?.quality?.freshness?.lastUpdated
-      if (typeof timestamp === 'string' && timestamp.length > 0) {
-        lastUpdated = timestamp
-      }
-    }
-  } catch {
-    // Non-critical footer metadata must not break page rendering.
-  }
-
   const version: FooterVersionInfo = {
     version: process.env.IMAGE_TAG ?? 'dev',
     gitSha: process.env.GIT_SHA ?? (await getGitShaFallback()),
@@ -47,7 +39,6 @@ export const getFooterData = createServerFn({ method: 'GET' }).handler(async ():
   }
 
   return {
-    lastUpdated,
     version,
     umami: resolveUmamiRuntimeConfig(process.env),
   }
