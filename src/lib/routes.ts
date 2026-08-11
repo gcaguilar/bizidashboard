@@ -183,6 +183,7 @@ export const appRoutes = {
       buildQuery('/api/auth/login', { returnTo: params?.returnTo }),
     authLogout: () => '/api/auth/logout',
     developerRegister: () => '/api/developer/register',
+    developerRevoke: () => '/api/developer/revoke',
   },
 } as const;
 
