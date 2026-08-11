@@ -74,8 +74,6 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
 # Entrypoint & ops scripts
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY ops/create-schema.ts /app/ops/create-schema.ts
-COPY ops/fix-station-status-indexes.ts /app/ops/fix-station-status-indexes.ts
-COPY ops/move-public-schema-to-city.ts /app/ops/move-public-schema-to-city.ts
 COPY ops/start-server.mjs /app/ops/start-server.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
