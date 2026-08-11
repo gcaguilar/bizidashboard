@@ -54,7 +54,7 @@
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-router-ssr-query": "^1.167.1",
     "@tanstack/react-start": "latest",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.1.0",
     "@tanstack/router-plugin": "^1.168.29",
     "@tanstack/start-plugin": "latest",
     "jose": "^6.2.8",
