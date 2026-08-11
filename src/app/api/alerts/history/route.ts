@@ -329,7 +329,7 @@ export async function GET(request: Request): Promise<Response> {
         namespace: 'public-alerts-history',
         limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
         windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
-        requireApiKey: parsed.format === 'csv' || parsed.limit > 500,
+        requireApiKey: parsed.limit > 500,
       });
 
       if (!access.ok) {
