@@ -1,3 +1,6 @@
+import { isKnownInsecureSecret } from '@/lib/security/known-insecure-secrets';
+import { logger } from '@/lib/logger';
+
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const DEFAULT_MOBILE_ALLOWED_HEADERS = [
   'Content-Type',
@@ -59,7 +62,38 @@ export function getMobileAllowedHeaders(): string {
   return DEFAULT_MOBILE_ALLOWED_HEADERS.join(', ');
 }
 
+/**
+ * Checks every secret-shaped env var that's actually set against the known
+ * dev-default/placeholder list, regardless of NODE_ENV. Unlike
+ * validateRuntimeConfiguration(), this never requires a var to be present —
+ * it only flags one that's present and matches a known-insecure value — so
+ * it's safe to run in dev/staging/preview environments that legitimately
+ * leave secrets unset. Warns instead of throwing: an env misconfigured this
+ * way in a non-production environment shouldn't crash the boot, but should
+ * be visible.
+ */
+function warnOnWeakSecrets(): void {
+  const candidates: Array<[name: string, value: string | undefined]> = [
+    ['JWT_SECRET', process.env.JWT_SECRET],
+    ['SIGNATURE_SECRET', process.env.SIGNATURE_SECRET],
+    ['SESSION_SECRET', process.env.SESSION_SECRET],
+    ['OPS_API_KEY', process.env.OPS_API_KEY],
+    ['COLLECT_API_KEY', process.env.COLLECT_API_KEY],
+    ['PUBLIC_API_KEY', process.env.PUBLIC_API_KEY],
+  ];
+
+  for (const [name, value] of candidates) {
+    if (value && isKnownInsecureSecret(value)) {
+      logger.warn('security_config.weak_secret_detected', { name });
+    }
+  }
+}
+
 export function validateRuntimeConfiguration(): void {
+  if (process.env.NODE_ENV !== 'test') {
+    warnOnWeakSecrets();
+  }
+
   if (process.env.NODE_ENV !== 'production') {
     return;
   }
@@ -71,16 +105,21 @@ export function validateRuntimeConfiguration(): void {
     isTruthyEnv(process.env.MOBILE_API_ENABLED) ||
     shouldRequireSignedMobileRequests();
 
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('change-me')) {
+  if (!process.env.JWT_SECRET || isKnownInsecureSecret(process.env.JWT_SECRET)) {
     problems.push('JWT_SECRET must be configured with a non-default value in production.');
   }
 
-  if (!process.env.SIGNATURE_SECRET || process.env.SIGNATURE_SECRET.includes('change-me')) {
+  if (!process.env.SIGNATURE_SECRET || isKnownInsecureSecret(process.env.SIGNATURE_SECRET)) {
     problems.push('SIGNATURE_SECRET must be configured with a non-default value in production.');
   }
 
-  if (!opsApiKey || opsApiKey.includes('change-me')) {
+  if (!opsApiKey || isKnownInsecureSecret(opsApiKey)) {
     problems.push('OPS_API_KEY or COLLECT_API_KEY must be configured with a non-default value in production.');
+  }
+
+  const publicApiKey = getPublicApiKey();
+  if (publicApiKey && isKnownInsecureSecret(publicApiKey)) {
+    problems.push('PUBLIC_API_KEY must not be a default/placeholder value in production.');
   }
 
   if (!process.env.REDIS_URL?.trim()) {
@@ -146,7 +185,7 @@ export function validateRuntimeConfiguration(): void {
       problems.push('AUTH0_LOGIN_CLIENT_SECRET is required in production when AUTH0_LOGIN_CLIENT_ID is set.');
     }
     const sessionSecret = process.env.SESSION_SECRET?.trim();
-    if (!sessionSecret || sessionSecret.length < 32 || sessionSecret.includes('change-me')) {
+    if (!sessionSecret || sessionSecret.length < 32 || isKnownInsecureSecret(sessionSecret)) {
       problems.push('SESSION_SECRET must be configured (min 32 chars, non-default) when developer login is enabled.');
     }
   }

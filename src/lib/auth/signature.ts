@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { logger } from '@/lib/logger';
+import { KNOWN_INSECURE_SECRET_VALUES } from '@/lib/security/known-insecure-secrets';
 
-const DEFAULT_SECRET = 'dev-secret-do-not-use-in-production';
+const DEFAULT_SECRET = KNOWN_INSECURE_SECRET_VALUES[0];
 
 function getSignatureSecret(): string {
   const raw = process.env.SIGNATURE_SECRET;
