@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useMemo  } from 'react';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,9 @@ import { appRoutes } from '@/lib/routes';
 import { InfoHint } from './InfoHint';
 import { formatPercent } from '@/lib/format';
 import { calculateFrictionScore } from './useSystemMetrics';
-import { getLocationSearchParams } from '@/lib/router-search';
-import { parseDashboardRankingSearch } from '@/lib/dashboard-search';
+import type { DashboardRankingTab } from '@/lib/dashboard-search';
+
+const dashboardRouteApi = getRouteApi('/dashboard/');
 
 type RankingsTableProps = {
   rankings: {
@@ -26,45 +27,39 @@ type RankingsTableProps = {
   density?: 'normal' | 'compact';
 };
 
-type RankingTab = 'turnover' | 'availability';
+type RankingTab = DashboardRankingTab;
 
 function RankingsTableContent({ rankings, stations, density = 'normal' }: RankingsTableProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = getLocationSearchParams(location);
-  const parsedSearch = parseDashboardRankingSearch(searchParams);
-  const activeTab: RankingTab = parsedSearch.tab;
-  const search = parsedSearch.search;
-  const showAll = parsedSearch.showAll;
+  const navigate = useNavigate({ from: '/dashboard/' });
+  const rankingSearch = dashboardRouteApi.useSearch({
+    select: (current) => ({
+      tab: current.rankingTab ?? ('availability' as const),
+      search: current.rankingSearch ?? '',
+      showAll: current.rankingShowAll === '1',
+    }),
+  });
+  const activeTab: RankingTab = rankingSearch.tab;
+  const search = rankingSearch.search;
+  const showAll = rankingSearch.showAll;
 
   const updateQuery = (next: { tab?: RankingTab; search?: string; showAll?: boolean }) => {
-    const nextParams = new URLSearchParams(searchParams.toString());
     const nextTab = next.tab ?? activeTab;
-    const nextSearch = next.search ?? search;
+    const nextSearch = (next.search ?? search).trim();
     const nextShowAll = next.showAll ?? showAll;
 
-    nextParams.set('rankingTab', nextTab);
-
-    if (nextSearch.trim()) {
-      nextParams.set('rankingSearch', nextSearch.trim());
-    } else {
-      nextParams.delete('rankingSearch');
-    }
-
-    if (nextShowAll) {
-      nextParams.set('rankingShowAll', '1');
-    } else {
-      nextParams.delete('rankingShowAll');
-    }
-
-    const currentQuery = searchParams.toString();
-    const nextQuery = nextParams.toString();
-    if (nextQuery === currentQuery) {
+    if (nextTab === activeTab && nextSearch === search.trim() && nextShowAll === showAll) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
+    void navigate({
+      replace: true,
+      search: (prev) => ({
+        ...prev,
+        rankingTab: nextTab,
+        rankingSearch: nextSearch || undefined,
+        rankingShowAll: nextShowAll ? ('1' as const) : undefined,
+      }),
+    });
   };
 
   const stationMap = useMemo(() => {

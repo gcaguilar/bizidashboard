@@ -2,12 +2,10 @@
 
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
 import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
-import { getLocationSearchParams } from '@/lib/router-search';
-import { parseDashboardMonthPeriodSearch } from '@/lib/dashboard-search';
 
 type MonthFilterProps = {
   months: string[];
@@ -15,7 +13,6 @@ type MonthFilterProps = {
   className?: string;
   routeKey?: string;
   source?: string;
-  preservedSearchKeys?: string[];
 };
 
 function MonthFilterContent({
@@ -24,13 +21,13 @@ function MonthFilterContent({
   className,
   routeKey = 'dashboard_unknown',
   source = 'month_filter',
-  preservedSearchKeys = [],
 }: MonthFilterProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = getLocationSearchParams(location);
-  const parsedSearch = parseDashboardMonthPeriodSearch(searchParams);
-  const activeMonthFromUrl = parsedSearch.month;
+  // El filtro se monta en varias rutas del dashboard, asi que lee el search sin fijar ruta.
+  const activeMonthFromUrl = useSearch({
+    strict: false,
+    select: (search) => (search as { month?: string }).month ?? null,
+  });
   const currentActiveMonth = activeMonthFromUrl ?? activeMonth;
   const monthOptions = toMonthOptions(months);
 
@@ -39,7 +36,9 @@ function MonthFilterContent({
   }
 
   const updateMonth = (nextMonth: string | null) => {
-    const nextParams = new URLSearchParams();
+    if (nextMonth === currentActiveMonth) {
+      return;
+    }
 
     trackUmamiEvent(
       buildFilterChangeEvent({
@@ -51,27 +50,11 @@ function MonthFilterContent({
       })
     );
 
-    for (const key of preservedSearchKeys) {
-      const value = searchParams.get(key);
-      if (value !== null) {
-        nextParams.set(key, value);
-      }
-    }
-
-    if (nextMonth) {
-      nextParams.set('month', nextMonth);
-    } else {
-      nextParams.delete('month');
-    }
-
-    const currentQuery = searchParams.toString();
-    const nextQuery = nextParams.toString();
-    if (nextQuery === currentQuery) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
+    void navigate({
+      replace: true,
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({ ...prev, month: nextMonth ?? undefined }),
+    });
   };
 
   return (

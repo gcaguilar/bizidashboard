@@ -1,6 +1,7 @@
 'use client';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, Component, type ReactNode } from 'react';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { lazy, Suspense, useCallback, useEffect, useMemo, Component, type ReactNode } from 'react';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type {
   AlertsResponse,
@@ -14,17 +15,19 @@ import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatStatusDateTime } from '@/lib/system-status';
 import {
   buildStationDistrictMap,
-  fetchDistrictCollection,
-  type DistrictCollection,
+  districtCollectionQueryOptions,
 } from '@/lib/districts';
-import { formatDistanceMeters, haversineDistanceMeters, type Coordinates } from '@/lib/geo';
-import { type DashboardViewMode } from '@/lib/dashboard-modes';
-import { buildDashboardUrlSearchParams, normalizeStationIdValue } from '@/lib/dashboard-url-state';
-import { parseDashboardClientSearch } from '@/lib/dashboard-search';
+import { formatDistanceMeters, haversineDistanceMeters } from '@/lib/geo';
+import { resolveDashboardViewMode, type DashboardViewMode } from '@/lib/dashboard-modes';
+import { normalizeStationIdValue } from '@/lib/dashboard-url-state';
+import {
+  buildDashboardClientSearch,
+  resolveDashboardMapViewFromSearch,
+  type DashboardClientUrlState,
+  type DashboardSearch,
+} from '@/lib/dashboard-search';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { isAbortError } from './useAbortableAsyncEffect';
 import { appRoutes } from '@/lib/routes';
-import { getLocationSearchParams } from '@/lib/router-search';
 import { DashboardLayout } from './DashboardLayout';
 import { DashboardHeader } from './DashboardHeader';
 import { ModeIntroBanner } from './ModeIntroBanner';
@@ -42,22 +45,12 @@ import {
   buildFilterChangeEvent,
   trackUmamiEvent,
 } from '@/lib/umami';
-import {
-  buildStationSnapshotMap,
-  parseRecentSnapshots,
-  parseStationSnapshot,
-  pushRecentSnapshot,
-  type RecentStationSnapshot,
-  type StationSnapshotMap,
-} from '@/lib/recent-station-history';
-import { parseJsonValue } from '@/lib/json';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
-import {
-  EMPTY_MOBILITY_PREVIEW,
-  loadMobilityData,
-  normalizeMobilityPreviewData,
-  type MobilityPreviewData,
-} from './mobility-api';
+import { EMPTY_MOBILITY_PREVIEW, mobilityQueryOptions } from './mobility-api';
+import { REFRESH_AFTER_LAST_DATA_MS, useDashboardLiveData } from './useDashboardLiveData';
+import { useFavoriteStations } from './useFavoriteStations';
+import { useGeolocationWatch } from './useGeolocationWatch';
+import { useStationTrends } from './useStationTrends';
 
 class ViewErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
@@ -75,6 +68,8 @@ const DataModeView = lazy(() => import('./DataModeView').then(m => ({ default: m
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+const dashboardRouteApi = getRouteApi('/dashboard/');
+
 export type DashboardInitialData = {
   dataset: SharedDatasetSnapshot;
   stations: StationsResponse;
@@ -91,27 +86,11 @@ type DashboardClientProps = {
 };
 
 type TimeWindow = {
-  id: string;
+  id: DashboardClientUrlState['activeWindowId'];
   label: string;
   mobilityDays: number;
   demandDays: number;
 };
-
-type StationTrend = 'up' | 'down' | 'flat';
-
-type RefreshPayload<T> = {
-  ok: true;
-  data: T;
-} | {
-  ok: false;
-  retryAfterSeconds?: number;
-};
-
-const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
-const TREND_SNAPSHOT_STORAGE_KEY = 'bizidashboard-session-station-snapshot';
-const RECENT_SNAPSHOTS_STORAGE_KEY = 'bizidashboard-session-recent-station-snapshots';
-const REFRESH_AFTER_LAST_DATA_MS = 5 * 60_000; // 5 minutes
-const MIN_REFRESH_FALLBACK_MS = 30_000;
 
 const TIME_WINDOWS: TimeWindow[] = [
   { id: '24h', label: 'Últimas 24h', mobilityDays: 1, demandDays: 7 },
@@ -138,63 +117,11 @@ function resolveStationId(stations: StationsResponse['stations'], value: string 
   return stations[0]?.id ?? '';
 }
 
-function computeStationTrends(
-  previousSnapshot: StationSnapshotMap,
-  currentStations: StationsResponse['stations']
-): Record<string, StationTrend> {
-  const trends: Record<string, StationTrend> = {};
+function isSameDashboardSearch(a: DashboardSearch, b: DashboardSearch): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]) as Set<keyof DashboardSearch>;
 
-  for (const station of currentStations) {
-    const previousBikes = previousSnapshot[station.id];
-
-    if (!Number.isFinite(previousBikes)) {
-      trends[station.id] = 'flat';
-      continue;
-    }
-
-    if (station.bikesAvailable > previousBikes) {
-      trends[station.id] = 'up';
-    } else if (station.bikesAvailable < previousBikes) {
-      trends[station.id] = 'down';
-    } else {
-      trends[station.id] = 'flat';
-    }
-  }
-
-  return trends;
-}
-
-function parseFavoriteIds(rawValue: string | null): string[] {
-  const parsed = parseJsonValue(rawValue);
-
-  if (!Array.isArray(parsed)) {
-    return [];
-  }
-
-  return parsed
-    .filter((value): value is string => typeof value === 'string')
-    .map((value) => value.trim())
-    .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
-}
-
-function writeJsonStorageItem(storage: Storage, key: string, value: unknown): void {
-  try {
-    storage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Ignore quota exceeded and private browsing failures.
-  }
-}
-
-function areSearchParamsEqual(a: URLSearchParams, b: URLSearchParams): boolean {
-  const aEntries = Array.from(a.entries()).sort(([ka, va], [kb, vb]) => ka.localeCompare(kb) || va.localeCompare(vb));
-  const bEntries = Array.from(b.entries()).sort(([ka, va], [kb, vb]) => ka.localeCompare(kb) || va.localeCompare(vb));
-
-  if (aEntries.length !== bEntries.length) {
-    return false;
-  }
-
-  for (let i = 0; i < aEntries.length; i++) {
-    if (aEntries[i][0] !== bEntries[i][0] || aEntries[i][1] !== bEntries[i][1]) {
+  for (const key of keys) {
+    if (a[key] !== b[key]) {
       return false;
     }
   }
@@ -202,140 +129,49 @@ function areSearchParamsEqual(a: URLSearchParams, b: URLSearchParams): boolean {
   return true;
 }
 
-function toTimestamp(value: string | null | undefined): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
-}
-
-function resolveLatestDataUpdatedAt(
-  dataset: SharedDatasetSnapshot,
-  stations: StationsResponse,
-  status: StatusResponse
-): Date {
-  const stationRecordings = stations.stations
-    .map((station) => toTimestamp(station.recordedAt))
-    .filter((value): value is number => value !== null);
-
-  const candidates = [
-    toTimestamp(dataset.lastUpdated.lastSampleAt),
-    toTimestamp(dataset.coverage.generatedAt),
-    ...stationRecordings,
-    toTimestamp(status.pipeline.lastSuccessfulPoll),
-    toTimestamp(stations.generatedAt),
-    toTimestamp(status.timestamp),
-  ].filter((value): value is number => value !== null);
-
-  if (candidates.length === 0) {
-    return new Date();
-  }
-
-  return new Date(Math.max(...candidates));
-}
-
-function resolveNextRefreshAt(
-  dataset: SharedDatasetSnapshot,
-  stations: StationsResponse,
-  status: StatusResponse,
-  now: number
-): Date {
-  if (stations.stations.length === 0) {
-    return new Date(now + MIN_REFRESH_FALLBACK_MS);
-  }
-
-  const latestUpdate = resolveLatestDataUpdatedAt(dataset, stations, status);
-  return new Date(
-    Math.max(
-      latestUpdate.getTime() + REFRESH_AFTER_LAST_DATA_MS,
-      now + MIN_REFRESH_FALLBACK_MS
-    )
-  );
-}
-
-function resolveHydrationNow(initialData: DashboardInitialData): number {
-  if (typeof window === 'undefined') {
-    const serverTs = toTimestamp(initialData.status.timestamp);
-    return serverTs ?? Date.now();
-  }
-  return Date.now();
-}
-
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const dashboardRouteKey = 'dashboard_home';
-  const navigate = useNavigate();
-  const location = useLocation();
-  const locationSearch = location.searchStr ?? location.search ?? '';
-  const searchParams = useMemo(() => getLocationSearchParams({ searchStr: locationSearch }), [locationSearch]);
+  const navigate = useNavigate({ from: '/dashboard/' });
+  const search = dashboardRouteApi.useSearch();
   const parsedSearch = useMemo(
-    () => parseDashboardClientSearch(searchParams),
-    [searchParams]
+    () => ({
+      mode: resolveDashboardViewMode(search.mode),
+      stationId: normalizeStationIdValue(search.stationId ?? null),
+      q: search.q ?? '',
+      timeWindow: search.timeWindow ?? ('30d' as const),
+      onlyWithBikes: Boolean(search.onlyWithBikes),
+      onlyWithAnchors: Boolean(search.onlyWithAnchors),
+      mapViewState: resolveDashboardMapViewFromSearch(search),
+      month: search.month ?? null,
+    }),
+    [search]
   );
 
-  const [stationsData, setStationsData] = useState<StationsResponse>(initialData.stations);
-  const [statusData, setStatusData] = useState<StatusResponse>(initialData.status);
-  const [alertsData, setAlertsData] = useState<AlertsResponse>(initialData.alerts);
-  const [rankingsData, setRankingsData] = useState(initialData.rankings);
+  const {
+    data: liveData,
+    isRefreshing: isRefreshingData,
+    nextRefreshAt,
+  } = useDashboardLiveData(initialData);
+  const stationsData = liveData.stations;
+  const statusData = liveData.status;
+  const alertsData = liveData.alerts;
+  const rankingsData = liveData.rankings;
 
-  const [selectedStationId, setSelectedStationId] = useState(() =>
-    resolveStationId(initialData.stations.stations, parsedSearch.stationId)
-  );
-  const [viewMode, setViewMode] = useState<DashboardViewMode>(() =>
-    parsedSearch.mode
-  );
-  const [searchQuery, setSearchQuery] = useState(parsedSearch.q);
-  const [activeWindowId, setActiveWindowId] = useState(() =>
-    parsedSearch.timeWindow
-  );
-  const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
-  const [onlyWithBikes, setOnlyWithBikes] = useState(() => parsedSearch.onlyWithBikes);
-  const [onlyWithAnchors, setOnlyWithAnchors] = useState(() => parsedSearch.onlyWithAnchors);
-  const [mapViewState, setMapViewState] = useState<DashboardMapViewState>(() =>
-    parsedSearch.mapViewState
-  );
-  const [stationTrendById, setStationTrendById] = useState<Record<string, StationTrend>>({});
-  const [recentSnapshots, setRecentSnapshots] = useState<RecentStationSnapshot[]>([]);
-  const [isRefreshingData, setIsRefreshingData] = useState(false);
-  const isRefreshingRef = useRef(false);
-  const isMountedRef = useRef(true);
-  const stationsDataRef = useRef(stationsData);
-  const statusDataRef = useRef(statusData);
-  const [nextRefreshAt, setNextRefreshAt] = useState<Date>(() =>
-    resolveNextRefreshAt(initialData.dataset, initialData.stations, initialData.status, resolveHydrationNow(initialData))
-  );
-  useEffect(() => { stationsDataRef.current = stationsData; }, [stationsData]);
-  useEffect(() => { statusDataRef.current = statusData; }, [statusData]);
-  useEffect(() => () => { isMountedRef.current = false; }, []);
+  // La URL es la única fuente de verdad del estado de UI; se escribe vía updateUrlState.
+  const viewMode = parsedSearch.mode;
+  const searchQuery = parsedSearch.q;
+  const activeWindowId = parsedSearch.timeWindow;
+  const onlyWithBikes = parsedSearch.onlyWithBikes;
+  const onlyWithAnchors = parsedSearch.onlyWithAnchors;
+  const mapViewState = parsedSearch.mapViewState;
 
-  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
-  const [geolocationError, setGeolocationError] = useState<string | null>(null);
-  const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
-  const [districts, setDistricts] = useState<DistrictCollection | null>(null);
-  const [mobilityPreview, setMobilityPreview] = useState<MobilityPreviewData>(EMPTY_MOBILITY_PREVIEW);
-  const [isMobilityPreviewLoading, setIsMobilityPreviewLoading] = useState(false);
+  const { favoriteStationIds, toggleFavoriteStation } = useFavoriteStations();
+  const { stationTrendById, recentSnapshots } = useStationTrends(stationsData);
+  const { userLocation, geolocationError, isGeolocationEnabled, enableGeolocation } =
+    useGeolocationWatch();
 
   const { density, setDensity } = useDashboardDensity();
   const showFull = density === 'full';
-
-  useEffect(() => {
-    const normalizedSearchStationId = normalizeStationIdValue(parsedSearch.stationId ?? '');
-
-    setSelectedStationId((current) => {
-      const normalizedCurrent = normalizeStationIdValue(current) ?? '';
-
-      if (!normalizedSearchStationId) {
-        return normalizedCurrent;
-      }
-
-      if (normalizedCurrent === normalizedSearchStationId) {
-        return normalizedCurrent;
-      }
-
-      return resolveStationId(initialData.stations.stations, normalizedSearchStationId) ?? normalizedCurrent;
-    });
-  }, [initialData.stations.stations, parsedSearch.stationId]);
 
   const filteredStations = useMemo(() => {
     return stationsData.stations.filter((station) => {
@@ -354,6 +190,20 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const activeWindow =
     TIME_WINDOWS.find((window) => window.id === activeWindowId) ?? TIME_WINDOWS[1];
 
+  const selectedStationId = useMemo(() => {
+    if (filteredStations.length === 0) {
+      return '';
+    }
+
+    const resolved = resolveStationId(stationsData.stations, parsedSearch.stationId);
+
+    if (filteredStations.some((station) => station.id === resolved)) {
+      return resolved;
+    }
+
+    return filteredStations[0]?.id ?? '';
+  }, [filteredStations, parsedSearch.stationId, stationsData.stations]);
+
   const selectedStation = useMemo(() => {
     if (filteredStations.length === 0) {
       return null;
@@ -361,6 +211,26 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     return filteredStations.find((station) => station.id === selectedStationId) ?? filteredStations[0];
   }, [filteredStations, selectedStationId]);
+
+  const shouldLoadDistricts = searchQuery.trim().length > 0;
+
+  const districtsQuery = useQuery({
+    ...districtCollectionQueryOptions,
+    enabled: shouldLoadDistricts,
+  });
+  const districts = districtsQuery.data ?? null;
+
+  useEffect(() => {
+    if (districtsQuery.error) {
+      captureExceptionWithContext(districtsQuery.error, {
+        area: 'dashboard.client',
+        operation: 'loadDistrictsForSearch',
+        extra: {
+          searchQuery,
+        },
+      });
+    }
+  }, [districtsQuery.error, searchQuery]);
 
   const stationDistrictMap = useMemo(() => {
     if (!districts) {
@@ -398,213 +268,37 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     return bestMatch;
   }, [stationsData.stations, userLocation]);
 
-  const shouldLoadDistricts = searchQuery.trim().length > 0;
-
-  useEffect(() => {
-    if (!shouldLoadDistricts || districts) {
-      return;
-    }
-
-    const controller = new AbortController();
-    let isActive = true;
-
-    const loadDistricts = async () => {
-      try {
-        const payload = await fetchDistrictCollection(controller.signal);
-
-        if (!payload || !isActive) {
-          return;
-        }
-
-        setDistricts(payload);
-      } catch (error) {
-        if (isAbortError(error)) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.client',
-          operation: 'loadDistrictsForSearch',
-          extra: {
+  const updateUrlState = useCallback(
+    (partial: Partial<DashboardClientUrlState>) => {
+      void navigate({
+        replace: true,
+        search: (prev) => {
+          const next = buildDashboardClientSearch(prev, {
+            activeWindowId,
+            viewMode,
+            selectedStationId,
             searchQuery,
-          },
-        });
-      }
-    };
+            onlyWithBikes,
+            onlyWithAnchors,
+            mapViewState,
+            ...partial,
+          });
 
-    void loadDistricts();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [districts, searchQuery, shouldLoadDistricts]);
-
-     
-    useEffect(() => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-
-      const currentSnapshot = buildStationSnapshotMap(initialData.stations.stations);
-      const parsedFavorites = parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY));
-       
-      setFavoriteStationIds(parsedFavorites);
-
-      const previousSnapshot = parseStationSnapshot(
-        window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
-      );
-
-      if (previousSnapshot) {
-         
-        setStationTrendById(computeStationTrends(previousSnapshot, initialData.stations.stations));
-      }
-
-      const nextRecentSnapshots = pushRecentSnapshot(
-        parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
-        {
-          recordedAt: initialData.stations.generatedAt,
-          snapshot: currentSnapshot,
-        }
-      );
-
-       
-      setRecentSnapshots(nextRecentSnapshots);
-
-    writeJsonStorageItem(
-      window.sessionStorage,
-      TREND_SNAPSHOT_STORAGE_KEY,
-      currentSnapshot
-    );
-    writeJsonStorageItem(
-      window.sessionStorage,
-      RECENT_SNAPSHOTS_STORAGE_KEY,
-      nextRecentSnapshots
-    );
-  }, [initialData.stations]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    writeJsonStorageItem(window.localStorage, FAVORITES_STORAGE_KEY, favoriteStationIds);
-  }, [favoriteStationIds]);
-
-  useEffect(() => {
-    if (!isGeolocationEnabled) {
-      return;
-    }
-
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-       
-      setGeolocationError('La geolocalización no está disponible en este navegador. Puedes mover el mapa manualmente.');
-      return;
-    }
-
-    const watcherId = navigator.geolocation.watchPosition(
-      (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setGeolocationError(null);
-      },
-      (error) => {
-        setGeolocationError(error.message || 'No se pudo obtener tu ubicación. Puedes mover el mapa manualmente o revisar el permiso de ubicación del navegador.');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 90_000,
-      }
-    );
-
-    return () => {
-      navigator.geolocation.clearWatch(watcherId);
-    };
-  }, [isGeolocationEnabled]);
-
-  useEffect(() => {
-    setSelectedStationId((current) => {
-      if (filteredStations.length === 0) return '';
-      if (filteredStations.some((station) => station.id === current)) return current;
-      return filteredStations[0]?.id ?? '';
-    });
-  }, [filteredStations]);
-
-  useEffect(() => {
-    const stationIdFromUrl = resolveStationId(stationsData.stations, parsedSearch.stationId);
-    const windowIdFromUrl = parsedSearch.timeWindow;
-    const modeFromUrl = parsedSearch.mode;
-    const queryFromUrl = parsedSearch.q;
-    const onlyWithBikesFromUrl = parsedSearch.onlyWithBikes;
-    const onlyWithAnchorsFromUrl = parsedSearch.onlyWithAnchors;
-    const mapViewFromUrl = parsedSearch.mapViewState;
-
-    setSelectedStationId((current) =>
-      current === stationIdFromUrl ? current : stationIdFromUrl
-    );
-
-    setActiveWindowId((current) =>
-      current === windowIdFromUrl ? current : windowIdFromUrl
-    );
-    setViewMode((current) => (current === modeFromUrl ? current : modeFromUrl));
-    setSearchQuery((current) => (current === queryFromUrl ? current : queryFromUrl));
-    setOnlyWithBikes((current) => (current === onlyWithBikesFromUrl ? current : onlyWithBikesFromUrl));
-    setOnlyWithAnchors((current) => (current === onlyWithAnchorsFromUrl ? current : onlyWithAnchorsFromUrl));
-    setMapViewState((current) =>
-      current.latitude === mapViewFromUrl.latitude &&
-      current.longitude === mapViewFromUrl.longitude &&
-      current.zoom === mapViewFromUrl.zoom
-        ? current
-        : mapViewFromUrl
-    );
-  }, [
-    parsedSearch.mode,
-    parsedSearch.q,
-    parsedSearch.stationId,
-    parsedSearch.timeWindow,
-    parsedSearch.onlyWithBikes,
-    parsedSearch.onlyWithAnchors,
-    parsedSearch.mapViewState,
-    parsedSearch.mapViewState.latitude,
-    parsedSearch.mapViewState.longitude,
-    parsedSearch.mapViewState.zoom,
-    stationsData.stations,
-  ]);
-
-  useEffect(() => {
-    const nextParams = buildDashboardUrlSearchParams(searchParams, {
+          return isSameDashboardSearch(prev, next) ? prev : next;
+        },
+      });
+    },
+    [
       activeWindowId,
-      viewMode,
-      selectedStationId,
-      searchQuery,
-      onlyWithBikes,
-      onlyWithAnchors,
       mapViewState,
-    });
-
-    const hasChanges = !areSearchParamsEqual(nextParams, searchParams);
-
-    if (!hasChanges) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    void navigate({ search: Object.fromEntries(nextParams) as any, replace: true });
-  }, [
-    activeWindowId,
-    mapViewState,
-    navigate,
-    onlyWithAnchors,
-    onlyWithBikes,
-    locationSearch,
-    searchQuery,
-    searchParams,
-    selectedStationId,
-    viewMode,
-  ]);
+      navigate,
+      onlyWithAnchors,
+      onlyWithBikes,
+      searchQuery,
+      selectedStationId,
+      viewMode,
+    ]
+  );
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -622,7 +316,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
     if (bestStationMatch) {
       if (bestStationMatch.id !== selectedStationId) {
-        setSelectedStationId(bestStationMatch.id);
+        updateUrlState({ selectedStationId: bestStationMatch.id });
       }
 
       return;
@@ -645,19 +339,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     );
 
     if (districtStation && districtStation.id !== selectedStationId) {
-      setSelectedStationId(districtStation.id);
+      updateUrlState({ selectedStationId: districtStation.id });
     }
-  }, [filteredStations, searchQuery, selectedStationId, stationDistrictMap, stationsData.stations]);
-
-  const toggleFavoriteStation = useCallback((stationId: string) => {
-    setFavoriteStationIds((current) => {
-      if (current.includes(stationId)) {
-        return current.filter((id) => id !== stationId);
-      }
-
-      return [...current, stationId];
-    });
-  }, []);
+  }, [filteredStations, searchQuery, selectedStationId, stationDistrictMap, stationsData.stations, updateUrlState]);
 
   const selectStationWithTracking = useCallback(
     (stationId: string, source: string, module = 'station_selector') => {
@@ -676,9 +360,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           module,
         })
       );
-      setSelectedStationId(normalizedStationId);
+      updateUrlState({ selectedStationId: normalizedStationId });
     },
-    [dashboardRouteKey, selectedStationId]
+    [dashboardRouteKey, selectedStationId, updateUrlState]
   );
 
   const handleChangeMode = useCallback(
@@ -694,13 +378,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           source: 'mode_header',
         })
       );
-      setViewMode(mode);
+      updateUrlState({ viewMode: mode });
     },
-    [dashboardRouteKey, viewMode]
+    [dashboardRouteKey, updateUrlState, viewMode]
   );
 
   const handleChangeWindow = useCallback(
-    (windowId: string) => {
+    (windowId: DashboardClientUrlState['activeWindowId']) => {
       if (windowId === activeWindowId) {
         return;
       }
@@ -714,9 +398,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           timeWindow: windowId,
         })
       );
-      setActiveWindowId(windowId as typeof activeWindowId);
+      updateUrlState({ activeWindowId: windowId });
     },
-    [activeWindowId, dashboardRouteKey]
+    [activeWindowId, dashboardRouteKey, updateUrlState]
   );
 
   const handleToggleOnlyWithBikes = useCallback(
@@ -734,9 +418,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           destination: value ? 'enabled' : 'disabled',
         })
       );
-      setOnlyWithBikes(value);
+      updateUrlState({ onlyWithBikes: value });
     },
-    [dashboardRouteKey, onlyWithBikes]
+    [dashboardRouteKey, onlyWithBikes, updateUrlState]
   );
 
   const handleToggleOnlyWithAnchors = useCallback(
@@ -754,237 +438,48 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           destination: value ? 'enabled' : 'disabled',
         })
       );
-      setOnlyWithAnchors(value);
+      updateUrlState({ onlyWithAnchors: value });
     },
-    [dashboardRouteKey, onlyWithAnchors]
+    [dashboardRouteKey, onlyWithAnchors, updateUrlState]
   );
 
-  const enableGeolocation = useCallback(() => {
-    setIsGeolocationEnabled(true);
-    setGeolocationError(null);
-  }, []);
+  const handleChangeSearch = useCallback(
+    (value: string) => {
+      updateUrlState({ searchQuery: value });
+    },
+    [updateUrlState]
+  );
 
-  const refreshDashboardData = useCallback(async () => {
-    if (isRefreshingRef.current) {
-      return;
-    }
+  const handleMapViewStateCommit = useCallback(
+    (state: DashboardMapViewState) => {
+      updateUrlState({ mapViewState: state });
+    },
+    [updateUrlState]
+  );
 
-    isRefreshingRef.current = true;
-    setIsRefreshingData(true);
-
-    const fetchJson = async <T,>(url: string): Promise<RefreshPayload<T>> => {
-      try {
-        const response = await fetch(url, { cache: 'no-store' });
-
-        if (!response.ok) {
-          const retryAfter = response.headers.get('Retry-After');
-          throw new Error(`HTTP ${response.status}`, {
-            cause: retryAfter ? { retryAfterSeconds: parseInt(retryAfter, 10) } : undefined,
-          });
-        }
-
-        return {
-          ok: true,
-          data: (await response.json()) as T,
-        };
-      } catch (error) {
-        captureExceptionWithContext(error, {
-          area: 'dashboard.client',
-          operation: 'refreshDashboardData.fetchJson',
-          extra: {
-            url,
-          },
-        });
-        const retryAfterSeconds = (error as Error & { cause?: { retryAfterSeconds?: number } }).cause
-          ?.retryAfterSeconds;
-        return { ok: false, retryAfterSeconds };
-      }
-    };
-
-    try {
-      const rankingLimit = Math.max(50, Math.min(200, stationsDataRef.current.stations.length || 50));
-
-      const [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult] =
-        await Promise.all([
-          fetchJson<StationsResponse>(appRoutes.api.stations()),
-          fetchJson<AlertsResponse>(appRoutes.api.alerts({ limit: 20 })),
-          fetchJson<RankingsResponse>(appRoutes.api.rankings({ type: 'turnover', limit: rankingLimit })),
-          fetchJson<RankingsResponse>(appRoutes.api.rankings({ type: 'availability', limit: rankingLimit })),
-          fetchJson<StatusResponse>(appRoutes.api.status()),
-        ]);
-
-      if (!isMountedRef.current) return;
-
-      if (stationsResult.ok) {
-        const nextStationSnapshot = buildStationSnapshotMap(stationsResult.data.stations);
-        const previousSnapshot = parseStationSnapshot(
-          window.sessionStorage.getItem(TREND_SNAPSHOT_STORAGE_KEY)
-        );
-        const fallbackSnapshot = buildStationSnapshotMap(stationsDataRef.current.stations);
-        const trendSource = previousSnapshot ?? fallbackSnapshot;
-
-        setStationTrendById(computeStationTrends(trendSource, stationsResult.data.stations));
-
-        writeJsonStorageItem(
-          window.sessionStorage,
-          TREND_SNAPSHOT_STORAGE_KEY,
-          nextStationSnapshot
-        );
-
-        const nextRecentSnapshots = pushRecentSnapshot(
-          parseRecentSnapshots(window.sessionStorage.getItem(RECENT_SNAPSHOTS_STORAGE_KEY)),
-          {
-            recordedAt: stationsResult.data.generatedAt,
-            snapshot: nextStationSnapshot,
-          }
-        );
-
-        setRecentSnapshots(nextRecentSnapshots);
-        writeJsonStorageItem(
-          window.sessionStorage,
-          RECENT_SNAPSHOTS_STORAGE_KEY,
-          nextRecentSnapshots
-        );
-
-        setStationsData(stationsResult.data);
-      }
-
-      if (alertsResult.ok) {
-        setAlertsData(alertsResult.data);
-      }
-
-      if (turnoverResult.ok && availabilityResult.ok) {
-        setRankingsData({
-          turnover: turnoverResult.data,
-          availability: availabilityResult.data,
-        });
-      }
-
-      if (statusResult.ok) {
-        setStatusData(statusResult.data);
-      }
-
-      const latestStations = stationsResult.ok ? stationsResult.data : stationsDataRef.current;
-      const latestStatus = statusResult.ok ? statusResult.data : statusDataRef.current;
-      let nextRefresh = resolveNextRefreshAt(initialData.dataset, latestStations, latestStatus, Date.now());
-
-      const rateLimitSeconds = [
-        stationsResult,
-        alertsResult,
-        turnoverResult,
-        availabilityResult,
-        statusResult,
-      ]
-        .map((r) => (!r.ok ? r.retryAfterSeconds ?? 0 : 0))
-        .reduce((max, val) => Math.max(max, val), 0);
-
-      const allFailed = [stationsResult, alertsResult, turnoverResult, availabilityResult, statusResult]
-        .every((r) => !r.ok);
-
-      if (rateLimitSeconds > 0) {
-        const rateLimitNext = new Date(Date.now() + rateLimitSeconds * 1000);
-        if (rateLimitNext > nextRefresh) {
-          nextRefresh = rateLimitNext;
-        }
-      } else if (allFailed) {
-        const backoffNext = new Date(Date.now() + Math.max(60_000, REFRESH_AFTER_LAST_DATA_MS));
-        if (backoffNext > nextRefresh) {
-          nextRefresh = backoffNext;
-        }
-      }
-
-      setNextRefreshAt(nextRefresh);
-    } finally {
-      isRefreshingRef.current = false;
-      if (isMountedRef.current) {
-        setIsRefreshingData(false);
-      }
-    }
-  }, [initialData.dataset]);
+  const mobilityQuery = useQuery({
+    ...mobilityQueryOptions({
+      mobilityDays: activeWindow.mobilityDays,
+      demandDays: activeWindow.demandDays,
+      month: parsedSearch.month,
+    }),
+    enabled: showFull,
+  });
+  const mobilityPreview = mobilityQuery.data ?? EMPTY_MOBILITY_PREVIEW;
+  const isMobilityPreviewLoading = showFull && mobilityQuery.isFetching;
 
   useEffect(() => {
-    const delayMs = nextRefreshAt.getTime() - Date.now();
-
-    if (isRefreshingData) {
-      return;
-    }
-
-    if (delayMs <= 0) {
-      void refreshDashboardData();
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void refreshDashboardData();
-    }, delayMs);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [nextRefreshAt, refreshDashboardData, isRefreshingData]);
-
-  const mobilityFetchIdRef = useRef(0);
-
-  useEffect(() => {
-    if (!showFull) {
-      setMobilityPreview(EMPTY_MOBILITY_PREVIEW);
-      setIsMobilityPreviewLoading(false);
-      return;
-    }
-
-    const fetchId = ++mobilityFetchIdRef.current;
-
-    const controller = new AbortController();
-    let isActive = true;
-
-    const refreshMobilityPreview = async () => {
-      if (isActive && fetchId === mobilityFetchIdRef.current) {
-        setIsMobilityPreviewLoading(true);
-      }
-
-      try {
-        const payload = await loadMobilityData(controller.signal, {
+    if (mobilityQuery.error) {
+      captureExceptionWithContext(mobilityQuery.error, {
+        area: 'dashboard.client',
+        operation: 'refreshMobilityPreview',
+        extra: {
           mobilityDays: activeWindow.mobilityDays,
           demandDays: activeWindow.demandDays,
-          month: parsedSearch.month,
-        });
-
-        if (!isActive || fetchId !== mobilityFetchIdRef.current) {
-          return;
-        }
-
-        setMobilityPreview(normalizeMobilityPreviewData(payload));
-      } catch (error) {
-        if (isAbortError(error)) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.client',
-          operation: 'refreshMobilityPreview',
-          extra: {
-            mobilityDays: activeWindow.mobilityDays,
-            demandDays: activeWindow.demandDays,
-          },
-        });
-
-        if (isActive && fetchId === mobilityFetchIdRef.current) {
-          setMobilityPreview(EMPTY_MOBILITY_PREVIEW);
-        }
-      } finally {
-        if (isActive && fetchId === mobilityFetchIdRef.current) {
-          setIsMobilityPreviewLoading(false);
-        }
-      }
-    };
-
-    void refreshMobilityPreview();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [activeWindow.demandDays, activeWindow.mobilityDays, parsedSearch.month, showFull]);
+        },
+      });
+    }
+  }, [activeWindow.demandDays, activeWindow.mobilityDays, mobilityQuery.error]);
 
   const selectedStationDetailUrl = selectedStation
     ? appRoutes.dashboardStation(selectedStation.id)
@@ -1049,7 +544,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             activeWindowId={activeWindowId}
             onChangeWindow={handleChangeWindow}
             searchQuery={searchQuery}
-            onChangeSearch={setSearchQuery}
+            onChangeSearch={handleChangeSearch}
             onlyWithBikes={onlyWithBikes}
             onlyWithAnchors={onlyWithAnchors}
             onToggleOnlyWithBikes={handleToggleOnlyWithBikes}
@@ -1071,9 +566,23 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 return;
               }
 
-              setOnlyWithBikes(false);
-              setOnlyWithAnchors(false);
-              selectStationWithTracking(nearestStationInfo.id, 'nearest_station', 'geolocation');
+              if (nearestStationInfo.id !== selectedStationId) {
+                trackUmamiEvent(
+                  buildEntitySelectEvent({
+                    surface: 'dashboard',
+                    routeKey: dashboardRouteKey,
+                    entityType: 'station',
+                    source: 'nearest_station',
+                    module: 'geolocation',
+                  })
+                );
+              }
+
+              updateUrlState({
+                onlyWithBikes: false,
+                onlyWithAnchors: false,
+                selectedStationId: nearestStationInfo.id,
+              });
             }}
             canJumpToNearest={Boolean(nearestStationInfo && nearestStation)}
             nextRefreshAt={nextRefreshAt}
@@ -1122,7 +631,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
                     userLocation={userLocation}
                     mapViewState={mapViewState}
-                    onViewStateCommit={setMapViewState}
+                    onViewStateCommit={handleMapViewStateCommit}
                     frictionByStationId={frictionByStationId}
                     systemMetrics={systemMetrics}
                     updatedText={updatedText}
@@ -1151,7 +660,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
                     userLocation={userLocation}
                     mapViewState={mapViewState}
-                    onViewStateCommit={setMapViewState}
+                    onViewStateCommit={handleMapViewStateCommit}
                     frictionByStationId={frictionByStationId}
                     alerts={alertsData}
                     rankings={rankingsData}
@@ -1214,7 +723,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         <>
           <QuickHeader
             searchQuery={searchQuery}
-            onChangeSearch={setSearchQuery}
+            onChangeSearch={handleChangeSearch}
             filteredStationsCount={filteredStations.length}
             totalStationsCount={totalStationsCount}
             activeAlertsCount={alertsData.alerts.length}
@@ -1246,7 +755,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             nearestDistanceMeters={nearestStation?.distanceMeters ?? null}
             userLocation={userLocation}
             mapViewState={mapViewState}
-            onViewStateCommit={setMapViewState}
+            onViewStateCommit={handleMapViewStateCommit}
             frictionByStationId={frictionByStationId}
             systemMetrics={systemMetrics}
             updatedText={updatedText}

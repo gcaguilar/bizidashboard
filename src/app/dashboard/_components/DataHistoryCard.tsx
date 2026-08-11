@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -11,7 +12,7 @@ import { appRoutes } from '@/lib/routes';
 import { buildExportClickEvent, buildPanelOpenEvent } from '@/lib/umami';
 import { ChartWrapper } from './ChartWrapper';
 import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
-import { fetchJson, useAbortableAsyncEffect } from './useAbortableAsyncEffect';
+import { fetchJson } from '@/lib/fetch-json';
 
 type HistoryRow = {
   day: string;
@@ -37,47 +38,24 @@ function formatDayLabel(value: string): string {
 }
 
 export function DataHistoryCard() {
-  const [rows, setRows] = useState<HistoryRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [responseState, setResponseState] = useState<DataState | null>(null);
+  const historyQuery = useQuery({
+    queryKey: ['dashboard', 'history', 'aggregate'] as const,
+    queryFn: ({ signal }) =>
+      fetchJson<HistoryResponse>(appRoutes.api.history(), {
+        signal,
+        errorMessage: 'No se pudo cargar el historico agregado.',
+      }),
+    staleTime: 5 * 60_000,
+  });
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      try {
-        const payload = await fetchJson<HistoryResponse>(appRoutes.api.history(), {
-          signal,
-          errorMessage: 'No se pudo cargar el historico agregado.',
-        });
-
-        if (!isActive()) {
-          return;
-        }
-
-        setRows(Array.isArray(payload.history) ? payload.history.slice(-30) : []);
-        setResponseState(payload.dataState ?? null);
-      } catch {
-        if (!isActive()) {
-          return;
-        }
-
-        setError('No se pudo cargar el historico de balance.');
-        setRows([]);
-        setResponseState('error');
-      }
-    },
-    [],
-    {
-      onStart: () => {
-        setIsLoading(true);
-        setError(null);
-        setResponseState(null);
-      },
-      onSettled: () => {
-        setIsLoading(false);
-      },
-    }
-  );
+  const rows: HistoryRow[] = Array.isArray(historyQuery.data?.history)
+    ? historyQuery.data.history.slice(-30)
+    : [];
+  const isLoading = historyQuery.isPending;
+  const error = historyQuery.error ? 'No se pudo cargar el historico de balance.' : null;
+  const responseState: DataState | null = historyQuery.error
+    ? 'error'
+    : historyQuery.data?.dataState ?? null;
 
   const chartData = useMemo(
     () => rows.map((row) => ({ ...row, label: formatDayLabel(row.day) })),
