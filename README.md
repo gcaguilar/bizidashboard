@@ -96,28 +96,6 @@ The public `nominatim.openstreetmap.org` service has a strict usage policy. In p
 
 ---
 
-## PostgreSQL Developer Guidelines
-
-Since the project uses **PostgreSQL**, strict rules apply when writing raw SQL queries to avoid syntax errors:
-
-### 1. Quoting Identifiers (Case Sensitivity)
-Postgres requires double quotes for `camelCase` table and column names. Unquoted names are lowercased by default.
-- ✅ **Correct**: `SELECT "stationId" FROM "StationStatus"`
-- ❌ **Incorrect**: `SELECT stationId FROM StationStatus`
-
-### 2. BigInt & Type Safety
-Aggregations like `SUM()` and `COUNT()` return **BigInt** (Int8). Always cast to `Number()` in TypeScript to avoid math or serialization errors.
-- ✅ **Correct**: `const total = Number(row.totalCount)`
-
-### 3. PostgreSQL Date Handling
-Use `TO_CHAR` for consistent date formatting instead of SQLite-specific functions:
-- ✅ **Correct**: `TO_CHAR("recordedAt", 'YYYY-MM-DD')`
-
-### 4. Transaction-Safe Maintenance
-Do **not** use `VACUUM`. Use `ANALYZE` for maintaining query planner statistics, as it is safe to run inside transactions.
-
----
-
 ## Deployment (Docker Compose)
 
 The architecture supports multiple isolated city deployments in a single `docker-compose.yml`:
@@ -142,37 +120,6 @@ services:
 
 ### Automatic Schema Isolation
 When a city container starts, it automatically executes `SET search_path TO "city-name"`, ensuring isolation within a shared database instance.
-
-### Repairing `StationStatus` Indexes In Docker
-If a schema drift leaves `StationStatus` with an incorrect unique index on `"stationId"` alone, snapshots can look like full duplicates even when bike/dock counts change.
-
-Inside the app container you can diagnose the live schema with:
-
-```bash
-bun /app/ops/fix-station-status-indexes.ts
-```
-
-And apply the repair with:
-
-```bash
-bun /app/ops/fix-station-status-indexes.ts --apply
-```
-
-The script targets the schema from `CITY`, drops unexpected `UNIQUE ("stationId")` constraints or indexes, removes exact duplicate rows for the same `("stationId", "recordedAt")`, and recreates the expected indexes for `StationStatus`.
-
-If the app accidentally wrote live data into `public` instead of the city schema, you can backfill the current city schema from `public` with:
-
-```bash
-bun /app/ops/move-public-schema-to-city.ts
-```
-
-And apply the copy with:
-
-```bash
-bun /app/ops/move-public-schema-to-city.ts --apply
-```
-
-This copies operational tables from `public` into the schema from `CITY` and leaves the source rows untouched so you can validate the backfill before cleaning anything up.
 
 ---
 
