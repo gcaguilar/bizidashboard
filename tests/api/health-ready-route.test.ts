@@ -5,7 +5,7 @@ const { queryRawMock, getPipelineStatusSummaryMock } = vi.hoisted(() => ({
   getPipelineStatusSummaryMock: vi.fn(),
 }));
 
-vi.mock('@/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: { $queryRaw: queryRawMock },
 }));
 
