@@ -2,6 +2,7 @@ import { getCity } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { updateExecutionContext } from '@/lib/request-context';
 import { getRedisClient } from '@/lib/cache/redis';
+import { captureWarningWithContext } from '@/lib/sentry-reporting';
 
 export type RateLimitDecision = {
   allowed: boolean;
@@ -60,6 +61,13 @@ export async function consumeRateLimit(
 
     logger.warn('rate_limit.redis_unavailable', {
       namespace: options.namespace,
+    });
+
+    captureWarningWithContext('Rate limiting is failing open: Redis is unavailable', {
+      area: 'security.rate-limit',
+      operation: 'consumeRateLimit',
+      tags: { namespace: options.namespace },
+      dedupeKey: 'rate_limit.redis_unavailable',
     });
 
     return {
