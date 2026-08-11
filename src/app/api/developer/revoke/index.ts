@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { getDeveloperSession } from '@/lib/auth/developer-session'
+import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
@@ -34,6 +34,13 @@ export const Route = createFileRoute('/api/developer/revoke/')({
           return new Response(JSON.stringify({ error: 'Too many revoke attempts' }), {
             status: 429,
             headers: { ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) },
+          })
+        }
+
+        if (!isDeveloperSessionConfigured()) {
+          return new Response(JSON.stringify({ error: 'Developer login is not configured.' }), {
+            status: 503,
+            headers: baseHeaders,
           })
         }
 
