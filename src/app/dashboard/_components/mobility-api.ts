@@ -1,5 +1,6 @@
+import { queryOptions } from '@tanstack/react-query';
 import { appRoutes } from '@/lib/routes';
-import { fetchJson } from './useAbortableAsyncEffect';
+import { fetchJson } from '@/lib/fetch-json';
 import { type DailyDemandRow, type MobilitySignalRow } from './mobility-insights-model';
 
 export type MobilityQueryParams = {
@@ -69,6 +70,27 @@ export async function loadMobilityData(
   }
 
   return response;
+}
+
+/** Datos crudos de movilidad; comparte cache con `mobilityQueryOptions` para los mismos parametros. */
+export function mobilityDataQueryOptions(
+  params: MobilityQueryParams,
+  errorMessage?: string
+) {
+  const month = normalizeMonthKey(params.month);
+
+  return queryOptions({
+    queryKey: ['dashboard', 'mobility', params.mobilityDays, params.demandDays, month] as const,
+    queryFn: ({ signal }) => loadMobilityData(signal, params, errorMessage),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function mobilityQueryOptions(params: MobilityQueryParams) {
+  return {
+    ...mobilityDataQueryOptions(params),
+    select: normalizeMobilityPreviewData,
+  };
 }
 
 export function normalizeMobilityPreviewData(response: ValidatedMobilityPayload): MobilityPreviewData {

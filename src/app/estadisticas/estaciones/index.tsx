@@ -1,36 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { appRoutes } from '@/lib/routes'
+import { buildSeoHead } from '@/lib/seo-head'
 import { PageShell } from '@/components/layout/page-shell';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
-import { getSiteUrl } from '@/lib/site';
 import { getStationsDirectoryData } from '@/server-functions/estaciones';
 
 export const Route = createFileRoute('/estadisticas/estaciones/')({
   loader: () => getStationsDirectoryData(),
   pendingComponent: StationsSkeleton,
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Estaciones Bizi Zaragoza - DatosBizi';
-    const description = 'Ranking y disponibilidad de estaciones Bizi Zaragoza. Consulta las más usadas con datos actualizados.';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estadisticas/estaciones` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/estaciones` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Estaciones Bizi Zaragoza - DatosBizi',
+      description: 'Ranking y disponibilidad de estaciones Bizi Zaragoza. Consulta las más usadas con datos actualizados.',
+      path: appRoutes.statsEstaciones(),
+    }),
   component: EstadisticasEstacionesPage,
 });
 

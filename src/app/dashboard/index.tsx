@@ -1,43 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod'
-import { getSiteUrl } from '@/lib/site'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { buildSeoHead } from '@/lib/seo-head'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { DashboardClient } from '@/app/dashboard/_components/DashboardClient'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PageShell } from '@/components/layout/page-shell'
-import { getDashboardPageData } from '@/server-functions/dashboard'
+import { dashboardPageQueryOptions } from '@/server-functions/dashboard'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { dashboardSearchSchema } from '@/lib/dashboard-search'
 
 export const Route = createFileRoute('/dashboard/')({
-  validateSearch: z.object(dashboardSearchSchema.shape),
-  loader: () => getDashboardPageData(),
+  validateSearch: dashboardSearchSchema,
+  // Una sola cache para SSR, preload y cliente: el loader la siembra y el componente la lee.
+  loader: ({ context }) => context.queryClient.ensureQueryData(dashboardPageQueryOptions),
   errorComponent: DashboardErrorPage,
   component: DashboardPage,
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Panel clasico - DatosBizi'
-    const description = 'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: 'Dashboard Bizi Zaragoza - DatosBizi' },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/dashboard` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Dashboard Bizi Zaragoza - DatosBizi' },
-        { name: 'twitter:description', content: description },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/dashboard` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Panel clasico - DatosBizi',
+      socialTitle: 'Dashboard Bizi Zaragoza - DatosBizi',
+      description:
+        'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.',
+      path: appRoutes.dashboard(),
+    }),
 })
 
 function DashboardErrorPage() {
@@ -61,7 +47,8 @@ function DashboardErrorPage() {
 }
 
 function DashboardPage() {
-  const { breadcrumbs, initialData, isSchemaMissing, loadErrors, structuredData } = Route.useLoaderData()
+  const { data: { breadcrumbs, initialData, isSchemaMissing, loadErrors, structuredData } } =
+    useSuspenseQuery(dashboardPageQueryOptions)
 
   return (
     <PageShell maxWidthClassName="">

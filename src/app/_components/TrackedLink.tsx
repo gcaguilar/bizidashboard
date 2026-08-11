@@ -1,7 +1,7 @@
 'use client';
 
-import { Link, useLocation } from '@tanstack/react-router';
-import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from 'react';
+import { createLink, Link, useLocation } from '@tanstack/react-router';
+import { forwardRef, type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from 'react';
 import {
   buildCtaClickEvent,
   buildEntitySelectEvent,
@@ -17,19 +17,77 @@ import {
   type UmamiTrackedEvent,
 } from '@/lib/umami';
 
-type TrackedLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'onClick'> & {
-  children: ReactNode;
-  href?: string;
-  to?: string;
+type TrackingProps = {
   trackingEvent?: UmamiTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
   entitySelectEvent?: Omit<EntitySelectInput, 'surface' | 'routeKey'>;
   eventName?: LegacyUmamiInteractionName;
   eventData?: Record<string, UmamiEventValue>;
-  className?: string;
-  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
+
+type TrackedLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'onClick'> &
+  TrackingProps & {
+    children: ReactNode;
+    href?: string;
+    to?: string;
+    className?: string;
+    onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
+  };
+
+/** Emite el evento de Umami que corresponda antes de delegar en el onClick del consumidor. */
+function useTrackedClick(
+  tracking: TrackingProps,
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
+) {
+  const pathname = useLocation().pathname;
+
+  return function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+    const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
+    const routeKey = resolveRouteKeyFromPathname(pathname);
+    const { trackingEvent, navigationEvent, ctaEvent, entitySelectEvent, eventName, eventData } =
+      tracking;
+
+    if (trackingEvent) {
+      trackUmamiEvent(trackingEvent);
+    } else if (navigationEvent) {
+      trackUmamiEvent(buildNavigationClickEvent({ surface, routeKey, ...navigationEvent }));
+    } else if (ctaEvent) {
+      trackUmamiEvent(buildCtaClickEvent({ surface, routeKey, ...ctaEvent }));
+    } else if (entitySelectEvent) {
+      trackUmamiEvent(buildEntitySelectEvent({ surface, routeKey, ...entitySelectEvent }));
+    } else if (eventName) {
+      trackUmamiEvent(buildLegacyInteractionEvent({ eventName, eventData, pathname }));
+    }
+
+    onClick?.(event);
+  };
+}
+
+const TrackedRouteLinkBase = forwardRef<
+  HTMLAnchorElement,
+  AnchorHTMLAttributes<HTMLAnchorElement> & TrackingProps
+>(function TrackedRouteLinkBase(
+  { trackingEvent, navigationEvent, ctaEvent, entitySelectEvent, eventName, eventData, onClick, className, ...anchorProps },
+  ref
+) {
+  const handleClick = useTrackedClick(
+    { trackingEvent, navigationEvent, ctaEvent, entitySelectEvent, eventName, eventData },
+    onClick
+  );
+
+  const linkClassName = `${
+    className ?? ''
+  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]`.trim();
+
+  return <a ref={ref} onClick={handleClick} className={linkClassName} {...anchorProps} />;
+});
+
+/**
+ * Variante de TrackedLink con `to`/`params`/`search` validados por el router.
+ * Preferible en enlaces nuevos: TrackedLink acepta strings sin comprobar la ruta.
+ */
+export const TrackedRouteLink = createLink(TrackedRouteLinkBase);
 
 function splitInternalDestination(destination: string): {
   to: string;
@@ -60,50 +118,10 @@ export function TrackedLink({
   ...anchorProps
 }: TrackedLinkProps) {
   const destination = href ?? to;
-  const pathname = useLocation().pathname;
-
-  function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
-    const routeKey = resolveRouteKeyFromPathname(pathname);
-
-    if (trackingEvent) {
-      trackUmamiEvent(trackingEvent);
-    } else if (navigationEvent) {
-      trackUmamiEvent(
-        buildNavigationClickEvent({
-          surface,
-          routeKey,
-          ...navigationEvent,
-        })
-      );
-    } else if (ctaEvent) {
-      trackUmamiEvent(
-        buildCtaClickEvent({
-          surface,
-          routeKey,
-          ...ctaEvent,
-        })
-      );
-    } else if (entitySelectEvent) {
-      trackUmamiEvent(
-        buildEntitySelectEvent({
-          surface,
-          routeKey,
-          ...entitySelectEvent,
-        })
-      );
-    } else if (eventName) {
-      trackUmamiEvent(
-        buildLegacyInteractionEvent({
-          eventName,
-          eventData,
-          pathname,
-        })
-      );
-    }
-
-    onClick?.(event);
-  }
+  const handleClick = useTrackedClick(
+    { trackingEvent, navigationEvent, ctaEvent, entitySelectEvent, eventName, eventData },
+    onClick
+  );
 
   const linkClassName = `${
     className ?? ''
