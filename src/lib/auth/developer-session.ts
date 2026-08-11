@@ -29,6 +29,11 @@ function getSessionConfig(): SessionConfig {
     password,
     name: 'bizi_dev_session',
     maxAge: SESSION_MAX_AGE_SECONDS,
+    cookie: {
+      sameSite: 'lax',
+      secure: true,
+      path: '/',
+    },
   };
 }
 
@@ -43,4 +48,35 @@ export async function setDeveloperSession(email: string): Promise<void> {
 
 export async function clearDeveloperSession(): Promise<void> {
   await clearSession(getSessionConfig());
+}
+
+/**
+ * Shared gate for developer-portal routes: confirms login is configured and
+ * an active session exists, returning the standard error Response for each
+ * failure mode so every route rejects unauthenticated calls the same way.
+ */
+export async function requireDeveloperSession(
+  headers: HeadersInit
+): Promise<{ session: { email: string } } | { response: Response }> {
+  if (!isDeveloperSessionConfigured()) {
+    return {
+      response: new Response(JSON.stringify({ error: 'Developer login is not configured.' }), {
+        status: 503,
+        headers,
+      }),
+    };
+  }
+
+  const session = await getDeveloperSession();
+
+  if (!session) {
+    return {
+      response: new Response(JSON.stringify({ error: 'Login required.' }), {
+        status: 401,
+        headers,
+      }),
+    };
+  }
+
+  return { session };
 }
