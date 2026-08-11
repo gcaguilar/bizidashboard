@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
+import { DeveloperApiRegistration } from '@/app/_components/DeveloperApiRegistration';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -314,6 +315,8 @@ print(len(res.json()["transfers"]))`}</code>
           ))}
         </div>
       </section>
+
+      <DeveloperApiRegistration />
 
       <section className="ui-section-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
