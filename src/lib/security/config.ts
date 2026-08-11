@@ -128,6 +128,29 @@ export function validateRuntimeConfiguration(): void {
     );
   }
 
+  // OAuth M2M API access (AUTH0_DOMAIN present implies the feature is meant to be live)
+  if (process.env.AUTH0_DOMAIN?.trim()) {
+    if (!process.env.AUTH0_AUDIENCE?.trim()) {
+      problems.push('AUTH0_AUDIENCE is required in production when AUTH0_DOMAIN is set.');
+    }
+    if (!process.env.AUTH0_MGMT_CLIENT_ID?.trim() || !process.env.AUTH0_MGMT_CLIENT_SECRET?.trim()) {
+      problems.push(
+        'AUTH0_MGMT_CLIENT_ID and AUTH0_MGMT_CLIENT_SECRET are required in production when AUTH0_DOMAIN is set.'
+      );
+    }
+  }
+
+  // Developer login portal (AUTH0_LOGIN_CLIENT_ID present implies the feature is meant to be live)
+  if (process.env.AUTH0_LOGIN_CLIENT_ID?.trim()) {
+    if (!process.env.AUTH0_LOGIN_CLIENT_SECRET?.trim()) {
+      problems.push('AUTH0_LOGIN_CLIENT_SECRET is required in production when AUTH0_LOGIN_CLIENT_ID is set.');
+    }
+    const sessionSecret = process.env.SESSION_SECRET?.trim();
+    if (!sessionSecret || sessionSecret.length < 32 || sessionSecret.includes('change-me')) {
+      problems.push('SESSION_SECRET must be configured (min 32 chars, non-default) when developer login is enabled.');
+    }
+  }
+
   if (problems.length > 0) {
     throw new Error(`Invalid runtime configuration: ${problems.join(' ')}`);
   }
