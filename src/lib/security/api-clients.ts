@@ -7,6 +7,7 @@
 
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { getOAuthScope } from '@/lib/oauth';
 
 export type ApiClientInfo = {
   id: string;
@@ -129,7 +130,7 @@ export async function createApiClient(
     body: JSON.stringify({
       client_id: created.client_id,
       audience,
-      scope: [],
+      scope: [getOAuthScope()],
     }),
   });
 
@@ -232,4 +233,32 @@ export async function revokeApiClient(clientId: string): Promise<boolean> {
     logger.error('api_client.revoke_failed', { clientId, error });
     return false;
   }
+}
+
+export type RevokeOwnApiClientResult = 'revoked' | 'not_found' | 'not_owner';
+
+/**
+ * Revokes an ApiClient on behalf of a logged-in developer, after checking
+ * they own it (ownerEmail matches their verified session email).
+ */
+export async function revokeOwnApiClient(
+  auth0ClientId: string,
+  ownerEmail: string
+): Promise<RevokeOwnApiClientResult> {
+  const record = await prisma.apiClient.findUnique({ where: { auth0ClientId } });
+
+  if (!record) {
+    return 'not_found';
+  }
+
+  if (record.ownerEmail !== ownerEmail) {
+    return 'not_owner';
+  }
+
+  if (!record.isActive || record.revokedAt) {
+    return 'revoked';
+  }
+
+  await revokeApiClient(record.id);
+  return 'revoked';
 }
