@@ -411,7 +411,7 @@ print(len(res.json()["transfers"]))`}</code>
             <div className="ui-metric-card">
               <p className="stat-label">Ingesta protegida</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">GET y POST /api/collect requieren clave interna y límite de uso</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Configuración por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`; `x-collect-api-key` se mantiene como alias temporal.</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Configuración por defecto: 6 solicitudes por 60 segundos y cabecera `x-ops-api-key`.</p>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Licencia del código</p>

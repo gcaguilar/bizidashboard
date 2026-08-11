@@ -98,7 +98,7 @@ export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(a
       label: 'Ops',
       title: '`GET/POST /api/collect` requieren `X-Ops-Api-Key`',
       detail:
-        'La cabecera `x-collect-api-key` sigue aceptandose temporalmente como alias de compatibilidad para cron antiguos.',
+        'Autenticacion por cabecera, sin excepciones ni alias de compatibilidad.',
     },
     {
       label: 'Elevated public',
