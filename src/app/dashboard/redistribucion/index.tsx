@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { lazy, Suspense } from 'react';
 import { z } from 'zod';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
@@ -16,26 +17,12 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
     page: z.coerce.number().int().min(0).optional(),
     pageSize: z.coerce.number().int().min(1).max(200).optional(),
   }),
-  head: () => {
-    const title = 'Redistribución | Dashboard Bizi'
-    const description = 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { name: 'robots', content: 'noindex, nofollow' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Redistribución | Dashboard Bizi',
+      description: 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.',
+      robots: 'noindex, nofollow',
+    }),
   loaderDeps: ({ search }) => ({
     sort: search.sort,
     filter: search.filter,
