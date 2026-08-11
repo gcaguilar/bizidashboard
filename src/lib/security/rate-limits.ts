@@ -18,6 +18,9 @@ export const RATE_LIMITS = {
     default: 100,
     authenticated: 1000,
   },
+  developer: {
+    register: { limit: 5, windowMs: 60 * 60 * 1000 },
+  },
 } as const;
 
 export type RateLimitPreset = keyof typeof RATE_LIMITS.public;

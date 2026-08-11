@@ -25,10 +25,10 @@ export const openApiDocument = {
       OAuthClientCredentials: {
         type: 'oauth2',
         description:
-          'OAuth 2.0 client credentials for agents that need bearer tokens instead of x-public-api-key.',
+          'OAuth 2.0 client credentials issued by Auth0 (Machine to Machine) for agents that need bearer tokens instead of x-public-api-key. Register a client via POST /api/developer/register.',
         flows: {
           clientCredentials: {
-            tokenUrl: '/oauth/token',
+            tokenUrl: process.env.AUTH0_DOMAIN ? `https://${process.env.AUTH0_DOMAIN}/oauth/token` : '/oauth/token',
             scopes: {
               'public_api.read': 'Read protected public API routes and exports.',
             },
