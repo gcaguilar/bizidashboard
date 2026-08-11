@@ -89,15 +89,34 @@ export async function enforcePublicApiAccess(
   }
 
   const oauthScopeOk = oauthPayload
-    ? !oauthPayload.scope || oauthPayload.scope.split(/\s+/u).includes(getOAuthScope())
+    ? (oauthPayload.scope?.split(/\s+/u) ?? []).includes(getOAuthScope())
     : false;
 
   if (oauthPayload && oauthScopeOk) {
     const oauthClientId = getOAuthClientId(oauthPayload);
     const apiClientInfo = await getApiClientByAuth0Id(oauthClientId);
-    const rateLimits = apiClientInfo
-      ? getApiClientRateLimits(apiClientInfo)
-      : { limit: options.limit, windowMs: options.windowMs };
+
+    if (!apiClientInfo) {
+      await recordSecurityEvent({
+        eventType: 'auth_failed',
+        route: options.route,
+        requestId: options.requestId,
+        ip: options.clientIp,
+        userAgent: options.userAgent,
+        outcome: 'denied',
+        reasonCode: 'oauth_client_not_registered',
+      });
+
+      return {
+        ok: false,
+        response: Response.json(
+          { error: 'This OAuth client is not registered or has been revoked.' },
+          { status: 401, headers: { 'WWW-Authenticate': getBearerChallengeHeader() } }
+        ),
+      };
+    }
+
+    const rateLimits = getApiClientRateLimits(apiClientInfo);
 
     const keyDecision = await consumeRateLimit({
       namespace: `${options.namespace}:oauth-client`,
