@@ -1,0 +1,71 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "react", "unicorn", "oxc"],
+  "options": {
+    "typeAware": true,
+    "respectEslintDisableDirectives": true
+  },
+  "categories": {
+    "correctness": "error"
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.output/**",
+    "**/.tanstack/**",
+    "**/node_modules/**",
+    "**/legacy-source/**",
+    "**/.next/**",
+    "**/public/**",
+    "next-env.d.ts",
+    "tests/**",
+    "scripts/**",
+    "ops/**",
+    "*.config.ts",
+    "*.config.mjs",
+    "vite.config.ts",
+    "instrument.server.mjs",
+    "instrumentation-client.ts",
+    "ecosystem.config.js",
+    "prisma/**",
+    "proj4.d.ts",
+    "src/jobs/jobs/**",
+    "src/services/services/**",
+    "src/routeTree.gen.ts",
+    "src/generated/**"
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-floating-promises": "warn",
+    "typescript/require-await": "warn",
+    "typescript/no-base-to-string": "warn",
+    "eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }
+    ],
+
+    "eslint/sort-imports": "off",
+    "typescript/consistent-type-imports": "off",
+    "typescript/array-type": "off",
+    "typescript/no-redundant-type-constituents": "off",
+    "typescript/no-duplicate-type-constituents": "off",
+    "typescript/prefer-nullish-coalescing": "off",
+    "typescript/no-unnecessary-condition": "off",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/only-throw-error": "off",
+    "typescript/restrict-template-expressions": "off",
+    "typescript/no-dynamic-delete": "off",
+    "typescript/use-unknown-in-catch-callback-variable": "off",
+    "typescript/no-misused-promises": "off",
+    "typescript/no-unsafe-assignment": "off",
+    "typescript/no-unsafe-call": "off",
+    "typescript/no-unsafe-member-access": "off",
+    "typescript/no-unsafe-return": "off",
+    "typescript/no-unsafe-argument": "off",
+    "typescript/prefer-promise-reject-errors": "off",
+    "typescript/promise-function-async": "off",
+    "typescript/unbound-method": "off"
+  }
+}

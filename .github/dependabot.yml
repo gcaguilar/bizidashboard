@@ -46,9 +46,8 @@ updates:
           - 'patch'
       test-and-lint-tooling:
         patterns:
-          - 'eslint'
-          - '@eslint/*'
-          - 'typescript-eslint'
+          - 'oxlint'
+          - 'oxlint-tsgolint'
           - '@testing-library/*'
           - '@playwright/*'
           - 'playwright'
@@ -77,9 +76,8 @@ updates:
           - '@vitejs/*'
           - 'vite'
           - 'vitest'
-          - 'eslint'
-          - '@eslint/*'
-          - 'typescript-eslint'
+          - 'oxlint'
+          - 'oxlint-tsgolint'
           - '@testing-library/*'
           - '@playwright/*'
           - 'playwright'
@@ -88,7 +86,11 @@ updates:
           - 'minor'
           - 'patch'
     ignore:
-      - dependency-name: 'eslint'
+      - dependency-name: 'oxlint'
+        update-types: ['version-update:semver-major']
+      # oxlint-tsgolint sigue la versión de TypeScript (7.0.2001 = TS 7.0.2),
+      # así que sus "majors" no son semver reales: los deja fuera de las PRs automáticas.
+      - dependency-name: 'oxlint-tsgolint'
         update-types: ['version-update:semver-major']
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
