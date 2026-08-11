@@ -54,14 +54,14 @@ async function buildHistoryPayload() {
       )
       SELECT
         day,
-        SUM("bikesRange" + "anchorsRange") AS "demandScore",
+        SUM("bikesRange" + "anchorsRange")::int AS "demandScore",
         AVG("stationAvgOccupancy") AS "avgOccupancy",
         AVG(CASE
           WHEN "stationAvgOccupancy" IS NULL THEN 0.5
           WHEN ABS("stationAvgOccupancy" - 0.5) >= 0.5 THEN 0
           ELSE 1 - (2 * ABS("stationAvgOccupancy" - 0.5))
         END) AS "balanceIndex",
-        SUM("stationSamples") AS "sampleCount"
+        SUM("stationSamples")::int AS "sampleCount"
       FROM daily_station
       GROUP BY day
       ORDER BY day ASC;

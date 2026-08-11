@@ -142,13 +142,13 @@ async function getRecentHistoryRows(): Promise<HistoryCompareRow[]> {
   return prisma.$queryRaw<HistoryCompareRow[]>`
     SELECT
       TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-      SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+      SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin"))::int AS "demandScore",
       AVG("occupancyAvg") AS "avgOccupancy",
       AVG(CASE
         WHEN ABS("occupancyAvg" - 0.5) >= 0.5 THEN 0
         ELSE 1 - (2 * ABS("occupancyAvg" - 0.5))
       END) AS "balanceIndex",
-      SUM("sampleCount") AS "sampleCount"
+      SUM("sampleCount")::int AS "sampleCount"
     FROM "HourlyStationStat"
     WHERE "bucketStart" >= NOW() - INTERVAL '90 days'
       AND "occupancyAvg" IS NOT NULL
