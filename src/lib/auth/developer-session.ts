@@ -13,6 +13,11 @@ type DeveloperSessionData = {
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60; // 1 hour
 
+export function isDeveloperSessionConfigured(): boolean {
+  const password = process.env.SESSION_SECRET?.trim();
+  return !!password && password.length >= 32;
+}
+
 function getSessionConfig(): SessionConfig {
   const password = process.env.SESSION_SECRET?.trim();
 
