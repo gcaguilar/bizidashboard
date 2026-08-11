@@ -1,103 +1,68 @@
-import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
-import { timingSafeEqual } from 'node:crypto';
-import { TextEncoder } from 'node:util';
-import { getPublicApiKey } from '@/lib/security/config';
-import { validateApiKey } from '@/lib/security/api-keys';
-import { getSiteUrl } from '@/lib/site';
-
-const OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS = 3600;
-const OAUTH_SCOPE = 'public_api.read';
-const LEGACY_OAUTH_CLIENT_ID = 'legacy-public-api';
-const DEFAULT_RATE_LIMIT = 100;
-const DEFAULT_RATE_WINDOW_MS = 60_000;
-
-type ApiKeyInfo = {
-  id: string;
-  name: string;
-  keyPrefix: string;
-  description: string | null;
-  ownerEmail: string | null;
-  isActive: boolean;
-  lastUsedAt: Date | null;
-  requestCount: number;
-  createdAt: Date;
-  customRateLimit: number | null;
-  customRateWindow: number | null;
-};
-
-export type OAuthClient = {
-  clientId: string;
-  rateLimit: number;
-  rateWindowMs: number;
-  apiKeyInfo: ApiKeyInfo | null;
-};
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 
 export interface OAuthAccessTokenPayload extends JWTPayload {
-  clientId: string;
-  scope: string;
-  tokenUse: 'oauth_access';
+  sub: string;
+  azp?: string;
+  scope?: string;
 }
 
-function getOAuthJwtSecret(): Uint8Array | null {
-  const configuredSecret = process.env.JWT_SECRET?.trim();
+let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
-  if (!configuredSecret) {
-    return null;
+function getAuth0Domain(): string | null {
+  const domain = process.env.AUTH0_DOMAIN?.trim();
+  return domain ? domain : null;
+}
+
+function getAuth0Audience(): string | null {
+  const audience = process.env.AUTH0_AUDIENCE?.trim();
+  return audience ? audience : null;
+}
+
+function getAuth0Issuer(domain: string): string {
+  return `https://${domain}/`;
+}
+
+function getJwks(domain: string) {
+  if (!jwks) {
+    jwks = createRemoteJWKSet(new URL(`https://${domain}/.well-known/jwks.json`));
   }
-
-  return new TextEncoder().encode(configuredSecret);
-}
-
-export function getOAuthIssuer(): string {
-  return getSiteUrl();
+  return jwks;
 }
 
 export function getOAuthScope(): string {
-  return OAUTH_SCOPE;
+  return 'public_api.read';
 }
 
 export function getProtectedResourceMetadataUrl(): string {
-  return `${getSiteUrl()}/.well-known/oauth-protected-resource`;
+  const domain = getAuth0Domain();
+  return domain ? `https://${domain}/.well-known/oauth-protected-resource` : '';
 }
 
-export function isOAuthSigningConfigured(): boolean {
-  return getOAuthJwtSecret() !== null;
-}
-
-export async function generateOAuthAccessToken(clientId: string): Promise<string> {
-  const jwtSecret = getOAuthJwtSecret();
-  if (!jwtSecret) {
-    throw new Error('JWT_SECRET is required to issue OAuth access tokens.');
-  }
-
-  return new SignJWT({
-    clientId,
-    scope: OAUTH_SCOPE,
-    tokenUse: 'oauth_access',
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuer(getOAuthIssuer())
-    .setAudience(getSiteUrl())
-    .setIssuedAt()
-    .setExpirationTime(`${OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS}s`)
-    .sign(jwtSecret);
+/**
+ * Extracts a stable per-client identifier from an Auth0 M2M access token,
+ * used as the rate-limit key and to look up custom limits in ApiClient.
+ */
+export function getOAuthClientId(payload: OAuthAccessTokenPayload): string {
+  return payload.azp ?? payload.sub.replace(/@clients$/, '');
 }
 
 export async function verifyOAuthAccessToken(
   token: string
 ): Promise<OAuthAccessTokenPayload | null> {
-  const jwtSecret = getOAuthJwtSecret();
-  if (!jwtSecret) {
+  const domain = getAuth0Domain();
+  const audience = getAuth0Audience();
+
+  if (!domain || !audience) {
     return null;
   }
 
   try {
-    const { payload } = await jwtVerify(token, jwtSecret, {
-      issuer: getOAuthIssuer(),
-      audience: getSiteUrl(),
+    const { payload } = await jwtVerify(token, getJwks(domain), {
+      issuer: getAuth0Issuer(domain),
+      audience,
     });
 
-    if (payload.tokenUse !== 'oauth_access') {
+    if (typeof payload.sub !== 'string') {
       return null;
     }
 
@@ -106,87 +71,3 @@ export async function verifyOAuthAccessToken(
     return null;
   }
 }
-
-export async function validateOAuthClient(
-  clientId: string | null | undefined,
-  clientSecret: string | null | undefined
-): Promise<OAuthClient | null> {
-  if (!clientId || !clientSecret) {
-    return null;
-  }
-
-  const legacyKey = getPublicApiKey();
-
-  if (legacyKey) {
-    if (!legacyKey || clientId !== LEGACY_OAUTH_CLIENT_ID) {
-      return null;
-    }
-
-    const providedBuffer = Buffer.from(clientSecret);
-    const expectedBuffer = Buffer.from(legacyKey);
-    if (
-      providedBuffer.length !== expectedBuffer.length ||
-      !timingSafeEqual(providedBuffer, expectedBuffer)
-    ) {
-      return null;
-    }
-
-    return {
-      clientId,
-      rateLimit: DEFAULT_RATE_LIMIT,
-      rateWindowMs: DEFAULT_RATE_WINDOW_MS,
-      apiKeyInfo: null,
-    };
-  }
-
-  const apiKeyInfo = await validateApiKey(clientSecret);
-  if (!apiKeyInfo || apiKeyInfo.keyPrefix !== clientId) {
-    return null;
-  }
-
-  return {
-    clientId,
-    rateLimit: apiKeyInfo.customRateLimit ?? DEFAULT_RATE_LIMIT,
-    rateWindowMs: apiKeyInfo.customRateWindow ?? DEFAULT_RATE_WINDOW_MS,
-    apiKeyInfo,
-  };
-}
-
-export function parseClientCredentials(request: Request): {
-  clientId: string | null;
-  clientSecret: string | null;
-} {
-  const authorization = request.headers.get('authorization')?.trim() ?? '';
-  if (authorization.startsWith('Basic ')) {
-    const encoded = authorization.slice('Basic '.length);
-    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-    const separatorIndex = decoded.indexOf(':');
-
-    if (separatorIndex >= 0) {
-      return {
-        clientId: decoded.slice(0, separatorIndex),
-        clientSecret: decoded.slice(separatorIndex + 1),
-      };
-    }
-  }
-
-  return {
-    clientId: null,
-    clientSecret: null,
-  };
-}
-
-export function getOAuthMetadata() {
-  const issuer = getOAuthIssuer();
-
-  return {
-    issuer,
-    token_endpoint: `${issuer}/oauth/token`,
-    grant_types_supported: ['client_credentials'],
-    response_types_supported: [],
-    token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post'],
-    scopes_supported: [OAUTH_SCOPE],
-  };
-}
-
-export { LEGACY_OAUTH_CLIENT_ID, OAUTH_ACCESS_TOKEN_EXPIRY_SECONDS };

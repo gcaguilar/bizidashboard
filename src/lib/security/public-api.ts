@@ -1,5 +1,6 @@
 // Response removed;
 import {
+  getOAuthClientId,
   getOAuthScope,
   getProtectedResourceMetadataUrl,
   verifyOAuthAccessToken,
@@ -14,6 +15,7 @@ import {
   isMultiKeySystemEnabled,
   type ApiKeyInfo,
 } from '@/lib/security/api-keys';
+import { getApiClientByAuth0Id, getApiClientRateLimits } from '@/lib/security/api-clients';
 
 type PublicApiAccessOptions = {
   route: string;
@@ -86,12 +88,22 @@ export async function enforcePublicApiAccess(
     };
   }
 
-  if (oauthPayload && oauthPayload.scope.split(/\s+/u).includes(getOAuthScope())) {
+  const oauthScopeOk = oauthPayload
+    ? !oauthPayload.scope || oauthPayload.scope.split(/\s+/u).includes(getOAuthScope())
+    : false;
+
+  if (oauthPayload && oauthScopeOk) {
+    const oauthClientId = getOAuthClientId(oauthPayload);
+    const apiClientInfo = await getApiClientByAuth0Id(oauthClientId);
+    const rateLimits = apiClientInfo
+      ? getApiClientRateLimits(apiClientInfo)
+      : { limit: options.limit, windowMs: options.windowMs };
+
     const keyDecision = await consumeRateLimit({
       namespace: `${options.namespace}:oauth-client`,
-      identifierParts: [oauthPayload.clientId],
-      limit: options.limit,
-      windowMs: options.windowMs,
+      identifierParts: [oauthClientId],
+      limit: rateLimits.limit,
+      windowMs: rateLimits.windowMs,
     });
     const headers = getRateLimitHeaders(keyDecision);
 

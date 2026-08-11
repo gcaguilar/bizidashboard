@@ -283,3 +283,24 @@ model ApiKey {
   @@index([keyPrefix])
   @@index([createdAt])
 }
+
+model ApiClient {
+  id            String   @id @default(cuid())
+  auth0ClientId String   @unique
+  name          String
+  ownerEmail    String
+
+  // Rate limiting (null = use defaults)
+  customRateLimit  Int? // requests per window
+  customRateWindow Int? // window in milliseconds
+
+  // Status
+  isActive  Boolean   @default(true)
+  revokedAt DateTime?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, revokedAt])
+}
