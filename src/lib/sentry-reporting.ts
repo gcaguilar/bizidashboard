@@ -104,7 +104,7 @@ function applyContext(
           userAgentHash: executionContext.userAgentHash,
         }
       : {}),
-    ...(context.extra ?? {}),
+    ...context.extra,
   };
 
   if (Object.keys(details).length > 0) {

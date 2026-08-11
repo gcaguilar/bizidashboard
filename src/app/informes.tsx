@@ -1,11 +1,10 @@
 import { Outlet, createFileRoute, useLocation } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
-import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
-import { getSiteUrl } from '@/lib/site';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { formatInteger, formatPercent } from '@/lib/format';
@@ -14,34 +13,13 @@ import { Card } from '@/components/ui/card';
 import { getReportsIndexPageData } from '@/server-functions/informes';
 
 export const Route = createFileRoute('/informes')({
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Informes mensuales de Bizi Zaragoza | Archivo historico'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content:
-            'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.',
-        },
-        { property: 'og:title', content: 'Informes mensuales de Bizi Zaragoza | Archivo historico' },
-        { property: 'og:description', content: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/informes` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Informes mensuales de Bizi Zaragoza | Archivo historico' },
-        { name: 'twitter:description', content: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/informes` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+      description: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.',
+      path: appRoutes.reports(),
+    }),
   loader: () => getReportsIndexPageData(),
-  pendingComponent: PublicPageLoading,
   component: ReportsIndexPage,
 });
 
@@ -136,7 +114,7 @@ export default function ReportsIndexPage() {
         </article>
         <article className="ui-section-card py-3">
           <p className="stat-label">Cobertura de serie</p>
-          <p className="stat-value">{months.length > 0 ? [...new Set(months.map(m => m))].length : 0}</p>
+          <p className="stat-value">{months.length > 0 ? new Set(months).size : 0}</p>
         </article>
       </section>
 
