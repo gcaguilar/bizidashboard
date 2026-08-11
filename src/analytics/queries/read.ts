@@ -115,45 +115,71 @@ async function getHourlyStatsForMonth(stationId: string, monthKey: string): Prom
   `;
 }
 
+type SourceBoundsRow = { minAt: Date | string | null; maxAt: Date | string | null };
+
+function toBoundDate(value: Date | string | null | undefined): Date | null {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+// Collection runs continuously, so every month between MIN and MAX has data;
+// enumerating the range avoids a DISTINCT over the full table.
+function collectMonthKeysFromBounds(bounds: SourceBoundsRow | undefined, target: Set<string>): void {
+  const minAt = toBoundDate(bounds?.minAt);
+  const maxAt = toBoundDate(bounds?.maxAt);
+  if (!minAt || !maxAt) {
+    return;
+  }
+
+  const cursor = new Date(Date.UTC(minAt.getUTCFullYear(), minAt.getUTCMonth(), 1));
+  const end = Date.UTC(maxAt.getUTCFullYear(), maxAt.getUTCMonth(), 1);
+
+  while (cursor.getTime() <= end) {
+    const monthKey = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}`;
+    if (isValidMonthKey(monthKey)) {
+      target.add(monthKey);
+    }
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+}
+
 export async function getAvailableDataMonths(): Promise<string[]> {
   const monthKeys = new Set<string>();
 
   // Query each source independently so one missing/invalid table does not zero-out SEO reports.
-  const [hourlyRows, dailyRows, snapshotRows] = await Promise.all([
-    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-      SELECT DISTINCT TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey"
-      FROM "HourlyStationStat"
-      WHERE "bucketStart" IS NOT NULL
-      ORDER BY "monthKey" DESC;
+  const [hourlyBounds, dailyBounds, snapshotBounds] = await Promise.all([
+    prisma.$queryRaw<SourceBoundsRow[]>`
+      SELECT MIN("bucketStart") AS "minAt", MAX("bucketStart") AS "maxAt"
+      FROM "HourlyStationStat";
     `.catch((error) => {
       logger.warn('analytics.read.monthly_keys_hourly_failed', { error });
       return [];
     }),
-    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-      SELECT DISTINCT TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey"
-      FROM "DailyStationStat"
-      WHERE "bucketDate" IS NOT NULL
-      ORDER BY "monthKey" DESC;
+    prisma.$queryRaw<SourceBoundsRow[]>`
+      SELECT MIN("bucketDate") AS "minAt", MAX("bucketDate") AS "maxAt"
+      FROM "DailyStationStat";
     `.catch((error) => {
       logger.warn('analytics.read.monthly_keys_daily_failed', { error });
       return [];
     }),
-    prisma.$queryRaw<Array<{ monthKey: string | null }>>`
-      SELECT DISTINCT TO_CHAR("recordedAt", 'YYYY-MM') AS "monthKey"
-      FROM "StationStatus"
-      WHERE "recordedAt" IS NOT NULL
-      ORDER BY "monthKey" DESC;
+    prisma.$queryRaw<SourceBoundsRow[]>`
+      SELECT MIN("recordedAt") AS "minAt", MAX("recordedAt") AS "maxAt"
+      FROM "StationStatus";
     `.catch((error) => {
       logger.warn('analytics.read.monthly_keys_status_failed', { error });
       return [];
     }),
   ]);
 
-  for (const row of [...hourlyRows, ...dailyRows, ...snapshotRows]) {
-    if (isValidMonthKey(row.monthKey)) {
-      monthKeys.add(row.monthKey);
-    }
-  }
+  collectMonthKeysFromBounds(hourlyBounds[0], monthKeys);
+  collectMonthKeysFromBounds(dailyBounds[0], monthKeys);
+  collectMonthKeysFromBounds(snapshotBounds[0], monthKeys);
 
   return Array.from(monthKeys).sort((left, right) => right.localeCompare(left));
 }
@@ -560,7 +586,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
         COUNT(DISTINCT "stationId") AS "activeStations",
         COALESCE(SUM("sampleCount"), 0) AS "sampleCount"
       FROM "DailyStationStat"
-      WHERE "bucketDate" IS NOT NULL
+      WHERE "bucketDate" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' * (${safeLimit} - 1)
       GROUP BY TO_CHAR("bucketDate", 'YYYY-MM')
       ORDER BY "monthKey" DESC
       LIMIT ${safeLimit}
@@ -592,7 +618,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
         COUNT(DISTINCT "stationId") AS "activeStations",
         COALESCE(SUM("sampleCount"), 0) AS "sampleCount"
       FROM "HourlyStationStat"
-      WHERE "bucketStart" IS NOT NULL
+      WHERE "bucketStart" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' * (${safeLimit} - 1)
       GROUP BY TO_CHAR("bucketStart", 'YYYY-MM')
       ORDER BY "monthKey" DESC
       LIMIT ${safeLimit}
