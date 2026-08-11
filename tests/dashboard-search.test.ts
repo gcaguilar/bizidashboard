@@ -1,11 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildDashboardClientSearch,
   dashboardSearchSchema,
-  parseDashboardClientSearch,
-  parseDashboardMonthPeriodSearch,
-  parseDashboardRankingSearch,
+  resolveDashboardMapViewFromSearch,
 } from '@/lib/dashboard-search';
 import { normalizeStationIdValue } from '@/lib/dashboard-url-state';
+
+const BASE_STATE = {
+  activeWindowId: '30d',
+  viewMode: 'overview',
+  selectedStationId: '',
+  searchQuery: '',
+  onlyWithBikes: false,
+  onlyWithAnchors: false,
+  mapViewState: {
+    latitude: 41.65,
+    longitude: -0.88,
+    zoom: 12,
+  },
+} as const;
 
 describe('dashboard search schema', () => {
   it('accepts valid dashboard URL params', () => {
@@ -47,46 +60,13 @@ describe('dashboard search schema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('normalizes client search state with safe defaults', () => {
-    const parsed = parseDashboardClientSearch(
-      new URLSearchParams('mode=operations&timeWindow=7d&onlyWithBikes=true&q=  plaza  ')
-    );
+  it('accepts numeric stationId values from router JSON parsing', () => {
+    const schemaParsed = dashboardSearchSchema.shape.stationId.safeParse(2);
 
-    expect(parsed).toEqual({
-      mode: 'operations',
-      stationId: null,
-      q: 'plaza',
-      timeWindow: '7d',
-      onlyWithBikes: true,
-      onlyWithAnchors: false,
-      mapViewState: {
-        latitude: 41.65,
-        longitude: -0.88,
-        zoom: 12,
-      },
-      month: null,
-      density: 'full',
-    });
-  });
-
-  it('parses quick density when present in URL', () => {
-    const parsed = parseDashboardClientSearch(new URLSearchParams('density=quick'));
-
-    expect(parsed.density).toBe('quick');
-  });
-
-  it('falls back to full density for invalid values', () => {
-    const parsed = parseDashboardClientSearch(new URLSearchParams('density=compact'));
-
-    expect(parsed.density).toBe('full');
-  });
-
-  it('normalizes quoted station ids from router search state', () => {
-    const parsed = parseDashboardClientSearch(
-      new URLSearchParams('stationId=%222%22')
-    );
-
-    expect(parsed.stationId).toBe('2');
+    expect(schemaParsed.success).toBe(true);
+    if (schemaParsed.success) {
+      expect(schemaParsed.data).toBe('2');
+    }
   });
 
   it('strips repeated wrapping quotes from station ids', () => {
@@ -94,66 +74,82 @@ describe('dashboard search schema', () => {
     expect(normalizeStationIdValue('"2"')).toBe('2');
     expect(normalizeStationIdValue(null)).toBeNull();
   });
+});
 
-  it('accepts numeric stationId values from router JSON parsing', () => {
-    const parsedFromNumber = parseDashboardClientSearch(
-      new URLSearchParams('stationId=2')
-    );
-    expect(parsedFromNumber.stationId).toBe('2');
-
-    const schemaParsed = dashboardSearchSchema.shape.stationId.safeParse(2);
-    expect(schemaParsed.success).toBe(true);
-    if (schemaParsed.success) {
-      expect(schemaParsed.data).toBe('2');
-    }
-  });
-
-  it('keeps independent client params when map values are invalid', () => {
-    const parsed = parseDashboardClientSearch(
-      new URLSearchParams('mode=operations&timeWindow=7d&mapLat=999&mapLng=abc&mapZoom=-1')
-    );
-
-    expect(parsed.mode).toBe('operations');
-    expect(parsed.timeWindow).toBe('7d');
-    expect(parsed.mapViewState).toEqual({
+describe('resolveDashboardMapViewFromSearch', () => {
+  it('falls back to the default view when the params are absent', () => {
+    expect(resolveDashboardMapViewFromSearch({})).toEqual({
       latitude: 41.65,
       longitude: -0.88,
       zoom: 12,
     });
-    expect(parsed.density).toBe('full');
   });
 
-  it('normalizes ranking search state with safe defaults', () => {
-    const parsed = parseDashboardRankingSearch(
-      new URLSearchParams('rankingTab=turnover&rankingSearch= 101 &rankingShowAll=1')
-    );
-
-    expect(parsed).toEqual({
-      tab: 'turnover',
-      search: '101',
-      showAll: true,
+  it('uses the validated params when present', () => {
+    expect(
+      resolveDashboardMapViewFromSearch({ mapLat: 41.7, mapLng: -0.9, mapZoom: 14 })
+    ).toEqual({
+      latitude: 41.7,
+      longitude: -0.9,
+      zoom: 14,
     });
   });
+});
 
-  it('normalizes month and period search state', () => {
-    const parsed = parseDashboardMonthPeriodSearch(
-      new URLSearchParams('month=2026-05&period=night')
+describe('buildDashboardClientSearch', () => {
+  it('serializes dashboard state into the route search', () => {
+    const next = buildDashboardClientSearch(
+      { month: '2026-05', rankingTab: 'turnover' },
+      {
+        ...BASE_STATE,
+        activeWindowId: '7d',
+        viewMode: 'operations',
+        selectedStationId: '123',
+        searchQuery: ' centro ',
+        onlyWithBikes: true,
+        mapViewState: { latitude: 41.65123, longitude: -0.88123, zoom: 12.34 },
+      }
     );
 
-    expect(parsed).toEqual({
-      month: '2026-05',
-      period: 'night',
-    });
+    expect(next.month).toBe('2026-05');
+    expect(next.rankingTab).toBe('turnover');
+    expect(next.timeWindow).toBe('7d');
+    expect(next.mode).toBe('operations');
+    expect(next.stationId).toBe('123');
+    expect(next.q).toBe('centro');
+    expect(next.onlyWithBikes).toBe('1');
+    expect(next.onlyWithAnchors).toBeUndefined();
+    expect(next.mapLat).toBe(41.6512);
+    expect(next.mapLng).toBe(-0.8812);
+    expect(next.mapZoom).toBe(12.3);
   });
 
-  it('falls back for invalid month and period values', () => {
-    const parsed = parseDashboardMonthPeriodSearch(
-      new URLSearchParams('month=bad&period=invalid')
+  it('drops empty optional params', () => {
+    const next = buildDashboardClientSearch(
+      { stationId: '1', q: 'test', onlyWithBikes: '1' },
+      BASE_STATE
     );
 
-    expect(parsed).toEqual({
-      month: null,
-      period: 'all',
-    });
+    expect(next.stationId).toBeUndefined();
+    expect(next.q).toBeUndefined();
+    expect(next.onlyWithBikes).toBeUndefined();
+  });
+
+  it('normalizes quoted station ids before writing them to the URL', () => {
+    const next = buildDashboardClientSearch({}, { ...BASE_STATE, selectedStationId: '"2"' });
+
+    expect(next.stationId).toBe('2');
+  });
+
+  it('preserves params owned by other dashboard widgets', () => {
+    const next = buildDashboardClientSearch(
+      { density: 'quick', month: '2026-05', period: 'night', rankingShowAll: '1' },
+      BASE_STATE
+    );
+
+    expect(next.density).toBe('quick');
+    expect(next.month).toBe('2026-05');
+    expect(next.period).toBe('night');
+    expect(next.rankingShowAll).toBe('1');
   });
 });

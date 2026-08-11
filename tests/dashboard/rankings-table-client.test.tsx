@@ -3,16 +3,21 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-const { navigateMock, useLocationMock } = vi.hoisted(() => ({
+const { navigateMock, useSearchMock } = vi.hoisted(() => ({
   navigateMock: vi.fn(),
-  useLocationMock: vi.fn(),
+  useSearchMock: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
   return {
     ...actual,
-    useLocation: () => useLocationMock(),
+    getRouteApi: () => ({
+      useSearch: (options: { select?: (search: unknown) => unknown }) => {
+        const search = useSearchMock();
+        return options?.select ? options.select(search) : search;
+      },
+    }),
     useNavigate: () => navigateMock,
   };
 });
@@ -36,10 +41,7 @@ vi.mock('@/app/_components/TrackedLink', () => ({
 describe('RankingsTable navigation sync', () => {
   it('does not navigate when clicking the already active tab', async () => {
     navigateMock.mockReset();
-    useLocationMock.mockReturnValue({
-      pathname: '/dashboard',
-      searchStr: '?rankingTab=availability',
-    });
+    useSearchMock.mockReturnValue({ rankingTab: 'availability' });
 
     const { RankingsTable } = await import('@/app/dashboard/_components/RankingsTable');
 

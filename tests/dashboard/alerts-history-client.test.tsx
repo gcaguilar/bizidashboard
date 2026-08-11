@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { render, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
 
 const { navigateMock, useLocationMock } = vi.hoisted(() => ({
@@ -17,9 +18,8 @@ vi.mock('@tanstack/react-router', async () => {
   };
 });
 
-vi.mock('@/app/dashboard/_components/useAbortableAsyncEffect', () => ({
-  fetchJson: vi.fn(),
-  useAbortableAsyncEffect: () => {},
+vi.mock('@/lib/fetch-json', () => ({
+  fetchJson: vi.fn(() => new Promise(() => {})),
 }));
 
 vi.mock('@/app/_components/TrackedLink', () => ({
@@ -102,21 +102,27 @@ describe('AlertsHistoryClient navigation sync', () => {
 
     const { AlertsHistoryClient } = await import('@/app/dashboard/alertas/_components/AlertsHistoryClient');
 
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
     render(
-      <AlertsHistoryClient
-        stations={[
-          {
-            id: '101',
-            name: 'Estacion 101',
-            lat: 0,
-            lon: 0,
-            bikesAvailable: 1,
-            anchorsFree: 1,
-            capacity: 2,
-            recordedAt: '2026-05-07T10:00:00.000Z',
-          },
-        ]}
-      />
+      <QueryClientProvider client={queryClient}>
+        <AlertsHistoryClient
+          stations={[
+            {
+              id: '101',
+              name: 'Estacion 101',
+              lat: 0,
+              lon: 0,
+              bikesAvailable: 1,
+              anchorsFree: 1,
+              capacity: 2,
+              recordedAt: '2026-05-07T10:00:00.000Z',
+            },
+          ]}
+        />
+      </QueryClientProvider>
     );
 
     await waitFor(() => {

@@ -372,12 +372,13 @@ describe('public UX regressions', () => {
     expect(compare).toContain("ssr: 'data-only'");
     expect(explore).toContain("ssr: 'data-only'");
 
-    expect(dashboardIndex).toContain('validateSearch: z.object(');
-    expect(flow).toContain('validateSearch: z.object(');
-    expect(conclusions).toContain('validateSearch: z.object(');
-    expect(rebalancing).toContain('validateSearch: z.object(');
-    expect(alerts).toContain('validateSearch: z.object(');
-    expect(compare).toContain('validateSearch: z.object(');
-    expect(explore).toContain('validateSearch: z.object(');
+    const typedSearchPattern = /validateSearch: (z\.object\(|\w*[Ss]earchSchema\b)/;
+    expect(dashboardIndex).toMatch(typedSearchPattern);
+    expect(flow).toMatch(typedSearchPattern);
+    expect(conclusions).toMatch(typedSearchPattern);
+    expect(rebalancing).toMatch(typedSearchPattern);
+    expect(alerts).toMatch(typedSearchPattern);
+    expect(compare).toMatch(typedSearchPattern);
+    expect(explore).toMatch(typedSearchPattern);
   });
 });
