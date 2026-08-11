@@ -203,6 +203,46 @@ export function rejectDisallowedMobileOrigin(request: Request): Response | null 
   );
 }
 
+/**
+ * CSRF guard for cookie-authenticated, same-origin browser routes (e.g. the
+ * developer portal). Browsers attach `Origin` on cross-site fetch/XHR
+ * requests, so a mismatch means the request did not originate from our own
+ * pages. A missing `Origin` is allowed through — same-site navigations and
+ * non-browser clients (curl, server-to-server) don't reliably send it, and
+ * those callers don't carry the session cookie anyway unless replayed
+ * cross-site, which requires an `Origin` in every modern browser.
+ *
+ * Compares against the request's own `Host` (falling back to
+ * `X-Forwarded-Host` behind a proxy) rather than a configured APP_URL: the
+ * attacker's page can put anything in `Origin`, but a browser talking to
+ * our server always sets `Host` to the domain it actually connected to, so
+ * this can't be defeated by APP_URL drifting from the real serving domain
+ * (custom domains, Vercel previews, local dev ports, etc.).
+ */
+export function rejectCrossOriginRequest(request: Request): Response | null {
+  const origin = request.headers.get('origin');
+
+  if (!origin) {
+    return null;
+  }
+
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const requestOrigin = new URL(request.url).origin;
+
+  const isSameOrigin = host
+    ? origin === `${new URL(requestOrigin).protocol}//${host}`
+    : origin === requestOrigin;
+
+  if (isSameOrigin) {
+    return null;
+  }
+
+  return Response.json(
+    { error: 'Cross-origin request rejected' },
+    { status: 403, headers: { Vary: 'Origin' } }
+  );
+}
+
 export function handleMobilePreflight(request: Request): Response {
   return rejectDisallowedMobileOrigin(request) ??
     new Response(null, {

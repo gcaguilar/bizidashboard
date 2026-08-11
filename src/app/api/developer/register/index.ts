@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
+import { requireDeveloperSession } from '@/lib/auth/developer-session'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
+import { rejectCrossOriginRequest } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 import { RATE_LIMITS } from '@/lib/security/rate-limits'
 import { createApiClient } from '@/lib/security/api-clients'
@@ -20,6 +21,11 @@ export const Route = createFileRoute('/api/developer/register/')({
         const requestId = ''
         const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ''
         const userAgent = request.headers.get('user-agent') || ''
+
+        const originRejection = rejectCrossOriginRequest(request)
+        if (originRejection) {
+          return originRejection
+        }
 
         const rateLimit = RATE_LIMITS.developer.register
         const rateLimitDecision = await consumeRateLimit({
@@ -46,21 +52,11 @@ export const Route = createFileRoute('/api/developer/register/')({
           })
         }
 
-        if (!isDeveloperSessionConfigured()) {
-          return new Response(JSON.stringify({ error: 'Developer login is not configured.' }), {
-            status: 503,
-            headers: baseHeaders,
-          })
+        const sessionResult = await requireDeveloperSession(baseHeaders)
+        if ('response' in sessionResult) {
+          return sessionResult.response
         }
-
-        const session = await getDeveloperSession()
-
-        if (!session) {
-          return new Response(JSON.stringify({ error: 'Login required to register an API client.' }), {
-            status: 401,
-            headers: baseHeaders,
-          })
-        }
+        const { session } = sessionResult
 
         const body = await request.json().catch(() => null)
         const parsed = registerRequestSchema.safeParse(body)
