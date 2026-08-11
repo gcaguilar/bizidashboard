@@ -6,7 +6,7 @@ import { issueRefreshToken, hashPublicKey, hashToken } from '@/lib/auth/jwt'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
 const REGISTER_RATE_LIMIT = { limit: 10, windowMs: 5 * 60 * 1000 }
@@ -25,7 +25,7 @@ export const Route = createFileRoute('/api/install/register/')({
         const request = opts.request
         try {
           const requestId = ''
-          const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ''
+          const clientIp = getClientIp(request.headers)
           const userAgent = request.headers.get('user-agent') || ''
 
           const originRejection = rejectDisallowedMobileOrigin(request)

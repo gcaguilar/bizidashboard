@@ -4,7 +4,7 @@ import { reverseGeocode } from '@/lib/geo/nominatim'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
-import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
+import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { verifyMobileRequest } from '@/lib/security/mobile-auth'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/api/geo/reverse/')({
         const request = opts.request
         try {
           const requestId = ''
-          const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || ''
+          const clientIp = getClientIp(request.headers)
           const userAgent = request.headers.get('user-agent') || ''
 
           const originRejection = rejectDisallowedMobileOrigin(request)

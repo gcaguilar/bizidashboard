@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { openApiDocument } from '@/lib/openapi-document'
+import { getClientIp } from '@/lib/security/http'
 import { enforcePublicApiAccess } from '@/lib/security/public-api'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { errorResponse } from '@/lib/api-response'
@@ -19,7 +20,7 @@ export const Route = createFileRoute('/api/openapi.json')({
             route: '/api/openapi.json',
             request,
             requestId: '',
-            clientIp: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
+            clientIp: getClientIp(request.headers),
             userAgent: request.headers.get('user-agent') || '',
             namespace: 'public-openapi',
             limit: PUBLIC_ROUTE_RATE_LIMIT.limit,

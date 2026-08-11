@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { fetchSeoLandingData } from '@/server-functions/seo-landing';
-import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -12,26 +12,12 @@ import { Card } from '@/components/ui/card';
 
 export const Route = createFileRoute('/estadisticas/horarios')({
   loader: () => fetchSeoLandingData({ data: { slug: 'uso-bizi-por-hora' } }),
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Uso de Bizi por hora en Zaragoza - DatosBizi';
-    const description = 'Horas pico, franjas de mayor actividad y comportamiento del sistema Bizi Zaragoza.';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estadisticas/horarios` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/horarios` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Uso de Bizi por hora en Zaragoza - DatosBizi',
+      description: 'Horas pico, franjas de mayor actividad y comportamiento del sistema Bizi Zaragoza.',
+      path: appRoutes.statsHorarios(),
+    }),
   component: HorariosPage,
 });
 

@@ -1,33 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { buildSeoHead } from '@/lib/seo-head'
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { getSiteUrl } from '@/lib/site'
 import { appRoutes } from '@/lib/routes'
 import { PageShell } from '@/components/layout/page-shell'
 
 export const Route = createFileRoute('/about')({
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Sobre DatosBizi'
-    const description = 'DatosBizi reune datos actualizados, historico, informes y API publica del sistema de bicicletas compartidas Bizi Zaragoza.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/about` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/about` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Sobre DatosBizi',
+      description: 'DatosBizi reune datos actualizados, historico, informes y API publica del sistema de bicicletas compartidas Bizi Zaragoza.',
+      path: appRoutes.about(),
+    }),
   component: About,
 })
 

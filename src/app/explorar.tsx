@@ -2,10 +2,10 @@ import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { getExploreLoaderData } from '@/server-functions/explorar';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
+import { buildSeoHead } from '@/lib/seo-head';
 import type { GlobalSearchResponse } from '@/lib/global-search';
 
 export const Route = createFileRoute('/explorar')({
@@ -13,28 +13,15 @@ export const Route = createFileRoute('/explorar')({
   validateSearch: z.object({
     q: z.string().optional(),
   }),
-  head: () => {
-    const title = 'Explorar datos de Bizi Zaragoza - DatosBizi'
-    const description = 'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: appRoutes.explore() },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-      ],
-      links: [{ rel: 'canonical', href: appRoutes.explore() }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Explorar datos de Bizi Zaragoza - DatosBizi',
+      description:
+        'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.',
+      path: appRoutes.explore(),
+    }),
   loaderDeps: ({ search }) => ({ q: search.q }),
   loader: ({ deps }) => getExploreLoaderData({ data: { q: deps.q } }),
-  pendingComponent: PublicPageLoading,
   errorComponent: ExploreErrorPage,
   component: ExplorePage,
 });

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { fetchSeoLandingData } from '@/server-functions/seo-landing';
-import { getSiteUrl } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -12,26 +12,12 @@ import { Card } from '@/components/ui/card';
 
 export const Route = createFileRoute('/estadisticas/viajes')({
   loader: () => fetchSeoLandingData({ data: { slug: 'viajes-por-mes-zaragoza' } }),
-  head: () => {
-    const siteUrl = getSiteUrl();
-    const title = 'Viajes Bizi Zaragoza - DatosBizi';
-    const description = 'Tendencia diaria y mensual de viajes estimados en el sistema Bizi Zaragoza.';
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estadisticas/viajes` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estadisticas/viajes` }],
-      title,
-    };
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Viajes Bizi Zaragoza - DatosBizi',
+      description: 'Tendencia diaria y mensual de viajes estimados en el sistema Bizi Zaragoza.',
+      path: appRoutes.statsViajes(),
+    }),
   component: ViajesPage,
 });
 

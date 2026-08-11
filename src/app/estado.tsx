@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { useState } from 'react';
-import { PublicPageLoading } from '@/app/_components/PublicPageLoading';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -8,7 +8,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { getCityName, getSiteUrl } from '@/lib/site';
+import { getCityName } from '@/lib/site';
 import {
   formatStatusDateTime,
   formatStatusNumber,
@@ -25,34 +25,14 @@ import { PageShell } from '@/components/layout/page-shell';
 import { getSystemStatusPageData } from '@/server-functions/estado';
 
 export const Route = createFileRoute('/estado')({
-  head: () => {
-    const siteUrl = getSiteUrl()
-    const title = 'Cobertura y estado de datos de Bizi Zaragoza'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content:
-            'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias que afecten al mapa avanzado, la API o los informes.',
-        },
-        { property: 'og:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { property: 'og:description', content: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:url', content: `${siteUrl}/estado` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Cobertura y estado de datos de Bizi Zaragoza' },
-        { name: 'twitter:description', content: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.' },
-      ],
-      links: [{ rel: 'canonical', href: `${siteUrl}/estado` }],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Cobertura y estado de datos de Bizi Zaragoza',
+      description: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias que afecten al mapa avanzado, la API o los informes.',
+      socialDescription: 'Comprueba si los datos de Bizi Zaragoza están frescos, qué cobertura tienen y si hay incidencias activas.',
+      path: appRoutes.status(),
+    }),
   loader: () => getSystemStatusPageData(),
-  pendingComponent: PublicPageLoading,
   component: SystemStatusPage,
 });
 
