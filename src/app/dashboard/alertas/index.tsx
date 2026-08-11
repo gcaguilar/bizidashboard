@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { z } from 'zod';
+import { buildSeoHead } from '@/lib/seo-head'
 import { AlertsHistoryClient } from '@/app/dashboard/alertas/_components/AlertsHistoryClient';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { DashboardPageLoading } from '@/app/dashboard/_components/DashboardPageLoading';
@@ -9,27 +9,13 @@ import { getAlertsHistoryPageData } from '@/server-functions/dashboard-alertas';
 import { dashboardAlertsSearchSchema } from '@/lib/dashboard-alerts-search';
 
 export const Route = createFileRoute('/dashboard/alertas/')({
-  validateSearch: z.object(dashboardAlertsSearchSchema.shape),
-  head: () => {
-    const title = 'Historial de alertas - Dashboard Bizi'
-    const description = 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones sin bicis, sin huecos o que necesitan revision.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { name: 'robots', content: 'noindex, nofollow' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      title,
-    }
-  },
+  validateSearch: dashboardAlertsSearchSchema,
+  head: () =>
+    buildSeoHead({
+      title: 'Historial de alertas - Dashboard Bizi',
+      description: 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones sin bicis, sin huecos o que necesitan revision.',
+      robots: 'noindex, nofollow',
+    }),
   loader: () => getAlertsHistoryPageData(),
   pendingComponent: DashboardAlertsPending,
   errorComponent: DashboardAlertsError,

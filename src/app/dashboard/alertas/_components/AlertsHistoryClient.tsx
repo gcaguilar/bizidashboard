@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,7 @@ import { formatAlertType } from '@/lib/format';
 import { formatStatusDateTime } from '@/lib/system-status';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { fetchJson, useAbortableAsyncEffect } from '@/app/dashboard/_components/useAbortableAsyncEffect';
+import { fetchJson } from '@/lib/fetch-json';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
@@ -128,10 +129,6 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const [isUrlReady, setIsUrlReady] = useState(false);
   const lastSyncedUrlRef = useRef<string | null>(null);
   const prevStationsLengthRef = useRef(-1);
-  const [rows, setRows] = useState<AlertHistoryRow[]>([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const apiQueryString = useMemo(() => {
@@ -233,52 +230,35 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     void navigate({ search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as any : {}, replace: true });
   }, [isUrlReady, navigate, searchQueryString, stations, viewQueryString]);
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      try {
-        const payload = await fetchJson<AlertsHistoryApiResponse>(
-          `${appRoutes.api.alertsHistory()}?${apiQueryString}`,
-          {
-            signal,
-            cache: 'no-store',
-            errorMessage: 'No hemos podido cargar el historial de alertas.',
-          }
-        );
+  const historyQuery = useQuery({
+    queryKey: ['dashboard', 'alerts-history', apiQueryString] as const,
+    queryFn: ({ signal }) =>
+      fetchJson<AlertsHistoryApiResponse>(`${appRoutes.api.alertsHistory()}?${apiQueryString}`, {
+        signal,
+        cache: 'no-store',
+        errorMessage: 'No hemos podido cargar el historial de alertas.',
+      }),
+    placeholderData: (previous) => previous,
+  });
 
-        if (!isActive()) {
-          return;
-        }
+  const rows: AlertHistoryRow[] = Array.isArray(historyQuery.data?.alerts)
+    ? historyQuery.data.alerts
+    : [];
+  const totalRows = Number(historyQuery.data?.pagination?.total ?? 0);
+  const isLoading = historyQuery.isPending;
+  const errorMessage = historyQuery.error ? 'No hemos podido cargar el historial de alertas.' : null;
 
-        setRows(Array.isArray(payload.alerts) ? payload.alerts : []);
-        setTotalRows(Number(payload.pagination?.total ?? 0));
-      } catch (error) {
-        if (!isActive()) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.alerts-history',
-          operation: 'loadHistory',
-          extra: {
-            query: apiQueryString,
-          },
-        });
-        setRows([]);
-        setTotalRows(0);
-        setErrorMessage('No hemos podido cargar el historial de alertas.');
-      }
-    },
-    [apiQueryString],
-    {
-      onStart: () => {
-        setIsLoading(true);
-        setErrorMessage(null);
-      },
-      onSettled: () => {
-        setIsLoading(false);
-      },
+  useEffect(() => {
+    if (historyQuery.error) {
+      captureExceptionWithContext(historyQuery.error, {
+        area: 'dashboard.alerts-history',
+        operation: 'loadHistory',
+        extra: {
+          query: apiQueryString,
+        },
+      });
     }
-  );
+  }, [apiQueryString, historyQuery.error]);
 
   const pageCount = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
   const hasNextPage = page + 1 < pageCount;

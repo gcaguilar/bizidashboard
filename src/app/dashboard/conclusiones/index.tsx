@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { buildSeoHead } from '@/lib/seo-head'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
 import { z } from 'zod';
@@ -86,26 +87,12 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
   validateSearch: z.object({
     month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
   }),
-  head: () => {
-    const title = 'Conclusiones de movilidad'
-    const description = 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.'
-    return {
-      meta: [
-        { title },
-        { charSet: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { name: 'robots', content: 'noindex, nofollow' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      title,
-    }
-  },
+  head: () =>
+    buildSeoHead({
+      title: 'Conclusiones de movilidad',
+      description: 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.',
+      robots: 'noindex, nofollow',
+    }),
   loaderDeps: ({ search }) => ({
     month: search.month,
   }),

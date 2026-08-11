@@ -1,7 +1,8 @@
 'use client';
 
 import { Alert } from '@/components/ui/alert';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import {
   Select,
@@ -16,7 +17,7 @@ import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatDateTimeLabel } from '@/lib/format';
 import type { RebalancingReport } from '@/types/rebalancing';
-import { useAbortableAsyncEffect, fetchJson } from '@/app/dashboard/_components/useAbortableAsyncEffect';
+import { fetchJson } from '@/lib/fetch-json';
 import {
   buildExportClickEvent,
   buildFilterChangeEvent,
@@ -51,57 +52,49 @@ const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
 const ALL_DISTRICTS_VALUE = '__all_districts__';
 
 export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
-  const [report, setReport] = useState<RebalancingReport | null>(initialReport);
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
   const [selectedDistrict, setSelectedDistrict] = useState<string>(
     initialReport?.districtFilter ?? ''
   );
   const [selectedDays, setSelectedDays] = useState<number>(initialReport?.analysisWindowDays ?? 15);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [isReportLoading, setIsReportLoading] = useState(false);
 
-  useAbortableAsyncEffect(
-    async (signal, isActive) => {
-      setLoadError(null);
-      setIsReportLoading(true);
+  const districtFilter = selectedDistrict || null;
+  // El informe del loader ya cubre estos parametros: evita un refetch redundante al montar.
+  const matchesInitialReport =
+    initialReport !== null &&
+    (initialReport.districtFilter ?? null) === districtFilter &&
+    initialReport.analysisWindowDays === selectedDays;
 
-      try {
-        const nextReport = await fetchJson<RebalancingReport>(
-          appRoutes.api.rebalancingReport({
-            district: selectedDistrict || null,
-            days: selectedDays,
-          }),
-          { signal, cache: 'no-store', errorMessage: `HTTP fetch failed` }
-        );
+  const reportQuery = useQuery({
+    queryKey: ['dashboard', 'rebalancing-report', districtFilter, selectedDays] as const,
+    queryFn: ({ signal }) =>
+      fetchJson<RebalancingReport>(
+        appRoutes.api.rebalancingReport({ district: districtFilter, days: selectedDays }),
+        { signal, cache: 'no-store', errorMessage: 'HTTP fetch failed' }
+      ),
+    initialData: matchesInitialReport ? initialReport : undefined,
+    // Conserva el informe anterior mientras se recalcula con los nuevos filtros.
+    placeholderData: (previous) => previous,
+  });
 
-        if (!isActive()) {
-          return;
-        }
+  const report = reportQuery.data ?? initialReport;
+  const isReportLoading = reportQuery.isFetching;
+  const loadError = reportQuery.error
+    ? 'No se pudo actualizar el informe. Mostramos la ultima version disponible.'
+    : null;
 
-        setReport(nextReport);
-      } catch (error) {
-        if (!isActive()) {
-          return;
-        }
-
-        captureExceptionWithContext(error, {
-          area: 'dashboard.redistribucion',
-          operation: 'refreshReport',
-          extra: {
-            days: selectedDays,
-            district: selectedDistrict || null,
-          },
-        });
-
-        setLoadError('No se pudo actualizar el informe. Mostramos la ultima version disponible.');
-      } finally {
-        if (isActive()) {
-          setIsReportLoading(false);
-        }
-      }
-    },
-    [selectedDays, selectedDistrict]
-  );
+  useEffect(() => {
+    if (reportQuery.error) {
+      captureExceptionWithContext(reportQuery.error, {
+        area: 'dashboard.redistribucion',
+        operation: 'refreshReport',
+        extra: {
+          days: selectedDays,
+          district: districtFilter,
+        },
+      });
+    }
+  }, [districtFilter, reportQuery.error, selectedDays]);
 
   function handleDistrictChange(value: string) {
     setSelectedDistrict(value);
