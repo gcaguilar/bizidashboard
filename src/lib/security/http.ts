@@ -78,8 +78,8 @@ export function readOpsApiKey(headers: Headers): string | null {
   return readHeader(headers, ['x-ops-api-key']);
 }
 
-export function readPublicApiKey(headers: Headers): string | null {
-  return readHeader(headers, ['x-public-api-key']);
+export function readApiKey(headers: Headers): string | null {
+  return readHeader(headers, ['x-api-key']);
 }
 
 export type RequestExecution = {
