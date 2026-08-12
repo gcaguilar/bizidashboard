@@ -66,7 +66,7 @@ export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(a
   const curlExamples = [
     `curl -s -H "X-Request-Id: docs-example-status" ${siteUrl}${appRoutes.api.status()}`,
     `curl -sG ${siteUrl}${appRoutes.api.rankings({ type: 'turnover', limit: 20 })}`,
-    `curl -L -H "x-public-api-key: $PUBLIC_API_KEY" ${siteUrl}${appRoutes.api.historyCsv()}`,
+    `curl -L -H "x-api-key: $BIZI_API_KEY" ${siteUrl}${appRoutes.api.historyCsv()}`,
   ];
   const pythonExample = `import requests\n\nbase_url = "${siteUrl}"\nresponse = requests.get(f"{base_url}${appRoutes.api.status()}", timeout=15)\nresponse.raise_for_status()\npayload = response.json()\nprint(payload["pipeline"]["healthStatus"])`;
   const jsExample = `const response = await fetch("${siteUrl}${appRoutes.api.stations()}");\nif (!response.ok) throw new Error(\`HTTP \${response.status}\`);\nconst payload = await response.json();\nconsole.log(payload.stations.length);`;
@@ -102,9 +102,9 @@ export const getDevelopersPageData = createServerFn({ method: 'GET' }).handler(a
     },
     {
       label: 'Elevated public',
-      title: 'CSV costosos y ventanas amplias requieren `X-Public-Api-Key`',
+      title: 'CSV costosos y ventanas amplias requieren `x-api-key`',
       detail:
-        'Afecta a historico CSV, alertas historicas CSV, movilidad extendida y rebalancing con ventanas o exportaciones amplias.',
+        'Crea tu clave desde esta pagina tras iniciar sesion. Afecta a historico CSV, alertas historicas CSV, movilidad extendida y rebalancing con ventanas o exportaciones amplias.',
     },
     {
       label: 'Mobile',

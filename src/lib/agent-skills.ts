@@ -37,7 +37,7 @@ Use the public API via \`/api/openapi.json\` and the developers hub at \`/develo
 ## Notes
 
 - Prefer canonical public routes from \`/sitemap.xml\`.
-- Elevated public endpoints can use \`X-Public-Api-Key\` or OAuth bearer tokens with \`public_api.read\`.
+- Elevated public endpoints require an \`x-api-key\` header; create a key from \`/developers\` after logging in.
 - Use \`/llms.txt\` and \`/llms-full.txt\` for discovery.
 `
     ),

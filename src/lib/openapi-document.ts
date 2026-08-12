@@ -15,25 +15,12 @@ export const openApiDocument = {
         description:
           'Required for GET/POST /api/collect.'
       },
-      PublicApiKey: {
+      ApiKey: {
         type: 'apiKey',
         in: 'header',
-        name: 'x-public-api-key',
+        name: 'x-api-key',
         description:
-          'Required for elevated access to expensive public endpoints and CSV exports.'
-      },
-      OAuthClientCredentials: {
-        type: 'oauth2',
-        description:
-          'OAuth 2.0 client credentials issued by Auth0 (Machine to Machine) for agents that need bearer tokens instead of x-public-api-key. Register a client via POST /api/developer/register.',
-        flows: {
-          clientCredentials: {
-            tokenUrl: process.env.AUTH0_DOMAIN ? `https://${process.env.AUTH0_DOMAIN}/oauth/token` : '/oauth/token',
-            scopes: {
-              'public_api.read': 'Read protected public API routes and exports.',
-            },
-          },
-        },
+          'Personal API key for elevated access to expensive public endpoints and CSV exports. Log in at /developers and create one; each key has its own rate limit.'
       },
     }
   },
