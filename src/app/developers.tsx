@@ -387,7 +387,7 @@ print(len(res.json()["transfers"]))`}</code>
             <div className="ui-metric-card">
               <p className="stat-label">Lectura pública</p>
               <p className="text-sm font-semibold text-[var(--foreground)]">Lecturas ligeras abiertas; usos intensivos con clave</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">Las consultas sencillas siguen abiertas. CSV grandes y ventanas amplias usan `X-Public-Api-Key` y límites compartidos.</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">Las consultas sencillas siguen abiertas y se limitan por IP. CSV grandes y ventanas amplias usan `x-api-key`, con un límite propio por clave.</p>
             </div>
             <div className="ui-metric-card">
               <p className="stat-label">Ingesta protegida</p>
