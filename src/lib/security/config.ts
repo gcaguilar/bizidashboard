@@ -23,11 +23,6 @@ export function getOpsApiKey(): string | null {
   return trimmed ? trimmed : null;
 }
 
-export function getPublicApiKey(): string | null {
-  const trimmed = process.env.PUBLIC_API_KEY?.trim();
-  return trimmed ? trimmed : null;
-}
-
 export function shouldRequireSignedMobileRequests(): boolean {
   return isTruthyEnv(process.env.REQUIRE_SIGNED_MOBILE_REQUESTS);
 }
@@ -79,7 +74,6 @@ function warnOnWeakSecrets(): void {
     ['SESSION_SECRET', process.env.SESSION_SECRET],
     ['OPS_API_KEY', process.env.OPS_API_KEY],
     ['COLLECT_API_KEY', process.env.COLLECT_API_KEY],
-    ['PUBLIC_API_KEY', process.env.PUBLIC_API_KEY],
   ];
 
   for (const [name, value] of candidates) {
@@ -115,11 +109,6 @@ export function validateRuntimeConfiguration(): void {
 
   if (!opsApiKey || isKnownInsecureSecret(opsApiKey)) {
     problems.push('OPS_API_KEY or COLLECT_API_KEY must be configured with a non-default value in production.');
-  }
-
-  const publicApiKey = getPublicApiKey();
-  if (publicApiKey && isKnownInsecureSecret(publicApiKey)) {
-    problems.push('PUBLIC_API_KEY must not be a default/placeholder value in production.');
   }
 
   if (!process.env.REDIS_URL?.trim()) {
@@ -167,20 +156,11 @@ export function validateRuntimeConfiguration(): void {
     );
   }
 
-  // OAuth M2M API access (AUTH0_DOMAIN present implies the feature is meant to be live)
-  if (process.env.AUTH0_DOMAIN?.trim()) {
-    if (!process.env.AUTH0_AUDIENCE?.trim()) {
-      problems.push('AUTH0_AUDIENCE is required in production when AUTH0_DOMAIN is set.');
-    }
-    if (!process.env.AUTH0_MGMT_CLIENT_ID?.trim() || !process.env.AUTH0_MGMT_CLIENT_SECRET?.trim()) {
-      problems.push(
-        'AUTH0_MGMT_CLIENT_ID and AUTH0_MGMT_CLIENT_SECRET are required in production when AUTH0_DOMAIN is set.'
-      );
-    }
-  }
-
   // Developer login portal (AUTH0_LOGIN_CLIENT_ID present implies the feature is meant to be live)
   if (process.env.AUTH0_LOGIN_CLIENT_ID?.trim()) {
+    if (!process.env.AUTH0_DOMAIN?.trim()) {
+      problems.push('AUTH0_DOMAIN is required in production when AUTH0_LOGIN_CLIENT_ID is set.');
+    }
     if (!process.env.AUTH0_LOGIN_CLIENT_SECRET?.trim()) {
       problems.push('AUTH0_LOGIN_CLIENT_SECRET is required in production when AUTH0_LOGIN_CLIENT_ID is set.');
     }
