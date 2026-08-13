@@ -184,6 +184,7 @@ export const appRoutes = {
     authLogout: () => '/api/auth/logout',
     developerRegister: () => '/api/developer/register',
     developerRevoke: () => '/api/developer/revoke',
+    developerKeys: () => '/api/developer/keys',
   },
 } as const;
 

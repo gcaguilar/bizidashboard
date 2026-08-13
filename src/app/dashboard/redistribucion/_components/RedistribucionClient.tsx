@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatDateTimeLabel } from '@/lib/format';
+import { buildLoginHref, useDeveloperSession } from '@/lib/use-developer-session';
 import type { RebalancingReport } from '@/types/rebalancing';
 import { fetchJson } from '@/lib/fetch-json';
 import {
@@ -49,6 +50,8 @@ type Props = {
 };
 
 const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
+// Windows past this point hit the credentialed branch of /api/rebalancing-report.
+const ANONYMOUS_MAX_WINDOW_DAYS = 30;
 const ALL_DISTRICTS_VALUE = '__all_districts__';
 
 export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
@@ -57,6 +60,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
     initialReport?.districtFilter ?? ''
   );
   const [selectedDays, setSelectedDays] = useState<number>(initialReport?.analysisWindowDays ?? 15);
+  const session = useDeveloperSession();
 
   const districtFilter = selectedDistrict || null;
   // El informe del loader ya cubre estos parametros: evita un refetch redundante al montar.
@@ -132,25 +136,35 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
               </time>
             </p>
           </div>
-          <TrackedAnchor
-            href={appRoutes.api.rebalancingReport({
-              district: selectedDistrict || null,
-              days: selectedDays,
-              format: 'csv',
-            })}
-            download
-            trackingEvent={buildExportClickEvent({
-              surface: 'dashboard',
-              routeKey: 'dashboard_redistribucion',
-              source: 'redistribucion_header',
-              ctaId: 'rebalancing_csv',
-              entityType: 'api',
-              module: 'redistribucion_export',
-            })}
-            className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--card))]"
-          >
-            Descargar CSV
-          </TrackedAnchor>
+          {session.status === 'authenticated' ? (
+            <TrackedAnchor
+              href={appRoutes.api.rebalancingReport({
+                district: selectedDistrict || null,
+                days: selectedDays,
+                format: 'csv',
+              })}
+              download
+              trackingEvent={buildExportClickEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_redistribucion',
+                source: 'redistribucion_header',
+                ctaId: 'rebalancing_csv',
+                entityType: 'api',
+                module: 'redistribucion_export',
+              })}
+              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--card))]"
+            >
+              Descargar CSV
+            </TrackedAnchor>
+          ) : (
+            <a
+              href={buildLoginHref('/dashboard/redistribucion')}
+              className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-hover,var(--card))]"
+              title="Las exportaciones y las ventanas largas requieren una cuenta"
+            >
+              Inicia sesión para descargar CSV
+            </a>
+          )}
         </div>
 
         {/* Filters */}
@@ -212,11 +226,16 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
               <SelectIcon />
             </SelectTrigger>
             <SelectContent>
-              {ANALYSIS_WINDOWS.map((d) => (
-                <SelectItem key={d} value={String(d)}>
-                  Últimos {d} días
-                </SelectItem>
-              ))}
+              {ANALYSIS_WINDOWS.map((d) => {
+                const needsAccount =
+                  d > ANONYMOUS_MAX_WINDOW_DAYS && session.status !== 'authenticated';
+
+                return (
+                  <SelectItem key={d} value={String(d)} disabled={needsAccount}>
+                    Últimos {d} días{needsAccount ? ' · requiere cuenta' : ''}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
 
