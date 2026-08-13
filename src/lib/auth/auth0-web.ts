@@ -77,7 +77,7 @@ export type DeveloperIdentity = {
   email: string;
 };
 
-export async function verifyIdToken(idToken: string): Promise<DeveloperIdentity | null> {
+export async function verifyIdToken(idToken: string, nonce: string): Promise<DeveloperIdentity | null> {
   const domain = getDomain();
   const clientId = getClientId();
 
@@ -91,7 +91,7 @@ export async function verifyIdToken(idToken: string): Promise<DeveloperIdentity 
       audience: clientId,
     });
 
-    if (typeof payload.email !== 'string' || payload.email_verified !== true) {
+    if (payload.nonce !== nonce || typeof payload.email !== 'string' || payload.email_verified !== true) {
       return null;
     }
 

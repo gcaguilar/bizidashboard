@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '@/lib/db'
 import { issueRefreshToken, hashPublicKey, hashToken } from '@/lib/auth/jwt'
+import { verifyInstallRegistrationProof } from '@/lib/auth/install-proof'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
@@ -16,6 +17,8 @@ const installRegisterSchema = z.object({
   appVersion: z.string().trim().min(1).max(256),
   osVersion: z.string().trim().min(1).max(256),
   publicKey: z.string().trim().min(40).max(2048).regex(/^[A-Za-z0-9+/=]+$/),
+  challenge: z.string().trim().min(16).max(256).regex(/^[A-Za-z0-9+/=]+$/),
+  signature: z.string().trim().min(40).max(512).regex(/^[A-Za-z0-9+/=]+$/),
 })
 
 export const Route = createFileRoute('/api/install/register/')({
@@ -51,6 +54,12 @@ export const Route = createFileRoute('/api/install/register/')({
             return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
+          const proofIsValid = verifyInstallRegistrationProof(parsed.data)
+          if (!proofIsValid) {
+            await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'invalid_install_proof', metadata: { publicKeyFingerprint } })
+            return new Response(JSON.stringify({ error: 'Invalid installation proof' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          }
+
           const installId = randomUUID()
           const issuedRefreshToken = await issueRefreshToken(installId)
 
@@ -58,14 +67,20 @@ export const Route = createFileRoute('/api/install/register/')({
             where: { publicKeyFingerprint },
             create: {
               installId, platform: parsed.data.platform, appVersion: parsed.data.appVersion, osVersion: parsed.data.osVersion,
-              publicKey: hashPublicKey(parsed.data.publicKey), publicKeyFingerprint, refreshTokenHash: hashToken(issuedRefreshToken.token),
+              publicKey: hashPublicKey(parsed.data.publicKey), publicKeyMaterial: parsed.data.publicKey, publicKeyFingerprint, refreshTokenHash: hashToken(issuedRefreshToken.token),
               refreshTokenIssuedAt: issuedRefreshToken.issuedAt, lastSeenAt: issuedRefreshToken.issuedAt, lastAuthAt: issuedRefreshToken.issuedAt, isActive: true,
             },
             update: {
               lastSeenAt: issuedRefreshToken.issuedAt,
+              publicKeyMaterial: parsed.data.publicKey,
               refreshTokenHash: hashToken(issuedRefreshToken.token),
               refreshTokenIssuedAt: issuedRefreshToken.issuedAt,
               isActive: true,
+              revokedAt: null,
+              previousRefreshTokenHash: null,
+              previousRefreshTokenExpiresAt: null,
+              previousRefreshTokenCiphertext: null,
+              previousAccessTokenCiphertext: null,
             },
           });
 

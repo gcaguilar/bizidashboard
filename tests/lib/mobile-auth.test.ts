@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { generateKeyPairSync, sign } from 'node:crypto';
 
 process.env.JWT_SECRET = 'test-jwt-secret';
 process.env.SIGNATURE_SECRET = 'test-signature-secret-with-32-chars';
@@ -27,8 +28,16 @@ vi.mock('@/lib/security/audit', () => ({
 }));
 
 import { generateAccessToken } from '@/lib/auth/jwt';
-import { signRequest } from '@/lib/auth/signature';
 import { verifyMobileRequest } from '@/lib/security/mobile-auth';
+
+const installKeys = generateKeyPairSync('ed25519');
+const publicKeyMaterial = installKeys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
+
+function signedBody(payload: Record<string, unknown>) {
+  const body = { ...payload, timestamp: Date.now() };
+  const signature = sign(null, Buffer.from(`${body.timestamp}.${JSON.stringify(body)}`), installKeys.privateKey).toString('base64');
+  return { ...body, signature };
+}
 
 describe('verifyMobileRequest', () => {
   beforeEach(() => {
@@ -41,19 +50,19 @@ describe('verifyMobileRequest', () => {
       installId: 'install-1',
       isActive: true,
       revokedAt: null,
+      publicKeyMaterial: publicKeyMaterial,
     });
     updateInstallMock.mockResolvedValue({});
   });
 
   it('accepts a valid signed mobile request', async () => {
     const accessToken = await generateAccessToken('install-1');
-    const signed = signRequest({ query: 'Centro' });
-    const body = JSON.parse(signed.body) as { query: string; timestamp: number };
+    const body = signedBody({ query: 'Centro' });
 
     const result = await verifyMobileRequest({
       body: {
         ...body,
-        signature: signed.signature,
+        signature: body.signature,
       },
       route: '/api/geo/search',
       request: new Request('http://localhost/api/geo/search', {
@@ -73,8 +82,7 @@ describe('verifyMobileRequest', () => {
 
   it('rejects invalid signatures', async () => {
     const accessToken = await generateAccessToken('install-1');
-    const signed = signRequest({ query: 'Centro' });
-    const body = JSON.parse(signed.body) as { query: string; timestamp: number };
+    const body = signedBody({ query: 'Centro' });
 
     const result = await verifyMobileRequest({
       body: {
@@ -101,14 +109,13 @@ describe('verifyMobileRequest', () => {
 
   it('rejects expired request timestamps', async () => {
     const accessToken = await generateAccessToken('install-1');
-    const signed = signRequest({ query: 'Centro' });
-    const body = JSON.parse(signed.body) as { query: string; timestamp: number };
+    const body = signedBody({ query: 'Centro' });
 
     const result = await verifyMobileRequest({
       body: {
         ...body,
         timestamp: Date.now() - 120_000,
-        signature: signed.signature,
+        signature: body.signature,
       },
       route: '/api/geo/search',
       request: new Request('http://localhost/api/geo/search', {

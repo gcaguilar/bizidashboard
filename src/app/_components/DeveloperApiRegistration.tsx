@@ -185,10 +185,10 @@ export function DeveloperApiRegistration() {
             <Button type="submit" disabled={submitting || atLimit}>
               {submitting ? 'Creando…' : 'Crear clave'}
             </Button>
-            <span className="text-xs text-[var(--muted)]">
-              Sesión: {session.email} ·{' '}
-              <a href={appRoutes.api.authLogout()} className="ui-inline-action">Cerrar sesión</a>
-            </span>
+            <span className="text-xs text-[var(--muted)]">Sesión: {session.email}</span>
+          </form>
+          <form method="post" action={appRoutes.api.authLogout()} className="mt-2">
+            <button type="submit" className="ui-inline-action text-xs">Cerrar sesión</button>
           </form>
 
           {atLimit ? (

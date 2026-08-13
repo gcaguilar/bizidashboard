@@ -81,13 +81,19 @@ export function HeaderSession() {
           >
             Mis claves de API
           </TrackedLink>
-          <a
-            href={appRoutes.api.authLogout()}
+          <form
+            method="post"
+            action={appRoutes.api.authLogout()}
             role="menuitem"
-            className="rounded-lg px-3 py-2 text-sm text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition"
+            className="m-0"
           >
-            Cerrar sesión
-          </a>
+            <button
+              type="submit"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition"
+            >
+              Cerrar sesión
+            </button>
+          </form>
         </div>
       )}
     </div>

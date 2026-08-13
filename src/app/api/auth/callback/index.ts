@@ -8,6 +8,7 @@ import { getSiteUrl } from '@/lib/site'
 
 const STATE_COOKIE = 'bizi_auth0_state'
 const RETURN_TO_COOKIE = 'bizi_auth0_return_to'
+const NONCE_COOKIE = 'bizi_auth0_nonce'
 
 function isSafeReturnTo(value: string | undefined): value is string {
   return !!value && value.startsWith('/') && !value.startsWith('//')
@@ -28,18 +29,20 @@ export const Route = createFileRoute('/api/auth/callback/')({
 
         const expectedState = getCookie(STATE_COOKIE)
         const returnToCookie = getCookie(RETURN_TO_COOKIE)
+        const expectedNonce = getCookie(NONCE_COOKIE)
         const returnTo = isSafeReturnTo(returnToCookie) ? returnToCookie : '/developers'
 
         deleteCookie(STATE_COOKIE, { path: '/' })
         deleteCookie(RETURN_TO_COOKIE, { path: '/' })
+        deleteCookie(NONCE_COOKIE, { path: '/' })
 
-        if (!code || !state || !expectedState || state !== expectedState) {
+        if (!code || !state || !expectedState || !expectedNonce || state !== expectedState) {
           return textResponse('Invalid or expired login attempt. Please try again.', 400)
         }
 
         try {
           const tokens = await exchangeAuthorizationCode(code, `${getSiteUrl()}/api/auth/callback`)
-          const identity = await verifyIdToken(tokens.id_token)
+          const identity = await verifyIdToken(tokens.id_token, expectedNonce)
 
           if (!identity) {
             return textResponse('Could not verify your identity (unverified email).', 401)
