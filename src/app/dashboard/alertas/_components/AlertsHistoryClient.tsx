@@ -32,6 +32,7 @@ import { formatStatusDateTime } from '@/lib/system-status';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { fetchJson } from '@/lib/fetch-json';
+import { buildLoginHref, useDeveloperSession } from '@/lib/use-developer-session';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
@@ -116,6 +117,7 @@ function parseViewStateFromSearchParams(
 export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const session = useDeveloperSession();
   const searchParams = useMemo(() => getLocationSearchParams(location), [location]);
   const searchQueryString = useMemo(() => searchParams.toString(), [searchParams]);
 
@@ -536,12 +538,22 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             >
               Copiar
             </Button>
-            <a
-              href={downloadCsvHref}
-              className="ui-inline-action"
-            >
-              CSV
-            </a>
+            {session.status === 'authenticated' ? (
+              <a
+                href={downloadCsvHref}
+                className="ui-inline-action"
+              >
+                CSV
+              </a>
+            ) : (
+              <a
+                href={buildLoginHref('/dashboard/alertas')}
+                className="ui-inline-action"
+                title="La exportación completa requiere una cuenta"
+              >
+                Inicia sesión para el CSV
+              </a>
+            )}
           </div>
           {copyState !== 'idle' ? (
             <p className="mt-2 text-xs text-[var(--muted)]" role="status">

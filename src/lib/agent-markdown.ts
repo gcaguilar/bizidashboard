@@ -47,7 +47,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
         { label: 'LLMs Full', href: appRoutes.llmsFull() },
       ],
       bullets: [
-        'Los endpoints costosos o CSV pueden requerir `X-Public-Api-Key` o un bearer token OAuth con `public_api.read`.',
+        'Los endpoints costosos o CSV pueden requerir la cabecera `x-api-key`; la clave se crea en `/developers` tras iniciar sesion.',
         'Las rutas operativas privadas siguen fuera de robots y del sitemap.',
       ],
     };

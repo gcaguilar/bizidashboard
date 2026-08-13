@@ -1,21 +1,15 @@
-// Response removed;
-import {
-  getOAuthClientId,
-  getOAuthScope,
-  getProtectedResourceMetadataUrl,
-  verifyOAuthAccessToken,
-} from '@/lib/oauth';
-import { getPublicApiKey } from '@/lib/security/config';
+import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session';
 import { recordSecurityEvent } from '@/lib/security/audit';
-import { isApiKeyValid, readPublicApiKey } from '@/lib/security/http';
+import { readApiKey } from '@/lib/security/http';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
 import {
   validateApiKey,
   getApiKeyRateLimits,
-  isMultiKeySystemEnabled,
+  API_KEY_HEADER,
+  DEFAULT_RATE_LIMIT,
+  DEFAULT_RATE_WINDOW_MS,
   type ApiKeyInfo,
 } from '@/lib/security/api-keys';
-import { getApiClientByAuth0Id, getApiClientRateLimits } from '@/lib/security/api-clients';
 
 type PublicApiAccessOptions = {
   route: string;
@@ -35,125 +29,41 @@ export type PublicApiAccessResult =
       headers: Record<string, string>;
       providedKey: string | null;
       apiKeyInfo: ApiKeyInfo | null;
+      /** Set when access was granted by a logged-in browser session. */
+      sessionEmail: string | null;
     }
   | {
       ok: false;
       response: Response;
     };
 
-function getBearerChallengeHeader(): string {
-  return `Bearer realm="BiziDashboard API", scope="${getOAuthScope()}", resource_metadata="${getProtectedResourceMetadataUrl()}"`;
-}
-
 /**
- * Validate API key using either multi-key system or legacy single-key
+ * Reads the developer login cookie, if the portal is configured. Used as a
+ * fallback credential so the dashboard's own UI can reach elevated routes:
+ * a browser can't hold an API key (we only store its hash, and `<a download>`
+ * navigations can't send headers), but it does carry this HttpOnly session.
  */
-async function validatePublicApiKey(
-  providedKey: string | null
-): Promise<{ valid: boolean; info: ApiKeyInfo | null }> {
-  // Legacy single-key mode
-  if (!isMultiKeySystemEnabled()) {
-    const configuredKey = getPublicApiKey();
-    if (!configuredKey) {
-      return { valid: false, info: null };
-    }
-    const valid = isApiKeyValid(providedKey, configuredKey);
-    return { valid, info: null };
+async function readSessionEmail(): Promise<string | null> {
+  if (!isDeveloperSessionConfigured()) {
+    return null;
   }
 
-  // Multi-key system
-  if (!providedKey) {
-    return { valid: false, info: null };
+  try {
+    const session = await getDeveloperSession();
+    return session?.email ?? null;
+  } catch {
+    return null;
   }
-
-  const info = await validateApiKey(providedKey);
-  return { valid: info !== null, info };
 }
 
 export async function enforcePublicApiAccess(
   options: PublicApiAccessOptions
 ): Promise<PublicApiAccessResult> {
-  const publicApiKey = readPublicApiKey(options.request.headers);
-  const bearerToken = options.request.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
-  const oauthPayload = bearerToken ? await verifyOAuthAccessToken(bearerToken) : null;
+  const providedKey = readApiKey(options.request.headers);
+  const apiKeyInfo = await validateApiKey(providedKey);
+  const sessionEmail = apiKeyInfo ? null : await readSessionEmail();
 
-  // Check if API key system is configured
-  if (options.requireApiKey && !isMultiKeySystemEnabled() && !getPublicApiKey()) {
-    return {
-      ok: false,
-      response: Response.json(
-        { error: 'Public API key is not configured for this elevated route.' },
-        { status: 503 }
-      ),
-    };
-  }
-
-  const oauthScopeOk = oauthPayload
-    ? (oauthPayload.scope?.split(/\s+/u) ?? []).includes(getOAuthScope())
-    : false;
-
-  if (oauthPayload && oauthScopeOk) {
-    const oauthClientId = getOAuthClientId(oauthPayload);
-    const apiClientInfo = await getApiClientByAuth0Id(oauthClientId);
-
-    if (!apiClientInfo) {
-      await recordSecurityEvent({
-        eventType: 'auth_failed',
-        route: options.route,
-        requestId: options.requestId,
-        ip: options.clientIp,
-        userAgent: options.userAgent,
-        outcome: 'denied',
-        reasonCode: 'oauth_client_not_registered',
-      });
-
-      return {
-        ok: false,
-        response: Response.json(
-          { error: 'This OAuth client is not registered or has been revoked.' },
-          { status: 401, headers: { 'WWW-Authenticate': getBearerChallengeHeader() } }
-        ),
-      };
-    }
-
-    const rateLimits = getApiClientRateLimits(apiClientInfo);
-
-    const keyDecision = await consumeRateLimit({
-      namespace: `${options.namespace}:oauth-client`,
-      identifierParts: [oauthClientId],
-      limit: rateLimits.limit,
-      windowMs: rateLimits.windowMs,
-    });
-    const headers = getRateLimitHeaders(keyDecision);
-
-    if (!keyDecision.allowed && keyDecision.backend !== 'unavailable') {
-      return {
-        ok: false,
-        response: Response.json(
-          { error: 'Too many requests for this route.' },
-          {
-            status: 429,
-            headers: {
-              ...headers,
-              'Retry-After': String(keyDecision.retryAfterSeconds),
-            },
-          }
-        ),
-      };
-    }
-
-    return {
-      ok: true,
-      headers,
-      providedKey: null,
-      apiKeyInfo: null,
-    };
-  }
-
-  // Validate the API key
-  const validation = await validatePublicApiKey(publicApiKey);
-
-  if (options.requireApiKey && !validation.valid) {
+  if (options.requireApiKey && !apiKeyInfo && !sessionEmail) {
     await recordSecurityEvent({
       eventType: 'auth_failed',
       route: options.route,
@@ -161,30 +71,38 @@ export async function enforcePublicApiAccess(
       ip: options.clientIp,
       userAgent: options.userAgent,
       outcome: 'denied',
-      reasonCode: 'public_api_key_invalid',
+      reasonCode: 'api_key_invalid',
     });
 
     return {
       ok: false,
       response: Response.json(
-        { error: 'Valid X-Public-Api-Key required for this route.' },
         {
-          status: 401,
-          headers: {
-            'WWW-Authenticate': getBearerChallengeHeader(),
-          },
-        }
+          error: `This route needs credentials: send a valid ${API_KEY_HEADER}, or log in at /developers to use it from the dashboard.`,
+          authRequired: true,
+        },
+        { status: 401 }
       ),
     };
   }
 
-  // Get rate limits (custom per key or defaults)
-  const rateLimits = validation.info
-    ? getApiKeyRateLimits(validation.info)
-    : { limit: options.limit, windowMs: options.windowMs };
+  // Each identified caller gets its own bucket: a key uses whatever limit it
+  // was granted, a logged-in browser uses the standard one keyed by email, and
+  // anonymous callers share the route's per-IP allowance.
+  let rateLimits: { limit: number; windowMs: number };
+  let rateLimitKey: string;
 
-  // Apply rate limiting per key (or IP if no key)
-  const rateLimitKey = validation.info?.id ?? publicApiKey ?? options.clientIp;
+  if (apiKeyInfo) {
+    rateLimits = getApiKeyRateLimits(apiKeyInfo);
+    rateLimitKey = apiKeyInfo.id;
+  } else if (sessionEmail) {
+    rateLimits = { limit: DEFAULT_RATE_LIMIT, windowMs: DEFAULT_RATE_WINDOW_MS };
+    rateLimitKey = `session:${sessionEmail}`;
+  } else {
+    rateLimits = { limit: options.limit, windowMs: options.windowMs };
+    rateLimitKey = options.clientIp;
+  }
+
   const keyDecision = await consumeRateLimit({
     namespace: `${options.namespace}:key`,
     identifierParts: [rateLimitKey],
@@ -223,7 +141,8 @@ export async function enforcePublicApiAccess(
   return {
     ok: true,
     headers,
-    providedKey: publicApiKey,
-    apiKeyInfo: validation.info,
+    providedKey,
+    apiKeyInfo,
+    sessionEmail,
   };
 }

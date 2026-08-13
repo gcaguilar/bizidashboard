@@ -1,8 +1,10 @@
 /**
- * API Key management service
+ * API key management service
  *
- * Handles creation, validation, and revocation of multiple API keys
- * for public API access with individual rate limiting.
+ * Every credential for the public API is a key created here: developers log in
+ * on /developers and mint one bound to their verified email. Keys are stored
+ * only as a SHA-256 hash, carry their own rate limit, and can be revoked by
+ * their owner.
  */
 
 import { createHash, randomBytes } from 'node:crypto';
@@ -36,6 +38,12 @@ export type CreateApiKeyInput = {
 export const DEFAULT_RATE_LIMIT = 100;
 export const DEFAULT_RATE_WINDOW_MS = 60_000; // 1 minute
 
+/** How many live keys a single developer may hold at once. */
+export const MAX_KEYS_PER_OWNER = 5;
+
+/** Header developers send their key in. */
+export const API_KEY_HEADER = 'x-api-key';
+
 /**
  * Generate a secure API key
  * Format: biz_live_<random>
@@ -58,6 +66,34 @@ function hashApiKey(key: string): string {
  */
 function getKeyPrefix(key: string): string {
   return key.slice(0, 16); // Include 'biz_live_' + first 7 chars
+}
+
+function toApiKeyInfo(record: {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  description: string | null;
+  ownerEmail: string | null;
+  isActive: boolean;
+  lastUsedAt: Date | null;
+  requestCount: number;
+  createdAt: Date;
+  customRateLimit: number | null;
+  customRateWindow: number | null;
+}): ApiKeyInfo {
+  return {
+    id: record.id,
+    name: record.name,
+    keyPrefix: record.keyPrefix,
+    description: record.description,
+    ownerEmail: record.ownerEmail,
+    isActive: record.isActive,
+    lastUsedAt: record.lastUsedAt,
+    requestCount: record.requestCount,
+    createdAt: record.createdAt,
+    customRateLimit: record.customRateLimit,
+    customRateWindow: record.customRateWindow,
+  };
 }
 
 /**
@@ -91,22 +127,7 @@ export async function createApiKey(
     keyPrefix: record.keyPrefix,
   });
 
-  return {
-    fullKey,
-    info: {
-      id: record.id,
-      name: record.name,
-      keyPrefix: record.keyPrefix,
-      description: record.description,
-      ownerEmail: record.ownerEmail,
-      isActive: record.isActive,
-      lastUsedAt: record.lastUsedAt,
-      requestCount: record.requestCount,
-      createdAt: record.createdAt,
-      customRateLimit: record.customRateLimit,
-      customRateWindow: record.customRateWindow,
-    },
-  };
+  return { fullKey, info: toApiKeyInfo(record) };
 }
 
 /**
@@ -160,19 +181,7 @@ export async function validateApiKey(
       logger.warn('api_key.usage_update_failed', { error });
     });
 
-  return {
-    id: record.id,
-    name: record.name,
-    keyPrefix: record.keyPrefix,
-    description: record.description,
-    ownerEmail: record.ownerEmail,
-    isActive: record.isActive,
-    lastUsedAt: record.lastUsedAt,
-    requestCount: record.requestCount,
-    createdAt: record.createdAt,
-    customRateLimit: record.customRateLimit,
-    customRateWindow: record.customRateWindow,
-  };
+  return toApiKeyInfo(record);
 }
 
 /**
@@ -203,19 +212,50 @@ export async function listApiKeys(includeRevoked = false): Promise<ApiKeyInfo[]>
     orderBy: { createdAt: 'desc' },
   });
 
-  return records.map((record) => ({
-    id: record.id,
-    name: record.name,
-    keyPrefix: record.keyPrefix,
-    description: record.description,
-    ownerEmail: record.ownerEmail,
-    isActive: record.isActive,
-    lastUsedAt: record.lastUsedAt,
-    requestCount: record.requestCount,
-    createdAt: record.createdAt,
-    customRateLimit: record.customRateLimit,
-    customRateWindow: record.customRateWindow,
-  }));
+  return records.map(toApiKeyInfo);
+}
+
+/**
+ * List the live keys belonging to one developer, so the portal can show what
+ * they already have without ever re-exposing the secret.
+ */
+export async function listApiKeysForOwner(ownerEmail: string): Promise<ApiKeyInfo[]> {
+  const records = await prisma.apiKey.findMany({
+    where: { ownerEmail, revokedAt: null, isActive: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return records.map(toApiKeyInfo);
+}
+
+export type CreateOwnApiKeyResult =
+  | { status: 'created'; fullKey: string; info: ApiKeyInfo }
+  | { status: 'limit_reached'; limit: number };
+
+/**
+ * Mints a key on behalf of a logged-in developer, capped at
+ * MAX_KEYS_PER_OWNER live keys so a single account can't fan out unbounded
+ * rate-limit buckets.
+ */
+export async function createOwnApiKey(
+  name: string,
+  ownerEmail: string
+): Promise<CreateOwnApiKeyResult> {
+  const existing = await prisma.apiKey.count({
+    where: { ownerEmail, revokedAt: null, isActive: true },
+  });
+
+  if (existing >= MAX_KEYS_PER_OWNER) {
+    return { status: 'limit_reached', limit: MAX_KEYS_PER_OWNER };
+  }
+
+  const { fullKey, info } = await createApiKey({
+    name,
+    ownerEmail,
+    createdBy: ownerEmail,
+  });
+
+  return { status: 'created', fullKey, info };
 }
 
 /**
@@ -243,6 +283,34 @@ export async function revokeApiKey(
   }
 }
 
+export type RevokeOwnApiKeyResult = 'revoked' | 'not_found' | 'not_owner';
+
+/**
+ * Revokes a key on behalf of a logged-in developer, after checking they own it
+ * (ownerEmail matches their verified session email).
+ */
+export async function revokeOwnApiKey(
+  keyId: string,
+  ownerEmail: string
+): Promise<RevokeOwnApiKeyResult> {
+  const record = await prisma.apiKey.findUnique({ where: { id: keyId } });
+
+  if (!record) {
+    return 'not_found';
+  }
+
+  if (record.ownerEmail !== ownerEmail) {
+    return 'not_owner';
+  }
+
+  if (!record.isActive || record.revokedAt) {
+    return 'revoked';
+  }
+
+  await revokeApiKey(record.id, 'revoked_by_owner');
+  return 'revoked';
+}
+
 /**
  * Delete an API key permanently
  */
@@ -258,15 +326,4 @@ export async function deleteApiKey(keyId: string): Promise<boolean> {
     logger.error('api_key.delete_failed', { keyId, error });
     return false;
   }
-}
-
-/**
- * Check if API keys feature is configured
- * Returns true if we should use multi-key system, false for legacy single-key
- */
-export function isMultiKeySystemEnabled(): boolean {
-  // If PUBLIC_API_KEY is set, use legacy single-key mode
-  // Otherwise, use multi-key system from database
-  const legacyKey = process.env.PUBLIC_API_KEY?.trim();
-  return !legacyKey;
 }

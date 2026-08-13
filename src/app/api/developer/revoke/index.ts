@@ -7,10 +7,10 @@ import { recordSecurityEvent } from '@/lib/security/audit'
 import { getClientIp, rejectCrossOriginRequest } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 import { RATE_LIMITS } from '@/lib/security/rate-limits'
-import { revokeOwnApiClient } from '@/lib/security/api-clients'
+import { revokeOwnApiKey } from '@/lib/security/api-keys'
 
 const revokeRequestSchema = z.object({
-  auth0ClientId: z.string().trim().min(1).max(200),
+  keyId: z.string().trim().min(1).max(200),
 })
 
 export const Route = createFileRoute('/api/developer/revoke/')({
@@ -60,10 +60,10 @@ export const Route = createFileRoute('/api/developer/revoke/')({
         }
 
         try {
-          const result = await revokeOwnApiClient(parsed.data.auth0ClientId, session.email)
+          const result = await revokeOwnApiKey(parsed.data.keyId, session.email)
 
           if (result === 'not_found') {
-            return new Response(JSON.stringify({ error: 'No API client found with that client_id.' }), {
+            return new Response(JSON.stringify({ error: 'No API key found with that id.' }), {
               status: 404,
               headers: baseHeaders,
             })
@@ -79,14 +79,14 @@ export const Route = createFileRoute('/api/developer/revoke/')({
               outcome: 'denied',
               reasonCode: 'not_owner',
             })
-            return new Response(JSON.stringify({ error: 'No API client found with that client_id.' }), {
+            return new Response(JSON.stringify({ error: 'No API key found with that id.' }), {
               status: 404,
               headers: baseHeaders,
             })
           }
 
           await recordSecurityEvent({
-            eventType: 'api_client_revoked',
+            eventType: 'api_key_revoked',
             route: '/api/developer/revoke',
             requestId,
             ip: clientIp,
@@ -101,7 +101,7 @@ export const Route = createFileRoute('/api/developer/revoke/')({
             operation: 'POST /api/developer/revoke',
           })
           logger.error('api.developer_revoke.failed', { error })
-          return new Response(JSON.stringify({ error: 'Failed to revoke API client' }), {
+          return new Response(JSON.stringify({ error: 'Failed to revoke API key' }), {
             status: 500,
             headers: baseHeaders,
           })

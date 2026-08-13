@@ -1,8 +1,8 @@
 /**
  * Auth0 Regular Web Application (Authorization Code flow) used to log
- * developers into the self-service API client registration portal.
- * Separate from src/lib/oauth.ts, which verifies Auth0 M2M access tokens
- * for third-party API callers.
+ * developers into the portal where they mint their own API keys. The session
+ * it establishes only gates key management — API calls themselves authenticate
+ * with the x-api-key header, never with this login.
  */
 
 import { createRemoteJWKSet, jwtVerify } from 'jose';
