@@ -1,8 +1,8 @@
 /**
  * Auth0 Regular Web Application (Authorization Code flow) used to log
- * developers into the portal where they mint their own API keys. The session
- * it establishes only gates key management — API calls themselves authenticate
- * with the x-api-key header, never with this login.
+ * developers into the portal where they mint their own API keys. The access
+ * token is also retained in the sealed server session for authenticated MCP
+ * calls; client secrets never leave this module.
  */
 
 import { createRemoteJWKSet, jwtVerify } from 'jose';
@@ -23,6 +23,14 @@ export function getClientId(): string {
     throw new Error('AUTH0_LOGIN_CLIENT_ID is required for developer login.');
   }
   return clientId;
+}
+
+export function getApiAudience(): string {
+  const audience = process.env.AUTH0_AUDIENCE?.trim();
+  if (!audience) {
+    throw new Error('AUTH0_AUDIENCE is required for API access tokens.');
+  }
+  return audience;
 }
 
 function getClientSecret(): string {
@@ -46,6 +54,8 @@ type TokenResponse = {
   access_token: string;
   expires_in: number;
 };
+
+export type Auth0TokenResponse = TokenResponse;
 
 export async function exchangeAuthorizationCode(
   code: string,

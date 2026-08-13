@@ -48,7 +48,10 @@ export const Route = createFileRoute('/api/auth/callback/')({
             return textResponse('Could not verify your identity (unverified email).', 401)
           }
 
-          await setDeveloperSession(identity.email)
+          await setDeveloperSession(identity.email, {
+            accessToken: tokens.access_token,
+            expiresIn: tokens.expires_in,
+          })
 
           return new Response(null, {
             status: 302,
