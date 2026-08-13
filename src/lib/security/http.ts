@@ -226,6 +226,17 @@ export function rejectCrossOriginRequest(request: Request): Response | null {
     return null;
   }
 
+  const configuredOrigin = process.env.AUTH0_PUBLIC_ORIGIN?.trim() || process.env.APP_URL?.trim();
+  if (configuredOrigin) {
+    try {
+      if (origin === new URL(configuredOrigin).origin) {
+        return null;
+      }
+    } catch {
+      // Fall through to the request/proxy-derived origin below.
+    }
+  }
+
   const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
   const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
   const host = forwardedHost || request.headers.get('host');
