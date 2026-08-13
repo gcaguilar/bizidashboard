@@ -351,6 +351,14 @@ textarea:disabled {
   text-decoration: none;
 }
 
+.ui-source-url {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: left;
+}
+
 .ui-icon-button,
 [data-button-variant='icon-button'] {
   display: inline-flex;

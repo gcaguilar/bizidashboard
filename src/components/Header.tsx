@@ -1,37 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { HeaderSession } from '@/components/HeaderSession';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
 import { PUBLIC_MAIN_NAV_ITEMS, PUBLIC_MORE_NAV_ITEMS } from '@/lib/public-navigation';
+import { useDismissOnOutsideClick } from '@/lib/use-dismiss-on-outside-click';
 
 export default function Header() {
   const [moreOpen, setMoreOpen] = useState(false);
 
-  useEffect(() => {
-    if (!moreOpen) return;
-    function handleClick(e: MouseEvent) {
-      const target = e.target as HTMLElement;
-      if (!target.closest('[data-more-dropdown]')) {
-        setMoreOpen(false);
-      }
-    }
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, [moreOpen]);
+  useDismissOnOutsideClick(moreOpen, '[data-more-dropdown]', () => setMoreOpen(false));
 
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-4 md:gap-6">
+        <div className="mx-auto flex max-w-[1280px] flex-nowrap items-center justify-between gap-2 px-3 py-3 md:gap-3 md:px-4">
+          <div className="flex min-w-0 items-center gap-2 md:gap-6">
             <TrackedLink href={appRoutes.home()} className="whitespace-nowrap shrink-0 text-lg font-bold text-[var(--foreground)]">
               DatosBizi
             </TrackedLink>
 
-            <nav aria-label="Navegación principal" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+            <nav aria-label="Navegación principal" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm md:gap-x-3">
               {PUBLIC_MAIN_NAV_ITEMS.map((link, index) => {
                 const responsiveClass = index === 1 || index === 3 || index === 4 ? 'hidden sm:inline-flex' : '';
                 return (
@@ -88,8 +80,9 @@ export default function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <ThemeToggleButton />
+            <HeaderSession />
           </div>
         </div>
       </header>

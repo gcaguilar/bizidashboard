@@ -135,7 +135,11 @@ export function DeveloperApiRegistration() {
         </p>
       </div>
 
-      {session.status === 'loading' ? null : session.status === 'anonymous' ? (
+      {session.status === 'loading' ? null : session.status === 'unavailable' ? (
+        <p className="text-sm text-[var(--muted)]">
+          El inicio de sesión no está disponible en este despliegue.
+        </p>
+      ) : session.status === 'anonymous' ? (
         <Button asChild>
           <a href={appRoutes.api.authLogin({ returnTo: '/developers#register-api' })}>
             Iniciar sesión para crear tu clave
