@@ -95,7 +95,7 @@ export function DashboardHeader({
 
   return (
     <PageHeaderCard>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
           <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
@@ -103,7 +103,7 @@ export function DashboardHeader({
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
           <FeedbackCta
             source="dashboard_header"
             ctaId="feedback_header_open"

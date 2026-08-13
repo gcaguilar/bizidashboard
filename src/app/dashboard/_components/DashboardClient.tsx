@@ -608,11 +608,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               }
             }}
           >
-            <ModeHeader activeMode={viewMode} onChangeMode={handleChangeMode} />
+            <div className="space-y-4">
+              <ModeHeader activeMode={viewMode} onChangeMode={handleChangeMode} />
+              <ModeIntroBanner mode={viewMode} />
+            </div>
 
-            <ModeIntroBanner mode={viewMode} />
-
-            <TabsContent value="overview">
+            <TabsContent value="overview" className="mt-6">
               <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de resumen.</div>}>
                 <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
                   {viewMode === 'overview' && <OverviewModeView
@@ -642,7 +643,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               </ViewErrorBoundary>
             </TabsContent>
 
-            <TabsContent value="operations">
+            <TabsContent value="operations" className="mt-6">
               <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de operaciones.</div>}>
                 <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
                   {viewMode === 'operations' && <OperationsModeView
@@ -674,7 +675,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               </ViewErrorBoundary>
             </TabsContent>
 
-            <TabsContent value="research">
+            <TabsContent value="research" className="mt-6">
               <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de investigación.</div>}>
                 <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
                   {viewMode === 'research' && <ResearchModeView
@@ -701,7 +702,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               </ViewErrorBoundary>
             </TabsContent>
 
-            <TabsContent value="data">
+            <TabsContent value="data" className="mt-6">
               <ViewErrorBoundary fallback={<div className="h-96 flex items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">Error al cargar la vista de datos.</div>}>
                 <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-[var(--secondary)]" />}>
                   {viewMode === 'data' && <DataModeView
