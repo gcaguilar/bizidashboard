@@ -31,7 +31,7 @@ function getSessionConfig(): SessionConfig {
     maxAge: SESSION_MAX_AGE_SECONDS,
     cookie: {
       sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
     },
   };

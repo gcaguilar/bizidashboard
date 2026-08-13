@@ -7,8 +7,10 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
 import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
+import { decryptTokenValue, encryptTokenValue } from '@/lib/auth/token-vault'
 
 const ACCESS_TOKEN_EXPIRY_SECONDS = 900
+const REFRESH_ROTATION_GRACE_MS = 10_000
 const REFRESH_RATE_LIMIT = { limit: 30, windowMs: 5 * 60 * 1000 }
 
 const refreshRequestSchema = z.object({ refreshToken: z.string().trim().min(20).max(4096) })
@@ -62,6 +64,20 @@ export const Route = createFileRoute('/api/token/refresh/')({
             }
 
             if (install.refreshTokenHash !== incomingHash) {
+              if (
+                install.previousRefreshTokenHash === incomingHash &&
+                install.previousRefreshTokenExpiresAt &&
+                install.previousRefreshTokenExpiresAt.getTime() > Date.now() &&
+                install.previousRefreshTokenCiphertext &&
+                install.previousAccessTokenCiphertext
+              ) {
+                return {
+                  error: 'refresh_replay' as const,
+                  accessToken: decryptTokenValue(install.previousAccessTokenCiphertext),
+                  refreshToken: decryptTokenValue(install.previousRefreshTokenCiphertext),
+                }
+              }
+
               await tx.install.update({ where: { installId: install.installId }, data: { isActive: false, revokedAt: new Date() } })
               return { error: 'token_reuse' as const }
             }
@@ -69,6 +85,10 @@ export const Route = createFileRoute('/api/token/refresh/')({
             await tx.install.update({
               where: { installId: install.installId },
               data: {
+                previousRefreshTokenHash: install.refreshTokenHash,
+                previousRefreshTokenExpiresAt: new Date(Date.now() + REFRESH_ROTATION_GRACE_MS),
+                previousRefreshTokenCiphertext: encryptTokenValue(issuedRefreshToken.token),
+                previousAccessTokenCiphertext: encryptTokenValue(accessToken),
                 refreshTokenHash: hashToken(issuedRefreshToken.token),
                 refreshTokenIssuedAt: issuedRefreshToken.issuedAt,
                 lastSeenAt: issuedRefreshToken.issuedAt,
@@ -89,6 +109,9 @@ export const Route = createFileRoute('/api/token/refresh/')({
           if (updated.error === 'token_reuse') {
             await recordSecurityEvent({ eventType: 'token_reuse_detected', route: '/api/token/refresh', requestId, installId: payload.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'refresh_token_reuse' })
             return new Response(JSON.stringify({ error: 'Refresh token revoked' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          }
+          if (updated.error === 'refresh_replay') {
+            return new Response(JSON.stringify({ accessToken: updated.accessToken, refreshToken: updated.refreshToken, expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS }), { status: 200, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
           await recordSecurityEvent({ eventType: 'token_refreshed', route: '/api/token/refresh', requestId, installId: updated.installId, ip: clientIp, userAgent, outcome: 'success' })
 
