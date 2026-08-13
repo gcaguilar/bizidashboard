@@ -179,6 +179,7 @@ export const appRoutes = {
         format: params?.format,
       }),
     authSession: () => '/api/auth/session',
+    authAccessToken: () => '/api/auth/access-token',
     authLogin: (params?: { returnTo?: string | null }) =>
       buildQuery('/api/auth/login', { returnTo: params?.returnTo }),
     authLogout: () => '/api/auth/logout',

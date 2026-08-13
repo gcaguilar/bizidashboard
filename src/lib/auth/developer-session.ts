@@ -9,6 +9,8 @@ import { clearSession, getSession, updateSession, type SessionConfig } from '@ta
 
 type DeveloperSessionData = {
   email: string;
+  accessToken?: string;
+  accessTokenExpiresAt?: number;
 };
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60; // 1 hour
@@ -37,13 +39,32 @@ function getSessionConfig(): SessionConfig {
   };
 }
 
-export async function getDeveloperSession(): Promise<{ email: string } | null> {
+export type DeveloperSession = {
+  email: string;
+  accessToken?: string;
+  accessTokenExpiresAt?: number;
+};
+
+export async function getDeveloperSession(): Promise<DeveloperSession | null> {
   const session = await getSession<DeveloperSessionData>(getSessionConfig());
-  return session.data.email ? { email: session.data.email } : null;
+  return session.data.email
+    ? {
+        email: session.data.email,
+        accessToken: session.data.accessToken,
+        accessTokenExpiresAt: session.data.accessTokenExpiresAt,
+      }
+    : null;
 }
 
-export async function setDeveloperSession(email: string): Promise<void> {
-  await updateSession<DeveloperSessionData>(getSessionConfig(), { email });
+export async function setDeveloperSession(
+  email: string,
+  token?: { accessToken: string; expiresIn: number }
+): Promise<void> {
+  await updateSession<DeveloperSessionData>(getSessionConfig(), {
+    email,
+    accessToken: token?.accessToken,
+    accessTokenExpiresAt: token ? Date.now() + token.expiresIn * 1000 : undefined,
+  });
 }
 
 export async function clearDeveloperSession(): Promise<void> {

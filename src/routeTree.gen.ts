@@ -87,6 +87,7 @@ import { Route as EstadisticasBarriosIndexRouteImport } from './app/estadisticas
 import { Route as EstadisticasBarriosDistrictSlugRouteImport } from './app/estadisticas/barrios/$districtSlug'
 import { Route as EstadisticasEstacionesIndexRouteImport } from './app/estadisticas/estaciones/index'
 import { Route as EstadisticasEstacionesStationIdRouteImport } from './app/estadisticas/estaciones/$stationId'
+import { Route as ApiAuthAccessTokenIndexRouteImport } from './app/api/auth/access-token/index'
 import { Route as ApiAuthCallbackIndexRouteImport } from './app/api/auth/callback/index'
 import { Route as ApiAuthLoginIndexRouteImport } from './app/api/auth/login/index'
 import { Route as ApiAuthLogoutIndexRouteImport } from './app/api/auth/logout/index'
@@ -508,6 +509,11 @@ const EstadisticasEstacionesStationIdRoute =
     path: '/$stationId',
     getParentRoute: () => EstadisticasEstacionesRouteRoute,
   } as any)
+const ApiAuthAccessTokenIndexRoute = ApiAuthAccessTokenIndexRouteImport.update({
+  id: '/api/auth/access-token/',
+  path: '/api/auth/access-token/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthCallbackIndexRoute = ApiAuthCallbackIndexRouteImport.update({
   id: '/api/auth/callback/',
   path: '/api/auth/callback/',
@@ -649,6 +655,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/status/': typeof DashboardStatusIndexRoute
   '/estadisticas/barrios/': typeof EstadisticasBarriosIndexRoute
   '/estadisticas/estaciones/': typeof EstadisticasEstacionesIndexRoute
+  '/api/auth/access-token/': typeof ApiAuthAccessTokenIndexRoute
   '/api/auth/callback/': typeof ApiAuthCallbackIndexRoute
   '/api/auth/login/': typeof ApiAuthLoginIndexRoute
   '/api/auth/logout/': typeof ApiAuthLogoutIndexRoute
@@ -737,6 +744,7 @@ export interface FileRoutesByTo {
   '/dashboard/status': typeof DashboardStatusIndexRoute
   '/estadisticas/barrios': typeof EstadisticasBarriosIndexRoute
   '/estadisticas/estaciones': typeof EstadisticasEstacionesIndexRoute
+  '/api/auth/access-token': typeof ApiAuthAccessTokenIndexRoute
   '/api/auth/callback': typeof ApiAuthCallbackIndexRoute
   '/api/auth/login': typeof ApiAuthLoginIndexRoute
   '/api/auth/logout': typeof ApiAuthLogoutIndexRoute
@@ -830,6 +838,7 @@ export interface FileRoutesById {
   '/dashboard/status/': typeof DashboardStatusIndexRoute
   '/estadisticas/barrios/': typeof EstadisticasBarriosIndexRoute
   '/estadisticas/estaciones/': typeof EstadisticasEstacionesIndexRoute
+  '/api/auth/access-token/': typeof ApiAuthAccessTokenIndexRoute
   '/api/auth/callback/': typeof ApiAuthCallbackIndexRoute
   '/api/auth/login/': typeof ApiAuthLoginIndexRoute
   '/api/auth/logout/': typeof ApiAuthLogoutIndexRoute
@@ -924,6 +933,7 @@ export interface FileRouteTypes {
     | '/dashboard/status/'
     | '/estadisticas/barrios/'
     | '/estadisticas/estaciones/'
+    | '/api/auth/access-token/'
     | '/api/auth/callback/'
     | '/api/auth/login/'
     | '/api/auth/logout/'
@@ -1012,6 +1022,7 @@ export interface FileRouteTypes {
     | '/dashboard/status'
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
+    | '/api/auth/access-token'
     | '/api/auth/callback'
     | '/api/auth/login'
     | '/api/auth/logout'
@@ -1104,6 +1115,7 @@ export interface FileRouteTypes {
     | '/dashboard/status/'
     | '/estadisticas/barrios/'
     | '/estadisticas/estaciones/'
+    | '/api/auth/access-token/'
     | '/api/auth/callback/'
     | '/api/auth/login/'
     | '/api/auth/logout/'
@@ -1172,6 +1184,7 @@ export interface RootRouteChildren {
   ApiRebalancingReportIndexRoute: typeof ApiRebalancingReportIndexRoute
   ApiStationsIndexRoute: typeof ApiStationsIndexRoute
   ApiStatusIndexRoute: typeof ApiStatusIndexRoute
+  ApiAuthAccessTokenIndexRoute: typeof ApiAuthAccessTokenIndexRoute
   ApiAuthCallbackIndexRoute: typeof ApiAuthCallbackIndexRoute
   ApiAuthLoginIndexRoute: typeof ApiAuthLoginIndexRoute
   ApiAuthLogoutIndexRoute: typeof ApiAuthLogoutIndexRoute
@@ -1734,6 +1747,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EstadisticasEstacionesStationIdRouteImport
       parentRoute: typeof EstadisticasEstacionesRouteRoute
     }
+    '/api/auth/access-token/': {
+      id: '/api/auth/access-token/'
+      path: '/api/auth/access-token'
+      fullPath: '/api/auth/access-token/'
+      preLoaderRoute: typeof ApiAuthAccessTokenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/callback/': {
       id: '/api/auth/callback/'
       path: '/api/auth/callback'
@@ -1979,6 +1999,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRebalancingReportIndexRoute: ApiRebalancingReportIndexRoute,
   ApiStationsIndexRoute: ApiStationsIndexRoute,
   ApiStatusIndexRoute: ApiStatusIndexRoute,
+  ApiAuthAccessTokenIndexRoute: ApiAuthAccessTokenIndexRoute,
   ApiAuthCallbackIndexRoute: ApiAuthCallbackIndexRoute,
   ApiAuthLoginIndexRoute: ApiAuthLoginIndexRoute,
   ApiAuthLogoutIndexRoute: ApiAuthLogoutIndexRoute,
