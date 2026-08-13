@@ -76,4 +76,18 @@ describe('mobile API CORS', () => {
 
     expect(response).toBeNull();
   });
+
+  it('accepts the configured public origin when proxy headers are incomplete', () => {
+    vi.stubEnv('AUTH0_PUBLIC_ORIGIN', 'https://datosbizi.com');
+
+    const response = rejectCrossOriginRequest(new Request('http://app:3000/api/developer/register', {
+      method: 'POST',
+      headers: {
+        Origin: 'https://datosbizi.com',
+        Host: 'app:3000',
+      },
+    }));
+
+    expect(response).toBeNull();
+  });
 });
