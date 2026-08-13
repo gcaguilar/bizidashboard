@@ -45,7 +45,8 @@ export function isDeveloperLoginConfigured(): boolean {
   return (
     !!(process.env.AUTH0_LOGIN_DOMAIN?.trim() || process.env.AUTH0_DOMAIN?.trim()) &&
     !!process.env.AUTH0_LOGIN_CLIENT_ID?.trim() &&
-    !!process.env.AUTH0_LOGIN_CLIENT_SECRET?.trim()
+    !!process.env.AUTH0_LOGIN_CLIENT_SECRET?.trim() &&
+    !!process.env.AUTH0_AUDIENCE?.trim()
   );
 }
 
@@ -99,6 +100,7 @@ export async function verifyIdToken(idToken: string, nonce: string): Promise<Dev
     const { payload } = await jwtVerify(idToken, idTokenJwks, {
       issuer: `https://${domain}/`,
       audience: clientId,
+      algorithms: ['RS256'],
     });
 
     if (payload.nonce !== nonce || typeof payload.email !== 'string' || payload.email_verified !== true) {

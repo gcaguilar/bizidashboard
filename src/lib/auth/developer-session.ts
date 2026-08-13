@@ -32,6 +32,7 @@ function getSessionConfig(): SessionConfig {
     name: 'bizi_dev_session',
     maxAge: SESSION_MAX_AGE_SECONDS,
     cookie: {
+      httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
