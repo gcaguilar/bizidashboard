@@ -10,11 +10,15 @@ vi.mock('@/lib/auth/developer-session', () => ({
 
 const { Route } = await import('@/app/api/auth/access-token/index');
 
-async function invoke(): Promise<Response> {
+async function invoke(origin?: string): Promise<Response> {
   const handlers = Route.options.server!.handlers as unknown as {
-    GET: () => Promise<Response>;
+    GET: (options: { request: Request }) => Promise<Response>;
   };
-  return handlers.GET();
+  return handlers.GET({
+    request: new Request('https://datosbizi.com/api/auth/access-token', {
+      headers: origin ? { Origin: origin, Host: 'datosbizi.com' } : { Host: 'datosbizi.com' },
+    }),
+  });
 }
 
 describe('GET /api/auth/access-token', () => {
@@ -46,5 +50,11 @@ describe('GET /api/auth/access-token', () => {
       accessTokenExpiresAt: Date.now() - 1,
     });
     expect((await invoke()).status).toBe(401);
+  });
+
+  it('rejects a cross-origin request before reading the session', async () => {
+    const response = await invoke('https://evil.example');
+    expect(response.status).toBe(403);
+    expect(getDeveloperSession).not.toHaveBeenCalled();
   });
 });

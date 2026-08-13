@@ -1,10 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
+import { rejectCrossOriginRequest } from '@/lib/security/http'
 
 export const Route = createFileRoute('/api/auth/access-token/')({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const originRejection = rejectCrossOriginRequest(request)
+        if (originRejection) return originRejection
+
         if (!isDeveloperSessionConfigured()) {
           return Response.json({ error: 'Developer login is not configured.' }, { status: 503 })
         }
