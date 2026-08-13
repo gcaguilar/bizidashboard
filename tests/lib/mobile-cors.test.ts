@@ -3,6 +3,7 @@ import {
   applyMobileCors,
   buildMobileCorsHeaders,
   handleMobilePreflight,
+  rejectCrossOriginRequest,
   rejectDisallowedMobileOrigin,
 } from '@/lib/security/http';
 
@@ -60,5 +61,19 @@ describe('mobile API CORS', () => {
   it('never emits a wildcard origin', () => {
     vi.stubEnv('MOBILE_API_ALLOWED_ORIGINS', allowedOrigin);
     expect(Object.values(buildMobileCorsHeaders(request(allowedOrigin)))).not.toContain('*');
+  });
+
+  it('accepts same-origin browser requests behind an HTTPS proxy', () => {
+    const response = rejectCrossOriginRequest(new Request('http://app:3000/api/developer/register', {
+      method: 'POST',
+      headers: {
+        Origin: 'https://datosbizi.com',
+        Host: 'app:3000',
+        'X-Forwarded-Host': 'datosbizi.com',
+        'X-Forwarded-Proto': 'https',
+      },
+    }));
+
+    expect(response).toBeNull();
   });
 });
