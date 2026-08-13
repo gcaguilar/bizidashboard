@@ -13,6 +13,9 @@ export const Route = createFileRoute('/api/auth/session/')({
   server: {
     handlers: {
       GET: async () => {
+        // `configured` distingue "no hay sesión" de "el login no existe en este
+        // despliegue", para que la cabecera no ofrezca un botón que acabaría en
+        // el 503 de /api/auth/login.
         const configured = isDeveloperSessionConfigured() && isDeveloperLoginConfigured()
 
         if (!isDeveloperSessionConfigured()) {

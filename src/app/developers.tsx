@@ -359,18 +359,13 @@ print(len(res.json()["transfers"]))`}</code>
                   destinationRole: 'utility',
                   transitionKind: 'within_public',
                 }}
-                className="ui-surface-block ui-surface-block-interactive"
+                className="ui-surface-block ui-surface-block-interactive flex items-center justify-between gap-3 px-4 py-3"
               >
-                <Card
-                  variant="stat"
-                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors hover:border-[var(--primary)]/40"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
-                    <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
-                  </div>
-                  <span className="text-xs font-bold text-[var(--primary)]">Descargar</span>
-                </Card>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{item.label}</p>
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">{item.detail}</p>
+                </div>
+                <span className="shrink-0 text-xs font-bold text-[var(--primary)]">Descargar</span>
               </TrackedLink>
             ))}
           </div>
