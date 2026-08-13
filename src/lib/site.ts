@@ -61,6 +61,32 @@ export function getSiteUrl(): string {
   return normalizeHttpOrigin(candidate, FALLBACK_SITE_URL);
 }
 
+/** Resolves the public origin of the current request behind a reverse proxy. */
+export function getRequestSiteUrl(request: Request): string {
+  const configuredOrigin = process.env.AUTH0_PUBLIC_ORIGIN?.trim();
+  if (configuredOrigin) {
+    return normalizeHttpOrigin(configuredOrigin, getSiteUrl());
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return getSiteUrl();
+  }
+
+  const requestUrl = new URL(request.url);
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const protocol = forwardedProto === 'http' || forwardedProto === 'https'
+    ? forwardedProto
+    : requestUrl.protocol.replace(':', '');
+  const host = forwardedHost || requestUrl.host;
+
+  if ((protocol === 'http' || protocol === 'https') && host) {
+    return `${protocol}://${host}`;
+  }
+
+  return getSiteUrl();
+}
+
 export function isFallbackSiteUrl(url: string): boolean {
   return normalizeHttpOrigin(url, FALLBACK_SITE_URL) === FALLBACK_SITE_URL;
 }

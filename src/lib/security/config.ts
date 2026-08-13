@@ -128,6 +128,22 @@ export function validateRuntimeConfiguration(): void {
     }
   }
 
+  if (process.env.AUTH0_LOGIN_CLIENT_ID?.trim()) {
+    const auth0PublicOrigin = process.env.AUTH0_PUBLIC_ORIGIN?.trim();
+    if (!auth0PublicOrigin) {
+      problems.push('AUTH0_PUBLIC_ORIGIN is required in production for the Auth0 callback origin.');
+    } else {
+      try {
+        const parsed = new URL(auth0PublicOrigin);
+        if (parsed.protocol !== 'https:' || parsed.origin !== auth0PublicOrigin) {
+          problems.push('AUTH0_PUBLIC_ORIGIN must be a normalized https origin in production.');
+        }
+      } catch {
+        problems.push('AUTH0_PUBLIC_ORIGIN must be a valid absolute URL in production.');
+      }
+    }
+  }
+
   const configuredMobileOrigins = getConfiguredMobileOrigins();
   for (const origin of configuredMobileOrigins) {
     try {
