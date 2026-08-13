@@ -4,7 +4,7 @@ import { exchangeAuthorizationCode, verifyIdToken } from '@/lib/auth/auth0-web'
 import { setDeveloperSession } from '@/lib/auth/developer-session'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { getSiteUrl } from '@/lib/site'
+import { getRequestSiteUrl } from '@/lib/site'
 
 const STATE_COOKIE = 'bizi_auth0_state'
 const RETURN_TO_COOKIE = 'bizi_auth0_return_to'
@@ -41,7 +41,7 @@ export const Route = createFileRoute('/api/auth/callback/')({
         }
 
         try {
-          const tokens = await exchangeAuthorizationCode(code, `${getSiteUrl()}/api/auth/callback`)
+          const tokens = await exchangeAuthorizationCode(code, `${getRequestSiteUrl(request)}/api/auth/callback`)
           const identity = await verifyIdToken(tokens.id_token, expectedNonce)
 
           if (!identity) {

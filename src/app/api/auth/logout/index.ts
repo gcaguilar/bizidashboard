@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getAuth0LogoutUrl, isDeveloperLoginConfigured } from '@/lib/auth/auth0-web'
 import { clearDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
-import { getSiteUrl } from '@/lib/site'
+import { getRequestSiteUrl } from '@/lib/site'
 import { rejectCrossOriginRequest } from '@/lib/security/http'
 
 export const Route = createFileRoute('/api/auth/logout/')({
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/auth/logout/')({
 
         return new Response(null, {
           status: 302,
-          headers: { Location: getAuth0LogoutUrl(`${getSiteUrl()}/developers`) },
+          headers: { Location: getAuth0LogoutUrl(`${getRequestSiteUrl(opts.request)}/developers`) },
         })
       },
       GET: () => new Response(JSON.stringify({ error: 'Use POST /api/auth/logout' }), {

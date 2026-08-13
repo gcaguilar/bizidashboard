@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { createFileRoute } from '@tanstack/react-router'
 import { setCookie } from '@tanstack/react-start/server'
 import { getApiAudience, getClientId, getDomain, isDeveloperLoginConfigured } from '@/lib/auth/auth0-web'
-import { getSiteUrl } from '@/lib/site'
+import { getRequestSiteUrl } from '@/lib/site'
 
 const STATE_COOKIE = 'bizi_auth0_state'
 const RETURN_TO_COOKIE = 'bizi_auth0_return_to'
@@ -29,6 +29,7 @@ export const Route = createFileRoute('/api/auth/login/')({
         const domain = getDomain()
         const clientId = getClientId()
         const audience = getApiAudience()
+        const requestSiteUrl = getRequestSiteUrl(request)
 
         const requestedReturnTo = new URL(request.url).searchParams.get('returnTo')
         const returnTo = isSafeReturnTo(requestedReturnTo) ? requestedReturnTo : '/developers'
@@ -61,7 +62,7 @@ export const Route = createFileRoute('/api/auth/login/')({
         authorizeUrl.searchParams.set('response_type', 'code')
         authorizeUrl.searchParams.set('client_id', clientId)
         authorizeUrl.searchParams.set('audience', audience)
-        authorizeUrl.searchParams.set('redirect_uri', `${getSiteUrl()}/api/auth/callback`)
+        authorizeUrl.searchParams.set('redirect_uri', `${requestSiteUrl}/api/auth/callback`)
         authorizeUrl.searchParams.set('scope', 'openid email profile read')
         authorizeUrl.searchParams.set('state', state)
         authorizeUrl.searchParams.set('nonce', nonce)
