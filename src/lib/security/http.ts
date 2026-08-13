@@ -226,8 +226,14 @@ export function rejectCrossOriginRequest(request: Request): Response | null {
     return null;
   }
 
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  const requestOrigin = new URL(request.url).origin;
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const host = forwardedHost || request.headers.get('host');
+  const requestUrl = new URL(request.url);
+  const protocol = forwardedProto === 'http' || forwardedProto === 'https'
+    ? forwardedProto
+    : requestUrl.protocol.replace(':', '');
+  const requestOrigin = `${protocol}://${requestUrl.host}`;
 
   const isSameOrigin = host
     ? origin === `${new URL(requestOrigin).protocol}//${host}`
