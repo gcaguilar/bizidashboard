@@ -3,8 +3,37 @@ import { appRoutes } from '@/lib/routes';
 
 export type DeveloperSessionState =
   | { status: 'loading' }
+  | { status: 'unavailable' }
   | { status: 'anonymous' }
   | { status: 'authenticated'; email: string };
+
+type SessionPayload = { email: string | null; configured?: boolean };
+
+/**
+ * La cabecera monta el hook en todas las páginas y algunos clientes del
+ * dashboard lo montan a la vez, así que la petición se comparte entre todos los
+ * consumidores de la misma carga de página.
+ */
+let pending: Promise<DeveloperSessionState> | null = null;
+
+function fetchSession(): Promise<DeveloperSessionState> {
+  if (pending) return pending;
+
+  pending = fetch(appRoutes.api.authSession())
+    .then((response) => response.json())
+    .then((data: SessionPayload): DeveloperSessionState => {
+      if (data.email) return { status: 'authenticated', email: data.email };
+      return data.configured === false ? { status: 'unavailable' } : { status: 'anonymous' };
+    })
+    .catch((): DeveloperSessionState => ({ status: 'anonymous' }));
+
+  return pending;
+}
+
+/** Olvida la respuesta cacheada. Pensado para los tests. */
+export function resetDeveloperSessionCache(): void {
+  pending = null;
+}
 
 /**
  * Reads the developer login session from the browser. Dashboard features that
@@ -17,15 +46,9 @@ export function useDeveloperSession(): DeveloperSessionState {
   useEffect(() => {
     let cancelled = false;
 
-    fetch(appRoutes.api.authSession())
-      .then((response) => response.json())
-      .then((data: { email: string | null }) => {
-        if (cancelled) return;
-        setSession(data.email ? { status: 'authenticated', email: data.email } : { status: 'anonymous' });
-      })
-      .catch(() => {
-        if (!cancelled) setSession({ status: 'anonymous' });
-      });
+    void fetchSession().then((next) => {
+      if (!cancelled) setSession(next);
+    });
 
     return () => {
       cancelled = true;
