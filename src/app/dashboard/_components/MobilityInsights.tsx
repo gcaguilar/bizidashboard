@@ -457,7 +457,7 @@ function MobilityInsightsContent({
               <p className="mt-4 text-sm text-[var(--muted)]">Sin volumen suficiente.</p>
             ) : (
               <ScrollArea className="mt-3 max-h-[420px]">
-                <Table className="min-w-full border-collapse text-[11px]">
+                <Table className="min-w-max border-collapse text-[11px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="sticky left-0 z-10 h-auto bg-[var(--card)] px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]">
@@ -466,7 +466,7 @@ function MobilityInsightsContent({
                       {activeInsights.districts.map((district) => (
                         <TableHead
                           key={`dest-${district.district}`}
-                          className="h-auto px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]"
+                          className="h-auto whitespace-nowrap px-2 py-2 text-left font-semibold normal-case tracking-normal text-[var(--muted)]"
                         >
                           {district.district}
                         </TableHead>
@@ -476,13 +476,13 @@ function MobilityInsightsContent({
                   <TableBody>
                     {activeInsights.districts.map((origin, originIndex) => (
                       <TableRow key={`origin-${origin.district}`}>
-                        <TableCell className="sticky left-0 bg-[var(--card)] px-2 py-2 font-semibold text-[var(--foreground)]">
+                        <TableCell className="sticky left-0 whitespace-nowrap bg-[var(--card)] px-2 py-2 font-semibold text-[var(--foreground)]">
                           {origin.district}
                         </TableCell>
                         {activeInsights.matrix[originIndex]?.map((value, destinationIndex) => (
                           <TableCell
                             key={`${originIndex}-${destinationIndex}`}
-                            className="border border-[var(--border)] px-2 py-2 text-right"
+                            className="whitespace-nowrap border border-[var(--border)] px-2 py-2 text-right"
                             style={{
                               backgroundColor: getMatrixCellColor(value, activeInsights.maxFlow),
                               color:

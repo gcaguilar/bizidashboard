@@ -9,7 +9,6 @@ import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { formatInteger, formatPercent } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
-import { Card } from '@/components/ui/card';
 import { getReportsIndexPageData } from '@/server-functions/informes';
 
 export const Route = createFileRoute('/informes')({
@@ -145,22 +144,17 @@ export default function ReportsIndexPage() {
                   destinationRole: 'hub',
                   transitionKind: 'within_public',
                 }}
-                className="ui-surface-block ui-surface-block-interactive"
+                className="ui-surface-block ui-surface-block-interactive flex items-center justify-between gap-3 px-4 py-3"
               >
-                <Card
-                  variant="stat"
-                  className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
-                    <p className="text-[11px] text-[var(--muted)]">
-                      {row
-                        ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
-                        : 'Informe disponible con acceso al dashboard filtrado por ese mes.'}
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold text-[var(--primary)]">Abrir informe</span>
-                </Card>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
+                  <p className="text-[11px] text-[var(--muted)]">
+                    {row
+                      ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
+                      : 'Informe disponible con acceso al dashboard filtrado por ese mes.'}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs font-bold text-[var(--primary)]">Abrir informe</span>
               </TrackedLink>
             );
           })}

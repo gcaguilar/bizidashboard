@@ -285,7 +285,7 @@ export default function SystemStatusPage() {
                 href={dataset.source.gbfsDiscoveryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ui-inline-action break-all min-w-0"
+                className="ui-inline-action ui-source-url w-full min-w-0"
               >
                 {dataset.source.gbfsDiscoveryUrl}
               </a>
