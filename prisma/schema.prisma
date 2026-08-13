@@ -189,8 +189,13 @@ model Install {
   appVersion          String
   osVersion           String
   publicKey           String
+  publicKeyMaterial   String?
   publicKeyFingerprint String   @unique
   refreshTokenHash    String   @unique
+  previousRefreshTokenHash String?
+  previousRefreshTokenExpiresAt DateTime?
+  previousRefreshTokenCiphertext String?
+  previousAccessTokenCiphertext String?
   refreshTokenIssuedAt DateTime
   lastSeenAt          DateTime?
   lastAuthAt          DateTime?

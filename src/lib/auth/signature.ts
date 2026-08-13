@@ -1,34 +1,4 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
-import { logger } from '@/lib/logger';
-import { KNOWN_INSECURE_SECRET_VALUES } from '@/lib/security/known-insecure-secrets';
-
-const DEFAULT_SECRET = KNOWN_INSECURE_SECRET_VALUES[0];
-
-function getSignatureSecret(): string {
-  const raw = process.env.SIGNATURE_SECRET;
-
-  if (!raw) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('SIGNATURE_SECRET is required in production');
-    }
-    logger.warn('signature.using_insecure_default');
-    return DEFAULT_SECRET;
-  }
-
-  if (raw.length < 32) {
-    throw new Error(
-      `SIGNATURE_SECRET must be at least 32 characters long (got ${raw.length}). Generate a strong secret: \`openssl rand -base64 32\``
-    );
-  }
-
-  return raw;
-}
-
-export interface SignedRequest {
-  body: string;
-  timestamp: number;
-  signature: string;
-}
+import { createPublicKey, verify } from 'node:crypto';
 
 function normalizeSignedPayload(body: unknown): string {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -40,39 +10,27 @@ function normalizeSignedPayload(body: unknown): string {
   return JSON.stringify(clone);
 }
 
-export function signRequest(body: unknown): SignedRequest {
-  const timestamp = Date.now();
-  const payload =
-    body && typeof body === 'object' && !Array.isArray(body)
-      ? { ...(body as Record<string, unknown>), timestamp }
-      : { body, timestamp };
-  const bodyString = JSON.stringify(payload);
-  const signature = createHmac('sha256', getSignatureSecret())
-    .update(`${timestamp}.${normalizeSignedPayload(payload)}`)
-    .digest('hex');
-
-  return {
-    body: bodyString,
-    timestamp,
-    signature,
-  };
-}
-
-export function verifySignature(body: unknown, timestamp: number, signature: string): boolean {
-  const bodyString = normalizeSignedPayload(body);
-  const expectedSignature = createHmac('sha256', getSignatureSecret())
-    .update(`${timestamp}.${bodyString}`)
-    .digest('hex');
-
+export function verifyInstallSignature(
+  publicKeyBase64: string,
+  body: unknown,
+  timestamp: number,
+  signature: string,
+): boolean {
   try {
-    const signatureBuffer = Buffer.from(signature, 'hex');
-    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-    
-    if (signatureBuffer.length !== expectedBuffer.length) {
-      return false;
-    }
-    
-    return timingSafeEqual(signatureBuffer, expectedBuffer);
+    const publicKey = createPublicKey({
+      key: Buffer.from(publicKeyBase64, 'base64'),
+      format: 'der',
+      type: 'spki',
+    });
+    const signatureBytes = Buffer.from(signature, 'base64');
+    if (signatureBytes.length !== 64) return false;
+
+    return verify(
+      null,
+      Buffer.from(`${timestamp}.${normalizeSignedPayload(body)}`, 'utf8'),
+      publicKey,
+      signatureBytes,
+    );
   } catch {
     return false;
   }

@@ -23,9 +23,9 @@ The frontend/server app runs on **TanStack Start + Vite + React 19**. Production
 
 This project exposes specialized analytical APIs that power the **[BiziMobile](https://github.com/gcaguilar/bizimobile)** application. When a station is empty, the mobile app uses our predictions and mobility signals to help users find the nearest available bike with high confidence using historical occupancy patterns.
 
-Mobile clients must keep sending `Authorization: Bearer <accessToken>` together with `X-Installation-Id` on authenticated endpoints. The geo endpoints (`POST /api/geo/search` and `POST /api/geo/reverse`) now also support signed requests with `timestamp` + `signature`; the server can enforce them in production with `REQUIRE_SIGNED_MOBILE_REQUESTS=true`, so the app should implement this flow before the flag is enabled.
+Mobile clients must keep sending `Authorization: Bearer <accessToken>` together with `X-Installation-Id` on authenticated endpoints. Installation registration requires an Ed25519 proof of possession: sign `platform + "\\n" + appVersion + "\\n" + osVersion + "\\n" + publicKey + "\\n" + challenge` with the private key matching the base64-encoded SPKI `publicKey`. The geo endpoints (`POST /api/geo/search` and `POST /api/geo/reverse`) can require per-install Ed25519 signatures with `timestamp` + `signature` when `REQUIRE_SIGNED_MOBILE_REQUESTS=true`; signatures are verified against the registered public key, never against a shared secret embedded in the app.
 
-Refresh tokens are no longer stored in plaintext in the database. The backend persists only `refreshTokenHash`, rotates refresh tokens on every successful refresh, and revokes the installation if it detects refresh token reuse. Mobile clients should avoid parallel refresh flows that may replay an already-rotated token.
+Refresh tokens are no longer stored in plaintext in the database. The backend persists only `refreshTokenHash`, rotates refresh tokens on every successful refresh, and returns the same encrypted rotation result for legitimate concurrent retries during a short grace window. Reuse outside that window revokes the installation.
 
 ---
 

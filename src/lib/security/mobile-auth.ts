@@ -1,7 +1,7 @@
 // Response removed;
 import { prisma } from '@/lib/db';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { isSignatureExpired, verifySignature } from '@/lib/auth/signature';
+import { isSignatureExpired, verifyInstallSignature } from '@/lib/auth/signature';
 import { updateExecutionContext } from '@/lib/request-context';
 import { recordSecurityEvent } from '@/lib/security/audit';
 import { shouldRequireSignedMobileRequests } from '@/lib/security/config';
@@ -119,7 +119,7 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
 
   const install = await prisma.install.findUnique({
     where: { installId },
-    select: { installId: true, isActive: true, revokedAt: true },
+    select: { installId: true, isActive: true, revokedAt: true, publicKeyMaterial: true },
   });
 
   if (!install || !install.isActive || install.revokedAt) {
@@ -186,7 +186,7 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
       });
     }
 
-    if (!verifySignature(options.body, timestamp, signature)) {
+    if (!install.publicKeyMaterial || !verifyInstallSignature(install.publicKeyMaterial, options.body, timestamp, signature)) {
       return deny({
         route: options.route,
         requestId: options.requestId,
