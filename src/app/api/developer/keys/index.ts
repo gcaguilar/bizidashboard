@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { requireDeveloperSession } from '@/lib/auth/developer-session'
+import { requireDeveloperAccountSession } from '@/lib/auth/developer-principal'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
-import { listApiKeysForOwner, MAX_KEYS_PER_OWNER } from '@/lib/security/api-keys'
+import { listApiKeysForAccount, MAX_KEYS_PER_OWNER } from '@/lib/security/api-keys'
 
 /**
  * Lists the logged-in developer's live keys so the portal can show what they
@@ -13,14 +13,14 @@ export const Route = createFileRoute('/api/developer/keys/')({
     handlers: {
       GET: async () => {
         const baseHeaders = { 'Content-Type': 'application/json' }
-        const sessionResult = await requireDeveloperSession(baseHeaders)
+        const sessionResult = await requireDeveloperAccountSession(baseHeaders)
 
         if ('response' in sessionResult) {
           return sessionResult.response
         }
 
         try {
-          const keys = await listApiKeysForOwner(sessionResult.session.email)
+          const keys = await listApiKeysForAccount(sessionResult.principal.account.id)
 
           return new Response(
             JSON.stringify({

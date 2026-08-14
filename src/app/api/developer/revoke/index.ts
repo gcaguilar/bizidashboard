@@ -1,13 +1,13 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { requireDeveloperSession } from '@/lib/auth/developer-session'
+import { requireDeveloperAccountSession } from '@/lib/auth/developer-principal'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
 import { getClientIp, rejectCrossOriginRequest } from '@/lib/security/http'
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 import { RATE_LIMITS } from '@/lib/security/rate-limits'
-import { revokeOwnApiKey } from '@/lib/security/api-keys'
+import { revokeOwnApiKeyForAccount } from '@/lib/security/api-keys'
 
 const revokeRequestSchema = z.object({
   keyId: z.string().trim().min(1).max(200),
@@ -43,11 +43,11 @@ export const Route = createFileRoute('/api/developer/revoke/')({
           })
         }
 
-        const sessionResult = await requireDeveloperSession(baseHeaders)
+        const sessionResult = await requireDeveloperAccountSession(baseHeaders)
         if ('response' in sessionResult) {
           return sessionResult.response
         }
-        const { session } = sessionResult
+        const { account } = sessionResult.principal
 
         const body = await request.json().catch(() => null)
         const parsed = revokeRequestSchema.safeParse(body)
@@ -60,7 +60,7 @@ export const Route = createFileRoute('/api/developer/revoke/')({
         }
 
         try {
-          const result = await revokeOwnApiKey(parsed.data.keyId, session.email)
+          const result = await revokeOwnApiKeyForAccount(parsed.data.keyId, account.id)
 
           if (result === 'not_found') {
             return new Response(JSON.stringify({ error: 'No API key found with that id.' }), {
