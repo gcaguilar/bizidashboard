@@ -63,7 +63,7 @@ export const Route = createFileRoute('/api/auth/login/')({
         authorizeUrl.searchParams.set('client_id', clientId)
         authorizeUrl.searchParams.set('audience', audience)
         authorizeUrl.searchParams.set('redirect_uri', `${requestSiteUrl}/api/auth/callback`)
-        authorizeUrl.searchParams.set('scope', 'openid email profile read')
+        authorizeUrl.searchParams.set('scope', 'openid email profile read:dashboard')
         authorizeUrl.searchParams.set('state', state)
         authorizeUrl.searchParams.set('nonce', nonce)
 

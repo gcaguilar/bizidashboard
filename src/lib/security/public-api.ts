@@ -1,4 +1,10 @@
-import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session';
+import { globalAccountRepository } from '@/lib/accounts/global-account-repository';
+import { getCity } from '@/lib/db';
+import {
+  resolveBearerDeveloperPrincipal,
+  resolveSessionDeveloperPrincipal,
+  type DeveloperPrincipal,
+} from '@/lib/auth/developer-principal';
 import { recordSecurityEvent } from '@/lib/security/audit';
 import { readApiKey } from '@/lib/security/http';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
@@ -29,6 +35,8 @@ export type PublicApiAccessResult =
       headers: Record<string, string>;
       providedKey: string | null;
       apiKeyInfo: ApiKeyInfo | null;
+      /** Authenticated dashboard session or OAuth bearer principal, if used. */
+      principal: DeveloperPrincipal | null;
       /** Set when access was granted by a logged-in browser session. */
       sessionEmail: string | null;
     }
@@ -43,16 +51,15 @@ export type PublicApiAccessResult =
  * a browser can't hold an API key (we only store its hash, and `<a download>`
  * navigations can't send headers), but it does carry this HttpOnly session.
  */
-async function readSessionEmail(): Promise<string | null> {
-  if (!isDeveloperSessionConfigured()) {
-    return null;
-  }
-
+async function isAccountKeyAllowedForCurrentCity(apiKeyInfo: ApiKeyInfo): Promise<boolean> {
+  if (!apiKeyInfo.accountId) return true;
   try {
-    const session = await getDeveloperSession();
-    return session?.email ?? null;
+    return await globalAccountRepository.hasCityAccess(
+      apiKeyInfo.accountId,
+      getCity()
+    );
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -60,10 +67,43 @@ export async function enforcePublicApiAccess(
   options: PublicApiAccessOptions
 ): Promise<PublicApiAccessResult> {
   const providedKey = readApiKey(options.request.headers);
-  const apiKeyInfo = await validateApiKey(providedKey);
-  const sessionEmail = apiKeyInfo ? null : await readSessionEmail();
+  const candidateApiKey = await validateApiKey(providedKey);
+  const apiKeyInfo = candidateApiKey && await isAccountKeyAllowedForCurrentCity(candidateApiKey)
+    ? candidateApiKey
+    : null;
+  const bearerPrincipal = apiKeyInfo ? null : await resolveBearerDeveloperPrincipal(options.request.headers);
+  const sessionPrincipal = apiKeyInfo || bearerPrincipal ? null : await resolveSessionDeveloperPrincipal();
+  const principal = bearerPrincipal ?? sessionPrincipal;
+  const sessionEmail = principal?.authentication === 'session' ? principal.account.email : null;
 
-  if (options.requireApiKey && !apiKeyInfo && !sessionEmail) {
+  if (
+    principal?.authentication === 'bearer' &&
+    !principal.scopes.includes('read:dashboard')
+  ) {
+    return {
+      ok: false,
+      response: Response.json(
+        { error: 'This route requires the read:dashboard scope.', authRequired: true, requiredScope: 'read:dashboard' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  if (
+    options.requireApiKey &&
+    principal?.authentication === 'bearer' &&
+    !principal.scopes.includes('read:exports')
+  ) {
+    return {
+      ok: false,
+      response: Response.json(
+        { error: 'This route requires the read:exports scope.', authRequired: true, requiredScope: 'read:exports' },
+        { status: 403 }
+      ),
+    };
+  }
+
+  if (options.requireApiKey && !apiKeyInfo && !principal) {
     await recordSecurityEvent({
       eventType: 'auth_failed',
       route: options.route,
@@ -78,7 +118,7 @@ export async function enforcePublicApiAccess(
       ok: false,
       response: Response.json(
         {
-          error: `This route needs credentials: send a valid ${API_KEY_HEADER}, or log in at /developers to use it from the dashboard.`,
+          error: `This route needs credentials: send a valid ${API_KEY_HEADER}, log in at /developers, or send an Auth0 bearer token.`,
           authRequired: true,
         },
         { status: 401 }
@@ -95,9 +135,9 @@ export async function enforcePublicApiAccess(
   if (apiKeyInfo) {
     rateLimits = getApiKeyRateLimits(apiKeyInfo);
     rateLimitKey = apiKeyInfo.id;
-  } else if (sessionEmail) {
+  } else if (principal) {
     rateLimits = { limit: DEFAULT_RATE_LIMIT, windowMs: DEFAULT_RATE_WINDOW_MS };
-    rateLimitKey = `session:${sessionEmail}`;
+    rateLimitKey = `account:${principal.account.id}`;
   } else {
     rateLimits = { limit: options.limit, windowMs: options.windowMs };
     rateLimitKey = options.clientIp;
@@ -143,6 +183,7 @@ export async function enforcePublicApiAccess(
     headers,
     providedKey,
     apiKeyInfo,
+    principal,
     sessionEmail,
   };
 }

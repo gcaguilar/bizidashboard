@@ -85,6 +85,7 @@ export async function exchangeAuthorizationCode(
 }
 
 export type DeveloperIdentity = {
+  auth0Subject: string;
   email: string;
 };
 
@@ -103,11 +104,17 @@ export async function verifyIdToken(idToken: string, nonce: string): Promise<Dev
       algorithms: ['RS256'],
     });
 
-    if (payload.nonce !== nonce || typeof payload.email !== 'string' || payload.email_verified !== true) {
+    if (
+      payload.nonce !== nonce ||
+      typeof payload.sub !== 'string' ||
+      payload.sub.length === 0 ||
+      typeof payload.email !== 'string' ||
+      payload.email_verified !== true
+    ) {
       return null;
     }
 
-    return { email: payload.email };
+    return { auth0Subject: payload.sub, email: payload.email };
   } catch {
     return null;
   }
