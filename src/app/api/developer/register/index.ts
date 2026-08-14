@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { requireDeveloperSession } from '@/lib/auth/developer-session'
+import { requireDeveloperAccountSession } from '@/lib/auth/developer-principal'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
@@ -9,7 +9,7 @@ import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit
 import { RATE_LIMITS } from '@/lib/security/rate-limits'
 import {
   API_KEY_HEADER,
-  createOwnApiKey,
+  createOwnApiKeyForAccount,
   DEFAULT_RATE_LIMIT,
   DEFAULT_RATE_WINDOW_MS,
 } from '@/lib/security/api-keys'
@@ -57,11 +57,11 @@ export const Route = createFileRoute('/api/developer/register/')({
           })
         }
 
-        const sessionResult = await requireDeveloperSession(baseHeaders)
+        const sessionResult = await requireDeveloperAccountSession(baseHeaders)
         if ('response' in sessionResult) {
           return sessionResult.response
         }
-        const { session } = sessionResult
+        const { account } = sessionResult.principal
 
         const body = await request.json().catch(() => null)
         const parsed = registerRequestSchema.safeParse(body)
@@ -74,7 +74,12 @@ export const Route = createFileRoute('/api/developer/register/')({
         }
 
         try {
-          const result = await createOwnApiKey(parsed.data.name, session.email)
+          const result = await createOwnApiKeyForAccount({
+            name: parsed.data.name,
+            accountId: account.id,
+            ownerEmail: account.email ?? undefined,
+            createdBy: account.auth0Subject,
+          })
 
           if (result.status === 'limit_reached') {
             return new Response(
