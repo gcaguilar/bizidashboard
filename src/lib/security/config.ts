@@ -183,6 +183,9 @@ export function validateRuntimeConfiguration(): void {
     if (!process.env.AUTH0_AUDIENCE?.trim()) {
       problems.push('AUTH0_AUDIENCE is required in production when developer login is enabled.');
     }
+    if (!process.env.AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS?.trim()) {
+      problems.push('AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS is required in production when developer login is enabled.');
+    }
     const sessionSecret = process.env.SESSION_SECRET?.trim();
     if (!sessionSecret || sessionSecret.length < 32 || isKnownInsecureSecret(sessionSecret)) {
       problems.push('SESSION_SECRET must be configured (min 32 chars, non-default) when developer login is enabled.');

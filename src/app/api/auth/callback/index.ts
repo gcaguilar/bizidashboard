@@ -2,6 +2,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { deleteCookie, getCookie } from '@tanstack/react-start/server'
 import { exchangeAuthorizationCode, verifyIdToken } from '@/lib/auth/auth0-web'
 import { setDeveloperSession } from '@/lib/auth/developer-session'
+import { globalAccountRepository } from '@/lib/accounts/global-account-repository'
+import { getCity } from '@/lib/db'
+import { claimLegacyApiKeysForAccount } from '@/lib/security/api-keys'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { getRequestSiteUrl } from '@/lib/site'
@@ -48,7 +51,11 @@ export const Route = createFileRoute('/api/auth/callback/')({
             return textResponse('Could not verify your identity (unverified email).', 401)
           }
 
-          await setDeveloperSession(identity.email, {
+          const account = await globalAccountRepository.provisionVerifiedAccount(identity)
+          await globalAccountRepository.grantCityAccess(account.id, getCity())
+          await claimLegacyApiKeysForAccount(account.id, identity.email)
+
+          await setDeveloperSession(identity, {
             accessToken: tokens.access_token,
             expiresIn: tokens.expires_in,
           })

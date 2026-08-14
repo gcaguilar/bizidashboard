@@ -16,6 +16,9 @@ export type ApiKeyInfo = {
   name: string;
   keyPrefix: string;
   description: string | null;
+  /** Global Account identifier. Null only for legacy email-owned keys. */
+  accountId: string | null;
+  /** Display/backwards-compatibility metadata, never canonical ownership. */
   ownerEmail: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
@@ -28,10 +31,20 @@ export type ApiKeyInfo = {
 export type CreateApiKeyInput = {
   name: string;
   description?: string;
+  /**
+   * Canonical global Account owner. Prefer the account-native helpers below
+   * for developer-created keys, as they enforce the live-key limit.
+   */
+  accountId?: string;
   ownerEmail?: string;
   customRateLimit?: number;
   customRateWindow?: number;
   createdBy?: string;
+};
+
+/** Input for an API key whose canonical owner is a global Account. */
+export type CreateAccountApiKeyInput = Omit<CreateApiKeyInput, 'accountId'> & {
+  accountId: string;
 };
 
 // Default rate limits
@@ -73,6 +86,7 @@ function toApiKeyInfo(record: {
   name: string;
   keyPrefix: string;
   description: string | null;
+  accountId: string | null;
   ownerEmail: string | null;
   isActive: boolean;
   lastUsedAt: Date | null;
@@ -86,6 +100,7 @@ function toApiKeyInfo(record: {
     name: record.name,
     keyPrefix: record.keyPrefix,
     description: record.description,
+    accountId: record.accountId,
     ownerEmail: record.ownerEmail,
     isActive: record.isActive,
     lastUsedAt: record.lastUsedAt,
@@ -114,6 +129,7 @@ export async function createApiKey(
       keyHash,
       keyPrefix,
       description: input.description ?? null,
+      accountId: input.accountId ?? null,
       ownerEmail: input.ownerEmail ?? null,
       customRateLimit: input.customRateLimit ?? null,
       customRateWindow: input.customRateWindow ?? null,
@@ -128,6 +144,19 @@ export async function createApiKey(
   });
 
   return { fullKey, info: toApiKeyInfo(record) };
+}
+
+/**
+ * Creates an API key owned by a global Account. `ownerEmail` is deliberately
+ * optional display metadata; this function never resolves an account by email.
+ *
+ * This low-level helper mirrors `createApiKey`. Developer-facing callers
+ * should use `createOwnApiKeyForAccount` to enforce MAX_KEYS_PER_OWNER.
+ */
+export async function createApiKeyForAccount(
+  input: CreateAccountApiKeyInput
+): Promise<{ fullKey: string; info: ApiKeyInfo }> {
+  return createApiKey(input);
 }
 
 /**
@@ -149,6 +178,7 @@ export async function validateApiKey(
       name: true,
       keyPrefix: true,
       description: true,
+      accountId: true,
       ownerEmail: true,
       isActive: true,
       revokedAt: true,
@@ -228,6 +258,38 @@ export async function listApiKeysForOwner(ownerEmail: string): Promise<ApiKeyInf
   return records.map(toApiKeyInfo);
 }
 
+/**
+ * Lists the active, non-revoked keys canonically owned by one global Account.
+ * Legacy email-owned keys are intentionally excluded.
+ */
+export async function listApiKeysForAccount(accountId: string): Promise<ApiKeyInfo[]> {
+  const records = await prisma.apiKey.findMany({
+    where: { accountId, revokedAt: null, isActive: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return records.map(toApiKeyInfo);
+}
+
+/**
+ * Claims legacy email-owned keys only after a user has authenticated with a
+ * verified Auth0 email. This is the one safe compatibility bridge from the
+ * old ownership model; bearer flows never perform an email-based lookup.
+ */
+export async function claimLegacyApiKeysForAccount(
+  accountId: string,
+  verifiedEmail: string | null | undefined
+): Promise<number> {
+  const ownerEmail = verifiedEmail?.trim();
+  if (!ownerEmail) return 0;
+
+  const result = await prisma.apiKey.updateMany({
+    where: { accountId: null, ownerEmail },
+    data: { accountId },
+  });
+  return result.count;
+}
+
 export type CreateOwnApiKeyResult =
   | { status: 'created'; fullKey: string; info: ApiKeyInfo }
   | { status: 'limit_reached'; limit: number };
@@ -253,6 +315,39 @@ export async function createOwnApiKey(
     name,
     ownerEmail,
     createdBy: ownerEmail,
+  });
+
+  return { status: 'created', fullKey, info };
+}
+
+export type CreateOwnAccountApiKeyInput = {
+  name: string;
+  accountId: string;
+  /** Optional display/backwards-compatibility metadata only. */
+  ownerEmail?: string;
+  createdBy?: string;
+};
+
+/**
+ * Mints a key for a global Account, enforcing the same five-live-key limit as
+ * the legacy email-based portal flow. Ownership is only checked by accountId.
+ */
+export async function createOwnApiKeyForAccount(
+  input: CreateOwnAccountApiKeyInput
+): Promise<CreateOwnApiKeyResult> {
+  const existing = await prisma.apiKey.count({
+    where: { accountId: input.accountId, revokedAt: null, isActive: true },
+  });
+
+  if (existing >= MAX_KEYS_PER_OWNER) {
+    return { status: 'limit_reached', limit: MAX_KEYS_PER_OWNER };
+  }
+
+  const { fullKey, info } = await createApiKeyForAccount({
+    name: input.name,
+    accountId: input.accountId,
+    ownerEmail: input.ownerEmail,
+    createdBy: input.createdBy ?? input.accountId,
   });
 
   return { status: 'created', fullKey, info };
@@ -308,6 +403,32 @@ export async function revokeOwnApiKey(
   }
 
   await revokeApiKey(record.id, 'revoked_by_owner');
+  return 'revoked';
+}
+
+/**
+ * Revokes a key only if it belongs to the supplied global Account. No email
+ * fallback is used, so legacy keys cannot be claimed by account callers.
+ */
+export async function revokeOwnApiKeyForAccount(
+  keyId: string,
+  accountId: string
+): Promise<RevokeOwnApiKeyResult> {
+  const record = await prisma.apiKey.findUnique({ where: { id: keyId } });
+
+  if (!record) {
+    return 'not_found';
+  }
+
+  if (record.accountId !== accountId) {
+    return 'not_owner';
+  }
+
+  if (!record.isActive || record.revokedAt) {
+    return 'revoked';
+  }
+
+  await revokeApiKey(record.id, 'revoked_by_account_owner');
   return 'revoked';
 }
 

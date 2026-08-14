@@ -8,6 +8,7 @@
 import { clearSession, getSession, updateSession, type SessionConfig } from '@tanstack/react-start/server';
 
 type DeveloperSessionData = {
+  auth0Subject: string;
   email: string;
   accessToken?: string;
   accessTokenExpiresAt?: number;
@@ -41,6 +42,7 @@ function getSessionConfig(): SessionConfig {
 }
 
 export type DeveloperSession = {
+  auth0Subject: string;
   email: string;
   accessToken?: string;
   accessTokenExpiresAt?: number;
@@ -48,8 +50,9 @@ export type DeveloperSession = {
 
 export async function getDeveloperSession(): Promise<DeveloperSession | null> {
   const session = await getSession<DeveloperSessionData>(getSessionConfig());
-  return session.data.email
+  return session.data.auth0Subject && session.data.email
     ? {
+        auth0Subject: session.data.auth0Subject,
         email: session.data.email,
         accessToken: session.data.accessToken,
         accessTokenExpiresAt: session.data.accessTokenExpiresAt,
@@ -58,11 +61,12 @@ export async function getDeveloperSession(): Promise<DeveloperSession | null> {
 }
 
 export async function setDeveloperSession(
-  email: string,
+  identity: { auth0Subject: string; email: string },
   token?: { accessToken: string; expiresIn: number }
 ): Promise<void> {
   await updateSession<DeveloperSessionData>(getSessionConfig(), {
-    email,
+    auth0Subject: identity.auth0Subject,
+    email: identity.email,
     accessToken: token?.accessToken,
     accessTokenExpiresAt: token ? Date.now() + token.expiresIn * 1000 : undefined,
   });
@@ -79,7 +83,7 @@ export async function clearDeveloperSession(): Promise<void> {
  */
 export async function requireDeveloperSession(
   headers: HeadersInit
-): Promise<{ session: { email: string } } | { response: Response }> {
+): Promise<{ session: { auth0Subject: string; email: string } } | { response: Response }> {
   if (!isDeveloperSessionConfigured()) {
     return {
       response: new Response(JSON.stringify({ error: 'Developer login is not configured.' }), {
