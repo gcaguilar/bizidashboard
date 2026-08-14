@@ -262,6 +262,11 @@ model ApiKey {
   keyHash     String   @unique
   keyPrefix   String   // First 8 chars of key for identification
   description String?
+  // Account is stored in the fixed identity schema, outside the per-city
+  // Prisma search path. The cross-schema foreign key is managed by the
+  // migration; do not add an Account relation here or Prisma would resolve it
+  // into every city schema.
+  accountId   String?
   ownerEmail  String?
   
   // Rate limiting (null = use defaults)
@@ -285,5 +290,6 @@ model ApiKey {
   @@index([isActive, revokedAt])
   @@index([keyPrefix])
   @@index([createdAt])
+  @@index([accountId, revokedAt])
   @@index([ownerEmail, revokedAt])
 }
