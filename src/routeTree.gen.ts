@@ -53,6 +53,7 @@ import { Route as EstadisticasMapaRouteImport } from './app/estadisticas/mapa'
 import { Route as EstadisticasRedistribucionRouteImport } from './app/estadisticas/redistribucion'
 import { Route as EstadisticasViajesRouteImport } from './app/estadisticas/viajes'
 import { Route as InformesMonthRouteImport } from './app/informes.$month'
+import { Route as ManifestWebmanifestRouteImport } from './app/manifest.webmanifest'
 import { Route as ApiAlertsIndexRouteImport } from './app/api/alerts/index'
 import { Route as ApiAlertsHistoryRouteRouteImport } from './app/api/alerts/history/route'
 import { Route as ApiAppVersionsIndexRouteImport } from './app/api/app-versions/index'
@@ -327,6 +328,11 @@ const InformesMonthRoute = InformesMonthRouteImport.update({
   id: '/$month',
   path: '/$month',
   getParentRoute: () => InformesRoute,
+} as any)
+const ManifestWebmanifestRoute = ManifestWebmanifestRouteImport.update({
+  id: '/manifest/webmanifest',
+  path: '/manifest/webmanifest',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAlertsIndexRoute = ApiAlertsIndexRouteImport.update({
   id: '/api/alerts/',
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
   '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
+  '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/estadisticas/': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
@@ -708,6 +715,7 @@ export interface FileRoutesByTo {
   '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
   '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
+  '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard': typeof DashboardIndexRoute
   '/estadisticas': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
@@ -802,6 +810,7 @@ export interface FileRoutesById {
   '/estadisticas/redistribucion': typeof EstadisticasRedistribucionRoute
   '/estadisticas/viajes': typeof EstadisticasViajesRoute
   '/informes/$month': typeof InformesMonthRoute
+  '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/estadisticas/': typeof EstadisticasIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
@@ -897,6 +906,7 @@ export interface FileRouteTypes {
     | '/estadisticas/redistribucion'
     | '/estadisticas/viajes'
     | '/informes/$month'
+    | '/manifest/webmanifest'
     | '/dashboard/'
     | '/estadisticas/'
     | '/api/alerts/history'
@@ -986,6 +996,7 @@ export interface FileRouteTypes {
     | '/estadisticas/redistribucion'
     | '/estadisticas/viajes'
     | '/informes/$month'
+    | '/manifest/webmanifest'
     | '/dashboard'
     | '/estadisticas'
     | '/api/alerts/history'
@@ -1079,6 +1090,7 @@ export interface FileRouteTypes {
     | '/estadisticas/redistribucion'
     | '/estadisticas/viajes'
     | '/informes/$month'
+    | '/manifest/webmanifest'
     | '/dashboard/'
     | '/estadisticas/'
     | '/api/alerts/history'
@@ -1166,6 +1178,7 @@ export interface RootRouteChildren {
   ApiVersionRoute: typeof ApiVersionRoute
   BarriosDistrictSlugRoute: typeof BarriosDistrictSlugRoute
   EstacionesStationIdRoute: typeof EstacionesStationIdRoute
+  ManifestWebmanifestRoute: typeof ManifestWebmanifestRoute
   ApiAlertsHistoryRouteRoute: typeof ApiAlertsHistoryRouteRoute
   ApiHealthLiveRoute: typeof ApiHealthLiveRoute
   ApiHealthReadyRoute: typeof ApiHealthReadyRoute
@@ -1508,6 +1521,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/informes/$month'
       preLoaderRoute: typeof InformesMonthRouteImport
       parentRoute: typeof InformesRoute
+    }
+    '/manifest/webmanifest': {
+      id: '/manifest/webmanifest'
+      path: '/manifest/webmanifest'
+      fullPath: '/manifest/webmanifest'
+      preLoaderRoute: typeof ManifestWebmanifestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/alerts/': {
       id: '/api/alerts/'
@@ -1981,6 +2001,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiVersionRoute: ApiVersionRoute,
   BarriosDistrictSlugRoute: BarriosDistrictSlugRoute,
   EstacionesStationIdRoute: EstacionesStationIdRoute,
+  ManifestWebmanifestRoute: ManifestWebmanifestRoute,
   ApiAlertsHistoryRouteRoute: ApiAlertsHistoryRouteRoute,
   ApiHealthLiveRoute: ApiHealthLiveRoute,
   ApiHealthReadyRoute: ApiHealthReadyRoute,
