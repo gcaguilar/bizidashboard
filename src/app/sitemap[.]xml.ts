@@ -76,8 +76,6 @@ async function buildSitemapXml(): Promise<string> {
       changeFrequency: entry.sitemap.changeFrequency,
       priority: entry.sitemap.priority,
     })),
-    { href: appRoutes.llms(), lastModified, changeFrequency: 'daily', priority: 0.6 },
-    { href: appRoutes.llmsFull(), lastModified, changeFrequency: 'daily', priority: 0.58 },
     ...validMonths.map((month) => ({
       href: appRoutes.reportMonth(month),
       lastModified,

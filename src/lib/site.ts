@@ -23,7 +23,9 @@ export const SEO_SITE_TITLE = `${SEO_SITE_NAME} ${getCityName()}`;
 export const SEO_SITE_DESCRIPTION =
   `DatosBizi centraliza estaciones Bizi ${getCityName()}, disponibilidad, analisis de uso, informes mensuales y datos abiertos en una unica capa publica.`;
 
-const FALLBACK_SITE_URL = 'http://localhost:3000';
+// Keep production metadata valid even if APP_URL/VITE_APP_URL is missing.
+// Local development still uses an explicit APP_URL from .env.example/.env.local.
+const FALLBACK_SITE_URL = 'https://datosbizi.com';
 
 function ensureProtocol(value: string): string {
   if (/^https?:\/\//i.test(value)) {
@@ -47,7 +49,7 @@ function normalizeHttpOrigin(candidate: string, fallback: string): string {
 }
 
 export function getSiteUrl(): string {
-  if (typeof window !== 'undefined' && window.location.origin !== 'http://localhost:3000') {
+  if (typeof window !== 'undefined' && window.location.origin !== FALLBACK_SITE_URL) {
     return normalizeHttpOrigin(window.location.origin, FALLBACK_SITE_URL);
   }
 
@@ -88,7 +90,12 @@ export function getRequestSiteUrl(request: Request): string {
 }
 
 export function isFallbackSiteUrl(url: string): boolean {
-  return normalizeHttpOrigin(url, FALLBACK_SITE_URL) === FALLBACK_SITE_URL;
+  try {
+    const parsed = new URL(ensureProtocol(url.trim()));
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+  } catch {
+    return true;
+  }
 }
 
 export function getRobotsBaseUrl(): string {

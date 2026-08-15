@@ -2,10 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME, SEO_SITE_DESCRIPTION } from '@/lib/site';
 
-export const Route = createFileRoute('/manifest.json')({
-  server: {
-    handlers: {
-      GET: () => {
+export function buildManifestResponse(): Response {
         const siteUrl = getSiteUrl();
         const manifest = {
           name: SITE_NAME,
@@ -35,7 +32,12 @@ export const Route = createFileRoute('/manifest.json')({
             'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
           },
         });
-      },
+}
+
+export const Route = createFileRoute('/manifest.json')({
+  server: {
+    handlers: {
+      GET: buildManifestResponse,
     },
   },
 });

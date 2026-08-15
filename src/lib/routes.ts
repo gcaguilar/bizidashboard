@@ -471,6 +471,13 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   { source: '/viajes-por-mes-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/estadisticas-bizi-zaragoza', destination: '/estadisticas' },
   { source: '/explorar', destination: '/estadisticas' },
+  // Legacy URLs still present in Google's historical crawl data.
+  { source: '/explorar-Explorar', destination: '/estadisticas' },
+  { source: '/redistribucion-bizi-zaragoza', destination: '/estadisticas/redistribucion' },
+  { source: '/opengraph-image', destination: '/icon-512.svg' },
+  { source: '/twitter-image', destination: '/icon-512.svg' },
+  { source: '/$', destination: '/' },
+  { source: '/barrios/actur-arrabal', destination: '/estadisticas/barrios/actur-rey-fernando' },
   ...CITY_SEGMENTS.flatMap((city) => [
     {
       source: appRoutes.cityRootAlias(city),
