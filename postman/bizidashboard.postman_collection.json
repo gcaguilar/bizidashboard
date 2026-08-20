@@ -1,0 +1,291 @@
+{
+  "info": {
+    "_postman_id": "b1z1d4sh-0000-4000-8000-000000000001",
+    "name": "Bizi Dashboard API",
+    "description": "API endpoints for station status, rankings, alerts, patterns, heatmaps, mobility, and transit impact.\n\nGenerated from https://datosbizi.com/api/openapi.json (v0.5.0).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://datosbizi.com", "type": "string" },
+    { "key": "opsApiKey", "value": "", "type": "string" },
+    { "key": "apiKey", "value": "", "type": "string" },
+    { "key": "stationId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Liveness probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health", "live"]
+            },
+            "description": "Liveness probe (no dependencies). 200 = process is alive."
+          }
+        },
+        {
+          "name": "Readiness probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health", "ready"]
+            },
+            "description": "Readiness probe (checks database connectivity). 200 = ready, 503 = dependencies not ready."
+          }
+        },
+        {
+          "name": "Pipeline status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "status"]
+            },
+            "description": "Get pipeline observability metrics."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core Data",
+      "item": [
+        {
+          "name": "List stations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stations"]
+            },
+            "description": "List stations with latest availability snapshot."
+          }
+        },
+        {
+          "name": "Rankings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rankings?type=turnover&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rankings"],
+              "query": [
+                { "key": "type", "value": "turnover", "description": "turnover | availability (required)" },
+                { "key": "limit", "value": "20", "description": "1-100, default 20" }
+              ]
+            },
+            "description": "Get station rankings by turnover or availability."
+          }
+        },
+        {
+          "name": "Patterns (by station)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/patterns?stationId={{stationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "patterns"],
+              "query": [
+                { "key": "stationId", "value": "{{stationId}}", "description": "Station identifier (required)" }
+              ]
+            },
+            "description": "Get weekday/weekend hourly patterns for one station."
+          }
+        },
+        {
+          "name": "Heatmap (by station)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/heatmap?stationId={{stationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "heatmap"],
+              "query": [
+                { "key": "stationId", "value": "{{stationId}}", "description": "Station identifier (required)" }
+              ]
+            },
+            "description": "Get occupancy heatmap cells for one station."
+          }
+        },
+        {
+          "name": "Mobility signals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mobility?mobilityDays=14&demandDays=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mobility"],
+              "query": [
+                { "key": "mobilityDays", "value": "14", "description": "1-365, default 14" },
+                { "key": "demandDays", "value": "30", "description": "1-365, default 30" }
+              ]
+            },
+            "description": "Get mobility signals, demand curve, and transit impact."
+          }
+        },
+        {
+          "name": "Full history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "history"]
+            },
+            "description": "Get full historical demand data since first record."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Active alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"],
+              "query": [
+                { "key": "limit", "value": "50", "description": "1-200, default 50" }
+              ]
+            },
+            "description": "List active alerts."
+          }
+        },
+        {
+          "name": "Alert history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/history?state=all&alertType=all&limit=200&offset=0&format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "history"],
+              "query": [
+                { "key": "state", "value": "all", "description": "all | active | resolved" },
+                { "key": "stationId", "value": "", "description": "Filter by station identifier", "disabled": true },
+                { "key": "alertType", "value": "all", "description": "all | LOW_BIKES | LOW_ANCHORS" },
+                { "key": "severity", "value": "", "description": "1 (media) - 5 (critica)", "disabled": true },
+                { "key": "from", "value": "", "description": "ISO 8601 start datetime", "disabled": true },
+                { "key": "to", "value": "", "description": "ISO 8601 end datetime", "disabled": true },
+                { "key": "limit", "value": "200", "description": "1-2000, default 200" },
+                { "key": "offset", "value": "0", "description": "0-20000, default 0" },
+                { "key": "format", "value": "json", "description": "json | csv" }
+              ]
+            },
+            "description": "List alert history with filters, pagination, and CSV export."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Rebalancing report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rebalancing-report?days=15&format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rebalancing-report"],
+              "query": [
+                { "key": "district", "value": "", "description": "e.g. Centro, Delicias", "disabled": true },
+                { "key": "days", "value": "15", "description": "1-90, default 15" },
+                { "key": "format", "value": "json", "description": "json | csv" }
+              ]
+            },
+            "description": "Station rebalancing diagnostic report with classification (A-F), risk predictions at 1h/3h, network elasticity context, origin-destination transfer recommendations, KPIs, and baseline comparison."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ops (requires OpsApiKey)",
+      "item": [
+        {
+          "name": "Get collection job state",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-ops-api-key", "value": "{{opsApiKey}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/collect",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collect"]
+            },
+            "description": "Get collection job state. Requires x-ops-api-key header (x-collect-api-key accepted as a temporary compatibility alias)."
+          }
+        },
+        {
+          "name": "Trigger collection run",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-ops-api-key", "value": "{{opsApiKey}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/collect",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "collect"]
+            },
+            "description": "Trigger one data collection run. Requires x-ops-api-key header. 401 missing/invalid key, 429 rate limit exceeded, 503 misconfigured."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Docs",
+      "item": [
+        {
+          "name": "OpenAPI document (/api/docs)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "docs"]
+            },
+            "description": "Get OpenAPI document (compatibility endpoint)."
+          }
+        },
+        {
+          "name": "OpenAPI document (/api/openapi.json)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/openapi.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "openapi.json"]
+            },
+            "description": "Get OpenAPI document."
+          }
+        }
+      ]
+    }
+  ]
+}
