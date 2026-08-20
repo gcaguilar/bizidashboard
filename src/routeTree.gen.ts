@@ -31,6 +31,7 @@ import { Route as LlmsFullDottxtRouteImport } from './app/llms-full[.]txt'
 import { Route as LlmsDottxtRouteImport } from './app/llms[.]txt'
 import { Route as ManifestDotjsonRouteImport } from './app/manifest[.]json'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
+import { Route as McpRouteImport } from './app/mcp'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
 import { Route as RankingEstacionesBiziRouteImport } from './app/ranking-estaciones-bizi'
 import { Route as RedistribucionRouteImport } from './app/redistribucion'
@@ -216,6 +217,11 @@ const MapaEstacionesBiziZaragozaRoute =
     path: '/mapa-estaciones-bizi-zaragoza',
     getParentRoute: () => rootRouteImport,
   } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
   id: '/metodologia',
   path: '/metodologia',
@@ -605,6 +611,7 @@ export interface FileRoutesByFullPath {
   '/llms.txt': typeof LlmsDottxtRoute
   '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
+  '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
@@ -697,6 +704,7 @@ export interface FileRoutesByTo {
   '/llms.txt': typeof LlmsDottxtRoute
   '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
+  '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
@@ -790,6 +798,7 @@ export interface FileRoutesById {
   '/llms.txt': typeof LlmsDottxtRoute
   '/manifest.json': typeof ManifestDotjsonRoute
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
+  '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
@@ -886,6 +895,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
+    | '/mcp'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
@@ -978,6 +988,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
+    | '/mcp'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
@@ -1070,6 +1081,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/manifest.json'
     | '/mapa-estaciones-bizi-zaragoza'
+    | '/mcp'
     | '/metodologia'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
@@ -1165,6 +1177,7 @@ export interface RootRouteChildren {
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   ManifestDotjsonRoute: typeof ManifestDotjsonRoute
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
+  McpRoute: typeof McpRoute
   MetodologiaRoute: typeof MetodologiaRoute
   RankingEstacionesBiziRoute: typeof RankingEstacionesBiziRoute
   RedistribucionRoute: typeof RedistribucionRoute
@@ -1366,6 +1379,13 @@ declare module '@tanstack/react-router' {
       path: '/mapa-estaciones-bizi-zaragoza'
       fullPath: '/mapa-estaciones-bizi-zaragoza'
       preLoaderRoute: typeof MapaEstacionesBiziZaragozaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metodologia': {
@@ -1988,6 +2008,7 @@ const rootRouteChildren: RootRouteChildren = {
   LlmsDottxtRoute: LlmsDottxtRoute,
   ManifestDotjsonRoute: ManifestDotjsonRoute,
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
+  McpRoute: McpRoute,
   MetodologiaRoute: MetodologiaRoute,
   RankingEstacionesBiziRoute: RankingEstacionesBiziRoute,
   RedistribucionRoute: RedistribucionRoute,

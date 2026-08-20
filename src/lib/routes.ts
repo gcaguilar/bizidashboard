@@ -87,6 +87,7 @@ export const appRoutes = {
       right: params?.right,
     }),
   developers: () => '/developers',
+  mcp: () => '/mcp',
   developersAlias: () => '/developers',
   helpAlias: () => '/ayuda',
   methodology: () => '/metodologia',
@@ -242,6 +243,15 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.72,
+    },
+  },
+  {
+    id: 'mcp',
+    href: appRoutes.mcp(),
+    label: 'Conectar con IA',
+    sitemap: {
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
   },
   {
