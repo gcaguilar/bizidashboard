@@ -46,6 +46,15 @@ export type PublicApiAccessResult =
     };
 
 /**
+ * Auth0's stable subject, rather than the OAuth client (`azp`), defines a
+ * person's public-API quota. This keeps a user's limit continuous when the
+ * MCP exchanges their token on their behalf.
+ */
+export function getPrincipalRateLimitKey(principal: DeveloperPrincipal): string {
+  return `auth0-sub:${principal.account.auth0Subject}`;
+}
+
+/**
  * Reads the developer login cookie, if the portal is configured. Used as a
  * fallback credential so the dashboard's own UI can reach elevated routes:
  * a browser can't hold an API key (we only store its hash, and `<a download>`
@@ -127,8 +136,8 @@ export async function enforcePublicApiAccess(
   }
 
   // Each identified caller gets its own bucket: a key uses whatever limit it
-  // was granted, a logged-in browser uses the standard one keyed by email, and
-  // anonymous callers share the route's per-IP allowance.
+  // was granted, an authenticated Auth0 user is keyed by their stable `sub`,
+  // and anonymous callers share the route's per-IP allowance.
   let rateLimits: { limit: number; windowMs: number };
   let rateLimitKey: string;
 
@@ -137,7 +146,7 @@ export async function enforcePublicApiAccess(
     rateLimitKey = apiKeyInfo.id;
   } else if (principal) {
     rateLimits = { limit: DEFAULT_RATE_LIMIT, windowMs: DEFAULT_RATE_WINDOW_MS };
-    rateLimitKey = `account:${principal.account.id}`;
+    rateLimitKey = getPrincipalRateLimitKey(principal);
   } else {
     rateLimits = { limit: options.limit, windowMs: options.windowMs };
     rateLimitKey = options.clientIp;

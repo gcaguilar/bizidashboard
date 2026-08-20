@@ -12,6 +12,7 @@ const domain = 'login.example.auth0.com';
 const issuer = `https://${domain}/`;
 const audience = 'https://api.datosbizi.test';
 const allowedClientId = 'chatgpt-client';
+const mcpOboClientId = 'mcp-obo-client';
 
 let privateKey: CryptoKey;
 let jwks: ReturnType<typeof createLocalJWKSet>;
@@ -80,7 +81,23 @@ describe('Auth0 access-token verifier', () => {
     expect(principal?.auth0Subject).toBe('auth0|account-123');
   });
 
+  it('accepts an OBO token from the explicit MCP client and preserves the user subject', async () => {
+    vi.stubEnv('MCP_AUTH0_OBO_CLIENT_ID', mcpOboClientId);
+
+    const principal = await createVerifier()(await issueAccessToken({
+      azp: mcpOboClientId,
+      act: { sub: 'connector-client' },
+    }));
+
+    expect(principal).toEqual({
+      auth0Subject: 'auth0|account-123',
+      clientId: mcpOboClientId,
+      scopes: ['read:dashboard', 'read:exports'],
+    });
+  });
+
   it.each([
+    ['a token for the MCP resource', { tokenAudience: 'https://mcp.datosbizi.com/mcp' }],
     ['a token for a different audience', { tokenAudience: 'https://other-api.example' }],
     ['a token issued by a different issuer', { tokenIssuer: 'https://other.example.auth0.com/' }],
     ['a token from an unapproved OAuth client', { azp: 'unknown-client' }],

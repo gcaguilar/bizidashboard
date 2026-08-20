@@ -34,8 +34,9 @@ export type Auth0AccessTokenVerifierOptions = Readonly<{
   audience?: string;
   /**
    * Defaults to AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS, a comma-separated
-   * allow-list of Auth0 OAuth client IDs permitted to call this API. Every
-   * accepted token must include one of these exact values in its `azp` claim.
+   * allow-list of direct Auth0 OAuth client IDs permitted to call this API.
+   * `MCP_AUTH0_OBO_CLIENT_ID`, when configured, is added as one extra exact
+   * allowed `azp` for tokens exchanged by the MCP on behalf of a user.
    */
   allowedClientIds?: readonly string[];
 }>;
@@ -77,7 +78,7 @@ function parseAllowedClientIds(value: readonly string[]): readonly string[] {
   const clientIds = [...new Set(value.map((clientId) => clientId.trim()).filter(Boolean))];
   if (clientIds.length === 0) {
     throw new Error(
-      'AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS is required to verify Auth0 access tokens.'
+      'AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS or MCP_AUTH0_OBO_CLIENT_ID is required to verify Auth0 access tokens.'
     );
   }
   return clientIds;
@@ -89,6 +90,7 @@ function resolveConfig(options: Auth0AccessTokenVerifierOptions): Auth0AccessTok
   const allowedClientIds = options.allowedClientIds ?? (
     process.env.AUTH0_ACCESS_TOKEN_ALLOWED_CLIENT_IDS?.split(',') ?? []
   );
+  const mcpOboClientId = process.env.MCP_AUTH0_OBO_CLIENT_ID?.trim();
 
   return {
     issuer: getIssuer(getRequiredValue(
@@ -99,7 +101,10 @@ function resolveConfig(options: Auth0AccessTokenVerifierOptions): Auth0AccessTok
       audience,
       'AUTH0_AUDIENCE is required to verify Auth0 access tokens.'
     ),
-    allowedClientIds: parseAllowedClientIds(allowedClientIds),
+    allowedClientIds: parseAllowedClientIds([
+      ...allowedClientIds,
+      ...(mcpOboClientId ? [mcpOboClientId] : []),
+    ]),
   };
 }
 
