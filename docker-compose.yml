@@ -52,7 +52,6 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
       - MOBILE_API_ENABLED=${MOBILE_API_ENABLED:-false}
       - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}
@@ -101,7 +100,6 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
       - MOBILE_API_ENABLED=${MOBILE_API_ENABLED:-false}
       - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}
@@ -150,7 +148,6 @@ services:
       - SESSION_SECRET=${SESSION_SECRET:-}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - REQUIRE_SIGNED_MOBILE_REQUESTS=${REQUIRE_SIGNED_MOBILE_REQUESTS:-false}
       - MOBILE_API_ENABLED=${MOBILE_API_ENABLED:-false}
       - MOBILE_API_ALLOWED_ORIGINS=${MOBILE_API_ALLOWED_ORIGINS:-}
       - NODE_ENV=${NODE_ENV:-production}

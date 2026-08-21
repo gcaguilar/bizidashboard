@@ -13,15 +13,19 @@ const GEO_SEARCH_RATE_LIMIT = { limit: 60, windowMs: 60_000 }
 const geoSearchSchema = z.object({
   query: z.string().trim().min(2).max(200),
   limit: z.number().int().min(1).max(20).optional(),
-  timestamp: z.number().int().positive().optional(),
-  signature: z.string().trim().min(10).max(512).optional(),
+  timestamp: z.number().int().positive(),
+  signature: z.string().trim().min(10).max(512),
 })
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
 
 export const Route = createFileRoute('/api/geo/search/')({
   server: {
     handlers: {
       GET: () =>
-        new Response(JSON.stringify({ error: 'Use POST /api/geo/search with a signed JSON body.' }), {
+        new Response(JSON.stringify({ error: 'Use POST /api/geo/search with a signed JSON body.', details: 'method_not_allowed' }), {
           status: 405,
           headers: {
             'Content-Type': 'application/json',
@@ -38,16 +42,20 @@ export const Route = createFileRoute('/api/geo/search/')({
           const originRejection = rejectDisallowedMobileOrigin(request)
           if (originRejection) return originRejection
 
-          const rawBody = await request.json().catch(() => null)
-          const parsed = geoSearchSchema.safeParse(rawBody)
+          const rawBody: unknown = await request.json().catch(() => null)
           const baseHeaders = buildMobileCorsHeaders(request)
 
-          if (!parsed.success) {
-            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          if (!isJsonObject(rawBody)) {
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: 'expected a JSON object' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const authResult = await verifyMobileRequest({ body: parsed.data, route: '/api/geo/search', request, requestId, clientIp, userAgent, headers: baseHeaders })
+          const authResult = await verifyMobileRequest({ body: rawBody, route: '/api/geo/search', request, requestId, clientIp, userAgent, headers: baseHeaders })
           if (!authResult.ok) return authResult.response
+
+          const parsed = geoSearchSchema.safeParse(rawBody)
+          if (!parsed.success) {
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.issues[0]?.message ?? 'invalid payload' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          }
 
           const [ipDecision, installDecision] = await Promise.all([
             consumeRateLimit({ namespace: 'geo-search:ip', identifierParts: [clientIp], limit: GEO_SEARCH_RATE_LIMIT.limit, windowMs: GEO_SEARCH_RATE_LIMIT.windowMs }),
@@ -58,7 +66,7 @@ export const Route = createFileRoute('/api/geo/search/')({
 
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/geo/search', requestId, installId: authResult.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
-            return new Response(JSON.stringify({ error: 'Too many geo search requests' }), { status: 429, headers: { 'Content-Type': 'application/json', ...headers, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
+            return new Response(JSON.stringify({ error: 'Too many geo search requests', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...headers, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
           }
 
           const results = await searchLocations(parsed.data.query, parsed.data.limit ?? 10)

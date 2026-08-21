@@ -4,12 +4,8 @@ import { verifyAccessToken } from '@/lib/auth/jwt';
 import { isSignatureExpired, verifyInstallSignature } from '@/lib/auth/signature';
 import { updateExecutionContext } from '@/lib/request-context';
 import { recordSecurityEvent } from '@/lib/security/audit';
-import { shouldRequireSignedMobileRequests } from '@/lib/security/config';
 
-type MobileSignedBody = {
-  timestamp?: number;
-  signature?: string;
-};
+type MobileSignedBody = Record<string, unknown>;
 
 type VerifyMobileRequestOptions<TBody extends MobileSignedBody> = {
   body: TBody;
@@ -59,7 +55,7 @@ async function deny(
   return {
     ok: false,
     response: Response.json(
-      { error: options.message },
+      { error: options.message, details: options.reasonCode },
       { status: options.status, headers: options.headers }
     ),
   };
@@ -137,10 +133,9 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
     });
   }
 
-  const requireSignature = shouldRequireSignedMobileRequests();
   const { timestamp, signature } = options.body;
 
-  if (requireSignature && (!timestamp || !signature)) {
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || typeof signature !== 'string' || !signature.trim()) {
     return deny({
       route: options.route,
       requestId: options.requestId,
@@ -150,56 +145,39 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
       eventType: 'signature_invalid',
       reasonCode: 'signature_required',
       status: 401,
-      message: 'Signed request required',
+      message: 'Signed request requires timestamp and signature',
       headers: options.headers,
     });
   }
 
-  if (timestamp || signature) {
-    if (!timestamp || !signature) {
-      return deny({
-        route: options.route,
-        requestId: options.requestId,
-        clientIp: options.clientIp,
-        userAgent: options.userAgent,
-        installId,
-        eventType: 'signature_invalid',
-        reasonCode: 'signature_missing_fields',
-        status: 401,
-        message: 'Missing signed request fields',
-        headers: options.headers,
-      });
-    }
+  if (isSignatureExpired(timestamp)) {
+    return deny({
+      route: options.route,
+      requestId: options.requestId,
+      clientIp: options.clientIp,
+      userAgent: options.userAgent,
+      installId,
+      eventType: 'signature_invalid',
+      reasonCode: 'signature_expired',
+      status: 401,
+      message: 'Request timestamp expired',
+      headers: options.headers,
+    });
+  }
 
-    if (isSignatureExpired(timestamp, 60_000)) {
-      return deny({
-        route: options.route,
-        requestId: options.requestId,
-        clientIp: options.clientIp,
-        userAgent: options.userAgent,
-        installId,
-        eventType: 'signature_invalid',
-        reasonCode: 'signature_expired',
-        status: 401,
-        message: 'Request timestamp expired',
-        headers: options.headers,
-      });
-    }
-
-    if (!install.publicKeyMaterial || !verifyInstallSignature(install.publicKeyMaterial, options.body, timestamp, signature)) {
-      return deny({
-        route: options.route,
-        requestId: options.requestId,
-        clientIp: options.clientIp,
-        userAgent: options.userAgent,
-        installId,
-        eventType: 'signature_invalid',
-        reasonCode: 'signature_mismatch',
-        status: 401,
-        message: 'Invalid signature',
-        headers: options.headers,
-      });
-    }
+  if (!install.publicKeyMaterial || !verifyInstallSignature(install.publicKeyMaterial, options.body, timestamp, signature)) {
+    return deny({
+      route: options.route,
+      requestId: options.requestId,
+      clientIp: options.clientIp,
+      userAgent: options.userAgent,
+      installId,
+      eventType: 'signature_invalid',
+      reasonCode: 'signature_mismatch',
+      status: 401,
+      message: 'Invalid signature',
+      headers: options.headers,
+    });
   }
 
   await prisma.install.update({

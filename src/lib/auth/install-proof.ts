@@ -31,6 +31,10 @@ export function verifyInstallRegistrationProof(input: {
       type: 'spki',
     });
 
+    if (key.asymmetricKeyType !== 'ed25519') {
+      return false;
+    }
+
     return verify(
       null,
       Buffer.from(buildInstallRegistrationPayload(input), 'utf8'),

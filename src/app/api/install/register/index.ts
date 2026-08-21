@@ -47,17 +47,17 @@ export const Route = createFileRoute('/api/install/register/')({
 
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit', metadata: { publicKeyFingerprint } })
-            return new Response(JSON.stringify({ error: 'Too many installation registration attempts' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
+            return new Response(JSON.stringify({ error: 'Too many installation registration attempts', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
           }
           if (!parsed.success) {
             await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'validation_failed' })
-            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.issues[0]?.message ?? 'invalid payload' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
           const proofIsValid = verifyInstallRegistrationProof(parsed.data)
           if (!proofIsValid) {
             await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'invalid_install_proof', metadata: { publicKeyFingerprint } })
-            return new Response(JSON.stringify({ error: 'Invalid installation proof' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Invalid installation proof', details: 'Ed25519 signature verification failed' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
           const installId = randomUUID()

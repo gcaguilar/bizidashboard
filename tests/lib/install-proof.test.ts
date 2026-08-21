@@ -13,7 +13,7 @@ describe('installation registration proof', () => {
       publicKey: publicKeyBase64,
       challenge: Buffer.from('random-client-challenge').toString('base64'),
     };
-    const signature = sign(null, Buffer.from(buildInstallRegistrationPayload(input)), privateKey).toString('base64');
+    const signature = sign(null, Buffer.from(buildInstallRegistrationPayload(input), 'utf8'), privateKey).toString('base64');
 
     expect(verifyInstallRegistrationProof({ ...input, signature })).toBe(true);
     expect(verifyInstallRegistrationProof({ ...input, appVersion: '1.0.1', signature })).toBe(false);
@@ -24,8 +24,22 @@ describe('installation registration proof', () => {
     const second = generateKeyPairSync('ed25519');
     const publicKey = first.publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
     const input = { platform: 'ios', appVersion: '1', osVersion: '18', publicKey, challenge: 'Y2hhbGxlbmdl' };
-    const signature = sign(null, Buffer.from(buildInstallRegistrationPayload(input)), second.privateKey).toString('base64');
+    const signature = sign(null, Buffer.from(buildInstallRegistrationPayload(input), 'utf8'), second.privateKey).toString('base64');
 
     expect(verifyInstallRegistrationProof({ ...input, signature })).toBe(false);
+  });
+
+  it('rejects non-Ed25519 public keys', () => {
+    const keys = generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const publicKey = keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
+
+    expect(verifyInstallRegistrationProof({
+      platform: 'android',
+      appVersion: '1',
+      osVersion: '15',
+      publicKey,
+      challenge: 'Y2hhbGxlbmdl',
+      signature: Buffer.alloc(64).toString('base64'),
+    })).toBe(false);
   });
 });
