@@ -15,7 +15,7 @@ The system is built on four core pillars:
 3. **Analytics Core**: Specialized SQL aggregations (Rankings, Trends, Alerts, Heatmaps, Mobility Signals) optimized for time-series bike availability data.
 4. **Visual Dashboard**: A TanStack Start interface with real-time station statuses, historical graphs, and mobility reports.
 
-The frontend/server app runs on **TanStack Start + Vite + React 19**. Production uses **Bun 1.3.14** and Docker images based on `oven/bun:1.3.14` / `oven/bun:1.3.14-slim`.
+The frontend/server app runs on **TanStack Start + Vite + React 19**. Production uses **Bun 1.4.0** and Docker images based on `oven/bun:1.4.0` / `oven/bun:1.4.0-slim`.
 
 ---
 
