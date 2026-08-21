@@ -41,16 +41,16 @@ export const Route = createFileRoute('/api/token/refresh/')({
 
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/token/refresh', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
-            return new Response(JSON.stringify({ error: 'Too many refresh attempts' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
+            return new Response(JSON.stringify({ error: 'Too many refresh attempts', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
           }
           if (!parsed.success) {
-            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.issues[0]?.message ?? 'invalid payload' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
           const payload = await verifyRefreshToken(parsed.data.refreshToken)
           if (!payload?.installId) {
             await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/token/refresh', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'invalid_refresh_token' })
-            return new Response(JSON.stringify({ error: 'Invalid or expired refresh token' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Invalid or expired refresh token', details: 'refresh token verification failed' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
           const incomingHash = hashToken(parsed.data.refreshToken)
@@ -103,12 +103,12 @@ export const Route = createFileRoute('/api/token/refresh/')({
 
           if (updated.error === 'install_inactive') {
             await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/token/refresh', requestId, installId: payload.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'install_inactive' })
-            return new Response(JSON.stringify({ error: 'Installation not found or inactive' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Installation not found or inactive', details: 'install_inactive' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
           if (updated.error === 'token_reuse') {
             await recordSecurityEvent({ eventType: 'token_reuse_detected', route: '/api/token/refresh', requestId, installId: payload.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'refresh_token_reuse' })
-            return new Response(JSON.stringify({ error: 'Refresh token revoked' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+            return new Response(JSON.stringify({ error: 'Refresh token revoked', details: 'refresh_token_reuse' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
           if (updated.error === 'refresh_replay') {
             return new Response(JSON.stringify({ accessToken: updated.accessToken, refreshToken: updated.refreshToken, expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS }), { status: 200, headers: { 'Content-Type': 'application/json', ...baseHeaders } })

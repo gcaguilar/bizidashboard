@@ -13,15 +13,19 @@ const GEO_REVERSE_RATE_LIMIT = { limit: 60, windowMs: 60_000 }
 const geoReverseSchema = z.object({
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  timestamp: z.number().int().positive().optional(),
-  signature: z.string().trim().min(10).max(512).optional(),
+  timestamp: z.number().int().positive(),
+  signature: z.string().trim().min(10).max(512),
 })
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
 
 export const Route = createFileRoute('/api/geo/reverse/')({
   server: {
     handlers: {
       GET: () =>
-        new Response(JSON.stringify({ error: 'Use POST /api/geo/reverse with a signed JSON body.' }), {
+        new Response(JSON.stringify({ error: 'Use POST /api/geo/reverse with a signed JSON body.', details: 'method_not_allowed' }), {
           status: 405,
           headers: {
             'Content-Type': 'application/json',
@@ -38,16 +42,20 @@ export const Route = createFileRoute('/api/geo/reverse/')({
           const originRejection = rejectDisallowedMobileOrigin(request)
           if (originRejection) return originRejection
 
-          const rawBody = await request.json().catch(() => null)
-          const parsed = geoReverseSchema.safeParse(rawBody)
+          const rawBody: unknown = await request.json().catch(() => null)
           const baseHeaders = buildMobileCorsHeaders(request)
 
-          if (!parsed.success) {
-            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.flatten() }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          if (!isJsonObject(rawBody)) {
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: 'expected a JSON object' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const authResult = await verifyMobileRequest({ body: parsed.data, route: '/api/geo/reverse', request, requestId, clientIp, userAgent, headers: baseHeaders })
+          const authResult = await verifyMobileRequest({ body: rawBody, route: '/api/geo/reverse', request, requestId, clientIp, userAgent, headers: baseHeaders })
           if (!authResult.ok) return authResult.response
+
+          const parsed = geoReverseSchema.safeParse(rawBody)
+          if (!parsed.success) {
+            return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.issues[0]?.message ?? 'invalid payload' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          }
 
           const [ipDecision, installDecision] = await Promise.all([
             consumeRateLimit({ namespace: 'geo-reverse:ip', identifierParts: [clientIp], limit: GEO_REVERSE_RATE_LIMIT.limit, windowMs: GEO_REVERSE_RATE_LIMIT.windowMs }),
@@ -58,7 +66,7 @@ export const Route = createFileRoute('/api/geo/reverse/')({
 
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/geo/reverse', requestId, installId: authResult.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
-            return new Response(JSON.stringify({ error: 'Too many reverse geocoding requests' }), { status: 429, headers: { 'Content-Type': 'application/json', ...headers, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
+            return new Response(JSON.stringify({ error: 'Too many reverse geocoding requests', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...headers, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
           }
 
           const result = await reverseGeocode(parsed.data.lat, parsed.data.lon)

@@ -23,10 +23,6 @@ export function getOpsApiKey(): string | null {
   return trimmed ? trimmed : null;
 }
 
-export function shouldRequireSignedMobileRequests(): boolean {
-  return isTruthyEnv(process.env.REQUIRE_SIGNED_MOBILE_REQUESTS);
-}
-
 export function getMobileAllowedOrigins(): string[] {
   const configuredOrigins = (process.env.MOBILE_API_ALLOWED_ORIGINS ?? '')
     .split(',')
@@ -95,9 +91,7 @@ export function validateRuntimeConfiguration(): void {
   const problems: string[] = [];
   const appUrl = process.env.APP_URL?.trim();
   const opsApiKey = getOpsApiKey();
-  const mobileApiExpected =
-    isTruthyEnv(process.env.MOBILE_API_ENABLED) ||
-    shouldRequireSignedMobileRequests();
+  const mobileApiExpected = isTruthyEnv(process.env.MOBILE_API_ENABLED);
 
   if (!process.env.JWT_SECRET || isKnownInsecureSecret(process.env.JWT_SECRET)) {
     problems.push('JWT_SECRET must be configured with a non-default value in production.');
@@ -168,7 +162,7 @@ export function validateRuntimeConfiguration(): void {
 
   if (mobileApiExpected && configuredMobileOrigins.length === 0) {
     problems.push(
-      'MOBILE_API_ALLOWED_ORIGINS is required when MOBILE_API_ENABLED or REQUIRE_SIGNED_MOBILE_REQUESTS is enabled.'
+      'MOBILE_API_ALLOWED_ORIGINS is required when MOBILE_API_ENABLED is enabled.'
     );
   }
 

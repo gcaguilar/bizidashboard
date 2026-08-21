@@ -193,7 +193,7 @@ export function rejectDisallowedMobileOrigin(request: Request): Response | null 
   }
 
   return Response.json(
-    { error: 'Origin not allowed' },
+    { error: 'Origin not allowed', details: 'origin is not in the mobile API allowlist' },
     {
       status: 403,
       headers: {

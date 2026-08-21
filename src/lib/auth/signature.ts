@@ -22,6 +22,7 @@ export function verifyInstallSignature(
       format: 'der',
       type: 'spki',
     });
+    if (publicKey.asymmetricKeyType !== 'ed25519') return false;
     const signatureBytes = Buffer.from(signature, 'base64');
     if (signatureBytes.length !== 64) return false;
 
@@ -36,6 +37,6 @@ export function verifyInstallSignature(
   }
 }
 
-export function isSignatureExpired(timestamp: number, maxAgeMs = 60000): boolean {
+export function isSignatureExpired(timestamp: number, maxAgeMs = 5 * 60_000): boolean {
   return Math.abs(Date.now() - timestamp) > maxAgeMs;
 }

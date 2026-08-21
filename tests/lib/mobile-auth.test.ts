@@ -44,8 +44,6 @@ describe('verifyMobileRequest', () => {
     findUniqueMock.mockReset();
     updateInstallMock.mockReset();
     recordSecurityEventMock.mockReset();
-    process.env.REQUIRE_SIGNED_MOBILE_REQUESTS = 'true';
-
     findUniqueMock.mockResolvedValue({
       installId: 'install-1',
       isActive: true,
@@ -114,7 +112,7 @@ describe('verifyMobileRequest', () => {
     const result = await verifyMobileRequest({
       body: {
         ...body,
-        timestamp: Date.now() - 120_000,
+        timestamp: Date.now() - 6 * 60_000,
         signature: body.signature,
       },
       route: '/api/geo/search',
@@ -132,6 +130,31 @@ describe('verifyMobileRequest', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.response.status).toBe(401);
+    }
+  });
+
+  it('requires a body signature regardless of environment flags', async () => {
+    process.env.REQUIRE_SIGNED_MOBILE_REQUESTS = 'false';
+    const accessToken = await generateAccessToken('install-1');
+
+    const result = await verifyMobileRequest({
+      body: { query: 'Centro', timestamp: Date.now() },
+      route: '/api/geo/search',
+      request: new Request('http://localhost/api/geo/search', {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'x-installation-id': 'install-1',
+        },
+      }),
+      requestId: 'req-4',
+      clientIp: '198.51.100.10',
+      userAgent: 'Vitest',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(401);
+      await expect(result.response.json()).resolves.toMatchObject({ details: 'signature_required' });
     }
   });
 });
