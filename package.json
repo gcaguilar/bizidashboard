@@ -53,7 +53,7 @@
     "@tanstack/react-router-devtools": "^1.167.1",
     "@tanstack/react-router-ssr-query": "^1.167.1",
     "@tanstack/react-start": "^1.168.48",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.1.2",
     "@tanstack/router-plugin": "^1.168.34",
     "jose": "^6.2.9",
     "maplibre-gl": "^5.24.0",
