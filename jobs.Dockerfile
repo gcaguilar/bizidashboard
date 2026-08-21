@@ -1,11 +1,11 @@
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.3.14 AS deps
+FROM oven/bun:1.4.0 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install
 
 # ── builder: generate prisma client & compile jobs ───────────────────
-FROM oven/bun:1.3.14 AS builder
+FROM oven/bun:1.4.0 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -21,7 +21,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun build src/jobs/standalone.ts --target=bun --outfile=/app/dist/jobs/standalone.js --packages=external
 
 # ── runner: minimal production image with pm2 ────────────────────────
-FROM oven/bun:1.3.14-slim AS runner
+FROM oven/bun:1.4.0-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 

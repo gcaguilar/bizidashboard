@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.3.14 AS deps
+FROM oven/bun:1.4.0 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install
 
 # ── builder: generate prisma client & build TanStack Start ───────────
-FROM oven/bun:1.3.14 AS builder
+FROM oven/bun:1.4.0 AS builder
 WORKDIR /app
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
@@ -35,7 +35,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun run build
 
 # ── runner: minimal production image ─────────────────────────────────
-FROM oven/bun:1.3.14-slim AS runner
+FROM oven/bun:1.4.0-slim AS runner
 WORKDIR /app
 ARG GIT_SHA
 ARG BUILD_DATE
