@@ -7,6 +7,9 @@ import { buildCtaClickEvent, trackUmamiEvent } from '@/lib/umami';
 
 export const MCP_SERVER_URL = 'https://mcp.datosbizi.com/mcp';
 export const CLAUDE_CONNECTOR_URL = `https://claude.ai/customize/connectors?connectorName=BiziDashboard&connectorUrl=${encodeURIComponent(MCP_SERVER_URL)}&modal=add-custom-connector`;
+export const CHATGPT_URL = 'https://chatgpt.com/';
+export const PERPLEXITY_URL = 'https://www.perplexity.ai/';
+export const GROK_CONNECTORS_URL = 'https://grok.com/connectors';
 
 type Notice =
   | { kind: 'success'; text: string }
@@ -67,9 +70,19 @@ const INSTALL_STEPS = {
     'Pega la URL e inicia sesión con DatosBizi cuando Claude lo solicite.',
   ],
   chatgpt: [
-    'Pulsa el botón: la URL se copia y ChatGPT se abre en otra pestaña.',
-    'Añade un conector MCP personalizado desde la configuración disponible en tu cuenta.',
-    'Pega la URL e inicia sesión con DatosBizi cuando el conector lo solicite.',
+    'Abre Configuración del espacio de trabajo → Apps y crea una app o conector MCP personalizado.',
+    'Si no aparece la opción, un administrador debe activar el modo desarrollador en Apps → Configuración avanzada.',
+    'Ponle el nombre BiziDashboard, pega la URL y completa el inicio de sesión de DatosBizi cuando se abra.',
+  ],
+  perplexity: [
+    'Abre Configuración → Conectores y pulsa «+ Conector personalizado» o «Remoto».',
+    'Nombre: BiziDashboard. Como URL del servidor MCP pega la URL mostrada abajo.',
+    'Elige OAuth si Perplexity solicita autenticación y termina el inicio de sesión de DatosBizi.',
+  ],
+  grok: [
+    'Abre Conectores y pulsa «Nuevo conector» → «Personalizado».',
+    'Introduce BiziDashboard como nombre y pega la URL del servidor MCP.',
+    'Completa la autenticación requerida; Grok descubrirá las herramientas disponibles automáticamente.',
   ],
 } as const;
 
@@ -91,12 +104,12 @@ export function McpInstallGuide() {
     });
   }
 
-  function handleConnectorClick(connector: 'claude' | 'chatgpt') {
+  function handleConnectorClick(connector: keyof typeof INSTALL_STEPS) {
     trackInstallAction(`mcp_connect_${connector}`, connector);
     void copyUrl(
       connector === 'claude'
         ? 'URL copiada. En Claude: Personalizar → Conectores → Añadir conector personalizado → pegar.'
-        : 'URL copiada. En ChatGPT añade un conector MCP personalizado y pega la URL.'
+        : `URL copiada. Sigue los pasos de ${connector === 'chatgpt' ? 'ChatGPT' : connector === 'perplexity' ? 'Perplexity' : 'Grok'} para añadir el conector MCP.`
     );
   }
 
@@ -106,14 +119,14 @@ export function McpInstallGuide() {
         <div className="mb-4 max-w-3xl">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Instalación</p>
           <h2 id="install-title" className="mt-1 text-2xl font-black text-[var(--foreground)]">
-            BiziDashboard para Claude y ChatGPT
+            BiziDashboard para tu asistente de IA
           </h2>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Instala el conector, pega la URL y continúa con tu inicio de sesión habitual de DatosBizi. No necesitas configurar OAuth ni introducir secretos.
+            Usa la misma URL MCP en Claude, ChatGPT, Perplexity, Grok u otro cliente compatible. Al conectarlo, continuarás con el inicio de sesión seguro de DatosBizi; no introduzcas secretos en el formulario del conector.
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2">
           <article className="ui-section-card" aria-labelledby="claude-title">
             <p className="stat-label">Conector</p>
             <h3 id="claude-title" className="text-xl font-black text-[var(--foreground)]">Claude</h3>
@@ -139,11 +152,11 @@ export function McpInstallGuide() {
             <p className="stat-label">Conector</p>
             <h3 id="chatgpt-title" className="text-xl font-black text-[var(--foreground)]">ChatGPT</h3>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              Copia la misma URL para añadirla desde las opciones de conectores de tu cuenta, si están disponibles.
+              BiziDashboard todavía no tiene una app ni un plugin publicado en el directorio de ChatGPT: añade el conector MCP manualmente desde tu espacio de trabajo.
             </p>
             <Button asChild variant="outline" className="mt-1 w-full">
               <a
-                href="https://chatgpt.com/"
+                href={CHATGPT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleConnectorClick('chatgpt')}
@@ -155,11 +168,53 @@ export function McpInstallGuide() {
               {INSTALL_STEPS.chatgpt.map((step) => <li key={step}>{step}</li>)}
             </ol>
             <p className="text-xs leading-5 text-[var(--muted)]">
-              No introduzcas secretos ni datos técnicos de OAuth en el conector.
+              Disponible en espacios de trabajo que permitan apps MCP personalizadas; el administrador puede tener que habilitarlo.
             </p>
           </article>
 
-          <article className="ui-section-card" aria-labelledby="generic-title">
+          <article className="ui-section-card" aria-labelledby="perplexity-title">
+            <p className="stat-label">Conector</p>
+            <h3 id="perplexity-title" className="text-xl font-black text-[var(--foreground)]">Perplexity</h3>
+            <p className="text-sm leading-6 text-[var(--muted)]">
+              Configura BiziDashboard como un conector MCP remoto desde los ajustes de Perplexity.
+            </p>
+            <Button asChild variant="outline" className="mt-1 w-full">
+              <a
+                href={PERPLEXITY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => handleConnectorClick('perplexity')}
+              >
+                Abrir Perplexity
+              </a>
+            </Button>
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
+              {INSTALL_STEPS.perplexity.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+          </article>
+
+          <article className="ui-section-card" aria-labelledby="grok-title">
+            <p className="stat-label">Conector</p>
+            <h3 id="grok-title" className="text-xl font-black text-[var(--foreground)]">Grok</h3>
+            <p className="text-sm leading-6 text-[var(--muted)]">
+              Añade el servidor público de BiziDashboard como un conector MCP personalizado.
+            </p>
+            <Button asChild variant="outline" className="mt-1 w-full">
+              <a
+                href={GROK_CONNECTORS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => handleConnectorClick('grok')}
+              >
+                Abrir conectores de Grok
+              </a>
+            </Button>
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
+              {INSTALL_STEPS.grok.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+          </article>
+
+          <article className="ui-section-card lg:col-span-2" aria-labelledby="generic-title">
             <p className="stat-label">Desarrolladores</p>
             <h3 id="generic-title" className="text-xl font-black text-[var(--foreground)]">Cliente MCP genérico</h3>
             <p className="text-sm leading-6 text-[var(--muted)]">
@@ -195,7 +250,7 @@ export function McpInstallGuide() {
         </div>
         <div className="grid gap-3 text-center text-sm font-semibold text-[var(--foreground)] md:grid-cols-4 md:items-center">
           <span className="ui-surface-block">Tú <span aria-hidden="true">→</span></span>
-          <span className="ui-surface-block">Claude o ChatGPT <span aria-hidden="true">→</span></span>
+          <span className="ui-surface-block">Tu asistente de IA <span aria-hidden="true">→</span></span>
           <span className="ui-surface-block">Login seguro de DatosBizi <span aria-hidden="true">→</span></span>
           <span className="ui-surface-block">BiziDashboard MCP</span>
         </div>

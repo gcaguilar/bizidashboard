@@ -21,11 +21,15 @@ describe('McpInstallGuide', () => {
   it('renders the public MCP endpoint and its installation options', () => {
     render(<McpInstallGuide />);
 
-    expect(screen.getByRole('heading', { name: 'BiziDashboard para Claude y ChatGPT' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'BiziDashboard para tu asistente de IA' })).toBeTruthy();
     expect(screen.getByDisplayValue(MCP_SERVER_URL).getAttribute('readonly')).not.toBeNull();
     const claudeLink = screen.getByRole('link', { name: 'Conectar con Claude' });
     expect(claudeLink.getAttribute('rel')).toBe('noopener noreferrer');
     expect(claudeLink.getAttribute('href')).toBe(CLAUDE_CONNECTOR_URL);
+    expect(screen.getByRole('heading', { name: 'ChatGPT' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Perplexity' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Grok' })).toBeTruthy();
+    expect(screen.getByText(/todavía no tiene una app ni un plugin publicado/i)).toBeTruthy();
   });
 
   it('copies the MCP URL from the generic client card', async () => {
