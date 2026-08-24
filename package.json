@@ -56,7 +56,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/router-plugin": "^1.168.34",
     "jose": "^6.2.9",
-    "maplibre-gl": "^5.24.0",
+    "maplibre-gl": "^6.4.1",
     "node-cron": "^4.6.0",
     "pg": "^8.23.0",
     "react": "19.2.5",
