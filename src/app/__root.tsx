@@ -14,6 +14,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 
 import { appRoutes } from '@/lib/routes'
+import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
 
 interface MyRouterContext {
@@ -75,11 +76,37 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
   const umamiConfig = footerData.umami
+  const siteUrl = getSiteUrl()
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: SEO_SITE_NAME,
+        url: siteUrl,
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        name: SEO_SITE_NAME,
+        url: siteUrl,
+        inLanguage: 'es',
+        publisher: { '@id': `${siteUrl}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}${appRoutes.explore()}?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  }
 
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>
         {umamiConfig ? (
           <script
             async
