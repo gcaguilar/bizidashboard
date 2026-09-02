@@ -14,8 +14,8 @@ export const Route = createFileRoute('/estadisticas/viajes')({
   loader: () => fetchSeoLandingData({ data: { slug: 'viajes-por-mes-zaragoza' } }),
   head: () =>
     buildSeoHead({
-      title: 'Viajes Bizi Zaragoza - DatosBizi',
-      description: 'Tendencia diaria y mensual de viajes estimados en el sistema Bizi Zaragoza.',
+      title: 'Actividad y viajes estimados de Bizi Zaragoza | DatosBizi',
+      description: 'Consulta la evolución diaria y mensual de la actividad estimada de Bizi Zaragoza. No representa viajes oficiales individuales.',
       path: appRoutes.statsViajes(),
     }),
   component: ViajesPage,
