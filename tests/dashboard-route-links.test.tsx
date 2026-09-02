@@ -83,4 +83,15 @@ describe('dashboard route links', () => {
     expect(trackedHrefs).toContain(appRoutes.dashboardHelp());
     expect(trackedHrefs).not.toContain(appRoutes.dashboardAlerts());
   });
+
+  it('keeps BiciRadar outside dashboard-only navigation', () => {
+    trackedLinkSpy.mockClear();
+
+    renderToStaticMarkup(<DashboardRouteLinks activeRoute="dashboard" />);
+
+    const trackedHrefs = trackedLinkSpy.mock.calls.map(([props]) => props.href);
+
+    expect(appRoutes.biciradar()).not.toBe(appRoutes.dashboard());
+    expect(trackedHrefs).not.toContain(appRoutes.biciradar());
+  });
 });
