@@ -106,6 +106,15 @@ describe('site audit gate', () => {
     expect(result.likely_infra_outage.detected).toBe(false);
   });
 
+  it('fails when the sitemap responds without indexable URLs', () => {
+    const result = evaluateSiteAuditReport(
+      createReport({ summary: { crawled_pages: 10, checked_urls: 12, sitemap_entries: 0 } })
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.failures).toContain('El sitemap no contiene ninguna URL indexable.');
+  });
+
   it('classifies critical orphan pages from the canonical route set', () => {
     const report = createReport({
       orphan_pages: [
