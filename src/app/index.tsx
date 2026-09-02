@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
+import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
@@ -51,7 +52,7 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const { mostUsedStations, problemStations, bikesAvailable, activeStationsCount, generatedAt } = Route.useLoaderData();
+  const { mostUsedStations, problemStations, bikesAvailable, activeStationsCount, generatedAt, briefing } = Route.useLoaderData();
   const generatedAtLabel = formatHourMinute(generatedAt);
 
   return (
@@ -127,6 +128,8 @@ function Home() {
         <span className="ui-chip">{formatInteger(activeStationsCount)} estaciones activas</span>
         <span className="ui-chip" suppressHydrationWarning>Actualizado {generatedAtLabel}</span>
       </div>
+
+      <NetworkBriefing briefing={briefing} className="mt-4" />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="ui-section-card">

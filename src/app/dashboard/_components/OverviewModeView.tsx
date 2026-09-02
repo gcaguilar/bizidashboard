@@ -10,6 +10,8 @@ import { BalanceIndexCard } from './BalanceIndexCard';
 import { DailyInsightsCard } from './DailyInsightsCard';
 import { MapPanel } from './MapPanel';
 import { SystemHealthCard } from './SystemHealthCard';
+import { NetworkBriefing } from './NetworkBriefing';
+import { buildNetworkBriefing } from '@/lib/network-briefing';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -40,6 +42,7 @@ type OverviewModeViewProps = {
     dailyInsight: string;
   };
   updatedText: string;
+  coverageDays: number;
   topFrictionStationName: string | null;
   alerts: AlertsResponse;
 };
@@ -62,6 +65,7 @@ export function OverviewModeView({
   frictionByStationId,
   systemMetrics,
   updatedText,
+  coverageDays,
   topFrictionStationName,
   alerts,
 }: OverviewModeViewProps) {
@@ -76,9 +80,20 @@ export function OverviewModeView({
   const networkLabel = systemMetrics.criticalStations.length === 0
     ? 'sin estaciones críticas en la muestra'
     : 'tensionado';
+  const briefing = buildNetworkBriefing({
+    stations: _stations,
+    activeAlertsCount: systemMetrics.activeAlerts.length,
+    coverageDays,
+    lastUpdatedAt: status.quality.freshness.lastUpdated,
+    pipelineHealthy: status.pipeline.healthStatus === 'healthy',
+  });
 
   return (
     <>
+      <NetworkBriefing
+        briefing={briefing}
+        state={status.dataState === 'error' ? 'error' : status.dataState === 'partial' || status.dataState === 'no_coverage' ? 'incomplete' : 'ready'}
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         <SystemHealthCard
           totalStations={systemMetrics.totalStations}
