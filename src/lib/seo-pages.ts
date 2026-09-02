@@ -112,7 +112,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardView('research'),
-      label: 'Ver analisis horario',
+      label: 'Ver análisis horario',
       destination: 'dashboard_research',
     },
   },
@@ -199,11 +199,11 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
   'informes-mensuales-bizi-zaragoza': {
     slug: 'informes-mensuales-bizi-zaragoza',
     title: 'Informes mensuales de Bizi Zaragoza',
-    metadataTitle: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+    metadataTitle: 'Informes mensuales de Bizi Zaragoza | Archivo histórico',
     description:
-      'Archivo mensual de Bizi Zaragoza con historico, informes indexables y navegacion por mes.',
+      'Archivo mensual de Bizi Zaragoza con histórico, informes indexables y navegación por mes.',
     keywords: ['informes mensuales bizi', 'archivo bizi zaragoza', 'reporte mensual bizi', 'estadisticas bizi mensuales'],
-    cadenceLabel: 'Actualizacion mensual',
+    cadenceLabel: 'Actualización mensual',
     heroKicker: 'Archivo de informes',
     pageRole: 'HUB',
     primaryCta: {
@@ -232,7 +232,7 @@ export const SEO_PAGE_CONFIGS: Record<SeoPageSlug, SeoPageConfig> = {
     pageRole: 'ENTRY_SEO',
     primaryCta: {
       href: appRoutes.dashboardRedistribucion(),
-      label: 'Ver redistribucion',
+      label: 'Ver redistribución',
       destination: 'dashboard_redistribucion',
     },
   },
