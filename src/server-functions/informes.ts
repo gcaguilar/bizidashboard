@@ -7,6 +7,7 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { buildItemListStructuredData } from '@/lib/structured-data';
+import { buildPeriodCoverage } from '@/lib/temporal-comparison';
 
 function resolvePublishedMonths(availableMonths: string[], monthlySeriesKeys: string[]): string[] {
   const monthSet = new Set<string>();
@@ -51,13 +52,13 @@ function filterMonthsWithSeries(months: string[], monthlySeries: Array<{ monthKe
 }
 
 export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [{ fetchCachedMonthlyDemandCurve }, { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus }] = await Promise.all([
+  const [{ fetchCachedDailyDemandCurve, fetchCachedMonthlyDemandCurve }, { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus }] = await Promise.all([
     import('@/lib/analytics-series'),
     import('@/lib/api'),
   ]);
   const siteUrl = getSiteUrl();
   const nowIso = new Date().toISOString();
-  const [monthsResponse, monthlySeries, dataset, historyMeta, status] = await Promise.all([
+  const [monthsResponse, monthlySeries, recentDemand, dataset, historyMeta, status] = await Promise.all([
     fetchAvailableDataMonths().catch((error) => {
       captureExceptionWithContext(error, {
         area: 'reports.index',
@@ -67,6 +68,7 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
       return { months: [], generatedAt: new Date().toISOString() };
     }),
     fetchCachedMonthlyDemandCurve(24).catch(() => []),
+    fetchCachedDailyDemandCurve(90).catch(() => []),
     fetchSharedDatasetSnapshot().catch((error) => {
       captureExceptionWithContext(error, {
         area: 'reports.index',
@@ -96,6 +98,17 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
   const months = filterMonthsWithSeries(monthsSource, monthlySeries);
   const monthMap = Object.fromEntries(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
+  const latestPeriodCoverage = latestMonth
+    ? buildPeriodCoverage(
+        latestMonth,
+        recentDemand.map((row) => ({
+          day: row.day,
+          demandScore: Number(row.demandScore),
+          sampleCount: Number(row.sampleCount),
+        })),
+        nowIso
+      )
+    : null;
   const reportsDataState = combineDataStates([
     dataset.dataState,
     resolveDataState({
@@ -140,6 +153,7 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
     months,
     monthMap,
     latestMonth,
+    latestPeriodCoverage,
     reportsDataState,
     breadcrumbs,
     structuredData,

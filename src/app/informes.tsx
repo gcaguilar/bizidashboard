@@ -14,7 +14,7 @@ import { getReportsIndexPageData } from '@/server-functions/informes';
 export const Route = createFileRoute('/informes')({
   head: () =>
     buildSeoHead({
-      title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+      title: 'Informes mensuales de Bizi Zaragoza | Archivo histórico',
       description: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.',
       path: appRoutes.reports(),
     }),
@@ -24,7 +24,7 @@ export const Route = createFileRoute('/informes')({
 
 export default function ReportsIndexPage() {
   const location = useLocation();
-  const { months, monthMap, latestMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
+  const { months, monthMap, latestMonth, latestPeriodCoverage, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
   const monthlyRows = new Map(Object.entries(monthMap));
 
   if (location.pathname !== appRoutes.reports()) {
@@ -75,6 +75,11 @@ export default function ReportsIndexPage() {
           ) : null}
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{months.length} meses publicados</span>
+            {latestPeriodCoverage ? (
+              <span className="ui-chip">
+                {latestPeriodCoverage.label} · {latestPeriodCoverage.coveredDays} de {latestPeriodCoverage.expectedDays} días disponibles
+              </span>
+            ) : null}
             <TrackedLink
               href={appRoutes.statsViajes()}
               navigationEvent={{
@@ -121,7 +126,7 @@ export default function ReportsIndexPage() {
         <div className="mb-3">
           <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            El archivo reune enlaces permanentes para consultar el historico de Bizi Zaragoza.
+            El archivo reúne enlaces permanentes para consultar el histórico de Bizi Zaragoza.
             Cada informe resume un periodo concreto y permite navegar a barrios, estaciones y rankings.
           </p>
         </div>
@@ -153,6 +158,11 @@ export default function ReportsIndexPage() {
                       ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
                       : 'Informe disponible con acceso al dashboard filtrado por ese mes.'}
                   </p>
+                  {month === latestMonth && latestPeriodCoverage ? (
+                    <p className="mt-1 text-[11px] font-semibold text-[var(--primary)]">
+                      {latestPeriodCoverage.label} · {latestPeriodCoverage.coveredDays} de {latestPeriodCoverage.expectedDays} días disponibles
+                    </p>
+                  ) : null}
                 </div>
                 <span className="shrink-0 text-xs font-bold text-[var(--primary)]">Abrir informe</span>
               </TrackedLink>

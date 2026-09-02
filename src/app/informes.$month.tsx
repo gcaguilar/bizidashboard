@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
+import { MetricEvidence } from '@/app/_components/MetricEvidence'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createReportBreadcrumb } from '@/lib/breadcrumbs'
@@ -11,6 +12,7 @@ import { PageShell } from '@/components/layout/page-shell'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
 import { getSiteUrl } from '@/lib/site'
+import { buildObservatoryEvent } from '@/lib/umami'
 
 export const Route = createFileRoute('/informes/$month')({
   loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
@@ -63,7 +65,7 @@ function InformesMonthErrorPage() {
 }
 
 function InformesMonthPage() {
-  const { month, monthRow, nearbyMonths, dataState } = Route.useLoaderData()
+  const { month, monthRow, periodCoverage, nearbyMonths, dataState } = Route.useLoaderData()
   const breadcrumbs = createReportBreadcrumb(formatMonthLabel(month))
 
   return (
@@ -79,6 +81,11 @@ function InformesMonthPage() {
               Informe {formatMonthLabel(month)}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen mensual con demanda estimada, estaciones y patrones del periodo seleccionado.</p>
+            {periodCoverage ? (
+              <p className="mt-3 text-xs font-semibold text-[var(--primary)]">
+                {periodCoverage.label} · {periodCoverage.coveredDays} de {periodCoverage.expectedDays} días disponibles.
+              </p>
+            ) : null}
           </div>
         </div>
       </header>
@@ -87,11 +94,12 @@ function InformesMonthPage() {
       ) : null}
       {monthRow ? (
         <>
-          <section className="grid gap-4 md:grid-cols-4">
-            <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p></article>
+          <section className="grid gap-4 md:grid-cols-5">
+            <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p><MetricEvidence type="estimado" coverage={periodCoverage ? `${periodCoverage.coveredDays} de ${periodCoverage.expectedDays} días` : 'no disponible'} window={formatMonthLabel(month)} limitation="Índice derivado; no equivale a viajes oficiales." /></article>
             <article className="ui-section-card"><p className="stat-label">Ocupación media</p><p className="stat-value">{formatPercent(monthRow.avgOccupancy)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Estaciones activas</p><p className="stat-value">{formatInteger(monthRow.activeStations)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Muestras</p><p className="stat-value">{formatInteger(monthRow.sampleCount)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Cobertura</p><p className="stat-value">{periodCoverage ? `${periodCoverage.coveredDays}/${periodCoverage.expectedDays}` : 'Sin datos'}</p></article>
           </section>
           <section className="grid gap-4 lg:grid-cols-3">
             <article className="ui-section-card lg:col-span-2">
@@ -99,6 +107,9 @@ function InformesMonthPage() {
               <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
                 <p>En {formatMonthLabel(month)}, DatosBizi estima {formatInteger(monthRow.demandScore)} puntos de demanda agregada con una ocupación media del {formatPercent(monthRow.avgOccupancy)}.</p>
                 <p>La serie incluye {formatInteger(monthRow.sampleCount)} muestras y {formatInteger(monthRow.activeStations)} estaciones activas. Usa esta lectura como resumen público; para análisis operativo fino, abre el análisis del mes.</p>
+                {periodCoverage && !periodCoverage.isComplete ? (
+                  <p>Este es un {periodCoverage.label}: hay {periodCoverage.coveredDays} de {periodCoverage.expectedDays} días disponibles. No debe compararse como un porcentaje mensual bruto con un mes completo.</p>
+                ) : null}
               </div>
             </article>
             <article className="ui-section-card">
@@ -106,7 +117,7 @@ function InformesMonthPage() {
               <div className="mt-4 flex flex-col gap-2">
                 <TrackedLink href={appRoutes.dashboardConclusions({ month })} ctaEvent={{ source: 'report_month', ctaId: 'open_dashboard', destination: 'dashboard_conclusions', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-primary-button">Abrir análisis de este mes</TrackedLink>
                 <TrackedLink href={appRoutes.statsViajes()} ctaEvent={{ source: 'report_month', ctaId: 'view_series', destination: 'stats_viajes', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Ver serie acumulada</TrackedLink>
-                <TrackedLink href={appRoutes.reports()} ctaEvent={{ source: 'report_month', ctaId: 'back_to_archive', destination: 'report_archive', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Volver al archivo</TrackedLink>
+                <TrackedLink href={appRoutes.reports()} trackingEvent={buildObservatoryEvent('report_opened', { surface: 'public', routeKey: 'monthly_report', source: 'report_month_archive' })} className="ui-inline-action">Volver al archivo</TrackedLink>
               </div>
             </article>
           </section>

@@ -38,19 +38,18 @@ export type PublicNavItem = {
 };
 
 export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
-  { id: 'home', label: 'Inicio', href: appRoutes.home(), ctaId: 'home' },
-  { id: 'map', label: 'Explora ahora', href: appRoutes.dashboard(), ctaId: 'map' },
-  { id: 'stations', label: 'Estaciones', href: appRoutes.statsEstaciones(), ctaId: 'stations' },
-  { id: 'reports', label: 'Informes', href: appRoutes.reports(), ctaId: 'reports' },
-  { id: 'explore', label: 'Explorar', href: appRoutes.exploreHub(), ctaId: 'explore' },
-  { id: 'status', label: 'Estado', href: appRoutes.status(), ctaId: 'status' },
+  { id: 'summary', label: 'Resumen', href: appRoutes.home(), ctaId: 'summary' },
+  { id: 'network', label: 'Rendimiento de red', href: appRoutes.dashboard(), ctaId: 'network' },
+  { id: 'analysis', label: 'Análisis e informes', href: appRoutes.reports(), ctaId: 'analysis_reports' },
+  { id: 'data', label: 'Datos y API', href: appRoutes.developers(), ctaId: 'data_api' },
+  { id: 'biciradar', label: 'BiciRadar', href: appRoutes.biciradar(), ctaId: 'biciradar' },
 ];
 
 export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
   { id: 'stats', label: 'Estadísticas', href: appRoutes.statsHub(), ctaId: 'stats' },
   { id: 'redistribucion', label: 'Redistribución', href: appRoutes.statsRedistribucion(), ctaId: 'redistribucion' },
   { id: 'compare', label: 'Comparar', href: appRoutes.compare(), ctaId: 'compare' },
-  { id: 'biciradar', label: 'Bici Radar', href: appRoutes.biciradar(), ctaId: 'biciradar' },
+  { id: 'explore', label: 'Explorar análisis', href: appRoutes.exploreHub(), ctaId: 'explore' },
   { id: 'barrios', label: 'Barrios', href: appRoutes.statsBarrios(), ctaId: 'barrios' },
   { id: 'horarios', label: 'Horarios', href: appRoutes.statsHorarios(), ctaId: 'horarios' },
   { id: 'viajes', label: 'Viajes', href: appRoutes.statsViajes(), ctaId: 'viajes' },
@@ -60,9 +59,9 @@ export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
 ];
 
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
-  [PUBLIC_MAIN_NAV_ITEMS[1], PUBLIC_MAIN_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MAIN_NAV_ITEMS[4]],
-  [PUBLIC_MORE_NAV_ITEMS[1], PUBLIC_MORE_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[5], PUBLIC_MORE_NAV_ITEMS[3]],
-  [PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8], PUBLIC_MORE_NAV_ITEMS[9]],
+  [PUBLIC_MAIN_NAV_ITEMS[1], PUBLIC_MAIN_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[4]],
+  [PUBLIC_MORE_NAV_ITEMS[0], PUBLIC_MORE_NAV_ITEMS[1], PUBLIC_MORE_NAV_ITEMS[2], PUBLIC_MORE_NAV_ITEMS[3]],
+  [PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MORE_NAV_ITEMS[6], PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8]],
 ];
 
 export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [

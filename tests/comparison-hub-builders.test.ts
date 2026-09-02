@@ -91,6 +91,7 @@ function buildInput(
       sampleCount: 60 + index,
     })),
     datasetCoverageDays: 90,
+    comparisonNow: '2026-04-01T14:35:00.000Z',
     latestMonth: '2026-03',
     previousMonth: '2026-02',
     recentPayload: {
@@ -256,5 +257,77 @@ describe('comparison hub builders', () => {
       [],
       [],
     ]);
+  });
+
+  it('normalizes a running month against the same available days of the prior month', () => {
+    const { sections } = buildComparisonHubViewModel(
+      buildInput({
+        comparisonNow: '2026-03-02T12:00:00.000Z',
+        monthlySeries: [
+          { monthKey: '2026-02', demandScore: 10_000, avgOccupancy: 0.5, activeStations: 276, sampleCount: 10_000 },
+          { monthKey: '2026-03', demandScore: 200, avgOccupancy: 0.5, activeStations: 276, sampleCount: 200 },
+        ],
+        recentDemand: [
+          { day: '2026-02-01', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+          { day: '2026-02-02', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+          { day: '2026-03-01', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+          { day: '2026-03-02', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+        ],
+      })
+    );
+    const monthCard = sections.find((section) => section.id === 'historical')?.cards.find((card) => card.id === 'month-vs-month');
+
+    expect(monthCard?.delta).toBe('Demanda comparable +0%');
+    expect(monthCard?.delta).not.toContain('-98%');
+    expect(monthCard?.note).toContain('2 de 31 días disponibles');
+    expect(monthCard?.temporalComparison).toMatchObject({
+      isComparable: true,
+      periodLabel: 'mismos días del mes anterior',
+    });
+  });
+
+  it('withholds a monthly percentage when equivalent reference days are missing', () => {
+    const { sections } = buildComparisonHubViewModel(
+      buildInput({
+        comparisonNow: '2026-03-02T12:00:00.000Z',
+        monthlySeries: [
+          { monthKey: '2026-02', demandScore: 10_000, avgOccupancy: 0.5, activeStations: 276, sampleCount: 10_000 },
+          { monthKey: '2026-03', demandScore: 200, avgOccupancy: 0.5, activeStations: 276, sampleCount: 200 },
+        ],
+        recentDemand: [
+          { day: '2026-02-01', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+          { day: '2026-03-01', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+          { day: '2026-03-02', demandScore: 100, avgOccupancy: 0.5, sampleCount: 100 },
+        ],
+      })
+    );
+    const monthCard = sections.find((section) => section.id === 'historical')?.cards.find((card) => card.id === 'month-vs-month');
+
+    expect(monthCard?.delta).toBe('Comparación no disponible todavía');
+    expect(monthCard?.temporalComparison?.isComparable).toBe(false);
+  });
+
+  it('does not compare an in-progress year with a completed one', () => {
+    const complete2025 = Array.from({ length: 12 }, (_, index) => ({
+      monthKey: `2025-${String(index + 1).padStart(2, '0')}`,
+      demandScore: 1_000,
+      avgOccupancy: 0.5,
+      activeStations: 270,
+      sampleCount: 1_000,
+    }));
+    const { sections } = buildComparisonHubViewModel(
+      buildInput({
+        comparisonNow: '2026-03-02T12:00:00.000Z',
+        monthlySeries: [
+          ...complete2025,
+          { monthKey: '2026-01', demandScore: 1_000, avgOccupancy: 0.5, activeStations: 276, sampleCount: 1_000 },
+          { monthKey: '2026-02', demandScore: 1_000, avgOccupancy: 0.5, activeStations: 276, sampleCount: 1_000 },
+        ],
+      })
+    );
+    const yearCard = sections.find((section) => section.id === 'historical')?.cards.find((card) => card.id === 'year-vs-year');
+
+    expect(yearCard?.delta).toBe('Comparación no disponible todavía');
+    expect(yearCard?.note).toContain('2 de 12 meses disponibles en 2026');
   });
 });

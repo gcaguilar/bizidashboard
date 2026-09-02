@@ -94,4 +94,9 @@ describe('dashboard route links', () => {
     expect(appRoutes.biciradar()).not.toBe(appRoutes.dashboard());
     expect(trackedHrefs).not.toContain(appRoutes.biciradar());
   });
+  it('keeps the BiciRadar public route distinct from the dashboard route', () => {
+    expect(appRoutes.biciradar()).toBe('/biciradar');
+    expect(appRoutes.dashboard()).toBe('/dashboard');
+    expect(appRoutes.biciradar()).not.toBe(appRoutes.dashboard());
+  });
 });

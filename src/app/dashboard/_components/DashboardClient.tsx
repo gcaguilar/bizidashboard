@@ -636,6 +636,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     frictionByStationId={frictionByStationId}
                     systemMetrics={systemMetrics}
                     updatedText={updatedText}
+                    coverageDays={initialData.dataset.coverage.totalDays}
                     topFrictionStationName={topFrictionStationName}
                     alerts={alertsData}
                   />}

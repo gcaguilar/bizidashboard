@@ -3,12 +3,16 @@ import { Button } from '@/components/ui/button';
 import type { AlertsResponse, StationSnapshot, StatusResponse } from '@/lib/api-types';
 import type { Coordinates } from '@/lib/geo';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
+import { productTerms } from '@/lib/product-copy';
 import { appRoutes } from '@/lib/routes';
 import { AlertsTopList } from './AlertsTopList';
 import { BalanceIndexCard } from './BalanceIndexCard';
 import { DailyInsightsCard } from './DailyInsightsCard';
 import { MapPanel } from './MapPanel';
 import { SystemHealthCard } from './SystemHealthCard';
+import { NetworkBriefing } from './NetworkBriefing';
+import { buildNetworkBriefing } from '@/lib/network-briefing';
+import { NetworkBriefingViewTracker } from './NetworkBriefingViewTracker';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -39,6 +43,7 @@ type OverviewModeViewProps = {
     dailyInsight: string;
   };
   updatedText: string;
+  coverageDays: number;
   topFrictionStationName: string | null;
   alerts: AlertsResponse;
 };
@@ -61,6 +66,7 @@ export function OverviewModeView({
   frictionByStationId,
   systemMetrics,
   updatedText,
+  coverageDays,
   topFrictionStationName,
   alerts,
 }: OverviewModeViewProps) {
@@ -72,9 +78,24 @@ export function OverviewModeView({
         : status.pipeline.healthStatus === 'down'
           ? 'caido'
           : 'desconocido';
+  const networkLabel = systemMetrics.criticalStations.length === 0
+    ? 'sin estaciones críticas en la muestra'
+    : 'tensionado';
+  const briefing = buildNetworkBriefing({
+    stations: _stations,
+    activeAlertsCount: systemMetrics.activeAlerts.length,
+    coverageDays,
+    lastUpdatedAt: status.quality.freshness.lastUpdated,
+    pipelineHealthy: status.pipeline.healthStatus === 'healthy',
+  });
 
   return (
     <>
+      <NetworkBriefingViewTracker />
+      <NetworkBriefing
+        briefing={briefing}
+        state={status.dataState === 'error' ? 'error' : status.dataState === 'partial' || status.dataState === 'no_coverage' ? 'incomplete' : 'ready'}
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         <SystemHealthCard
           totalStations={systemMetrics.totalStations}
@@ -97,10 +118,13 @@ export function OverviewModeView({
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del sistema</p>
-            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnostico rapido fuera del panel principal</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{productTerms.dataStatus.label}</p>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnóstico rápido fuera del panel principal</h2>
             <p className="text-sm text-[var(--muted)]">
-              Estado actual: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · ultima referencia {updatedText}
+              Datos y pipeline: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · última referencia {updatedText}
+            </p>
+            <p className="text-sm text-[var(--muted)]">
+              {productTerms.networkBalance.label}: <span className="font-semibold text-[var(--foreground)]">{networkLabel}</span>. Los datos pueden estar sanos aunque haya estaciones desequilibradas.
             </p>
           </div>
 
@@ -141,7 +165,7 @@ export function OverviewModeView({
             Revisa alertas activas, prioriza redistribucion y resuelve friccion en estaciones criticas.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardAlerts()}>Operaciones</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardAlerts()}>Ver alertas y señales</TrackedLink>
           </Button>
         </article>
 
@@ -151,7 +175,7 @@ export function OverviewModeView({
             Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardFlow()}>Analisis</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow()}>Ver análisis de flujos</TrackedLink>
           </Button>
         </article>
       </section>
