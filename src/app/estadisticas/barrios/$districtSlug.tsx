@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { createDistrictBreadcrumb } from '@/lib/breadcrumbs'
+import { buildBreadcrumbStructuredData, createDistrictBreadcrumb } from '@/lib/breadcrumbs'
 import { formatDecimal } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
@@ -98,7 +98,16 @@ function DistrictPage() {
 
   return (
     <PageShell>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            ...structuredData,
+            '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
+          }),
+        }}
+      />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
