@@ -33,7 +33,7 @@ export function DataModeView({
       description: 'Devuelve el estado actual de las estaciones con bicis, anclajes, capacidad y timestamp.',
     },
     {
-      label: 'Salud del sistema',
+      label: 'Estado de los datos',
       path: appRoutes.api.status(),
       format: 'JSON / CSV',
       description: 'Resume la salud del pipeline, la frescura de los datos y el volumen reciente.',
@@ -42,25 +42,25 @@ export function DataModeView({
       label: 'Movilidad agregada',
       path: appRoutes.api.mobility(),
       format: 'JSON',
-      description: 'Entrega curvas de demanda, señales horarias y, si existe, impacto del transporte publico.',
+      description: 'Muestra actividad por hora y, si hay datos, su relación con el transporte público.',
     },
     {
-      label: 'Historico agregado',
+      label: 'Histórico resumido',
       path: appRoutes.api.history(),
       format: 'JSON / CSV',
       description: 'Ofrece demanda, ocupacion y balance diario para analisis y auditoria.',
     },
     {
-      label: 'Alertas historicas',
+      label: 'Histórico de alertas',
       path: appRoutes.api.alertsHistory(),
       format: 'JSON / CSV',
-      description: 'Sirve para estudiar incidencias activas y resueltas con filtros por estado y limite.',
+      description: 'Permite consultar incidencias activas y resueltas por estado y número de resultados.',
     },
     {
       label: 'Predicciones por estacion',
       path: appRoutes.api.predictions(),
       format: 'JSON',
-      description: 'Estima bicis y anclajes a corto plazo mezclando estado actual y patrones historicos por hora.',
+      description: 'Calcula una previsión a corto plazo a partir del estado actual y los patrones por hora.',
     },
   ];
 
@@ -79,9 +79,9 @@ export function DataModeView({
       <MethodologyPanel />
       <section className="grid gap-4 lg:grid-cols-2">
         <article className="ui-section-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Metodologia y origen</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Origen y método</h3>
           <p className="text-sm text-[var(--muted)]">
-            Los datos proceden del sistema GBFS de Bizi Zaragoza y del pipeline interno de agregacion para rankings, patrones y conclusiones.
+            Los datos proceden del sistema oficial de Bizi Zaragoza y se resumen para crear listas, patrones y conclusiones.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
             <TrackedLink
@@ -93,7 +93,7 @@ export function DataModeView({
                 source: 'data_mode',
               })}
             >
-              Revisar metodologia
+              Ver cómo se calculan
             </TrackedLink>
           </Button>
         </article>
@@ -103,7 +103,7 @@ export function DataModeView({
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 shadow-[var(--shadow-soft)]">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Estado del modo datos</p>
         <p className="mt-2 text-sm text-[var(--foreground)]">
-          Esta vista ya centraliza exportaciones, metodologia, trazabilidad y una primera capa predictiva. El siguiente paso pendiente sigue siendo medir rendimiento real en produccion tras despliegue.
+          Aquí puedes descargar datos, consultar cómo se calculan y revisar las previsiones. Algunas funciones necesitan suficiente histórico.
         </p>
       </section>
     </section>

@@ -13,7 +13,7 @@ export const Route = createFileRoute('/dashboard/alertas/')({
   head: () =>
     buildSeoHead({
       title: 'Historial de alertas - Dashboard Bizi',
-      description: 'Consulta alertas activas y resueltas de Bizi Zaragoza para detectar estaciones sin bicis, sin huecos o que necesitan revision.',
+      description: 'Consulta alertas activas y resueltas para detectar estaciones sin bicis, sin huecos o que conviene revisar.',
       robots: 'noindex, nofollow',
     }),
   loader: () => getAlertsHistoryPageData(),
@@ -49,7 +49,7 @@ function DashboardAlertsError() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <TrackedLink href={appRoutes.status()} className="ui-primary-button">Ver estado</TrackedLink>
-          <TrackedLink href={appRoutes.dashboard()} className="ui-inline-action">Volver al dashboard</TrackedLink>
+          <TrackedLink href={appRoutes.dashboard()} className="ui-inline-action">Volver al resumen</TrackedLink>
         </div>
       </section>
     </PageShell>
