@@ -63,7 +63,7 @@ function InformesMonthErrorPage() {
 }
 
 function InformesMonthPage() {
-  const { month, monthRow, nearbyMonths, dataState } = Route.useLoaderData()
+  const { month, monthRow, periodCoverage, nearbyMonths, dataState } = Route.useLoaderData()
   const breadcrumbs = createReportBreadcrumb(formatMonthLabel(month))
 
   return (
@@ -79,6 +79,11 @@ function InformesMonthPage() {
               Informe {formatMonthLabel(month)}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">Resumen mensual con demanda estimada, estaciones y patrones del periodo seleccionado.</p>
+            {periodCoverage ? (
+              <p className="mt-3 text-xs font-semibold text-[var(--primary)]">
+                {periodCoverage.label} · {periodCoverage.coveredDays} de {periodCoverage.expectedDays} días disponibles.
+              </p>
+            ) : null}
           </div>
         </div>
       </header>
@@ -87,11 +92,12 @@ function InformesMonthPage() {
       ) : null}
       {monthRow ? (
         <>
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 md:grid-cols-5">
             <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Ocupación media</p><p className="stat-value">{formatPercent(monthRow.avgOccupancy)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Estaciones activas</p><p className="stat-value">{formatInteger(monthRow.activeStations)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Muestras</p><p className="stat-value">{formatInteger(monthRow.sampleCount)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Cobertura</p><p className="stat-value">{periodCoverage ? `${periodCoverage.coveredDays}/${periodCoverage.expectedDays}` : 'Sin datos'}</p></article>
           </section>
           <section className="grid gap-4 lg:grid-cols-3">
             <article className="ui-section-card lg:col-span-2">
@@ -99,6 +105,9 @@ function InformesMonthPage() {
               <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
                 <p>En {formatMonthLabel(month)}, DatosBizi estima {formatInteger(monthRow.demandScore)} puntos de demanda agregada con una ocupación media del {formatPercent(monthRow.avgOccupancy)}.</p>
                 <p>La serie incluye {formatInteger(monthRow.sampleCount)} muestras y {formatInteger(monthRow.activeStations)} estaciones activas. Usa esta lectura como resumen público; para análisis operativo fino, abre el análisis del mes.</p>
+                {periodCoverage && !periodCoverage.isComplete ? (
+                  <p>Este es un {periodCoverage.label}: hay {periodCoverage.coveredDays} de {periodCoverage.expectedDays} días disponibles. No debe compararse como un porcentaje mensual bruto con un mes completo.</p>
+                ) : null}
               </div>
             </article>
             <article className="ui-section-card">
