@@ -21,7 +21,7 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
   head: () =>
     buildSeoHead({
       title: 'Redistribución Bizi Zaragoza - DatosBizi',
-      description: 'Diagnóstico de reequilibrio y estaciones que necesitan atención en Bizi Zaragoza.',
+      description: 'Consulta qué estaciones muestran falta o exceso de bicis y dónde conviene revisar el equilibrio de la red.',
       path: appRoutes.statsRedistribucion(),
     }),
   errorComponent: RedistribucionErrorPage,
