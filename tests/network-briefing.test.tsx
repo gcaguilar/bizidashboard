@@ -31,7 +31,7 @@ describe('network briefing', () => {
     vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
     const briefing = buildNetworkBriefing(input);
 
-    expect(briefing.current).toContain('1 estación está en estado crítico');
+    expect(briefing.current).toContain('1 estación está sin bicis o sin anclajes libres');
     expect(briefing.focus).toContain('Plaza Aragón');
     expect(briefing.comparison).toContain('Datos actuales disponibles');
     expect(briefing.dataQuality).toContain('141 días');

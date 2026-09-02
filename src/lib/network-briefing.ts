@@ -51,7 +51,7 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
 
   const criticalCount = criticalStations.length;
   const current = criticalCount > 0
-    ? `La red presenta tensión: ${criticalCount} ${pluralize(criticalCount, 'estación está', 'estaciones están')} en estado crítico.`
+    ? `La red presenta tensión: ${criticalCount} ${pluralize(criticalCount, 'estación está', 'estaciones están')} sin bicis o sin anclajes libres.`
     : 'La última muestra no incluye estaciones vacías ni llenas.';
   const criticalDifference = input.baseline
     ? criticalCount - input.baseline.criticalStationsCount
