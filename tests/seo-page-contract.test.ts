@@ -208,6 +208,14 @@ describe('seo navigation contract', () => {
     }
   });
 
+  it('keeps the homepage social metadata complete', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/index.tsx'), 'utf8');
+
+    expect(source).toContain("property: 'og:image'");
+    expect(source).toContain("name: 'twitter:image'");
+    expect(source).toContain("property: 'og:image:alt'");
+  });
+
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
     const legacyAliases = Object.values(SEO_PAGE_CONFIGS).filter((config) => config.isLegacyAlias);
 
