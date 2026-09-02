@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import {
   EXPLORE_PAGE_NAV_CONFIG,
   PRIMARY_SEO_PAGE_SLUGS,
@@ -25,6 +27,15 @@ function inferDestinationRole(destination: string): 'dashboard' | 'hub' | null {
 }
 
 describe('seo navigation contract', () => {
+  it('keeps global website and organization structured data in the document shell', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/__root.tsx'), 'utf8');
+
+    expect(source).toContain("'@type': 'Organization'");
+    expect(source).toContain("'@type': 'WebSite'");
+    expect(source).toContain("'@type': 'SearchAction'");
+    expect(source).toContain("'query-input': 'required name=search_term_string'");
+  });
+
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
     expect(UTILITY_LANDING_NAV_CONFIG.pageRole).toBe('ENTRY_SEO');
     expect(UTILITY_LANDING_NAV_CONFIG.primaryCta.destination).toBe('dashboard_overview');
