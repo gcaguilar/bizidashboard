@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
 import { buildNetworkBriefing } from '@/lib/network-briefing';
+import { selectComparableHourlyBaseline } from '@/lib/network-briefing-baseline';
 
 vi.mock('@/app/_components/TrackedLink', () => ({
   TrackedLink: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
@@ -16,6 +17,15 @@ const input = {
 };
 
 describe('network briefing', () => {
+  it('finds a historical sample for the same local weekday and hour', () => {
+    const reference = new Date('2026-04-01T21:00:00.000Z');
+    const baseline = selectComparableHourlyBaseline([
+      { bucketStart: new Date('2026-03-25T22:00:00.000Z'), stationCount: 120, criticalStationsCount: 8 },
+      { bucketStart: new Date('2026-03-26T21:00:00.000Z'), stationCount: 20, criticalStationsCount: 2 },
+    ], reference, 120);
+    expect(baseline?.criticalStationsCount).toBe(8);
+  });
+
   it('builds a deterministic, bounded briefing without a comparison baseline', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));

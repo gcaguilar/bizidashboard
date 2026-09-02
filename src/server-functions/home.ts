@@ -4,6 +4,7 @@ import type { StationSeoSummary } from '@/lib/seo-stations'
 import { buildNetworkBriefing } from '@/lib/network-briefing'
 import { fetchAlerts, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api'
 import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks'
+import { fetchComparableNetworkBaseline } from '@/lib/network-briefing-baseline'
 
 export type HomePageData = {
   mostUsedStations: StationSeoSummary[]
@@ -23,6 +24,10 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
     fetchAlerts(20).catch(() => ({ limit: 20, alerts: [], generatedAt: nowIso })),
   ])
+  const baseline = await fetchComparableNetworkBaseline(
+    new Date(status.quality.freshness.lastUpdated ?? dataset.lastUpdated.lastSampleAt ?? nowIso),
+    stationRows.length,
+  )
 
   const mostUsed = [...stationRows]
     .filter(s => s.turnover?.turnoverScore != null && Number(s.turnover.turnoverScore) > 0)
@@ -54,6 +59,7 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
       coverageDays: dataset.coverage.totalDays,
       lastUpdatedAt: status.quality.freshness.lastUpdated ?? dataset.lastUpdated.lastSampleAt,
       pipelineHealthy: status.pipeline.healthStatus === 'healthy',
+      baseline,
     }),
   }
 })

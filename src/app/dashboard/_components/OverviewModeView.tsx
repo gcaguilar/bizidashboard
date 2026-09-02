@@ -13,6 +13,7 @@ import { SystemHealthCard } from './SystemHealthCard';
 import { NetworkBriefing } from './NetworkBriefing';
 import { buildNetworkBriefing } from '@/lib/network-briefing';
 import { NetworkBriefingViewTracker } from './NetworkBriefingViewTracker';
+import type { NetworkBriefingBaseline } from '@/lib/network-briefing';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -46,6 +47,7 @@ type OverviewModeViewProps = {
   coverageDays: number;
   topFrictionStationName: string | null;
   alerts: AlertsResponse;
+  baseline?: NetworkBriefingBaseline | null;
 };
 
 export function OverviewModeView({
@@ -69,6 +71,7 @@ export function OverviewModeView({
   coverageDays,
   topFrictionStationName,
   alerts,
+  baseline,
 }: OverviewModeViewProps) {
   const statusLabel =
     status.pipeline.healthStatus === 'healthy'
@@ -87,6 +90,7 @@ export function OverviewModeView({
     coverageDays,
     lastUpdatedAt: status.quality.freshness.lastUpdated,
     pipelineHealthy: status.pipeline.healthStatus === 'healthy',
+    baseline: baseline ?? null,
   });
 
   return (
