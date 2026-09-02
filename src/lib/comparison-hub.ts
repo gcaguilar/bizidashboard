@@ -24,6 +24,7 @@ import {
   buildComparisonHubViewModel,
   buildFallbackComparisonSections,
 } from '@/lib/comparison-hub-builders';
+import type { TemporalComparison } from '@/lib/temporal-comparison';
 
 const COMPARISON_HUB_CACHE_TTL_SECONDS = 300;
 
@@ -57,6 +58,7 @@ export type ComparisonCard = {
   delta: string;
   href: string;
   note?: string;
+  temporalComparison?: TemporalComparison;
 };
 
 export type ComparisonSection = {
@@ -302,6 +304,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
           sampleCount: Number(row.sampleCount),
         })),
         datasetCoverageDays: dataset.coverage.totalDays,
+        comparisonNow: nowIso,
         latestMonth,
         previousMonth,
         recentPayload: recentConclusions?.payload ?? null,

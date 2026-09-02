@@ -2,6 +2,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { Progress } from '@/components/ui/progress';
 import { InfoHint } from './InfoHint';
+import { MetricEvidence } from '@/app/_components/MetricEvidence';
 
 type BalanceIndexCardProps = {
   balanceIndex: number;
@@ -35,13 +36,13 @@ export function BalanceIndexCard({
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Operaciones</p>
           <div className="mt-1 flex items-center gap-2">
-            <h3 className="text-lg font-bold text-[var(--foreground)]">Balance index</h3>
+            <h3 className="text-lg font-bold text-[var(--foreground)]">Equilibrio de la red</h3>
             <InfoHint
-              label="Como se calcula el balance index"
-              content="Se calcula comparando la ocupacion de cada estacion con el 50%. Si muchas estaciones estan cerca de ese punto, el sistema esta equilibrado y el indice sube hacia 1."
+              label="Cómo se calcula el equilibrio de la red"
+              content="Comparamos la ocupación de cada estación con el 50 %. Si muchas se acercan a ese punto, la red está más equilibrada y el índice se acerca a 1."
             />
           </div>
-          <p className="mt-1 text-sm text-[var(--muted)]">Mide como de cerca esta cada estacion del 50% de ocupacion. Cuanto mas cerca de 1, mas equilibrado esta el sistema.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Mide cuánto se acerca cada estación al 50 % de ocupación. Cuanto más cerca de 1, más equilibrada está la red.</p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('balance-index')} className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
           Entender formula
@@ -61,6 +62,7 @@ export function BalanceIndexCard({
         value={percentage}
         indicatorClassName="bg-[var(--primary)] duration-500"
       />
+      <MetricEvidence type="estimado" coverage={`${criticalStationsCount} estaciones críticas en la muestra`} window="última muestra" limitation="El índice resume ocupación; no representa viajes individuales." />
     </article>
   );
 }

@@ -16,7 +16,13 @@ export type UmamiTrackedEventName =
   | 'filter_change'
   | 'entity_select'
   | 'panel_open'
-  | 'export_click';
+  | 'export_click'
+  | 'observatory_brief_viewed'
+  | 'observatory_evidence_opened'
+  | 'comparison_validated_viewed'
+  | 'report_opened'
+  | 'api_docs_opened'
+  | 'biciradar_handoff_clicked';
 
 export type LegacyUmamiInteractionName =
   | 'api_cta_click'
@@ -58,6 +64,14 @@ export type UmamiTrackedEvent = {
   name: UmamiTrackedEventName;
   payload?: UmamiEventPayload;
 };
+
+/** Product events contain only fixed aggregate labels from the GDPR allowlist. */
+export function buildObservatoryEvent(
+  name: Extract<UmamiTrackedEventName, 'observatory_brief_viewed' | 'observatory_evidence_opened' | 'comparison_validated_viewed' | 'report_opened' | 'api_docs_opened' | 'biciradar_handoff_clicked'>,
+  input: { surface: UmamiSurface; routeKey: string; source: string }
+): UmamiTrackedEvent {
+  return { name, payload: { ...basePayload(input.surface, input.routeKey), source: input.source } };
+}
 
 type PublicPageViewInput = {
   routeKey: string;

@@ -7,6 +7,7 @@ import {
   buildNavigationClickEvent,
   buildPublicPageViewEvent,
   buildSearchSubmitEvent,
+  buildObservatoryEvent,
   getQueryLengthBucket,
   getResultCountBucket,
   resolveRouteKeyFromPathname,
@@ -44,6 +45,18 @@ describe('umami tracking helpers', () => {
       destination_role: 'dashboard',
       transition_kind: 'to_dashboard',
     });
+  });
+
+  it('builds named observatory events without identifiers, location or URL parameters', () => {
+    expect(buildObservatoryEvent('biciradar_handoff_clicked', { surface: 'public', routeKey: 'home', source: 'home_biciradar_handoff' })).toEqual({
+      name: 'biciradar_handoff_clicked',
+      payload: { surface: 'public', route_key: 'home', source: 'home_biciradar_handoff' },
+    });
+  });
+
+  it('supports comparison and API observatory events', () => {
+    expect(buildObservatoryEvent('comparison_validated_viewed', { surface: 'public', routeKey: 'compare', source: 'comparison_hub' }).name).toBe('comparison_validated_viewed');
+    expect(buildObservatoryEvent('api_docs_opened', { surface: 'public', routeKey: 'developers', source: 'developers_hub' }).name).toBe('api_docs_opened');
   });
 
   it('builds public page views without raw path or slug fields', () => {

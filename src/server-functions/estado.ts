@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { isValidMonthKey } from '@/lib/months';
 import { buildSystemCapabilities, buildSystemIncidents } from '@/lib/system-status';
+import { getNetworkBalanceSummary } from '@/lib/product-copy';
 
 export const getSystemStatusPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [api, fallbacks] = await Promise.all([
@@ -23,6 +24,7 @@ export const getSystemStatusPageData = createServerFn({ method: 'GET' }).handler
     stations.stations.length,
     status.quality.volume.recentStationCount
   );
+  const networkBalance = getNetworkBalanceSummary(stations.stations);
 
   return {
     status,
@@ -35,5 +37,6 @@ export const getSystemStatusPageData = createServerFn({ method: 'GET' }).handler
     capabilities,
     activeIncidentCount,
     activeStationsCount,
+    networkBalance,
   };
 });

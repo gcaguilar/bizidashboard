@@ -88,10 +88,11 @@ describe('public UX regressions', () => {
     expect(source).toMatch(/PUBLIC_NAV_ITEMS/);
   });
 
-  it('header exposes Bici Radar and Redistribución in main or more nav', () => {
+  it('header exposes BiciRadar as a primary product and Redistribución as an analysis link', () => {
     const source = readSource('src/lib/public-navigation.ts');
     expect(source).toContain('appRoutes.biciradar()');
     expect(source).toContain('appRoutes.statsRedistribucion()');
+    expect(source).toContain("label: 'BiciRadar'");
   });
 
   it('keeps BiciRadar as an accessible public product distinct from the dashboard', () => {
@@ -100,7 +101,43 @@ describe('public UX regressions', () => {
     const biciradar = readSource('src/app/biciradar.tsx');
 
     expect(routes).toContain("biciradar: () => '/biciradar'");
-    expect(navigation).toContain("{ id: 'biciradar', label: 'Bici Radar', href: appRoutes.biciradar()");
+    expect(navigation).toContain("{ id: 'biciradar', label: 'BiciRadar', href: appRoutes.biciradar()");
+    expect(biciradar).toContain("createFileRoute('/biciradar')");
+    expect(routes).toContain("dashboard: () => '/dashboard'");
+  });
+
+  it('documents the observatory product boundary and protected public routes', () => {
+    const decision = readSource('docs/product/datosbizi-observatorio.md');
+
+    expect(decision).toContain('DatosBizi es un observatorio público');
+    expect(decision).toContain('BiciRadar es el producto de consulta individual y proximidad');
+    expect(decision).toContain('estimaciones');
+    expect(decision).toContain('estado de los datos');
+    expect(decision).toContain('equilibrio de la red');
+
+    for (const route of [
+      '`/`',
+      '`/dashboard`',
+      '`/comparar`',
+      '`/informes`',
+      '`/estado`',
+      '`/metodologia`',
+      '`/developers`',
+      '`/biciradar`',
+      '`/estadisticas/estaciones/:stationId`',
+      '`/estadisticas/barrios/:districtSlug`',
+    ]) {
+      expect(decision).toContain(route);
+    }
+  });
+
+  it('keeps BiciRadar as an accessible public product distinct from the dashboard', () => {
+    const routes = readSource('src/lib/routes.ts');
+    const navigation = readSource('src/lib/public-navigation.ts');
+    const biciradar = readSource('src/app/biciradar.tsx');
+
+    expect(routes).toContain("biciradar: () => '/biciradar'");
+    expect(navigation).toContain("{ id: 'biciradar', label: 'BiciRadar', href: appRoutes.biciradar()");
     expect(biciradar).toContain("createFileRoute('/biciradar')");
     expect(routes).toContain("dashboard: () => '/dashboard'");
   });
@@ -184,26 +221,30 @@ describe('public UX regressions', () => {
       expect(source, file).not.toMatch(/Ver mapa en vivo|Mapa en vivo|Abrir mapa en vivo|Ver disponibilidad en el mapa|Ver disponibilidad en mapa|Ver mapa por barrios/);
     }
 
-    expect(readSource('src/app/index.tsx')).toContain('Abrir mapa avanzado');
+    expect(readSource('src/app/index.tsx')).toContain('Ver resumen de red');
     expect(readSource('src/app/estadisticas/index.tsx')).toContain('Mapa avanzado');
   });
 
-  it('public nav avoids duplicate dashboard wording', () => {
+  it('public nav uses observatory groups instead of ambiguous exploration wording', () => {
     const publicNavigation = readSource('src/lib/public-navigation.ts');
 
-    expect(publicNavigation).toContain("label: 'Explora ahora'");
+    expect(publicNavigation).toContain("label: 'Resumen'");
+    expect(publicNavigation).toContain("label: 'Rendimiento de red'");
+    expect(publicNavigation).toContain("label: 'Análisis e informes'");
+    expect(publicNavigation).toContain("label: 'Datos y API'");
     expect(publicNavigation).toContain("label: 'Redistribución'");
     expect(publicNavigation).not.toContain("label: 'Panel avanzado'");
     expect(publicNavigation).not.toContain("label: 'Dashboard'");
   });
 
-  it('public navigation labels avoid dashboard wording', () => {
+  it('public navigation labels distinguish BiciRadar from dashboard', () => {
     const routes = readSource('src/lib/routes.ts');
     const publicNavigation = readSource('src/lib/public-navigation.ts');
 
     expect(routes).not.toContain("label: 'Dashboard'");
     expect(publicNavigation).not.toMatch(/label: 'Dashboard'|Dashboard >/);
-    expect(publicNavigation).toContain("label: 'Explora ahora'");
+    expect(publicNavigation).toContain("label: 'BiciRadar'");
+    expect(publicNavigation).toContain("label: 'Rendimiento de red'");
   });
 
   it('explore destination labels distinguish dashboard tools from public pages', () => {
@@ -222,7 +263,6 @@ describe('public UX regressions', () => {
 
   it('new map CTAs use advancedMap instead of statsMapa', () => {
     const files = [
-      'src/app/index.tsx',
       'src/app/estadisticas/index.tsx',
       'src/app/estadisticas/barrios/index.tsx',
       'src/app/estadisticas/barrios/$districtSlug.tsx',
@@ -292,11 +332,13 @@ describe('public UX regressions', () => {
     expect(alerts).not.toContain('navUrl === currentUrl');
   });
 
-  it('home FAQ uses current navigation language', () => {
+  it('home positions the observatory separately from BiciRadar', () => {
     const source = readSource('src/app/index.tsx');
-    expect(source).toContain('mapa avanzado');
-    expect(source).not.toContain('mapa en vivo');
-    expect(source).not.toContain('buscador global');
+    expect(source).toContain('Observatorio público de movilidad');
+    expect(source).toContain('Cómo evoluciona y se equilibra Bizi Zaragoza');
+    expect(source).toContain('Abrir BiciRadar');
+    expect(source).toContain('no son viajes oficiales');
+    expect(source).not.toContain('Usar mi ubicación');
   });
 
   it('public search describes station search accurately', () => {

@@ -1,4 +1,5 @@
 import { formatPercent } from '@/lib/format';
+import { productTerms } from '@/lib/product-copy';
 import { MetricCard, MetricGrid } from '@/components/ui/metric-card';
 
 type SystemHealthCardProps = {
@@ -18,9 +19,9 @@ export function SystemHealthCard({
 }: SystemHealthCardProps) {
   return (
     <article className="ui-section-card">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Resumen</p>
-      <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Salud general del sistema</h3>
-      <p className="mt-1 text-sm text-[var(--muted)]">Resumen rapido para entender cuantas estaciones hay, cuantas bicis quedan y como de equilibrada esta la red.</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{productTerms.networkBalance.label}</p>
+      <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Disponibilidad en la última muestra</h3>
+      <p className="mt-1 text-sm text-[var(--muted)]">{productTerms.networkBalance.definition}</p>
 
       <MetricGrid columns={2}>
         <MetricCard label="Estaciones activas" value={totalStations} />

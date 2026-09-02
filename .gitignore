@@ -75,6 +75,7 @@ docs/
 docs/*
 !docs/product/
 !docs/product/datosbizi-observatorio.md
+!docs/product/datosbizi-observatorio-validacion.md
 PLAN.md
 untitled.pen
 dist/

@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
-import { PublicSearchForm } from '@/app/_components/PublicSearchForm';
-import { HomeFavoritesSection } from '@/app/_components/HomeFavoritesSection';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
+import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
+import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { useHasFavorites } from '@/app/_components/HomeFavoritesClient';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
+import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
 
 export const HOME_CACHE_CONTROL =
@@ -16,7 +16,7 @@ export const HOME_CACHE_CONTROL =
 const HOME_FAQ = [
   {
     question: '¿Cómo saber si hay bicis disponibles en mi estación más cercana?',
-    answer: 'Usa el mapa avanzado o busca el nombre de la estación. Cada ficha muestra bicis disponibles, huecos libres y ocupación reciente.',
+    answer: 'Usa BiciRadar, el producto de consulta individual y proximidad. Este observatorio resume el rendimiento y la evolución de toda la red.',
   },
   {
     question: '¿Qué estaciones tienen más bicis ahora mismo?',
@@ -54,9 +54,8 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const { mostUsedStations, problemStations, stationRows, bikesAvailable, activeStationsCount, generatedAt } = Route.useLoaderData();
+  const { mostUsedStations, problemStations, bikesAvailable, activeStationsCount, generatedAt, briefing } = Route.useLoaderData();
   const generatedAtLabel = formatHourMinute(generatedAt);
-  const hasFavorites = useHasFavorites();
 
   return (
     <PageShell>
@@ -96,35 +95,34 @@ function Home() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Datos públicos de Bizi
+              Observatorio público de movilidad
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-5xl">
-              Bizi Zaragoza ahora mismo
+              Cómo evoluciona y se equilibra Bizi Zaragoza
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Disponibilidad en tiempo real, las estaciones más usadas y acceso rápido a todo lo que necesitas.
+              Lee el rendimiento de la red, las señales de tensión, su evolución y la calidad de los datos públicos.
             </p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
           <TrackedLink
-            href={appRoutes.advancedMap()}
-            ctaEvent={{ source: 'home_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+            href={appRoutes.dashboard()}
+            ctaEvent={{ source: 'home_hero', ctaId: 'open_network_summary', destination: 'dashboard', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
             className="ui-primary-button w-full sm:w-auto"
           >
-            Abrir mapa avanzado
+            Ver resumen de red
           </TrackedLink>
           <TrackedLink
-            href={appRoutes.statsEstaciones()}
-            ctaEvent={{ source: 'home_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+            href={appRoutes.reports()}
+            ctaEvent={{ source: 'home_hero', ctaId: 'open_reports', destination: 'reports', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
             className="ui-inline-action w-full sm:w-auto"
           >
-            Buscar estación
+            Ver evolución e informes
           </TrackedLink>
         </div>
 
-        <PublicSearchForm />
       </header>
 
       <div className="flex flex-wrap gap-3 text-xs text-[var(--muted)]">
@@ -133,34 +131,37 @@ function Home() {
         <span className="ui-chip" suppressHydrationWarning>Actualizado {generatedAtLabel}</span>
       </div>
 
-      <div
-        className="mt-4 rounded-xl border border-[var(--warning)]/20 bg-[var(--warning)]/8 px-4 py-3"
-        style={{ display: hasFavorites ? 'none' : undefined }}
-      >
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 text-lg">💡</span>
-          <div>
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Marca tus estaciones favoritas
-            </p>
-            <p className="mt-1 text-xs text-[var(--muted)]">
-              Desde el{' '}
-              <TrackedLink href={appRoutes.dashboard()} className="underline hover:text-[var(--foreground)]">
-                mapa avanzado
-              </TrackedLink>{' '}
-              puedes marcar tus estaciones habituales como favoritas. Se guardan solo en este navegador y aparecerán aquí con su estado actual.
-            </p>
-          </div>
-        </div>
-      </div>
+      <NetworkBriefing briefing={briefing} className="mt-4" />
+      <NetworkBriefingViewTracker />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="xl:col-span-2" style={{ display: hasFavorites ? undefined : 'none' }}>
-          <HomeFavoritesSection stationRows={stationRows} />
+        <div className="ui-section-card">
+          <p className="stat-label">Estaciones a vigilar</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Señales de fricción observadas en la cobertura disponible.</p>
+          <div className="mt-2 space-y-2">
+            {problemStations.map((s) => {
+              const problemHours = Number(s.availability?.emptyHours ?? 0) + Number(s.availability?.fullHours ?? 0);
+              return (
+                <TrackedLink
+                  key={s.station.id}
+                  href={appRoutes.stationDetail(s.station.id)}
+                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', module: s.station.id }}
+                  className="ui-surface-block ui-surface-block-interactive"
+                >
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
+                    <span>{formatInteger(problemHours)} h con problemas</span>
+                    <span>{formatPercent(s.currentOccupancy)} ocupación</span>
+                  </div>
+                </TrackedLink>
+              );
+            })}
+          </div>
         </div>
 
         <div className="ui-section-card">
-          <p className="stat-label">Estaciones más usadas</p>
+          <p className="stat-label">Actividad estimada por estación</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Puntos de actividad derivados; no son viajes oficiales.</p>
           <div className="mt-2 space-y-2">
             {mostUsedStations.map((s) => (
               <TrackedLink
@@ -180,30 +181,16 @@ function Home() {
         </div>
 
         <div className="ui-section-card">
-          <p className="stat-label">Estaciones con más problemas</p>
-          <div className="mt-2 space-y-2">
-            {problemStations.map((s) => {
-              const problemHours = Number(s.availability?.emptyHours ?? 0) + Number(s.availability?.fullHours ?? 0);
-              return (
-                <TrackedLink
-                  key={s.station.id}
-                  href={appRoutes.stationDetail(s.station.id)}
-                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', module: s.station.id }}
-                  className="ui-surface-block ui-surface-block-interactive"
-                >
-                  <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
-                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
-                    <span>{formatInteger(problemHours)} h con problemas</span>
-                    <span>{formatPercent(s.currentOccupancy)} nivel de uso</span>
-                  </div>
-                </TrackedLink>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="xl:col-span-2" style={{ display: hasFavorites ? 'none' : undefined }}>
-          <HomeFavoritesSection stationRows={stationRows} />
+          <p className="stat-label">Consulta individual</p>
+          <h2 className="mt-1 text-lg font-bold text-[var(--foreground)]">¿Buscas una bici o un anclaje cerca?</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">BiciRadar es el producto de proximidad. Usa ubicación y búsqueda de estaciones sin cambiar este observatorio.</p>
+          <TrackedLink
+            href={appRoutes.biciradar()}
+            trackingEvent={buildObservatoryEvent('biciradar_handoff_clicked', { surface: 'public', routeKey: 'home', source: 'home_biciradar_handoff' })}
+            className="ui-primary-button mt-4"
+          >
+            Abrir BiciRadar
+          </TrackedLink>
         </div>
       </section>
 
