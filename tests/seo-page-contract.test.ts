@@ -99,6 +99,7 @@ describe('seo navigation contract', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/about.tsx'), 'utf8');
 
     expect(source).toContain("'@type': 'AboutPage'");
+    expect(source).toContain("publisher: { '@id': `${getSiteUrl()}/#organization` }");
     expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
     expect(source).toContain('Qué ofrece DatosBizi');
   });

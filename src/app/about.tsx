@@ -5,6 +5,7 @@ import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes'
 import { toAbsoluteRouteUrl } from '@/lib/routes'
+import { getSiteUrl } from '@/lib/site'
 import { PageShell } from '@/components/layout/page-shell'
 
 export const Route = createFileRoute('/about')({
@@ -25,10 +26,12 @@ function About() {
       buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'AboutPage',
+        '@id': `${getSiteUrl()}${appRoutes.about()}#about`,
         name: 'Sobre DatosBizi',
         description: 'DatosBizi reúne datos actualizados, histórico, informes y API pública de Bizi Zaragoza.',
         url: toAbsoluteRouteUrl(appRoutes.about()),
         inLanguage: 'es',
+        publisher: { '@id': `${getSiteUrl()}/#organization` },
       },
     ],
   };
