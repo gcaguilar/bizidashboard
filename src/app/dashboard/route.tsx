@@ -14,8 +14,8 @@ function DashboardParentRoute() {
 function DashboardRoutePending() {
   return (
     <DashboardPageLoading
-      title="Cargando dashboard"
-      subtitle="Preparando datos operativos y modulos del mapa"
+      title="Cargando el resumen"
+      subtitle="Preparando los datos y el mapa"
     />
   );
 }
