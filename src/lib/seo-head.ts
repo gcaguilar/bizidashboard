@@ -15,6 +15,8 @@ export type SeoHeadOptions = {
   robots?: string;
   /** Metas adicionales específicos de la página (keywords, article:*, …). */
   extraMeta?: MetaEntry[];
+  /** Ruta de la imagen para compartir; por defecto usa la imagen social del sitio. */
+  socialImagePath?: string;
 };
 
 export const DEFAULT_ROBOTS =
@@ -32,12 +34,14 @@ export function buildSeoHead({
   socialDescription,
   robots = DEFAULT_ROBOTS,
   extraMeta = [],
+  socialImagePath = '/opengraph-image',
 }: SeoHeadOptions): {
   meta: MetaEntry[];
   links: Array<{ rel: string; href: string }>;
   title: string;
 } {
   const url = path ? `${getSiteUrl()}${path}` : null;
+  const socialImageUrl = `${getSiteUrl()}${socialImagePath}`;
   const resolvedSocialTitle = socialTitle ?? title;
   const resolvedSocialDescription = socialDescription ?? description;
 
@@ -52,9 +56,11 @@ export function buildSeoHead({
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: SEO_SITE_NAME },
       { property: 'og:locale', content: 'es_ES' },
+      { property: 'og:image', content: socialImageUrl },
       ...(url ? [{ property: 'og:url', content: url }] : []),
       { name: 'robots', content: robots },
       { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:image', content: socialImageUrl },
       { name: 'twitter:title', content: resolvedSocialTitle },
       { name: 'twitter:description', content: resolvedSocialDescription },
       ...extraMeta,
