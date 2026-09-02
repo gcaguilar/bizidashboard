@@ -83,6 +83,14 @@ describe('seo navigation contract', () => {
     expect(source).toContain("'noindex, follow'");
   });
 
+  it('adds article and breadcrumb structured data to published monthly reports', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
+
+    expect(source).toContain("'@type': 'Article'");
+    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
+    expect(source).toContain('structuredData ?');
+  });
+
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
     expect(UTILITY_LANDING_NAV_CONFIG.pageRole).toBe('ENTRY_SEO');
     expect(UTILITY_LANDING_NAV_CONFIG.primaryCta.destination).toBe('dashboard_overview');
