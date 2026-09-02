@@ -36,14 +36,24 @@ describe('seo navigation contract', () => {
     expect(source).toContain("'query-input': 'required name=search_term_string'");
   });
 
-  it('keeps interactive tool hubs out of the index while allowing crawling', async () => {
-    const compare = await import('@/app/comparar');
-    const explore = await import('@/app/explorar');
-    const compareMeta = compare.Route.options.head?.({ params: {}, matches: [], loaderData: undefined, search: {}, context: {} } as never);
-    const exploreMeta = explore.Route.options.head?.({ params: {}, matches: [], loaderData: undefined, search: {}, context: {} } as never);
+  it('keeps interactive tool hubs out of the index while allowing crawling', () => {
+    for (const file of ['src/app/comparar.tsx', 'src/app/explorar.tsx']) {
+      const source = readFileSync(path.join(process.cwd(), file), 'utf8');
+      expect(source, file).toContain("robots: 'noindex, follow'");
+    }
+  });
 
-    expect(compareMeta?.meta).toContainEqual({ name: 'robots', content: 'noindex, follow' });
-    expect(exploreMeta?.meta).toContainEqual({ name: 'robots', content: 'noindex, follow' });
+  it('connects data-driven landing indexability to their robots metadata', () => {
+    for (const file of [
+      'src/app/estadisticas/viajes.tsx',
+      'src/app/estadisticas/horarios.tsx',
+      'src/app/estadisticas/barrios/index.tsx',
+      'src/app/estadisticas/redistribucion.tsx',
+    ]) {
+      const source = readFileSync(path.join(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('loaderData?.indexability.indexable');
+      expect(source, file).toContain("'noindex, follow'");
+    }
   });
 
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
