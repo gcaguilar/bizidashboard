@@ -149,7 +149,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     category: 'Movilidad',
     question: 'La matriz O-D representa viajes reales?',
     answer:
-      'No son viajes uno a uno. Es una estimacion agregada por distritos para entender hacia donde parece moverse la demanda en cada franja horaria.',
+      'No son viajes uno a uno ni un registro oficial. Es una estimación agregada por distritos para entender hacia dónde parece moverse la demanda en cada franja horaria.',
   },
   {
     id: 'destinos-estimados',

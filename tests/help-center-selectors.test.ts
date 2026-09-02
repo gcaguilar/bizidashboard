@@ -9,6 +9,7 @@ import {
   groupHelpCenterFaqItems,
   normalizeText,
 } from '@/app/dashboard/ayuda/_components/help-center-selectors';
+import { FAQ_ITEMS } from '@/app/dashboard/ayuda/_components/help-center-content';
 
 describe('help center selectors', () => {
   it('normalizes text for search comparisons', () => {
@@ -47,5 +48,11 @@ describe('help center selectors', () => {
     expect(formatDateTime('not-a-date')).toBe('Sin datos');
     expect(schema['@type']).toBe('FAQPage');
     expect(schema.mainEntity.length).toBeGreaterThan(0);
+  });
+
+  it('keeps O-D content explicitly framed as an estimation', () => {
+    const od = FAQ_ITEMS.find((item) => item.id === 'matriz-od');
+    expect(od?.answer).toContain('estimación agregada');
+    expect(od?.answer).toMatch(/registro oficial/i);
   });
 });
