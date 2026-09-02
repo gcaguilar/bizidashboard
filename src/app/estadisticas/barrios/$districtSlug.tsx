@@ -14,8 +14,9 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
   head: ({ params }) => {
     const slug = params.districtSlug ?? ''
     const districtPath = appRoutes.districtDetail(slug)
-    const title = `Barrio ${slug} - DatosBizi`
-    const description = `Estaciones, disponibilidad y patrones de uso de Bizi en el barrio ${slug} de Zaragoza.`
+    const readableSlug = slug.replace(/-/g, ' ')
+    const title = `Bizi en ${readableSlug}, Zaragoza | DatosBizi`
+    const description = `Consulta estaciones, bicis disponibles y actividad de Bizi en ${readableSlug}, Zaragoza.`
     return {
       meta: [
         { title },
@@ -83,7 +84,7 @@ function DistrictPage() {
       {
         '@type': 'WebPage',
         name: `${district.name}: uso de Bizi, estaciones y actividad en Zaragoza`,
-        description: `Analiza el uso de Bizi en ${district.name}, descubre sus estaciones mas activas y compara la actividad del barrio con Zaragoza.`,
+    description: `Analiza el uso de Bizi en ${district.name}, descubre sus estaciones más activas y compara la actividad del barrio con Zaragoza.`,
         url: `${siteUrl}/estadisticas/barrios/${district.slug}`,
         inLanguage: 'es',
       },
@@ -109,7 +110,7 @@ function DistrictPage() {
         <article className="ui-section-card"><p className="stat-label">Estaciones</p><p className="stat-value">{district.stationCount}</p></article>
         <article className="ui-section-card"><p className="stat-label">Bicis</p><p className="stat-value">{district.bikesAvailable}</p></article>
         <article className="ui-section-card"><p className="stat-label">Huecos</p><p className="stat-value">{district.anchorsFree}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Rotacion media</p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Rotación media</p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p></article>
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
@@ -120,7 +121,7 @@ function DistrictPage() {
           </div>
         </article>
         <article className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Cómo usar esta ficha</h2>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si buscas disponibilidad concreta. Usa la comparativa para ver qué zonas tienen más actividad o más tensión.</p>
           <TrackedLink className="ui-inline-action mt-4" href={appRoutes.advancedMap()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir mapa avanzado</TrackedLink>
         </article>
