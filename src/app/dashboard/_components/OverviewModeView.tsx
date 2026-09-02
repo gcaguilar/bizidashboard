@@ -119,7 +119,7 @@ export function OverviewModeView({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{productTerms.dataStatus.label}</p>
-            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnostico rapido fuera del panel principal</h2>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnóstico rápido fuera del panel principal</h2>
             <p className="text-sm text-[var(--muted)]">
               Datos y pipeline: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · última referencia {updatedText}
             </p>
@@ -165,7 +165,7 @@ export function OverviewModeView({
             Revisa alertas activas, prioriza redistribucion y resuelve friccion en estaciones criticas.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardAlerts()}>Operaciones</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardAlerts()}>Ver alertas y señales</TrackedLink>
           </Button>
         </article>
 
@@ -175,7 +175,7 @@ export function OverviewModeView({
             Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardFlow()}>Analisis</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow()}>Ver análisis de flujos</TrackedLink>
           </Button>
         </article>
       </section>

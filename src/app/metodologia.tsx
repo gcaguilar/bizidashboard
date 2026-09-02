@@ -60,7 +60,7 @@ export default function MethodologyPage() {
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
             <span className="ui-chip">{historyMeta.coverage.totalDays} dias de cobertura</span>
-            <span className="ui-chip">{historyMeta.coverage.totalStations} estaciones con historico</span>
+            <span className="ui-chip">{historyMeta.coverage.totalStations} estaciones con histórico</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {getHealthLabel(status.pipeline.healthStatus)}
             </span>
@@ -138,7 +138,7 @@ export default function MethodologyPage() {
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Como se construyen las vistas publicas
+              Cómo se construyen las vistas públicas
             </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
               Del feed oficial a paginas faciles de comparar
@@ -179,7 +179,7 @@ export default function MethodologyPage() {
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Prediccion</p>
+          <p className="stat-label">Predicción</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Orientacion, no garantia</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
             Las predicciones combinan patrones historicos y estado reciente para anticipar tensiones a

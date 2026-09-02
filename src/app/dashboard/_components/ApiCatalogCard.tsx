@@ -19,7 +19,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
         <div>
           <h3 className="text-lg font-bold text-[var(--foreground)]">Catalogo de endpoints</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Resumen rapido de las rutas utiles para integrar datos del dashboard desde otras herramientas.
+            Resumen rápido de las rutas más útiles para integrar los datos públicos desde otras herramientas.
           </p>
         </div>
         <TrackedLink

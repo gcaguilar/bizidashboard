@@ -129,12 +129,12 @@ export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: Flow
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--primary) 0%, transparent 70%)' }} />
         <div className="relative z-10 flex flex-col items-center text-center">
           <span className="text-4xl text-[var(--primary)]">◎</span>
-          <p className="mt-2 text-sm font-bold text-[var(--foreground)]">Modelo de distribucion espacial</p>
+          <p className="mt-2 text-sm font-bold text-[var(--foreground)]">Distribución espacial estimada</p>
           <p className="mt-1 max-w-sm text-xs text-[var(--muted)]">
-            Vista simplificada de la distribucion de trayectos entre los principales barrios.
+            Vista simplificada de los flujos estimados entre los principales barrios.
           </p>
           <Button asChild size="sm" className="mt-4 text-xs font-bold">
-            <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}>Expandir vista completa</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}>Ver el análisis completo</TrackedLink>
           </Button>
         </div>
       </Card>
@@ -150,7 +150,7 @@ export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: Flow
             </p>
           </div>
           <Button asChild variant="ghost" size="sm" className="px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline">
-            <TrackedLink href={appRoutes.dashboardHelp('calculo-rutas')}>Como se calcula</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardHelp('calculo-rutas')}>Cómo se calcula</TrackedLink>
           </Button>
         </div>
 
