@@ -27,7 +27,7 @@ describe('dashboard briefing', () => {
       pipelineHealthy: true,
     });
 
-    expect(briefing.comparison).toContain('sí tiene datos actuales');
+    expect(briefing.comparison).toContain('Datos actuales disponibles');
   });
 });
 

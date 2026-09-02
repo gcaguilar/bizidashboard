@@ -23,9 +23,9 @@ describe('network briefing', () => {
 
     expect(briefing.current).toContain('1 estación está en estado crítico');
     expect(briefing.focus).toContain('Plaza Aragón');
-    expect(briefing.comparison).toContain('sí tiene datos actuales');
+    expect(briefing.comparison).toContain('Datos actuales disponibles');
     expect(briefing.dataQuality).toContain('141 días');
-    expect(briefing.warning).toContain('datos actuales sí están disponibles');
+    expect(briefing.warning).toBeNull();
     vi.useRealTimers();
   });
 

@@ -58,13 +58,13 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
     ? criticalDifference === 0
       ? `Frente a ${input.baseline.label}, el número de estaciones críticas no cambia.`
       : `Frente a ${input.baseline.label}, hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación crítica', 'estaciones críticas')} ${criticalDifference > 0 ? 'más' : 'menos'}.`
-    : 'La red sí tiene datos actuales; no se muestra el cambio porque falta una referencia temporal equivalente.';
+    : 'Datos actuales disponibles. Aún no hay una franja equivalente para comparar; puedes consultar el estado de la red sin esperar.';
   const focus = focusStation
     ? `La señal operativa se concentra en ${focusStation.name}.`
     : 'No hay una estación crítica destacada en la última muestra.';
   const alerts = input.baseline
     ? `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}; comparación disponible con ${input.baseline.label}.`
-    : `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}; no se muestra su evolución porque falta una referencia temporal equivalente.`;
+    : `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. La evolución se mostrará cuando haya una franja equivalente.`;
   const freshness = input.lastUpdatedAt ? formatFreshnessLabel(input.lastUpdatedAt) : 'sin fecha';
 
   return {
@@ -74,6 +74,6 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
     focus,
     alerts,
     dataQuality: `Datos ${input.pipelineHealthy ? 'y pipeline disponibles' : 'con incidencia de pipeline'}; actualizados ${freshness}; cobertura de ${input.coverageDays} ${pluralize(input.coverageDays, 'día', 'días')}.`,
-    warning: input.baseline ? null : 'La comparación temporal aún no está disponible: los datos actuales sí están disponibles, pero falta una franja equivalente.',
+    warning: null,
   };
 }
