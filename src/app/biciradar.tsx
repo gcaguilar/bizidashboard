@@ -41,11 +41,11 @@ const DOWNLOAD_CTAS = [
 ] as const;
 
 const CITIES = [
-  { name: 'Zaragoza', flag: '🇪🇸', supportsEbikes: true, supportsUsagePatterns: true },
-  { name: 'Madrid', flag: '🇪🇸', supportsEbikes: true, supportsUsagePatterns: false },
-  { name: 'Barcelona', flag: '🇪🇸', supportsEbikes: true, supportsUsagePatterns: false },
-  { name: 'Valencia', flag: '🇪🇸', supportsEbikes: true, supportsUsagePatterns: false },
-  { name: 'Sevilla', flag: '🇪🇸', supportsEbikes: true, supportsUsagePatterns: false },
+  { name: 'Madrid', system: 'BiciMAD', flag: '🇪🇸' },
+  { name: 'Barcelona', system: 'Bicing', flag: '🇪🇸' },
+  { name: 'Sevilla', system: 'Sevici', flag: '🇪🇸' },
+  { name: 'Valencia', system: 'Valenbisi', flag: '🇪🇸' },
+  { name: 'Zaragoza', system: 'Bizi', flag: '🇪🇸' },
 ];
 
 const FEATURES = [
@@ -106,17 +106,10 @@ function CityCard({ city }: { city: (typeof CITIES)[number] }) {
       <span className="text-2xl">{city.flag}</span>
       <div className="flex-1">
         <h3 className="text-sm font-bold text-[var(--foreground)]">{city.name}</h3>
-        <div className="mt-1 flex flex-wrap gap-1.5">
-          {city.supportsEbikes && (
-            <Badge variant="success" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
-              Bicis eléctricas
-            </Badge>
-          )}
-          {city.supportsUsagePatterns && (
-            <Badge className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
-              Patrones de uso
-            </Badge>
-          )}
+        <div className="mt-1">
+          <Badge variant="success" className="px-2 py-0.5 text-[10px] normal-case tracking-normal">
+            {city.system}
+          </Badge>
         </div>
       </div>
     </Card>
