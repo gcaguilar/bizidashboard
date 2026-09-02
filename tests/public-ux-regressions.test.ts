@@ -131,6 +131,42 @@ describe('public UX regressions', () => {
     }
   });
 
+  it('keeps BiciRadar as an accessible public product distinct from the dashboard', () => {
+    const routes = readSource('src/lib/routes.ts');
+    const navigation = readSource('src/lib/public-navigation.ts');
+    const biciradar = readSource('src/app/biciradar.tsx');
+
+    expect(routes).toContain("biciradar: () => '/biciradar'");
+    expect(navigation).toContain("{ id: 'biciradar', label: 'Bici Radar', href: appRoutes.biciradar()");
+    expect(biciradar).toContain("createFileRoute('/biciradar')");
+    expect(routes).toContain("dashboard: () => '/dashboard'");
+  });
+
+  it('documents the observatory product boundary and protected public routes', () => {
+    const decision = readSource('docs/product/datosbizi-observatorio.md');
+
+    expect(decision).toContain('DatosBizi es un observatorio público');
+    expect(decision).toContain('BiciRadar es el producto de consulta individual y proximidad');
+    expect(decision).toContain('estimaciones');
+    expect(decision).toContain('estado de los datos');
+    expect(decision).toContain('equilibrio de la red');
+
+    for (const route of [
+      '`/`',
+      '`/dashboard`',
+      '`/comparar`',
+      '`/informes`',
+      '`/estado`',
+      '`/metodologia`',
+      '`/developers`',
+      '`/biciradar`',
+      '`/estadisticas/estaciones/:stationId`',
+      '`/estadisticas/barrios/:districtSlug`',
+    ]) {
+      expect(decision).toContain(route);
+    }
+  });
+
   it('header and footer use route helpers and tracked links for internal navigation', () => {
     const header = readSource('src/components/Header.tsx');
     const footer = readSource('src/components/Footer.tsx');
