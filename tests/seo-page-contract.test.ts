@@ -7,6 +7,7 @@ import {
   SEO_PAGE_CONFIGS,
   UTILITY_LANDING_NAV_CONFIG,
 } from '@/lib/seo-pages';
+import { buildSeoHead } from '@/lib/seo-head';
 
 const SEO_DESTINATION_ROLE_MAP = {
   dashboard_conclusions: 'dashboard',
@@ -171,6 +172,15 @@ describe('seo navigation contract', () => {
     expect(SEO_PAGE_CONFIGS['informes-mensuales-bizi-zaragoza'].metadataTitle).toContain('histórico');
     expect(SEO_PAGE_CONFIGS['informes-mensuales-bizi-zaragoza'].description).toContain('histórico');
     expect(SEO_PAGE_CONFIGS.redistribucion.primaryCta.label).toBe('Ver redistribución');
+  });
+
+  it('provides a default social image for shared pages', () => {
+    const head = buildSeoHead({ title: 'Prueba', description: 'Descripción', path: '/about' });
+    const ogImage = head.meta.find((entry) => entry.property === 'og:image');
+    const twitterImage = head.meta.find((entry) => entry.name === 'twitter:image');
+
+    expect(ogImage?.content).toContain('/opengraph-image');
+    expect(twitterImage?.content).toContain('/opengraph-image');
   });
 
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
