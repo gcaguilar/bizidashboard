@@ -1,6 +1,7 @@
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { NetworkBriefing as NetworkBriefingModel } from '@/lib/network-briefing';
 import { appRoutes } from '@/lib/routes';
+import { buildObservatoryEvent } from '@/lib/umami';
 
 type NetworkBriefingProps = {
   briefing?: NetworkBriefingModel | null;
@@ -47,7 +48,7 @@ export function NetworkBriefing({ briefing, state = 'ready', className = '' }: N
       <div className="mt-4 flex flex-wrap gap-3">
         <TrackedLink href={appRoutes.dashboardAlerts()} className="ui-inline-action">Ver alertas</TrackedLink>
         <TrackedLink href={appRoutes.compare()} className="ui-inline-action">Ver comparativa</TrackedLink>
-        <TrackedLink href={appRoutes.methodology()} className="ui-inline-action">Cómo se interpreta</TrackedLink>
+        <TrackedLink href={appRoutes.methodology()} trackingEvent={buildObservatoryEvent('observatory_evidence_opened', { surface: 'public', routeKey: 'observatory_briefing', source: 'network_briefing' })} className="ui-inline-action">Cómo se interpreta</TrackedLink>
       </div>
     </section>
   );

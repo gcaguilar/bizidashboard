@@ -8,6 +8,7 @@ import { CompareHubContent } from '@/app/comparar/_components/CompareHubContent'
 import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
+import { ObservatoryEventTracker } from '@/app/_components/ObservatoryEventTracker';
 
 export const Route = createFileRoute('/comparar')({
   ssr: 'data-only',
@@ -31,6 +32,7 @@ export const Route = createFileRoute('/comparar')({
 function CompareErrorPage() {
   return (
     <PageShell>
+      <ObservatoryEventTracker name="comparison_validated_viewed" source="comparison_hub" routeKey="compare" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Comparador no disponible</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
