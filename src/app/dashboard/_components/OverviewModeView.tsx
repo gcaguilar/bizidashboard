@@ -12,6 +12,7 @@ import { MapPanel } from './MapPanel';
 import { SystemHealthCard } from './SystemHealthCard';
 import { NetworkBriefing } from './NetworkBriefing';
 import { buildNetworkBriefing } from '@/lib/network-briefing';
+import { NetworkBriefingViewTracker } from './NetworkBriefingViewTracker';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -90,6 +91,7 @@ export function OverviewModeView({
 
   return (
     <>
+      <NetworkBriefingViewTracker />
       <NetworkBriefing
         briefing={briefing}
         state={status.dataState === 'error' ? 'error' : status.dataState === 'partial' || status.dataState === 'no_coverage' ? 'incomplete' : 'ready'}
