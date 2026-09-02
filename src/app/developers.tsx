@@ -468,7 +468,7 @@ print(len(res.json()["transfers"]))`}</code>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Casos de uso
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Para que sirve esta API hoy</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Para qué sirve esta API hoy</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {useCases.map((item) => (
