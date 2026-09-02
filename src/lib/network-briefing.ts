@@ -40,33 +40,33 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
   if (!hasEnoughEvidence) {
     return {
       state: 'insufficient',
-      current: 'No hay evidencia suficiente para describir el estado actual de la red.',
-      comparison: 'Comparación no disponible: falta una muestra actual o cobertura histórica.',
-      focus: 'No se identifica una zona o estación a vigilar sin una muestra suficiente.',
-      alerts: 'Las alertas no se interpretan mientras la evidencia sea incompleta.',
+      current: 'Ahora mismo no hay datos suficientes para resumir la red.',
+      comparison: 'Todavía no se puede comparar con otro momento.',
+      focus: 'No se puede destacar ninguna estación con los datos disponibles.',
+      alerts: 'No se puede resumir el estado de las alertas con los datos disponibles.',
       dataQuality: `Cobertura disponible: ${Math.max(0, input.coverageDays)} ${pluralize(Math.max(0, input.coverageDays), 'día', 'días')}.`,
-      warning: 'La información disponible no permite extraer una conclusión operativa.',
+      warning: 'Faltan datos para ofrecer un resumen fiable.',
     };
   }
 
   const criticalCount = criticalStations.length;
   const current = criticalCount > 0
-    ? `La red presenta tensión: ${criticalCount} ${pluralize(criticalCount, 'estación está', 'estaciones están')} sin bicis o sin anclajes libres.`
-    : 'La última muestra no incluye estaciones vacías ni llenas.';
+    ? `Ahora mismo, ${criticalCount} ${pluralize(criticalCount, 'estación no tiene', 'estaciones no tienen')} bicis o anclajes libres.`
+    : 'Ahora mismo todas las estaciones tienen bicis y anclajes disponibles.';
   const criticalDifference = input.baseline
     ? criticalCount - input.baseline.criticalStationsCount
     : null;
   const comparison = input.baseline
     ? criticalDifference === 0
-      ? `Frente a ${input.baseline.label}, el número de estaciones críticas no cambia.`
-      : `Frente a ${input.baseline.label}, hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación crítica', 'estaciones críticas')} ${criticalDifference > 0 ? 'más' : 'menos'}.`
-    : 'Datos actuales disponibles. Aún no hay una franja equivalente para comparar; puedes consultar el estado de la red sin esperar.';
+      ? `Hay el mismo número que en ${input.baseline.label}.`
+      : `Hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación', 'estaciones')} ${criticalDifference > 0 ? 'más' : 'menos'} que en ${input.baseline.label}.`
+    : 'Aún no hay otro momento comparable para saber si la situación ha cambiado.';
   const focus = focusStation
-    ? `La señal operativa se concentra en ${focusStation.name}.`
-    : 'No hay una estación crítica destacada en la última muestra.';
+    ? `La estación más afectada ahora es ${focusStation.name}.`
+    : 'No hay una estación especialmente afectada ahora.';
   const alerts = input.baseline?.activeAlertsCount != null
-    ? `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}; comparación disponible con ${input.baseline.label}.`
-    : `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. La evolución se mostrará cuando haya una franja equivalente.`;
+    ? `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Se puede comparar con ${input.baseline.label}.`
+    : `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Aún no se puede comparar su evolución.`;
   const freshness = input.lastUpdatedAt ? formatFreshnessLabel(input.lastUpdatedAt) : 'sin fecha';
 
   return {
