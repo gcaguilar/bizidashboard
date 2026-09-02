@@ -34,6 +34,7 @@ type InternalLink = {
 type CrawledPage = {
   url: string;
   title: string | null;
+  indexable: boolean;
   text: string;
   links: InternalLink[];
 };
@@ -239,6 +240,11 @@ function stripHtml(html: string): string {
 function extractTitle(html: string): string | null {
   const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/iu);
   return match ? stripHtml(match[1]) : null;
+}
+
+function isIndexableHtml(html: string): boolean {
+  const robotsMeta = html.match(/<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["']([^"']*)["'][^>]*>/iu);
+  return !robotsMeta?.[1].toLowerCase().includes('noindex');
 }
 
 function extractLinks(html: string, pageUrl: string, baseOrigin: string): InternalLink[] {
@@ -689,6 +695,7 @@ async function main() {
     const page: CrawledPage = {
       url: normalizedFinalPageUrl,
       title: extractTitle(result.body),
+      indexable: isIndexableHtml(result.body),
       text,
       links,
     };
@@ -1041,7 +1048,7 @@ async function main() {
   const missingFromSitemap: SitemapMismatchEntry[] = [];
   for (const page of crawledPages.values()) {
     const path = normalizePagePath(page.url);
-    if (path === '/robots.txt' || path === '/sitemap.xml') {
+    if (path === '/robots.txt' || path === '/sitemap.xml' || !page.indexable) {
       continue;
     }
 
