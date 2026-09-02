@@ -14,6 +14,17 @@ function getRedirectTarget(path: string): string | null {
   return null;
 }
 
+function getRedirectStatus(path: string): number | null {
+  try {
+    Route.options.loader?.({ params: { _splat: path } } as never);
+  } catch (error) {
+    const maybeRedirect = error as { options?: { status?: number } };
+    return maybeRedirect.options?.status ?? null;
+  }
+
+  return null;
+}
+
 describe('catch-all redirects', () => {
   it.each([
     ['zaragoza', '/dashboard'],
@@ -26,5 +37,9 @@ describe('catch-all redirects', () => {
     ['madrid/estaciones', '/dashboard/estaciones'],
   ])('resolves %s through the canonical route registry', (source, target) => {
     expect(getRedirectTarget(source)).toBe(target);
+  });
+
+  it('marks legacy catch-all redirects as permanent', () => {
+    expect(getRedirectStatus('zaragoza')).toBe(308);
   });
 });
