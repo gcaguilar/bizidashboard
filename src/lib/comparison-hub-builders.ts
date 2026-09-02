@@ -2,6 +2,7 @@ import type { StationSnapshot } from '@/lib/api-types';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
+import { buildMonthlyTemporalComparison } from '@/lib/temporal-comparison';
 import type { DistrictSeoRow } from '@/lib/seo-districts';
 import type {
   ComparisonCard,
@@ -77,6 +78,7 @@ export type ComparisonHubViewModelInput = {
   hourlyProfile: HourlyProfileInput[];
   historyRows: HistoryCompareRow[];
   datasetCoverageDays: number;
+  comparisonNow: string;
   latestMonth: string | null;
   previousMonth: string | null;
   recentPayload: MobilityConclusionsPayload | null;
@@ -447,23 +449,29 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
   const cards: ComparisonCard[] = [];
 
   if (context.latestMonthlyRow && context.previousMonthlyRow) {
-    const monthDelta =
-      Number(context.previousMonthlyRow.demandScore) > 0
-        ? (Number(context.latestMonthlyRow.demandScore) -
-            Number(context.previousMonthlyRow.demandScore)) /
-          Number(context.previousMonthlyRow.demandScore)
-        : null;
+    const temporalComparison = buildMonthlyTemporalComparison({
+      monthKey: context.latestMonthlyRow.monthKey,
+      referenceMonthKey: context.previousMonthlyRow.monthKey,
+      rows: context.recentDemand,
+      nowIso: context.comparisonNow,
+    });
+    const coverageLabel = `${temporalComparison.left.coveredDays} de ${temporalComparison.left.expectedDays} días disponibles`;
 
     cards.push({
       id: 'month-vs-month',
       title: 'Mes vs mes',
       eyebrow: 'Cambio mensual',
-      summary: `${formatMonthLabel(context.latestMonthlyRow.monthKey)} se compara con ${formatMonthLabel(context.previousMonthlyRow.monthKey)} en demanda, ocupacion y estaciones activas.`,
+      summary: temporalComparison.isComparable
+        ? `${formatMonthLabel(context.latestMonthlyRow.monthKey)} se compara con ${formatMonthLabel(context.previousMonthlyRow.monthKey)} usando ${temporalComparison.periodLabel}.`
+        : `${formatMonthLabel(context.latestMonthlyRow.monthKey)} no tiene todavía una comparación mensual equivalente.`,
       metricA: `${formatMonthLabel(context.latestMonthlyRow.monthKey)}: ${formatInteger(Number(context.latestMonthlyRow.demandScore))} pts · ocupacion ${formatPercent(Number(context.latestMonthlyRow.avgOccupancy))}`,
       metricB: `${formatMonthLabel(context.previousMonthlyRow.monthKey)}: ${formatInteger(Number(context.previousMonthlyRow.demandScore))} pts · ocupacion ${formatPercent(Number(context.previousMonthlyRow.avgOccupancy))}`,
-      delta: `Demanda mensual ${formatDelta(monthDelta)}`,
+      delta: temporalComparison.isComparable
+        ? `Demanda comparable ${formatDelta(temporalComparison.normalizedDemandRatio)}`
+        : 'Comparación no disponible todavía',
       href: appRoutes.reports(),
-      note: `Estaciones activas ${formatInteger(Number(context.latestMonthlyRow.activeStations))} vs ${formatInteger(Number(context.previousMonthlyRow.activeStations))}.`,
+      note: `${temporalComparison.left.label} · ${temporalComparison.periodLabel} · ${coverageLabel}. ${temporalComparison.reason}`,
+      temporalComparison,
     });
   } else {
     cards.push(
@@ -477,8 +485,16 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
   }
 
   if (context.latestYear && context.previousYear) {
+    const currentYear = context.comparisonNow.slice(0, 4);
+    const latestYearMonths = context.monthlySeries.filter((row) => row.monthKey.startsWith(`${context.latestYear?.year}-`));
+    const previousYearMonths = context.monthlySeries.filter((row) => row.monthKey.startsWith(`${context.previousYear?.year}-`));
+    const yearsAreComparable =
+      context.latestYear.year < currentYear &&
+      context.previousYear.year < currentYear &&
+      latestYearMonths.length === 12 &&
+      previousYearMonths.length === 12;
     const yearDelta =
-      context.previousYear.demandScore > 0
+      yearsAreComparable && context.previousYear.demandScore > 0
         ? (context.latestYear.demandScore - context.previousYear.demandScore) /
           context.previousYear.demandScore
         : null;
@@ -487,12 +503,18 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       id: 'year-vs-year',
       title: 'Ano vs ano',
       eyebrow: 'Lectura anual',
-      summary: `${context.latestYear.year} agrega ${formatInteger(context.latestYear.demandScore)} puntos de demanda frente a ${context.previousYear.year}.`,
+      summary: yearsAreComparable
+        ? `${context.latestYear.year} agrega ${formatInteger(context.latestYear.demandScore)} puntos de demanda frente a ${context.previousYear.year}.`
+        : `No hay dos años cerrados con doce meses disponibles para comparar ${context.latestYear.year} y ${context.previousYear.year}.`,
       metricA: `${context.latestYear.year}: ${formatInteger(context.latestYear.demandScore)} pts · ocupacion media ${formatPercent(average(context.latestYear.occupancyValues))}`,
       metricB: `${context.previousYear.year}: ${formatInteger(context.previousYear.demandScore)} pts · ocupacion media ${formatPercent(average(context.previousYear.occupancyValues))}`,
-      delta: `Variacion anual ${formatDelta(yearDelta)}`,
+      delta: yearsAreComparable
+        ? `Variacion anual ${formatDelta(yearDelta)}`
+        : 'Comparación no disponible todavía',
       href: appRoutes.reports(),
-      note: `Red media de ${formatDecimal(average(context.latestYear.activeStations) ?? 0)} estaciones activas frente a ${formatDecimal(average(context.previousYear.activeStations) ?? 0)}.`,
+      note: yearsAreComparable
+        ? `Red media de ${formatDecimal(average(context.latestYear.activeStations) ?? 0)} estaciones activas frente a ${formatDecimal(average(context.previousYear.activeStations) ?? 0)}.`
+        : `${latestYearMonths.length} de 12 meses disponibles en ${context.latestYear.year}; ${previousYearMonths.length} de 12 en ${context.previousYear.year}.`,
     });
   } else {
     cards.push(
