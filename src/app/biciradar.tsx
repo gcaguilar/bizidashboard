@@ -260,33 +260,7 @@ export default function BiciRadarPage() {
         </div>
       </section>
 
-      <section>
-        <Card variant="stat" className="rounded-2xl p-6">
-        <div className="mb-6 text-center">
-          <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descarga la app</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">BiciRadar está disponible para todo el mundo en iOS y Android.</p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-4">
-          <DownloadCtas
-            labels={{
-              google_play: 'Abrir Google Play en tu teléfono',
-              app_store: 'App Store (iOS)',
-            }}
-            classNameByDestination={{
-              app_store: 'ui-inline-action',
-              google_play: 'ui-inline-action',
-            }}
-          />
-        </div>
-        </Card>
-      </section>
-
       <section className="text-center">
-        <h2 className="text-2xl font-black text-[var(--foreground)] md:text-3xl">Descárgala gratis</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">Disponible para todo el mundo en iOS y Android.</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <DownloadCtas />
-        </div>
         <p className="mt-8 text-xs text-[var(--muted)]">
           <TrackedLink href={appRoutes.home()} ctaEvent={{ source: 'biciradar_footer', ctaId: 'back_to_home', destination: 'home', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">← Volver a DatosBizi</TrackedLink>
         </p>
