@@ -137,7 +137,7 @@ describe('public UX regressions', () => {
     const biciradar = readSource('src/app/biciradar.tsx');
 
     expect(routes).toContain("biciradar: () => '/biciradar'");
-    expect(navigation).toContain("{ id: 'biciradar', label: 'Bici Radar', href: appRoutes.biciradar()");
+    expect(navigation).toContain("{ id: 'biciradar', label: 'BiciRadar', href: appRoutes.biciradar()");
     expect(biciradar).toContain("createFileRoute('/biciradar')");
     expect(routes).toContain("dashboard: () => '/dashboard'");
   });
