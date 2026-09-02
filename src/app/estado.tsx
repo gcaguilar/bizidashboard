@@ -23,6 +23,7 @@ import {
 import { StatusBanner } from '@/app/dashboard/_components/StatusBanner';
 import { PageShell } from '@/components/layout/page-shell';
 import { getSystemStatusPageData } from '@/server-functions/estado';
+import { productTerms } from '@/lib/product-copy';
 
 export const Route = createFileRoute('/estado')({
   head: () =>
@@ -37,7 +38,7 @@ export const Route = createFileRoute('/estado')({
 });
 
 export default function SystemStatusPage() {
-  const { status, stations, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount } = Route.useLoaderData();
+  const { status, stations, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount, networkBalance } = Route.useLoaderData();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Estado',
@@ -130,13 +131,13 @@ export default function SystemStatusPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Frescura y cobertura
+              {productTerms.dataStatus.label}
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
               Estado de los datos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Una vista rápida para saber si los datos están al día, cuánta cobertura histórica hay,
+              Frescura, cobertura, ingestión y errores. Una vista rápida para saber si los datos están al día, cuánta cobertura histórica hay,
               si existen incidencias y qué servicios pueden verse afectados.
             </p>
           </div>
@@ -210,7 +211,7 @@ export default function SystemStatusPage() {
         <div className="flex flex-wrap items-center gap-3">
           <div className={`h-4 w-4 rounded-full ${status.pipeline.healthStatus === 'healthy' ? 'bg-[var(--success)]' : status.pipeline.healthStatus === 'degraded' ? 'bg-[var(--warning)]' : 'bg-[var(--danger)]'}`} />
           <p className="text-lg font-bold text-[var(--foreground)]">
-            {healthLabel === 'Saludable' ? 'Datos al día' : healthLabel === 'Degradado' ? 'Datos con retraso' : 'Datos con incidencias'}
+            {healthLabel === 'Saludable' ? 'Datos y pipeline: saludables' : healthLabel === 'Degradado' ? 'Datos y pipeline: degradados' : 'Datos y pipeline: con incidencias'}
           </p>
           <span className="ui-chip">
             {activeIncidentCount > 0 ? `${activeIncidentCount} incidencias activas` : 'Sin incidencias'}
@@ -222,8 +223,11 @@ export default function SystemStatusPage() {
         {activeIncidentCount > 0 ? (
           <p className="text-sm text-[var(--warning)]">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
         ) : status.pipeline.healthStatus === 'healthy' ? (
-          <p className="text-sm text-[var(--success)]">Los datos están frescos y el sistema funciona con normalidad.</p>
+          <p className="text-sm text-[var(--success)]">Los datos están frescos y el pipeline funciona con normalidad.</p>
         ) : null}
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          <span className="font-semibold text-[var(--foreground)]">{productTerms.networkBalance.label}: {networkBalance.label}</span>. {networkBalance.explanation} Esto mide disponibilidad, no la salud de los datos.
+        </p>
       </section>
 
       <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">
