@@ -31,9 +31,9 @@ describe('network briefing', () => {
     vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
     const briefing = buildNetworkBriefing(input);
 
-    expect(briefing.current).toContain('1 estación está sin bicis o sin anclajes libres');
+    expect(briefing.current).toContain('1 estación no tiene bicis o anclajes libres');
     expect(briefing.focus).toContain('Plaza Aragón');
-    expect(briefing.comparison).toContain('Datos actuales disponibles');
+    expect(briefing.comparison).toContain('Aún no hay otro momento comparable');
     expect(briefing.dataQuality).toContain('141 días');
     expect(briefing.warning).toBeNull();
     vi.useRealTimers();
@@ -42,7 +42,7 @@ describe('network briefing', () => {
   it('does not infer a network conclusion from insufficient evidence', () => {
     const briefing = buildNetworkBriefing({ ...input, stations: [], coverageDays: 0, lastUpdatedAt: null });
     expect(briefing.state).toBe('insufficient');
-    expect(briefing.current).toContain('No hay evidencia suficiente');
+    expect(briefing.current).toContain('no hay datos suficientes');
   });
 
   it('renders ready, loading, incomplete and error states clearly', () => {

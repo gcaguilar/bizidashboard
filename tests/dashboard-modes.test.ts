@@ -27,7 +27,7 @@ describe('dashboard briefing', () => {
       pipelineHealthy: true,
     });
 
-    expect(briefing.comparison).toContain('Datos actuales disponibles');
+    expect(briefing.comparison).toContain('Aún no hay otro momento comparable');
   });
 });
 
