@@ -110,6 +110,12 @@ describe('seo navigation contract', () => {
     expect(source).toContain('Cada informe resume un período concreto');
   });
 
+  it('keeps the API landing copy natural in Spanish', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/developers.tsx'), 'utf8');
+
+    expect(source).toContain('Para qué sirve esta API hoy');
+  });
+
   it('does not index monthly report URLs without a published report', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
 
