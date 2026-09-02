@@ -15,8 +15,9 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
     const slug = params.districtSlug ?? ''
     const districtPath = appRoutes.districtDetail(slug)
     const readableSlug = slug.replace(/-/g, ' ')
-    const title = `Bizi en ${readableSlug}, Zaragoza | DatosBizi`
-    const description = `Consulta estaciones, bicis disponibles y actividad de Bizi en ${readableSlug}, Zaragoza.`
+    const districtName = loaderData?.district?.name ?? readableSlug
+    const title = `Bizi en ${districtName}, Zaragoza | DatosBizi`
+    const description = `Consulta estaciones, bicis disponibles y actividad de Bizi en ${districtName}, Zaragoza.`
     return {
       meta: [
         { title },
