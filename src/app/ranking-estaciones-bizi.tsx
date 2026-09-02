@@ -2,5 +2,5 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes';
 
 export const Route = createFileRoute('/ranking-estaciones-bizi')({
-  loader: () => { throw redirect({ to: appRoutes.statsEstaciones(), replace: true }); },
+  loader: () => { throw redirect({ to: appRoutes.statsEstaciones(), replace: true, status: 308 }); },
 });

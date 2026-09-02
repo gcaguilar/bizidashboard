@@ -187,6 +187,27 @@ describe('seo navigation contract', () => {
     expect(twitterImageAlt?.content).toContain('Bizi Zaragoza');
   });
 
+  it('uses permanent redirects for legacy SEO aliases', () => {
+    const aliases = [
+      'src/app/estadisticas-bizi-zaragoza.tsx',
+      'src/app/estaciones-con-mas-bicis.tsx',
+      'src/app/estaciones-mas-usadas-zaragoza.tsx',
+      'src/app/barrios-bizi-zaragoza.tsx',
+      'src/app/mapa-estaciones-bizi-zaragoza.tsx',
+      'src/app/uso-bizi-por-estacion.tsx',
+      'src/app/uso-bizi-por-hora.tsx',
+      'src/app/viajes-por-dia-zaragoza.tsx',
+      'src/app/viajes-por-mes-zaragoza.tsx',
+      'src/app/ranking-estaciones-bizi.tsx',
+      'src/app/redistribucion.tsx',
+      'src/app/informes-mensuales-bizi-zaragoza.tsx',
+    ];
+
+    for (const file of aliases) {
+      expect(readFileSync(path.join(process.cwd(), file), 'utf8'), file).toContain('status: 308');
+    }
+  });
+
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
     const legacyAliases = Object.values(SEO_PAGE_CONFIGS).filter((config) => config.isLegacyAlias);
 
