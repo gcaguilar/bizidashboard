@@ -71,6 +71,10 @@ trace.json.gz
 
 # local documentation
 docs/
+!docs/
+docs/*
+!docs/product/
+!docs/product/datosbizi-observatorio.md
 PLAN.md
 untitled.pen
 dist/
