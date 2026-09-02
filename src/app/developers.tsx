@@ -12,7 +12,7 @@ import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { SITE_NAME } from '@/lib/site';
+import { SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
 import {
@@ -97,7 +97,7 @@ export default function DevelopersPage() {
                 ...(datasetTemporalCoverage ? { temporalCoverage: datasetTemporalCoverage } : {}),
                 publisher: {
                   '@type': 'Organization',
-                  name: SITE_NAME,
+                  name: SEO_SITE_NAME,
                   url: siteUrl,
                 },
                 distribution: csvDownloads.map((item) => ({
