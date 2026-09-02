@@ -19,6 +19,7 @@ export const Route = createFileRoute('/explorar')({
       description:
         'Hub de herramientas para analizar datos de Bizi Zaragoza: mapas, alertas, comparativas, histórico y movilidad.',
       path: appRoutes.explore(),
+      robots: 'noindex, follow',
     }),
   loaderDeps: ({ search }) => ({ q: search.q }),
   loader: ({ deps }) => getExploreLoaderData({ data: { q: deps.q } }),
