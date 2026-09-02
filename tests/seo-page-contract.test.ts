@@ -94,6 +94,14 @@ describe('seo navigation contract', () => {
     expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
   });
 
+  it('marks the about page as an about page with breadcrumbs', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/about.tsx'), 'utf8');
+
+    expect(source).toContain("'@type': 'AboutPage'");
+    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
+    expect(source).toContain('Qué ofrece DatosBizi');
+  });
+
   it('does not index monthly report URLs without a published report', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
 
