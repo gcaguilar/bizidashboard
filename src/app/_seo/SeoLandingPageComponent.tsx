@@ -45,7 +45,7 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
     mainEntity: [
       {
         '@type': 'Question',
-        name: `Que ofrece la pagina ${config.title}?`,
+        name: `¿Qué ofrece la página ${config.title}?`,
         acceptedAnswer: {
           '@type': 'Answer',
           text: config.description,
@@ -53,7 +53,7 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
       },
       {
         '@type': 'Question',
-        name: 'Cada cuanto se actualiza esta informacion?',
+        name: '¿Cada cuánto se actualiza esta información?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: `${config.cadenceLabel}. La fecha visible en la pagina indica la ultima actualizacion publicada.`,
@@ -61,7 +61,7 @@ function buildSeoFaqStructuredData(config: SeoPageConfig) {
       },
       {
         '@type': 'Question',
-        name: 'Donde puedo ver el detalle operativo completo?',
+        name: '¿Dónde puedo ver el detalle completo?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: `Desde esta pagina puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle actualizado.`,
