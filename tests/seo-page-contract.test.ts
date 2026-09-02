@@ -144,6 +144,13 @@ describe('seo navigation contract', () => {
     }
   });
 
+  it('keeps public SEO labels readable in Spanish', () => {
+    expect(SEO_PAGE_CONFIGS['uso-bizi-por-hora'].primaryCta.label).toBe('Ver análisis horario');
+    expect(SEO_PAGE_CONFIGS['informes-mensuales-bizi-zaragoza'].metadataTitle).toContain('histórico');
+    expect(SEO_PAGE_CONFIGS['informes-mensuales-bizi-zaragoza'].description).toContain('histórico');
+    expect(SEO_PAGE_CONFIGS.redistribucion.primaryCta.label).toBe('Ver redistribución');
+  });
+
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
     const legacyAliases = Object.values(SEO_PAGE_CONFIGS).filter((config) => config.isLegacyAlias);
 
