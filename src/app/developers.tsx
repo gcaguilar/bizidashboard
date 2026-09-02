@@ -12,7 +12,7 @@ import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { SITE_NAME } from '@/lib/site';
+import { SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
 import {
@@ -97,7 +97,7 @@ export default function DevelopersPage() {
                 ...(datasetTemporalCoverage ? { temporalCoverage: datasetTemporalCoverage } : {}),
                 publisher: {
                   '@type': 'Organization',
-                  name: SITE_NAME,
+                  name: SEO_SITE_NAME,
                   url: siteUrl,
                 },
                 distribution: csvDownloads.map((item) => ({
@@ -468,7 +468,7 @@ print(len(res.json()["transfers"]))`}</code>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Casos de uso
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Para que sirve esta API hoy</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Para qué sirve esta API hoy</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {useCases.map((item) => (

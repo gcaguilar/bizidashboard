@@ -44,3 +44,11 @@ Textos y navegación relevantes registrados antes de los cambios de interfaz:
 - La navegación pública actual agrupa Inicio, «Explora ahora», Estaciones, Informes, Explorar y Estado; BiciRadar se encuentra en el menú de más opciones.
 
 Hay referencias visuales locales previas en `tests/visual-snapshots/` para el dashboard. La captura visual completa de Inicio, Dashboard, Comparar, Informes, Estado y BiciRadar en escritorio y móvil debe repetirse en un entorno con PostgreSQL disponible: la ejecución local de Playwright de esta línea base no pudo terminar porque la conexión de Prisma al servicio de base de datos fue rechazada (`ECONNREFUSED`).
+
+## Control SEO tras cada despliegue
+
+- Comprobar que `/robots.txt` responde `200`, permite rastrear las páginas públicas y enlaza a `https://datosbizi.com/sitemap.xml`.
+- Comprobar que `/sitemap.xml` devuelve XML no vacío, contiene solo URLs canónicas y no incluye rutas que redirigen.
+- Ejecutar `bun run qa:audit` en CI y revisar `sitemap_entries`, `sitemap_redirected_entries` y `sitemap_missing_from_sitemap`.
+- Validar en Search Console el sitemap y solicitar rastreo solo de páginas nuevas o corregidas.
+- Tras publicar, revisar una muestra de páginas indexables para confirmar `title`, `description`, canonical, robots y JSON-LD.

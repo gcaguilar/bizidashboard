@@ -12,11 +12,12 @@ import { Card } from '@/components/ui/card';
 
 export const Route = createFileRoute('/estadisticas/barrios/')({
   loader: () => fetchSeoLandingData({ data: { slug: 'barrios-bizi-zaragoza' } }),
-  head: () =>
+  head: ({ loaderData }) =>
     buildSeoHead({
       title: 'Barrios Bizi Zaragoza - DatosBizi',
       description: 'Compara barrios de Zaragoza por estaciones Bizi, actividad y disponibilidad.',
       path: appRoutes.statsBarrios(),
+      robots: loaderData?.indexability.indexable ? undefined : 'noindex, follow',
     }),
   component: BarriosPage,
 });

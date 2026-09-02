@@ -9,7 +9,7 @@ import { getRobotsBaseUrl } from '@/lib/site'
 
 type SitemapEntry = {
   href: string
-  lastModified: string
+  lastModified?: string
   changeFrequency: string
   priority: number
 }
@@ -39,9 +39,25 @@ function dedupeEntries(entries: SitemapEntry[]): SitemapEntry[] {
   return uniqueEntries
 }
 
+function buildStaticSitemapXml(): string {
+  const siteUrl = getRobotsBaseUrl()
+  const urls = INDEXABLE_PUBLIC_ROUTE_REGISTRY
+    .map((entry) => `  <url>
+    <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
+    <changefreq>${entry.sitemap.changeFrequency}</changefreq>
+    <priority>${entry.sitemap.priority}</priority>
+  </url>`)
+    .join('\n')
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`
+}
+
 async function buildSitemapXml(): Promise<string> {
   const siteUrl = getRobotsBaseUrl()
-  const lastModified = new Date().toISOString()
   const [monthsResponse, monthlySeries, districts, stations] = await Promise.all([
     fetchAvailableDataMonths().catch((error) => {
       console.error('[sitemap.xml] fetchAvailableDataMonths failed:', error)
@@ -72,13 +88,11 @@ async function buildSitemapXml(): Promise<string> {
   const entries = dedupeEntries([
     ...INDEXABLE_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
       href: entry.href,
-      lastModified,
       changeFrequency: entry.sitemap.changeFrequency,
       priority: entry.sitemap.priority,
     })),
     ...validMonths.map((month) => ({
       href: appRoutes.reportMonth(month),
-      lastModified,
       changeFrequency: 'monthly',
       priority: 0.74,
     })),
@@ -86,7 +100,6 @@ async function buildSitemapXml(): Promise<string> {
       .filter((district) => district.stationCount > 0 && district.topStations.length > 0)
       .map((district) => ({
         href: `/estadisticas/barrios/${district.slug}`,
-        lastModified,
         changeFrequency: 'daily',
         priority: 0.68,
       })),
@@ -94,21 +107,18 @@ async function buildSitemapXml(): Promise<string> {
       .filter((station) => station.indexability.includeInSitemap)
       .map((station) => ({
         href: `/estadisticas/estaciones/${station.station.id}`,
-        lastModified: station.station.recordedAt ?? lastModified,
+        ...(station.station.recordedAt ? { lastModified: station.station.recordedAt } : {}),
         changeFrequency: 'hourly',
         priority: 0.66,
       })),
   ])
 
   const urls = entries
-    .map(
-      (entry) => `  <url>
+    .map((entry) => `  <url>
     <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
-    <lastmod>${entry.lastModified}</lastmod>
-    <changefreq>${entry.changeFrequency}</changefreq>
+    ${entry.lastModified ? `<lastmod>${entry.lastModified}</lastmod>\n    ` : ''}<changefreq>${entry.changeFrequency}</changefreq>
     <priority>${entry.priority}</priority>
-  </url>`
-    )
+  </url>`)
     .join('\n')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -134,7 +144,7 @@ export const Route = createFileRoute('/sitemap.xml')({
         } catch (error) {
           console.error('[sitemap.xml] Error building sitemap:', error)
           return new Response(
-            `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n`,
+            buildStaticSitemapXml(),
             {
               status: 200,
               headers: {

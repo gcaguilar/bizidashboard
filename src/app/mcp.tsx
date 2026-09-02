@@ -6,8 +6,8 @@ import { appRoutes } from '@/lib/routes';
 
 export const Route = createFileRoute('/mcp')({
   head: () => buildSeoHead({
-    title: 'Conector MCP de Bizi Zaragoza para ChatGPT, Claude, Grok y Perplexity',
-    description: 'Conecta BiziDashboard a ChatGPT, Claude, Perplexity o Grok mediante MCP para consultar disponibilidad, alertas, patrones, movilidad e informes de Bizi Zaragoza.',
+    title: 'Conector MCP de DatosBizi | Bizi Zaragoza',
+    description: 'Conecta un asistente compatible con MCP a DatosBizi para consultar disponibilidad, alertas, patrones, movilidad e informes de Bizi Zaragoza.',
     path: appRoutes.mcp(),
   }),
   component: McpPage,

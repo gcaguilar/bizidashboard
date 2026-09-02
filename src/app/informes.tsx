@@ -70,7 +70,7 @@ export default function ReportsIndexPage() {
               }}
               className="ui-primary-button inline-flex w-fit items-center gap-2 text-base"
             >
-              Abrir ultimo informe: {formatMonthLabel(latestMonth)}
+              Abrir último informe: {formatMonthLabel(latestMonth)}
             </TrackedLink>
           ) : null}
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
@@ -109,7 +109,7 @@ export default function ReportsIndexPage() {
 
       <section className="grid gap-3 md:grid-cols-3">
         <article className="ui-section-card py-3">
-          <p className="stat-label">Ultimo mes con informe</p>
+          <p className="stat-label">Último mes con informe</p>
           <p className="stat-value">{latestMonth ? formatMonthLabel(latestMonth) : 'Sin datos'}</p>
         </article>
         <article className="ui-section-card py-3">
@@ -127,7 +127,7 @@ export default function ReportsIndexPage() {
           <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
             El archivo reúne enlaces permanentes para consultar el histórico de Bizi Zaragoza.
-            Cada informe resume un periodo concreto y permite navegar a barrios, estaciones y rankings.
+            Cada informe resume un período concreto y permite navegar a barrios, estaciones y rankings.
           </p>
         </div>
 

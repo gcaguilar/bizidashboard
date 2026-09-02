@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
-import { appRoutes } from '@/lib/routes';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 
 export const Route = createFileRoute('/estadisticas/')({
@@ -17,10 +17,24 @@ export const Route = createFileRoute('/estadisticas/')({
 });
 
 function EstadisticasHubPage() {
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: appRoutes.statsHub() });
+  const canonicalPath = appRoutes.statsHub();
+  const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: canonicalPath });
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildBreadcrumbStructuredData(breadcrumbs),
+      {
+        '@type': 'CollectionPage',
+        name: 'Estadísticas Bizi Zaragoza',
+        description: 'Estadísticas públicas de estaciones, barrios, horarios y evolución de Bizi Zaragoza.',
+        url: toAbsoluteRouteUrl(canonicalPath),
+      },
+    ],
+  };
 
   return (
     <PageShell>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

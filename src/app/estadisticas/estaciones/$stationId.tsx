@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
+import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
@@ -28,11 +29,12 @@ function formatPredictionLabel(value: number | null, capacity: number): string {
 export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   loader: ({ params }) => getPublicStationPageData({ data: params.stationId }),
   pendingComponent: StationDetailSkeleton,
-  head: ({ params }) => {
+  head: ({ params, loaderData }) => {
     const id = params.stationId ?? ''
     const stationPath = appRoutes.stationDetail(id)
-    const title = `Estación ${id} de Bizi Zaragoza | DatosBizi`
-    const description = `Consulta bicis, huecos, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
+    const stationName = loaderData?.summary?.station?.name ?? id
+    const title = `${stationName} | Estación Bizi Zaragoza | DatosBizi`
+    const description = `Consulta bicis, huecos, ocupación y patrones de uso de ${stationName}, estación Bizi de Zaragoza.`
     return {
       meta: [
         { title },
@@ -42,8 +44,10 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'DatosBizi' },
+        { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${stationPath}` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'robots', content: loaderData ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
@@ -141,7 +145,16 @@ function StationPage() {
 
   return (
     <PageShell>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            ...structuredData,
+            '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
+          }),
+        }}
+      />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

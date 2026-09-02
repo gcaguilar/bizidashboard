@@ -14,6 +14,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 
 import { appRoutes } from '@/lib/routes'
+import { getGoogleSiteVerificationToken, getSiteUrl, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
 
 interface MyRouterContext {
@@ -31,7 +32,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // resolve once and never revalidate on navigation.
   staleTime: Infinity,
   loader: () => getFooterData(),
-  head: () => ({
+  head: () => {
+    const googleVerification = getGoogleSiteVerificationToken()
+    return {
     meta: [
       { title: 'DatosBizi' },
       { charSet: 'utf-8' },
@@ -39,6 +42,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1',
       },
+      ...(googleVerification
+        ? [{ name: 'google-site-verification', content: googleVerification }]
+        : []),
     ],
     links: [
       { rel: 'manifest', href: appRoutes.manifest() },
@@ -48,7 +54,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap' },
       { rel: 'stylesheet', href: appCss },
     ],
-  }),
+  }
+  },
   errorComponent: ({ error }) => (
     <html lang="es">
       <head>
@@ -75,11 +82,37 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
   const umamiConfig = footerData.umami
+  const siteUrl = getSiteUrl()
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: SEO_SITE_NAME,
+        url: siteUrl,
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        name: SEO_SITE_NAME,
+        url: siteUrl,
+        inLanguage: 'es',
+        publisher: { '@id': `${siteUrl}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${siteUrl}${appRoutes.explore()}?q={search_term_string}`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  }
 
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>
         {umamiConfig ? (
           <script
             async

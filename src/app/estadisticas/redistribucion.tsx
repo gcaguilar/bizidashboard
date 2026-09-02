@@ -18,11 +18,12 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
     'Cache-Control': REDISTRIBUCION_CACHE_CONTROL,
   }),
   loader: () => fetchSeoLandingData({ data: { slug: 'redistribucion' } }),
-  head: () =>
+  head: ({ loaderData }) =>
     buildSeoHead({
       title: 'Redistribución Bizi Zaragoza - DatosBizi',
       description: 'Consulta qué estaciones muestran falta o exceso de bicis y dónde conviene revisar el equilibrio de la red.',
       path: appRoutes.statsRedistribucion(),
+      robots: loaderData?.indexability.indexable ? undefined : 'noindex, follow',
     }),
   errorComponent: RedistribucionErrorPage,
   component: RedistribucionPage,

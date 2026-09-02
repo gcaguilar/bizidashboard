@@ -5,7 +5,7 @@ import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildPeriodCoverage } from '@/lib/temporal-comparison';
 
@@ -140,7 +140,7 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
       buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'Organization',
-        name: SITE_NAME,
+        name: SEO_SITE_NAME,
         url: siteUrl,
       },
       ...(reportListEntries.length > 0

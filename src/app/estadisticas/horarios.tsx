@@ -12,11 +12,12 @@ import { Card } from '@/components/ui/card';
 
 export const Route = createFileRoute('/estadisticas/horarios')({
   loader: () => fetchSeoLandingData({ data: { slug: 'uso-bizi-por-hora' } }),
-  head: () =>
+  head: ({ loaderData }) =>
     buildSeoHead({
-      title: 'Uso de Bizi por hora en Zaragoza - DatosBizi',
-      description: 'Horas pico, franjas de mayor actividad y comportamiento del sistema Bizi Zaragoza.',
+      title: 'Horarios de uso de Bizi Zaragoza | DatosBizi',
+      description: 'Descubre a qué horas hay más actividad y cómo cambia la disponibilidad de Bizi Zaragoza durante el día.',
       path: appRoutes.statsHorarios(),
+      robots: loaderData?.indexability.indexable ? undefined : 'noindex, follow',
     }),
   component: HorariosPage,
 });

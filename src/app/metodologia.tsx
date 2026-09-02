@@ -48,18 +48,18 @@ export default function MethodologyPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Como leer los datos
+              Cómo leer los datos
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Metodologia y calidad de datos de Bizi en {cityName}
+              Metodología y calidad de datos de Bizi en {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Aqui explicamos de donde salen los datos, cada cuanto se actualizan, que metricas son
-              estimaciones y que limites conviene tener presentes antes de sacar conclusiones.
+              Aquí explicamos de dónde salen los datos, cada cuánto se actualizan, qué métricas son
+              estimaciones y qué límites conviene tener presentes antes de sacar conclusiones.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">{historyMeta.coverage.totalDays} dias de cobertura</span>
+            <span className="ui-chip">{historyMeta.coverage.totalDays} días de cobertura</span>
             <span className="ui-chip">{historyMeta.coverage.totalStations} estaciones con histórico</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {getHealthLabel(status.pipeline.healthStatus)}
@@ -129,7 +129,7 @@ export default function MethodologyPage() {
             {getDatasetVersionLabel(dataset)} · API v{getApiVersionLabel()}
           </p>
           <p className="text-xs text-[var(--muted)]">
-            {latestMonth ? `Ultimo informe publicado: ${formatMonthLabel(latestMonth)}.` : 'Sin informe mensual publicado.'}
+            {latestMonth ? `Último informe publicado: ${formatMonthLabel(latestMonth)}.` : 'Sin informe mensual publicado.'}
           </p>
         </article>
       </section>
@@ -193,7 +193,7 @@ export default function MethodologyPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             FAQs visibles
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas que mas cambian la interpretacion</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas que más cambian la interpretación</h2>
         </div>
 
         <div className="mt-2 grid gap-3 md:grid-cols-2">
