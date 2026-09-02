@@ -56,6 +56,16 @@ describe('seo navigation contract', () => {
     }
   });
 
+  it('includes breadcrumb structured data on station detail pages', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/app/estadisticas/estaciones/$stationId.tsx'),
+      'utf8'
+    );
+
+    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
+    expect(source).toContain("'@graph': [buildBreadcrumbStructuredData(breadcrumbs)");
+  });
+
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
     expect(UTILITY_LANDING_NAV_CONFIG.pageRole).toBe('ENTRY_SEO');
     expect(UTILITY_LANDING_NAV_CONFIG.primaryCta.destination).toBe('dashboard_overview');
