@@ -1,4 +1,4 @@
-import { getSiteUrl } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 
 type MetaEntry = Record<string, string>;
 
@@ -50,6 +50,8 @@ export function buildSeoHead({
       { property: 'og:title', content: resolvedSocialTitle },
       { property: 'og:description', content: resolvedSocialDescription },
       { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: SEO_SITE_NAME },
+      { property: 'og:locale', content: 'es_ES' },
       ...(url ? [{ property: 'og:url', content: url }] : []),
       { name: 'robots', content: robots },
       { name: 'twitter:card', content: 'summary_large_image' },

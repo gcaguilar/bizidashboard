@@ -5,7 +5,7 @@ import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
@@ -41,6 +41,8 @@ export const Route = createFileRoute('/')({
       { property: 'og:title', content: SEO_SITE_TITLE },
       { property: 'og:description', content: SEO_SITE_DESCRIPTION },
       { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: SEO_SITE_NAME },
+      { property: 'og:locale', content: 'es_ES' },
       { property: 'og:url', content: getSiteUrl() },
       { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       { name: 'twitter:card', content: 'summary_large_image' },
