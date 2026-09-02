@@ -216,6 +216,15 @@ describe('seo navigation contract', () => {
     expect(source).toContain("property: 'og:image:alt'");
   });
 
+  it('keeps homepage FAQ structured data visible in the page', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/index.tsx'), 'utf8');
+
+    expect(source).toContain("'@type': 'FAQPage'");
+    expect(source).toContain('id="home-faq-title"');
+    expect(source).toContain('HOME_FAQ.map((item)');
+    expect(source).toContain("name: SEO_SITE_NAME");
+  });
+
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
     const legacyAliases = Object.values(SEO_PAGE_CONFIGS).filter((config) => config.isLegacyAlias);
 
