@@ -229,6 +229,10 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
     );
   }
 
+  if (report.summary.sitemap_entries === 0) {
+    failures.push('El sitemap no contiene ninguna URL indexable.');
+  }
+
   if (report.sitemap_mismatch.redirected_entries.length > 0) {
     failures.push(
       `${report.sitemap_mismatch.redirected_entries.length} entradas del sitemap redirigen en vez de resolver canonicas.`
