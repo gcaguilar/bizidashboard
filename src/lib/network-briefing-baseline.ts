@@ -21,9 +21,9 @@ export function selectComparableHourlyBaseline(
   });
   if (!candidate) return null;
   return {
-    criticalStationsCount: Number(candidate.criticalStationsCount),
-    activeAlertsCount: null,
-    label: 'la misma franja de la semana anterior',
+      criticalStationsCount: Number(candidate.criticalStationsCount),
+      activeAlertsCount: null,
+      label: 'la misma franja de la semana anterior',
   };
 }
 
@@ -61,7 +61,23 @@ export async function fetchComparableNetworkBaseline(
       GROUP BY "bucketStart"
       ORDER BY "bucketStart" DESC
     `;
-    return selectComparableHourlyBaseline(rows, referenceAt, currentStationCount);
+    const baseline = selectComparableHourlyBaseline(rows, referenceAt, currentStationCount);
+    if (!baseline) return null;
+    const target = localParts(referenceAt);
+    const candidate = rows.find((row) => {
+      const parts = localParts(new Date(row.bucketStart));
+      return parts.weekday === target.weekday && parts.hour === target.hour &&
+        Number(row.stationCount) >= Math.max(1, Math.floor(currentStationCount * 0.8));
+    });
+    if (!candidate) return baseline;
+    const bucketStart = new Date(candidate.bucketStart);
+    const bucketEnd = new Date(bucketStart.getTime() + 60 * 60 * 1000);
+    const alertRows = await prisma.$queryRaw<Array<{ alertCount: bigint | number }>>`
+      SELECT COUNT(DISTINCT ("stationId", "alertType")) AS "alertCount"
+      FROM "StationAlert"
+      WHERE "generatedAt" >= ${bucketStart} AND "generatedAt" < ${bucketEnd}
+    `;
+    return { ...baseline, activeAlertsCount: Number(alertRows[0]?.alertCount ?? 0) };
   } catch {
     return null;
   }
