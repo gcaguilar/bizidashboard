@@ -19,6 +19,7 @@ import {
   formatStatusDateTime,
 } from '@/lib/system-status';
 import { getDevelopersPageData } from '@/server-functions/developers';
+import { ObservatoryEventTracker } from '@/app/_components/ObservatoryEventTracker';
 
 
 
@@ -66,6 +67,7 @@ export default function DevelopersPage() {
 
   return (
     <PageShell>
+      <ObservatoryEventTracker name="api_docs_opened" source="developers_hub" routeKey="developers" />
       <PublicPageViewTracker pageType="developers" template="developers_hub" pageSlug="developers" />
 
       <script

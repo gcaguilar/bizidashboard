@@ -2,10 +2,12 @@ import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
 import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
+import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
+import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
 
 export const HOME_CACHE_CONTROL =
@@ -130,6 +132,7 @@ function Home() {
       </div>
 
       <NetworkBriefing briefing={briefing} className="mt-4" />
+      <NetworkBriefingViewTracker />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="ui-section-card">
@@ -183,7 +186,7 @@ function Home() {
           <p className="mt-2 text-sm text-[var(--muted)]">BiciRadar es el producto de proximidad. Usa ubicación y búsqueda de estaciones sin cambiar este observatorio.</p>
           <TrackedLink
             href={appRoutes.biciradar()}
-            ctaEvent={{ source: 'home_biciradar_handoff', ctaId: 'open_biciradar', destination: 'biciradar', sourceRole: 'home', destinationRole: 'utility', transitionKind: 'within_public' }}
+            trackingEvent={buildObservatoryEvent('biciradar_handoff_clicked', { surface: 'public', routeKey: 'home', source: 'home_biciradar_handoff' })}
             className="ui-primary-button mt-4"
           >
             Abrir BiciRadar

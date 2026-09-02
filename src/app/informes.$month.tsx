@@ -12,6 +12,7 @@ import { PageShell } from '@/components/layout/page-shell'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
 import { getSiteUrl } from '@/lib/site'
+import { buildObservatoryEvent } from '@/lib/umami'
 
 export const Route = createFileRoute('/informes/$month')({
   loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
@@ -116,7 +117,7 @@ function InformesMonthPage() {
               <div className="mt-4 flex flex-col gap-2">
                 <TrackedLink href={appRoutes.dashboardConclusions({ month })} ctaEvent={{ source: 'report_month', ctaId: 'open_dashboard', destination: 'dashboard_conclusions', entityType: 'report', monthPresent: true, sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-primary-button">Abrir análisis de este mes</TrackedLink>
                 <TrackedLink href={appRoutes.statsViajes()} ctaEvent={{ source: 'report_month', ctaId: 'view_series', destination: 'stats_viajes', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Ver serie acumulada</TrackedLink>
-                <TrackedLink href={appRoutes.reports()} ctaEvent={{ source: 'report_month', ctaId: 'back_to_archive', destination: 'report_archive', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Volver al archivo</TrackedLink>
+                <TrackedLink href={appRoutes.reports()} trackingEvent={buildObservatoryEvent('report_opened', { surface: 'public', routeKey: 'monthly_report', source: 'report_month_archive' })} className="ui-inline-action">Volver al archivo</TrackedLink>
               </div>
             </article>
           </section>
