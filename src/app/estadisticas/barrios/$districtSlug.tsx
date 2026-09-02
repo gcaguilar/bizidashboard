@@ -99,7 +99,7 @@ function DistrictPage() {
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
       <header className="ui-page-hero">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha publica de barrio</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha pública de barrio</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Bizi en {district.name}</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
           Estaciones, bicis disponibles y actividad agregada del barrio.
@@ -121,7 +121,7 @@ function DistrictPage() {
         </article>
         <article className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Como usar esta ficha</h2>
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si necesitas disponibilidad concreta. Usa la comparativa de barrios para entender que zonas tienen mas actividad o mas tension.</p>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si buscas disponibilidad concreta. Usa la comparativa para ver qué zonas tienen más actividad o más tensión.</p>
           <TrackedLink className="ui-inline-action mt-4" href={appRoutes.advancedMap()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir mapa avanzado</TrackedLink>
         </article>
       </section>

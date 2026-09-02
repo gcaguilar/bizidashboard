@@ -75,7 +75,7 @@ export function DataHistoryCard() {
     <section className="ui-section-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-[var(--foreground)]">Historico de equilibrio y demanda</h3>
+          <h3 className="text-lg font-bold text-[var(--foreground)]">Histórico de equilibrio y actividad</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Compara como cambia el balance del sistema junto con la demanda agregada reciente.
           </p>
