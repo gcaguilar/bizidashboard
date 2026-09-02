@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes'
 import { buildSeoHead } from '@/lib/seo-head'
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs'
+import { toAbsoluteRouteUrl } from '@/lib/routes'
 import { PageShell } from '@/components/layout/page-shell';
+import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getStationsDirectoryData } from '@/server-functions/estaciones';
@@ -20,8 +23,27 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
 
 function EstadisticasEstacionesPage() {
   const stationRows = Route.useLoaderData();
+  const canonicalPath = '/estadisticas/estaciones';
+  const breadcrumbs = createRootBreadcrumbs({ label: 'Estaciones', href: canonicalPath });
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildBreadcrumbStructuredData(breadcrumbs),
+      {
+        '@type': 'CollectionPage',
+        name: 'Estaciones Bizi Zaragoza',
+        description: 'Ranking y disponibilidad actual de estaciones Bizi Zaragoza.',
+        url: toAbsoluteRouteUrl(canonicalPath),
+      },
+    ],
+  };
+
   return (
     <PageShell>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <div className="mx-auto max-w-7xl px-4 pt-6">
+        <SiteBreadcrumbs items={breadcrumbs} />
+      </div>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
         <header className="max-w-3xl space-y-3">
           <p className="stat-label">Directorio público</p>
