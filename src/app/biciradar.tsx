@@ -88,12 +88,6 @@ const FEATURES = [
     description: 'Avisos para estaciones vacías o llenas.',
     status: 'Disponible',
   },
-  {
-    icon: '🌙',
-    title: 'Modo offline',
-    description: 'Acceso básico a la última información guardada en el móvil cuando no hay conexión.',
-    status: 'Disponible',
-  },
 ];
 
 export const Route = createFileRoute('/biciradar')({
