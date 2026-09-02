@@ -14,7 +14,7 @@ import { getReportsIndexPageData } from '@/server-functions/informes';
 export const Route = createFileRoute('/informes')({
   head: () =>
     buildSeoHead({
-      title: 'Informes mensuales de Bizi Zaragoza | Archivo historico',
+      title: 'Informes mensuales de Bizi Zaragoza | Archivo histórico',
       description: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.',
       path: appRoutes.reports(),
     }),
@@ -126,7 +126,7 @@ export default function ReportsIndexPage() {
         <div className="mb-3">
           <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            El archivo reune enlaces permanentes para consultar el historico de Bizi Zaragoza.
+            El archivo reúne enlaces permanentes para consultar el histórico de Bizi Zaragoza.
             Cada informe resume un periodo concreto y permite navegar a barrios, estaciones y rankings.
           </p>
         </div>

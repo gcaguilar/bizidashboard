@@ -55,7 +55,7 @@ export function MapPanel({
       : 'Usa el mapa para localizar estaciones, favoritos y zonas con problemas de disponibilidad.';
   const legendItems =
     viewMode === 'operations'
-      ? ['Halo rojo = friccion alta', 'Rojo = tension alta', 'Azul = favorita', 'Toca para actuar']
+      ? ['Halo rojo = fricción alta', 'Rojo = tensión alta', 'Azul = favorita', 'Selecciona una estación para verla']
       : ['Rojo = desequilibrio', 'Verde = estable', 'Azul = favorita', 'Toca para detalle'];
 
   return (

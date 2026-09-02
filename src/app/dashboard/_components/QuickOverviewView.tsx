@@ -119,10 +119,10 @@ export function QuickOverviewView({
         <article className="ui-section-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Operaciones</h3>
           <p className="text-sm text-[var(--muted)]">
-            Revisa alertas activas, prioriza redistribucion y resuelve friccion en estaciones criticas.
+            Revisa alertas activas y señales persistentes de déficit o saturación antes de intervenir.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardAlerts()}>Operaciones</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardAlerts()}>Ver alertas y señales</TrackedLink>
           </Button>
         </article>
 
@@ -132,7 +132,7 @@ export function QuickOverviewView({
             Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
-            <TrackedLink href={appRoutes.dashboardFlow()}>Analisis</TrackedLink>
+            <TrackedLink href={appRoutes.dashboardFlow()}>Ver análisis de flujos</TrackedLink>
           </Button>
         </article>
       </section>
