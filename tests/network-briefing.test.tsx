@@ -19,11 +19,11 @@ const input = {
 describe('network briefing', () => {
   it('finds a historical sample for the same local weekday and hour', () => {
     const reference = new Date('2026-04-01T21:00:00.000Z');
-    const baseline = selectComparableHourlyBaseline([
+    const selection = selectComparableHourlyBaseline([
       { bucketStart: new Date('2026-03-25T22:00:00.000Z'), stationCount: 120, criticalStationsCount: 8 },
       { bucketStart: new Date('2026-03-26T21:00:00.000Z'), stationCount: 20, criticalStationsCount: 2 },
     ], reference, 120);
-    expect(baseline?.criticalStationsCount).toBe(8);
+    expect(selection?.baseline.criticalStationsCount).toBe(8);
   });
 
   it('builds a deterministic, bounded briefing without a comparison baseline', () => {
