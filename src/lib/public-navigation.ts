@@ -56,12 +56,13 @@ export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
   { id: 'api', label: 'API', href: appRoutes.developers(), ctaId: 'api' },
   { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
   { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
+  { id: 'mcp', label: 'Conector MCP', href: appRoutes.mcp(), ctaId: 'mcp' },
 ];
 
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
   [PUBLIC_MAIN_NAV_ITEMS[1], PUBLIC_MAIN_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[4]],
   [PUBLIC_MORE_NAV_ITEMS[0], PUBLIC_MORE_NAV_ITEMS[1], PUBLIC_MORE_NAV_ITEMS[2], PUBLIC_MORE_NAV_ITEMS[3]],
-  [PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MORE_NAV_ITEMS[6], PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8]],
+  [PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MORE_NAV_ITEMS[6], PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8], PUBLIC_MORE_NAV_ITEMS[10]],
 ];
 
 export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
