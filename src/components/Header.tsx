@@ -25,7 +25,7 @@ export default function Header() {
 
             <nav aria-label="Navegación principal" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm md:gap-x-3">
               {PUBLIC_MAIN_NAV_ITEMS.map((link, index) => {
-                const responsiveClass = index === 1 || index === 3 || index === 4 ? 'hidden sm:inline-flex' : '';
+                const responsiveClass = index === 1 || index === 2 || index === 3 ? 'hidden sm:inline-flex' : '';
                 return (
                 <TrackedLink
                   key={link.href}
