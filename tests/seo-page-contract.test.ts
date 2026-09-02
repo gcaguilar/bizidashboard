@@ -36,6 +36,16 @@ describe('seo navigation contract', () => {
     expect(source).toContain("'query-input': 'required name=search_term_string'");
   });
 
+  it('keeps interactive tool hubs out of the index while allowing crawling', async () => {
+    const compare = await import('@/app/comparar');
+    const explore = await import('@/app/explorar');
+    const compareMeta = compare.Route.options.head?.({ params: {}, matches: [], loaderData: undefined, search: {}, context: {} } as never);
+    const exploreMeta = explore.Route.options.head?.({ params: {}, matches: [], loaderData: undefined, search: {}, context: {} } as never);
+
+    expect(compareMeta?.meta).toContainEqual({ name: 'robots', content: 'noindex, follow' });
+    expect(exploreMeta?.meta).toContainEqual({ name: 'robots', content: 'noindex, follow' });
+  });
+
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
     expect(UTILITY_LANDING_NAV_CONFIG.pageRole).toBe('ENTRY_SEO');
     expect(UTILITY_LANDING_NAV_CONFIG.primaryCta.destination).toBe('dashboard_overview');
