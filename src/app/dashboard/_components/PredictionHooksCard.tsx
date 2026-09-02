@@ -2,6 +2,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
 import { buildPanelOpenEvent } from '@/lib/umami';
+import { MetricEvidence } from '@/app/_components/MetricEvidence';
 
 export function PredictionHooksCard() {
   const predictionExamplePath = `${String(appRoutes.api.predictions()).replace('101', '')}...`;
@@ -21,6 +22,7 @@ export function PredictionHooksCard() {
       <p className="mt-3 text-xs text-[var(--muted)]">
         Es un primer modelo interpretable pensado para exponer una senal util sin introducir infraestructura extra de ML en esta fase.
       </p>
+      <MetricEvidence type="predicción" coverage="muestras históricas de la estación" window="+30 y +60 minutos" limitation="Es una señal orientativa, no una certeza de disponibilidad." />
       <Button asChild variant="cta" size="sm" className="mt-auto">
         <TrackedLink
           href={appRoutes.dashboardHelp('prediccion-dashboard')}

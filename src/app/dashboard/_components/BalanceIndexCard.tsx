@@ -2,6 +2,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { Progress } from '@/components/ui/progress';
 import { InfoHint } from './InfoHint';
+import { MetricEvidence } from '@/app/_components/MetricEvidence';
 
 type BalanceIndexCardProps = {
   balanceIndex: number;
@@ -61,6 +62,7 @@ export function BalanceIndexCard({
         value={percentage}
         indicatorClassName="bg-[var(--primary)] duration-500"
       />
+      <MetricEvidence type="estimado" coverage={`${criticalStationsCount} estaciones críticas en la muestra`} window="última muestra" limitation="El índice resume ocupación; no representa viajes individuales." />
     </article>
   );
 }

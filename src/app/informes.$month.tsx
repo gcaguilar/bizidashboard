@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
+import { MetricEvidence } from '@/app/_components/MetricEvidence'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createReportBreadcrumb } from '@/lib/breadcrumbs'
@@ -93,7 +94,7 @@ function InformesMonthPage() {
       {monthRow ? (
         <>
           <section className="grid gap-4 md:grid-cols-5">
-            <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p></article>
+            <article className="ui-section-card"><p className="stat-label">Demanda estimada</p><p className="stat-value">{formatInteger(monthRow.demandScore)}</p><MetricEvidence type="estimado" coverage={periodCoverage ? `${periodCoverage.coveredDays} de ${periodCoverage.expectedDays} días` : 'no disponible'} window={formatMonthLabel(month)} limitation="Índice derivado; no equivale a viajes oficiales." /></article>
             <article className="ui-section-card"><p className="stat-label">Ocupación media</p><p className="stat-value">{formatPercent(monthRow.avgOccupancy)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Estaciones activas</p><p className="stat-value">{formatInteger(monthRow.activeStations)}</p></article>
             <article className="ui-section-card"><p className="stat-label">Muestras</p><p className="stat-value">{formatInteger(monthRow.sampleCount)}</p></article>

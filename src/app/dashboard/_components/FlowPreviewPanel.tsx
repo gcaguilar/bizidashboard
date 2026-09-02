@@ -7,6 +7,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { MetricEvidence } from '@/app/_components/MetricEvidence';
 import type { StationSnapshot } from '@/lib/api-types';
 import { resolveDataState } from '@/lib/data-state';
 import {
@@ -145,7 +146,7 @@ export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: Flow
               Corredores de alto volumen
             </h3>
             <p className="mt-1 text-xs text-[var(--muted)]">
-              Rutas probables entre barrios estimadas a partir de entradas y salidas agregadas.
+              Flujos estimados entre zonas a partir de entradas y salidas agregadas; no son viajes individuales.
             </p>
           </div>
           <Button asChild variant="ghost" size="sm" className="px-1 py-0 text-xs font-semibold text-[var(--primary)] hover:underline">
@@ -188,6 +189,7 @@ export function FlowPreviewPanel({ stations, hourlySignals, currentMonth }: Flow
             );
           })
         )}
+        <MetricEvidence type="estimado" coverage={`${hourlySignals.length} señales horarias`} window="franja seleccionada" limitation="La matriz O-D no es un registro oficial de viajes." />
       </div>
     </div>
   );
