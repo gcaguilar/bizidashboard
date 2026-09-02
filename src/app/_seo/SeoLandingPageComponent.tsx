@@ -39,35 +39,31 @@ export type SeoLandingContent = {
   emptyReason?: string;
 };
 
+function buildSeoFaqItems(config: SeoPageConfig) {
+  return [
+      {
+        name: `¿Qué ofrece la página ${config.title}?`,
+        answer: config.description,
+      },
+      {
+        name: '¿Cada cuánto se actualiza esta información?',
+        answer: `${config.cadenceLabel}. La fecha visible en la página indica la última actualización publicada.`,
+      },
+      {
+        name: '¿Dónde puedo ver el detalle completo?',
+        answer: `Desde esta página puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle actualizado.`,
+      },
+  ];
+}
+
 function buildSeoFaqStructuredData(config: SeoPageConfig) {
   return {
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `¿Qué ofrece la página ${config.title}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: config.description,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: '¿Cada cuánto se actualiza esta información?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${config.cadenceLabel}. La fecha visible en la pagina indica la ultima actualizacion publicada.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: '¿Dónde puedo ver el detalle completo?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Desde esta pagina puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle actualizado.`,
-        },
-      },
-    ],
+    mainEntity: buildSeoFaqItems(config).map((item) => ({
+      '@type': 'Question',
+      name: item.name,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
   };
 }
 
@@ -123,6 +119,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
   const relatedPages = PRIMARY_SEO_PAGE_SLUGS.filter((pageSlug) => pageSlug !== slug)
     .slice(0, 4)
     .map((pageSlug) => getSeoPageConfig(pageSlug));
+  const faqItems = buildSeoFaqItems(config);
   const itemListEntries = content.sectionItems
     .filter((item): item is SeoItem & { href: string } => typeof item.href === 'string')
     .map((item) => ({
@@ -306,6 +303,18 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
             Esta pagina se completara automaticamente cuando haya cobertura suficiente.
           </p>
         )}
+      </section>
+
+      <section className="ui-section-card" aria-labelledby="faq-title">
+        <h2 id="faq-title" className="text-xl font-black text-[var(--foreground)]">Preguntas frecuentes</h2>
+        <div className="mt-3 space-y-4">
+          {faqItems.map((item) => (
+            <article key={item.name}>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">{item.name}</h3>
+              <p className="mt-1 text-sm text-[var(--muted)]">{item.answer}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="ui-section-card">
