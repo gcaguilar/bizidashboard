@@ -119,6 +119,12 @@ describe('public UX regressions', () => {
     expect(mcp).toContain("createFileRoute('/mcp')");
   });
 
+  it('does not duplicate the developers destination in the global menu', () => {
+    const navigation = readSource('src/lib/public-navigation.ts');
+    expect(navigation.match(/href: appRoutes\.developers\(\)/g) ?? []).toHaveLength(1);
+    expect(navigation).toContain("href: appRoutes.mcp()");
+  });
+
   it('documents the observatory product boundary and protected public routes', () => {
     const decision = readSource('docs/product/datosbizi-observatorio.md');
 

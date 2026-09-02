@@ -171,6 +171,19 @@ export default function DevelopersPage() {
             >
               Metodología
             </TrackedLink>
+            <TrackedLink
+              href={appRoutes.mcp()}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'mcp',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
+              className="ui-inline-action"
+            >
+              Conectar un asistente (MCP)
+            </TrackedLink>
           </div>
           <PublicSearchForm eventSource="developers" />
         </div>
