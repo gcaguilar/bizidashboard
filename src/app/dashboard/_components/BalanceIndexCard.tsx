@@ -45,7 +45,7 @@ export function BalanceIndexCard({
           <p className="mt-1 text-sm text-[var(--muted)]">Mide cuánto se acerca cada estación al 50 % de ocupación. Cuanto más cerca de 1, más equilibrada está la red.</p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('balance-index')} className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline">
-          Entender formula
+          Cómo se calcula
         </TrackedLink>
       </div>
 
@@ -53,7 +53,7 @@ export function BalanceIndexCard({
         <p className={`${compact ? 'text-4xl' : 'text-5xl'} font-black ${getBalanceTone(balanceIndex)}`}>{percentage}%</p>
         <div className="pb-1">
           <p className="text-sm font-semibold text-[var(--foreground)]">{getBalanceLabel(balanceIndex)}</p>
-          <p className="text-xs text-[var(--muted)]">{criticalStationsCount} estaciones en estado critico ahora mismo.</p>
+          <p className="text-xs text-[var(--muted)]">{criticalStationsCount} estaciones están en estado crítico ahora.</p>
         </div>
       </div>
 

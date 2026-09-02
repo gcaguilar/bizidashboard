@@ -31,14 +31,14 @@ export function ResearchVolatilityCard({ rankings }: ResearchVolatilityCardProps
     <section className="ui-section-card h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Análisis</p>
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Volatilidad operativa</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Resume cuanta inestabilidad acumula la red cuando una parte importante de estaciones pasa demasiadas horas vacia o llena.
+            Indica cuánto tiempo pasan las estaciones vacías o llenas durante el periodo observado.
           </p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('estabilidad-estacion')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
-          Como leerlo
+          Cómo leerlo
         </TrackedLink>
       </div>
 
@@ -46,12 +46,12 @@ export function ResearchVolatilityCard({ rankings }: ResearchVolatilityCardProps
         <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
           <p className="stat-label">Media global</p>
           <p className="mt-2 text-2xl font-black text-[var(--foreground)]">{formatPercent(averageVolatility)}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Proporcion media de horas problema sobre la ventana observada.</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Porcentaje medio de horas con la estación vacía o llena.</p>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
-          <p className="stat-label">Cuartil mas inestable</p>
+          <p className="stat-label">25 % más inestable</p>
           <p className="mt-2 text-2xl font-black text-[var(--foreground)]">{formatPercent(topQuartileAverage)}</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Ayuda a ver si la tension esta concentrada en unas pocas estaciones.</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Permite ver si el problema se concentra en pocas estaciones.</p>
         </div>
       </div>
     </section>
