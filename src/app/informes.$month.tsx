@@ -3,7 +3,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { MetricEvidence } from '@/app/_components/MetricEvidence'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { createReportBreadcrumb } from '@/lib/breadcrumbs'
+import { buildBreadcrumbStructuredData, createReportBreadcrumb } from '@/lib/breadcrumbs'
 import { shouldShowDataStateNotice } from '@/lib/data-state'
 import { formatMonthLabel } from '@/lib/months'
 import { appRoutes } from '@/lib/routes'
@@ -69,9 +69,29 @@ function InformesMonthErrorPage() {
 function InformesMonthPage() {
   const { month, monthRow, periodCoverage, nearbyMonths, dataState } = Route.useLoaderData()
   const breadcrumbs = createReportBreadcrumb(formatMonthLabel(month))
+  const structuredData = monthRow
+    ? {
+        '@context': 'https://schema.org',
+        '@graph': [
+          buildBreadcrumbStructuredData(breadcrumbs),
+          {
+            '@type': 'Article',
+            headline: `Actividad de Bizi Zaragoza en ${formatMonthLabel(month)}`,
+            description: `Informe mensual con actividad estimada, disponibilidad y cobertura de Bizi Zaragoza en ${formatMonthLabel(month)}.`,
+            inLanguage: 'es',
+            mainEntityOfPage: `${getSiteUrl()}${appRoutes.reportMonth(month)}`,
+            author: { '@type': 'Organization', name: 'DatosBizi', url: getSiteUrl() },
+            publisher: { '@type': 'Organization', name: 'DatosBizi', url: getSiteUrl() },
+          },
+        ],
+      }
+    : null
 
   return (
     <PageShell>
+      {structuredData ? (
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      ) : null}
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
