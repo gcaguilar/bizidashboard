@@ -137,8 +137,7 @@ export default function SystemStatusPage() {
               Estado de los datos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Frescura, cobertura, ingestión y errores. Una vista rápida para saber si los datos están al día, cuánta cobertura histórica hay,
-              si existen incidencias y qué servicios pueden verse afectados.
+              Comprueba si los datos están al día, cuánto histórico hay disponible y si alguna incidencia afecta al mapa, la API o los informes.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -164,7 +163,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-primary-button"
             >
-              Abrir mapa avanzado
+              Abrir el mapa
             </TrackedLink>
             <TrackedLink
               href={appRoutes.developers()}
@@ -192,7 +191,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-inline-action"
             >
-              Entender metodología
+              Cómo se calculan los datos
             </TrackedLink>
           </div>
 
@@ -223,10 +222,10 @@ export default function SystemStatusPage() {
         {activeIncidentCount > 0 ? (
           <p className="text-sm text-[var(--warning)]">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
         ) : status.pipeline.healthStatus === 'healthy' ? (
-          <p className="text-sm text-[var(--success)]">Los datos están frescos y el pipeline funciona con normalidad.</p>
+          <p className="text-sm text-[var(--success)]">Los datos están al día y se están recibiendo con normalidad.</p>
         ) : null}
         <p className="mt-2 text-sm text-[var(--muted)]">
-          <span className="font-semibold text-[var(--foreground)]">{productTerms.networkBalance.label}: {networkBalance.label}</span>. {networkBalance.explanation} Esto mide disponibilidad, no la salud de los datos.
+          <span className="font-semibold text-[var(--foreground)]">{productTerms.networkBalance.label}: {networkBalance.label}</span>. {networkBalance.explanation} Este dato habla de bicis y huecos disponibles, no de la calidad del sistema de datos.
         </p>
       </section>
 
