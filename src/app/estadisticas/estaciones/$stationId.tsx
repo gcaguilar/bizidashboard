@@ -31,8 +31,9 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   head: ({ params, loaderData }) => {
     const id = params.stationId ?? ''
     const stationPath = appRoutes.stationDetail(id)
-    const title = `Estación ${id} de Bizi Zaragoza | DatosBizi`
-    const description = `Consulta bicis, huecos, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
+    const stationName = loaderData?.summary?.station?.name ?? id
+    const title = `${stationName} | Estación Bizi Zaragoza | DatosBizi`
+    const description = `Consulta bicis, huecos, ocupación y patrones de uso de ${stationName}, estación Bizi de Zaragoza.`
     return {
       meta: [
         { title },
