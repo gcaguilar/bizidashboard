@@ -10,6 +10,7 @@ const {
   getInsightsLandingDataMock,
   getSeoLandingPageDataMock,
   getStationSeoRowsMock,
+  fetchCachedMonthlyDemandCurveMock,
   getUtilityLandingDataMock,
   withCacheMock,
 } = vi.hoisted(() => ({
@@ -21,6 +22,7 @@ const {
   getInsightsLandingDataMock: vi.fn(),
   getSeoLandingPageDataMock: vi.fn(),
   getStationSeoRowsMock: vi.fn(),
+  fetchCachedMonthlyDemandCurveMock: vi.fn(),
   getUtilityLandingDataMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
@@ -37,7 +39,7 @@ vi.mock('@/lib/cache/cache', () => ({
 }));
 
 vi.mock('@/lib/analytics-series', () => ({
-  fetchCachedMonthlyDemandCurve: vi.fn().mockResolvedValue([]),
+  fetchCachedMonthlyDemandCurve: fetchCachedMonthlyDemandCurveMock,
 }));
 
 vi.mock('@/lib/seo-districts', () => ({
@@ -73,6 +75,7 @@ describe('sitemap runtime cache', () => {
     getInsightsLandingDataMock.mockReset();
     getSeoLandingPageDataMock.mockReset();
     getStationSeoRowsMock.mockReset();
+    fetchCachedMonthlyDemandCurveMock.mockReset();
     getUtilityLandingDataMock.mockReset();
     withCacheMock.mockReset();
 
@@ -113,6 +116,7 @@ describe('sitemap runtime cache', () => {
     });
     getDistrictSeoRowsMock.mockResolvedValue([]);
     getStationSeoRowsMock.mockResolvedValue([]);
+    fetchCachedMonthlyDemandCurveMock.mockResolvedValue([]);
     getUtilityLandingDataMock.mockResolvedValue({
       indexability: { includeInSitemap: true },
     });
@@ -135,5 +139,22 @@ describe('sitemap runtime cache', () => {
     expect(response.status).toBe(200);
     const xml = await response.text();
     expect(xml).toContain('<urlset');
+  });
+
+  it('keeps static canonical URLs when data sources fail', async () => {
+    fetchAvailableDataMonthsMock.mockRejectedValue(new Error('upstream unavailable'));
+    getDistrictSeoRowsMock.mockRejectedValue(new Error('upstream unavailable'));
+    getStationSeoRowsMock.mockRejectedValue(new Error('upstream unavailable'));
+    fetchCachedMonthlyDemandCurveMock.mockRejectedValue(new Error('upstream unavailable'));
+
+    const { Route } = await import('@/app/sitemap[.]xml');
+    const handler = Route.options.server!.handlers!.GET!;
+    const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
+    const xml = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(xml).toContain('<urlset');
+    expect(xml).toContain(`${SITE_URL}/`);
+    expect(xml).toContain(`${SITE_URL}/estadisticas`);
   });
 });

@@ -39,6 +39,23 @@ function dedupeEntries(entries: SitemapEntry[]): SitemapEntry[] {
   return uniqueEntries
 }
 
+function buildStaticSitemapXml(): string {
+  const siteUrl = getRobotsBaseUrl()
+  const urls = INDEXABLE_PUBLIC_ROUTE_REGISTRY
+    .map((entry) => `  <url>
+    <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
+    <changefreq>${entry.sitemap.changeFrequency}</changefreq>
+    <priority>${entry.sitemap.priority}</priority>
+  </url>`)
+    .join('\n')
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`
+}
+
 async function buildSitemapXml(): Promise<string> {
   const siteUrl = getRobotsBaseUrl()
   const [monthsResponse, monthlySeries, districts, stations] = await Promise.all([
@@ -127,7 +144,7 @@ export const Route = createFileRoute('/sitemap.xml')({
         } catch (error) {
           console.error('[sitemap.xml] Error building sitemap:', error)
           return new Response(
-            `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n`,
+            buildStaticSitemapXml(),
             {
               status: 200,
               headers: {
