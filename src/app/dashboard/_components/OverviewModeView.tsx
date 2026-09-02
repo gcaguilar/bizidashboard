@@ -129,7 +129,7 @@ export function OverviewModeView({
           </div>
 
           <Button asChild variant="cta" size="sm">
-            <TrackedLink href={appRoutes.status()}>Abrir pagina de estado</TrackedLink>
+            <TrackedLink href={appRoutes.status()}>Ver estado de los datos</TrackedLink>
           </Button>
         </div>
       </section>

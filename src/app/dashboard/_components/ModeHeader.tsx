@@ -22,7 +22,7 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Modo de vista</p>
           <h2 className="text-lg font-bold text-[var(--foreground)]">Panel multi-rol</h2>
-          <p className="text-sm text-[var(--muted)]">Cambia entre vistas segun si quieres un resumen, operar, investigar o revisar metodologia.</p>
+          <p className="text-sm text-[var(--muted)]">Elige una vista: resumen, operación, investigación o cómo se calculan los datos.</p>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Modos del dashboard">

@@ -21,7 +21,7 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
   head: () =>
     buildSeoHead({
       title: 'Redistribución Bizi Zaragoza - DatosBizi',
-      description: 'Diagnóstico de reequilibrio y estaciones que necesitan atención en Bizi Zaragoza.',
+      description: 'Consulta qué estaciones muestran falta o exceso de bicis y dónde conviene revisar el equilibrio de la red.',
       path: appRoutes.statsRedistribucion(),
     }),
   errorComponent: RedistribucionErrorPage,
@@ -82,7 +82,7 @@ function RedistribucionPage() {
         </div>
         <div className="flex flex-wrap gap-3">
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'redistribucion_page', ctaId: 'view_problem_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver estaciones con problemas</TrackedLink>
-          <TrackedLink href={appRoutes.dashboardRedistribucion()} ctaEvent={{ source: 'redistribucion_page', ctaId: 'view_full_analysis', destination: 'dashboard_redistribucion', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-inline-action">Ir al analisis completo</TrackedLink>
+          <TrackedLink href={appRoutes.dashboardRedistribucion()} ctaEvent={{ source: 'redistribucion_page', ctaId: 'view_full_analysis', destination: 'dashboard_redistribucion', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-inline-action">Ver el análisis completo</TrackedLink>
         </div>
       </header>
 

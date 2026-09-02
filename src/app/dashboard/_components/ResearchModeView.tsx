@@ -75,8 +75,8 @@ export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewPro
       <Card variant="panel">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 py-4">
           <div>
-            <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Análisis de flujos y corredores principales</h2>
-            <p className="text-xs text-[var(--muted)]">Movimiento entre barrios en tiempo real.</p>
+            <h2 className="text-lg font-bold leading-tight text-[var(--foreground)]">Movilidad entre barrios</h2>
+            <p className="text-xs text-[var(--muted)]">Flujos estimados a partir de los cambios observados en las estaciones.</p>
           </div>
           <TrackedLink href={appRoutes.dashboardFlow({ month: currentMonth || undefined })}
             className={buttonVariants({
@@ -86,7 +86,7 @@ export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewPro
                 'border-[var(--primary)] bg-[var(--primary)]/12 px-3 py-2 text-xs font-bold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white',
             })}
           >
-            Vista completa
+            Ver análisis completo
           </TrackedLink>
         </div>
         <FlowPreviewPanel stations={props.stations} hourlySignals={props.hourlySignals} currentMonth={currentMonth} />

@@ -49,7 +49,7 @@ export default function ReportsIndexPage() {
               Informes mensuales de Bizi Zaragoza
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Informes mensuales con contexto, comparativas de demanda estimada y acceso directo al dashboard filtrado por mes.
+              Informes mensuales con contexto, actividad estimada y acceso directo al análisis de cada mes.
             </p>
           </div>
         </div>

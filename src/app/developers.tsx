@@ -171,6 +171,19 @@ export default function DevelopersPage() {
             >
               Metodología
             </TrackedLink>
+            <TrackedLink
+              href={appRoutes.mcp()}
+              navigationEvent={{
+                source: 'developers_hero',
+                destination: 'mcp',
+                sourceRole: 'utility',
+                destinationRole: 'utility',
+                transitionKind: 'within_public',
+              }}
+              className="ui-inline-action"
+            >
+              Conectar un asistente (MCP)
+            </TrackedLink>
           </div>
           <PublicSearchForm eventSource="developers" />
         </div>
@@ -189,7 +202,7 @@ export default function DevelopersPage() {
       <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Quick start
+              Primeros pasos
           </p>
           <h2 className="text-xl font-black text-[var(--foreground)]">Ejemplos de consumo</h2>
         </div>
@@ -332,7 +345,7 @@ print(len(res.json()["transfers"]))`}</code>
               <p className="mt-2 font-mono text-sm font-semibold text-[var(--foreground)]">{endpoint.path}</p>
               <p className="mt-2 text-sm text-[var(--muted)]">{endpoint.summary}</p>
               <p className="mt-2 text-xs text-[var(--muted)]">
-                {endpoint.params.length > 0 ? `Params: ${endpoint.params.join(', ')}` : 'Sin parámetros obligatorios o query destacados.'}
+                {endpoint.params.length > 0 ? `Parámetros: ${endpoint.params.join(', ')}` : 'Sin parámetros obligatorios destacados.'}
               </p>
             </Card>
           ))}

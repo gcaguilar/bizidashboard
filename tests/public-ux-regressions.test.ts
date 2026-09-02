@@ -106,6 +106,25 @@ describe('public UX regressions', () => {
     expect(routes).toContain("dashboard: () => '/dashboard'");
   });
 
+  it('keeps the MCP connector discoverable without changing its route', () => {
+    const routes = readSource('src/lib/routes.ts');
+    const navigation = readSource('src/lib/public-navigation.ts');
+    const homeExplore = readSource('src/app/_components/HomeExploreSection.tsx');
+    const mcp = readSource('src/app/mcp.tsx');
+
+    expect(routes).toContain("mcp: () => '/mcp'");
+    expect(navigation).toContain("label: 'Conector MCP'");
+    expect(navigation).toContain('href: appRoutes.mcp()');
+    expect(homeExplore).toContain("href: appRoutes.mcp()");
+    expect(mcp).toContain("createFileRoute('/mcp')");
+  });
+
+  it('does not duplicate the developers destination in the global menu', () => {
+    const navigation = readSource('src/lib/public-navigation.ts');
+    expect(navigation.match(/href: appRoutes\.developers\(\)/g) ?? []).toHaveLength(1);
+    expect(navigation).toContain("href: appRoutes.mcp()");
+  });
+
   it('documents the observatory product boundary and protected public routes', () => {
     const decision = readSource('docs/product/datosbizi-observatorio.md');
 

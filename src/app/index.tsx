@@ -181,9 +181,9 @@ function Home() {
         </div>
 
         <div className="ui-section-card">
-          <p className="stat-label">Consulta individual</p>
-          <h2 className="mt-1 text-lg font-bold text-[var(--foreground)]">¿Buscas una bici o un anclaje cerca?</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">BiciRadar es el producto de proximidad. Usa ubicación y búsqueda de estaciones sin cambiar este observatorio.</p>
+          <p className="stat-label">¿Necesitas una bici?</p>
+          <h2 className="mt-1 text-lg font-bold text-[var(--foreground)]">Encuentra una bici o un hueco cerca de ti</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">Abre BiciRadar para buscar estaciones cercanas y consultar su disponibilidad.</p>
           <TrackedLink
             href={appRoutes.biciradar()}
             trackingEvent={buildObservatoryEvent('biciradar_handoff_clicked', { surface: 'public', routeKey: 'home', source: 'home_biciradar_handoff' })}

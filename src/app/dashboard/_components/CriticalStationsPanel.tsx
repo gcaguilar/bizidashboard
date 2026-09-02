@@ -38,7 +38,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Operaciones</p>
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones criticas</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">Prioriza estaciones vacias, llenas o con ocupacion extrema para actuar antes de que aumente la friccion.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Muestra estaciones vacías, llenas o con una ocupación extrema para revisar dónde puede haber problemas.</p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
           Entender criterio
