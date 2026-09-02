@@ -3,7 +3,7 @@ import { FAQ_ITEMS } from '@/app/dashboard/ayuda/_components/help-center-content
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { getCityName, getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getCityName, getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 import { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
 import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
@@ -72,12 +72,12 @@ export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(
         dateModified: dataset.coverage.generatedAt ?? historyMeta.generatedAt ?? nowIso,
         author: {
           '@type': 'Organization',
-          name: SITE_NAME,
+          name: SEO_SITE_NAME,
           url: siteUrl,
         },
         publisher: {
           '@type': 'Organization',
-          name: SITE_NAME,
+          name: SEO_SITE_NAME,
           url: siteUrl,
         },
       },

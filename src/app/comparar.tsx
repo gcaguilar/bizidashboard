@@ -23,6 +23,7 @@ export const Route = createFileRoute('/comparar')({
       socialTitle: 'Comparador de Bizi Zaragoza | DatosBizi',
       description: 'Compara estaciones, barrios, meses y horarios para entender cómo cambia la disponibilidad y la actividad de Bizi Zaragoza.',
       path: appRoutes.compare(),
+      robots: 'noindex, follow',
     }),
   loader: () => getCompareHubLoaderData(),
   errorComponent: CompareErrorPage,

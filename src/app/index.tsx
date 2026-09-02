@@ -5,7 +5,7 @@ import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { getSiteUrl, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION } from '@/lib/site';
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
@@ -41,9 +41,15 @@ export const Route = createFileRoute('/')({
       { property: 'og:title', content: SEO_SITE_TITLE },
       { property: 'og:description', content: SEO_SITE_DESCRIPTION },
       { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: SEO_SITE_NAME },
+      { property: 'og:locale', content: 'es_ES' },
+      { property: 'og:image', content: `${getSiteUrl()}/opengraph-image` },
+      { property: 'og:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
       { property: 'og:url', content: getSiteUrl() },
       { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:image', content: `${getSiteUrl()}/opengraph-image` },
+      { name: 'twitter:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
       { name: 'twitter:title', content: SEO_SITE_TITLE },
       { name: 'twitter:description', content: SEO_SITE_DESCRIPTION },
     ],
@@ -75,7 +81,7 @@ function Home() {
                 isAccessibleForFree: true,
                 publisher: {
                   '@type': 'Organization',
-                  name: SITE_NAME,
+                  name: SEO_SITE_NAME,
                   url: getSiteUrl(),
                 },
               },
@@ -191,6 +197,18 @@ function Home() {
           >
             Abrir BiciRadar
           </TrackedLink>
+        </div>
+      </section>
+
+      <section className="ui-section-card" aria-labelledby="home-faq-title">
+        <h2 id="home-faq-title" className="text-xl font-black text-[var(--foreground)]">Preguntas frecuentes</h2>
+        <div className="mt-3 space-y-4">
+          {HOME_FAQ.map((item) => (
+            <article key={item.question}>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">{item.question}</h3>
+              <p className="mt-1 text-sm text-[var(--muted)]">{item.answer}</p>
+            </article>
+          ))}
         </div>
       </section>
 

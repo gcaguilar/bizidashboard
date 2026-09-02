@@ -11,13 +11,13 @@ export const Route = createFileRoute('/$')({
     }
 
     if (path in redirects) {
-      throw redirect({ to: redirects[path], replace: true })
+      throw redirect({ to: redirects[path], replace: true, status: 308 })
     }
 
     const target = resolveRedirectTarget(pathname)
 
     if (target) {
-      throw redirect({ to: target, replace: true })
+      throw redirect({ to: target, replace: true, status: 308 })
     }
 
     throw notFound()

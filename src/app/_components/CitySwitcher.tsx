@@ -22,7 +22,7 @@ function getCitySwitcherItems(): CitySwitcherItem[] {
     {
       city: currentCity,
       label: CITY_CONFIGS[currentCity].name,
-      statusLabel: 'Activa en esta instalacion',
+      statusLabel: 'Activa en esta instalación',
       isActive: true,
     },
   ];
@@ -33,7 +33,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
 
   return (
     <section
-      aria-label="Ciudad activa en esta instalacion"
+      aria-label="Ciudad activa en esta instalación"
       className={className}
     >
       <Card variant="stat" className="rounded-2xl bg-[var(--secondary)] px-3 py-3">
@@ -44,7 +44,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
             </p>
             {!compact ? (
               <p className="text-xs text-[var(--muted)]">
-                Esta instalacion publica esta operativa solo para Zaragoza y refleja aqui la ciudad
+                Esta instalación pública está operativa solo para Zaragoza y refleja aquí la ciudad
                 disponible.
               </p>
             ) : null}
@@ -54,7 +54,7 @@ export function CitySwitcher({ className, compact = false }: CitySwitcherProps) 
             {items.map((item) => (
               <div
                 key={item.city}
-                aria-label={item.isActive ? `${item.label} activa en esta instalacion` : item.label}
+                aria-label={item.isActive ? `${item.label} activa en esta instalación` : item.label}
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
                   item.isActive
                     ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
