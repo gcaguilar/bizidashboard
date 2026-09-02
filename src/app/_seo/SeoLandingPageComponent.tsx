@@ -6,7 +6,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -139,7 +139,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
         dateModified: content.generatedAt,
         publisher: {
           '@type': 'Organization',
-          name: SITE_NAME,
+          name: SEO_SITE_NAME,
           url: siteUrl,
         },
       },
