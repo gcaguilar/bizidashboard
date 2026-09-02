@@ -17,11 +17,11 @@ export function getCityName(): string {
 export const SITE_NAME = 'BiziDashboard';
 export const SITE_TITLE = `BiziDashboard ${getCityName()}`;
 export const SITE_DESCRIPTION =
-  `Panel publico con analitica de estaciones Bizi ${getCityName()}: disponibilidad, alertas, patrones horarios y movilidad urbana.`;
+  `Panel público con datos de estaciones Bizi ${getCityName()}: disponibilidad, alertas, patrones horarios y movilidad urbana.`;
 export const SEO_SITE_NAME = 'DatosBizi';
 export const SEO_SITE_TITLE = `${SEO_SITE_NAME} ${getCityName()}`;
 export const SEO_SITE_DESCRIPTION =
-  `DatosBizi centraliza estaciones Bizi ${getCityName()}, disponibilidad, analisis de uso, informes mensuales y datos abiertos en una unica capa publica.`;
+  `DatosBizi reúne estaciones Bizi ${getCityName()}, disponibilidad, análisis de uso, informes mensuales y datos abiertos en un único observatorio público.`;
 
 // Keep production metadata valid even if APP_URL/VITE_APP_URL is missing.
 // Local development still uses an explicit APP_URL from .env.example/.env.local.

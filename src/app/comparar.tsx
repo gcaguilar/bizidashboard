@@ -19,9 +19,9 @@ export const Route = createFileRoute('/comparar')({
   }),
   head: () =>
     buildSeoHead({
-      title: 'Comparador',
-      socialTitle: 'Comparador - DatosBizi',
-      description: 'Compara estaciones, barrios, meses y patrones de uso para detectar cambios de demanda, rankings y equilibrio en Bizi Zaragoza.',
+      title: 'Comparar estaciones y barrios de Bizi Zaragoza',
+      socialTitle: 'Comparador de Bizi Zaragoza | DatosBizi',
+      description: 'Compara estaciones, barrios, meses y horarios para entender cómo cambia la disponibilidad y la actividad de Bizi Zaragoza.',
       path: appRoutes.compare(),
     }),
   loader: () => getCompareHubLoaderData(),
@@ -77,11 +77,10 @@ export default function ComparePage() {
               Comparar datos
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Comparador
+              Comparar estaciones y barrios
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Cruza estaciones, barrios, meses, horas y periodos para entender que cambia,
-              donde hay mas demanda y que zonas necesitan mas seguimiento.
+              Compara estaciones, barrios y periodos para ver qué cambia y dónde conviene mirar con más detalle.
             </p>
           </div>
         </div>
