@@ -87,6 +87,13 @@ describe('seo navigation contract', () => {
     }
   });
 
+  it('describes the statistics hub as a collection page', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/estadisticas/index.tsx'), 'utf8');
+
+    expect(source).toContain("'@type': 'CollectionPage'");
+    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
+  });
+
   it('does not index monthly report URLs without a published report', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
 
