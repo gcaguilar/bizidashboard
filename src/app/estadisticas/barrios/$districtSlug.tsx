@@ -11,7 +11,7 @@ import { PageShell } from '@/components/layout/page-shell'
 
 export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
   loader: ({ params }) => getPublicDistrictPageData({ data: params.districtSlug }),
-  head: ({ params }) => {
+  head: ({ params, loaderData }) => {
     const slug = params.districtSlug ?? ''
     const districtPath = appRoutes.districtDetail(slug)
     const readableSlug = slug.replace(/-/g, ' ')
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${districtPath}` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'robots', content: loaderData?.district ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },

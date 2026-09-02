@@ -28,7 +28,7 @@ function formatPredictionLabel(value: number | null, capacity: number): string {
 export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   loader: ({ params }) => getPublicStationPageData({ data: params.stationId }),
   pendingComponent: StationDetailSkeleton,
-  head: ({ params }) => {
+  head: ({ params, loaderData }) => {
     const id = params.stationId ?? ''
     const stationPath = appRoutes.stationDetail(id)
     const title = `Estación ${id} de Bizi Zaragoza | DatosBizi`
@@ -45,7 +45,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${stationPath}` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'robots', content: loaderData ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
