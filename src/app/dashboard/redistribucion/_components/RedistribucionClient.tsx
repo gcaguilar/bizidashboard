@@ -186,7 +186,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
             }}
           >
             <SelectTrigger
-              aria-label="Filtrar redistribucion por barrio"
+              aria-label="Filtrar redistribución por barrio"
               className="min-h-9 min-w-[230px] bg-[var(--card)]"
             >
               <SelectValue />
@@ -284,7 +284,7 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
           setActiveTab(nextTab);
         }}
       >
-        <TabsList className="mb-4 gap-1" aria-label="Secciones del informe de redistribucion">
+        <TabsList className="mb-4 gap-1" aria-label="Secciones del informe de redistribución">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}

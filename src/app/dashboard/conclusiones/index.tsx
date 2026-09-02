@@ -172,7 +172,7 @@ export default function DashboardConclusionsPage() {
         </article>
 
         <article className="ui-section-card">
-          <p className="stat-label">Cobertura historica</p>
+          <p className="stat-label">Cobertura histórica</p>
           <p className="stat-value">{payload.totalHistoricalDays}</p>
           <p className="text-xs text-[var(--muted)]">Dias con informacion consolidada.</p>
         </article>
@@ -187,7 +187,7 @@ export default function DashboardConclusionsPage() {
           </p>
 
           {payload.highlights.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--muted)]">Aun no hay hallazgos suficientes para el dia actual.</p>
+            <p className="mt-4 text-sm text-[var(--muted)]">Aún no hay datos suficientes para sacar conclusiones de hoy.</p>
           ) : (
             <div className="mt-4 space-y-3">
               {payload.highlights.map((item) => (
@@ -204,7 +204,7 @@ export default function DashboardConclusionsPage() {
         </article>
 
         <article className="ui-section-card xl:col-span-5">
-          <h3 className="text-base font-bold text-[var(--foreground)]">Recomendaciones operativas</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)]">Puntos que conviene revisar</h3>
           {payload.recommendations.length === 0 ? (
             <p className="mt-4 text-sm text-[var(--muted)]">Sin recomendaciones para hoy.</p>
           ) : (
@@ -258,12 +258,12 @@ export default function DashboardConclusionsPage() {
 
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Horas pico de demanda</h3>
+            <h3 className="text-base font-bold text-[var(--foreground)]">Horas con más actividad</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
           </div>
 
           {payload.peakDemandHours.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--muted)]">Todavia no hay suficiente historico horario para detectar picos.</p>
+            <p className="mt-4 text-sm text-[var(--muted)]">Todavía no hay suficiente histórico por hora para detectar momentos de mayor actividad.</p>
           ) : (
             <div className="mt-4 space-y-3">
               {payload.peakDemandHours.map((slot, index) => (
@@ -284,12 +284,12 @@ export default function DashboardConclusionsPage() {
 
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Barrios con mas demanda</h3>
+            <h3 className="text-base font-bold text-[var(--foreground)]">Barrios con más actividad</h3>
             <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
           </div>
 
           {payload.topDistrictsByDemand.length === 0 ? (
-            <p className="mt-4 text-sm text-[var(--muted)]">No se ha podido agrupar la demanda por barrios todavia.</p>
+            <p className="mt-4 text-sm text-[var(--muted)]">Todavía no se puede agrupar la actividad por barrios.</p>
           ) : (
             <div className="mt-4 space-y-3">
               {payload.topDistrictsByDemand.map((district, index) => (

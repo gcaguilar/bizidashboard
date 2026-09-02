@@ -499,10 +499,10 @@ export function StationDetailPanel({
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">
             {turnoverRow ? turnoverRow.turnoverScore.toFixed(1) : '0.0'}
           </p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Puntuacion del ranking operativo.</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">Puntuación según los problemas observados.</p>
         </article>
         <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Horas problema 14d</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Horas con problemas (14 días)</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">{problemHours}</p>
           <p className="mt-1 text-xs text-[var(--muted)]">Alertas activas: {stationAlerts.length}</p>
         </article>

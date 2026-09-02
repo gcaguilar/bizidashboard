@@ -127,7 +127,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
             Cuellos de botella
           </h2>
           <div className='mt-1 flex items-center gap-2'>
-            <p className='text-xs text-[var(--muted)]'>Estaciones con mayor friccion operativa recurrente.</p>
+            <p className='text-xs text-[var(--muted)]'>Estaciones con problemas de disponibilidad más frecuentes.</p>
             <InfoHint
               label='Como se calcula la friccion'
               content='La friccion suma el tiempo en que una estacion estuvo vacia o llena. Cuantas mas horas problema acumula, mas alta aparece en el ranking.'

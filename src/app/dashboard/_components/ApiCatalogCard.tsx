@@ -17,7 +17,7 @@ export function ApiCatalogCard({ items }: ApiCatalogCardProps) {
     <section className="ui-section-card">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-[var(--foreground)]">Catalogo de endpoints</h3>
+          <h3 className="text-lg font-bold text-[var(--foreground)]">Catálogo de la API</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Resumen rápido de las rutas más útiles para integrar los datos públicos desde otras herramientas.
           </p>
