@@ -177,10 +177,14 @@ describe('seo navigation contract', () => {
   it('provides a default social image for shared pages', () => {
     const head = buildSeoHead({ title: 'Prueba', description: 'Descripción', path: '/about' });
     const ogImage = head.meta.find((entry) => entry.property === 'og:image');
+    const ogImageAlt = head.meta.find((entry) => entry.property === 'og:image:alt');
     const twitterImage = head.meta.find((entry) => entry.name === 'twitter:image');
+    const twitterImageAlt = head.meta.find((entry) => entry.name === 'twitter:image:alt');
 
     expect(ogImage?.content).toContain('/opengraph-image');
+    expect(ogImageAlt?.content).toContain('Bizi Zaragoza');
     expect(twitterImage?.content).toContain('/opengraph-image');
+    expect(twitterImageAlt?.content).toContain('Bizi Zaragoza');
   });
 
   it('keeps legacy aliases canonicalized through explicit public destinations', () => {
