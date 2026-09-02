@@ -4,20 +4,20 @@ import { appRoutes } from '@/lib/routes';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 
 const exploreLinks = [
-  { label: 'Mapa avanzado', description: 'Mapa, filtros y estaciones cercanas', href: appRoutes.advancedMap(), ctaId: 'explore_map' },
-  { label: 'Barrios', description: 'Actividad y estaciones por zona', href: appRoutes.districtLanding(), ctaId: 'explore_barrios' },
-  { label: 'Horarios', description: 'Horas punta y patrones de uso', href: appRoutes.statsHorarios(), ctaId: 'explore_horarios' },
-  { label: 'Viajes', description: 'Tendencia diaria y mensual', href: appRoutes.statsViajes(), ctaId: 'explore_viajes' },
-  { label: 'Redistribución', description: 'Estaciones que necesitan atención', href: appRoutes.statsRedistribucion(), ctaId: 'explore_redistribucion' },
-  { label: 'Informes', description: 'Archivo mensual detallado', href: appRoutes.reports(), ctaId: 'explore_informes' },
-  { label: 'Estado', description: 'Cobertura y frescura del dato', href: appRoutes.status(), ctaId: 'explore_estado' },
+  { label: 'Rendimiento de red', description: 'Equilibrio, alertas y señales por estación', href: appRoutes.dashboard(), ctaId: 'explore_network' },
+  { label: 'Barrios', description: 'Actividad estimada y contexto territorial', href: appRoutes.districtLanding(), ctaId: 'explore_barrios' },
+  { label: 'Evolución e informes', description: 'Archivo mensual y comparativas temporales', href: appRoutes.reports(), ctaId: 'explore_reports' },
+  { label: 'Comparar', description: 'Periodos y estaciones con cobertura visible', href: appRoutes.compare(), ctaId: 'explore_compare' },
+  { label: 'Estado de los datos', description: 'Frescura, cobertura e incidencias', href: appRoutes.status(), ctaId: 'explore_status' },
+  { label: 'Metodología', description: 'Cómo leer estimaciones y limitaciones', href: appRoutes.methodology(), ctaId: 'explore_methodology' },
+  { label: 'Datos abiertos y API', description: 'Descargas, documentación y reutilización', href: appRoutes.developers(), ctaId: 'explore_api' },
 ];
 
 export function HomeExploreSection() {
   return (
     <section className="ui-section-card">
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-        Explora más
+        Análisis, calidad y datos abiertos
       </p>
       <div className="mt-3 grid gap-3 grid-cols-2 md:grid-cols-3">
         {exploreLinks.map((link) => (
