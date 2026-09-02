@@ -13,6 +13,6 @@ describe('/mcp SEO', () => {
     }));
     expect(head?.links).toContainEqual(expect.objectContaining({ rel: 'canonical' }));
     expect(head?.meta).toContainEqual(expect.objectContaining({ name: 'robots', content: DEFAULT_ROBOTS }));
-    expect(head?.meta).toContainEqual(expect.objectContaining({ name: 'description', content: expect.stringContaining('ChatGPT') }));
+    expect(head?.meta).toContainEqual(expect.objectContaining({ name: 'description', content: expect.stringContaining('asistente compatible') }));
   });
 });
