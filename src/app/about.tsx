@@ -8,7 +8,7 @@ export const Route = createFileRoute('/about')({
   head: () =>
     buildSeoHead({
       title: 'Sobre DatosBizi',
-      description: 'DatosBizi reune datos actualizados, historico, informes y API publica del sistema de bicicletas compartidas Bizi Zaragoza.',
+      description: 'DatosBizi reúne datos actualizados, histórico, informes y API pública del sistema de bicicletas compartidas Bizi Zaragoza.',
       path: appRoutes.about(),
     }),
   component: About,
