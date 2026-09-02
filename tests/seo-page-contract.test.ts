@@ -76,6 +76,17 @@ describe('seo navigation contract', () => {
     expect(source).toContain("'@graph': [buildBreadcrumbStructuredData(breadcrumbs)");
   });
 
+  it('includes breadcrumb structured data on public station and district hubs', () => {
+    for (const file of [
+      'src/app/estadisticas/estaciones/index.tsx',
+      'src/app/estadisticas/barrios/index.tsx',
+    ]) {
+      const source = readFileSync(path.join(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
+      expect(source, file).toContain('<SiteBreadcrumbs items={breadcrumbs}');
+    }
+  });
+
   it('does not index monthly report URLs without a published report', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
 
