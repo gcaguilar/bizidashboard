@@ -326,7 +326,7 @@ export function NeighborhoodMiniMap({
           </p>
         </article>
         <article className="ui-metric-card">
-          <p className="stat-label">Mayor ocupacion</p>
+          <p className="stat-label">Mayor ocupación</p>
           <p className="text-sm font-semibold text-[var(--foreground)]">
             {highestDistrict
               ? `${highestDistrict.name} (${formatPercent(highestDistrict.bikesScore)})`
@@ -334,7 +334,7 @@ export function NeighborhoodMiniMap({
           </p>
         </article>
         <article className="ui-metric-card">
-          <p className="stat-label">Menor ocupacion</p>
+          <p className="stat-label">Menor ocupación</p>
           <p className="text-sm font-semibold text-[var(--foreground)]">
             {lowestDistrict
               ? `${lowestDistrict.name} (${formatPercent(lowestDistrict.bikesScore)})`

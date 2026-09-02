@@ -11,6 +11,7 @@ const exploreLinks = [
   { label: 'Estado de los datos', description: 'Frescura, cobertura e incidencias', href: appRoutes.status(), ctaId: 'explore_status' },
   { label: 'Metodología', description: 'Cómo leer estimaciones y limitaciones', href: appRoutes.methodology(), ctaId: 'explore_methodology' },
   { label: 'Datos abiertos y API', description: 'Descargas, documentación y reutilización', href: appRoutes.developers(), ctaId: 'explore_api' },
+  { label: 'Conector MCP', description: 'Consulta los datos desde un asistente de IA compatible', href: appRoutes.mcp(), ctaId: 'explore_mcp' },
 ];
 
 export function HomeExploreSection() {

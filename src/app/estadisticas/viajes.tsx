@@ -55,7 +55,7 @@ function ViajesPage() {
         </div>
         <div className="flex flex-wrap gap-3">
           <TrackedLink href={appRoutes.reports()} ctaEvent={{ source: 'viajes_page', ctaId: 'view_reports', destination: 'report_archive', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Ver informes mensuales</TrackedLink>
-          <TrackedLink href={appRoutes.dashboardConclusions()} ctaEvent={{ source: 'viajes_page', ctaId: 'view_trend', destination: 'dashboard_conclusions', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-inline-action">Ver tendencia en dashboard</TrackedLink>
+          <TrackedLink href={appRoutes.dashboardConclusions()} ctaEvent={{ source: 'viajes_page', ctaId: 'view_trend', destination: 'dashboard_conclusions', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }} className="ui-inline-action">Ver la tendencia en el análisis</TrackedLink>
         </div>
       </header>
 

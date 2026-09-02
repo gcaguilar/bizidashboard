@@ -21,8 +21,8 @@ import { getMethodologyPageData } from '@/server-functions/metodologia';
 export const Route = createFileRoute('/metodologia')({
   head: () =>
     buildSeoHead({
-      title: 'Metodologia y calidad de datos de Bizi Zaragoza',
-      description: 'Entiende de donde salen los datos de Bizi Zaragoza, como se actualizan, que significan las metricas publicas y que limites conviene tener en cuenta al interpretar estaciones, barrios e informes.',
+      title: 'Metodología y calidad de datos de Bizi Zaragoza',
+      description: 'Descubre de dónde salen los datos de Bizi Zaragoza, cómo se actualizan, qué significan sus métricas y qué límites tienen las estimaciones.',
       path: appRoutes.methodology(),
     }),
   loader: () => getMethodologyPageData(),
@@ -109,14 +109,14 @@ export default function MethodologyPage() {
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {historyMeta.source.provider}
           </p>
-          <p className="text-xs text-[var(--muted)]">Feed GBFS oficial consultado y validado de forma periodica.</p>
+          <p className="text-xs text-[var(--muted)]">Fuente oficial de Bizi, consultada y revisada periódicamente.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cobertura visible</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getCoverageLabel(dataset)}
           </p>
-          <p className="text-xs text-[var(--muted)]">Base comun para informes, rankings y fichas publicas.</p>
+          <p className="text-xs text-[var(--muted)]">La misma base que usamos en informes, listas y fichas públicas.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cadencia observada</p>
@@ -141,48 +141,48 @@ export default function MethodologyPage() {
               Cómo se construyen las vistas públicas
             </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Del feed oficial a paginas faciles de comparar
+              Del dato original a páginas fáciles de comparar
             </h2>
           </div>
           <p>
             El dato base llega desde el feed oficial GBFS de Bizi {cityName}. A partir de ese origen se
             capturan muestras de estaciones, se validan, se agregan y se reutilizan en varias vistas:
-            disponibilidad actual, historico agregado, rankings, paginas por barrio, informes mensuales
-            y endpoints API.
+            disponibilidad actual, histórico resumido, listas, páginas por barrio, informes mensuales
+            y la API.
           </p>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="ui-section-card">
-          <p className="stat-label">Snapshot actual</p>
+          <p className="stat-label">Estado actual</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que ves ahora mismo</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Bicis disponibles, anclajes libres y capacidad describen el estado reciente de una estacion,
-            no una media historica.
+            Bicis disponibles, huecos libres y capacidad describen el estado reciente de una estación,
+            no una media histórica.
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Historico agregado</p>
+          <p className="stat-label">Histórico resumido</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que suele pasar</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Rotacion, horas problema, perfiles horarios y comparativas por barrio usan series acumuladas,
+            Rotación, horas con problemas, perfiles horarios y comparativas por barrio usan series acumuladas,
             no una sola foto puntual.
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Demanda y movilidad</p>
+          <p className="stat-label">Actividad y movilidad</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lecturas estimadas</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            La demanda publicada es un indice de actividad y la movilidad es una estimacion agregada por
+            La demanda publicada es un índice de actividad y la movilidad es una estimación agregada por
             zonas; ninguna de las dos equivale a viajes oficiales uno a uno.
           </p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Predicción</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Orientacion, no garantia</h2>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Orientación, no garantía</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Las predicciones combinan patrones historicos y estado reciente para anticipar tensiones a
+            Las predicciones combinan patrones históricos y estado reciente para anticipar tensiones a
             corto plazo, pero no sustituyen la lectura real final.
           </p>
         </article>

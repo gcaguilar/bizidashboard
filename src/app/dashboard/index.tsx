@@ -18,7 +18,7 @@ export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
   head: () =>
     buildSeoHead({
-      title: 'Panel clasico - DatosBizi',
+      title: 'Estado y análisis de Bizi Zaragoza | DatosBizi',
       socialTitle: 'Dashboard Bizi Zaragoza - DatosBizi',
       description:
         'Dashboard operativo en tiempo real de Bizi Zaragoza con mapa de estaciones, alertas, flujo y lecturas del sistema actual.',

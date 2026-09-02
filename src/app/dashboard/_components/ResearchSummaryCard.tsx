@@ -80,27 +80,27 @@ export function ResearchSummaryCard({
     <section className="ui-section-card h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Análisis</p>
           <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Lectura temporal rápida</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">Resume cuando se concentra mas actividad y en que momento del dia se ve mas bici disponible.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Muestra qué día hubo más actividad y cuándo había más bicis disponibles.</p>
         </div>
         <Button asChild variant="cta" size="sm">
-          <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}>Entender metrica</TrackedLink>
+          <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}>Cómo interpretar este dato</TrackedLink>
         </Button>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <MetricCard
-          label="Dia mas intenso"
+          label="Día con más actividad"
           value={<span className="text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</span>}
           detail={
             topDemandDay
-              ? `${topDemandDay.demandScore.toFixed(1)} puntos de demanda agregada`
+              ? `${topDemandDay.demandScore.toFixed(1)} puntos de actividad estimada`
               : 'Todavía no hay histórico suficiente.'
           }
         />
         <MetricCard
-          label="Hora con mas bicis"
+          label="Hora con más bicis"
           value={
             <span className="text-lg font-bold text-[var(--foreground)]">
               {topHour ? `${String(topHour.hour).padStart(2, '0')}:00` : 'Sin datos'}
@@ -108,20 +108,20 @@ export function ResearchSummaryCard({
           }
           detail={
             topHour
-              ? `${topHour.avgBikesAvailable.toFixed(1)} bicis medias por estacion`
-              : 'Todavia no hay perfil horario suficiente.'
+              ? `${topHour.avgBikesAvailable.toFixed(1)} bicis de media por estación`
+              : 'Todavía no hay datos suficientes por hora.'
           }
         />
       </div>
 
       <MetricCard
         className="mt-3"
-        label="Cambio mas visible en memoria"
+        label="Cambio más visible reciente"
         value={
           <span className="text-sm font-semibold text-[var(--foreground)]">
             {recentSnapshotInsight
-              ? `${recentSnapshotInsight.stationName}: ${recentSnapshotInsight.delta >= 0 ? '+' : ''}${recentSnapshotInsight.delta} bicis frente al primer snapshot guardado.`
-              : 'Todavia no hay suficientes snapshots recientes para comparar tendencia inmediata.'}
+              ? `${recentSnapshotInsight.stationName}: ${recentSnapshotInsight.delta >= 0 ? '+' : ''}${recentSnapshotInsight.delta} bicis frente a la primera muestra guardada.`
+              : 'Todavía no hay suficientes muestras recientes para comparar el cambio.'}
           </span>
         }
       />

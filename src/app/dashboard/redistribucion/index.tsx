@@ -20,7 +20,7 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
   head: () =>
     buildSeoHead({
       title: 'Redistribución | Dashboard Bizi',
-      description: 'Revisa donde faltan bicis o huecos en Bizi Zaragoza y que movimientos ayudan a equilibrar mejor el sistema.',
+      description: 'Revisa dónde faltan bicis o huecos en Bizi Zaragoza y qué señales apuntan a un desequilibrio.',
       robots: 'noindex, nofollow',
     }),
   loaderDeps: ({ search }) => ({

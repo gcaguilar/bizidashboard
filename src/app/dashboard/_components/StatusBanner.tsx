@@ -61,9 +61,9 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estado de los datos</p>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Los datos estan {translateHealthStatus(status.pipeline.healthStatus)}</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Los datos están {translateHealthStatus(status.pipeline.healthStatus)}</h2>
           <p className="text-xs text-[var(--muted)]">
-            Ultima muestra {updatedText} · cobertura {coverage?.totalDays ?? 0} dias · entorno {status.system.environment}
+            Última muestra: {updatedText} · {coverage?.totalDays ?? 0} días de histórico
           </p>
         </div>
         <Badge variant={getHealthVariant(status.pipeline.healthStatus)}>
@@ -74,7 +74,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <MetricCard
           className="min-w-0"
-          label="Ultima recogida"
+          label="Última actualización"
           value={
             <span className="break-words text-sm font-semibold leading-snug text-[var(--foreground)]">
               {status.pipeline.lastSuccessfulPoll
@@ -86,7 +86,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
         <MetricCard className="min-w-0" label="Recogidas 24h" value={status.pipeline.pollsLast24Hours} />
         <MetricCard
           className="min-w-0"
-          label="Estaciones vistas"
+          label="Estaciones recibidas"
           value={status.quality.volume.recentStationCount}
           detail={`Esperadas ${volumeRange.min}-${volumeRange.max}`}
         />
@@ -94,7 +94,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
         <MetricCard className="min-w-0" label="Fallos consecutivos" value={status.pipeline.consecutiveFailures} />
         <MetricCard
           className="min-w-0"
-          label="Cobertura historica"
+          label="Días de histórico"
           value={coverage?.totalDays ?? 0}
           detail={`${coverage?.totalStations ?? 0} estaciones · generado ${coverageGeneratedText}`}
         />
@@ -102,7 +102,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
 
       {status.pipeline.healthReason ? (
         <Alert className="text-xs leading-relaxed text-[var(--muted)]">
-          Motivo: {translateHealthReason(status.pipeline.healthReason)}
+          Detalle: {translateHealthReason(status.pipeline.healthReason)}
         </Alert>
       ) : null}
     </section>

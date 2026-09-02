@@ -31,8 +31,8 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   head: ({ params }) => {
     const id = params.stationId ?? ''
     const stationPath = appRoutes.stationDetail(id)
-    const title = `Estación ${id} - DatosBizi`
-    const description = `Disponibilidad, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
+    const title = `Estación ${id} de Bizi Zaragoza | DatosBizi`
+    const description = `Consulta bicis, huecos, ocupación y patrones de uso de la estación ${id} de Bizi Zaragoza.`
     return {
       meta: [
         { title },
@@ -163,7 +163,7 @@ function StationPage() {
         <article className="ui-section-card"><p className="stat-label">Bicis</p><p className="stat-value">{station.bikesAvailable}</p></article>
         <article className="ui-section-card"><p className="stat-label">Huecos</p><p className="stat-value">{station.anchorsFree}</p></article>
         <article className="ui-section-card"><p className="stat-label">Capacidad</p><p className="stat-value">{station.capacity}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Ocupacion</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Ocupación</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
       {station.bikesAvailable <= 0 ? (
         <p className="mt-4 text-sm text-[var(--danger)]">
