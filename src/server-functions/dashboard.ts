@@ -8,6 +8,7 @@ import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import type { DashboardInitialData } from '@/app/dashboard/_components/DashboardClient';
 import { fetchAlerts, fetchSharedDatasetSnapshot, fetchRankings, fetchStations, fetchStatus } from '@/lib/api';
 import { buildFallbackDatasetSnapshot, buildFallbackStatus, buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import { fetchComparableNetworkBaseline } from '@/lib/network-briefing-baseline';
 
 type ErrorWithMeta = {
   cause?: unknown;
@@ -131,6 +132,10 @@ export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(as
       { ...fallbackAvailability, limit: rankingLimit }
     ),
   ]);
+  const baseline = await fetchComparableNetworkBaseline(
+    new Date(status.quality.freshness.lastUpdated ?? dataset.lastUpdated.lastSampleAt ?? nowIso),
+    stations.stations.length,
+  );
 
   const initialData: DashboardInitialData = {
     dataset,
@@ -138,6 +143,7 @@ export const getDashboardPageData = createServerFn({ method: 'GET' }).handler(as
     status,
     alerts,
     rankings: { turnover, availability },
+    baseline,
   };
 
   const isSchemaMissing = schemaMissingFlags.length > 0;

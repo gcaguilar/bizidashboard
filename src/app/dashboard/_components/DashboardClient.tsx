@@ -10,6 +10,7 @@ import type {
   StationsResponse,
   StatusResponse,
 } from '@/lib/api-types';
+import type { NetworkBriefingBaseline } from '@/lib/network-briefing';
 
 import { combineDataStates, shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatStatusDateTime } from '@/lib/system-status';
@@ -79,6 +80,7 @@ export type DashboardInitialData = {
     turnover: RankingsResponse;
     availability: RankingsResponse;
   };
+  baseline?: NetworkBriefingBaseline | null;
 };
 
 type DashboardClientProps = {
@@ -637,6 +639,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     systemMetrics={systemMetrics}
                     updatedText={updatedText}
                     coverageDays={initialData.dataset.coverage.totalDays}
+                    baseline={initialData.baseline}
                     topFrictionStationName={topFrictionStationName}
                     alerts={alertsData}
                   />}

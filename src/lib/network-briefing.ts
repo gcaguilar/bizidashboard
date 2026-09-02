@@ -7,11 +7,13 @@ export type NetworkBriefingInput = {
   coverageDays: number;
   lastUpdatedAt: string | null;
   pipelineHealthy: boolean;
-  baseline?: {
-    criticalStationsCount: number;
-    activeAlertsCount: number;
-    label: string;
-  } | null;
+  baseline?: NetworkBriefingBaseline | null;
+};
+
+export type NetworkBriefingBaseline = {
+  criticalStationsCount: number;
+  activeAlertsCount: number | null;
+  label: string;
 };
 
 export type NetworkBriefing = {
@@ -62,7 +64,7 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
   const focus = focusStation
     ? `La señal operativa se concentra en ${focusStation.name}.`
     : 'No hay una estación crítica destacada en la última muestra.';
-  const alerts = input.baseline
+  const alerts = input.baseline?.activeAlertsCount != null
     ? `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}; comparación disponible con ${input.baseline.label}.`
     : `${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. La evolución se mostrará cuando haya una franja equivalente.`;
   const freshness = input.lastUpdatedAt ? formatFreshnessLabel(input.lastUpdatedAt) : 'sin fecha';
