@@ -324,14 +324,16 @@ describe('public UX regressions', () => {
     expect(source).not.toContain('Estado del dashboard');
   });
 
-  it('Bici Radar experimental features are explicitly labelled', () => {
+  it('Bici Radar no anuncia funciones offline ni acceso de testers', () => {
     const source = readSource('src/app/biciradar.tsx');
     expect(source).toContain('Alertas inteligentes');
-    expect(source).toContain('Modo offline');
-    expect(source).toContain('En pruebas');
     expect(source).toContain('Según ciudad');
     expect(source).toContain('Bicis eléctricas');
     expect(source).toContain('posición actual');
+    expect(source).not.toContain('Modo offline');
+    expect(source).not.toContain('En pruebas');
+    expect(source).not.toContain('testers');
+    expect(source).not.toContain('grupo de');
   });
 
   it('clipboard failures show a visible fallback', () => {
