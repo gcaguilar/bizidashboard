@@ -102,6 +102,14 @@ describe('seo navigation contract', () => {
     expect(source).toContain('Qué ofrece DatosBizi');
   });
 
+  it('keeps the report archive labels correctly accented', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/informes.tsx'), 'utf8');
+
+    expect(source).toContain('Abrir último informe');
+    expect(source).toContain('Último mes con informe');
+    expect(source).toContain('Cada informe resume un período concreto');
+  });
+
   it('does not index monthly report URLs without a published report', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
 
