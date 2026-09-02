@@ -33,7 +33,7 @@ export const Route = createFileRoute('/informes/$month')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${monthPath}` },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'robots', content: opts.loaderData?.monthRow ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },

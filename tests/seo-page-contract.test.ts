@@ -76,6 +76,13 @@ describe('seo navigation contract', () => {
     expect(source).toContain("'@graph': [buildBreadcrumbStructuredData(breadcrumbs)");
   });
 
+  it('does not index monthly report URLs without a published report', () => {
+    const source = readFileSync(path.join(process.cwd(), 'src/app/informes.$month.tsx'), 'utf8');
+
+    expect(source).toContain('opts.loaderData?.monthRow');
+    expect(source).toContain("'noindex, follow'");
+  });
+
   it('keeps acquisition landing CTAs aligned with their intended transitions', () => {
     expect(UTILITY_LANDING_NAV_CONFIG.pageRole).toBe('ENTRY_SEO');
     expect(UTILITY_LANDING_NAV_CONFIG.primaryCta.destination).toBe('dashboard_overview');
