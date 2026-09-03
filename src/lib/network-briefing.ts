@@ -51,8 +51,8 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
 
   const criticalCount = criticalStations.length;
   const current = criticalCount > 0
-    ? `Ahora mismo, ${criticalCount} ${pluralize(criticalCount, 'estación no tiene', 'estaciones no tienen')} bicis o anclajes libres.`
-    : 'Ahora mismo todas las estaciones tienen bicis y anclajes disponibles.';
+    ? `Ahora mismo, ${criticalCount} ${pluralize(criticalCount, 'estación no tiene', 'estaciones no tienen')} bicis o huecos libres.`
+    : 'Ahora mismo todas las estaciones tienen bicis y huecos libres.';
   const criticalDifference = input.baseline
     ? criticalCount - input.baseline.criticalStationsCount
     : null;
@@ -62,8 +62,8 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
       : `Hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación', 'estaciones')} ${criticalDifference > 0 ? 'más' : 'menos'} que en ${input.baseline.label}.`
     : 'Aún no hay otro momento comparable para saber si la situación ha cambiado.';
   const focus = focusStation
-    ? `La estación más afectada ahora es ${focusStation.name}.`
-    : 'No hay una estación especialmente afectada ahora.';
+    ? `La estación que más conviene revisar ahora es ${focusStation.name}.`
+    : 'No hay ninguna estación que requiera atención especial ahora.';
   const alerts = input.baseline?.activeAlertsCount != null
     ? `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Se puede comparar con ${input.baseline.label}.`
     : `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Aún no se puede comparar su evolución.`;
@@ -75,7 +75,7 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
     comparison,
     focus,
     alerts,
-    dataQuality: `Datos ${input.pipelineHealthy ? 'y pipeline disponibles' : 'con incidencia de pipeline'}; actualizados ${freshness}; cobertura de ${input.coverageDays} ${pluralize(input.coverageDays, 'día', 'días')}.`,
+    dataQuality: `Datos ${input.pipelineHealthy ? 'actualizándose con normalidad' : 'con una incidencia en la actualización'}; última actualización ${freshness}; cobertura de ${input.coverageDays} ${pluralize(input.coverageDays, 'día', 'días')}.`,
     warning: null,
   };
 }

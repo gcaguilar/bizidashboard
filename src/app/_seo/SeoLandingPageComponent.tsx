@@ -42,16 +42,16 @@ export type SeoLandingContent = {
 function buildSeoFaqItems(config: SeoPageConfig) {
   return [
       {
-        name: `¿Qué ofrece la página ${config.title}?`,
+        name: `¿Qué puedo consultar en ${config.title}?`,
         answer: config.description,
       },
       {
-        name: '¿Cada cuánto se actualiza esta información?',
-        answer: `${config.cadenceLabel}. La fecha visible en la página indica la última actualización publicada.`,
+        name: '¿Cuándo se actualiza esta información?',
+        answer: `${config.cadenceLabel}. La fecha de la página indica cuándo se actualizaron estos datos por última vez.`,
       },
       {
-        name: '¿Dónde puedo ver el detalle completo?',
-        answer: `Desde esta página puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle actualizado.`,
+        name: '¿Dónde puedo ver más detalle?',
+        answer: `Desde aquí puedes abrir ${config.primaryCta.label.toLowerCase()} y seguir explorando los datos actualizados.`,
       },
   ];
 }
@@ -210,7 +210,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
             }}
             className="ui-inline-action"
           >
-            Abrir archivo mensual
+            Ver informes mensuales
           </TrackedLink>
         </div>
       </header>
@@ -239,7 +239,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
               {content.sectionTitle}
             </h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Resumen con enlaces a las paginas relacionadas.
+              Consulta los datos destacados y abre cada ficha para ver más detalle.
             </p>
           </div>
         </div>
@@ -300,7 +300,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
           </div>
         ) : (
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Esta pagina se completara automaticamente cuando haya cobertura suficiente.
+            Añadiremos este contenido cuando haya suficientes datos para mostrarlo con confianza.
           </p>
         )}
       </section>

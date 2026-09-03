@@ -364,9 +364,9 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
       id: 'district-vs-district',
       title: 'Barrio vs barrio',
       eyebrow: 'Lectura territorial',
-      summary: `${context.topDistrict.name} concentra la mayor actividad relativa mientras ${context.bottomDistrict.name} se comporta como el extremo mas calmado.`,
-      metricA: `${context.topDistrict.name}: ${formatDecimal(context.topDistrict.avgTurnover)} pts · ${context.topDistrict.stationCount} estaciones`,
-      metricB: `${context.bottomDistrict.name}: ${formatDecimal(context.bottomDistrict.avgTurnover)} pts · ${context.bottomDistrict.stationCount} estaciones`,
+      summary: `${context.topDistrict.name} concentra más movimiento estimado, mientras ${context.bottomDistrict.name} es el extremo más tranquilo.`,
+      metricA: `${context.topDistrict.name}: ${formatDecimal(context.topDistrict.avgTurnover)} puntos de movimiento estimado · ${context.topDistrict.stationCount} estaciones`,
+      metricB: `${context.bottomDistrict.name}: ${formatDecimal(context.bottomDistrict.avgTurnover)} puntos de movimiento estimado · ${context.bottomDistrict.stationCount} estaciones`,
       delta: `Brecha territorial ${formatDelta(districtGap)}`,
       href: appRoutes.districtLanding(),
       note: `${context.topDistrict.bikesAvailable} bicis disponibles ahora mismo frente a ${context.bottomDistrict.bikesAvailable}.`,
@@ -386,13 +386,13 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
     cards.push({
       id: 'weekday-vs-weekend',
       title: 'Laboral vs fin de semana',
-      eyebrow: 'Patron de uso',
+      eyebrow: 'Patrón de uso',
       summary:
         context.weekdayWeekendProfile.dominantPeriod === 'weekend'
-          ? 'La red rinde mas en fin de semana que entre semana.'
-          : 'La red rinde mas entre semana que en fin de semana.',
-      metricA: `Laboral: ${formatDecimal(context.weekdayWeekendProfile.weekday.avgDemand)} pts/dia · ocupacion ${formatPercent(context.weekdayWeekendProfile.weekday.avgOccupancy)}`,
-      metricB: `Fin de semana: ${formatDecimal(context.weekdayWeekendProfile.weekend.avgDemand)} pts/dia · ocupacion ${formatPercent(context.weekdayWeekendProfile.weekend.avgOccupancy)}`,
+          ? 'La red muestra más movimiento estimado el fin de semana que entre semana.'
+          : 'La red muestra más movimiento estimado entre semana que el fin de semana.',
+      metricA: `Laboral: ${formatDecimal(context.weekdayWeekendProfile.weekday.avgDemand)} puntos de movimiento estimado al día · ocupación ${formatPercent(context.weekdayWeekendProfile.weekday.avgOccupancy)}`,
+      metricB: `Fin de semana: ${formatDecimal(context.weekdayWeekendProfile.weekend.avgDemand)} puntos de movimiento estimado al día · ocupación ${formatPercent(context.weekdayWeekendProfile.weekend.avgOccupancy)}`,
       delta: `Diferencia relativa ${formatDelta(context.weekdayWeekendProfile.demandGapRatio)}`,
       href: context.latestMonth
         ? appRoutes.reportMonth(context.latestMonth)
@@ -424,9 +424,9 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
       id: 'hour-vs-hour',
       title: 'Hora vs hora',
       eyebrow: 'Ritmo intradia',
-      summary: `La hora ${context.peakHour?.hour ?? '--'}:00 concentra el mayor movimiento medio del sistema, frente a la franja mas tranquila.`,
-      metricA: `${context.peakHour?.hour ?? '--'}:00 · ${formatDecimal(Number(context.peakHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupacion ${formatPercent(Number(context.peakHour?.avgOccupancy ?? 0))}`,
-      metricB: `${context.quietHour?.hour ?? '--'}:00 · ${formatDecimal(Number(context.quietHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupacion ${formatPercent(Number(context.quietHour?.avgOccupancy ?? 0))}`,
+      summary: `La hora ${context.peakHour?.hour ?? '--'}:00 concentra más movimiento estimado que la franja más tranquila.`,
+      metricA: `${context.peakHour?.hour ?? '--'}:00 · ${formatDecimal(Number(context.peakHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupación ${formatPercent(Number(context.peakHour?.avgOccupancy ?? 0))}`,
+      metricB: `${context.quietHour?.hour ?? '--'}:00 · ${formatDecimal(Number(context.quietHour?.avgBikesAvailable ?? 0))} bicis disponibles · ocupación ${formatPercent(Number(context.quietHour?.avgOccupancy ?? 0))}`,
       delta: `Brecha horaria ${formatDelta(hourGap)}`,
       href: appRoutes.dashboardView('research'),
       note: `${formatInteger(Number(context.peakHour?.sampleCount ?? 0))} muestras agregadas en la hora pico.`,
@@ -464,10 +464,10 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       summary: temporalComparison.isComparable
         ? `${formatMonthLabel(context.latestMonthlyRow.monthKey)} se compara con ${formatMonthLabel(context.previousMonthlyRow.monthKey)} usando ${temporalComparison.periodLabel}.`
         : `${formatMonthLabel(context.latestMonthlyRow.monthKey)} no tiene todavía una comparación mensual equivalente.`,
-      metricA: `${formatMonthLabel(context.latestMonthlyRow.monthKey)}: ${formatInteger(Number(context.latestMonthlyRow.demandScore))} pts · ocupacion ${formatPercent(Number(context.latestMonthlyRow.avgOccupancy))}`,
-      metricB: `${formatMonthLabel(context.previousMonthlyRow.monthKey)}: ${formatInteger(Number(context.previousMonthlyRow.demandScore))} pts · ocupacion ${formatPercent(Number(context.previousMonthlyRow.avgOccupancy))}`,
+      metricA: `${formatMonthLabel(context.latestMonthlyRow.monthKey)}: ${formatInteger(Number(context.latestMonthlyRow.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(context.latestMonthlyRow.avgOccupancy))}`,
+      metricB: `${formatMonthLabel(context.previousMonthlyRow.monthKey)}: ${formatInteger(Number(context.previousMonthlyRow.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(context.previousMonthlyRow.avgOccupancy))}`,
       delta: temporalComparison.isComparable
-        ? `Demanda comparable ${formatDelta(temporalComparison.normalizedDemandRatio)}`
+        ? `Movimiento estimado comparable ${formatDelta(temporalComparison.normalizedDemandRatio)}`
         : 'Comparación no disponible todavía',
       href: appRoutes.reports(),
       note: `${temporalComparison.left.label} · ${temporalComparison.periodLabel} · ${coverageLabel}. ${temporalComparison.reason}`,

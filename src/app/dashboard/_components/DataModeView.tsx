@@ -30,13 +30,13 @@ export function DataModeView({
       label: 'Estado actual de estaciones',
       path: appRoutes.api.stations(),
       format: 'JSON / CSV',
-      description: 'Devuelve el estado actual de las estaciones con bicis, anclajes, capacidad y timestamp.',
+      description: 'Devuelve el estado actual de las estaciones: bicis, huecos, capacidad y hora de actualización.',
     },
     {
       label: 'Estado de los datos',
       path: appRoutes.api.status(),
       format: 'JSON / CSV',
-      description: 'Resume la salud del pipeline, la frescura de los datos y el volumen reciente.',
+      description: 'Indica si los datos se están actualizando bien, su cobertura y el volumen reciente.',
     },
     {
       label: 'Movilidad agregada',
@@ -48,7 +48,7 @@ export function DataModeView({
       label: 'Histórico resumido',
       path: appRoutes.api.history(),
       format: 'JSON / CSV',
-      description: 'Ofrece demanda, ocupacion y balance diario para analisis y auditoria.',
+      description: 'Ofrece movimiento estimado, ocupación y equilibrio diario para análisis y revisión.',
     },
     {
       label: 'Histórico de alertas',
@@ -60,7 +60,7 @@ export function DataModeView({
       label: 'Predicciones por estacion',
       path: appRoutes.api.predictions(),
       format: 'JSON',
-      description: 'Calcula una previsión a corto plazo a partir del estado actual y los patrones por hora.',
+      description: 'Calcula una estimación a corto plazo a partir del estado actual y los patrones por hora.',
     },
   ];
 

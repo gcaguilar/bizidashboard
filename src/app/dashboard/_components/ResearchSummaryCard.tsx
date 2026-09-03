@@ -95,7 +95,7 @@ export function ResearchSummaryCard({
           value={<span className="text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</span>}
           detail={
             topDemandDay
-              ? `${topDemandDay.demandScore.toFixed(1)} puntos de actividad estimada`
+              ? `${topDemandDay.demandScore.toFixed(1)} puntos de movimiento estimado`
               : 'Todavía no hay histórico suficiente.'
           }
         />

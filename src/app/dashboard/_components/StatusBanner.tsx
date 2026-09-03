@@ -12,7 +12,7 @@ function translateHealthStatus(statusLabel: string): string {
     case 'degraded':
       return 'degradado';
     case 'down':
-      return 'caido';
+      return 'no disponible';
     default:
       return statusLabel || 'desconocido';
   }
@@ -20,14 +20,14 @@ function translateHealthStatus(statusLabel: string): string {
 
 function translateHealthReason(reason: string): string {
   return reason
-    .replace('Pipeline has ', 'El pipeline acumula ')
+    .replace('Pipeline has ', 'La recogida de datos acumula ')
     .replace(' consecutive failures', ' fallos consecutivos')
-    .replace('No successful poll in the last 15 minutes', 'No ha habido una recogida correcta en los ultimos 15 minutos')
-    .replace('No successful poll in the last hour', 'No ha habido una recogida correcta en la ultima hora')
+    .replace('No successful poll in the last 15 minutes', 'No ha habido una recogida correcta en los últimos 15 minutos')
+    .replace('No successful poll in the last hour', 'No ha habido una recogida correcta en la última hora')
     .replace('Only ', 'Solo hubo ')
-    .replace(' polls in last 24h', ' recogidas en las ultimas 24h')
+    .replace(' polls in last 24h', ' recogidas en las últimas 24 h')
     .replace('expected ~288', 'esperadas ~288')
-    .replace('(last:', '(ultima correcta:');
+    .replace('(last:', '(última correcta:');
 }
 
 type StatusBannerProps = {
@@ -61,7 +61,7 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Estado de los datos</p>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Los datos están {translateHealthStatus(status.pipeline.healthStatus)}</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">La actualización de datos está {translateHealthStatus(status.pipeline.healthStatus)}</h2>
           <p className="text-xs text-[var(--muted)]">
             Última muestra: {updatedText} · {coverage?.totalDays ?? 0} días de histórico
           </p>
@@ -86,9 +86,9 @@ export function StatusBanner({ status, stationsGeneratedAt, coverage, lastSample
         <MetricCard className="min-w-0" label="Recogidas 24h" value={status.pipeline.pollsLast24Hours} />
         <MetricCard
           className="min-w-0"
-          label="Estaciones recibidas"
+          label="Estaciones actualizadas"
           value={status.quality.volume.recentStationCount}
-          detail={`Esperadas ${volumeRange.min}-${volumeRange.max}`}
+          detail={`Rango esperado: ${volumeRange.min}-${volumeRange.max}`}
         />
         <MetricCard className="min-w-0" label="Errores detectados" value={status.pipeline.validationErrors} />
         <MetricCard className="min-w-0" label="Fallos consecutivos" value={status.pipeline.consecutiveFailures} />

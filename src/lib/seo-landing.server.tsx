@@ -42,7 +42,7 @@ type SeoLandingContent = {
 };
 
 const EMPTY_STATE_MESSAGE =
-  'Todavia no hay suficiente historico o cobertura para publicar esta landing con datos consistentes.';
+  'Todavía no hay suficientes datos para mostrar esta página con confianza.';
 
 export function buildSeoFaqStructuredData(config: SeoPageConfig) {
   return {
@@ -50,7 +50,7 @@ export function buildSeoFaqStructuredData(config: SeoPageConfig) {
     mainEntity: [
       {
         '@type': 'Question',
-        name: `Que ofrece la pagina ${config.title}?`,
+        name: `¿Qué puedo consultar en ${config.title}?`,
         acceptedAnswer: {
           '@type': 'Answer',
           text: config.description,
@@ -58,18 +58,18 @@ export function buildSeoFaqStructuredData(config: SeoPageConfig) {
       },
       {
         '@type': 'Question',
-        name: 'Cada cuanto se actualiza esta informacion?',
+        name: '¿Cuándo se actualiza esta información?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${config.cadenceLabel}. La fecha visible en la pagina indica la ultima actualizacion publicada.`,
+          text: `${config.cadenceLabel}. La fecha visible indica cuándo se actualizaron los datos por última vez.`,
         },
       },
       {
         '@type': 'Question',
-        name: 'Donde puedo ver el detalle operativo completo?',
+        name: '¿Dónde puedo ver más detalle?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Desde esta landing puedes abrir ${config.primaryCta.label.toLowerCase()} para consultar el detalle en tiempo real.`,
+          text: `Desde aquí puedes abrir ${config.primaryCta.label.toLowerCase()} para seguir explorando los datos actualizados.`,
         },
       },
     ],
@@ -84,17 +84,17 @@ function fallbackContent(config: SeoPageConfig, nowIso: string): SeoLandingConte
       {
         label: 'Cobertura',
         value: 'Sin datos',
-        detail: 'El dataset publico aun no ofrece suficiente cobertura para esta vista.',
+        detail: 'Aún no hay suficiente cobertura de datos para esta vista.',
       },
       {
         label: 'Estado',
         value: 'Pendiente',
-        detail: 'La pagina queda publicada para enlazado interno y futura indexacion.',
+        detail: 'La página estará lista cuando haya datos suficientes.',
       },
       {
-        label: 'Destino',
-        value: 'Dashboard',
-        detail: 'Mientras tanto puedes abrir la vista operativa principal.',
+        label: 'Mientras tanto',
+        value: 'Explora la red',
+        detail: 'Puedes abrir el mapa y consultar las estaciones disponibles ahora.',
       },
     ],
     sectionTitle: 'Cobertura pendiente',
@@ -138,7 +138,7 @@ async function buildMostUsedStationsContent(
     const station = stationMap.get(row.stationId);
     return {
       title: `${index + 1}. ${station?.name ?? row.stationId}`,
-      detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${station ? `${station.bikesAvailable} bicis ahora` : 'detalle operativo disponible'}`,
+      detail: `${formatDecimal(row.turnoverScore)} puntos de movimiento estimado · ${station ? `${station.bikesAvailable} bicis disponibles ahora` : 'ver detalle de la estación'}`,
       href: appRoutes.stationDetail(row.stationId),
       badge: `Top ${index + 1}`,
     };
@@ -154,35 +154,35 @@ async function buildMostUsedStationsContent(
       .slice(0, 8)
       .map((station, index) => ({
         title: `${index + 1}. ${station.name}`,
-        detail: `${formatInteger(station.bikesAvailable)} bicis disponibles · capacidad ${formatInteger(station.capacity)} · ocupacion ${formatPercent(station.capacity > 0 ? station.bikesAvailable / station.capacity : 0)}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis disponibles · capacidad ${formatInteger(station.capacity)} · ocupación ${formatPercent(station.capacity > 0 ? station.bikesAvailable / station.capacity : 0)}`,
         href: appRoutes.stationDetail(station.id),
-        badge: 'Snapshot',
+        badge: 'Estado actual',
       }));
 
     return {
       generatedAt: stationsResponse.generatedAt,
       summary:
-        'Vista indexable basada en el snapshot actual de estaciones cuando el ranking historico no esta disponible.',
+        'Estas estaciones se ordenan por su disponibilidad actual porque aún no hay suficiente histórico para el ranking.',
       stats: [
         {
           label: 'Estaciones activas',
           value: formatInteger(stationsResponse.stations.length),
-          detail: 'Total de estaciones presentes en el snapshot actual.',
+          detail: 'Total de estaciones incluidas en la última actualización.',
         },
         {
           label: 'Bicis visibles',
           value: formatInteger(
             stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
           ),
-          detail: 'Bicicletas disponibles sumadas en el snapshot servido.',
+          detail: 'Total de bicis disponibles en la última actualización.',
         },
         {
-          label: 'Modo',
-          value: 'Snapshot',
-          detail: 'Fallback activo al no disponer de ranking agregado reciente.',
+          label: 'Datos mostrados',
+          value: 'Estado actual',
+          detail: 'Mostramos disponibilidad actual mientras se completa el histórico.',
         },
       ],
-      sectionTitle: 'Estaciones destacadas por snapshot',
+      sectionTitle: 'Estaciones destacadas ahora',
       sectionItems: fallbackItems,
     };
   }
@@ -194,27 +194,27 @@ async function buildMostUsedStationsContent(
   return {
     generatedAt: rankingsResponse.generatedAt,
     summary:
-      'Ranking indexable de estaciones lideres por actividad reciente, con enlaces persistentes al detalle operativo y contexto del snapshot actual.',
+      'Estas son las estaciones con más movimiento estimado reciente. Abre cada una para consultar su disponibilidad actual.',
     stats: [
       {
         label: 'Estaciones activas',
         value: formatInteger(stationsResponse.stations.length),
-        detail: 'Total de estaciones presentes en el snapshot actual.',
+        detail: 'Total de estaciones incluidas en la última actualización.',
       },
       {
-        label: 'Top 5 medio',
+        label: 'Movimiento medio del top 5',
         value: `${formatDecimal(average(rankingsResponse.rankings.slice(0, 5).map((row) => Number(row.turnoverScore))))} pts`,
-        detail: 'Rotacion media de las estaciones con mayor uso reciente.',
+        detail: 'Movimiento estimado medio de las estaciones más activas.',
       },
       {
         label: 'Bicis visibles',
         value: formatInteger(
           stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
         ),
-        detail: 'Bicicletas disponibles sumadas en el snapshot servido.',
+        detail: 'Total de bicis disponibles en la última actualización.',
       },
     ],
-    sectionTitle: 'Estaciones lideres por rotacion',
+    sectionTitle: 'Estaciones con más movimiento',
     sectionItems: items,
   };
 }
@@ -234,7 +234,7 @@ async function buildDistrictOverviewContent(
   });
   const items = rows.slice(0, 8).map((district, index) => ({
     title: `${index + 1}. ${district.name}`,
-    detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} pts medios · ${district.bikesAvailable} bicis disponibles`,
+    detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} puntos de movimiento medio · ${district.bikesAvailable} bicis disponibles`,
     href: appRoutes.districtDetail(district.slug),
     badge: `${district.stationCount} est.`,
   }));
@@ -246,17 +246,17 @@ async function buildDistrictOverviewContent(
   return {
     generatedAt: nowIso,
     summary:
-      'Comparativa indexable por barrios con estaciones destacadas, carga operativa y enlaces al dashboard de flujo y a cada ficha de barrio.',
+      'Compara cuántas estaciones y bicis hay en cada barrio, y abre su ficha para ver el detalle.',
     stats: [
       {
-        label: 'Barrios visibles',
+        label: 'Barrios con datos',
         value: formatInteger(rows.length),
-        detail: 'Barrios con estaciones activas y asignacion geografica disponible.',
+        detail: 'Barrios con estaciones activas y ubicación asignada.',
       },
       {
-        label: 'Estaciones sumadas',
+        label: 'Estaciones en total',
         value: formatInteger(rows.reduce((sum, district) => sum + district.stationCount, 0)),
-        detail: 'Estaciones activas agregadas en el conjunto de barrios publicado.',
+        detail: 'Estaciones activas incluidas en los barrios mostrados.',
       },
       {
         label: 'Bicis agregadas',
@@ -287,7 +287,7 @@ async function buildHourlyUsageContent(
     .slice(0, 8)
     .map((row, index) => ({
       title: `${index + 1}. ${formatHourRange(row.hour)}`,
-      detail: `${formatDecimal(Number(row.avgBikesAvailable))} bicis disponibles · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
+      detail: `${formatDecimal(Number(row.avgBikesAvailable))} bicis disponibles · ocupación ${formatPercent(Number(row.avgOccupancy))}`,
       href: appRoutes.dashboardView('research'),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
@@ -314,11 +314,11 @@ async function buildHourlyUsageContent(
       .slice(0, 8)
       .map((station, index) => ({
         title: `${index + 1}. ${station.name}`,
-        detail: `${station.bikesAvailable} bicis · ocupacion ${formatPercent(
+        detail: `${station.bikesAvailable} bicis · ocupación ${formatPercent(
           station.capacity > 0 ? station.bikesAvailable / station.capacity : 0
         )} · capacidad ${station.capacity}`,
         href: appRoutes.stationDetail(station.id),
-        badge: 'Snapshot',
+        badge: 'Estado actual',
       }));
 
     if (liveItems.length > 0) {
@@ -332,25 +332,25 @@ async function buildHourlyUsageContent(
       return {
         generatedAt: stationsResponse.generatedAt,
         summary:
-          'Fallback indexable con snapshot actual de disponibilidad por estacion cuando no hay perfil horario agregado suficiente.',
+          'Aún no hay suficiente histórico horario; mientras tanto, consulta la disponibilidad actual de estas estaciones.',
         stats: [
           {
-            label: 'Estaciones visibles',
+            label: 'Estaciones con datos',
             value: formatInteger(stationsResponse.stations.length),
-            detail: 'Estaciones activas incluidas en el snapshot actual del sistema.',
+            detail: 'Estaciones activas incluidas en la última actualización.',
           },
           {
-            label: 'Hora de referencia',
+            label: 'Hora de la consulta',
             value: formatHourRange(now.getHours()),
-            detail: 'Franja horaria correspondiente al ultimo snapshot publicado.',
+            detail: 'Hora a la que se tomó la última actualización.',
           },
           {
-            label: 'Ocupacion media',
+            label: 'Ocupación media',
             value: formatPercent(avgOccupancy),
-            detail: 'Promedio de ocupacion estimado con la fotografia actual.',
+            detail: 'Promedio de ocupación en la última actualización.',
           },
         ],
-        sectionTitle: 'Estaciones con mayor ocupacion en el snapshot actual',
+        sectionTitle: 'Estaciones con mayor ocupación ahora',
         sectionItems: liveItems,
       };
     }
@@ -367,22 +367,22 @@ async function buildHourlyUsageContent(
   return {
     generatedAt: nowIso,
     summary:
-      'Distribucion horaria indexable del sistema con franjas destacadas, ocupacion media y acceso al modo flujo del dashboard.',
+      'Descubre en qué franjas cambia más la disponibilidad de la red y compara las horas con más actividad.',
     stats: [
       {
-        label: 'Franjas publicadas',
+        label: 'Franjas con datos',
         value: formatInteger(profile.length),
-        detail: 'Horas del dia con suficiente muestra agregada en la serie reciente.',
+        detail: 'Horas del día con suficientes muestras recientes.',
       },
       {
-        label: 'Hora punta',
+        label: 'Franja más activa',
         value: busiestHour ? formatHourRange(busiestHour.hour) : 'Sin datos',
-        detail: 'Franja con mayor volumen medio estimado de bicicletas en circulacion.',
+        detail: 'Franja con más movimiento estimado de bicis.',
       },
       {
-        label: 'Ocupacion media',
+        label: 'Ocupación media',
         value: formatPercent(average(profile.map((row) => Number(row.avgOccupancy)))),
-        detail: 'Promedio de ocupacion observado en el perfil horario agregado.',
+        detail: 'Promedio de ocupación observado a lo largo del día.',
       },
     ],
     sectionTitle: 'Horas con mayor actividad',
@@ -414,15 +414,15 @@ async function buildStationRankingContent(
   const items = [
     ...turnoverResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Uso ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
-      detail: `${formatDecimal(row.turnoverScore)} pts de rotacion · ${row.emptyHours + row.fullHours} horas de friccion`,
+      detail: `${formatDecimal(row.turnoverScore)} puntos de movimiento estimado · ${row.emptyHours + row.fullHours} h sin bicis o huecos`,
       href: appRoutes.stationDetail(row.stationId),
-      badge: 'Demanda',
+      badge: 'Movimiento estimado',
     })),
     ...availabilityResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Riesgo ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
-      detail: `${row.emptyHours + row.fullHours} horas entre vaciado y saturacion · ${formatDecimal(row.turnoverScore)} pts de rotacion`,
+      detail: `${row.emptyHours + row.fullHours} h sin bicis o huecos · ${formatDecimal(row.turnoverScore)} puntos de movimiento estimado`,
       href: appRoutes.stationDetail(row.stationId),
-      badge: 'Disponibilidad',
+      badge: 'Disponibilidad a revisar',
     })),
   ];
 
@@ -434,30 +434,30 @@ async function buildStationRankingContent(
         title: `${index + 1}. ${station.name}`,
         detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres · capacidad ${formatInteger(station.capacity)}`,
         href: appRoutes.stationDetail(station.id),
-        badge: 'Snapshot',
+        badge: 'Estado actual',
       }));
 
     return {
       generatedAt: stationsResponse.generatedAt,
       summary:
-        'Clasificacion indexable basada en disponibilidad actual cuando los rankings historicos no estan disponibles.',
+        'Estas estaciones están ordenadas por disponibilidad actual porque todavía no hay histórico suficiente para el ranking.',
       stats: [
         {
-          label: 'Estaciones visibles',
+          label: 'Estaciones con datos',
           value: formatInteger(stationsResponse.stations.length),
-          detail: 'Estaciones activas incluidas en la fotografia actual del sistema.',
+          detail: 'Estaciones activas incluidas en la última actualización.',
         },
         {
           label: 'Bicis totales',
           value: formatInteger(
             stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
           ),
-          detail: 'Suma de bicicletas visibles en el snapshot publico actual.',
+          detail: 'Total de bicis disponibles en la última actualización.',
         },
         {
-          label: 'Modo',
-          value: 'Snapshot',
-          detail: 'Fallback activo al no disponer de rankings de uso/disponibilidad.',
+          label: 'Datos mostrados',
+          value: 'Estado actual',
+          detail: 'Mostramos disponibilidad actual mientras se completa el histórico.',
         },
       ],
       sectionTitle: 'Estaciones ordenadas por disponibilidad actual',
@@ -472,28 +472,28 @@ async function buildStationRankingContent(
   return {
     generatedAt: turnoverResponse.generatedAt,
     summary:
-      'Clasificacion indexable de estaciones por uso y friccion operativa, pensada para enlazar al directorio completo y a cada detalle individual.',
+      'Compara las estaciones con más movimiento estimado y las que pasan más tiempo sin bicis o huecos libres.',
     stats: [
       {
-        label: 'Estaciones visibles',
+        label: 'Estaciones con datos',
         value: formatInteger(stationsResponse.stations.length),
-        detail: 'Estaciones activas incluidas en la fotografia actual del sistema.',
+        detail: 'Estaciones activas incluidas en la última actualización.',
       },
       {
-        label: 'Top uso',
+        label: 'Más movimiento',
         value: `${formatDecimal(Number(turnoverResponse.rankings[0]?.turnoverScore ?? 0))} pts`,
-        detail: 'Rotacion de la estacion que encabeza el ranking de uso.',
+        detail: 'Movimiento estimado de la estación que encabeza el ranking.',
       },
       {
-        label: 'Riesgo maximo',
+        label: 'Mayor tiempo con problemas',
         value: formatInteger(
           Number(availabilityResponse.rankings[0]?.emptyHours ?? 0) +
             Number(availabilityResponse.rankings[0]?.fullHours ?? 0)
         ),
-        detail: 'Horas acumuladas de friccion para la estacion con peor disponibilidad.',
+        detail: 'Horas acumuladas sin bicis o huecos en la estación que más conviene revisar.',
       },
     ],
-    sectionTitle: 'Estaciones mas destacadas del ranking',
+    sectionTitle: 'Estaciones destacadas del ranking',
     sectionItems: items,
   };
 }
@@ -512,7 +512,7 @@ async function buildDailyTripsContent(
     .slice(0, 8)
     .map((row) => ({
       title: row.day,
-      detail: `${formatInteger(Number(row.demandScore))} pts de demanda · ocupacion ${formatPercent(Number(row.avgOccupancy))}`,
+      detail: `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))}`,
       href: appRoutes.dashboardConclusions(),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
@@ -536,31 +536,31 @@ async function buildDailyTripsContent(
       return {
         generatedAt: stationsResponse.generatedAt,
         summary:
-          'Fallback indexable basado en snapshot actual cuando la serie diaria agregada no esta disponible.',
+          'Aún no hay suficiente histórico diario; mientras tanto, mostramos el estado actual de la red.',
         stats: [
           {
-            label: 'Dia de referencia',
+            label: 'Día de referencia',
             value: formatDateLabel(stationsResponse.generatedAt),
-            detail: 'Fecha del snapshot usado como respaldo de la vista diaria.',
+            detail: 'Fecha de la actualización usada como referencia.',
           },
           {
             label: 'Bicis visibles',
             value: formatInteger(totalBikes),
-            detail: 'Bicicletas disponibles en el snapshot de referencia.',
+            detail: 'Bicis disponibles en esa actualización.',
           },
           {
-            label: 'Ocupacion media',
+            label: 'Ocupación media',
             value: formatPercent(avgOccupancy),
-            detail: 'Ocupacion media estimada del sistema en el snapshot actual.',
+            detail: 'Ocupación media de la red en esa actualización.',
           },
         ],
-        sectionTitle: 'Referencia diaria basada en snapshot',
+        sectionTitle: 'Referencia diaria actual',
         sectionItems: [
           {
             title: formatDateLabel(stationsResponse.generatedAt),
-            detail: `${formatInteger(totalBikes)} bicis visibles · ocupacion media ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
+            detail: `${formatInteger(totalBikes)} bicis disponibles · ocupación media ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
             href: appRoutes.dashboardConclusions(),
-            badge: 'Snapshot',
+            badge: 'Estado actual',
           },
         ],
       };
@@ -571,25 +571,25 @@ async function buildDailyTripsContent(
   return {
     generatedAt: nowIso,
     summary:
-      'Serie diaria indexable con la demanda agregada del sistema, lista para enlazar al resumen ejecutivo y a los informes mensuales.',
+      'Sigue cómo cambia el movimiento estimado de la red día a día. Es un índice para comparar, no el número oficial de viajes.',
     stats: [
       {
-        label: 'Dias visibles',
+        label: 'Días con datos',
         value: formatInteger(nonEmptyRows.length),
-        detail: 'Dias recientes con demanda agregada publicada en la serie diaria.',
+        detail: 'Días recientes con movimiento estimado en la serie.',
       },
       {
-        label: 'Ultimo dia',
+        label: 'Último día',
         value: latestRow ? latestRow.day : 'Sin datos',
-        detail: 'Fecha mas reciente disponible en el historico diario expuesto.',
+        detail: 'La fecha más reciente disponible en el histórico diario.',
       },
       {
-        label: 'Demanda reciente',
+        label: 'Movimiento reciente',
         value: latestRow ? `${formatInteger(Number(latestRow.demandScore))} pts` : 'Sin datos',
-        detail: 'Indice agregado del ultimo dia con muestras disponibles.',
+        detail: 'Índice de movimiento estimado del último día disponible.',
       },
     ],
-    sectionTitle: 'Ultimos dias con demanda publicada',
+    sectionTitle: 'Últimos días con movimiento estimado',
     sectionItems: items,
   };
 }
@@ -604,7 +604,7 @@ async function buildMonthlyTripsContent(
     .slice(0, 8)
     .map((row) => ({
       title: isValidMonthKey(row.monthKey) ? formatMonthLabel(row.monthKey) : row.monthKey,
-      detail: `${formatInteger(Number(row.demandScore))} pts · ocupacion ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`,
+      detail: `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`,
       href: appRoutes.reportMonth(row.monthKey),
       badge: row.monthKey,
     }));
@@ -633,31 +633,31 @@ async function buildMonthlyTripsContent(
       return {
         generatedAt: stationsResponse.generatedAt,
         summary:
-          'Fallback indexable mensual basado en snapshot actual cuando la serie historica no esta disponible.',
+          'Aún no hay suficiente histórico mensual; mientras tanto, mostramos la última actualización disponible.',
         stats: [
           {
-            label: 'Mes visible',
+            label: 'Mes de referencia',
             value: isValidMonthKey(monthKey) ? formatMonthLabel(monthKey) : monthKey,
-            detail: 'Mes inferido desde la ultima fecha disponible del snapshot.',
+            detail: 'Mes de la última actualización disponible.',
           },
           {
             label: 'Estaciones activas',
             value: formatInteger(stationsResponse.stations.length),
-            detail: 'Estaciones presentes en el snapshot de respaldo.',
+            detail: 'Estaciones presentes en esa actualización.',
           },
           {
-            label: 'Ocupacion media',
+            label: 'Ocupación media',
             value: formatPercent(avgOccupancy),
-            detail: 'Estimacion de ocupacion media en el snapshot actual.',
+            detail: 'Ocupación media de la última actualización.',
           },
         ],
-        sectionTitle: 'Mes de referencia basado en snapshot',
+        sectionTitle: 'Mes de referencia',
         sectionItems: [
           {
             title: isValidMonthKey(monthKey) ? formatMonthLabel(monthKey) : monthKey,
-            detail: `${formatInteger(totalBikes)} bicis visibles · ocupacion ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
+            detail: `${formatInteger(totalBikes)} bicis disponibles · ocupación ${formatPercent(avgOccupancy)} · ${formatInteger(stationsResponse.stations.length)} estaciones`,
             href: appRoutes.reports(),
-            badge: 'Snapshot',
+            badge: 'Estado actual',
           },
         ],
       };
@@ -668,25 +668,25 @@ async function buildMonthlyTripsContent(
   return {
     generatedAt: nowIso,
     summary:
-      'Serie mensual indexable con comparativa intermensual, cobertura activa por estacion y acceso directo al archivo de informes.',
+      'Compara cómo evoluciona la red mes a mes y abre cada informe para ver las estaciones y barrios con más detalle.',
     stats: [
       {
-        label: 'Meses visibles',
+        label: 'Meses con datos',
         value: formatInteger(monthlySeries.length),
-        detail: 'Meses con agregados mensuales disponibles en la serie publicada.',
+        detail: 'Meses con datos agregados disponibles en la serie.',
       },
       {
-        label: 'Ultimo mes',
+        label: 'Último mes',
         value:
           latestRow && isValidMonthKey(latestRow.monthKey)
             ? formatMonthLabel(latestRow.monthKey)
             : latestRow?.monthKey ?? 'Sin datos',
-        detail: 'Ultimo mes disponible en la serie mensual del sistema.',
+        detail: 'El mes más reciente disponible en la serie.',
       },
       {
         label: 'Estaciones activas',
         value: formatInteger(Number(latestRow?.activeStations ?? 0)),
-        detail: 'Estaciones con actividad registrada en el ultimo mes visible.',
+        detail: 'Estaciones con actividad registrada en el último mes.',
       },
     ],
     sectionTitle: 'Meses publicados',
@@ -718,40 +718,40 @@ async function buildStationUsageContent(
         title: `Alta disponibilidad ${index + 1}. ${station.name}`,
         detail: `${formatInteger(station.bikesAvailable)} bicis · ${formatInteger(station.anchorsFree)} anclajes libres`,
         href: appRoutes.stationDetail(station.id),
-        badge: 'Snapshot',
+        badge: 'Estado actual',
       })),
       ...leastByBikes.slice(0, 4).map((station, index) => ({
         title: `Baja disponibilidad ${index + 1}. ${station.name}`,
         detail: `${formatInteger(station.bikesAvailable)} bicis · capacidad ${formatInteger(station.capacity)}`,
         href: appRoutes.stationDetail(station.id),
-        badge: 'Snapshot',
+        badge: 'Estado actual',
       })),
     ];
 
     return {
       generatedAt: stationsResponse.generatedAt,
       summary:
-        'Comparativa fallback por estacion basada en el snapshot actual cuando las conclusiones historicas no estan disponibles.',
+        'Aún no hay suficiente histórico para comparar el uso. Mientras tanto, consulta qué estaciones tienen más o menos bicis ahora.',
       stats: [
         {
           label: 'Estaciones activas',
           value: formatInteger(stationsResponse.stations.length),
-          detail: 'Estaciones disponibles en la fotografia actual del sistema.',
+          detail: 'Estaciones disponibles en la última actualización.',
         },
         {
           label: 'Bicis visibles',
           value: formatInteger(
             stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
           ),
-          detail: 'Bicicletas disponibles en el snapshot usado como respaldo.',
+          detail: 'Bicis disponibles en la última actualización.',
         },
         {
-          label: 'Modo',
-          value: 'Snapshot',
-          detail: 'Fallback activo por falta de serie historica consolidada.',
+          label: 'Datos mostrados',
+          value: 'Estado actual',
+          detail: 'Mostramos disponibilidad actual mientras se completa el histórico.',
         },
       ],
-      sectionTitle: 'Comparativa de estaciones con snapshot actual',
+      sectionTitle: 'Comparativa de estaciones ahora',
       sectionItems: fallbackItems,
     };
   }
@@ -779,13 +779,13 @@ async function buildStationUsageContent(
   const items = [
     ...payload.topStationsByDemand.slice(0, 4).map((station, index) => ({
       title: `Alta demanda ${index + 1}. ${station.stationName}`,
-      detail: `${formatDecimal(station.avgDemand)} pts/dia · enlace al detalle operativo`,
+      detail: `${formatDecimal(station.avgDemand)} puntos de movimiento estimado al día · ver detalle de la estación`,
       href: appRoutes.stationDetail(station.stationId),
       badge: 'Top',
     })),
     ...payload.leastUsedStations.slice(0, 4).map((station, index) => ({
       title: `Menor uso ${index + 1}. ${station.stationName}`,
-      detail: `${formatDecimal(station.avgDemand)} pts/dia · seguimiento recomendado`,
+      detail: `${formatDecimal(station.avgDemand)} puntos de movimiento estimado al día · conviene seguir su evolución`,
       href: appRoutes.stationDetail(station.stationId),
       badge: 'Seguimiento',
     })),
@@ -809,17 +809,17 @@ async function buildStationUsageContent(
         detail: 'Estaciones activas consideradas por el briefing de movilidad reciente.',
       },
       {
-        label: 'Cobertura historica',
+        label: 'Días de histórico',
         value: formatInteger(payload.totalHistoricalDays),
-        detail: 'Dias historicos considerados por la capa de conclusiones publicada.',
+        detail: 'Días con datos usados para calcular esta comparación.',
       },
       {
-        label: 'Estaciones con datos',
+        label: 'Estaciones con histórico',
         value: formatInteger(payload.stationsWithData),
-        detail: 'Estaciones con historico util en la ventana de analitica actual.',
+        detail: 'Estaciones con suficientes datos para esta comparación.',
       },
     ],
-    sectionTitle: 'Estaciones mas y menos usadas',
+    sectionTitle: 'Estaciones con más y menos movimiento',
     sectionItems: items,
   };
 }
@@ -837,7 +837,7 @@ async function buildMostBikesContent(
   );
   const items = stations.slice(0, 10).map((station, index) => ({
     title: `${index + 1}. ${station.name}`,
-    detail: `${station.bikesAvailable} bicis · ${station.anchorsFree} anclajes libres · capacidad ${station.capacity}`,
+    detail: `${station.bikesAvailable} bicis disponibles · ${station.anchorsFree} huecos libres · capacidad ${station.capacity}`,
     href: appRoutes.stationDetail(station.id),
     badge: `${station.bikesAvailable} bicis`,
   }));
@@ -849,27 +849,27 @@ async function buildMostBikesContent(
   return {
     generatedAt: stationsResponse.generatedAt,
     summary:
-      'Listado indexable de estaciones con mayor numero de bicicletas disponibles en el snapshot mas reciente del sistema.',
+      'Estas son las estaciones con más bicis disponibles en la última actualización. Ábrelas para comprobar su estado antes de ir.',
     stats: [
       {
-        label: 'Estaciones visibles',
+        label: 'Estaciones con datos',
         value: formatInteger(stations.length),
-        detail: 'Estaciones activas incluidas en el snapshot de disponibilidad actual.',
+        detail: 'Estaciones activas incluidas en la última actualización.',
       },
       {
         label: 'Bicis totales',
         value: formatInteger(
           stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
         ),
-        detail: 'Suma de bicicletas visibles en el snapshot publico actual.',
+        detail: 'Total de bicis disponibles en la última actualización.',
       },
       {
-        label: 'Pico visible',
+        label: 'Mayor disponibilidad',
         value: formatInteger(stations[0]?.bikesAvailable ?? 0),
-        detail: 'Mayor numero de bicicletas disponibles en una sola estacion.',
+        detail: 'Mayor número de bicis disponibles en una sola estación.',
       },
     ],
-    sectionTitle: 'Estaciones con mas bicicletas ahora',
+    sectionTitle: 'Estaciones con más bicis ahora',
     sectionItems: items,
   };
 }
@@ -916,8 +916,8 @@ async function buildMonthlyReportsContent(
     return {
       title: formatMonthLabel(month),
       detail: row
-        ? `${formatInteger(Number(row.demandScore))} pts · ocupacion ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`
-        : 'Informe mensual publicado con acceso directo al dashboard filtrado.',
+        ? `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`
+        : 'Informe mensual publicado para consultar ese mes en detalle.',
       href: appRoutes.reportMonth(month),
       badge: month,
     };
@@ -930,22 +930,22 @@ async function buildMonthlyReportsContent(
   return {
     generatedAt: monthsResponse.generatedAt,
     summary:
-      'Archivo indexable de informes mensuales con URLs persistentes por mes, preparado para enlazado interno y navegacion editorial.',
+      'Consulta los informes mensuales de Bizi Zaragoza y abre cada mes para ver su evolución en detalle.',
     stats: [
       {
-        label: 'Meses indexables',
+        label: 'Meses publicados',
         value: formatInteger(validMonths.length),
-        detail: 'Meses publicados en el archivo mensual disponible para indexacion.',
+        detail: 'Meses disponibles en el archivo de informes.',
       },
       {
-        label: 'Ultimo informe',
+        label: 'Último informe',
         value: validMonths[0] ? formatMonthLabel(validMonths[0]) : 'Sin datos',
-        detail: 'Informe mensual mas reciente accesible desde el archivo publico.',
+        detail: 'El informe mensual más reciente disponible.',
       },
       {
         label: 'Serie mensual',
         value: formatInteger(monthlySeries.length),
-        detail: 'Meses con agregados mensuales disponibles en la serie base.',
+        detail: 'Meses con datos agregados disponibles en la serie.',
       },
     ],
     sectionTitle: 'Informes mensuales publicados',
@@ -990,53 +990,53 @@ export async function buildRedistribucionContent(
 
   const items: SeoItem[] = [
     {
-      title: 'Clasificacion A: Sobrestock estructural',
-      detail: 'Estaciones cronicamente llenas, baja rotacion e inmovilidad elevada. Candidatas a donar bicis.',
+      title: 'Grupo A: suelen estar demasiado llenas',
+      detail: 'Acumulan muchas bicis durante mucho tiempo y apenas se mueven. Puede convenir retirar algunas.',
     },
     {
-      title: 'Clasificacion B: Deficit estructural',
-      detail: 'Ocupacion media baja y alta presion de salida. Necesitan reposicion periodica.',
+      title: 'Grupo B: suelen quedarse sin bicis',
+      detail: 'Tienen pocas bicis de media y mucha salida. Puede convenir llevarles bicis con regularidad.',
     },
     {
-      title: 'Clasificacion C: Saturacion puntual',
-      detail: 'Solo se saturan en hora punta de manana o tarde. Intervencion preventiva recomendada.',
+      title: 'Grupo C: se llenan a horas concretas',
+      detail: 'El problema aparece sobre todo en horas punta. Anticiparse puede evitar que falten huecos.',
     },
     {
-      title: 'Clasificacion D: Vaciado puntual',
-      detail: 'Se vacias en hora punta pero se recuperan solas. El sistema evalua si actuar o esperar.',
+      title: 'Grupo D: se vacían a horas concretas',
+      detail: 'Pierden bicis en horas punta, pero a veces se recuperan solas. Conviene comprobar la tendencia antes de actuar.',
     },
     {
-      title: 'Clasificacion E: Equilibrada',
-      detail: 'Estaciones que se autoregeulan dentro de la banda objetivo. No requieren intervencion.',
+      title: 'Grupo E: equilibradas',
+      detail: 'Se mantienen dentro de un rango útil de bicis y huecos. No suelen necesitar intervención.',
     },
     {
-      title: 'Clasificacion F: Revisar dato',
-      detail: 'Sensores anomalos o datos inconsistentes. Excluidas de decisiones logisticas.',
+      title: 'Grupo F: revisar los datos',
+      detail: 'Hay señales anómalas o datos inconsistentes. No se usan para decidir movimientos de bicis.',
     },
   ];
 
   return {
     generatedAt,
     summary:
-      'Metodologia y datos del sistema de redistribucion de Bizi Zaragoza: como se clasifican las estaciones, que reglas deciden cuando intervenir y como se calculan los movimientos sugeridos.',
+      'Entiende qué estaciones suelen quedarse sin bicis o sin huecos, cómo las agrupamos y qué señales ayudan a decidir dónde hace falta intervenir.',
     stats: [
       {
         label: 'Estaciones monitorizadas',
         value: stationCount > 0 ? formatInteger(stationCount) : 'Sin datos',
-        detail: 'Estaciones incluidas en el ultimo diagnostico de redistribucion.',
+        detail: 'Estaciones incluidas en el último análisis de redistribución.',
       },
       {
-        label: '% tiempo vacias',
+        label: '% de tiempo vacías',
         value: pctTimeEmpty > 0 ? formatPercent(pctTimeEmpty) : 'Sin datos',
-        detail: 'Fraccion del tiempo que el sistema promedio esta sin bicis disponibles (ultimos 15 dias).',
+        detail: 'Parte del tiempo en que la red suele estar sin bicis disponibles (últimos 15 días).',
       },
       {
-        label: '% tiempo llenas',
+        label: '% de tiempo llenas',
         value: pctTimeFull > 0 ? formatPercent(pctTimeFull) : 'Sin datos',
-        detail: 'Fraccion del tiempo que el sistema promedio esta sin anclajes libres (ultimos 15 dias).',
+        detail: 'Parte del tiempo en que la red suele estar sin huecos libres (últimos 15 días).',
       },
     ],
-    sectionTitle: 'Sistema de clasificacion A-F',
+    sectionTitle: 'Cómo agrupamos las estaciones',
     sectionItems: items,
   };
 }

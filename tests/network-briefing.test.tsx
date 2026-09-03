@@ -31,7 +31,7 @@ describe('network briefing', () => {
     vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
     const briefing = buildNetworkBriefing(input);
 
-    expect(briefing.current).toContain('1 estación no tiene bicis o anclajes libres');
+    expect(briefing.current).toContain('1 estación no tiene bicis o huecos libres');
     expect(briefing.focus).toContain('Plaza Aragón');
     expect(briefing.comparison).toContain('Aún no hay otro momento comparable');
     expect(briefing.dataQuality).toContain('141 días');
@@ -48,8 +48,8 @@ describe('network briefing', () => {
   it('renders ready, loading, incomplete and error states clearly', () => {
     const briefing = buildNetworkBriefing(input);
     expect(renderToStaticMarkup(<NetworkBriefing briefing={briefing} />)).toContain('Lectura de la red hoy');
-    expect(renderToStaticMarkup(<NetworkBriefing state="loading" />)).toContain('Cargando briefing');
-    expect(renderToStaticMarkup(<NetworkBriefing state="incomplete" briefing={briefing} />)).toContain('Evidencia insuficiente');
-    expect(renderToStaticMarkup(<NetworkBriefing state="error" />)).toContain('No se pudo construir');
+    expect(renderToStaticMarkup(<NetworkBriefing state="loading" />)).toContain('Cargando el resumen de la red');
+    expect(renderToStaticMarkup(<NetworkBriefing state="incomplete" briefing={briefing} />)).toContain('Aún no hay datos suficientes');
+    expect(renderToStaticMarkup(<NetworkBriefing state="error" />)).toContain('No se pudo preparar');
   });
 });

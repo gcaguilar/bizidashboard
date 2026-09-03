@@ -49,7 +49,7 @@ export default function ReportsIndexPage() {
               Informes mensuales de Bizi Zaragoza
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Informes mensuales con contexto, actividad estimada y acceso directo al análisis de cada mes.
+              Consulta cómo cambió la red cada mes: movimiento estimado, ocupación, estaciones activas y acceso al análisis de cada periodo.
             </p>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ReportsIndexPage() {
               }}
               className="ui-inline-action"
             >
-              Ver acumulado mensual
+              Ver evolución mensual
             </TrackedLink>
           </div>
         </div>
@@ -117,17 +117,16 @@ export default function ReportsIndexPage() {
           <p className="stat-value">{months.length}</p>
         </article>
         <article className="ui-section-card py-3">
-          <p className="stat-label">Cobertura de serie</p>
+          <p className="stat-label">Meses con datos</p>
           <p className="stat-value">{months.length > 0 ? new Set(months).size : 0}</p>
         </article>
       </section>
 
       <section className="ui-section-card">
         <div className="mb-3">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Archivo de informes mensuales</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Todos los informes mensuales</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            El archivo reúne enlaces permanentes para consultar el histórico de Bizi Zaragoza.
-            Cada informe resume un período concreto y permite navegar a barrios, estaciones y rankings.
+            Aquí puedes consultar el histórico de Bizi Zaragoza mes a mes. Cada informe resume un periodo concreto y te lleva a sus barrios, estaciones y rankings.
           </p>
         </div>
 
@@ -155,8 +154,8 @@ export default function ReportsIndexPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
                   <p className="text-[11px] text-[var(--muted)]">
                     {row
-                      ? `${formatInteger(row.demandScore)} pts de demanda estimada · ocupacion ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
-                      : 'Informe disponible con acceso al dashboard filtrado por ese mes.'}
+                      ? `${formatInteger(row.demandScore)} puntos de movimiento estimado · ocupación ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
+                      : 'Informe disponible para consultar ese mes en detalle.'}
                   </p>
                   {month === latestMonth && latestPeriodCoverage ? (
                     <p className="mt-1 text-[11px] font-semibold text-[var(--primary)]">

@@ -79,7 +79,7 @@ export function OverviewModeView({
       : status.pipeline.healthStatus === 'degraded'
         ? 'degradado'
         : status.pipeline.healthStatus === 'down'
-          ? 'caido'
+          ? 'no disponible'
           : 'desconocido';
   const networkLabel = systemMetrics.criticalStations.length === 0
     ? 'sin estaciones críticas en la muestra'
@@ -123,12 +123,12 @@ export function OverviewModeView({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{productTerms.dataStatus.label}</p>
-            <h2 className="text-base font-bold text-[var(--foreground)]">Diagnóstico rápido fuera del panel principal</h2>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Comprueba los datos antes de interpretarlos</h2>
             <p className="text-sm text-[var(--muted)]">
-              Datos y pipeline: <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · última referencia {updatedText}
+              La recogida de datos está <span className="font-semibold text-[var(--foreground)]">{statusLabel}</span> · última actualización {updatedText}
             </p>
             <p className="text-sm text-[var(--muted)]">
-              {productTerms.networkBalance.label}: <span className="font-semibold text-[var(--foreground)]">{networkLabel}</span>. Los datos pueden estar sanos aunque haya estaciones desequilibradas.
+              {productTerms.networkBalance.label}: <span className="font-semibold text-[var(--foreground)]">{networkLabel}</span>. Que los datos estén al día no significa necesariamente que haya bicis y huecos en todas las estaciones.
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export function OverviewModeView({
         <article className="ui-section-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Operaciones</h3>
           <p className="text-sm text-[var(--muted)]">
-            Revisa alertas activas, prioriza redistribucion y resuelve friccion en estaciones criticas.
+            Revisa alertas activas y las estaciones que pasan tiempo sin bicis o sin huecos libres.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
             <TrackedLink href={appRoutes.dashboardAlerts()}>Ver alertas y señales</TrackedLink>
@@ -174,9 +174,9 @@ export function OverviewModeView({
         </article>
 
         <article className="ui-section-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Analisis</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Análisis</h3>
           <p className="text-sm text-[var(--muted)]">
-            Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
+            Descubre qué zonas muestran más movimiento estimado y cómo cambian los patrones entre barrios.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
             <TrackedLink href={appRoutes.dashboardFlow()}>Ver análisis de flujos</TrackedLink>

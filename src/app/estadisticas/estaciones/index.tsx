@@ -51,7 +51,7 @@ function EstadisticasEstacionesPage() {
             Estaciones Bizi Zaragoza
           </h1>
           <p className="text-base text-[var(--muted)] md:text-lg">
-            Ranking y disponibilidad actual de estaciones, con filtros para encontrar bicis, huecos y puntos con más actividad.
+            Busca una estación y filtra por bicis, huecos, disponibilidad o movimiento estimado. Así podrás encontrar una opción útil ahora o analizar la red con más calma.
           </p>
         </header>
         <StationsDirectory stationRows={stationRows} />

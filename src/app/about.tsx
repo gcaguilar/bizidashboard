@@ -45,8 +45,8 @@ function About() {
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">DatosBizi: datos claros sobre Bizi Zaragoza</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
           DatosBizi reúne disponibilidad actual, histórico, informes mensuales y una API pública
-          para entender mejor cómo se comporta Bizi Zaragoza. La información se actualiza cada
-          pocos minutos mientras el sistema público de bicicletas esté operativo.
+          para que sea más fácil entender Bizi Zaragoza. La información se actualiza cada pocos
+          minutos mientras el sistema público de bicicletas esté operativo.
         </p>
       </header>
 
@@ -54,8 +54,8 @@ function About() {
         <h2 className="text-xl font-black text-[var(--foreground)]">Qué ofrece DatosBizi</h2>
         <ul className="mt-4 space-y-3 text-sm text-[var(--muted)] leading-7">
           <li><strong className="text-[var(--foreground)]">Disponibilidad en vivo</strong> — mapa interactivo y listado de estaciones con bicis y huecos disponibles ahora.</li>
-          <li><strong className="text-[var(--foreground)]">Historial y análisis</strong> — informes mensuales, tendencias diarias y patrones horarios de uso del sistema.</li>
-          <li><strong className="text-[var(--foreground)]">Redistribución y alertas</strong> — detección de estaciones desequilibradas y notificaciones operativas.</li>
+          <li><strong className="text-[var(--foreground)]">Historial y análisis</strong> — informes mensuales, tendencias diarias y patrones horarios para entender cómo cambia la red.</li>
+          <li><strong className="text-[var(--foreground)]">Redistribución y alertas</strong> — estaciones que se quedan sin bicis o huecos y avisos para entender dónde hay problemas.</li>
           <li><strong className="text-[var(--foreground)]">API pública</strong> — acceso programático a los datos para investigadores, desarrolladores y aficionados.</li>
         </ul>
       </section>
@@ -63,9 +63,9 @@ function About() {
       <section className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Cobertura y limitaciones</h2>
         <p className="mt-3 text-sm text-[var(--muted)]">
-          Los datos provienen del sistema GBFS de Bizi Zaragoza y se recogen de forma automática
-          cada pocos minutos. La cobertura histórica depende de la fecha de inicio de la recogida
-          y de la estabilidad del sistema. Consulta la página de{' '}
+          Los datos provienen del sistema oficial de Bizi Zaragoza, que usa el formato técnico GBFS,
+          y se recogen automáticamente cada pocos minutos. La cobertura histórica depende de cuándo
+          empezó la recogida y de la estabilidad del sistema. Consulta la página de{' '}
           <TrackedLink href={appRoutes.status()} className="text-[var(--primary)] underline underline-offset-2">Estado</TrackedLink>{' '}
           para ver la frescura actual y cualquier incidencia activa.
         </p>

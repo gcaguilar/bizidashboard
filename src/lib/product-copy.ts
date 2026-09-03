@@ -9,19 +9,19 @@ import type { StationSnapshot } from '@/lib/api-types';
 export const productTerms = {
   dataStatus: {
     label: 'Estado de los datos',
-    definition: 'Frescura, cobertura, ingestión y errores de los datos publicados.',
+    definition: 'Frescura: cuándo se actualizaron los datos, qué cobertura tienen y si hubo errores al recibirlos.',
   },
   networkBalance: {
     label: 'Equilibrio de la red',
-    definition: 'Disponibilidad de bicis y anclajes: estaciones vacías o llenas, tensión y fricción.',
+    definition: 'Disponibilidad de bicis y huecos: estaciones vacías o llenas y los problemas que eso puede causar.',
   },
   operationalSignal: {
     label: 'Señal operativa',
-    definition: 'Prioridad observada que merece revisión; no es una instrucción logística.',
+    definition: 'Una señal que merece revisión; no es una instrucción para mover bicis.',
   },
   estimate: {
     label: 'Estimación',
-    definition: 'Métrica derivada que no representa viajes reales exactos.',
+    definition: 'Una cifra calculada para comparar; no es el número exacto de viajes reales.',
   },
 } as const;
 
