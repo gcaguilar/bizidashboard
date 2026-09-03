@@ -109,7 +109,7 @@ describe('seo navigation contract', () => {
 
     expect(source).toContain('Abrir último informe');
     expect(source).toContain('Último mes con informe');
-    expect(source).toContain('Cada informe resume un período concreto');
+    expect(source).toContain('Cada informe resume un periodo concreto');
   });
 
   it('keeps the API landing copy natural in Spanish', () => {

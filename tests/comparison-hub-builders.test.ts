@@ -277,7 +277,7 @@ describe('comparison hub builders', () => {
     );
     const monthCard = sections.find((section) => section.id === 'historical')?.cards.find((card) => card.id === 'month-vs-month');
 
-    expect(monthCard?.delta).toBe('Demanda comparable +0%');
+    expect(monthCard?.delta).toBe('Movimiento estimado comparable +0%');
     expect(monthCard?.delta).not.toContain('-98%');
     expect(monthCard?.note).toContain('2 de 31 días disponibles');
     expect(monthCard?.temporalComparison).toMatchObject({

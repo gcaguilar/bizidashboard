@@ -165,7 +165,7 @@ function StationPage() {
           <StationFavoriteButton stationId={station.id} />
         </div>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Disponibilidad actual, ocupación y contexto de uso de la estación Bizi {station.id}.
+          Consulta si esta estación tiene bicis o huecos ahora, cómo suele comportarse y qué alternativas tienes cerca.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Ver en mapa avanzado</TrackedLink>
@@ -173,8 +173,8 @@ function StationPage() {
         </div>
       </header>
       <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <article className="ui-section-card"><p className="stat-label">Bicis</p><p className="stat-value">{station.bikesAvailable}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Huecos</p><p className="stat-value">{station.anchorsFree}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Bicis disponibles</p><p className="stat-value">{station.bikesAvailable}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Huecos libres</p><p className="stat-value">{station.anchorsFree}</p></article>
         <article className="ui-section-card"><p className="stat-label">Capacidad</p><p className="stat-value">{station.capacity}</p></article>
         <article className="ui-section-card"><p className="stat-label">Ocupación</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
@@ -193,14 +193,14 @@ function StationPage() {
       )}
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Resumen rapido</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">En resumen</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
             <p>{actionableMessage}</p>
-            <p>Su ocupación actual está {describeOccupancyDelta(occupancyDelta)}. Usa esta ficha para una lectura rápida y abre el mapa avanzado si necesitas mapa, alertas o más detalle.</p>
+            <p>Su ocupación actual está {describeOccupancyDelta(occupancyDelta)}. Esta ficha te da una lectura rápida; abre el mapa si quieres ver alertas, rutas y más detalle.</p>
           </div>
         </article>
         <article className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Prediccion</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Qué podría pasar después</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div><dt className="stat-label">30 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next30, station.capacity)}</dd></div>
             <div><dt className="stat-label">60 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next60, station.capacity)}</dd></div>
@@ -214,10 +214,10 @@ function StationPage() {
       </section>
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Patrones horarios</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele ser más fácil usarla</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Mas facil encontrar bici</p>{data.highOccupancySlots.map((slot) => <p key={`h-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
-            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Mas facil devolver</p>{data.lowOccupancySlots.map((slot) => <p key={`l-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
+            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil encontrar bici</p>{data.highOccupancySlots.map((slot) => <p key={`h-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
+            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil devolverla</p>{data.lowOccupancySlots.map((slot) => <p key={`l-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
           </div>
         </section>
       ) : null}

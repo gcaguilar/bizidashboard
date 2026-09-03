@@ -52,8 +52,8 @@ describe('public UX regressions', () => {
   it('monthly report page renders real metrics when a month has data', () => {
     const source = readSource('src/app/informes.$month.tsx');
     expect(source).toContain('monthRow ?');
-    expect(source).toContain('Demanda estimada');
-    expect(source).toContain('Ver serie acumulada');
+    expect(source).toContain('Movimiento estimado');
+    expect(source).toContain('Ver la serie mensual');
   });
 
   it('about page is user-focused and not tech-stack oriented', () => {
@@ -240,7 +240,7 @@ describe('public UX regressions', () => {
       expect(source, file).not.toMatch(/Ver mapa en vivo|Mapa en vivo|Abrir mapa en vivo|Ver disponibilidad en el mapa|Ver disponibilidad en mapa|Ver mapa por barrios/);
     }
 
-    expect(readSource('src/app/index.tsx')).toContain('Ver resumen de red');
+    expect(readSource('src/app/index.tsx')).toContain('Ver estado de la red');
     expect(readSource('src/app/estadisticas/index.tsx')).toContain('Mapa avanzado');
   });
 
@@ -355,10 +355,10 @@ describe('public UX regressions', () => {
 
   it('home positions the observatory separately from BiciRadar', () => {
     const source = readSource('src/app/index.tsx');
-    expect(source).toContain('Observatorio público de movilidad');
-    expect(source).toContain('Cómo evoluciona y se equilibra Bizi Zaragoza');
+    expect(source).toContain('Datos públicos de Bizi Zaragoza');
+    expect(source).toContain('Entiende cómo está Bizi Zaragoza ahora');
     expect(source).toContain('Abrir BiciRadar');
-    expect(source).toContain('no son viajes oficiales');
+    expect(source).toContain('no es el número oficial de viajes');
     expect(source).not.toContain('Usar mi ubicación');
   });
 

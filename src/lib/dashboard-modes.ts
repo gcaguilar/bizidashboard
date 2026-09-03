@@ -17,41 +17,41 @@ export const DASHBOARD_MODE_META: Record<
   overview: {
     label: 'Resumen',
     shortLabel: 'Resumen',
-    description: 'Estado general y senales clave',
-    introEyebrow: 'Resumen ejecutivo',
+    description: 'Estado general y avisos importantes',
+    introEyebrow: 'Estado de la red',
     introTitle: 'Lo importante de un vistazo',
     introDescription:
-      'Para entender rapidamente como esta el sistema, si hay equilibrio y que senales merecen atencion hoy.',
+      'Para entender rápidamente cómo está la red, si hay bicis y huecos disponibles y qué estaciones conviene revisar hoy.',
     introTone: 'from-[var(--danger)]/12 via-transparent to-transparent border-[var(--danger)]/25',
   },
   operations: {
     label: 'Operaciones',
     shortLabel: 'Operaciones',
-    description: 'Alertas, friccion y prioridades',
+    description: 'Alertas, problemas de disponibilidad y prioridades',
     introEyebrow: 'Modo operaciones',
     introTitle: 'Priorizar antes de que el problema crezca',
     introDescription:
-      'Pensado para detectar estaciones criticas, revisar alertas y decidir donde actuar primero.',
+      'Para detectar estaciones con problemas, revisar alertas y decidir dónde conviene actuar primero.',
     introTone: 'from-[var(--warning)]/14 via-transparent to-transparent border-[var(--warning)]/25',
   },
   research: {
-    label: 'Analisis',
-    shortLabel: 'Analisis',
-    description: 'Patrones, demanda y movimiento',
-    introEyebrow: 'Modo analisis',
+    label: 'Análisis',
+    shortLabel: 'Análisis',
+    description: 'Patrones y movimiento estimado',
+    introEyebrow: 'Modo análisis',
     introTitle: 'Entender patrones y comportamiento',
     introDescription:
-      'Para leer tendencias, estabilidad y movimiento entre zonas con el contexto necesario.',
+      'Para descubrir tendencias, estabilidad y movimiento estimado entre zonas con el contexto necesario.',
     introTone: 'from-[var(--primary)]/14 via-transparent to-transparent border-[var(--primary)]/25',
   },
   data: {
     label: 'Datos',
     shortLabel: 'Datos',
-    description: 'Metodologia, historico y descargas',
+    description: 'Metodología, histórico y descargas',
     introEyebrow: 'Modo datos',
     introTitle: 'Datos claros para auditar y reutilizar',
     introDescription:
-      'Reune metodologia, historicos y salidas de datos para comprobar, citar o reutilizar la informacion.',
+      'Reúne metodología, histórico y descargas para comprobar, citar o reutilizar la información.',
     introTone: 'from-[var(--success)]/14 via-transparent to-transparent border-[var(--success)]/25',
   },
 };

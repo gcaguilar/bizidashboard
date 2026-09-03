@@ -125,7 +125,7 @@ export default function DevelopersPage() {
               API y datos abiertos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Documentación, ejemplos, endpoints y descargas para consumir los datos.
+              Todo lo necesario para consultar, descargar y reutilizar los datos: documentación, ejemplos y enlaces directos.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -204,7 +204,7 @@ export default function DevelopersPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Primeros pasos
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Ejemplos de consumo</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Empieza con un ejemplo</h2>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-3">

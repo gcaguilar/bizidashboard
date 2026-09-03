@@ -30,7 +30,7 @@ const partialMonthData: ComparisonHubData = {
           summary: 'marzo de 2026 se compara con los mismos días de febrero de 2026.',
           metricA: 'marzo de 2026: 200 pts',
           metricB: 'febrero de 2026: 10.000 pts',
-          delta: 'Demanda comparable +0%',
+          delta: 'Movimiento estimado comparable +0%',
           note: 'mes en curso · mismos días del mes anterior · 2 de 31 días disponibles.',
           href: '/informes',
         },
@@ -46,7 +46,7 @@ describe('comparison hub temporal UI', () => {
       <CompareHubContent data={partialMonthData} initialQuery={{}} />
     );
 
-    expect(markup).toContain('Demanda comparable +0%');
+    expect(markup).toContain('Movimiento estimado comparable +0%');
     expect(markup).toContain('mes en curso');
     expect(markup).toContain('2 de 31 días disponibles');
     expect(markup).not.toContain('-96%');

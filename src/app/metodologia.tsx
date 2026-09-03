@@ -54,8 +54,7 @@ export default function MethodologyPage() {
               Metodología y calidad de datos de Bizi en {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Aquí explicamos de dónde salen los datos, cada cuánto se actualizan, qué métricas son
-              estimaciones y qué límites conviene tener presentes antes de sacar conclusiones.
+              Te contamos de dónde salen los datos, cuándo se actualizan y qué significan las cifras que ves. También señalamos qué métricas son estimaciones y cómo interpretarlas con cuidado.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -109,14 +108,14 @@ export default function MethodologyPage() {
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {historyMeta.source.provider}
           </p>
-          <p className="text-xs text-[var(--muted)]">Fuente oficial de Bizi, consultada y revisada periódicamente.</p>
+          <p className="text-xs text-[var(--muted)]">El sistema oficial de Bizi, que consultamos y revisamos periódicamente.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cobertura visible</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getCoverageLabel(dataset)}
           </p>
-          <p className="text-xs text-[var(--muted)]">La misma base que usamos en informes, listas y fichas públicas.</p>
+          <p className="text-xs text-[var(--muted)]">Es la misma base que alimenta informes, listas y fichas de estaciones.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Cadencia observada</p>
@@ -138,17 +137,17 @@ export default function MethodologyPage() {
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Cómo se construyen las vistas públicas
+              De dónde salen los datos
             </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Del dato original a páginas fáciles de comparar
+              Del sistema oficial a información útil para ti
             </h2>
           </div>
           <p>
-            El dato base llega desde el feed oficial GBFS de Bizi {cityName}. A partir de ese origen se
-            capturan muestras de estaciones, se validan, se agregan y se reutilizan en varias vistas:
-            disponibilidad actual, histórico resumido, listas, páginas por barrio, informes mensuales
-            y la API.
+            Partimos del sistema oficial de Bizi {cityName}. Recogemos el estado de cada estación,
+            comprobamos que los datos sean coherentes y los agrupamos para mostrar la disponibilidad
+            actual, el histórico, los barrios, los informes mensuales y la API. GBFS es el formato
+            técnico que usa esa fuente oficial.
           </p>
         </div>
       </section>
@@ -156,34 +155,30 @@ export default function MethodologyPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="ui-section-card">
           <p className="stat-label">Estado actual</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que ves ahora mismo</h2>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que hay ahora</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Bicis disponibles, huecos libres y capacidad describen el estado reciente de una estación,
-            no una media histórica.
+            Bicis disponibles, huecos libres y capacidad muestran el último estado conocido de una estación; no son una media histórica.
           </p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Histórico resumido</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que suele pasar</h2>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que suele ocurrir</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Rotación, horas con problemas, perfiles horarios y comparativas por barrio usan series acumuladas,
-            no una sola foto puntual.
+            El movimiento, las horas sin bicis o huecos, los horarios y las comparativas por barrio usan muchas muestras, no una única foto puntual.
           </p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Actividad y movilidad</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lecturas estimadas</h2>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Medidas para comparar</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            La demanda publicada es un índice de actividad y la movilidad es una estimación agregada por
-            zonas; ninguna de las dos equivale a viajes oficiales uno a uno.
+            El movimiento estimado es un índice para comparar actividad entre estaciones o zonas. No equivale al número oficial de viajes.
           </p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Predicción</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Orientación, no garantía</h2>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Una pista, no una garantía</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Las predicciones combinan patrones históricos y estado reciente para anticipar tensiones a
-            corto plazo, pero no sustituyen la lectura real final.
+            Las predicciones combinan patrones anteriores y el estado reciente para avisar de posibles problemas a corto plazo. Comprueba siempre el estado real antes de desplazarte.
           </p>
         </article>
       </section>

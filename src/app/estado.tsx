@@ -50,12 +50,12 @@ export default function SystemStatusPage() {
     {
       label: 'Última muestra útil',
       value: formatStatusDateTime(dataset.lastUpdated.lastSampleAt),
-      hint: 'Referencia que comparten el mapa avanzado, los informes y la API.',
+      hint: 'Es la referencia que usan el mapa, los informes y la API.',
     },
     {
       label: 'Frecuencia de actualización',
       value: getObservedCadenceLabel(status),
-      hint: `Objetivo: datos con menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} min de retraso.`,
+      hint: `Objetivo: que los datos tengan menos de ${Math.round(status.quality.freshness.maxAgeSeconds / 60)} min de retraso.`,
     },
     {
       label: 'Historial disponible',
@@ -70,7 +70,7 @@ export default function SystemStatusPage() {
     {
       label: 'Registros almacenados',
       value: formatStatusNumber(dataset.stats.totalSamples),
-      hint: 'Base disponible para histórico, comparativas y rankings.',
+      hint: 'Base disponible para ver el histórico, comparar y ordenar estaciones.',
     },
     {
       label: 'Atraso en los datos',
@@ -80,7 +80,7 @@ export default function SystemStatusPage() {
     {
       label: 'Versión de datos',
       value: getDatasetVersionLabel(dataset),
-      hint: 'Versión derivada de la última muestra útil y del volumen agregado.',
+      hint: 'Identificador creado a partir de la última muestra útil y los datos acumulados.',
     },
     {
       label: 'Versión de la API',
@@ -137,7 +137,7 @@ export default function SystemStatusPage() {
               Estado de los datos de {cityName}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Comprueba si los datos están al día, cuánto histórico hay disponible y si alguna incidencia afecta al mapa, la API o los informes.
+              Comprueba si los datos se están actualizando bien, cuánto histórico puedes consultar y si hay alguna incidencia que afecte al mapa, la API o los informes.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -163,7 +163,7 @@ export default function SystemStatusPage() {
               }}
               className="ui-primary-button"
             >
-              Abrir el mapa
+              Ver estaciones en el mapa
             </TrackedLink>
             <TrackedLink
               href={appRoutes.developers()}
@@ -210,7 +210,7 @@ export default function SystemStatusPage() {
         <div className="flex flex-wrap items-center gap-3">
           <div className={`h-4 w-4 rounded-full ${status.pipeline.healthStatus === 'healthy' ? 'bg-[var(--success)]' : status.pipeline.healthStatus === 'degraded' ? 'bg-[var(--warning)]' : 'bg-[var(--danger)]'}`} />
           <p className="text-lg font-bold text-[var(--foreground)]">
-            {healthLabel === 'Saludable' ? 'Datos y pipeline: saludables' : healthLabel === 'Degradado' ? 'Datos y pipeline: degradados' : 'Datos y pipeline: con incidencias'}
+            {healthLabel === 'Saludable' ? 'Los datos se reciben con normalidad' : healthLabel === 'Degradado' ? 'Los datos se reciben con algunas limitaciones' : 'Hay incidencias en la recogida de datos'}
           </p>
           <span className="ui-chip">
             {activeIncidentCount > 0 ? `${activeIncidentCount} incidencias activas` : 'Sin incidencias'}
@@ -222,7 +222,7 @@ export default function SystemStatusPage() {
         {activeIncidentCount > 0 ? (
           <p className="text-sm text-[var(--warning)]">Hay incidencias activas que pueden afectar a la fiabilidad de los datos.</p>
         ) : status.pipeline.healthStatus === 'healthy' ? (
-          <p className="text-sm text-[var(--success)]">Los datos están al día y se están recibiendo con normalidad.</p>
+          <p className="text-sm text-[var(--success)]">Los datos están al día y se reciben con normalidad.</p>
         ) : null}
         <p className="mt-2 text-sm text-[var(--muted)]">
           <span className="font-semibold text-[var(--foreground)]">{productTerms.networkBalance.label}: {networkBalance.label}</span>. {networkBalance.explanation} Este dato habla de bicis y huecos disponibles, no de la calidad del sistema de datos.
@@ -250,10 +250,9 @@ export default function SystemStatusPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Incidentes
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">Incidencias y notas importantes</h2>
+            <h2 className="text-xl font-black text-[var(--foreground)]">Avisos importantes</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Aquí aparecen los problemas que conviene revisar antes de usar los datos. Si no hay
-              incidencias, puedes tomarlo como una señal de estabilidad.
+              Aquí verás cualquier problema que pueda cambiar cómo interpretas los datos. Si no hay avisos, la recogida funciona de forma estable.
             </p>
           </div>
 
@@ -275,7 +274,7 @@ export default function SystemStatusPage() {
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
               Fuente y versiones
             </p>
-            <h2 className="text-xl font-black text-[var(--foreground)]">De dónde salen los datos</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">La fuente de los datos</h2>
           </div>
           <div className="space-y-3 text-sm text-[var(--muted)]">
             <div className="ui-metric-card">
@@ -312,7 +311,7 @@ export default function SystemStatusPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
             Detalles técnicos
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Métricas del sistema</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Detalles para quien quiera profundizar</h2>
           <button
             onClick={() => setShowTechnical(v => !v)}
             className="ui-inline-action mt-2"

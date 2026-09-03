@@ -115,26 +115,26 @@ function DistrictPage() {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha pública de barrio</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Bizi en {district.name}</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Estaciones, bicis disponibles y actividad agregada del barrio.
+          Mira cuántas estaciones, bicis y huecos hay en el barrio y compáralo con el resto de Zaragoza.
         </p>
       </header>
       <section className="grid gap-4 md:grid-cols-4">
         <article className="ui-section-card"><p className="stat-label">Estaciones</p><p className="stat-value">{district.stationCount}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Bicis</p><p className="stat-value">{district.bikesAvailable}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Huecos</p><p className="stat-value">{district.anchorsFree}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Rotación media</p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Bicis disponibles</p><p className="stat-value">{district.bikesAvailable}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Huecos libres</p><p className="stat-value">{district.anchorsFree}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Movimiento medio</p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p></article>
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">Resumen del barrio</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
-            <p>{district.name} concentra {district.stationCount} estaciones Bizi con {district.bikesAvailable} bicis visibles y {district.anchorsFree} anclajes libres en este momento.</p>
-            <p>Su rotacion media es {formatDecimal(district.avgTurnover)} frente a {formatDecimal(cityAverageTurnover)} de media en los barrios con cobertura. El riesgo medio de disponibilidad es {formatDecimal(district.avgAvailabilityRisk)} frente a {formatDecimal(cityAverageAvailabilityRisk)}.</p>
+            <p>{district.name} reúne {district.stationCount} estaciones Bizi con {district.bikesAvailable} bicis y {district.anchorsFree} huecos libres en este momento.</p>
+            <p>Su movimiento medio es {formatDecimal(district.avgTurnover)}, frente a {formatDecimal(cityAverageTurnover)} en los barrios con datos. El riesgo medio de quedarte sin bicis o huecos es {formatDecimal(district.avgAvailabilityRisk)}, frente a {formatDecimal(cityAverageAvailabilityRisk)} en la ciudad.</p>
           </div>
         </article>
         <article className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Cómo usar esta ficha</h2>
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si buscas disponibilidad concreta. Usa la comparativa para ver qué zonas tienen más actividad o más tensión.</p>
+          <h2 className="text-xl font-black text-[var(--foreground)]">Cómo aprovechar esta ficha</h2>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Empieza por las estaciones destacadas si buscas una bici o un hueco concreto. Usa la comparativa para ver qué zonas tienen más movimiento o más problemas de disponibilidad.</p>
           <TrackedLink className="ui-inline-action mt-4" href={appRoutes.advancedMap()} ctaEvent={{ source: 'district_detail', ctaId: 'view_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Abrir mapa avanzado</TrackedLink>
         </article>
       </section>

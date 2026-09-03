@@ -81,7 +81,7 @@ export default function ComparePage() {
               Comparar estaciones y barrios
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Compara estaciones, barrios y periodos para ver qué cambia y dónde conviene mirar con más detalle.
+              Elige dos estaciones, barrios o periodos y descubre de un vistazo qué cambia entre ellos.
             </p>
           </div>
         </div>
@@ -91,12 +91,12 @@ export default function ComparePage() {
             <TrackedLink href={appRoutes.dashboardView('research')}
               className="ui-primary-button"
             >
-              Abrir análisis en el mapa avanzado
+              Ver más detalle en el mapa
             </TrackedLink>
             <TrackedLink href={appRoutes.explore()}
               className="ui-inline-action"
             >
-              Volver al hub Explorar
+              Explorar otras herramientas
             </TrackedLink>
           </div>
           <PublicSearchForm />

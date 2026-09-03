@@ -110,7 +110,7 @@ function ExplorePage() {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Hub de herramientas</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">Explorar datos de Bizi Zaragoza</h1>
         <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-          Herramientas para analizar el sistema Bizi: mapas, alertas, comparativas, histórico y movilidad urbana.
+          Elige cómo quieres entender Bizi: mapa, alertas, comparativas, histórico o movimiento entre zonas.
           {latestMonth ? ` Último informe mensual disponible: ${latestMonth}.` : ''}
         </p>
       </header>

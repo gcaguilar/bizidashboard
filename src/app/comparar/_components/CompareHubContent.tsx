@@ -26,17 +26,17 @@ export function CompareHubContent({
         <article className="ui-section-card">
           <p className="stat-label">Comparativas activas</p>
           <p className="stat-value">{comparisonCount}</p>
-          <p className="text-xs text-[var(--muted)]">Comparaciones listas para revisar ahora mismo.</p>
+          <p className="text-xs text-[var(--muted)]">Comparaciones que puedes abrir y revisar ahora mismo.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Último mes</p>
           <p className="stat-value">{data.latestMonth ? formatMonthLabel(data.latestMonth) : 'Sin dato'}</p>
-          <p className="text-xs text-[var(--muted)]">Mes más reciente disponible para comparar.</p>
+          <p className="text-xs text-[var(--muted)]">El mes más reciente que puedes comparar.</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">Generado</p>
           <p className="stat-value">{formatDateLabel(data.generatedAt)}</p>
-          <p className="text-xs text-[var(--muted)]">Momento en que se preparó esta vista.</p>
+          <p className="text-xs text-[var(--muted)]">Cuándo se preparó esta comparación.</p>
         </article>
       </section>
 
@@ -44,7 +44,7 @@ export function CompareHubContent({
         <DataStateNotice
           state={data.dataState as DataState}
           subject="las comparativas del hub"
-          description="El comparador usa los mismos datos que el mapa avanzado, los informes y la API. Si hay cobertura parcial o datos antiguos, algunas comparaciones pueden quedar incompletas."
+          description="El comparador usa los mismos datos que el mapa, los informes y la API. Si falta parte del histórico o los datos son antiguos, alguna comparación puede estar incompleta."
           href={appRoutes.status()}
           actionLabel="Revisar estado"
         />
