@@ -23,18 +23,202 @@ function readHeader(
   return null;
 }
 
-export function getClientIp(headers: Headers): string {
-  const forwardedFor = headers.get('x-forwarded-for');
+const IPV4_PATTERN = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+const IPV6_PATTERN = /^[0-9a-fA-F:]+$/;
 
-  if (forwardedFor) {
-    const firstIp = forwardedFor.split(',')[0]?.trim();
-    if (firstIp) {
-      return firstIp;
+export function isValidIp(value: string): boolean {
+  return IPV4_PATTERN.test(value) || (value.includes(':') && IPV6_PATTERN.test(value));
+}
+
+/** Cabecera interna sellada por ops/start-server.mjs con la IP TCP del peer. El servidor la sobrescribe siempre, asi el codigo de aplicacion puede fiarse de ella. */
+export const SERVER_PEER_IP_HEADER = 'x-server-peer-ip';
+
+/**
+ * Rangos oficiales de Cloudflare (https://www.cloudflare.com/ips-v4 e ips-v6).
+ * Solo se usan por defecto; se recomienda fijar TRUSTED_PROXY_CIDRS en el
+ * despliegue para no depender de esta copia.
+ */
+const CLOUDFLARE_IP_RANGES = [
+  '173.245.48.0/20',
+  '103.21.244.0/22',
+  '103.22.200.0/22',
+  '103.31.4.0/22',
+  '141.101.64.0/18',
+  '108.162.192.0/18',
+  '190.93.240.0/20',
+  '188.114.96.0/20',
+  '197.234.240.0/22',
+  '198.41.128.0/17',
+  '162.158.0.0/15',
+  '104.16.0.0/13',
+  '104.24.0.0/14',
+  '172.64.0.0/13',
+  '131.0.72.0/22',
+  '2400:cb00::/32',
+  '2606:4700::/32',
+  '2803:f800::/32',
+  '2405:b500::/32',
+  '2405:8100::/32',
+  '2a06:98c0::/29',
+  '2c0f:f248::/32',
+];
+
+export function getTrustedProxyCidrs(): string[] {
+  const configured = (process.env.TRUSTED_PROXY_CIDRS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return configured.length > 0 ? configured : CLOUDFLARE_IP_RANGES;
+}
+
+function ipv4ToInt(ip: string): number | null {
+  const parts = ip.split('.');
+  if (parts.length !== 4) {
+    return null;
+  }
+  let result = 0;
+  for (const part of parts) {
+    if (!/^\d+$/.test(part)) {
+      return null;
     }
+    const value = Number(part);
+    if (value < 0 || value > 255) {
+      return null;
+    }
+    result = result * 256 + value;
+  }
+  return result >>> 0;
+}
+
+function ipv6Groups(ip: string): number[] | null {
+  const address = ip.split('%')[0];
+  const halves = address.split('::');
+  if (halves.length > 2) {
+    return null;
+  }
+  const head = halves[0] ? halves[0].split(':') : [];
+  const tail = halves.length === 2 ? (halves[1] ? halves[1].split(':') : []) : [];
+  const missing = 8 - head.length - tail.length;
+  if (halves.length === 1 ? missing !== 0 : missing < 0) {
+    return null;
+  }
+  const groups = [...head, ...Array<string>(missing).fill('0'), ...tail];
+  const numbers: number[] = [];
+  for (const group of groups) {
+    if (!/^[0-9a-fA-F]{1,4}$/.test(group)) {
+      return null;
+    }
+    numbers.push(parseInt(group, 16));
+  }
+  return numbers;
+}
+
+function ipv6ToBigInt(ip: string): bigint | null {
+  const groups = ipv6Groups(ip);
+  if (!groups) {
+    return null;
+  }
+  let result = 0n;
+  for (const group of groups) {
+    result = (result << 16n) + BigInt(group);
+  }
+  return result;
+}
+
+export function cidrContains(cidr: string, ip: string): boolean {
+  const separator = cidr.lastIndexOf('/');
+  if (separator === -1) {
+    return false;
+  }
+  const base = cidr.slice(0, separator).trim();
+  const prefix = Number(cidr.slice(separator + 1).trim());
+  if (!Number.isInteger(prefix)) {
+    return false;
+  }
+
+  if (base.includes('.') && !base.includes(':') && !ip.includes(':')) {
+    if (prefix < 0 || prefix > 32) {
+      return false;
+    }
+    const baseInt = ipv4ToInt(base);
+    const ipInt = ipv4ToInt(ip);
+    if (baseInt === null || ipInt === null) {
+      return false;
+    }
+    const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
+    return (baseInt & mask) === (ipInt & mask);
+  }
+
+  if (base.includes(':') && ip.includes(':')) {
+    if (prefix < 0 || prefix > 128) {
+      return false;
+    }
+    const baseInt = ipv6ToBigInt(base);
+    const ipInt = ipv6ToBigInt(ip);
+    if (baseInt === null || ipInt === null) {
+      return false;
+    }
+    const mask = prefix === 0 ? 0n : (((1n << BigInt(prefix)) - 1n) << BigInt(128 - prefix));
+    return (baseInt & mask) === (ipInt & mask);
+  }
+
+  return false;
+}
+
+export function isTrustedProxyPeer(ip: string, cidrs: string[] = getTrustedProxyCidrs()): boolean {
+  return cidrs.some((cidr) => cidrContains(cidr, ip));
+}
+
+function lastValidXffIp(forwardedFor: string | null): string | null {
+  if (!forwardedFor) {
+    return null;
+  }
+  const entries = forwardedFor.split(',').map((entry) => entry.trim()).filter(Boolean);
+  for (let index = entries.length - 1; index >= 0; index -= 1) {
+    if (isValidIp(entries[index])) {
+      return entries[index];
+    }
+  }
+  return null;
+}
+
+/**
+ * Resuelve la IP del cliente con atestacion del servidor.
+ *
+ * Modelo de confianza: las cabeceras (`cf-connecting-ip`, `x-forwarded-for`)
+ * son afirmaciones falsificables por cualquiera que pegue directo al origen.
+ * Lo unico fiable es la IP TCP del peer, sellada por ops/start-server.mjs en
+ * `x-server-peer-ip` (el servidor la sobrescribe, nunca la hereda).
+ *
+ * - Peer de confianza (Cloudflare): `cf-connecting-ip` validada; si falta, la
+ *   ULTIMA entrada valida de XFF (Cloudflare antepone la IP real al final);
+ *   si tampoco hay, el propio peer.
+ * - Peer no fiable (conexion directa: healthchecks, cron interno o bypass de
+ *   Cloudflare): se usa el peer, imposible de falsificar.
+ * - Sin sello del servidor (dev/tests): mejor esfuerzo, NO fiable para
+ *   seguridad; produccion debe correr tras start-server.mjs.
+ */
+export function getClientIp(headers: Headers): string {
+  const peer = headers.get(SERVER_PEER_IP_HEADER)?.trim();
+  if (peer && isValidIp(peer)) {
+    if (isTrustedProxyPeer(peer)) {
+      const cfConnectingIp = headers.get('cf-connecting-ip')?.trim();
+      if (cfConnectingIp && isValidIp(cfConnectingIp)) {
+        return cfConnectingIp;
+      }
+      return lastValidXffIp(headers.get('x-forwarded-for')) ?? peer;
+    }
+    return peer;
+  }
+
+  const cfConnectingIp = headers.get('cf-connecting-ip')?.trim();
+  if (cfConnectingIp && isValidIp(cfConnectingIp)) {
+    return cfConnectingIp;
   }
 
   return (
-    readHeader(headers, ['x-real-ip', 'cf-connecting-ip', 'fly-client-ip']) ??
+    lastValidXffIp(headers.get('x-forwarded-for')) ??
+    readHeader(headers, ['x-real-ip', 'fly-client-ip']) ??
     'unknown'
   );
 }
