@@ -1,4 +1,7 @@
 import { createServer } from 'node:http';
+import { validateProductionEnv } from './validate-env.mjs';
+
+validateProductionEnv();
 
 const port = Number(process.env.PORT ?? 3000);
 
