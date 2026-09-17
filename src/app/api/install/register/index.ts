@@ -60,7 +60,10 @@ export const Route = createFileRoute('/api/install/register/')({
             return new Response(JSON.stringify({ error: 'Invalid installation proof', details: 'Ed25519 signature verification failed' }), { status: 401, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
           }
 
-          const installId = randomUUID()
+          // Buscar primero: en re-registro se reutiliza el installId persistido
+          // para que el refresh token emitido quede ligado a un id que existe.
+          const existing = await prisma.install.findUnique({ where: { publicKeyFingerprint } });
+          const installId = existing?.installId ?? randomUUID();
           const issuedRefreshToken = await issueRefreshToken(installId)
 
           const install = await prisma.install.upsert({
@@ -72,6 +75,9 @@ export const Route = createFileRoute('/api/install/register/')({
             },
             update: {
               lastSeenAt: issuedRefreshToken.issuedAt,
+              platform: parsed.data.platform,
+              appVersion: parsed.data.appVersion,
+              osVersion: parsed.data.osVersion,
               publicKeyMaterial: parsed.data.publicKey,
               refreshTokenHash: hashToken(issuedRefreshToken.token),
               refreshTokenIssuedAt: issuedRefreshToken.issuedAt,
@@ -84,7 +90,7 @@ export const Route = createFileRoute('/api/install/register/')({
             },
           });
 
-          const isNew = install.installId === installId
+          const isNew = !existing
           await recordSecurityEvent({
             eventType: isNew ? 'install_registered' : 'install_reregistered',
             route: '/api/install/register', requestId, installId: install.installId, ip: clientIp, userAgent,
