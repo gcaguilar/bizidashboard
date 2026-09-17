@@ -5,6 +5,7 @@
  * and response validation with automatic retry logic.
  */
 
+import { lookup } from 'node:dns/promises';
 import { withRetry, HttpError } from '@/lib/retry';
 import { logger } from '@/lib/logger';
 import type {
@@ -54,20 +55,54 @@ const BLOCKED_HOSTNAMES = new Set([
   'localhost',
   '0.0.0.0',
   '127.0.0.1',
-  '[::1]',
+  '::1',
 ]);
+
+function stripIpv6Brackets(hostname: string): string {
+  return hostname.startsWith('[') && hostname.endsWith(']')
+    ? hostname.slice(1, -1)
+    : hostname;
+}
+
+function isBlockedIpLiteral(host: string): boolean {
+  const ip = stripIpv6Brackets(host);
+
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(ip)) {
+    return PRIVATE_IP_PATTERNS.some(re => re.test(ip));
+  }
+
+  // IPv6 literal (contiene ':' pero no es nombre DNS)
+  if (ip.includes(':')) {
+    const lower = ip.toLowerCase();
+    return (
+      lower === '::1' ||
+      lower === '::' ||
+      lower.startsWith('fc') ||
+      lower.startsWith('fd') ||
+      lower.startsWith('fe80') ||
+      lower.startsWith('::ffff:')
+    );
+  }
+
+  return false;
+}
 
 export function isBlockedUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
-    const hostname = url.hostname;
 
-    if (BLOCKED_HOSTNAMES.has(hostname)) {
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
       return true;
     }
 
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
-      return PRIVATE_IP_PATTERNS.some(re => re.test(hostname));
+    const hostname = url.hostname;
+
+    if (BLOCKED_HOSTNAMES.has(hostname) || BLOCKED_HOSTNAMES.has(stripIpv6Brackets(hostname))) {
+      return true;
+    }
+
+    if (isBlockedIpLiteral(hostname)) {
+      return true;
     }
 
     return false;
@@ -77,8 +112,35 @@ export function isBlockedUrl(urlString: string): boolean {
 }
 
 /**
- * Fetch with timeout wrapper
+ * Resuelve el hostname y rechaza si apunta a una IP privada, de enlace local
+ * o de metadatos cloud. Si la resolucion DNS falla, se bloquea por defecto:
+ * el colector solo habla con el proveedor GBFS conocido.
  */
+export async function isBlockedResolvedHost(hostname: string): Promise<boolean> {
+  if (BLOCKED_HOSTNAMES.has(hostname) || BLOCKED_HOSTNAMES.has(stripIpv6Brackets(hostname))) {
+    return true;
+  }
+
+  if (isBlockedIpLiteral(hostname)) {
+    return true;
+  }
+
+  try {
+    const addresses = await lookup(hostname, { all: true });
+    return addresses.some(({ address }) => isBlockedIpLiteral(address));
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Fetch with timeout wrapper. Sigue redirects manualmente (maximo 5) y
+ * revalida CADA destino intermedio contra la proteccion SSRF, incluyendo la
+ * IP resuelta por DNS. Asi un feed o un 302 malicioso no puede dirigir el
+ * fetch a un destino interno que el chequeo inicial habria bloqueado.
+ */
+const MAX_REDIRECTS = 5;
+
 async function fetchWithTimeout(
   url: string,
   options: RequestInit,
@@ -88,38 +150,69 @@ async function fetchWithTimeout(
     throw new Error(`SSRF protection: access to ${url} is blocked`);
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  
-  try {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      return response;
-    } catch (error) {
-      const cause = error as NodeJS.ErrnoException & {
-        address?: string;
-        port?: number;
-      };
-      const details = [
-        `name=${cause?.name ?? 'unknown'}`,
-        `message=${cause?.message ?? 'unknown error'}`,
-        cause?.code ? `code=${cause.code}` : null,
-        cause?.errno ? `errno=${cause.errno}` : null,
-        cause?.syscall ? `syscall=${cause.syscall}` : null,
-        cause?.address ? `address=${cause.address}` : null,
-        cause?.port ? `port=${String(cause.port)}` : null,
-      ]
-        .filter(Boolean)
-        .join(', ');
+  let currentUrl = url;
 
-      throw new Error(`Network error fetching ${url}: ${details}`);
+  for (let redirect = 0; redirect <= MAX_REDIRECTS; redirect += 1) {
+    const parsed = new URL(currentUrl);
+
+    if (await isBlockedResolvedHost(parsed.hostname)) {
+      throw new Error(`SSRF protection: resolved host of ${currentUrl} is blocked`);
     }
-  } finally {
-    clearTimeout(timeoutId);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    let response: Response;
+    try {
+      try {
+        response = await fetch(currentUrl, {
+          ...options,
+          redirect: 'manual',
+          signal: controller.signal,
+        });
+      } catch (error) {
+        const cause = error as NodeJS.ErrnoException & {
+          address?: string;
+          port?: number;
+        };
+        const details = [
+          `name=${cause?.name ?? 'unknown'}`,
+          `message=${cause?.message ?? 'unknown error'}`,
+          cause?.code ? `code=${cause.code}` : null,
+          cause?.errno ? `errno=${cause.errno}` : null,
+          cause?.syscall ? `syscall=${cause.syscall}` : null,
+          cause?.address ? `address=${cause.address}` : null,
+          cause?.port ? `port=${String(cause.port)}` : null,
+        ]
+          .filter(Boolean)
+          .join(', ');
+
+        throw new Error(`Network error fetching ${currentUrl}: ${details}`);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    const location = response.headers.get('location');
+    if (response.status >= 300 && response.status < 400 && location) {
+      if (redirect === MAX_REDIRECTS) {
+        throw new Error(`SSRF protection: too many redirects fetching ${url}`);
+      }
+      const nextUrl = new URL(location, currentUrl).toString();
+      if (isBlockedUrl(nextUrl)) {
+        throw new Error(`SSRF protection: redirect target ${nextUrl} is blocked`);
+      }
+      if (response.body) {
+        await response.body.cancel().catch(() => undefined);
+      }
+      currentUrl = nextUrl;
+      continue;
+    }
+
+    return response;
   }
+
+  throw new Error(`SSRF protection: too many redirects fetching ${url}`);
 }
 
 /**
