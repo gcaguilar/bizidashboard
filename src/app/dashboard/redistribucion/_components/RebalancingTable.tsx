@@ -40,6 +40,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
+import { escapeCsvCell } from '@/lib/csv';
 
 type TableParams = {
   sort?: string;
@@ -103,7 +104,7 @@ function exportToCSV(diagnostics: StationDiagnostic[], filename: string) {
     Math.round(d.priorityScore * 100).toString(),
   ]);
 
-  const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+  const csvContent = [headers, ...rows].map((row) => row.map((cell) => escapeCsvCell(cell)).join(',')).join('\n');
 
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

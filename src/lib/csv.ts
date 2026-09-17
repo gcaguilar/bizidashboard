@@ -1,7 +1,19 @@
 export type CsvRow = (string | number | boolean | null | undefined)[];
 
+/**
+ * Neutraliza inyeccion de formulas de hoja de calculo: si el texto empieza
+ * por = + - @ o tabulador/retorno, se antepone una comilla simple para que
+ * Excel/Sheets lo trate como texto literal.
+ */
+export function neutralizeCsvFormula(text: string): string {
+  return /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+}
+
 export function escapeCsvCell(value: unknown): string {
-  const result = typeof value === 'string' ? value : value === null || value === undefined ? '' : JSON.stringify(value);
+  if (typeof value === 'string') {
+    return `"${neutralizeCsvFormula(value).replace(/"/g, '""')}"`;
+  }
+  const result = value === null || value === undefined ? '' : JSON.stringify(value);
   return `"${result.replace(/"/g, '""')}"`;
 }
 
