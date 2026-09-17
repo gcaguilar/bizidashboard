@@ -11,7 +11,7 @@ import type { GlobalSearchResponse } from '@/lib/global-search';
 export const Route = createFileRoute('/explorar')({
   ssr: 'data-only',
   validateSearch: z.object({
-    q: z.string().optional(),
+    q: z.string().trim().max(200).optional(),
   }),
   head: () =>
     buildSeoHead({

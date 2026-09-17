@@ -10,7 +10,7 @@ import { fetchAvailableDataMonths } from '@/lib/api';
 import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 
 const ExploreSearchParamsSchema = z.object({
-  q: z.string().optional(),
+  q: z.string().trim().max(200).optional(),
 });
 
 export const getExploreLoaderData = createServerFn({ method: 'GET' })
