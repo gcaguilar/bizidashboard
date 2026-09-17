@@ -24,6 +24,7 @@ import { StatusBanner } from '@/app/dashboard/_components/StatusBanner';
 import { PageShell } from '@/components/layout/page-shell';
 import { getSystemStatusPageData } from '@/server-functions/estado';
 import { productTerms } from '@/lib/product-copy';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/estado')({
   head: () =>
@@ -107,7 +108,7 @@ export default function SystemStatusPage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: toJsonLdScript({
             '@context': 'https://schema.org',
             '@graph': [
               buildBreadcrumbStructuredData(breadcrumbs),

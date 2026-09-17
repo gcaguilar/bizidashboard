@@ -11,7 +11,7 @@ import { shouldShowDataStateNotice } from '@/lib/data-state';
 import { formatMonthLabel } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
-import { buildItemListStructuredData } from '@/lib/structured-data';
+import { buildItemListStructuredData, toJsonLdScript } from '@/lib/structured-data';
 import { SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Card } from '@/components/ui/card';
@@ -74,7 +74,7 @@ export default function DevelopersPage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: toJsonLdScript({
             '@context': 'https://schema.org',
             '@graph': [
               buildBreadcrumbStructuredData(breadcrumbs),

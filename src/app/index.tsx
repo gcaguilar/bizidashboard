@@ -9,6 +9,7 @@ import { getSiteUrl, SEO_SITE_NAME, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION } from 
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const HOME_CACHE_CONTROL =
   'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600';
@@ -69,7 +70,7 @@ function Home() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: toJsonLdScript({
             '@context': 'https://schema.org',
             '@graph': [
               {

@@ -5,7 +5,7 @@ import { buildBreadcrumbStructuredData, createDistrictBreadcrumb } from '@/lib/b
 import { formatDecimal } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
-import { buildItemListStructuredData } from '@/lib/structured-data'
+import { buildItemListStructuredData, toJsonLdScript } from '@/lib/structured-data'
 import { getPublicDistrictPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 
@@ -102,7 +102,7 @@ function DistrictPage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: toJsonLdScript({
             ...structuredData,
             '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
           }),

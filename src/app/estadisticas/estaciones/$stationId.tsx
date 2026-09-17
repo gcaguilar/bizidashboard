@@ -10,6 +10,7 @@ import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
+import { toJsonLdScript } from '@/lib/structured-data';
 
 function formatDayTypeLabel(dayType: string): string {
   return dayType === 'WEEKEND' ? 'Fin de semana' : 'Laborable'
@@ -149,7 +150,7 @@ function StationPage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: toJsonLdScript({
             ...structuredData,
             '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
           }),

@@ -17,6 +17,7 @@ import {
   getObservedCadenceLabel,
 } from '@/lib/system-status';
 import { getMethodologyPageData } from '@/server-functions/metodologia';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/metodologia')({
   head: () =>
@@ -40,7 +41,7 @@ export default function MethodologyPage() {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }}
       />
 
       <header className="ui-page-hero">

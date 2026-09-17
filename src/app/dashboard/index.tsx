@@ -9,6 +9,7 @@ import { dashboardPageQueryOptions } from '@/server-functions/dashboard'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { dashboardSearchSchema } from '@/lib/dashboard-search'
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/dashboard/')({
   validateSearch: dashboardSearchSchema,
@@ -52,7 +53,7 @@ function DashboardPage() {
 
   return (
     <PageShell maxWidthClassName="">
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

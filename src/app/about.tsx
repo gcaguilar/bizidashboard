@@ -7,6 +7,7 @@ import { appRoutes } from '@/lib/routes'
 import { toAbsoluteRouteUrl } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
 import { PageShell } from '@/components/layout/page-shell'
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/about')({
   head: () =>
@@ -38,7 +39,7 @@ function About() {
 
   return (
     <PageShell>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <SiteBreadcrumbs items={breadcrumbs} />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Sobre el proyecto</p>

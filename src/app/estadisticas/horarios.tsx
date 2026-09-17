@@ -9,6 +9,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/estadisticas/horarios')({
   loader: () => fetchSeoLandingData({ data: { slug: 'uso-bizi-por-hora' } }),
@@ -43,7 +44,7 @@ function HorariosPage() {
   return (
     <PageShell>
       <PublicPageViewTracker pageType="seo_hub" template="statistics_subpage" pageSlug="uso-bizi-por-hora" />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">

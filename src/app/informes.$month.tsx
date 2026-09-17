@@ -13,6 +13,7 @@ import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
 import { getSiteUrl } from '@/lib/site'
 import { buildObservatoryEvent } from '@/lib/umami'
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/informes/$month')({
   loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
@@ -90,7 +91,7 @@ function InformesMonthPage() {
   return (
     <PageShell>
       {structuredData ? (
-        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       ) : null}
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
