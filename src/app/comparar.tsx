@@ -9,6 +9,7 @@ import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
 import { ObservatoryEventTracker } from '@/app/_components/ObservatoryEventTracker';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/comparar')({
   ssr: 'data-only',
@@ -66,7 +67,7 @@ export default function ComparePage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
+          __html: toJsonLdScript(structuredData),
         }}
       />
 

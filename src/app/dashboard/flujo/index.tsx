@@ -12,6 +12,7 @@ import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardFlowPageData } from '@/server-functions/dashboard-flujo';
 import { PERIODS } from '@/app/dashboard/_components/mobility-insights-model';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 // Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
@@ -41,7 +42,7 @@ export default function DashboardFlowPage() {
   return (
     <PageShell>
       <DashboardPageViewTracker routeKey="dashboard_flow" pageType="dashboard" template="flow_analysis" />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <PageHeaderCard>
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-4">

@@ -9,6 +9,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const REDISTRIBUCION_CACHE_CONTROL =
   'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600';
@@ -70,7 +71,7 @@ function RedistribucionPage() {
   return (
     <PageShell>
       <PublicPageViewTracker pageType="seo_hub" template="statistics_subpage" pageSlug="redistribucion" />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">

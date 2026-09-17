@@ -8,6 +8,7 @@ import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getStationsDirectoryData } from '@/server-functions/estaciones';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/estadisticas/estaciones/')({
   loader: () => getStationsDirectoryData(),
@@ -40,7 +41,7 @@ function EstadisticasEstacionesPage() {
 
   return (
     <PageShell>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <div className="mx-auto max-w-7xl px-4 pt-6">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

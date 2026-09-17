@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
 import { PageShell } from '@/components/layout/page-shell';
 import { getDashboardConclusionsPageData } from '@/server-functions/dashboard-conclusiones';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 // Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
@@ -111,7 +112,7 @@ export default function DashboardConclusionsPage() {
         pageType="dashboard"
         template="conclusions_report"
       />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <PageHeaderCard>
         <SiteBreadcrumbs items={breadcrumbs} className="mb-3" />
         <div className="flex flex-wrap items-center justify-between gap-4">

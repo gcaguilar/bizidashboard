@@ -10,6 +10,7 @@ import { appRoutes } from '@/lib/routes';
 import { formatInteger, formatPercent } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
 import { getReportsIndexPageData } from '@/server-functions/informes';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/informes')({
   head: () =>
@@ -35,7 +36,7 @@ export default function ReportsIndexPage() {
     <PageShell>
       <PublicPageViewTracker pageType="report_archive" template="reports_index" pageSlug="informes" />
 
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
 
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />

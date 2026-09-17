@@ -5,6 +5,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 export const Route = createFileRoute('/estadisticas/')({
   head: () =>
@@ -34,7 +35,7 @@ function EstadisticasHubPage() {
 
   return (
     <PageShell>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>

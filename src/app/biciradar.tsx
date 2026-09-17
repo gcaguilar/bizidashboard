@@ -10,6 +10,7 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar';
 const APP_STORE_URL = 'https://apps.apple.com/es/app/biciradar/id6760931316';
@@ -201,7 +202,7 @@ export default function BiciRadarPage() {
     <PageShell className="gap-8 py-8 md:py-12">
       <PublicPageViewTracker pageType="product" template="biciradar" pageSlug="biciradar" />
 
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
 
       <header className="ui-page-hero">
         <SiteBreadcrumbs items={breadcrumbs} />

@@ -39,6 +39,7 @@ import {
   groupHelpCenterFaqItems,
   normalizeText,
 } from './help-center-selectors';
+import { toJsonLdScript } from '@/lib/structured-data';
 
 const HELP_CENTER_FAQ_STRUCTURED_DATA = buildHelpCenterFaqStructuredData();
 const HELP_CENTER_CATEGORIES = getHelpCenterCategories();
@@ -96,7 +97,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <DashboardPageViewTracker routeKey="dashboard_help" pageType="dashboard" template="help_center" />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(faqStructuredData) }} />
       <PageHeaderCard className="px-6 py-4 md:px-10">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <div className="flex items-center gap-8">

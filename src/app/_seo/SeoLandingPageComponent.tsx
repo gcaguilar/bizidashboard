@@ -5,7 +5,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
-import { buildItemListStructuredData } from '@/lib/structured-data';
+import { buildItemListStructuredData, toJsonLdScript } from '@/lib/structured-data';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Badge } from '@/components/ui/badge';
@@ -157,7 +157,7 @@ export function SeoLandingPageComponent({ slug, config, content, indexability, n
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }}
       />
       <SiteBreadcrumbs items={breadcrumbs} />
 
