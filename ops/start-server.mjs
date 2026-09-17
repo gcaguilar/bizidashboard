@@ -4,6 +4,9 @@ import {
   buildContentSecurityPolicy,
   getContentSecurityPolicyHeader,
 } from '../src/lib/security/csp.mjs';
+import { validateProductionEnv } from './validate-env.mjs';
+
+validateProductionEnv();
 
 const port = Number(process.env.PORT || 3000);
 const hostname = process.env.HOSTNAME || '0.0.0.0';
