@@ -19,6 +19,18 @@ describe('csv', () => {
     it('wraps strings in quotes', () => {
       expect(escapeCsvCell('hello')).toBe('"hello"');
     });
+
+    it('neutralizes spreadsheet formulas in strings', () => {
+      expect(escapeCsvCell('=1+1')).toBe(`"'=1+1"`);
+      expect(escapeCsvCell('+cmd')).toBe(`"'+cmd"`);
+      expect(escapeCsvCell('-foo')).toBe(`"'-foo"`);
+      expect(escapeCsvCell('@bar')).toBe(`"'@bar"`);
+      expect(escapeCsvCell('=HYPERLINK("http://evil")')).toBe(`"'=HYPERLINK(""http://evil"")"`);
+    });
+
+    it('keeps numbers numeric', () => {
+      expect(escapeCsvCell(-5)).toBe('"-5"');
+    });
   });
 
   describe('toCsv', () => {
@@ -67,7 +79,6 @@ describe('csv', () => {
 
       expect(result).toBe('"id","name"\n"1","Test"\n"2","Example"');
     });
-
     it('handles missing keys', () => {
       const headers = ['id', 'name', 'extra'];
       const rows = [

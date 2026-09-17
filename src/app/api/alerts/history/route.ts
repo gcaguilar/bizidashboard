@@ -140,12 +140,13 @@ function escapeCsvCell(value: string | number | boolean | null | undefined): str
   }
 
   const text = String(value);
+  const neutralized = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
 
-  if (/[",\n]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
+  if (/[",\n]/.test(neutralized)) {
+    return `"${neutralized.replace(/"/g, '""')}"`;
   }
 
-  return text;
+  return neutralized;
 }
 
 function toCsv(
