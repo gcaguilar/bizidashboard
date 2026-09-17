@@ -64,14 +64,12 @@ export function isApiKeyValid(
     return false;
   }
 
-  const providedBuffer = Buffer.from(providedApiKey);
-  const expectedBuffer = Buffer.from(expectedApiKey);
+  // Hashear ambos lados antes de comparar: los digests tienen longitud fija,
+  // asi no se filtra la longitud de la clave esperada por tiempo de respuesta.
+  const providedDigest = createHash('sha256').update(providedApiKey).digest();
+  const expectedDigest = createHash('sha256').update(expectedApiKey).digest();
 
-  if (providedBuffer.length !== expectedBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(providedBuffer, expectedBuffer);
+  return timingSafeEqual(providedDigest, expectedDigest);
 }
 
 export function readOpsApiKey(headers: Headers): string | null {
