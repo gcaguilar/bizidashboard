@@ -12,6 +12,27 @@ const clientDir = join(process.cwd(), 'dist/client');
 const CSP_HEADER = getContentSecurityPolicyHeader();
 const CSP_VALUE = buildContentSecurityPolicy();
 
+/**
+ * Sella la IP TCP del peer en `x-server-peer-ip` (sobrescribe cualquier valor
+ * que traiga el cliente). Es la unica atestacion fiable de quien conecta:
+ * `src/lib/security/http.ts` solo confia en `cf-connecting-ip`/`x-forwarded-for`
+ * cuando este peer pertenece a los rangos de Cloudflare.
+ */
+function stampPeerIp(request, server) {
+  try {
+    const peer = server?.requestIP?.(request);
+    const address = typeof peer === 'string' ? peer : peer?.address;
+    if (address) {
+      const headers = new Headers(request.headers);
+      headers.set('x-server-peer-ip', String(address));
+      return new Request(request, { headers });
+    }
+  } catch {
+    // Sin peer disponible: la app aplica el fallback de mejor esfuerzo.
+  }
+  return request;
+}
+
 function addSecurityHeaders(response) {
   const headers = new Headers(response.headers);
   headers.set('X-Content-Type-Options', 'nosniff');
@@ -107,14 +128,15 @@ function isClientAbort(error, request) {
 Bun.serve({
   hostname,
   port,
-  async fetch(request) {
+  async fetch(request, server) {
     try {
-      const staticResponse = await serveStaticAsset(request);
+      const stampedRequest = stampPeerIp(request, server);
+      const staticResponse = await serveStaticAsset(stampedRequest);
       if (staticResponse) {
         return addSecurityHeaders(staticResponse);
       }
 
-      return addSecurityHeaders(await serverEntry.fetch(request));
+      return addSecurityHeaders(await serverEntry.fetch(stampedRequest));
     } catch (error) {
       if (isClientAbort(error, request)) {
         // 499: el cliente cerro la conexion, no hay nadie leyendo la respuesta.

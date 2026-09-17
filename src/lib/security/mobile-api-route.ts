@@ -2,7 +2,7 @@
 import { withProtect, type RouteContext } from '@/lib/security/route-protection';
 import type { RouteHandler, ProtectedRouteOptions } from '@/lib/security/route-protection';
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit';
-import { applyMobileCors, buildMobileCorsHeaders, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http';
+import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePreflight, rejectDisallowedMobileOrigin } from '@/lib/security/http';
 
 export type MobileApiRouteHandler = RouteHandler;
 
@@ -30,9 +30,7 @@ export function withMobileApiRoute(
       }
 
       const requestId = crypto.randomUUID();
-      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-        ?? req.headers.get('x-real-ip')
-        ?? '127.0.0.1';
+      const clientIp = getClientIp(req.headers);
       const userAgent = req.headers.get('user-agent') ?? null;
 
       const limit = options.limit ?? DEFAULT_MOBILE_RATE_LIMIT.limit;

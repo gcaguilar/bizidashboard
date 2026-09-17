@@ -1,6 +1,7 @@
 // Response removed;
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
+import { getClientIp } from '@/lib/security/http';
 
 export type ProtectedRouteOptions = {
   route: string;
@@ -31,9 +32,7 @@ export function withProtect<T extends RouteContext = RouteContext>(
   return async function (params: object): Promise<Response> {
     const request = (params as Record<string, unknown>).request as Request;
     const requestId = crypto.randomUUID();
-    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-      ?? request.headers.get('x-real-ip')
-      ?? '127.0.0.1';
+    const clientIp = getClientIp(request.headers);
     const userAgent = request.headers.get('user-agent') ?? null;
 
     const result = await guard({ request, requestId, clientIp, userAgent });
