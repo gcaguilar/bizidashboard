@@ -63,7 +63,7 @@
     "react-dom": "19.2.5",
     "react-map-gl": "^8.1.2",
     "recharts": "^3.10.1",
-    "redis": "^5.12.1"
+    "redis": "^6.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
