@@ -18,6 +18,7 @@ import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
 import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
 import { ensureLockRefreshed } from './utils';
@@ -125,6 +126,12 @@ function getDailyCutoff(now: Date): Date {
 }
 
 async function runAnalyticsAggregation(): Promise<void> {
+  return Sentry.startSpan({ name: 'analytics.aggregation', op: 'function' }, () =>
+    runAnalyticsAggregationInner()
+  );
+}
+
+async function runAnalyticsAggregationInner(): Promise<void> {
   const runStart = Date.now();
   const lock = await acquireJobLock('analytics-rollup');
 
@@ -256,7 +263,14 @@ export function startAnalyticsAggregationJob(): void {
   cronJob = schedule(
     '10 * * * *',
     async () => {
-      await runAnalyticsAggregation();
+      await Sentry.withMonitor(
+        'analytics-aggregation',
+        () => runAnalyticsAggregation(),
+        {
+          schedule: { type: 'crontab', value: '10 * * * *' },
+          timezone: 'UTC',
+        }
+      );
     },
     {
       scheduled: true,
