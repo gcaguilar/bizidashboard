@@ -1,8 +1,11 @@
-import { createClient } from 'redis'
+import { createClient, type RedisClientType } from 'redis'
 import { captureExceptionWithContext, captureWarningWithContext } from '@/lib/sentry-reporting'
 import { logger } from '@/lib/logger'
 
-type RedisClient = ReturnType<typeof createClient>
+// `ReturnType<typeof createClient>` no longer resolves to the inferred client
+// type in redis v6 (RESP3 is now the default), so use the exported alias
+// directly, whose defaults (`RESP = 3`) match what `createClient` returns here.
+type RedisClient = RedisClientType
 
 let cachedClient: RedisClient | null = null
 let cachedClientPromise: Promise<RedisClient | null> | null = null
