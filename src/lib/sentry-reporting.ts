@@ -112,6 +112,58 @@ function applyContext(
   }
 }
 
+/**
+ * Flattens arbitrary log context into Sentry Log attributes (primitives only).
+ */
+function toLogAttributes(
+  attributes?: Record<string, unknown>
+): Record<string, string | number | boolean> | undefined {
+  if (!attributes) {
+    return undefined;
+  }
+
+  const result: Record<string, string | number | boolean> = {};
+
+  for (const [key, value] of Object.entries(attributes)) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      result[key] = value;
+      continue;
+    }
+
+    try {
+      result[key] = JSON.stringify(value);
+    } catch {
+      // Ignore non-serializable values.
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Forwards a structured log line to Sentry Logs.
+ *
+ * A no-op unless the SDK was initialized with `enableLogs: true`
+ * (`SENTRY_LOGS_ENABLED=true`), so the stdout logger stays the source of truth
+ * by default and Sentry Logs is strictly opt-in.
+ */
+export function forwardLogToSentry(
+  level: 'debug' | 'info' | 'warn' | 'error',
+  message: string,
+  attributes?: Record<string, unknown>
+): void {
+  try {
+    const formatted = toLogAttributes(attributes);
+    Sentry.logger[level](message, formatted);
+  } catch {
+    // Logging must never throw or break the caller.
+  }
+}
+
 function shouldSkipMessageCapture(dedupeKey?: string): boolean {
   if (!dedupeKey) {
     return false;

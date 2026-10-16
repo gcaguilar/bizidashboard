@@ -3,6 +3,28 @@ import { getExecutionContext } from '@/lib/request-context';
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 type LogRecord = Record<string, unknown>;
 
+/**
+ * Forwards a warning/error to Sentry Logs.
+ *
+ * Loaded lazily (and only when `SENTRY_LOGS_ENABLED=true`) so importing the
+ * logger never pulls the Sentry SDK into a module graph.
+ */
+function forwardToSentryLogs(
+  level: 'warn' | 'error',
+  message: string,
+  attributes: LogRecord
+): void {
+  if (process.env.SENTRY_LOGS_ENABLED !== 'true') {
+    return;
+  }
+
+  void import('@/lib/sentry-reporting')
+    .then(({ forwardLogToSentry }) => forwardLogToSentry(level, message, attributes))
+    .catch(() => {
+      // Logging must never throw or break the caller.
+    });
+}
+
 function normalizeValue(value: unknown): unknown {
   if (value instanceof Error) {
     return {
@@ -36,13 +58,23 @@ function toLogRecord(value: unknown): LogRecord {
 }
 
 function emit(level: LogLevel, message: string, extra?: Record<string, unknown>): void {
+  const attributes = {
+    ...toLogRecord(getExecutionContext()),
+    ...toLogRecord(extra),
+  };
+
   const entry = {
     timestamp: new Date().toISOString(),
     level,
     message,
-    ...toLogRecord(getExecutionContext()),
-    ...toLogRecord(extra),
+    ...attributes,
   };
+
+  // Structured logs are opt-in via `enableLogs` (`SENTRY_LOGS_ENABLED=true`);
+  // `forwardToSentryLogs` is a no-op (and never loads the SDK) otherwise.
+  if (level === 'warn' || level === 'error') {
+    forwardToSentryLogs(level, message, attributes);
+  }
 
   const payload = JSON.stringify(entry);
 
