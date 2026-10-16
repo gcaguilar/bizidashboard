@@ -12,6 +12,7 @@
 import { schedule } from 'node-cron';
 import type { ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { acquireJobLock } from '@/analytics/job-lock';
 import {
@@ -166,7 +167,14 @@ async function executeCollection(
   let pipelineResult: CollectionPipelineResult | null = null;
 
   try {
-    pipelineResult = await pipeline.execute(collectionId);
+    pipelineResult = await Sentry.startSpan(
+      {
+        name: 'collection.pipeline',
+        op: 'function',
+        attributes: { trigger, sourceUrl },
+      },
+      () => pipeline.execute(collectionId)
+    );
 
     // Handle duplicate-snapshot skip from pipeline (success + warning)
     if (pipelineResult.success && pipelineResult.warnings.some((w) => w.includes('already ingested'))) {
@@ -375,7 +383,14 @@ export function startCollectionJob(): void {
     COLLECTION_CRON_SCHEDULE,
     async () => {
       try {
-        await runCollection({ trigger: 'cron' });
+        await Sentry.withMonitor(
+          'bizi-collection',
+          () => runCollection({ trigger: 'cron' }),
+          {
+            schedule: { type: 'crontab', value: COLLECTION_CRON_SCHEDULE },
+            timezone: 'Europe/Madrid',
+          }
+        );
       } catch (error) {
         // Error already logged in runCollection
         // Just prevent crash

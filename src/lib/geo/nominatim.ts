@@ -1,6 +1,7 @@
 import { getCachedJson, setCachedJson } from '@/lib/cache/cache';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { getSiteUrl, isFallbackSiteUrl, SITE_NAME } from '@/lib/site';
+import * as Sentry from '@sentry/tanstackstart-react';
 
 const PUBLIC_NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
 const NOMINATIM_BASE_URL = normalizeBaseUrl(
@@ -162,30 +163,42 @@ function buildHeaders(locale: string): HeadersInit {
 async function fetchNominatim(url: URL, locale: string, signal?: AbortSignal): Promise<Response> {
   warnIfPublicNominatimIdentityLooksWeak();
 
-  return withNominatimRateLimit(async () => {
-    const response = await fetch(url.toString(), {
-      headers: buildHeaders(locale),
-      signal,
-    });
+  return withNominatimRateLimit(() =>
+    Sentry.startSpan(
+      {
+        name: `nominatim ${url.pathname}`,
+        op: 'http.client',
+        attributes: {
+          'http.request.method': 'GET',
+          'server.address': url.host,
+        },
+      },
+      async () => {
+        const response = await fetch(url.toString(), {
+          headers: buildHeaders(locale),
+          signal,
+        });
 
-    if (!response.ok) {
-      const responseText = (await response.text()).trim();
-      const policyHint =
-        response.status === 403
-          ? ' Possible causes: invalid or generic User-Agent/Referer, more than 1 req/s, or autocomplete/bulk usage forbidden by the public Nominatim policy.'
-          : '';
-      const detail = responseText ? ` Response: ${responseText.slice(0, 200)}` : '';
+        if (!response.ok) {
+          const responseText = (await response.text()).trim();
+          const policyHint =
+            response.status === 403
+              ? ' Possible causes: invalid or generic User-Agent/Referer, more than 1 req/s, or autocomplete/bulk usage forbidden by the public Nominatim policy.'
+              : '';
+          const detail = responseText ? ` Response: ${responseText.slice(0, 200)}` : '';
 
-      throw new Error(`Nominatim API error: ${response.status}.${policyHint}${detail}`);
-    }
+          throw new Error(`Nominatim API error: ${response.status}.${policyHint}${detail}`);
+        }
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      throw new Error(`Nominatim returned non-JSON response: ${contentType}`);
-    }
+        const contentType = response.headers.get('content-type');
+        if (!contentType?.includes('application/json')) {
+          throw new Error(`Nominatim returned non-JSON response: ${contentType}`);
+        }
 
-    return response;
-  });
+        return response;
+      }
+    )
+  );
 }
 
 export async function searchLocations(
