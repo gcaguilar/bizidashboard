@@ -16,6 +16,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { appRoutes } from '@/lib/routes'
 import { getGoogleSiteVerificationToken, getSiteUrl, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
+import { RouteErrorReporter } from '@/lib/route-error-reporting'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -62,6 +63,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] p-8">
+        <RouteErrorReporter error={error} area="route.root" />
         <div className="mx-auto max-w-lg space-y-4">
           <h1 className="text-2xl font-black text-red-600">Error interno</h1>
           <p className="text-sm text-[var(--muted)]">

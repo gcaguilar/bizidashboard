@@ -8,6 +8,7 @@ import { getSiteUrl } from '@/lib/site'
 import { buildItemListStructuredData, toJsonLdScript } from '@/lib/structured-data'
 import { getPublicDistrictPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
+import { RouteErrorReporter } from '@/lib/route-error-reporting'
 
 export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
   loader: ({ params }) => getPublicDistrictPageData({ data: params.districtSlug }),
@@ -43,9 +44,10 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
   component: DistrictPage,
 })
 
-function DistrictErrorPage() {
+function DistrictErrorPage({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.stats.district" />
       <section className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Barrio no disponible</p>
         <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">No se pudo cargar esta ficha de barrio</h1>

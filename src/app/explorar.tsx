@@ -7,6 +7,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { buildSeoHead } from '@/lib/seo-head';
 import type { GlobalSearchResponse } from '@/lib/global-search';
+import { RouteErrorReporter } from '@/lib/route-error-reporting';
 
 export const Route = createFileRoute('/explorar')({
   ssr: 'data-only',
@@ -27,9 +28,10 @@ export const Route = createFileRoute('/explorar')({
   component: ExplorePage,
 });
 
-function ExploreErrorPage() {
+function ExploreErrorPage({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.explore" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Hub no disponible</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">

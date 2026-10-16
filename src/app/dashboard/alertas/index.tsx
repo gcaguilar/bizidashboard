@@ -7,6 +7,7 @@ import { PageShell } from '@/components/layout/page-shell';
 import { appRoutes } from '@/lib/routes';
 import { getAlertsHistoryPageData } from '@/server-functions/dashboard-alertas';
 import { dashboardAlertsSearchSchema } from '@/lib/dashboard-alerts-search';
+import { RouteErrorReporter } from '@/lib/route-error-reporting';
 
 export const Route = createFileRoute('/dashboard/alertas/')({
   validateSearch: dashboardAlertsSearchSchema,
@@ -36,9 +37,10 @@ function DashboardAlertsPending() {
   );
 }
 
-function DashboardAlertsError() {
+function DashboardAlertsError({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.dashboard.alerts" />
       <section className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Datos no disponibles</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
