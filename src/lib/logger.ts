@@ -70,7 +70,7 @@ function emit(level: LogLevel, message: string, extra?: Record<string, unknown>)
     ...attributes,
   };
 
-  // Structured logs are opt-in via `enableLogs` (`SENTRY_LOGS_ENABLED=true`);
+  // Structured logs are opt-in via `SENTRY_LOGS_ENABLED=true`;
   // `forwardToSentryLogs` is a no-op (and never loads the SDK) otherwise.
   if (level === 'warn' || level === 'error') {
     forwardToSentryLogs(level, message, attributes);

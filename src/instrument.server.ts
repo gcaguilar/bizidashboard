@@ -7,7 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/manual-setup/
  */
 import * as Sentry from '@sentry/tanstackstart-react'
-import { parseSentrySampleRate } from '@/lib/sentry-config'
+import { parseSentrySampleRate, SENTRY_DATA_COLLECTION } from '@/lib/sentry-config'
 
 const dsn = process.env.SENTRY_DSN || process.env.VITE_SENTRY_DSN
 
@@ -22,11 +22,11 @@ Sentry.init({
     0.2
   ),
 
-  // The app already records hashed request context; never send raw PII.
-  sendDefaultPii: false,
-
-  // Opt-in structured logs (see `src/lib/logger.ts`).
-  enableLogs: process.env.SENTRY_LOGS_ENABLED === 'true',
+  // Never send raw PII. Sentry v11 removed `sendDefaultPii` and made
+  // `dataCollection` collect much more by default, so we restore the
+  // restrictive v10 defaults explicitly. The app already records hashed
+  // request context.
+  dataCollection: SENTRY_DATA_COLLECTION,
 
   // Client disconnects mid-stream surface here as SSR-stream AbortErrors and
   // are expected behavior, not server bugs.

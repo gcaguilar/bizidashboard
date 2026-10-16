@@ -7,7 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/manual-setup/
  */
 import * as Sentry from '@sentry/tanstackstart-react'
-import { parseSentrySampleRate } from '@/lib/sentry-config'
+import { parseSentrySampleRate, SENTRY_DATA_COLLECTION } from '@/lib/sentry-config'
 
 // Inlined at build time by Vite. `vite.config.ts` aliases `SENTRY_DSN` into this
 // value when `VITE_SENTRY_DSN` is not set, so a single `SENTRY_DSN` configures
@@ -24,15 +24,11 @@ Sentry.init({
   tracesSampleRate: parseSentrySampleRate(import.meta.env.VITE_SENTRY_TRACE_SAMPLE_RATE, 0.2),
   debug: false,
 
-  // Never attach IP addresses / user identifiers by default. The app already
-  // sends hashed request context (see `src/lib/request-context.ts`).
-  sendDefaultPii: false,
-  dataCollection: {
-    userInfo: false,
-  },
-
-  // Opt-in structured logs (see `src/lib/logger.ts`).
-  enableLogs: import.meta.env.VITE_SENTRY_LOGS_ENABLED === 'true',
+  // Never send raw PII. Sentry v11 removed `sendDefaultPii` and made
+  // `dataCollection` collect much more by default, so we restore the
+  // restrictive v10 defaults explicitly. The app already sends hashed request
+  // context (see `src/lib/request-context.ts`).
+  dataCollection: SENTRY_DATA_COLLECTION,
 
   // Client disconnects mid-stream and browser extensions are expected noise.
   ignoreErrors: [

@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Layer, Map, Marker, Popup, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
+// MapLibre GL JS v6 resolves its worker from `import.meta.url` at runtime, which
+// bundlers (Vite) can't statically trace, so the worker file would never be
+// emitted. Importing it with `?url` emits it and we hand the URL to react-map-gl
+// (which calls `setWorkerUrl` before creating the map).
+// @see https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
@@ -383,6 +389,7 @@ export function MapEngine({
         styleDiffing={false}
         style={{ width: '100%', height: '100%' }}
         mapStyle={mapStyle}
+        workerUrl={maplibreWorkerUrl}
       >
         <Source
           id="stations-source"

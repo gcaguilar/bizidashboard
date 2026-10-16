@@ -147,9 +147,9 @@ function toLogAttributes(
 /**
  * Forwards a structured log line to Sentry Logs.
  *
- * A no-op unless the SDK was initialized with `enableLogs: true`
- * (`SENTRY_LOGS_ENABLED=true`), so the stdout logger stays the source of truth
- * by default and Sentry Logs is strictly opt-in.
+ * Only called when `SENTRY_LOGS_ENABLED=true` (see `src/lib/logger.ts`), so the
+ * stdout logger stays the source of truth by default and Sentry Logs is
+ * strictly opt-in.
  */
 export function forwardLogToSentry(
   level: 'debug' | 'info' | 'warn' | 'error',
