@@ -9,6 +9,7 @@
  *   pm2 start ecosystem.config.js           # prod
  */
 
+import '@/instrument.server'
 import { startCollectionJob, stopCollectionJob } from '@/jobs/bizi-collection';
 import {
   startAnalyticsAggregationJob,

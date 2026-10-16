@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import path from 'node:path'
 import { copyFileSync, existsSync, readdirSync, readFileSync } from 'node:fs'
 import { devtools } from '@tanstack/devtools-vite'
+import { sentryTanstackStart } from '@sentry/tanstackstart-react/vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
@@ -67,11 +68,32 @@ async function loadVisualizerPlugin() {
   }
 }
 
-export default defineConfig(async ({ command }): Promise<import('vite').UserConfig> => {
+export default defineConfig(async ({ command, mode }): Promise<import('vite').UserConfig> => {
   const bundleVisualizer = await loadVisualizerPlugin()
   const isDevServer = command === 'serve'
+  // loadEnv() (with an empty prefix) so Sentry build options in `.env` files are
+  // available during config evaluation; `process.env` still wins for CI/Docker.
+  const env = loadEnv(mode, process.cwd(), '')
+  const sentryOrg = process.env.SENTRY_ORG ?? env.SENTRY_ORG
+  const sentryProject = process.env.SENTRY_PROJECT ?? env.SENTRY_PROJECT
+  const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN ?? env.SENTRY_AUTH_TOKEN
+  const sentryRelease =
+    process.env.GIT_SHA ?? process.env.SENTRY_DYNACONF_RELEASE ?? env.GIT_SHA ?? ''
+  // The browser can only read `VITE_*` variables inlined at build time, so a
+  // single `SENTRY_DSN` is also used for the client unless `VITE_SENTRY_DSN`
+  // is set explicitly. (A DSN is public, so exposing it to the browser is safe.)
+  const sentryClientDsn = (
+    process.env.VITE_SENTRY_DSN ||
+    env.VITE_SENTRY_DSN ||
+    process.env.SENTRY_DSN ||
+    env.SENTRY_DSN ||
+    ''
+  ).trim()
 
   return {
+    define: {
+      'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(sentryClientDsn),
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
@@ -110,6 +132,19 @@ export default defineConfig(async ({ command }): Promise<import('vite').UserConf
       tailwindcss(),
       syncSsrCssAssets(),
       bundleVisualizer,
+      // Must stay last: injects the tunnel route, instruments middlewares, and
+      // uploads source maps during production builds when SENTRY_AUTH_TOKEN is set.
+      sentryTanstackStart({
+        org: sentryOrg,
+        project: sentryProject,
+        authToken: sentryAuthToken,
+        ...(sentryRelease ? { release: { name: sentryRelease } } : {}),
+        tunnelRoute: true,
+        autoInstrumentMiddleware: true,
+        sourcemaps: {
+          filesToDeleteAfterUpload: ['./dist/**/*.map'],
+        },
+      }),
     ].filter(Boolean),
   }
 })

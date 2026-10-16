@@ -1,4 +1,5 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
+import * as Sentry from '@sentry/tanstackstart-react'
 import { routeTree } from './routeTree.gen'
 
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
@@ -27,6 +28,11 @@ export function getRouter() {
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })
+
+  // Browser-only: connect Sentry performance tracing to router navigations.
+  if (!router.isServer) {
+    Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router))
+  }
 
   return router
 }
