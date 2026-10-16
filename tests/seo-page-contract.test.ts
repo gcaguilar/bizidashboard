@@ -150,7 +150,7 @@ describe('seo navigation contract', () => {
   it('keeps primary SEO pages with a stable role and primary CTA contract', () => {
     for (const slug of PRIMARY_SEO_PAGE_SLUGS) {
       const config = SEO_PAGE_CONFIGS[slug];
-      const expectedRole = SEO_DESTINATION_ROLE_MAP[config.primaryCta.destination];
+      const expectedRole = SEO_DESTINATION_ROLE_MAP[config.primaryCta.destination as keyof typeof SEO_DESTINATION_ROLE_MAP];
 
       expect(config.slug).toBe(slug);
       expect(config.primaryCta.href.length).toBeGreaterThan(0);

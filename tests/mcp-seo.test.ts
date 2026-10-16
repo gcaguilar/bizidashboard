@@ -4,8 +4,8 @@ import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes';
 import { Route } from '@/app/mcp';
 
 describe('/mcp SEO', () => {
-  it('is indexable, canonical and included in the public sitemap registry', () => {
-    const head = Route.options.head?.({} as never);
+  it('is indexable, canonical and included in the public sitemap registry', async () => {
+    const head = await Route.options.head?.({} as never);
 
     expect(INDEXABLE_PUBLIC_ROUTE_REGISTRY).toContainEqual(expect.objectContaining({
       id: 'mcp',

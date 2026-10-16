@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
@@ -21,7 +22,7 @@ vi.mock('@/services/shared-data', () => ({
 import { Route } from '@/app/api/stations/index';
 import { fetchStations } from '@/lib/api';
 
-const handler = Route.options.server!.handlers!.GET!
+const handler = serverHandlers(Route).GET!
 
 describe('GET /api/stations', () => {
   beforeEach(() => {

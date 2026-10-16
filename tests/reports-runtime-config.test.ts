@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
@@ -12,6 +13,6 @@ describe('reports runtime config', () => {
   it('sitemap route exposes GET handler', async () => {
     const sitemapMod = await import('@/app/sitemap[.]xml');
     expect(sitemapMod.Route.options.server).toBeDefined();
-    expect(sitemapMod.Route.options.server!.handlers!.GET).toBeDefined();
+    expect(serverHandlers(sitemapMod.Route).GET).toBeDefined();
   }, 15000);
 });

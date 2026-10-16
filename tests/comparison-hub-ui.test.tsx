@@ -15,7 +15,7 @@ vi.mock('@/app/_components/TrackedLink', () => ({
 const partialMonthData: ComparisonHubData = {
   latestMonth: '2026-03',
   generatedAt: '2026-03-02T12:00:00.000Z',
-  dataState: 'fresh',
+  dataState: 'partial',
   interactive: { defaultDimensionId: null, dimensions: [] },
   sections: [
     {

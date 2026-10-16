@@ -1,19 +1,20 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { describe, expect, it } from 'vitest';
 import { Route } from '@/app/api/geo/reverse/index';
 
 describe('POST /api/geo/reverse', () => {
   it('exposes POST and OPTIONS handlers', () => {
     expect(Route.options.server).toBeDefined();
-    expect(Route.options.server!.handlers!.GET).toBeDefined();
-    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
-    expect(Route.options.server!.handlers!.POST).toBeDefined();
-    expect(typeof Route.options.server!.handlers!.POST).toBe('function');
-    expect(Route.options.server!.handlers!.OPTIONS).toBeDefined();
-    expect(typeof Route.options.server!.handlers!.OPTIONS).toBe('function');
+    expect(serverHandlers(Route).GET).toBeDefined();
+    expect(typeof serverHandlers(Route).GET).toBe('function');
+    expect(serverHandlers(Route).POST).toBeDefined();
+    expect(typeof serverHandlers(Route).POST).toBe('function');
+    expect(serverHandlers(Route).OPTIONS).toBeDefined();
+    expect(typeof serverHandlers(Route).OPTIONS).toBe('function');
   });
 
   it('returns JSON method guidance for GET requests', async () => {
-    const response = await Route.options.server!.handlers!.GET!({
+    const response = await serverHandlers(Route).GET!({
       request: new Request('http://localhost/api/geo/reverse?lat=41.65&lon=-0.88'),
     });
     const payload = await response.json();

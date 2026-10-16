@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
@@ -194,7 +195,7 @@ describe('sitemap contract', () => {
     ]);
 
     const { Route } = await import('@/app/sitemap[.]xml');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
     const { INDEXABLE_PUBLIC_ROUTE_REGISTRY, resolveRedirectTarget } = await import('@/lib/routes');
 
     const response = await handler({ request: new Request('http://localhost/sitemap.xml') });

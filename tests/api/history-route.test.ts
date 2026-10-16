@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { queryRawMock, getHistoryMetadataMock, getPipelineStatusSummaryMock } = vi.hoisted(() => ({
@@ -31,8 +32,8 @@ describe('GET /api/history', () => {
   it('exposes GET handler through server options', async () => {
     const { Route } = await import('@/app/api/history/index');
     expect(Route.options.server).toBeDefined();
-    expect(Route.options.server!.handlers!.GET).toBeDefined();
-    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
+    expect(serverHandlers(Route).GET).toBeDefined();
+    expect(typeof serverHandlers(Route).GET).toBe('function');
   });
 
   it('returns 200 with fallback payload when history metadata fails', async () => {
@@ -49,7 +50,7 @@ describe('GET /api/history', () => {
     ]);
 
     const { Route } = await import('@/app/api/history/index');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
     const response = await handler({
       request: new Request('http://localhost/api/history'),
       access: { headers: {} },
