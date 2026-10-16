@@ -4,9 +4,13 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
-import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 import { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
-import { buildFallbackAvailableMonths, buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks';
+import {
+  buildFallbackAvailableMonths,
+  buildFallbackDatasetSnapshot,
+  buildFallbackHistoryMetadata,
+  buildFallbackStatus,
+} from '@/lib/shared-data-fallbacks';
 import { getSharedDataSource } from '@/services/shared-data';
 
 const FAQ_IDS = [
@@ -15,21 +19,6 @@ const FAQ_IDS = [
   'demanda-no-viajes-reales',
   'prediccion-que-es',
 ] as const;
-
-function buildFallbackHistoryMetadata(nowIso: string, source: SharedDataSource): HistoryMetadata {
-  return {
-    source,
-    coverage: {
-      firstRecordedAt: null,
-      lastRecordedAt: null,
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    generatedAt: nowIso,
-  };
-}
 
 function getMethodologyFaqItems() {
   return FAQ_IDS.flatMap((id) => FAQ_ITEMS.filter((item) => item.id === id));

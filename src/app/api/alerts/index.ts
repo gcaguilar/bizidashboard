@@ -15,7 +15,7 @@ export const Route = createFileRoute('/api/alerts/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=300, stale-while-revalidate=300',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const limitParam = parseInt(new URL(request.url).searchParams.get('limit') ?? '50')
           const limit = Math.min(Math.max(1, limitParam), 200)
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute('/api/alerts/')({
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

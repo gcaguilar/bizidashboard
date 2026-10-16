@@ -5,6 +5,7 @@ import { buildDistrictSpotlight, enrichRankingRows, buildPeakFullHoursByStation,
 import { buildStationDistrictMap } from '@/lib/districts'
 import { getSharedDatasetSnapshot } from '@/services/shared-data'
 import { resolveRankingsDataState } from '@/lib/data-state'
+import { csvResponse } from '@/lib/csv'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 
 export const Route = createFileRoute('/api/rankings/')({
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/api/rankings/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=300, stale-while-revalidate=300',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const typeParam = new URL(request.url).searchParams.get('type') ?? 'turnover'
           if (typeParam !== 'turnover' && typeParam !== 'availability') {
             return new Response(JSON.stringify({ error: 'Invalid type. Use "turnover" or "availability".', dataState: 'error' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
@@ -62,19 +63,16 @@ export const Route = createFileRoute('/api/rankings/')({
           }
 
           if (format === 'csv') {
-            const escapeCsv = (v: string | number) => String(v).includes(',') || String(v).includes('"') ? `"${String(v).replace(/"/g, '""')}"` : String(v);
-            const headers = ['stationId', 'turnoverScore', 'emptyHours', 'fullHours', 'totalHours']
-            const rows = payload.rankings.map((r) => [r.stationId, r.turnoverScore, r.emptyHours, r.fullHours, r.totalHours])
-            const csv = [headers, ...rows].map((r) => r.map(escapeCsv).join(',')).join('\n')
-            return new Response(csv, {
-              status: 200,
-              headers: { 'Content-Type': 'text/csv; charset=utf-8', ...access.headers },
+            return csvResponse({
+              headers: ['stationId', 'turnoverScore', 'emptyHours', 'fullHours', 'totalHours'],
+              rows: payload.rankings.map((r) => [r.stationId, r.turnoverScore, r.emptyHours, r.fullHours, r.totalHours]),
+              filename: 'rankings.csv',
             })
           }
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

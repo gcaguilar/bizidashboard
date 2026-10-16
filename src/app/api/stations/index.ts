@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getStationsWithLatestStatus } from '@/analytics/queries/read'
-import { rowsToCsv } from '@/lib/csv'
+import { csvResponse } from '@/lib/csv'
 import { resolveStationsDataState } from '@/lib/data-state'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import { getSharedDatasetSnapshot } from '@/services/shared-data'
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/stations/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=60, stale-while-revalidate=60',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const format = new URL(request.url).searchParams.get('format')
 
           const [stations, dataset] = await Promise.all([
@@ -37,9 +37,9 @@ export const Route = createFileRoute('/api/stations/')({
           }
 
           if (format === 'csv') {
-            const csv = rowsToCsv(
-              ['stationId', 'stationName', 'lat', 'lon', 'capacity', 'bikesAvailable', 'anchorsFree', 'recordedAt'],
-              payload.stations.map((station) => ({
+            return csvResponse({
+              headers: ['stationId', 'stationName', 'lat', 'lon', 'capacity', 'bikesAvailable', 'anchorsFree', 'recordedAt'],
+              rows: payload.stations.map((station) => ({
                 stationId: station.id,
                 stationName: station.name,
                 lat: station.lat,
@@ -50,21 +50,14 @@ export const Route = createFileRoute('/api/stations/')({
                 recordedAt: (station.recordedAt as unknown as Date) instanceof Date
                   ? (station.recordedAt as unknown as Date).toISOString()
                   : station.recordedAt,
-              }))
-            )
-            return new Response(csv, {
-              status: 200,
-              headers: {
-                'Content-Type': 'text/csv; charset=utf-8',
-                'Content-Disposition': 'attachment; filename="stations-current.csv"',
-                ...access.headers,
-              },
+              })),
+              filename: 'stations-current.csv',
             })
           }
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

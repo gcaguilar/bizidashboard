@@ -16,6 +16,23 @@ export type PublicApiRouteOptions = {
   cacheControl?: string;
 };
 
+/**
+ * Applies the access headers (rate-limit metadata) to a handler's response.
+ * Handlers no longer have to remember `...access.headers`, so they can't drop
+ * them by accident — locality for the header contract.
+ */
+function applyAccessHeaders(
+  response: Response,
+  headers: Record<string, string>
+): Response {
+  for (const [name, value] of Object.entries(headers)) {
+    if (!response.headers.has(name)) {
+      response.headers.set(name, value);
+    }
+  }
+  return response;
+}
+
 export function withPublicApiRoute(
   options: PublicApiRouteOptions,
   handler: PublicApiRouteHandler
@@ -44,6 +61,6 @@ export function withPublicApiRoute(
       const enrichedCtx: PublicApiCtx = { ...ctx, access };
       return { ok: true, ctx: enrichedCtx };
     },
-    handler
+    async (ctx) => applyAccessHeaders(await handler(ctx), ctx.access.headers)
   );
 }

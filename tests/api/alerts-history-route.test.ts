@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { countMock, findManyMock } = vi.hoisted(() => ({
@@ -23,9 +24,13 @@ vi.mock('@/lib/security/public-api', () => ({
   enforcePublicApiAccess: enforcePublicApiAccessMock,
 }));
 
-import { GET } from '@/app/api/alerts/history/route';
+import { Route } from '@/app/api/alerts/history/route';
+
+const handler = serverHandlers(Route).GET!;
 
 describe('GET /api/alerts/history', () => {
+  const call = (url: string) =>
+    handler({ request: new Request(url) as never });
   beforeEach(() => {
     countMock.mockReset();
     findManyMock.mockReset();
@@ -52,10 +57,8 @@ describe('GET /api/alerts/history', () => {
       },
     ]);
 
-    const response = await GET(
-      new Request(
-        'http://localhost/api/alerts/history?state=resolved&stationId=101&alertType=LOW_BIKES&severity=2&from=2026-03-01T00:00:00.000Z&to=2026-03-09T23:59:59.999Z&limit=2&offset=1'
-      ) as never
+    const response = await call(
+      'http://localhost/api/alerts/history?state=resolved&stationId=101&alertType=LOW_BIKES&severity=2&from=2026-03-01T00:00:00.000Z&to=2026-03-09T23:59:59.999Z&limit=2&offset=1'
     );
     const payload = await response.json();
 
@@ -112,23 +115,19 @@ describe('GET /api/alerts/history', () => {
       },
     ]);
 
-    const response = await GET(
-      new Request('http://localhost/api/alerts/history?format=csv&state=active') as never
-    );
+    const response = await call('http://localhost/api/alerts/history?format=csv&state=active');
     const csvBody = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/csv');
     expect(response.headers.get('content-disposition')).toContain('alerts-history-');
-    expect(csvBody).toContain('id,stationId,stationName,alertType,severity,metricValue,windowHours,generatedAt,state');
+    expect(csvBody).toContain('"id","stationId","stationName","alertType","severity","metricValue","windowHours","generatedAt","state"');
     expect(csvBody).toContain('Puente de Piedra');
     expect(csvBody).toContain('active');
   });
 
   it('returns 400 when filters are invalid', async () => {
-    const response = await GET(
-      new Request('http://localhost/api/alerts/history?severity=9&state=invalid') as never
-    );
+    const response = await call('http://localhost/api/alerts/history?severity=9&state=invalid');
     const payload = await response.json();
 
     expect(response.status).toBe(400);
@@ -138,9 +137,7 @@ describe('GET /api/alerts/history', () => {
   });
 
   it('returns 400 when from is after to', async () => {
-    const response = await GET(
-      new Request('http://localhost/api/alerts/history?from=2026-03-10&to=2026-03-01') as never
-    );
+    const response = await call('http://localhost/api/alerts/history?from=2026-03-10&to=2026-03-01');
     const payload = await response.json();
 
     expect(response.status).toBe(400);
@@ -152,7 +149,7 @@ describe('GET /api/alerts/history', () => {
   it('returns 500 when alert retrieval fails', async () => {
     countMock.mockRejectedValue(new Error('db down'));
 
-    const response = await GET(new Request('http://localhost/api/alerts/history') as never);
+    const response = await call('http://localhost/api/alerts/history');
     const payload = await response.json();
 
     expect(response.status).toBe(500);
