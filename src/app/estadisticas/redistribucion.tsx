@@ -10,6 +10,7 @@ import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 import { toJsonLdScript } from '@/lib/structured-data';
+import { RouteErrorReporter } from '@/lib/route-error-reporting';
 
 export const REDISTRIBUCION_CACHE_CONTROL =
   'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600';
@@ -30,9 +31,10 @@ export const Route = createFileRoute('/estadisticas/redistribucion')({
   component: RedistribucionPage,
 });
 
-function RedistribucionErrorPage() {
+function RedistribucionErrorPage({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.stats.redistribution" />
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Datos parciales</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">

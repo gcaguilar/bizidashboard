@@ -11,6 +11,7 @@ import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';
+import { RouteErrorReporter } from '@/lib/route-error-reporting';
 
 function formatDayTypeLabel(dayType: string): string {
   return dayType === 'WEEKEND' ? 'Fin de semana' : 'Laborable'
@@ -61,9 +62,10 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
   component: StationPage,
 })
 
-function StationErrorPage() {
+function StationErrorPage({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.stats.station" />
       <section className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Estación no disponible</p>
         <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">No se pudo cargar esta estación</h1>

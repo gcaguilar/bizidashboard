@@ -56,6 +56,13 @@ import { useStationTrends } from './useStationTrends';
 class ViewErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: { componentStack?: string }) {
+    captureExceptionWithContext(error, {
+      area: 'dashboard.view',
+      operation: 'ViewErrorBoundary',
+      extra: { componentStack: info.componentStack },
+    });
+  }
   render() {
     if (this.state.hasError) return this.props.fallback;
     return this.props.children;

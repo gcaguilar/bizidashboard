@@ -12,6 +12,7 @@ import { PageShell } from '@/components/layout/page-shell'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
 import { getSiteUrl } from '@/lib/site'
+import { RouteErrorReporter } from '@/lib/route-error-reporting'
 import { buildObservatoryEvent } from '@/lib/umami'
 import { toJsonLdScript } from '@/lib/structured-data';
 
@@ -47,9 +48,10 @@ export const Route = createFileRoute('/informes/$month')({
   component: InformesMonthPage,
 })
 
-function InformesMonthErrorPage() {
+function InformesMonthErrorPage({ error }: { error: unknown }) {
   return (
     <PageShell>
+      <RouteErrorReporter error={error} area="route.reports.month" />
       <section className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Informe no disponible</p>
         <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">

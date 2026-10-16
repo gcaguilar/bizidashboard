@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { AlertsResponse } from '@/lib/api-types';
 import { formatAlertType } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 
 type AlertsTopListProps = {
   alerts: AlertsResponse;
@@ -84,6 +85,13 @@ export class QuickViewErrorBoundary extends Component<{ children: ReactNode; fal
   state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
+  }
+  componentDidCatch(error: Error, info: { componentStack?: string }) {
+    captureExceptionWithContext(error, {
+      area: 'dashboard.quick-view',
+      operation: 'QuickViewErrorBoundary',
+      extra: { componentStack: info.componentStack },
+    });
   }
   render() {
     if (this.state.hasError) {
