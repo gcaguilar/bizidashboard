@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -77,17 +77,15 @@ export function DashboardHeader({
   mode = 'overview',
 }: DashboardHeaderProps) {
   const hasAvailabilityFilter = filteredOutCount > 0;
-  const refreshDate = useMemo(() => nextRefreshAt ?? new Date(Date.now() + 300_000), [nextRefreshAt]);
-  const [countdownMs, setCountdownMs] = useState(() => Math.max(0, refreshDate.getTime() - Date.now()));
+  const [countdownMs, setCountdownMs] = useState(refreshDurationMs);
 
   useEffect(() => {
-    const targetMs = Math.max(0, refreshDate.getTime() - Date.now());
-    setCountdownMs(targetMs);
+    const targetMs = nextRefreshAt ? nextRefreshAt.getTime() : Date.now() + refreshDurationMs;
     const id = window.setInterval(() => {
-      setCountdownMs(Math.max(0, refreshDate.getTime() - Date.now()));
+      setCountdownMs(Math.max(0, targetMs - Date.now()));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [refreshDate]);
+  }, [nextRefreshAt, refreshDurationMs]);
 
   const refreshProgress = ((refreshDurationMs - Math.max(0, countdownMs)) / refreshDurationMs) * 100;
   const safeMs = Math.max(0, countdownMs);

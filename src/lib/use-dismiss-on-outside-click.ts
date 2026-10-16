@@ -14,7 +14,10 @@ export function useDismissOnOutsideClick(
   // Guardada en una ref para que los consumidores puedan pasar una lambda sin
   // resuscribir los listeners en cada render.
   const dismissRef = useRef(onDismiss);
-  dismissRef.current = onDismiss;
+
+  useEffect(() => {
+    dismissRef.current = onDismiss;
+  }, [onDismiss]);
 
   useEffect(() => {
     if (!open) return;

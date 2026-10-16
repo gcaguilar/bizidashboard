@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { parseJsonValue } from '@/lib/json';
-import { writeJsonStorageItem } from './client-storage';
+import { readStorageText, useStorageValue, writeStorageText } from '@/lib/use-storage-value';
 
 const FAVORITES_STORAGE_KEY = 'bizidashboard-favorite-stations';
+const EMPTY_FAVORITE_IDS: string[] = [];
 
 export function parseFavoriteIds(rawValue: string | null): string[] {
   const parsed = parseJsonValue(rawValue);
@@ -18,34 +19,19 @@ export function parseFavoriteIds(rawValue: string | null): string[] {
 }
 
 export function useFavoriteStations() {
-  const [favoriteStationIds, setFavoriteStationIds] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    setFavoriteStationIds(parseFavoriteIds(window.localStorage.getItem(FAVORITES_STORAGE_KEY)));
-    setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !isLoaded) {
-      return;
-    }
-
-    writeJsonStorageItem(window.localStorage, FAVORITES_STORAGE_KEY, favoriteStationIds);
-  }, [favoriteStationIds, isLoaded]);
+  const favoriteStationIds = useStorageValue(
+    FAVORITES_STORAGE_KEY,
+    parseFavoriteIds,
+    EMPTY_FAVORITE_IDS
+  );
 
   const toggleFavoriteStation = useCallback((stationId: string) => {
-    setFavoriteStationIds((current) => {
-      if (current.includes(stationId)) {
-        return current.filter((id) => id !== stationId);
-      }
+    const current = parseFavoriteIds(readStorageText(FAVORITES_STORAGE_KEY));
+    const next = current.includes(stationId)
+      ? current.filter((id) => id !== stationId)
+      : [...current, stationId];
 
-      return [...current, stationId];
-    });
+    writeStorageText(FAVORITES_STORAGE_KEY, JSON.stringify(next));
   }, []);
 
   return { favoriteStationIds, toggleFavoriteStation };

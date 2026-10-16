@@ -7,17 +7,19 @@ export function useGeolocationWatch() {
   const [isGeolocationEnabled, setIsGeolocationEnabled] = useState(false);
 
   const enableGeolocation = useCallback(() => {
-    setIsGeolocationEnabled(true);
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeolocationError(
+        'La geolocalización no está disponible en este navegador. Puedes mover el mapa manualmente.'
+      );
+      return;
+    }
+
     setGeolocationError(null);
+    setIsGeolocationEnabled(true);
   }, []);
 
   useEffect(() => {
     if (!isGeolocationEnabled) {
-      return;
-    }
-
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setGeolocationError('La geolocalización no está disponible en este navegador. Puedes mover el mapa manualmente.');
       return;
     }
 

@@ -244,7 +244,10 @@ export function StationDetailPanel({
 
   const [timeAnchor, setTimeAnchor] = useState<{ dayType: string; hour: number } | null>(null);
   useEffect(() => {
-    setTimeAnchor({ dayType: getDayTypeForToday(), hour: getCurrentHour() });
+    const frame = requestAnimationFrame(() => {
+      setTimeAnchor({ dayType: getDayTypeForToday(), hour: getCurrentHour() });
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const projection = useMemo(() => {

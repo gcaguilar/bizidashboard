@@ -39,23 +39,37 @@ export function DeveloperApiRegistration() {
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const loadKeys = useCallback(async () => {
+  const fetchKeys = useCallback(async (): Promise<{ keys: ApiKeySummary[]; maxKeys: number } | null> => {
     try {
       const response = await fetch(appRoutes.api.developerKeys());
-      if (!response.ok) return;
-      const data: { keys: ApiKeySummary[]; maxKeys: number } = await response.json();
-      setKeys(data.keys);
-      setMaxKeys(data.maxKeys);
+      if (!response.ok) return null;
+      return (await response.json()) as { keys: ApiKeySummary[]; maxKeys: number };
     } catch {
       // Listing is best-effort: the create form still works without it.
+      return null;
     }
   }, []);
 
+  const loadKeys = useCallback(async () => {
+    const data = await fetchKeys();
+    if (!data) return;
+    setKeys(data.keys);
+    setMaxKeys(data.maxKeys);
+  }, [fetchKeys]);
+
   useEffect(() => {
-    if (session.status === 'authenticated') {
-      void loadKeys();
-    }
-  }, [session.status, loadKeys]);
+    if (session.status !== 'authenticated') return;
+
+    let cancelled = false;
+    void fetchKeys().then((data) => {
+      if (cancelled || !data) return;
+      setKeys(data.keys);
+      setMaxKeys(data.maxKeys);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [session.status, fetchKeys]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

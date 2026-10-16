@@ -58,7 +58,7 @@ const PopoverTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsW
     const { open, setOpen, triggerRef } = usePopoverContext();
     const mergedRef = React.useCallback(
       (node: HTMLButtonElement | null) => {
-        if (triggerRef) (triggerRef as React.MutableRefObject<HTMLButtonElement | null>).current = node;
+        triggerRef.current = node;
       },
       [triggerRef]
     );
@@ -101,8 +101,12 @@ const PopoverContent = React.forwardRef<
   const { open, contentRef } = usePopoverContext();
   const mergedRef = React.useCallback(
     (node: HTMLDivElement | null) => {
-      if (contentRef) (contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-      if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      contentRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
     },
     [contentRef, ref]
   );
@@ -123,17 +127,18 @@ const PopoverContent = React.forwardRef<
 });
 
 function Portal({ children }: { children: React.ReactNode }) {
-  const [container, setContainer] = React.useState<HTMLElement | null>(null);
+  const [container] = React.useState<HTMLElement | null>(() =>
+    typeof document === 'undefined' ? null : document.createElement('div')
+  );
 
   React.useEffect(() => {
-    const el = document.createElement('div');
-    el.setAttribute('data-popover-portal', '');
-    document.body.appendChild(el);
-    setContainer(el);
+    if (!container) return;
+    container.setAttribute('data-popover-portal', '');
+    document.body.appendChild(container);
     return () => {
-      document.body.removeChild(el);
+      document.body.removeChild(container);
     };
-  }, []);
+  }, [container]);
 
   return container ? createPortal(children, container) : null;
 }

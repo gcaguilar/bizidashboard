@@ -105,28 +105,26 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [nextRefreshAt, setNextRefreshAt] = useState<Date | null>(null);
-  const [countdownMs, setCountdownMs] = useState(0);
+  const [countdownMs, setCountdownMs] = useState(intervalMs);
   const [isEnabled, setIsEnabled] = useState(enabled);
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const lastRefreshRef = useRef<number>(0);
   const isRefreshingRef = useRef(false);
   const onRefreshRef = useRef(onRefresh);
   useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
-  const countdownRef = useRef(0);
+  const countdownRef = useRef(intervalMs);
 
   const triggerRefresh = useCallback(async () => {
     if (isRefreshingRef.current) return;
-    
+
     isRefreshingRef.current = true;
     setIsRefreshing(true);
     try {
       await onRefreshRef.current?.();
-      lastRefreshRef.current = Date.now();
-      setNextRefreshAt(new Date(Date.now() + intervalMs));
     } finally {
       isRefreshingRef.current = false;
       setIsRefreshing(false);
+      countdownRef.current = intervalMs;
     }
   }, [intervalMs]);
 
@@ -139,19 +137,18 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
       return;
     }
 
-    setNextRefreshAt(new Date(Date.now() + intervalMs));
     countdownRef.current = intervalMs;
 
-    intervalRef.current = setInterval(() => {
+    const id = setInterval(() => {
       countdownRef.current = Math.max(0, countdownRef.current - 1000);
       setCountdownMs(countdownRef.current);
+      setNextRefreshAt(new Date(Date.now() + countdownRef.current));
 
       if (countdownRef.current <= 0) {
         void triggerRefresh();
-        countdownRef.current = intervalMs;
-        setCountdownMs(intervalMs);
       }
     }, 1000);
+    intervalRef.current = id;
 
     return () => {
       if (intervalRef.current) {
@@ -160,10 +157,6 @@ export function useAutoRefresh(options: UseAutoRefreshOptions = {}): UseAutoRefr
       }
     };
   }, [isEnabled, intervalMs, triggerRefresh]);
-
-  useEffect(() => {
-    setCountdownMs(nextRefreshAt ? Math.max(0, nextRefreshAt.getTime() - Date.now()) : 0);
-  }, [nextRefreshAt]);
 
   return {
     isRefreshing,

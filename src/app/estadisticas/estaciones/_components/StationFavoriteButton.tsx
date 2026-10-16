@@ -1,7 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { useLocation } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import {
+  parseJsonStringArray,
+  readStorageText,
+  useStorageValue,
+  writeStorageText,
+} from '@/lib/use-storage-value'
 import {
   trackUmamiEvent,
   buildCtaClickEvent,
@@ -9,6 +14,7 @@ import {
 } from '@/lib/umami'
 
 const FAVORITES_KEY = 'bizidashboard-favorite-stations'
+const EMPTY_FAVORITE_IDS: string[] = []
 
 type StationFavoriteButtonProps = {
   stationId: string
@@ -17,28 +23,16 @@ type StationFavoriteButtonProps = {
 export function StationFavoriteButton({ stationId }: StationFavoriteButtonProps) {
   const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
-  const [isFavorite, setIsFavorite] = useState(false)
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) setIsFavorite(parsed.includes(stationId))
-      }
-    } catch {}
-  }, [stationId])
+  const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS)
+  const isFavorite = favoriteIds.includes(stationId)
 
   const toggleFavorite = () => {
-    const raw = localStorage.getItem(FAVORITES_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    const ids: string[] = Array.isArray(parsed) ? parsed : []
+    const ids = parseJsonStringArray(readStorageText(FAVORITES_KEY))
     const nextFavorite = !isFavorite
     const next = nextFavorite
       ? [...ids, stationId]
       : ids.filter(id => id !== stationId)
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(next))
-    setIsFavorite(nextFavorite)
+    writeStorageText(FAVORITES_KEY, JSON.stringify(next))
     trackUmamiEvent(
       buildCtaClickEvent({
         surface: 'public',

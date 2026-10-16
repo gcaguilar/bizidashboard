@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { DASHBOARD_DENSITIES } from '@/lib/dashboard-search';
+import { useIsHydrated, useStorageValue, writeStorageText } from '@/lib/use-storage-value';
 
 const dashboardRouteApi = getRouteApi('/dashboard/');
 
@@ -14,29 +15,8 @@ function isDashboardDensity(value: string | null | undefined): value is Dashboar
   return value === 'quick' || value === 'full';
 }
 
-function readStoredDensity(): DashboardDensity {
-  if (typeof window === 'undefined') {
-    return 'full';
-  }
-
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return isDashboardDensity(raw) ? raw : 'full';
-  } catch {
-    return 'full';
-  }
-}
-
-function persistDensity(value: DashboardDensity): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(STORAGE_KEY, value);
-  } catch {
-    // Ignore quota exceeded and private browsing failures.
-  }
+function parseStoredDensity(raw: string | null): DashboardDensity {
+  return isDashboardDensity(raw) ? raw : 'full';
 }
 
 export type UseDashboardDensityResult = {
@@ -50,13 +30,8 @@ export function useDashboardDensity(): UseDashboardDensityResult {
   const urlDensity = dashboardRouteApi.useSearch({ select: (search) => search.density });
   const urlValid = isDashboardDensity(urlDensity);
 
-  const [storedDensity, setStoredDensity] = useState<DashboardDensity>('full');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setStoredDensity(readStoredDensity());
-    setMounted(true);
-  }, []);
+  const mounted = useIsHydrated();
+  const storedDensity = useStorageValue(STORAGE_KEY, parseStoredDensity, 'full');
 
   const density: DashboardDensity = mounted
     ? urlValid
@@ -70,8 +45,7 @@ export function useDashboardDensity(): UseDashboardDensityResult {
         return;
       }
 
-      persistDensity(next);
-      setStoredDensity(next);
+      writeStorageText(STORAGE_KEY, next);
 
       void navigate({
         replace: true,

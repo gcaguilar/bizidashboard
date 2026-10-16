@@ -45,12 +45,17 @@ function createContextStore(): ContextStoreLike {
     return createFallbackStore();
   }
 
+  if (typeof process === 'undefined' || typeof process.getBuiltinModule !== 'function') {
+    return createFallbackStore();
+  }
+
   try {
-    // Lazy runtime import so browser/edge bundles never include node:async_hooks.
-    const req = (0, eval)('require') as (id: string) => {
+    // `process.getBuiltinModule` resolves Node built-ins without a specifier
+    // that bundlers statically analyze, so browser/edge bundles never include
+    // node:async_hooks.
+    const { AsyncLocalStorage } = process.getBuiltinModule('node:async_hooks') as unknown as {
       AsyncLocalStorage: new () => ContextStoreLike;
     };
-    const { AsyncLocalStorage } = req('node:async_hooks');
     return new AsyncLocalStorage();
   } catch {
     return createFallbackStore();
