@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '@/lib/db'
-import { rowsToCsv } from '@/lib/csv'
+import { csvResponse } from '@/lib/csv'
 import { resolveHistoryDataState } from '@/lib/data-state'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import { getHistoryMetadata, getPipelineStatusSummary } from '@/services/shared-data'
@@ -104,24 +104,21 @@ export const Route = createFileRoute('/api/history/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=300, stale-while-revalidate=120',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const format = new URL(request.url).searchParams.get('format')
           const payload = await buildHistoryPayload()
 
           if (format === 'csv') {
-            return new Response(rowsToCsv(HISTORY_CSV_HEADERS, payload.history), {
-              status: 200,
-              headers: {
-                'Content-Type': 'text/csv; charset=utf-8',
-                'Content-Disposition': 'attachment; filename="history-balance.csv"',
-                ...access.headers,
-              },
+            return csvResponse({
+              headers: HISTORY_CSV_HEADERS,
+              rows: payload.history,
+              filename: 'history-balance.csv',
             })
           }
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

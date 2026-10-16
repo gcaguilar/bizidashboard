@@ -9,6 +9,7 @@ import {
   resolveDatasetDataState,
   resolveStatusDataState,
 } from '@/lib/data-state';
+import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 
 const FALLBACK_SHARED_DATA_SOURCE = {
   provider: 'Bizi Zaragoza GBFS',
@@ -116,6 +117,24 @@ export function buildFallbackStations(nowIso: string): StationsResponse {
 export function buildFallbackAvailableMonths(nowIso: string): AvailableMonthsResponse {
   return {
     months: [],
+    generatedAt: nowIso,
+  };
+}
+
+export function buildFallbackHistoryMetadata(
+  nowIso: string,
+  source: SharedDataSource
+): HistoryMetadata {
+  return {
+    source,
+    coverage: {
+      firstRecordedAt: null,
+      lastRecordedAt: null,
+      totalSamples: 0,
+      totalStations: 0,
+      totalDays: 0,
+      generatedAt: nowIso,
+    },
     generatedAt: nowIso,
   };
 }

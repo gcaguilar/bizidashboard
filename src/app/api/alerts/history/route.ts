@@ -3,19 +3,11 @@ import { Prisma } from '@/generated/prisma/client';
 // Request/Response removed;
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { csvResponse } from '@/lib/csv';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { withApiRequest } from '@/lib/security/http';
-import { enforcePublicApiAccess } from '@/lib/security/public-api';
+import { withPublicApiRoute } from '@/lib/security/public-api-route';
 
 export const dynamic = 'force-dynamic';
-
-export const Route = createFileRoute('/api/alerts/history')({
-  server: {
-    handlers: {
-      GET: ({ request }) => GET(request),
-    },
-  },
-});
 
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 2000;
@@ -134,67 +126,6 @@ function parseSeverity(value: string | null): number | null | undefined {
   return parsed;
 }
 
-function escapeCsvCell(value: string | number | boolean | null | undefined): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  const text = String(value);
-  const neutralized = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
-
-  if (/[",\n]/.test(neutralized)) {
-    return `"${neutralized.replace(/"/g, '""')}"`;
-  }
-
-  return neutralized;
-}
-
-function toCsv(
-  rows: Array<{
-    id: number;
-    stationId: string;
-    stationName: string;
-    alertType: string;
-    severity: number;
-    metricValue: number;
-    windowHours: number;
-    generatedAt: string;
-    isActive: boolean;
-  }>
-): string {
-  const header = [
-    'id',
-    'stationId',
-    'stationName',
-    'alertType',
-    'severity',
-    'metricValue',
-    'windowHours',
-    'generatedAt',
-    'state',
-  ].join(',');
-
-  const body = rows
-    .map((row) => {
-      return [
-        row.id,
-        row.stationId,
-        row.stationName,
-        row.alertType,
-        row.severity,
-        row.metricValue,
-        row.windowHours,
-        row.generatedAt,
-        row.isActive ? 'active' : 'resolved',
-      ]
-        .map((value) => escapeCsvCell(value))
-        .join(',');
-    })
-    .join('\n');
-
-  return `${header}\n${body}`;
-}
-
 function parseQuery(request: Request): ParsedQuery | Response {
   const { searchParams } = new URL(request.url);
 
@@ -307,137 +238,147 @@ function buildWhereFilters(query: ParsedQuery): Prisma.StationAlertWhereInput {
   return where;
 }
 
-export async function GET(request: Request): Promise<Response> {
-  return withApiRequest(
-    request,
-    {
-      route: '/api/alerts/history',
-      routeGroup: 'public.api',
-    },
-    async ({ requestId, clientIp, userAgent }) => {
-      const parsed = parseQuery(request);
-
-      if (parsed instanceof Response) {
-        return parsed;
-      }
-
-      const access = await enforcePublicApiAccess({
-        route: '/api/alerts/history',
-        request,
-        requestId,
-        clientIp,
-        userAgent,
-        namespace: 'public-alerts-history',
-        limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
-        windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
-        requireApiKey: parsed.limit > 500,
-      });
-
-      if (!access.ok) {
-        return access.response;
-      }
-
-      const where = buildWhereFilters(parsed);
-
-      try {
-        const [total, rows] = await Promise.all([
-          prisma.stationAlert.count({ where }),
-          prisma.stationAlert.findMany({
-            where,
-            include: {
-              station: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-            orderBy: [{ generatedAt: 'desc' }, { id: 'desc' }],
-            take: parsed.limit,
-            skip: parsed.offset,
-          }),
-        ]);
-
-        const alerts = rows.map((row: StationAlertRow) => ({
-          id: row.id,
-          stationId: row.stationId,
-          stationName: row.station?.name ?? row.stationId,
-          alertType: row.alertType,
-          severity: row.severity,
-          metricValue: Number(row.metricValue),
-          windowHours: row.windowHours,
-          generatedAt: row.generatedAt.toISOString(),
-          isActive: row.isActive,
-        }));
-
-        if (parsed.format === 'csv') {
-          const csv = toCsv(alerts);
-          const suffix = new Date().toISOString().slice(0, 10);
-
-          return new Response(csv, {
-            status: 200,
-            headers: {
-              'Content-Type': 'text/csv; charset=utf-8',
-              'Content-Disposition': `attachment; filename="alerts-history-${suffix}.csv"`,
-              'Cache-Control': 'no-store',
-              ...access.headers,
-            },
-          });
-        }
-
-        return Response.json(
-          {
-            filters: {
-              state: parsed.state,
-              stationId: parsed.stationId,
-              alertType: parsed.alertType,
-              severity: parsed.severity,
-              from: parsed.from?.toISOString() ?? null,
-              to: parsed.to?.toISOString() ?? null,
-            },
-            pagination: {
-              total,
-              limit: parsed.limit,
-              offset: parsed.offset,
-              returned: alerts.length,
-            },
-            alerts,
-            generatedAt: new Date().toISOString(),
+export const Route = createFileRoute('/api/alerts/history')({
+  server: {
+    handlers: {
+      GET: withPublicApiRoute(
+        {
+          route: '/api/alerts/history',
+          routeGroup: 'api.alerts-history',
+          namespace: 'public-alerts-history',
+          limit: PUBLIC_ROUTE_RATE_LIMIT.limit,
+          windowMs: PUBLIC_ROUTE_RATE_LIMIT.windowMs,
+          requireApiKey: (url) => {
+            const limit = parseBoundedInteger(
+              url.searchParams.get('limit'),
+              DEFAULT_LIMIT,
+              1,
+              MAX_LIMIT
+            );
+            return typeof limit === 'number' && limit > 500;
           },
-          {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-store',
-              ...access.headers,
-            },
+          cacheControl: 'no-store',
+        },
+        async ({ request }) => {
+          const parsed = parseQuery(request);
+
+          if (parsed instanceof Response) {
+            return parsed;
           }
-        );
-      } catch (error) {
-        captureExceptionWithContext(error, {
-          area: 'api.alerts-history',
-          operation: 'GET /api/alerts/history',
-          extra: {
-            format: parsed.format,
-            state: parsed.state,
-            stationId: parsed.stationId,
-            alertType: parsed.alertType,
-            severity: parsed.severity,
-            limit: parsed.limit,
-            offset: parsed.offset,
-            from: parsed.from?.toISOString() ?? null,
-            to: parsed.to?.toISOString() ?? null,
-          },
-        });
-        logger.error('api.alerts_history.failed', { error });
 
-        return Response.json(
-          {
-            error: 'Failed to fetch alert history',
-            timestamp: new Date().toISOString(),
-          },
-          { status: 500 }
-        );
-      }
-    }
-  );
-}
+          const where = buildWhereFilters(parsed);
+
+          try {
+            const [total, rows] = await Promise.all([
+              prisma.stationAlert.count({ where }),
+              prisma.stationAlert.findMany({
+                where,
+                include: {
+                  station: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+                orderBy: [{ generatedAt: 'desc' }, { id: 'desc' }],
+                take: parsed.limit,
+                skip: parsed.offset,
+              }),
+            ]);
+
+            const alerts = rows.map((row: StationAlertRow) => ({
+              id: row.id,
+              stationId: row.stationId,
+              stationName: row.station?.name ?? row.stationId,
+              alertType: row.alertType,
+              severity: row.severity,
+              metricValue: Number(row.metricValue),
+              windowHours: row.windowHours,
+              generatedAt: row.generatedAt.toISOString(),
+              isActive: row.isActive,
+            }));
+
+            if (parsed.format === 'csv') {
+              const suffix = new Date().toISOString().slice(0, 10);
+              return csvResponse({
+                headers: [
+                  'id',
+                  'stationId',
+                  'stationName',
+                  'alertType',
+                  'severity',
+                  'metricValue',
+                  'windowHours',
+                  'generatedAt',
+                  'state',
+                ],
+                rows: alerts.map((alert) => [
+                  alert.id,
+                  alert.stationId,
+                  alert.stationName,
+                  alert.alertType,
+                  alert.severity,
+                  alert.metricValue,
+                  alert.windowHours,
+                  alert.generatedAt,
+                  alert.isActive ? 'active' : 'resolved',
+                ]),
+                filename: `alerts-history-${suffix}.csv`,
+              });
+            }
+
+            return Response.json(
+              {
+                filters: {
+                  state: parsed.state,
+                  stationId: parsed.stationId,
+                  alertType: parsed.alertType,
+                  severity: parsed.severity,
+                  from: parsed.from?.toISOString() ?? null,
+                  to: parsed.to?.toISOString() ?? null,
+                },
+                pagination: {
+                  total,
+                  limit: parsed.limit,
+                  offset: parsed.offset,
+                  returned: alerts.length,
+                },
+                alerts,
+                generatedAt: new Date().toISOString(),
+              },
+              {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            );
+          } catch (error) {
+            captureExceptionWithContext(error, {
+              area: 'api.alerts-history',
+              operation: 'GET /api/alerts/history',
+              extra: {
+                format: parsed.format,
+                state: parsed.state,
+                stationId: parsed.stationId,
+                alertType: parsed.alertType,
+                severity: parsed.severity,
+                limit: parsed.limit,
+                offset: parsed.offset,
+                from: parsed.from?.toISOString() ?? null,
+                to: parsed.to?.toISOString() ?? null,
+              },
+            });
+            logger.error('api.alerts_history.failed', { error });
+
+            return Response.json(
+              {
+                error: 'Failed to fetch alert history',
+                timestamp: new Date().toISOString(),
+              },
+              { status: 500 }
+            );
+          }
+        }
+      ),
+    },
+  },
+});

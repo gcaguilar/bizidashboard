@@ -23,7 +23,6 @@ export type {
 } from '@/lib/data-fetcher';
 
 export {
-  DataFetcher,
   fetchAlerts,
   fetchAvailableDataMonths,
   fetchHeatmap,

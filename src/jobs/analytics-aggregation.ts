@@ -4,8 +4,6 @@
  * Runs hourly rollups and triggers daily rollups + retention after UTC day completion.
  */
 
-import { schedule } from 'node-cron';
-import type { ScheduledTask } from 'node-cron';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { acquireJobLock } from '@/analytics/job-lock';
 import { getWatermark } from '@/analytics/watermarks';
@@ -22,7 +20,7 @@ import * as Sentry from '@sentry/tanstackstart-react';
 import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
 import { ensureLockRefreshed } from './utils';
-import type { CronOptions } from './types';
+import { defineCronJob } from './cron-job';
 import {
   getStationsWithLatestStatus,
   getDailyDemandCurve,
@@ -91,10 +89,7 @@ async function warmCache(): Promise<void> {
   }
 }
 
-let cronJob: ScheduledTask | null = null;
-
-function getHourlyCutoff(now: Date): Date {
-  const delayMs = ANALYTICS_WINDOWS.rollupHourlyDelayMinutes * 60 * 1000;
+function getHourlyCutoff(now: Date): Date {  const delayMs = ANALYTICS_WINDOWS.rollupHourlyDelayMinutes * 60 * 1000;
   const delayed = new Date(now.getTime() - delayMs);
   const hourStartUtc = Date.UTC(
     delayed.getUTCFullYear(),
@@ -250,52 +245,31 @@ async function runAnalyticsAggregationInner(): Promise<void> {
   }
 }
 
+const analyticsJob = defineCronJob({
+  monitor: 'analytics-aggregation',
+  logPrefix: 'analytics',
+  schedule: '10 * * * *',
+  timezone: 'UTC',
+  run: () => runAnalyticsAggregation(),
+});
+
 /**
- * Start the scheduled analytics aggregation job
- * Runs hourly at minute 10 in UTC
+ * Start the scheduled analytics aggregation job (hourly at minute 10, UTC).
  */
 export function startAnalyticsAggregationJob(): void {
-  if (cronJob) {
-    logger.info('analytics.cron_already_running');
-    return;
-  }
-
-  cronJob = schedule(
-    '10 * * * *',
-    async () => {
-      await Sentry.withMonitor(
-        'analytics-aggregation',
-        () => runAnalyticsAggregation(),
-        {
-          schedule: { type: 'crontab', value: '10 * * * *' },
-          timezone: 'UTC',
-        }
-      );
-    },
-    {
-      scheduled: true,
-      timezone: 'UTC',
-      runOnInit: true,
-    } as CronOptions
-  );
-
-  logger.info('analytics.cron_started');
+  analyticsJob.start();
 }
 
 /**
- * Stop the scheduled analytics aggregation job
+ * Stop the scheduled analytics aggregation job.
  */
 export function stopAnalyticsAggregationJob(): void {
-  if (cronJob) {
-    void cronJob.stop();
-    cronJob = null;
-    logger.info('analytics.cron_stopped');
-  }
+  analyticsJob.stop();
 }
 
 /**
- * Check if the analytics aggregation job is currently scheduled
+ * Check if the analytics aggregation job is currently scheduled.
  */
 export function isAnalyticsAggregationScheduled(): boolean {
-  return cronJob !== null;
+  return analyticsJob.isScheduled();
 }

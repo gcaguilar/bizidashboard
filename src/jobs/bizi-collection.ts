@@ -9,8 +9,6 @@
  * metrics recording, and DB persistence of collection runs.
  */
 
-import { schedule } from 'node-cron';
-import type { ScheduledTask } from 'node-cron';
 import { randomUUID } from 'node:crypto';
 import * as Sentry from '@sentry/tanstackstart-react';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -30,7 +28,7 @@ import {
   updateExecutionContext,
 } from '@/lib/request-context';
 import { createCollectionPipeline, type CollectionPipelineResult } from '@/lib/collection-pipeline';
-import type { CronOptions } from './types';
+import { defineCronJob } from './cron-job';
 
 /**
  * Result of a collection run
@@ -64,8 +62,6 @@ type RunCollectionOptions = {
 };
 
 // Module-level state
-let cronJob: ScheduledTask | null = null;
-let isScheduled = false;
 const COLLECTION_LOCK_TTL_MS = 10 * 60 * 1000;
 const COLLECTION_LOCK_NAME = 'gbfs-collection';
 const COLLECTION_CRON_SCHEDULE = '*/2 * * * *';
@@ -368,64 +364,34 @@ export async function runCollection(
   );
 }
 
+const collectionJob = defineCronJob({
+  monitor: 'bizi-collection',
+  logPrefix: 'collection',
+  schedule: COLLECTION_CRON_SCHEDULE,
+  timezone: 'Europe/Madrid',
+  run: async () => {
+    await runCollection({ trigger: 'cron' });
+  },
+});
+
 /**
- * Start the scheduled collection job
- * Runs every 2 minutes in Europe/Madrid timezone
+ * Start the scheduled collection job (every 2 minutes, Europe/Madrid).
  */
 export function startCollectionJob(): void {
-  if (cronJob) {
-    logger.info('collection.cron_already_running');
-    return;
-  }
-
-  // Schedule: every 2 minutes
-  cronJob = schedule(
-    COLLECTION_CRON_SCHEDULE,
-    async () => {
-      try {
-        await Sentry.withMonitor(
-          'bizi-collection',
-          () => runCollection({ trigger: 'cron' }),
-          {
-            schedule: { type: 'crontab', value: COLLECTION_CRON_SCHEDULE },
-            timezone: 'Europe/Madrid',
-          }
-        );
-      } catch (error) {
-        // Error already logged in runCollection
-        // Just prevent crash
-        logger.error('collection.cron_failed', { error });
-      }
-    },
-    {
-      scheduled: true,
-      timezone: 'Europe/Madrid',
-      runOnInit: true, // Run immediately on startup
-    } as CronOptions
-  );
-
-  isScheduled = true;
-  logger.info('collection.cron_started', {
-    schedule: COLLECTION_CRON_SCHEDULE,
-  });
+  collectionJob.start();
 }
 
 /**
- * Stop the scheduled collection job
- * Useful for testing and graceful shutdown
+ * Stop the scheduled collection job.
+ * Useful for testing and graceful shutdown.
  */
 export function stopCollectionJob(): void {
-  if (cronJob) {
-    void cronJob.stop();
-    cronJob = null;
-    isScheduled = false;
-    logger.info('collection.cron_stopped');
-  }
+  collectionJob.stop();
 }
 
 /**
- * Check if the collection job is currently scheduled
+ * Check if the collection job is currently scheduled.
  */
 export function isCollectionScheduled(): boolean {
-  return isScheduled;
+  return collectionJob.isScheduled();
 }

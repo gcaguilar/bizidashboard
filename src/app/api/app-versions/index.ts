@@ -43,8 +43,8 @@ export const Route = createFileRoute('/api/app-versions/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=3600, s-maxage=86400',
         },
-        ({ access }) => {
-          return new Response(JSON.stringify(APP_VERSIONS), { status: 200, headers: { 'Content-Type': 'application/json', ...access.headers } })
+        () => {
+          return new Response(JSON.stringify(APP_VERSIONS), { status: 200, headers: { 'Content-Type': 'application/json' } })
         }
       ),
     },

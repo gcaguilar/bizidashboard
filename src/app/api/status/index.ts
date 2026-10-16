@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getPipelineStatusSummary } from '@/services/shared-data'
 import { resolveStatusDataState } from '@/lib/data-state'
+import { csvResponse } from '@/lib/csv'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 
 export const Route = createFileRoute('/api/status/')({
@@ -16,7 +17,7 @@ export const Route = createFileRoute('/api/status/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=60, stale-while-revalidate=60',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const format = new URL(request.url).searchParams.get('format')
           const data = await getPipelineStatusSummary()
           if (!data || typeof data !== 'object') {
@@ -26,20 +27,20 @@ export const Route = createFileRoute('/api/status/')({
           const payload = { ...data, dataState: resolveStatusDataState(data) }
 
           if (format === 'csv') {
-            const escapeCsv = (v: string) => v.includes(',') || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
-            const csv = 'timestamp,lastCollection,status\n'
-              + escapeCsv(new Date().toISOString()) + ','
-              + escapeCsv(payload.pipeline?.lastSuccessfulPoll ?? '') + ','
-              + escapeCsv(payload.quality?.freshness?.lastUpdated ?? '')
-            return new Response(csv, {
-              status: 200,
-              headers: { 'Content-Type': 'text/csv; charset=utf-8', ...access.headers },
+            return csvResponse({
+              headers: ['timestamp', 'lastCollection', 'status'],
+              rows: [[
+                new Date().toISOString(),
+                payload.pipeline?.lastSuccessfulPoll ?? '',
+                payload.quality?.freshness?.lastUpdated ?? '',
+              ]],
+              filename: 'status.csv',
             })
           }
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

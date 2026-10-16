@@ -27,3 +27,44 @@ export function rowsToCsv(headers: string[], rows: Record<string, unknown>[]): s
   const dataRows = rows.map((row) => headers.map((h) => row[h]));
   return toCsv(headers, dataRows as CsvRow[]);
 }
+
+export type CsvResponseOptions = {
+  /** Ordered column headers. */
+  headers: string[];
+  /** Rows as objects keyed by header, or as ordered cell arrays. */
+  rows: CsvRow[] | Record<string, unknown>[];
+  /** When set, the download filename (Content-Disposition attachment). */
+  filename?: string;
+  /** Extra response headers (e.g. rate-limit or cache headers). */
+  extraHeaders?: Record<string, string>;
+};
+
+function asCellRows(
+  headers: string[],
+  rows: CsvRow[] | Record<string, unknown>[]
+): CsvRow[] {
+  return rows.map((row) =>
+    Array.isArray(row)
+      ? (row as CsvRow)
+      : (headers.map(
+          (header) => (row as Record<string, unknown>)[header]
+        ) as CsvRow)
+  );
+}
+
+/**
+ * The single seam for CSV exports: neutralization, escaping, and the
+ * text/csv response (Content-Type, optional Content-Disposition) live here,
+ * so a CSV hardening lands once instead of drifting across call sites.
+ */
+export function csvResponse(options: CsvResponseOptions): Response {
+  const { headers: columns, rows, filename, extraHeaders } = options;
+  return new Response(toCsv(columns, asCellRows(columns, rows)), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      ...(filename ? { 'Content-Disposition': `attachment; filename="${filename}"` } : {}),
+      ...extraHeaders,
+    },
+  });
+}

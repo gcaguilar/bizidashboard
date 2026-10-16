@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { buildRebalancingReport } from '@/lib/rebalancing-report'
+import { escapeCsvCell } from '@/lib/csv'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import type { StationDiagnostic, TransferRecommendation } from '@/types/rebalancing'
 
@@ -11,11 +12,6 @@ function parseDays(value: string | null): number | null {
   const parsed = Number(value)
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_DAYS) return null
   return parsed
-}
-
-function escapeCell(value: unknown): string {
-  const result = typeof value === 'string' ? value : value === null || value === undefined ? '' : JSON.stringify(value)
-  return `"${result.replaceAll('"', '""')}"`
 }
 
 function toCsvDiagnostics(rows: StationDiagnostic[]): string {
@@ -37,7 +33,7 @@ function toCsvDiagnostics(rows: StationDiagnostic[]): string {
     row.risk.selfCorrectionProbability.toFixed(3), row.risk.estimatedRecoveryMinutes ?? '',
     row.classificationReasons.join(' | '), row.actionReasons.join(' | '),
   ])
-  return [headers, ...values].map((row) => row.map(escapeCell).join(',')).join('\n')
+  return [headers, ...values].map((row) => row.map(escapeCsvCell).join(',')).join('\n')
 }
 
 function toCsvTransfers(rows: TransferRecommendation[]): string {
@@ -53,7 +49,7 @@ function toCsvTransfers(rows: TransferRecommendation[]): string {
     row.expectedImpact.fullsAvoided.toFixed(2), row.expectedImpact.usesRecovered.toFixed(2),
     row.expectedImpact.costScore.toFixed(3), row.reasons.join(' | '),
   ])
-  return [headers, ...values].map((row) => row.map(escapeCell).join(',')).join('\n')
+  return [headers, ...values].map((row) => row.map(escapeCsvCell).join(',')).join('\n')
 }
 
 export const Route = createFileRoute('/api/rebalancing-report/')({
@@ -73,7 +69,7 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           },
           cacheControl: 'public, max-age=300, stale-while-revalidate=60',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const { searchParams } = new URL(request.url)
           const format = searchParams.get('format')
           const daysParam = searchParams.get('days')
@@ -99,14 +95,13 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
               headers: {
                 'Content-Type': 'text/csv; charset=utf-8',
                 'Content-Disposition': `attachment; filename="rebalancing-report-${days}d.csv"`,
-                ...access.headers,
               },
             })
           }
 
           return new Response(JSON.stringify(report), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

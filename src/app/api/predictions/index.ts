@@ -15,7 +15,7 @@ export const Route = createFileRoute('/api/predictions/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=60, stale-while-revalidate=60',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const stationId = new URL(request.url).searchParams.get('stationId')?.trim() ?? ''
 
           if (!stationId || stationId.length < 1 || stationId.length > 64) {
@@ -25,12 +25,12 @@ export const Route = createFileRoute('/api/predictions/')({
           const payload = await getStationPredictions(stationId)
 
           if (!payload) {
-            return new Response(JSON.stringify({ error: 'station not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...access.headers } })
+            return new Response(JSON.stringify({ error: 'station not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } })
           }
 
           return new Response(JSON.stringify(payload), {
             status: 200,
-            headers: { 'Content-Type': 'application/json', ...access.headers },
+            headers: { 'Content-Type': 'application/json' },
           })
         }
       ),

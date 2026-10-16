@@ -16,13 +16,13 @@ export const Route = createFileRoute('/api/heatmap/')({
           requireApiKey: false,
           cacheControl: 'public, max-age=300, stale-while-revalidate=600',
         },
-        async ({ request, access }) => {
+        async ({ request }) => {
           const stationId = new URL(request.url).searchParams.get('stationId')
           if (!stationId || stationId.trim().length < 1 || stationId.trim().length > 64) {
             return new Response(JSON.stringify({ error: 'stationId query parameter is required (max 64 chars)' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
           }
           const heatmap = await withCache(`heatmap:stationId=${stationId}`, 300, () => getHeatmap(stationId, undefined))
-          return new Response(JSON.stringify(heatmap), { status: 200, headers: { 'Content-Type': 'application/json', ...access.headers } })
+          return new Response(JSON.stringify(heatmap), { status: 200, headers: { 'Content-Type': 'application/json' } })
         }
       ),
     },
