@@ -161,17 +161,68 @@ bun run build
 
 ## Observability (Sentry)
 
-Sentry is used for real-time error monitoring across both client and server.
+Sentry monitors errors and performance across both the browser and the server using the
+official TanStack Start integration (`@sentry/tanstackstart-react`).
 
-- **Setup**:
-  - `VITE_SENTRY_DSN` for browser events.
-  - `SENTRY_DSN` for server/edge events (falls back to `VITE_SENTRY_DSN` if not set).
-- **Sampling**:
-  - `VITE_SENTRY_TRACE_SAMPLE_RATE`
-  - `SENTRY_TRACE_SAMPLE_RATE`
-- **Source Maps**: During production builds, if a `SENTRY_AUTH_TOKEN` is found, the build will automatically upload source maps for easier debugging.
-- **Docker note**: `VITE_*` variables are compiled at build-time. When building Docker images, pass them through `build.args` (not only runtime env).
-- **CSP compatibility**: keep Sentry delivery endpoints allowed in `connect-src` (including ingest and tunnel path `/monitoring`) when hardening CSP.
+### Wiring
+
+- **Vite plugin**: `sentryTanstackStart` (kept **last** in `vite.config.ts`) injects the
+  tunnel route, instruments middlewares, and uploads source maps at build time.
+- **Client**: `src/client.tsx` imports `src/instrument.client.ts` (SDK init) before
+  hydration; `src/router.tsx` adds `tanstackRouterBrowserTracingIntegration` so
+  navigations become transactions.
+- **Server**: `src/server.ts` imports `src/instrument.server.ts` (SDK init) and wraps the
+  TanStack Start handler with `wrapFetchWithSentry`.
+- **Global middlewares**: `src/start.ts` registers `sentryGlobalRequestMiddleware` and
+  `sentryGlobalFunctionMiddleware`, so every request and server function is traced and
+  captured.
+- **Jobs**: `src/jobs/standalone.ts` imports `src/instrument.server.ts`, so the cron
+  collection/aggregation runs report errors, emit cron monitors (`Sentry.withMonitor`)
+  and custom spans.
+- **Error boundaries**: route `errorComponent`s and the dashboard class boundaries report
+  through `src/lib/route-error-reporting.tsx`.
+- **Logs**: `src/lib/logger.ts` forwards warn/error lines to Sentry Logs when enabled.
+
+### Configuration
+
+Runtime (server + jobs):
+
+- `SENTRY_DSN` for server/jobs events (falls back to `VITE_SENTRY_DSN`).
+- `SENTRY_TRACE_SAMPLE_RATE` (falls back to `VITE_SENTRY_TRACE_SAMPLE_RATE`).
+- `APP_ENV` to override the reported environment (defaults to `NODE_ENV`).
+- `SENTRY_DYNACONF_RELEASE` as the release fallback (`GIT_SHA` wins in CI/Docker).
+- `SENTRY_LOGS_ENABLED=true` to forward server warn/error logs to Sentry Logs.
+
+Build-time (inlined into the browser bundle by Vite):
+
+- `VITE_SENTRY_DSN`, or `SENTRY_DSN` as a fallback (a single DSN configures both sides).
+- `VITE_SENTRY_TRACE_SAMPLE_RATE`.
+- `VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE` (default `0.05`) and
+  `VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` (default `1.0`).
+- `VITE_SENTRY_LOGS_ENABLED=true` to forward browser warn/error logs.
+
+### Privacy
+
+`sendDefaultPii` is disabled everywhere, the browser sets `dataCollection.userInfo = false`,
+Session Replay masks all text and blocks media, and the server strips request cookies in
+`beforeSend`. Client-disconnect `AbortError`s are filtered on both sides.
+
+### Source maps
+
+During production builds, if a `SENTRY_AUTH_TOKEN` (plus `SENTRY_ORG`/`SENTRY_PROJECT`) is
+present, the build uploads source maps and deletes the `.map` files from `dist/`.
+
+### Docker note
+
+`VITE_*` variables are compiled at build-time. When building Docker images, pass them
+through `build.args` (not only runtime env). The Dockerfile also forwards
+`SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT` to the builder stage for source maps.
+
+### CSP compatibility
+
+The browser SDK delivers through an opaque, same-origin tunnel path (`/monitoring`), so
+`connect-src 'self'` is enough. Sentry delivery origins are still allowlisted (derived from
+`SENTRY_DSN`/`VITE_SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN`) for direct delivery.
 
 ## Analytics (Umami)
 
