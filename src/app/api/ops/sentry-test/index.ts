@@ -8,8 +8,9 @@ import { handleOperationalRoute } from '@/lib/security/ops-api'
 const RATE_LIMIT_MAX = 6
 const RATE_LIMIT_WINDOW_MS = 60_000
 
-function resolveSentryDsnSource(): 'SENTRY_DSN' | 'NEXT_PUBLIC_SENTRY_DSN' | null {
+function resolveSentryDsnSource(): 'SENTRY_DSN' | 'VITE_SENTRY_DSN' | 'NEXT_PUBLIC_SENTRY_DSN' | null {
   if (process.env.SENTRY_DSN?.trim()) return 'SENTRY_DSN'
+  if (process.env.VITE_SENTRY_DSN?.trim()) return 'VITE_SENTRY_DSN'
   if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) return 'NEXT_PUBLIC_SENTRY_DSN'
   return null
 }
