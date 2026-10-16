@@ -85,6 +85,7 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
 COPY ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY ops/create-schema.ts /app/ops/create-schema.ts
 COPY ops/start-server.mjs /app/ops/start-server.mjs
+COPY ops/validate-env.mjs /app/ops/validate-env.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
