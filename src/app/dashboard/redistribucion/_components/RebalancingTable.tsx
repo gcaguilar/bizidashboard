@@ -3,16 +3,40 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { Fragment, useState, useCallback, useEffect, useRef } from 'react';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
+  useTable,
+  tableFeatures,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  columnFilteringFeature,
+  globalFilteringFeature,
+  rowSortingFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  createFilteredRowModel,
+  createSortedRowModel,
+  createPaginatedRowModel,
+  filterFns,
+  sortFns,
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
   type RowSelectionState,
 } from '@tanstack/react-table';
+
+const features = tableFeatures({
+  columnSizingFeature,
+  columnVisibilityFeature,
+  columnFilteringFeature,
+  globalFilteringFeature,
+  rowSortingFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns,
+  sortFns,
+});
 import {
   Accordion,
   AccordionContent,
@@ -226,7 +250,7 @@ function OccupancyBar({
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 
-const columns: ColumnDef<StationDiagnostic>[] = [
+const columns: ColumnDef<typeof features, StationDiagnostic>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -479,7 +503,8 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
 
   // TanStack Table intentionally returns non-memoizable functions; keep this local opt-out explicit.
    
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: diagnostics,
     columns,
     state: {
@@ -496,10 +521,6 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => row.stationId,
     enableMultiSort: true,
   });

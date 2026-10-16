@@ -1,10 +1,11 @@
 'use client';
 
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
+import { parseJsonStringArray, useStorageValue } from '@/lib/use-storage-value';
 import {
   buildSearchSubmitEvent,
   resolveRouteKeyFromPathname,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/umami';
 
 const FAVORITES_KEY = 'bizidashboard-favorite-stations';
+const EMPTY_FAVORITE_IDS: string[] = [];
 
 type StationSuggestion = {
   id: string;
@@ -42,10 +44,28 @@ export function PublicSearchForm({
 
   const [query, setQuery] = useState(defaultQuery);
   const [stations, setStations] = useState<StationSuggestion[]>([]);
-  const [suggestions, setSuggestions] = useState<StationSuggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS);
+
+  const suggestions = useMemo(() => {
+    if (query.length < 2) {
+      return [];
+    }
+
+    const q = query.toLowerCase();
+    const matches = stations.filter(
+      (s) => s.name.toLowerCase().includes(q) || s.id.includes(q),
+    );
+    const sorted = [...matches].sort((a, b) => {
+      const aFav = favoriteIds.includes(a.id) ? 1 : 0;
+      const bFav = favoriteIds.includes(b.id) ? 1 : 0;
+      return bFav - aFav;
+    });
+
+    return sorted.slice(0, 8);
+  }, [query, stations, favoriteIds]);
+  const showSuggestions = isFocused && suggestions.length > 0;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -62,42 +82,12 @@ export function PublicSearchForm({
   }, []);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) {
-        const ids = JSON.parse(raw);
-        if (Array.isArray(ids)) setFavoriteIds(ids);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
     return () => clearTimeout(blurTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    if (query.length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-    const q = query.toLowerCase();
-    const matches = stations.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.id.includes(q),
-    );
-    const sorted = matches.sort((a, b) => {
-      const aFav = favoriteIds.includes(a.id) ? 1 : 0;
-      const bFav = favoriteIds.includes(b.id) ? 1 : 0;
-      return bFav - aFav;
-    });
-    setSuggestions(sorted.slice(0, 8));
-    setShowSuggestions(matches.length > 0);
-    setSelectedIndex(-1);
-  }, [query, stations, favoriteIds]);
-
   const selectSuggestion = useCallback(
     (station: StationSuggestion) => {
-      setShowSuggestions(false);
+      setIsFocused(false);
       setQuery('');
       void navigate({ to: appRoutes.stationDetail(station.id) });
     },
@@ -113,11 +103,11 @@ export function PublicSearchForm({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
-    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+    } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < suggestions.length) {
       e.preventDefault();
       selectSuggestion(suggestions[selectedIndex]);
     } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
+      setIsFocused(false);
       setSelectedIndex(-1);
     }
   };
@@ -157,12 +147,13 @@ export function PublicSearchForm({
             value={query}
             placeholder={placeholder}
             autoComplete="off"
-            onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => {
-              if (suggestions.length > 0) setShowSuggestions(true);
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedIndex(-1);
             }}
+            onFocus={() => setIsFocused(true)}
             onBlur={() => {
-              const timer = setTimeout(() => setShowSuggestions(false), 150);
+              const timer = setTimeout(() => setIsFocused(false), 150);
               blurTimerRef.current = timer;
             }}
             onKeyDown={handleKeyDown}

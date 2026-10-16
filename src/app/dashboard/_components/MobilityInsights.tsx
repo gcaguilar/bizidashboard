@@ -84,7 +84,7 @@ function MobilityInsightsContent({
     }),
   });
 
-  const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
+  const [userSelectedDistrict, setUserSelectedDistrict] = useState<string>('');
   const selectedMonth = flowSearch.month;
   const activePeriod = flowSearch.period as PeriodInsights['key'];
 
@@ -140,11 +140,11 @@ function MobilityInsightsContent({
     ? stationDistrictMap.get(selectedStationId) ?? null
     : null;
 
-  useEffect(() => {
-    setSelectedDistrictName((current) => {
-      return resolveSelectedDistrictName(activeInsights, selectedDistrict, current);
-    });
-  }, [activeInsights, selectedDistrict]);
+  const selectedDistrictName = resolveSelectedDistrictName(
+    activeInsights,
+    selectedDistrict,
+    userSelectedDistrict
+  );
 
   const selectedDistrictFlow = activeInsights?.districts.find(
     (district) => district.district === selectedDistrictName
@@ -341,7 +341,7 @@ function MobilityInsightsContent({
                 </label>
                 <Select
                   value={selectedDistrictName}
-                  onValueChange={(value) => setSelectedDistrictName(value ?? '')}
+                  onValueChange={(value) => setUserSelectedDistrict(value ?? '')}
                 >
                   <SelectTrigger
                     aria-label="Seleccionar barrio de referencia"

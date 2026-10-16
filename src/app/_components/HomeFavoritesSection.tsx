@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
+import { parseJsonStringArray, useStorageValue } from '@/lib/use-storage-value';
 import {
   trackUmamiEvent,
   buildEntitySelectEvent,
@@ -12,6 +12,7 @@ import {
 } from '@/lib/umami';
 
 const FAVORITES_KEY = 'bizidashboard-favorite-stations';
+const EMPTY_FAVORITE_IDS: string[] = [];
 
 type HomeFavoritesSectionProps = {
   stationRows: StationSeoSummary[];
@@ -20,17 +21,7 @@ type HomeFavoritesSectionProps = {
 export function HomeFavoritesSection({ stationRows }: HomeFavoritesSectionProps) {
   const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAVORITES_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setFavoriteIds(parsed);
-      }
-    } catch {}
-  }, []);
+  const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS);
 
   const favorites = stationRows
     .filter((s) => favoriteIds.includes(s.station.id))
