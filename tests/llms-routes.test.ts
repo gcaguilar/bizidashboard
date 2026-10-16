@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
@@ -15,7 +16,7 @@ afterEach(() => {
 describe('llms discovery routes', () => {
   it('serves llms.txt with discovery pointers', async () => {
     const { Route } = await import('@/app/llms[.]txt');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
     const response = await handler({ request: new Request('http://localhost/llms.txt') });
     const body = await response.text();
 
@@ -27,7 +28,7 @@ describe('llms discovery routes', () => {
 
   it('serves llms-full.txt with seo pages and api surface', async () => {
     const { Route } = await import('@/app/llms-full[.]txt');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
     const response = await handler({ request: new Request('http://localhost/llms-full.txt') });
     const body = await response.text();
 

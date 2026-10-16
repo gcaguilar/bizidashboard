@@ -56,7 +56,7 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
   const criticalDifference = input.baseline
     ? criticalCount - input.baseline.criticalStationsCount
     : null;
-  const comparison = input.baseline
+  const comparison = input.baseline && criticalDifference !== null
     ? criticalDifference === 0
       ? `Hay el mismo número que en ${input.baseline.label}.`
       : `Hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación', 'estaciones')} ${criticalDifference > 0 ? 'más' : 'menos'} que en ${input.baseline.label}.`

@@ -91,8 +91,8 @@ describe('TrackedLink', () => {
       navigationEvent: {
         source: 'alerts_summary',
         destination: 'dashboard_status',
-        sourceRole: 'panel',
-        destinationRole: 'page',
+        sourceRole: 'dashboard',
+        destinationRole: 'dashboard',
         transitionKind: 'within_dashboard',
       },
       onClick,
@@ -106,8 +106,8 @@ describe('TrackedLink', () => {
       routeKey: 'dashboard_alerts',
       source: 'alerts_summary',
       destination: 'dashboard_status',
-      sourceRole: 'panel',
-      destinationRole: 'page',
+      sourceRole: 'dashboard',
+      destinationRole: 'dashboard',
       transitionKind: 'within_dashboard',
     });
     expect(trackUmamiEventMock).toHaveBeenCalledWith({
@@ -117,8 +117,8 @@ describe('TrackedLink', () => {
         routeKey: 'dashboard_alerts',
         source: 'alerts_summary',
         destination: 'dashboard_status',
-        sourceRole: 'panel',
-        destinationRole: 'page',
+        sourceRole: 'dashboard',
+        destinationRole: 'dashboard',
         transitionKind: 'within_dashboard',
       },
     });
@@ -134,8 +134,8 @@ describe('TrackedLink', () => {
         source: 'methodology_hero',
         ctaId: 'compare_systems',
         destination: 'compare_view',
-        sourceRole: 'hero',
-        destinationRole: 'page',
+        sourceRole: 'hub',
+        destinationRole: 'hub',
         transitionKind: 'within_public',
       },
     });
@@ -149,8 +149,8 @@ describe('TrackedLink', () => {
       source: 'methodology_hero',
       ctaId: 'compare_systems',
       destination: 'compare_view',
-      sourceRole: 'hero',
-      destinationRole: 'page',
+      sourceRole: 'hub',
+      destinationRole: 'hub',
       transitionKind: 'within_public',
     });
     expect(trackUmamiEventMock).toHaveBeenCalledWith({
@@ -161,8 +161,8 @@ describe('TrackedLink', () => {
         source: 'methodology_hero',
         ctaId: 'compare_systems',
         destination: 'compare_view',
-        sourceRole: 'hero',
-        destinationRole: 'page',
+        sourceRole: 'hub',
+        destinationRole: 'hub',
         transitionKind: 'within_public',
       },
     });
@@ -205,9 +205,9 @@ describe('TrackedLink', () => {
   it('prioritizes trackingEvent over navigation, CTA, and entity selection events', async () => {
     const { TrackedLink } = await import('@/app/_components/TrackedLink');
     const trackingEvent = {
-      name: 'page_view',
+      name: 'public_page_view',
       payload: {
-        routeKey: 'explicit_override',
+        route_key: 'explicit_override',
       },
     } as const;
     const link = TrackedLink({

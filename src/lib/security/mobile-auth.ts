@@ -134,8 +134,9 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
   }
 
   const { timestamp, signature } = options.body;
+  const timestampMs = typeof timestamp === 'number' ? timestamp : Number.NaN;
 
-  if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || typeof signature !== 'string' || !signature.trim()) {
+  if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0 || typeof signature !== 'string' || !signature.trim()) {
     return deny({
       route: options.route,
       requestId: options.requestId,
@@ -150,7 +151,7 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
     });
   }
 
-  if (isSignatureExpired(timestamp)) {
+  if (isSignatureExpired(timestampMs)) {
     return deny({
       route: options.route,
       requestId: options.requestId,
@@ -165,7 +166,7 @@ export async function verifyMobileRequest<TBody extends MobileSignedBody>(
     });
   }
 
-  if (!install.publicKeyMaterial || !verifyInstallSignature(install.publicKeyMaterial, options.body, timestamp, signature)) {
+  if (!install.publicKeyMaterial || !verifyInstallSignature(install.publicKeyMaterial, options.body, timestampMs, signature)) {
     return deny({
       route: options.route,
       requestId: options.requestId,

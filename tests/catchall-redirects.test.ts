@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { Route } from '@/app/$';
 
+const runLoader = Route.options.loader as unknown as (ctx: {
+  params: { _splat: string };
+}) => unknown;
+
 function getRedirectTarget(path: string): string | null {
   try {
-    Route.options.loader?.({
-      params: { _splat: path },
-    } as never);
+    runLoader({ params: { _splat: path } });
   } catch (error) {
     const maybeRedirect = error as { options?: { to?: string } };
     return maybeRedirect.options?.to ?? null;
@@ -16,7 +18,7 @@ function getRedirectTarget(path: string): string | null {
 
 function getRedirectStatus(path: string): number | null {
   try {
-    Route.options.loader?.({ params: { _splat: path } } as never);
+    runLoader({ params: { _splat: path } });
   } catch (error) {
     const maybeRedirect = error as { options?: { statusCode?: number } };
     return maybeRedirect.options?.statusCode ?? null;

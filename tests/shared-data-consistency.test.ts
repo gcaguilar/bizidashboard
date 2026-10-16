@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
@@ -68,17 +69,6 @@ vi.mock('@/lib/security/public-api', () => ({
 
 import { fetchHistoryMetadata, fetchSharedDatasetSnapshot } from '@/lib/api';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
-
-function normalizeReportsCoverage(payload: Awaited<ReturnType<typeof getDailyMobilityConclusions>>['payload']) {
-  return {
-    firstRecordedAt: payload.sourceFirstDay,
-    lastRecordedAt: payload.sourceLastDay,
-    totalSamples: SHARED_COVERAGE.totalSamples,
-    totalStations: payload.stationsWithData,
-    totalDays: payload.totalHistoricalDays,
-    generatedAt: payload.generatedAt,
-  };
-}
 
 describe('shared data consistency', () => {
   beforeEach(() => {
@@ -248,8 +238,8 @@ describe('shared data consistency', () => {
   it('history route handler is accessible and properly configured', async () => {
     const { Route } = await import('@/app/api/history/index');
     expect(Route.options.server).toBeDefined();
-    expect(Route.options.server!.handlers!.GET).toBeDefined();
-    expect(typeof Route.options.server!.handlers!.GET).toBe('function');
+    expect(serverHandlers(Route).GET).toBeDefined();
+    expect(typeof serverHandlers(Route).GET).toBe('function');
   }, 15000);
 
   it('keeps date boundaries monotonic across dashboard, reports, and history metadata', async () => {

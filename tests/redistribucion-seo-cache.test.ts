@@ -77,7 +77,7 @@ describe('redistribucion public landing cache contract', () => {
   });
 
   it('exposes cache headers for the public document route', () => {
-    const headers = (RedistribucionRoute.options as { headers: () => Record<string, string> })
+    const headers = (RedistribucionRoute.options as unknown as { headers: () => Record<string, string> })
       .headers();
 
     expect(headers['Cache-Control']).toBe(REDISTRIBUCION_CACHE_CONTROL);

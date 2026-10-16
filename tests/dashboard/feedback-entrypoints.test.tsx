@@ -62,8 +62,8 @@ vi.mock('@/app/_components/TrackedAnchor', () => ({
 }));
 
 const dashboardHeaderProps = {
-  timeWindows: [{ id: '24h', label: '24h' }],
-  activeWindowId: '24h',
+  timeWindows: [{ id: '24h' as const, label: '24h' }],
+  activeWindowId: '24h' as const,
   onChangeWindow: vi.fn(),
   searchQuery: '',
   onChangeSearch: vi.fn(),
@@ -116,13 +116,16 @@ describe('feedback entry points', () => {
           coverage: {
             firstRecordedAt: '2026-03-01T00:00:00.000Z',
             lastRecordedAt: '2026-03-31T23:00:00.000Z',
+            totalSamples: 4200,
             totalDays: 31,
             totalStations: 140,
+            generatedAt: '2026-04-01T00:00:00.000Z',
           },
           source: {
             provider: 'Bizi Zaragoza GBFS',
             gbfsDiscoveryUrl: 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json',
           },
+          generatedAt: '2026-04-01T00:00:00.000Z',
         }}
       />
     );

@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Layer, Map as MapView, Source, type StyleSpecification } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { FeatureCollection } from 'geojson';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationDistrictMap,
@@ -285,7 +286,7 @@ export function NeighborhoodMiniMap({
             <Source
               id="districts-source"
               type="geojson"
-              data={districtsWithMetrics as unknown as GeoJSON.FeatureCollection}
+              data={districtsWithMetrics as unknown as FeatureCollection}
             >
               <Layer {...DISTRICT_FILL_LAYER_PROPS} />
               <Layer {...DISTRICT_BORDER_LAYER_PROPS} />

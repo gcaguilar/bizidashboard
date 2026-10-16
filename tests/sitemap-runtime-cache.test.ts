@@ -1,3 +1,4 @@
+import { serverHandlers } from '@tests/helpers/route-handlers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const SITE_URL = 'https://datosbizi.com';
@@ -133,7 +134,7 @@ describe('sitemap runtime cache', () => {
 
   it('caches the generated sitemap payload behind the shared cache helper', async () => {
     const { Route } = await import('@/app/sitemap[.]xml');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
 
     const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
     expect(response.status).toBe(200);
@@ -148,7 +149,7 @@ describe('sitemap runtime cache', () => {
     fetchCachedMonthlyDemandCurveMock.mockRejectedValue(new Error('upstream unavailable'));
 
     const { Route } = await import('@/app/sitemap[.]xml');
-    const handler = Route.options.server!.handlers!.GET!;
+    const handler = serverHandlers(Route).GET!;
     const response = await handler({ request: new Request('http://localhost/sitemap.xml') });
     const xml = await response.text();
 
