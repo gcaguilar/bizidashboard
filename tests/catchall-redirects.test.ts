@@ -18,8 +18,8 @@ function getRedirectStatus(path: string): number | null {
   try {
     Route.options.loader?.({ params: { _splat: path } } as never);
   } catch (error) {
-    const maybeRedirect = error as { options?: { status?: number } };
-    return maybeRedirect.options?.status ?? null;
+    const maybeRedirect = error as { options?: { statusCode?: number } };
+    return maybeRedirect.options?.statusCode ?? null;
   }
 
   return null;

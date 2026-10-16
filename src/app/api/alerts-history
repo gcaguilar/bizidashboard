@@ -4,7 +4,7 @@ export const Route = createFileRoute('/api/alerts-history/')({
   server: {
     handlers: {
       GET: () => {
-        throw redirect({ to: '/api/alerts/history', status: 308 })
+        throw redirect({ to: '/api/alerts/history', statusCode: 308 })
       },
     },
   },

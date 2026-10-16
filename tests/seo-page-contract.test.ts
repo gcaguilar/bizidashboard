@@ -205,7 +205,7 @@ describe('seo navigation contract', () => {
     ];
 
     for (const file of aliases) {
-      expect(readFileSync(path.join(process.cwd(), file), 'utf8'), file).toContain('status: 308');
+      expect(readFileSync(path.join(process.cwd(), file), 'utf8'), file).toContain('statusCode: 308');
     }
   });
 
