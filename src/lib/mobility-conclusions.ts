@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
+import { avgDemand, coalesceSumDemand, sumDemand } from '@/analytics/queries/demand-sql';
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
@@ -348,12 +349,12 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         generatedAt: new Date().toISOString(),
       })),
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
+        SELECT ${coalesceSumDemand()} AS value
         FROM "DailyStationStat"
         WHERE ${range.currentDaily};
       `.catch(() => []),
       prisma.$queryRaw<NumericRow[]>`
-        SELECT COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS value
+        SELECT ${coalesceSumDemand()} AS value
         FROM "DailyStationStat"
         WHERE ${range.previousDaily};
       `.catch(() => []),
@@ -379,7 +380,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         SELECT
           "DailyStationStat"."stationId" AS "stationId",
           "Station".name AS "stationName",
-          AVG(("DailyStationStat"."bikesMax" - "DailyStationStat"."bikesMin") + ("DailyStationStat"."anchorsMax" - "DailyStationStat"."anchorsMin")) AS "avgDemand"
+          ${avgDemand('DailyStationStat')} AS "avgDemand"
         FROM "DailyStationStat"
         INNER JOIN "Station" ON "Station".id = "DailyStationStat"."stationId"
         WHERE ${range.topStationsDaily}
@@ -391,7 +392,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         SELECT
           "DailyStationStat"."stationId" AS "stationId",
           "Station".name AS "stationName",
-          AVG(("DailyStationStat"."bikesMax" - "DailyStationStat"."bikesMin") + ("DailyStationStat"."anchorsMax" - "DailyStationStat"."anchorsMin")) AS "avgDemand"
+          ${avgDemand('DailyStationStat')} AS "avgDemand"
         FROM "DailyStationStat"
         INNER JOIN "Station" ON "Station".id = "DailyStationStat"."stationId"
         WHERE ${range.topStationsDaily}
@@ -404,7 +405,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
         WITH daily_totals AS (
           SELECT
             "bucketDate"::date AS "bucketDay",
-            SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+            ${sumDemand()} AS "demandScore",
             AVG("occupancyAvg") AS "occupancyAvg"
           FROM "DailyStationStat"
           WHERE ${range.currentDaily}
@@ -424,7 +425,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
           EXTRACT(HOUR FROM "bucketStart")::int AS hour,
-          COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore"
+          ${coalesceSumDemand()} AS "demandScore"
         FROM "HourlyStationStat"
         WHERE ${range.currentHourly}
         GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
@@ -434,7 +435,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       prisma.$queryRaw<StationDemandRow[]>`
         SELECT
           "stationId",
-          COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore"
+          ${coalesceSumDemand()} AS "demandScore"
         FROM "DailyStationStat"
         WHERE ${range.currentDaily}
         GROUP BY "stationId"

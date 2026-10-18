@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { sumDemand } from '@/analytics/queries/demand-sql';
 import { withCache } from '@/lib/cache/cache';
 import {
   fetchCachedDailyDemandCurve,
@@ -144,7 +145,7 @@ async function getRecentHistoryRows(): Promise<HistoryCompareRow[]> {
   return prisma.$queryRaw<HistoryCompareRow[]>`
     SELECT
       TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-      SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin"))::int AS "demandScore",
+      ${sumDemand()}::int AS "demandScore",
       AVG("occupancyAvg") AS "avgOccupancy",
       AVG(CASE
         WHEN ABS("occupancyAvg" - 0.5) >= 0.5 THEN 0
