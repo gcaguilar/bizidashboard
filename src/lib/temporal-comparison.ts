@@ -1,4 +1,4 @@
-import { getMonthBounds, isValidMonthKey } from '@/lib/months';
+import { getMonthBounds, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
 
 export type TemporalDailySample = {
   day: string;
@@ -27,28 +27,8 @@ export type TemporalComparison = {
   normalizedDemandRatio: number | null;
 };
 
-function monthDate(monthKey: string, day = 1): Date {
-  const [year, month] = monthKey.split('-').map(Number);
-  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day));
-}
-
 function toMonthKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function previousMonthKey(monthKey: string): string | null {
-  if (!isValidMonthKey(monthKey)) {
-    return null;
-  }
-
-  const date = monthDate(monthKey);
-  date.setUTCMonth(date.getUTCMonth() - 1);
-  return toMonthKey(date);
-}
-
-function monthDayCount(monthKey: string): number {
-  const { start, endExclusive } = getMonthBounds(monthKey);
-  return Math.round((Date.parse(endExclusive) - Date.parse(start)) / 86_400_000);
 }
 
 function dayKey(day: string): string | null {
