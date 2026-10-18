@@ -231,10 +231,10 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       group: 'pages',
       title: 'Comparador de periodos',
       description:
-        'Comparativas entre periodos, meses, anos y horas desde una unica vista.',
+        'Comparativas entre periodos, meses, años y horas desde una unica vista.',
       href: appRoutes.compare({ dimension: 'periods' }),
       badge: 'Comparador',
-      keywords: ['periodos', 'mes vs mes', 'ano vs ano', 'hora vs hora'],
+      keywords: ['periodos', 'mes vs mes', 'año vs año', 'hora vs hora'],
     },
     ...PRIMARY_SEO_PAGE_SLUGS.map((slug) => {
       const page = getSeoPageConfig(slug);

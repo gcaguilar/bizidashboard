@@ -4,7 +4,12 @@ import {
   type SeoIndexabilityInput,
 } from '@/lib/seo-policy';
 import { toAbsoluteRouteUrl } from '@/lib/routes';
-import { SEO_SITE_NAME } from '@/lib/site';
+import {
+  DEFAULT_SOCIAL_IMAGE_HEIGHT,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  DEFAULT_SOCIAL_IMAGE_WIDTH,
+  SEO_SITE_NAME,
+} from '@/lib/site';
 
 const SEO_LANGUAGE_ALTERNATES: Record<string, string> = {
   'es-ES': '/',
@@ -79,8 +84,8 @@ export function buildPageMetadata({
     ...indexability,
   });
   const absoluteUrl = toAbsoluteRouteUrl(indexabilityDecision.canonicalPath);
-  const ogImageUrl = toAbsoluteRouteUrl(socialImagePath ?? '/opengraph-image');
-  const twitterImageUrl = toAbsoluteRouteUrl(socialImagePath ?? '/twitter-image');
+  const ogImageUrl = toAbsoluteRouteUrl(socialImagePath ?? DEFAULT_SOCIAL_IMAGE_PATH);
+  const twitterImageUrl = toAbsoluteRouteUrl(socialImagePath ?? DEFAULT_SOCIAL_IMAGE_PATH);
   const fullTitle = buildSeoTitle(title);
   const imageAlt = socialImageAlt ?? fullTitle;
 
@@ -117,8 +122,8 @@ export function buildPageMetadata({
       images: [
         {
           url: ogImageUrl,
-          width: 1200,
-          height: 630,
+          width: DEFAULT_SOCIAL_IMAGE_WIDTH,
+          height: DEFAULT_SOCIAL_IMAGE_HEIGHT,
           alt: imageAlt,
         },
       ],

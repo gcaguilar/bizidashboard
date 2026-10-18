@@ -1,4 +1,10 @@
-import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
+import {
+  DEFAULT_SOCIAL_IMAGE_HEIGHT,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  DEFAULT_SOCIAL_IMAGE_WIDTH,
+  getSiteUrl,
+  SEO_SITE_NAME,
+} from '@/lib/site';
 
 type MetaEntry = Record<string, string>;
 
@@ -34,7 +40,7 @@ export function buildSeoHead({
   socialDescription,
   robots = DEFAULT_ROBOTS,
   extraMeta = [],
-  socialImagePath = '/opengraph-image',
+  socialImagePath = DEFAULT_SOCIAL_IMAGE_PATH,
 }: SeoHeadOptions): {
   meta: MetaEntry[];
   links: Array<{ rel: string; href: string }>;
@@ -57,6 +63,9 @@ export function buildSeoHead({
       { property: 'og:site_name', content: SEO_SITE_NAME },
       { property: 'og:locale', content: 'es_ES' },
       { property: 'og:image', content: socialImageUrl },
+      { property: 'og:image:type', content: 'image/png' },
+      { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
+      { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
       { property: 'og:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
       ...(url ? [{ property: 'og:url', content: url }] : []),
       { name: 'robots', content: robots },

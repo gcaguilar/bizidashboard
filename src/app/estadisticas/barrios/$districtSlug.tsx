@@ -4,7 +4,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createDistrictBreadcrumb } from '@/lib/breadcrumbs'
 import { formatDecimal } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
-import { getSiteUrl } from '@/lib/site'
+import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { buildItemListStructuredData, toJsonLdScript } from '@/lib/structured-data'
 import { getPublicDistrictPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
@@ -31,8 +31,15 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${districtPath}` },
+        { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { property: 'og:image:type', content: 'image/png' },
+        { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
+        { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
+        { property: 'og:image:alt', content: title },
         { name: 'robots', content: loaderData?.district ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { name: 'twitter:image:alt', content: title },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],

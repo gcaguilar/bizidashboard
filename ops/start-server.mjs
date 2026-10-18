@@ -43,7 +43,7 @@ function addSecurityHeaders(response) {
   headers.set('X-XSS-Protection', '0');
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   if (!headers.has('Content-Security-Policy') && !headers.has('Content-Security-Policy-Report-Only')) {
     headers.set(CSP_HEADER, CSP_VALUE);
   }

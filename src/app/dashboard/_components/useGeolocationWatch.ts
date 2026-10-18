@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Coordinates } from '@/lib/geo';
 
+function describeGeolocationError(error: GeolocationPositionError): string {
+  if (error.code === error.PERMISSION_DENIED) {
+    return 'Permiso de ubicación denegado. Actívalo en el navegador para centrar el mapa en tu posición.';
+  }
+
+  if (error.code === error.POSITION_UNAVAILABLE) {
+    return 'No se pudo determinar tu ubicación ahora mismo. Puedes mover el mapa manualmente.';
+  }
+
+  if (error.code === error.TIMEOUT) {
+    return 'La ubicación está tardando demasiado. Inténtalo de nuevo o mueve el mapa manualmente.';
+  }
+
+  return 'No se pudo obtener tu ubicación. Puedes mover el mapa manualmente o revisar el permiso de ubicación del navegador.';
+}
+
 export function useGeolocationWatch() {
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [geolocationError, setGeolocationError] = useState<string | null>(null);
@@ -32,7 +48,7 @@ export function useGeolocationWatch() {
         setGeolocationError(null);
       },
       (error) => {
-        setGeolocationError(error.message || 'No se pudo obtener tu ubicación. Puedes mover el mapa manualmente o revisar el permiso de ubicación del navegador.');
+        setGeolocationError(describeGeolocationError(error));
       },
       {
         enableHighAccuracy: true,
