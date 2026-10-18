@@ -43,8 +43,38 @@ These names describe modules that own behaviour behind a small interface.
   supplies a monitor slug, log prefix, crontab expression, and a body. The lock
   stays inside the body, not the lifecycle.
 - **Page data loaders** (`src/server-functions/*`) — server functions that load
-  a page's data. Each degrades to a fallback payload from the shared-data
-  fallbacks module when a source is unavailable.
+  a page's data. Each degrades to a fallback payload when a source is unavailable.
+- **Comparison hub module** (`src/lib/comparison-hub-builders.ts`) — owns the
+  view-model interface (`ComparisonCard`, `ComparisonSection`,
+  `InteractiveComparison*`, `ComparisonHubViewModelInput`) and the builders that
+  fill it. `src/lib/comparison-hub.ts` is the adapter above the seam: it gathers
+  the analytics rows, hands them over untouched, and re-exports the interface.
+  Neither module imports the other.
+- **SEO landing module** (`src/lib/seo-landing.server.tsx`) — one content
+  builder per slug, pure over `SeoLandingSources`
+  (`src/lib/seo-landing-sources.server.ts`). The live adapter owns the fetches
+  and the per-source degradation, so content assembly is testable with a fixture
+  adapter. Station reducers (occupancy, bike sums, orderings) live once.
+- **Shared data module** (`src/services/shared-data`) — owns the coverage and
+  pipeline reads plus the shape of `getSharedDatasetSnapshot()`,
+  `buildFallbackStatus()` and `buildFallbackHistoryMetadata()`. The degraded
+  payloads are built here, once; loaders import this module instead of
+  re-declaring the empty pipeline.
+- **Format module** (`src/lib/format.ts`) — the single home for number, ratio and
+  delta formatting and numeric coercion: `toNumber`, `roundTo`,
+  `formatRatioDelta` (with a caller-supplied missing-reference fallback),
+  `average` and `averageOrNull`. Callers never re-implement sign, rounding or the
+  coercion of raw SQL values.
+- **Station demand SQL** (`src/analytics/queries/demand-sql.ts`) — the single
+  definition of a station's demand difference (`(bikesMax - bikesMin) +
+  (anchorsMax - anchorsMin)`) and its aggregates. Rankings, reports and
+  conclusions compose these fragments; no query re-inlines the formula.
+- **Monthly report module** (`src/lib/monthly-report.ts`) — owns report assembly
+  behind `buildMonthlyReport(monthKey, nowIso, sources)`. `MonthlyReportSources`
+  (`src/lib/monthly-report-sources.ts`) is the port a live or in-memory adapter
+  fills; the module owns the per-source degradation policy, so it stays testable
+  through one interface. Pure helpers (seasonality, practical conclusions,
+  redistribution) are internal.
 
 ## Contracts that must hold
 
