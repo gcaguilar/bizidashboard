@@ -89,6 +89,25 @@ These names describe modules that own behaviour behind a small interface.
   filename. Pure over the payload and the export tables; it normalizes the
   typographic characters the WinAnsi font cannot draw and paginates tables and
   prose. No HTTP, no browser binary.
+- **Report subscription module** (`src/lib/report-subscriptions.ts`) — owns the
+  monthly-report mailing list behind `ReportSubscriptionStore`: the
+  `PENDING → CONFIRMED → UNSUBSCRIBED` state machine, double opt-in, the
+  capability tokens (confirm/unsubscribe) and the delivery policy
+  (`isEligibleForMonthDigest`, `resolveDeliveryAction`). The store is the port
+  filled by the Prisma adapter (`src/lib/report-subscription-store.ts`) or an
+  in-memory one in tests; URLs and the email sender are injected, so the module
+  knows neither routes nor Resend. `src/jobs/monthly-report-digest.ts` is the
+  adapter that sends the sealed report to confirmed subscribers, idempotent per
+  subscription and month through `ReportDelivery` rows.
+- **Transactional email module** (`src/lib/email.ts`) — the single seam to
+  Resend (`resend` SDK): `sendEmail(EmailMessage) → SendEmailResult` and the
+  config behind it (`RESEND_API_KEY`, `EMAIL_FROM`, optional `EMAIL_REPLY_TO`).
+  It never throws: missing config degrades to `not_configured` so routes and
+  jobs can warn instead of breaking. Callers never touch the SDK.
+- **Report email templates** (`src/lib/report-email.ts`) — pure composition of
+  the report mails (opt-in confirmation and monthly digest): subject, HTML and
+  plain-text alternative, with dynamic content HTML-escaped. No transport, no
+  routes.
 
 ## Contracts that must hold
 

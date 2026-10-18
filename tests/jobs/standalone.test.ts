@@ -6,6 +6,8 @@ const analyticsStartMock = vi.fn();
 const analyticsStopMock = vi.fn();
 const reportSealStartMock = vi.fn();
 const reportSealStopMock = vi.fn();
+const reportDigestStartMock = vi.fn();
+const reportDigestStopMock = vi.fn();
 const loggerInfoMock = vi.fn();
 
 vi.mock('@/jobs/bizi-collection', () => ({
@@ -21,6 +23,11 @@ vi.mock('@/jobs/analytics-aggregation', () => ({
 vi.mock('@/jobs/monthly-report-seal', () => ({
   startMonthlyReportSealJob: reportSealStartMock,
   stopMonthlyReportSealJob: reportSealStopMock,
+}));
+
+vi.mock('@/jobs/monthly-report-digest', () => ({
+  startMonthlyReportDigestJob: reportDigestStartMock,
+  stopMonthlyReportDigestJob: reportDigestStopMock,
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -104,6 +111,7 @@ describe('standalone jobs', () => {
     expect(collectionStopMock).toHaveBeenCalledTimes(1);
     expect(analyticsStopMock).toHaveBeenCalledTimes(1);
     expect(reportSealStopMock).toHaveBeenCalledTimes(1);
+    expect(reportDigestStopMock).toHaveBeenCalledTimes(1);
     expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
   });
 

@@ -256,6 +256,60 @@ model SecurityEvent {
   @@index([outcome, createdAt])
 }
 
+enum ReportSubscriptionStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+enum ReportDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// Suscripcion al informe mensual por email (doble opt-in). Los tokens se
+// guardan en claro a proposito: son tokens de capacidad de bajo valor (solo
+// confirman o dan de baja) y el envio mensual necesita reutilizar el token de
+// baja para componer el enlace de cada correo.
+model ReportSubscription {
+  id               String                   @id @default(cuid())
+  email            String                   @unique // normalizado: minusculas y sin espacios
+  status           ReportSubscriptionStatus @default(PENDING)
+  confirmToken     String                   @unique
+  unsubscribeToken String                   @unique
+  confirmedAt      DateTime?
+  unsubscribedAt   DateTime?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  deliveries ReportDelivery[]
+
+  @@index([status, confirmedAt])
+}
+
+// Control de envios del informe mensual: una fila por suscripcion y mes hace
+// el envio idempotente (un run interrumpido o un reintento nunca duplica el
+// correo de un mes ya enviado).
+model ReportDelivery {
+  id             String               @id @default(cuid())
+  subscriptionId String
+  monthKey       String // YYYY-MM
+  status         ReportDeliveryStatus @default(PENDING)
+  attempts       Int                  @default(1)
+  resendId       String?
+  lastError      String?
+  claimedAt      DateTime             @default(now())
+  sentAt         DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  subscription ReportSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, monthKey])
+  @@index([monthKey, status])
+}
+
 model ApiKey {
   id          String   @id @default(cuid())
   name        String
