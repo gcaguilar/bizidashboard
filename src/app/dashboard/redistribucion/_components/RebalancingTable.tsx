@@ -489,6 +489,8 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
 
     void navigate({
       replace: true,
+      // Solo sincroniza tabla (sort/filtro/pagina) en la URL: no debe saltar el scroll.
+      resetScroll: false,
       search: nextSearch as never,
     });
   }, [sorting, globalFilter, columnFilters, navigate, pagination, search]);

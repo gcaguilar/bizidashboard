@@ -49,6 +49,8 @@ export function useDashboardDensity(): UseDashboardDensityResult {
 
       void navigate({
         replace: true,
+        // Solo cambia el parametro density: no debe saltar el scroll arriba.
+        resetScroll: false,
         search: (prev) => (prev.density === next ? prev : { ...prev, density: next }),
       });
     },
