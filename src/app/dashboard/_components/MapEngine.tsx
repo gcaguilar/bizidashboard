@@ -14,6 +14,11 @@ import { Button } from '@/components/ui/button';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
+import {
+  getAnalyticalMarkerColor,
+  getCitizenMarkerColor,
+  type MapColorScale,
+} from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 
@@ -21,6 +26,7 @@ type StationTrend = 'up' | 'down' | 'flat';
 
 type MapEngineProps = {
   stations: StationSnapshot[];
+  colorScale?: MapColorScale;
   viewMode?: DashboardViewMode;
   initialViewState?: DashboardMapViewState;
   frictionByStationId?: Record<string, number>;
@@ -146,32 +152,6 @@ const OPERATIONS_HEAT_LAYER: LayerProps = {
   },
 };
 
-function getMarkerColor(station: StationSnapshot): string {
-  if (station.capacity <= 0) {
-    return '#64748b';
-  }
-
-  if (station.anchorsFree <= 0) {
-    return '#991b1b';
-  }
-
-  if (station.bikesAvailable <= 0) {
-    return '#7c2d12';
-  }
-
-  const ratio = station.bikesAvailable / station.capacity;
-
-  if (ratio > 0.55) {
-    return '#0f766e';
-  }
-
-  if (ratio > 0.25) {
-    return '#b45309';
-  }
-
-  return '#b91c1c';
-}
-
 function getTrendLabel(trend: StationTrend | undefined): string {
   if (trend === 'up') {
     return '↑ Suben bicis';
@@ -186,6 +166,7 @@ function getTrendLabel(trend: StationTrend | undefined): string {
 
 export function MapEngine({
   stations,
+  colorScale = 'analytical',
   viewMode = 'overview',
   initialViewState,
   frictionByStationId = {},
@@ -229,12 +210,12 @@ export function MapEngine({
   const stationCollection = useMemo(() => {
     return buildStationFeatureCollection({
       stations,
-      getMarkerColor,
+      getMarkerColor: colorScale === 'citizen' ? getCitizenMarkerColor : getAnalyticalMarkerColor,
       favoriteStationIds: favoriteStationSet,
       selectedStationId,
       frictionByStationId,
     });
-  }, [favoriteStationSet, frictionByStationId, selectedStationId, stations]);
+  }, [colorScale, favoriteStationSet, frictionByStationId, selectedStationId, stations]);
 
   const selectedStationPosition = useMemo(() => {
     if (!selectedStationId) return null;

@@ -1,5 +1,7 @@
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatFreshnessLabel } from '@/lib/freshness';
+import { buildNetworkHealth, hasNoAvailability } from '@/lib/network-health';
+import type { NetworkHealth, NetworkHealthLevel } from '@/lib/network-health';
 
 export type NetworkBriefingInput = {
   stations: StationSnapshot[];
@@ -17,7 +19,8 @@ export type NetworkBriefingBaseline = {
 };
 
 export type NetworkBriefing = {
-  state: 'balanced' | 'tense' | 'insufficient';
+  state: 'balanced' | 'tense' | 'strained' | 'insufficient';
+  health: NetworkHealth;
   current: string;
   comparison: string;
   focus: string;
@@ -26,20 +29,31 @@ export type NetworkBriefing = {
   warning: string | null;
 };
 
+const BRIEFING_STATE_BY_HEALTH_LEVEL: Record<NetworkHealthLevel, NetworkBriefing['state']> = {
+  green: 'balanced',
+  yellow: 'tense',
+  red: 'strained',
+  unknown: 'insufficient',
+};
+
 function pluralize(count: number, singular: string, plural: string): string {
   return count === 1 ? singular : plural;
 }
 
 export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefing {
-  const criticalStations = input.stations.filter(
-    (station) => station.bikesAvailable <= 0 || station.anchorsFree <= 0
-  );
+  const health = buildNetworkHealth({
+    stations: input.stations,
+    pipelineHealthy: input.pipelineHealthy,
+    lastUpdatedAt: input.lastUpdatedAt,
+  });
+  const criticalStations = input.stations.filter(hasNoAvailability);
   const focusStation = criticalStations[0] ?? null;
   const hasEnoughEvidence = input.stations.length > 0 && Boolean(input.lastUpdatedAt) && input.coverageDays > 0;
 
   if (!hasEnoughEvidence) {
     return {
       state: 'insufficient',
+      health,
       current: 'Ahora mismo no hay datos suficientes para resumir la red.',
       comparison: 'Todavía no se puede comparar con otro momento.',
       focus: 'No se puede destacar ninguna estación con los datos disponibles.',
@@ -49,7 +63,7 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
     };
   }
 
-  const criticalCount = criticalStations.length;
+  const criticalCount = health.criticalStationsCount;
   const current = criticalCount > 0
     ? `Ahora mismo, ${criticalCount} ${pluralize(criticalCount, 'estación no tiene', 'estaciones no tienen')} bicis o huecos libres.`
     : 'Ahora mismo todas las estaciones tienen bicis y huecos libres.';
@@ -70,7 +84,8 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
   const freshness = input.lastUpdatedAt ? formatFreshnessLabel(input.lastUpdatedAt) : 'sin fecha';
 
   return {
-    state: criticalCount > 0 ? 'tense' : 'balanced',
+    state: BRIEFING_STATE_BY_HEALTH_LEVEL[health.level],
+    health,
     current,
     comparison,
     focus,

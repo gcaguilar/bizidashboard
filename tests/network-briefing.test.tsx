@@ -52,4 +52,38 @@ describe('network briefing', () => {
     expect(renderToStaticMarkup(<NetworkBriefing state="incomplete" briefing={briefing} />)).toContain('Aún no hay datos suficientes');
     expect(renderToStaticMarkup(<NetworkBriefing state="error" />)).toContain('No se pudo preparar');
   });
+
+  it('marks a fully saturated sample as strained with red health', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
+    const briefing = buildNetworkBriefing(input);
+
+    expect(briefing.state).toBe('strained');
+    expect(briefing.health.level).toBe('red');
+    expect(briefing.health.label).toBe('Incidencia generalizada');
+    expect(renderToStaticMarkup(<NetworkBriefing briefing={briefing} />)).toContain('Incidencia generalizada');
+    vi.useRealTimers();
+  });
+
+  it('keeps a low critical share balanced with green health', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-01T12:00:00.000Z'));
+    const stations = Array.from({ length: 20 }, (_, index) => ({
+      id: `station-${index + 1}`,
+      name: `Estación ${index + 1}`,
+      lat: 0,
+      lon: 0,
+      capacity: 20,
+      bikesAvailable: 10,
+      anchorsFree: 10,
+      recordedAt: '2026-04-01T11:59:00.000Z',
+    }));
+    stations[0] = { ...stations[0], bikesAvailable: 0, anchorsFree: 0 };
+    const briefing = buildNetworkBriefing({ ...input, stations });
+
+    expect(briefing.state).toBe('balanced');
+    expect(briefing.health.level).toBe('green');
+    expect(briefing.health.label).toBe('Red en estado óptimo');
+    vi.useRealTimers();
+  });
 });
