@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { StationSnapshot } from '@/lib/api-types';
 import {
+  ANALYTICAL_MAP_LEGEND,
   CITIZEN_MAP_LEGEND,
   getAnalyticalMarkerColor,
+  getAnalyticalMarkerSeverity,
   getCitizenMarkerColor,
+  getCitizenMarkerSeverity,
 } from '@/lib/map-colors';
 
 function buildStation(overrides: Partial<StationSnapshot> = {}): StationSnapshot {
@@ -76,5 +79,40 @@ describe('CITIZEN_MAP_LEGEND', () => {
         description: 'sin bicis o sin huecos',
       },
     ]);
+  });
+});
+
+describe('marker severity used by the map clusters', () => {
+  it('ranks analytical stations from healthy (0) to depleted (3)', () => {
+    expect(getAnalyticalMarkerSeverity(buildStation({ capacity: 0 }))).toBe(0);
+    expect(getAnalyticalMarkerSeverity(buildStation({ bikesAvailable: 12, anchorsFree: 8 }))).toBe(0);
+    expect(getAnalyticalMarkerSeverity(buildStation({ bikesAvailable: 8, anchorsFree: 12 }))).toBe(1);
+    expect(getAnalyticalMarkerSeverity(buildStation({ bikesAvailable: 4, anchorsFree: 16 }))).toBe(2);
+    expect(getAnalyticalMarkerSeverity(buildStation({ bikesAvailable: 0, anchorsFree: 20 }))).toBe(3);
+    expect(getAnalyticalMarkerSeverity(buildStation({ bikesAvailable: 20, anchorsFree: 0 }))).toBe(3);
+  });
+
+  it('ranks citizen stations with availability semantics', () => {
+    expect(getCitizenMarkerSeverity(buildStation({ capacity: 0 }))).toBe(0);
+    expect(getCitizenMarkerSeverity(buildStation({ bikesAvailable: 10, anchorsFree: 10 }))).toBe(0);
+    expect(getCitizenMarkerSeverity(buildStation({ bikesAvailable: 2, anchorsFree: 10 }))).toBe(1);
+    expect(getCitizenMarkerSeverity(buildStation({ bikesAvailable: 0, anchorsFree: 10 }))).toBe(3);
+  });
+});
+
+describe('ANALYTICAL_MAP_LEGEND', () => {
+  it('covers every analytical marker colour', () => {
+    const legendColors = new Set(ANALYTICAL_MAP_LEGEND.map((item) => item.color));
+
+    for (const station of [
+      buildStation({ capacity: 0 }),
+      buildStation({ bikesAvailable: 0, anchorsFree: 0 }),
+      buildStation({ bikesAvailable: 0, anchorsFree: 5 }),
+      buildStation({ bikesAvailable: 12, anchorsFree: 8 }),
+      buildStation({ bikesAvailable: 8, anchorsFree: 12 }),
+      buildStation({ bikesAvailable: 5, anchorsFree: 15 }),
+    ]) {
+      expect(legendColors.has(getAnalyticalMarkerColor(station))).toBe(true);
+    }
   });
 });

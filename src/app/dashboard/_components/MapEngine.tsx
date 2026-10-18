@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Layer, Map, Marker, Popup, Source, type StyleSpecification } from 'react-map-gl/maplibre';
+import { Layer, Map, Marker, Popup, Source } from 'react-map-gl/maplibre';
 import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 // MapLibre GL JS v6 resolves its worker from `import.meta.url` at runtime, which
 // bundlers (Vite) can't statically trace, so the worker file would never be
@@ -16,10 +16,13 @@ import type { StationSnapshot } from '@/lib/api-types';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
 import {
   getAnalyticalMarkerColor,
+  getAnalyticalMarkerSeverity,
   getCitizenMarkerColor,
+  getCitizenMarkerSeverity,
   type MapColorScale,
 } from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
+import { resolveMapStyle } from '@/lib/map-style';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 
 type StationTrend = 'up' | 'down' | 'flat';
@@ -48,43 +51,6 @@ const DEFAULT_VIEW_STATE = {
 };
 
 const FOCUS_ZOOM = 14.8;
-const MAP_STYLE_LIGHT: StyleSpecification = {
-  version: 8,
-  sources: {
-    osmLight: {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors',
-    },
-  },
-  layers: [
-    {
-      id: 'osm-light',
-      type: 'raster',
-      source: 'osmLight',
-    },
-  ],
-};
-
-const MAP_STYLE_DARK: StyleSpecification = {
-  version: 8,
-  sources: {
-    osmDark: {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors',
-    },
-  },
-  layers: [
-    {
-      id: 'osm-dark',
-      type: 'raster',
-      source: 'osmDark',
-    },
-  ],
-};
 
 const CLUSTER_LAYER: LayerProps = {
   id: 'clusters',
@@ -92,10 +58,42 @@ const CLUSTER_LAYER: LayerProps = {
   source: 'stations-source',
   filter: ['has', 'point_count'],
   paint: {
-    'circle-color': '#ea0615',
+    // Color por la severidad media del grupo (déficit ponderado) para que un
+    // clúster con estaciones agotadas no se pinte como uno sano. La escala
+    // replica los tonos de `ANALYTICAL_MAP_LEGEND`/`getAnalyticalMarkerColor`.
+    'circle-color': [
+      'step',
+      ['/', ['coalesce', ['get', 'severitySum'], 0], ['max', ['coalesce', ['get', 'point_count'], 1], 1]],
+      0.5,
+      '#0f766e',
+      1.5,
+      '#b45309',
+      2.5,
+      '#b91c1c',
+      3,
+      '#7f1d1d',
+    ],
     'circle-radius': ['step', ['get', 'point_count'], 18, 20, 22, 50, 28],
     'circle-stroke-color': '#ffffff',
     'circle-stroke-width': 2,
+  },
+};
+
+const CLUSTER_COUNT_LAYER: LayerProps = {
+  id: 'cluster-count',
+  type: 'symbol',
+  source: 'stations-source',
+  filter: ['has', 'point_count'],
+  layout: {
+    'text-field': ['get', 'point_count_abbreviated'],
+    'text-font': ['Open Sans Semibold'],
+    'text-size': 12,
+    'text-allow-overlap': true,
+  },
+  paint: {
+    'text-color': '#ffffff',
+    'text-halo-color': 'rgba(0, 0, 0, 0.45)',
+    'text-halo-width': 1,
   },
 };
 
@@ -211,6 +209,8 @@ export function MapEngine({
     return buildStationFeatureCollection({
       stations,
       getMarkerColor: colorScale === 'citizen' ? getCitizenMarkerColor : getAnalyticalMarkerColor,
+      getMarkerSeverity:
+        colorScale === 'citizen' ? getCitizenMarkerSeverity : getAnalyticalMarkerSeverity,
       favoriteStationIds: favoriteStationSet,
       selectedStationId,
       frictionByStationId,
@@ -325,7 +325,7 @@ export function MapEngine({
     onSelectStation?.(stationId);
   };
 
-  const mapStyle = isDarkTheme ? MAP_STYLE_DARK : MAP_STYLE_LIGHT;
+  const mapStyle = resolveMapStyle(isDarkTheme ? 'dark' : 'light');
 
   if (stations.length === 0) {
     return (
@@ -379,11 +379,16 @@ export function MapEngine({
           cluster
           clusterRadius={50}
           clusterMaxZoom={13}
+          clusterProperties={{
+            severitySum: ['+', ['get', 'severity']],
+            criticalCount: ['+', ['case', ['>=', ['get', 'severity'], 2], 1, 0]],
+          }}
         >
           {viewMode === 'operations' ? <Layer {...OPERATIONS_HEAT_LAYER} /> : null}
           <Layer {...CLUSTER_LAYER} />
           <Layer {...SELECTED_HALO_LAYER} />
           <Layer {...UNCLUSTERED_POINTS_LAYER} />
+          <Layer {...CLUSTER_COUNT_LAYER} />
         </Source>
 
         {userLocation ? (

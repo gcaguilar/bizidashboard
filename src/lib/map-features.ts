@@ -9,6 +9,8 @@ export type StationFeatureCollection = {
       stationName: string;
       markerColor: string;
       frictionScore: number;
+      /** 0 = sano … 3 = sin bicis/huecos; agrega el color de los clústeres. */
+      severity: number;
       isFavorite: number;
       isSelected: number;
     };
@@ -22,11 +24,19 @@ export type StationFeatureCollection = {
 export function buildStationFeatureCollection(params: {
   stations: StationSnapshot[];
   getMarkerColor: (station: StationSnapshot) => string;
+  getMarkerSeverity?: (station: StationSnapshot) => number;
   favoriteStationIds: Set<string>;
   selectedStationId?: string;
   frictionByStationId?: Record<string, number>;
 }): StationFeatureCollection {
-  const { stations, getMarkerColor, favoriteStationIds, selectedStationId, frictionByStationId = {} } = params;
+  const {
+    stations,
+    getMarkerColor,
+    getMarkerSeverity = () => 0,
+    favoriteStationIds,
+    selectedStationId,
+    frictionByStationId = {},
+  } = params;
 
   return {
     type: 'FeatureCollection',
@@ -39,6 +49,7 @@ export function buildStationFeatureCollection(params: {
           stationName: station.name,
           markerColor: getMarkerColor(station),
           frictionScore: frictionByStationId[station.id] ?? 0,
+          severity: getMarkerSeverity(station),
           isFavorite: favoriteStationIds.has(station.id) ? 1 : 0,
           isSelected: selectedStationId && selectedStationId === station.id ? 1 : 0,
         },
