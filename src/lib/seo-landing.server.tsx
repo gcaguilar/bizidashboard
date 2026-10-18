@@ -1,23 +1,19 @@
-import {
-  fetchCachedDailyDemandCurve,
-  fetchCachedMonthlyDemandCurve,
-  fetchCachedSystemHourlyProfile,
-} from '@/lib/analytics-series';
-import { fetchAvailableDataMonths, fetchRankings, fetchStations } from '@/lib/api';
-import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
+import type { StationSnapshot } from '@/lib/api-types';
+import { average, formatDateLabel, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { buildPageMetadata, type PageMetadata } from '@/lib/seo';
-import { average, formatDateLabel, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { evaluatePageIndexability, type SeoIndexabilityInput } from '@/lib/seo-policy';
-import { getDistrictSeoRows } from '@/lib/seo-districts';
+import {
+  createLiveSeoLandingSources,
+  type SeoLandingSources,
+} from '@/lib/seo-landing-sources.server';
 import {
   getSeoPageConfig,
   type SeoPageConfig,
   type SeoPageSlug,
 } from '@/lib/seo-pages';
 import { buildSocialImagePath } from '@/lib/social-images';
-import { captureWarningWithContext } from '@/lib/sentry-reporting';
 
 type SeoStat = {
   label: string;
@@ -43,6 +39,38 @@ type SeoLandingContent = {
 
 const EMPTY_STATE_MESSAGE =
   'Todavía no hay suficientes datos para mostrar esta página con confianza.';
+
+/** Ocupacion de una estacion (0..1); 0 si no declara capacidad. */
+function occupancyOf(station: StationSnapshot): number {
+  return station.capacity > 0 ? station.bikesAvailable / station.capacity : 0;
+}
+
+/** Bicis disponibles sumadas en un snapshot. */
+function sumBikes(stations: StationSnapshot[]): number {
+  return stations.reduce((sum, station) => sum + station.bikesAvailable, 0);
+}
+
+/** Ocupacion media del snapshot, con las estaciones sin capacidad contando 0. */
+function averageOccupancy(stations: StationSnapshot[]): number {
+  if (stations.length === 0) {
+    return 0;
+  }
+
+  return stations.reduce((sum, station) => sum + occupancyOf(station), 0) / stations.length;
+}
+
+/** Copia ordenada por ocupacion descendente y, a igualdad, por bicis descendente. */
+function sortByOccupancyDesc(stations: StationSnapshot[]): StationSnapshot[] {
+  return [...stations].sort(
+    (left, right) =>
+      occupancyOf(right) - occupancyOf(left) || right.bikesAvailable - left.bikesAvailable
+  );
+}
+
+/** Copia ordenada por bicis disponibles descendente. */
+function sortByBikesDesc(stations: StationSnapshot[]): StationSnapshot[] {
+  return [...stations].sort((left, right) => right.bikesAvailable - left.bikesAvailable);
+}
 
 export function buildSeoFaqStructuredData(config: SeoPageConfig) {
   return {
@@ -105,32 +133,11 @@ function fallbackContent(config: SeoPageConfig, nowIso: string): SeoLandingConte
 
 async function buildMostUsedStationsContent(
   config: SeoPageConfig,
-  nowIso: string
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
   const [stationsResponse, rankingsResponse] = await Promise.all([
-    fetchStations().catch((error) => {
-      captureWarningWithContext('SEO landing degraded: fetchStations failed in most-used stations.', {
-        area: 'seo.landing',
-        operation: 'buildMostUsedStationsContent',
-        dedupeKey: 'seo.landing.most-used.fetch-stations-fallback',
-        extra: { reason: String(error) },
-      });
-      return { stations: [], generatedAt: nowIso };
-    }),
-    fetchRankings('turnover', 12).catch((error) => {
-      captureWarningWithContext('SEO landing degraded: turnover rankings unavailable in most-used stations.', {
-        area: 'seo.landing',
-        operation: 'buildMostUsedStationsContent',
-        dedupeKey: 'seo.landing.most-used.rankings-fallback',
-        extra: { reason: String(error) },
-      });
-      return {
-      type: 'turnover' as const,
-      limit: 12,
-      rankings: [],
-      generatedAt: nowIso,
-    };
-    }),
+    sources.loadStations(),
+    sources.loadRankings('turnover', 12),
   ]);
 
   const stationMap = new Map(stationsResponse.stations.map((station) => [station.id, station]));
@@ -145,16 +152,11 @@ async function buildMostUsedStationsContent(
   });
 
   if (items.length === 0 && stationsResponse.stations.length > 0) {
-    const fallbackItems = [...stationsResponse.stations]
-      .sort((left, right) => {
-        const rightOccupancy = right.capacity > 0 ? right.bikesAvailable / right.capacity : 0;
-        const leftOccupancy = left.capacity > 0 ? left.bikesAvailable / left.capacity : 0;
-        return rightOccupancy - leftOccupancy || right.bikesAvailable - left.bikesAvailable;
-      })
+    const fallbackItems = sortByOccupancyDesc(stationsResponse.stations)
       .slice(0, 8)
       .map((station, index) => ({
         title: `${index + 1}. ${station.name}`,
-        detail: `${formatInteger(station.bikesAvailable)} bicis disponibles · capacidad ${formatInteger(station.capacity)} · ocupación ${formatPercent(station.capacity > 0 ? station.bikesAvailable / station.capacity : 0)}`,
+        detail: `${formatInteger(station.bikesAvailable)} bicis disponibles · capacidad ${formatInteger(station.capacity)} · ocupación ${formatPercent(occupancyOf(station))}`,
         href: appRoutes.stationDetail(station.id),
         badge: 'Estado actual',
       }));
@@ -171,9 +173,7 @@ async function buildMostUsedStationsContent(
         },
         {
           label: 'Bicis visibles',
-          value: formatInteger(
-            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-          ),
+          value: formatInteger(sumBikes(stationsResponse.stations)),
           detail: 'Total de bicis disponibles en la última actualización.',
         },
         {
@@ -208,9 +208,7 @@ async function buildMostUsedStationsContent(
       },
       {
         label: 'Bicis visibles',
-        value: formatInteger(
-          stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-        ),
+        value: formatInteger(sumBikes(stationsResponse.stations)),
         detail: 'Total de bicis disponibles en la última actualización.',
       },
     ],
@@ -221,17 +219,10 @@ async function buildMostUsedStationsContent(
 
 async function buildDistrictOverviewContent(
   config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  const rows = await getDistrictSeoRows().catch((error) => {
-    captureWarningWithContext('SEO landing degraded: district rows unavailable.', {
-      area: 'seo.landing',
-      operation: 'buildDistrictOverviewContent',
-      dedupeKey: 'seo.landing.district-overview.rows-fallback',
-      extra: { reason: String(error) },
-    });
-    return [];
-  });
+  const rows = await sources.loadDistrictRows();
   const items = rows.slice(0, 8).map((district, index) => ({
     title: `${index + 1}. ${district.name}`,
     detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} puntos de movimiento medio · ${district.bikesAvailable} bicis disponibles`,
@@ -271,17 +262,10 @@ async function buildDistrictOverviewContent(
 
 async function buildHourlyUsageContent(
   config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  const profile = await fetchCachedSystemHourlyProfile(14).catch((error) => {
-    captureWarningWithContext('SEO landing degraded: hourly profile unavailable.', {
-      area: 'seo.landing',
-      operation: 'buildHourlyUsageContent',
-      dedupeKey: 'seo.landing.hourly-usage.profile-fallback',
-      extra: { reason: String(error) },
-    });
-    return [];
-  });
+  const profile = await sources.loadHourlyProfile(14);
   const items = [...profile]
     .sort((left, right) => Number(left.avgBikesAvailable) - Number(right.avgBikesAvailable))
     .slice(0, 8)
@@ -293,41 +277,18 @@ async function buildHourlyUsageContent(
     }));
 
   if (items.length === 0) {
-    const stationsResponse = await fetchStations().catch((error) => {
-      captureWarningWithContext('SEO landing degraded: stations snapshot unavailable in hourly usage fallback.', {
-        area: 'seo.landing',
-        operation: 'buildHourlyUsageContent',
-        dedupeKey: 'seo.landing.hourly-usage.stations-fallback',
-        extra: { reason: String(error) },
-      });
-      return {
-        stations: [],
-        generatedAt: nowIso,
-      };
-    });
-    const liveItems = [...stationsResponse.stations]
-      .sort((left, right) => {
-        const leftOccupancy = left.capacity > 0 ? left.bikesAvailable / left.capacity : 0;
-        const rightOccupancy = right.capacity > 0 ? right.bikesAvailable / right.capacity : 0;
-        return rightOccupancy - leftOccupancy || right.bikesAvailable - left.bikesAvailable;
-      })
+    const stationsResponse = await sources.loadStations();
+    const liveItems = sortByOccupancyDesc(stationsResponse.stations)
       .slice(0, 8)
       .map((station, index) => ({
         title: `${index + 1}. ${station.name}`,
-        detail: `${station.bikesAvailable} bicis · ocupación ${formatPercent(
-          station.capacity > 0 ? station.bikesAvailable / station.capacity : 0
-        )} · capacidad ${station.capacity}`,
+        detail: `${station.bikesAvailable} bicis · ocupación ${formatPercent(occupancyOf(station))} · capacidad ${station.capacity}`,
         href: appRoutes.stationDetail(station.id),
         badge: 'Estado actual',
       }));
 
     if (liveItems.length > 0) {
-      const avgOccupancy =
-        stationsResponse.stations.reduce(
-          (sum, station) =>
-            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
-          0
-        ) / stationsResponse.stations.length;
+      const avgOccupancy = averageOccupancy(stationsResponse.stations);
       const now = new Date(stationsResponse.generatedAt);
       return {
         generatedAt: stationsResponse.generatedAt,
@@ -392,22 +353,12 @@ async function buildHourlyUsageContent(
 
 async function buildStationRankingContent(
   config: SeoPageConfig,
-  nowIso: string
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
   const [stationsResponse, turnoverResponse, availabilityResponse] = await Promise.all([
-    fetchStations().catch(() => ({ stations: [], generatedAt: nowIso })),
-    fetchRankings('turnover', 6).catch(() => ({
-      type: 'turnover' as const,
-      limit: 6,
-      rankings: [],
-      generatedAt: nowIso,
-    })),
-    fetchRankings('availability', 6).catch(() => ({
-      type: 'availability' as const,
-      limit: 6,
-      rankings: [],
-      generatedAt: nowIso,
-    })),
+    sources.loadStations(),
+    sources.loadRankings('turnover', 6),
+    sources.loadRankings('availability', 6),
   ]);
 
   const stationMap = new Map(stationsResponse.stations.map((station) => [station.id, station]));
@@ -427,8 +378,7 @@ async function buildStationRankingContent(
   ];
 
   if (items.length === 0 && stationsResponse.stations.length > 0) {
-    const fallbackItems = [...stationsResponse.stations]
-      .sort((left, right) => right.bikesAvailable - left.bikesAvailable)
+    const fallbackItems = sortByBikesDesc(stationsResponse.stations)
       .slice(0, 8)
       .map((station, index) => ({
         title: `${index + 1}. ${station.name}`,
@@ -449,9 +399,7 @@ async function buildStationRankingContent(
         },
         {
           label: 'Bicis totales',
-          value: formatInteger(
-            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-          ),
+          value: formatInteger(sumBikes(stationsResponse.stations)),
           detail: 'Total de bicis disponibles en la última actualización.',
         },
         {
@@ -500,9 +448,10 @@ async function buildStationRankingContent(
 
 async function buildDailyTripsContent(
   config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  const dailySeries = await fetchCachedDailyDemandCurve(30).catch(() => []);
+  const dailySeries = await sources.loadDailySeries(30);
   const nonEmptyRows = dailySeries.filter(
     (row) => Number(row.sampleCount) > 0 || Number(row.demandScore) > 0
   );
@@ -518,21 +467,10 @@ async function buildDailyTripsContent(
     }));
 
   if (items.length === 0) {
-    const stationsResponse = await fetchStations().catch(() => ({
-      stations: [],
-      generatedAt: nowIso,
-    }));
+    const stationsResponse = await sources.loadStations();
     if (stationsResponse.stations.length > 0) {
-      const totalBikes = stationsResponse.stations.reduce(
-        (sum, station) => sum + station.bikesAvailable,
-        0
-      );
-      const avgOccupancy =
-        stationsResponse.stations.reduce(
-          (sum, station) =>
-            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
-          0
-        ) / stationsResponse.stations.length;
+      const totalBikes = sumBikes(stationsResponse.stations);
+      const avgOccupancy = averageOccupancy(stationsResponse.stations);
       return {
         generatedAt: stationsResponse.generatedAt,
         summary:
@@ -596,9 +534,10 @@ async function buildDailyTripsContent(
 
 async function buildMonthlyTripsContent(
   config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  const monthlySeries = await fetchCachedMonthlyDemandCurve(12).catch(() => []);
+  const monthlySeries = await sources.loadMonthlySeries(12);
   const items = [...monthlySeries]
     .reverse()
     .slice(0, 8)
@@ -611,25 +550,14 @@ async function buildMonthlyTripsContent(
 
   const latestRow = monthlySeries[monthlySeries.length - 1] ?? null;
   if (items.length === 0) {
-    const stationsResponse = await fetchStations().catch(() => ({
-      stations: [],
-      generatedAt: nowIso,
-    }));
+    const stationsResponse = await sources.loadStations();
     if (stationsResponse.stations.length > 0) {
       const snapshotDate = new Date(stationsResponse.generatedAt);
       const monthKey = `${snapshotDate.getUTCFullYear()}-${String(
         snapshotDate.getUTCMonth() + 1
       ).padStart(2, '0')}`;
-      const totalBikes = stationsResponse.stations.reduce(
-        (sum, station) => sum + station.bikesAvailable,
-        0
-      );
-      const avgOccupancy =
-        stationsResponse.stations.reduce(
-          (sum, station) =>
-            sum + (station.capacity > 0 ? station.bikesAvailable / station.capacity : 0),
-          0
-        ) / stationsResponse.stations.length;
+      const totalBikes = sumBikes(stationsResponse.stations);
+      const avgOccupancy = averageOccupancy(stationsResponse.stations);
       return {
         generatedAt: stationsResponse.generatedAt,
         summary:
@@ -696,20 +624,16 @@ async function buildMonthlyTripsContent(
 
 async function buildStationUsageContent(
   config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  async function buildSnapshotFallbackContent(referenceIso: string): Promise<SeoLandingContent | null> {
-    const stationsResponse = await fetchStations().catch(() => ({
-      stations: [],
-      generatedAt: referenceIso,
-    }));
+  async function buildSnapshotFallbackContent(): Promise<SeoLandingContent | null> {
+    const stationsResponse = await sources.loadStations();
     if (stationsResponse.stations.length === 0) {
       return null;
     }
 
-    const sortedByBikes = [...stationsResponse.stations].sort(
-      (left, right) => right.bikesAvailable - left.bikesAvailable
-    );
+    const sortedByBikes = sortByBikesDesc(stationsResponse.stations);
     const leastByBikes = [...stationsResponse.stations].sort(
       (left, right) => left.bikesAvailable - right.bikesAvailable
     );
@@ -740,9 +664,7 @@ async function buildStationUsageContent(
         },
         {
           label: 'Bicis visibles',
-          value: formatInteger(
-            stationsResponse.stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-          ),
+          value: formatInteger(sumBikes(stationsResponse.stations)),
           detail: 'Bicis disponibles en la última actualización.',
         },
         {
@@ -756,20 +678,10 @@ async function buildStationUsageContent(
     };
   }
 
-  const payload = await getDailyMobilityConclusions()
-    .then((result) => result.payload)
-    .catch((error) => {
-      captureWarningWithContext('SEO landing degraded: daily mobility conclusions unavailable.', {
-        area: 'seo.landing',
-        operation: 'buildStationUsageContent',
-        dedupeKey: 'seo.landing.station-usage.mobility-conclusions-fallback',
-        extra: { reason: String(error) },
-      });
-      return null;
-    });
+  const payload = await sources.loadRecentConclusions();
 
   if (!payload) {
-    const snapshotFallback = await buildSnapshotFallbackContent(nowIso);
+    const snapshotFallback = await buildSnapshotFallbackContent();
     if (snapshotFallback) {
       return snapshotFallback;
     }
@@ -792,7 +704,7 @@ async function buildStationUsageContent(
   ];
 
   if (items.length === 0) {
-    const snapshotFallback = await buildSnapshotFallbackContent(payload.generatedAt);
+    const snapshotFallback = await buildSnapshotFallbackContent();
     if (snapshotFallback) {
       return snapshotFallback;
     }
@@ -826,15 +738,10 @@ async function buildStationUsageContent(
 
 async function buildMostBikesContent(
   config: SeoPageConfig,
-  nowIso: string
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
-  const stationsResponse = await fetchStations().catch(() => ({
-    stations: [],
-    generatedAt: nowIso,
-  }));
-  const stations = [...stationsResponse.stations].sort(
-    (left, right) => right.bikesAvailable - left.bikesAvailable
-  );
+  const stationsResponse = await sources.loadStations();
+  const stations = sortByBikesDesc(stationsResponse.stations);
   const items = stations.slice(0, 10).map((station, index) => ({
     title: `${index + 1}. ${station.name}`,
     detail: `${station.bikesAvailable} bicis disponibles · ${station.anchorsFree} huecos libres · capacidad ${station.capacity}`,
@@ -858,9 +765,7 @@ async function buildMostBikesContent(
       },
       {
         label: 'Bicis totales',
-        value: formatInteger(
-          stations.reduce((sum, station) => sum + station.bikesAvailable, 0)
-        ),
+        value: formatInteger(sumBikes(stations)),
         detail: 'Total de bicis disponibles en la última actualización.',
       },
       {
@@ -876,27 +781,11 @@ async function buildMostBikesContent(
 
 async function buildMonthlyReportsContent(
   config: SeoPageConfig,
-  nowIso: string
+  sources: SeoLandingSources
 ): Promise<SeoLandingContent> {
   const [monthsResponse, monthlySeries] = await Promise.all([
-    fetchAvailableDataMonths().catch((error) => {
-      captureWarningWithContext('SEO landing degraded: available months unavailable in monthly reports.', {
-        area: 'seo.landing',
-        operation: 'buildMonthlyReportsContent',
-        dedupeKey: 'seo.landing.monthly-reports.available-months-fallback',
-        extra: { reason: String(error) },
-      });
-      return { months: [], generatedAt: nowIso };
-    }),
-    fetchCachedMonthlyDemandCurve(36).catch((error) => {
-      captureWarningWithContext('SEO landing degraded: monthly demand series unavailable in monthly reports.', {
-        area: 'seo.landing',
-        operation: 'buildMonthlyReportsContent',
-        dedupeKey: 'seo.landing.monthly-reports.monthly-series-fallback',
-        extra: { reason: String(error) },
-      });
-      return [];
-    }),
+    sources.loadAvailableMonths(),
+    sources.loadMonthlySeries(36),
   ]);
   const monthSet = new Set<string>();
   for (const month of [
@@ -955,32 +844,29 @@ async function buildMonthlyReportsContent(
 
 export async function buildRedistribucionContent(
   _config: SeoPageConfig,
-  nowIso: string
+  nowIso: string,
+  sources: SeoLandingSources = createLiveSeoLandingSources(nowIso)
 ): Promise<SeoLandingContent> {
   let stationCount = 0;
   let pctTimeEmpty = 0;
   let pctTimeFull = 0;
   let generatedAt = nowIso;
 
-  try {
-    const { buildRebalancingReport } = await import('@/lib/rebalancing-report');
-    const report = await buildRebalancingReport({ days: 15 });
+  const report = await sources.loadRebalancingReport();
+
+  if (report && report.summary.totalStations > 0) {
     generatedAt = report.generatedAt;
     stationCount = report.summary.totalStations;
     pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
     pctTimeFull = report.kpis.service.systemPctTimeFull;
-    if (stationCount === 0) throw new Error('Empty report');
-  } catch {
-    const stationsResponse = await fetchStations().catch(() => ({
-      stations: [],
-      generatedAt: nowIso,
-    }));
+  } else {
+    const stationsResponse = await sources.loadStations();
     generatedAt = stationsResponse.generatedAt;
     if (stationsResponse.stations.length > 0) {
       stationCount = stationsResponse.stations.length;
       const occupancyValues = stationsResponse.stations
         .filter((station) => station.capacity > 0)
-        .map((station) => station.bikesAvailable / station.capacity);
+        .map(occupancyOf);
       const avgOccupancy = average(occupancyValues);
       // Proxy signals from live snapshot to avoid all "Sin datos".
       pctTimeEmpty = Math.max(0, 1 - avgOccupancy);
@@ -1041,31 +927,34 @@ export async function buildRedistribucionContent(
   };
 }
 
-async function buildSeoLandingContent(slug: SeoPageSlug): Promise<SeoLandingContent> {
+async function buildSeoLandingContent(
+  slug: SeoPageSlug,
+  nowIso: string,
+  sources: SeoLandingSources
+): Promise<SeoLandingContent> {
   const config = getSeoPageConfig(slug);
-  const nowIso = new Date().toISOString();
 
   switch (slug) {
     case 'estaciones-mas-usadas-zaragoza':
-      return buildMostUsedStationsContent(config, nowIso);
+      return buildMostUsedStationsContent(config, sources);
     case 'barrios-bizi-zaragoza':
-      return buildDistrictOverviewContent(config, nowIso);
+      return buildDistrictOverviewContent(config, nowIso, sources);
     case 'uso-bizi-por-hora':
-      return buildHourlyUsageContent(config, nowIso);
+      return buildHourlyUsageContent(config, nowIso, sources);
     case 'ranking-estaciones-bizi':
-      return buildStationRankingContent(config, nowIso);
+      return buildStationRankingContent(config, sources);
     case 'viajes-por-dia-zaragoza':
-      return buildDailyTripsContent(config, nowIso);
+      return buildDailyTripsContent(config, nowIso, sources);
     case 'viajes-por-mes-zaragoza':
-      return buildMonthlyTripsContent(config, nowIso);
+      return buildMonthlyTripsContent(config, nowIso, sources);
     case 'uso-bizi-por-estacion':
-      return buildStationUsageContent(config, nowIso);
+      return buildStationUsageContent(config, nowIso, sources);
     case 'estaciones-con-mas-bicis':
-      return buildMostBikesContent(config, nowIso);
+      return buildMostBikesContent(config, sources);
     case 'informes-mensuales-bizi-zaragoza':
-      return buildMonthlyReportsContent(config, nowIso);
+      return buildMonthlyReportsContent(config, sources);
     case 'redistribucion':
-      return buildRedistribucionContent(config, nowIso);
+      return buildRedistribucionContent(config, nowIso, sources);
     default:
       return fallbackContent(config, nowIso);
   }
@@ -1133,9 +1022,14 @@ export function resolveSeoLandingTransitionKind(href: string): 'to_dashboard' | 
   return href.startsWith('/dashboard') ? 'to_dashboard' : 'within_public';
 }
 
-export async function getSeoLandingPageData(slug: SeoPageSlug) {
+export async function getSeoLandingPageData(slug: SeoPageSlug, sources?: SeoLandingSources) {
   const config = getSeoPageConfig(slug);
-  const content = await buildSeoLandingContent(slug);
+  const nowIso = new Date().toISOString();
+  const content = await buildSeoLandingContent(
+    slug,
+    nowIso,
+    sources ?? createLiveSeoLandingSources(nowIso)
+  );
   const path = appRoutes.seoPage(slug);
   const indexabilityInput = buildSeoLandingIndexabilityInput(config, content);
   const indexability = evaluatePageIndexability({
