@@ -5,9 +5,9 @@ import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { shouldShowDataStateNotice } from '@/lib/data-state';
-import { formatMonthLabel } from '@/lib/months';
+import { formatRatioDelta, formatInteger, formatPercent } from '@/lib/format';
+import { formatMonthLabel, monthDayCount, previousMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { formatInteger, formatPercent } from '@/lib/format';
 import { PageShell } from '@/components/layout/page-shell';
 import { getReportsIndexPageData } from '@/server-functions/informes';
 import { toJsonLdScript } from '@/lib/structured-data';
@@ -25,8 +25,40 @@ export const Route = createFileRoute('/informes')({
 
 export default function ReportsIndexPage() {
   const location = useLocation();
-  const { months, monthMap, latestMonth, latestPeriodCoverage, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
+  const { months, monthMap, latestMonth, latestPeriodCoverage, latestTrend, latestComparisonLabel, currentMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
   const monthlyRows = new Map(Object.entries(monthMap));
+  const latestTrendLabel =
+    latestComparisonLabel === 'mismos días del mes anterior'
+      ? 'vs mismos días del mes anterior'
+      : 'frente al mes anterior';
+
+  // Para las filas del archivo comparamos solo meses ya cerrados: el mes en
+  // curso es parcial y su total crudo no es comparable con un mes completo.
+  // Normalizamos por dias para que no dependa de tener 28, 30 o 31 dias.
+  function demandTrendFor(month: string): number | null {
+    if (!currentMonth || month >= currentMonth) {
+      return null;
+    }
+
+    const referenceMonth = previousMonthKey(month);
+    const row = monthlyRows.get(month);
+    const referenceRow = referenceMonth ? monthlyRows.get(referenceMonth) : undefined;
+    const monthDays = monthDayCount(month);
+    const referenceDays = referenceMonth ? monthDayCount(referenceMonth) : 0;
+
+    if (!row || !referenceRow || monthDays <= 0 || referenceDays <= 0 || referenceRow.demandScore <= 0) {
+      return null;
+    }
+
+    const monthRate = row.demandScore / monthDays;
+    const referenceRate = referenceRow.demandScore / referenceDays;
+
+    if (referenceRate <= 0) {
+      return null;
+    }
+
+    return (monthRate - referenceRate) / referenceRate;
+  }
 
   if (location.pathname !== appRoutes.reports()) {
     return <Outlet />;
@@ -81,6 +113,15 @@ export default function ReportsIndexPage() {
                 {latestPeriodCoverage.label} · {latestPeriodCoverage.coveredDays} de {latestPeriodCoverage.expectedDays} días disponibles
               </span>
             ) : null}
+            {latestTrend !== null ? (
+              <span
+                className={`ui-chip ${latestTrend >= 0 ? 'text-[var(--primary)]' : 'text-[var(--warning)]'}`}
+              >
+                <span aria-hidden="true">{latestTrend >= 0 ? '▲' : '▼'}</span>
+                <span className="sr-only">{latestTrend >= 0 ? 'Sube' : 'Baja'}</span>{' '}
+                {formatRatioDelta(latestTrend)} {latestTrendLabel}
+              </span>
+            ) : null}
             <TrackedLink
               href={appRoutes.statsViajes()}
               navigationEvent={{
@@ -118,8 +159,12 @@ export default function ReportsIndexPage() {
           <p className="stat-value">{months.length}</p>
         </article>
         <article className="ui-section-card py-3">
-          <p className="stat-label">Meses con datos</p>
-          <p className="stat-value">{months.length > 0 ? new Set(months).size : 0}</p>
+          <p className="stat-label">Periodo del archivo</p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            {months.length === 0
+              ? 'Sin datos'
+              : `${formatMonthLabel(months[months.length - 1])} – ${formatMonthLabel(months[0])}`}
+          </p>
         </article>
       </section>
 
@@ -134,6 +179,7 @@ export default function ReportsIndexPage() {
         <div className="space-y-3">
           {months.map((month) => {
             const row = monthlyRows.get(month);
+            const trend = demandTrendFor(month);
 
             return (
               <TrackedLink
@@ -164,7 +210,18 @@ export default function ReportsIndexPage() {
                     </p>
                   ) : null}
                 </div>
-                <span className="shrink-0 text-xs font-bold text-[var(--primary)]">Abrir informe</span>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {trend !== null ? (
+                    <span
+                      className={`text-[11px] font-bold ${trend >= 0 ? 'text-[var(--primary)]' : 'text-[var(--warning)]'}`}
+                    >
+                      <span aria-hidden="true">{trend >= 0 ? '▲' : '▼'}</span>
+                      <span className="sr-only">{trend >= 0 ? 'Sube' : 'Baja'}</span>{' '}
+                      {formatRatioDelta(trend)}
+                    </span>
+                  ) : null}
+                  <span className="text-xs font-bold text-[var(--primary)]">Abrir informe</span>
+                </div>
               </TrackedLink>
             );
           })}
