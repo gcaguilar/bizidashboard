@@ -38,7 +38,7 @@ function formatHourLabel(hour: number): string {
 }
 
 function getDemandCardLabel(selectedMonth: string | null): string {
-  return selectedMonth ? 'Cambio de demanda del mes' : 'Cambio de demanda 7 dias';
+  return selectedMonth ? 'Cambio de demanda del mes' : 'Cambio de demanda 7 días';
 }
 
 function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
@@ -47,12 +47,12 @@ function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
     : null;
 
   return payload.selectedMonth
-    ? `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (indice de actividad, no viajes exactos).`
-    : `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 dias (indice de actividad, no viajes exactos).`;
+    ? `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (índice de actividad, no viajes exactos).`
+    : `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 días (índice de actividad, no viajes exactos).`;
 }
 
 function getOccupancyCardLabel(selectedMonth: string | null): string {
-  return selectedMonth ? 'Ocupacion media del mes' : 'Ocupacion media 7 dias';
+  return selectedMonth ? 'Ocupación media del mes' : 'Ocupación media 7 días';
 }
 
 function getPeriodCaption(selectedMonth: string | null, fallback: string): string {
@@ -67,12 +67,12 @@ function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
   const { weekdayWeekendProfile } = payload;
 
   if (!weekdayWeekendProfile.dominantPeriod) {
-    return 'Aun no hay suficiente muestra para comparar dias laborables y fin de semana.';
+    return 'Aún no hay suficiente muestra para comparar días laborables y fin de semana.';
   }
 
   return weekdayWeekendProfile.dominantPeriod === 'weekday'
-    ? `Entre semana la red concentra mas actividad media por dia que en fin de semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts).`
-    : `En fin de semana la red concentra mas actividad media por dia que entre semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts).`;
+    ? `Entre semana la red concentra más actividad media por día que en fin de semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts).`
+    : `En fin de semana la red concentra más actividad media por día que entre semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts).`;
 }
 
 export const Route = createFileRoute('/dashboard/conclusiones/')({
@@ -82,7 +82,7 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
   head: () =>
     buildSeoHead({
       title: 'Conclusiones de movilidad',
-      description: 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios mas activos y patrones entre semana y fin de semana.',
+      description: 'Resumen ejecutivo de movilidad en Zaragoza con demanda, horas pico, barrios más activos y patrones entre semana y fin de semana.',
       robots: 'noindex, nofollow',
     }),
   loaderDeps: ({ search }) => ({
@@ -140,10 +140,10 @@ export default function DashboardConclusionsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">Dia {payload.dateKey}</span>
+            <span className="ui-chip">Día {payload.dateKey}</span>
             <span className="ui-chip">Cobertura desde {formatDate(payload.sourceFirstDay)}</span>
-            <span className="ui-chip">Ultima muestra {formatDate(payload.sourceLastDay)}</span>
-            <span className="ui-chip">{fromCache ? 'Actualizacion diaria guardada' : 'Actualizado hoy'}</span>
+            <span className="ui-chip">Última muestra {formatDate(payload.sourceLastDay)}</span>
+            <span className="ui-chip">{fromCache ? 'Actualización diaria guardada' : 'Actualizado hoy'}</span>
           </div>
         </div>
       </section>
@@ -159,14 +159,14 @@ export default function DashboardConclusionsPage() {
           <p className="stat-label">{getOccupancyCardLabel(payload.selectedMonth)}</p>
           <p className="stat-value">{formatPercent(payload.metrics.occupancyLast7Days)}</p>
           <p className="text-xs text-[var(--muted)]">
-            Variacion: {formatRatioDelta(payload.metrics.occupancyDeltaRatio, 'Sin referencia')}
+            Variación: {formatRatioDelta(payload.metrics.occupancyDeltaRatio, 'Sin referencia')}
           </p>
         </article>
 
         <article className="ui-section-card">
           <p className="stat-label">Cobertura histórica</p>
           <p className="stat-value">{payload.totalHistoricalDays}</p>
-          <p className="text-xs text-[var(--muted)]">Dias con informacion consolidada.</p>
+          <p className="text-xs text-[var(--muted)]">Días con información consolidada.</p>
         </article>
 
       </section>
@@ -231,27 +231,27 @@ export default function DashboardConclusionsPage() {
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Entre semana</p>
               <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} pts</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                Ocupacion media {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)} · {payload.weekdayWeekendProfile.weekday.daysCount} dias
+                Ocupación media {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)} · {payload.weekdayWeekendProfile.weekday.daysCount} días
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Fin de semana</p>
               <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} pts</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                Ocupacion media {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)} · {payload.weekdayWeekendProfile.weekend.daysCount} dias
+                Ocupación media {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)} · {payload.weekdayWeekendProfile.weekend.daysCount} días
               </p>
             </div>
           </div>
 
           <p className="mt-3 text-xs text-[var(--muted)]">
-            Variacion relativa fin de semana vs laborable: {formatRatioDelta(payload.weekdayWeekendProfile.demandGapRatio, 'Sin referencia')}
+            Variación relativa fin de semana vs laborable: {formatRatioDelta(payload.weekdayWeekendProfile.demandGapRatio, 'Sin referencia')}
           </p>
         </article>
 
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Horas con más actividad</h3>
-            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
+            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Últimos 7 días')}</span>
           </div>
 
           {payload.peakDemandHours.length === 0 ? (
@@ -277,7 +277,7 @@ export default function DashboardConclusionsPage() {
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">Barrios con más actividad</h3>
-            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Ultimos 7 dias')}</span>
+            <span className="text-xs text-[var(--muted)]">{getPeriodCaption(payload.selectedMonth, 'Últimos 7 días')}</span>
           </div>
 
           {payload.topDistrictsByDemand.length === 0 ? (
@@ -305,10 +305,10 @@ export default function DashboardConclusionsPage() {
         <article className="ui-section-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-bold text-[var(--foreground)]">
-              {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 dias)'}
+              {payload.selectedMonth ? 'Estaciones con mayor demanda media del mes' : 'Estaciones con mayor demanda media (30 días)'}
             </h3>
             <span className="text-xs text-[var(--muted)]">
-              {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualizacion diaria guardada'}
+              {payload.selectedMonth ? getPeriodCaption(payload.selectedMonth, '') : 'Actualización diaria guardada'}
             </span>
           </div>
 
@@ -409,9 +409,9 @@ export default function DashboardConclusionsPage() {
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {[
-              [appRoutes.dashboardStations(), 'Estaciones mas usadas'],
+              [appRoutes.dashboardStations(), 'Estaciones más usadas'],
               [`${appRoutes.dashboard()}${activeMonth ? `?month=${activeMonth}&` : '?'}rankingTab=turnover`, 'Ranking de estaciones'],
-              [appRoutes.dashboardFlow({ month: activeMonth || undefined }), 'Viajes por dia'],
+              [appRoutes.dashboardFlow({ month: activeMonth || undefined }), 'Viajes por día'],
               [appRoutes.reports(), 'Viajes por mes'],
             ].map(([href, label]) => (
               <Button asChild key={href} variant="outline" size="sm">

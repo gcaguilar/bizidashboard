@@ -51,7 +51,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
         <div className={`mt-4 ${compact ? 'space-y-1.5' : 'space-y-2'}`}>
           {criticalStations.map((station) => {
             const occupancy = occupancyRatio(station);
-            const stateLabel = station.bikesAvailable <= 0 ? 'Vacia' : station.anchorsFree <= 0 ? 'Llena' : occupancy < 0.1 ? 'Muy baja' : 'Muy alta';
+            const stateLabel = station.bikesAvailable <= 0 ? 'Vacía' : station.anchorsFree <= 0 ? 'Llena' : occupancy < 0.1 ? 'Muy baja' : 'Muy alta';
 
             return (
               <TrackedLink

@@ -131,8 +131,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           <div className='mt-1 flex items-center gap-2'>
             <p className='text-xs text-[var(--muted)]'>Estaciones con problemas de disponibilidad más frecuentes.</p>
             <InfoHint
-              label='Como se calcula la friccion'
-              content='La friccion suma el tiempo en que una estacion estuvo vacia o llena. Cuantas mas horas problema acumula, mas alta aparece en el ranking.'
+              label='Cómo se calcula la fricción'
+              content='La fricción suma el tiempo en que una estación estuvo vacía o llena. Cuantas más horas problema acumula, más alta aparece en el ranking.'
             />
           </div>
         </div>
@@ -158,7 +158,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
               updateQuery({ tab: 'availability', showAll: false });
             }}
           >
-            Criticas
+            Críticas
           </Button>
           <Button
             variant={activeTab === 'turnover' ? 'default' : 'outline'}
@@ -168,7 +168,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
               updateQuery({ tab: 'turnover', showAll: false });
             }}
           >
-            Rotacion
+            Rotación
           </Button>
         </div>
 
@@ -185,7 +185,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       {rankingsState === 'partial' || rankingsState === 'stale' ? (
         <DataStateNotice
           state={rankingsState}
-          subject={`el ranking de ${activeTab === 'turnover' ? 'rotacion' : 'criticidad'}`}
+          subject={`el ranking de ${activeTab === 'turnover' ? 'rotación' : 'criticidad'}`}
           description={
             rankingsState === 'partial'
               ? 'El ranking tiene datos utiles, pero la cobertura disponible no llena toda la ventana ideal.'
@@ -201,11 +201,11 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
       {!canRenderRows ? (
         <DataStateNotice
           state={rankingsState}
-          subject={`el ranking de ${activeTab === 'turnover' ? 'rotacion' : 'criticidad'}`}
+          subject={`el ranking de ${activeTab === 'turnover' ? 'rotación' : 'criticidad'}`}
           description={
             search.trim()
-              ? 'No hay estaciones que coincidan con la busqueda actual.'
-              : 'Todavia no hay datos suficientes para calcular este ranking.'
+              ? 'No hay estaciones que coincidan con la búsqueda actual.'
+              : 'Todavía no hay datos suficientes para calcular este ranking.'
           }
           href={appRoutes.status()}
           actionLabel='Ver estado'
@@ -251,7 +251,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
                 <p className='mt-2 text-[11px] text-[var(--muted)]'>
                   {activeTab === 'turnover'
                     ? `Movimiento relativo frente al resto de estaciones. Capacidad ${row.stationCapacity}.`
-                    : `Friccion = horas vacia + horas llena sobre ${row.totalHours}h observadas.`}
+                    : `Fricción = horas vacía + horas llena sobre ${row.totalHours}h observadas.`}
                 </p>
               </li>
             );

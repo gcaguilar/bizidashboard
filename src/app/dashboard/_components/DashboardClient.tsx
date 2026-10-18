@@ -708,6 +708,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     hourlySignals={mobilityPreview.hourlySignals}
                     windowLabel={activeWindow.label}
                     requestedDays={activeWindow.demandDays}
+                    isWindowLoading={isMobilityPreviewLoading}
                     recentSnapshots={recentSnapshots}
                     currentMonth={parsedSearch.month}
                   />}
@@ -787,7 +788,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 function FooterYear() {
   return (
     <footer className="pb-4 text-center text-[11px] text-[var(--muted)]" suppressHydrationWarning>
-      &copy; {CURRENT_YEAR} Bizi Zaragoza - Sistema de analitica de movilidad urbana.
+      &copy; {CURRENT_YEAR} Bizi Zaragoza - Sistema de analítica de movilidad urbana.
     </footer>
   );
 }

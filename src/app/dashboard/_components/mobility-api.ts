@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import { appRoutes } from '@/lib/routes';
 import { fetchJson } from '@/lib/fetch-json';
 import { type DailyDemandRow, type MobilitySignalRow } from './mobility-insights-model';
@@ -82,6 +82,10 @@ export function mobilityDataQueryOptions(
   return queryOptions({
     queryKey: ['dashboard', 'mobility', params.mobilityDays, params.demandDays, month] as const,
     queryFn: ({ signal }) => loadMobilityData(signal, params, errorMessage),
+    // Al cambiar de ventana temporal conservamos las cifras anteriores mientras
+    // llega la nueva muestra: así el gráfico no parpadea a vacío y el estado de
+    // carga lo comunica el indicador (`aria-busy` + shimmer) de la cabecera.
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60_000,
   });
 }

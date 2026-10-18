@@ -606,6 +606,28 @@ table tbody tr:hover {
   border-left-color: var(--card);
 }
 
+/**
+ * Atribución del mapa: el estilo por defecto de MapLibre (texto #333 sobre
+ * blanco translúcido) caía por debajo de 4.5:1. Fijamos fondo sólido y el
+ * color de texto del tema para cumplir WCAG AA.
+ */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.maplibregl-ctrl-attrib a,
+.maplibregl-ctrl-attrib a:visited {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.maplibregl-ctrl-attrib-button {
+  background-color: color-mix(in srgb, var(--card) 92%, var(--background));
+}
+
 @media (min-width: 768px) {
   .ui-page-hero,
   [data-card-variant='hero'] {

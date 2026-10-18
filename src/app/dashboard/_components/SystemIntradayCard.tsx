@@ -57,7 +57,7 @@ function SystemTooltip({ active, label, payload }: TooltipProps) {
           <div key={row.name} className="flex items-center justify-between gap-4">
             <span className="text-[var(--muted)]">{row.name}</span>
             <span className="font-semibold text-[var(--foreground)]">
-              {row.name === 'Ocupacion media'
+              {row.name === 'Ocupación media'
                 ? formatPercent(row.value ?? 0)
                 : `${Number(row.value ?? 0).toFixed(1)} bicis`}
             </span>
@@ -83,23 +83,23 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.1em] text-[var(--foreground)]">
-            Evolucion del sistema durante el dia
+            Evolución del sistema durante el día
           </h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Media por hora de ocupacion y bicis disponibles para la ventana {windowLabel.toLowerCase()}.
+            Media por hora de ocupación y bicis disponibles para la ventana {windowLabel.toLowerCase()}.
           </p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
           className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
         >
-          Como se calcula
+          Cómo se calcula
         </TrackedLink>
       </div>
 
       {chartData.length === 0 ? (
         <WidgetEmptyState
           title="Sin perfil horario suficiente"
-          description="Todavia no hay suficiente historico por hora para resumir como cambia la ocupacion y las bicis durante el dia."
+          description="Todavía no hay suficiente histórico por hora para resumir cómo cambia la ocupación y las bicis durante el día."
           helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />
       ) : (
@@ -128,7 +128,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                     yAxisId="occupancy"
                     type="monotone"
                     dataKey="avgOccupancy"
-                    name="Ocupacion media"
+                    name="Ocupación media"
                     stroke="var(--primary)"
                     fill="color-mix(in_srgb, var(--primary) 18%, transparent)"
                     strokeWidth={2}
@@ -147,7 +147,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
             </div>
           </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
-            La ocupacion mide el porcentaje medio de bicis sobre capacidad. Bicis disponibles refleja la media de bicis ancladas por estacion y hora, no un conteo unico de viajes.
+            La ocupación mide el porcentaje medio de bicis sobre capacidad. Bicis disponibles refleja la media de bicis ancladas por estación y hora, no un conteo único de viajes.
           </p>
         </div>
       )}

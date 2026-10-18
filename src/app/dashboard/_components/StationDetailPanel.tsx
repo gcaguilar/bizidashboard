@@ -498,7 +498,7 @@ export function StationDetailPanel({
           </p>
         </article>
         <article className="rounded-xl border border-[var(--border)] bg-[var(--secondary)] p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Rotacion 14d</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Rotación 14d</p>
           <p className="mt-2 text-4xl font-bold text-[var(--foreground)]">
             {turnoverRow ? turnoverRow.turnoverScore.toFixed(1) : '0.0'}
           </p>
@@ -524,12 +524,12 @@ export function StationDetailPanel({
 
           <div className="mt-4 space-y-2">
             <div className="grid grid-cols-3 border-b border-[var(--border)] pb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
-              <span>Metrica</span>
-              <span className="text-center">Estacion</span>
+              <span>Métrica</span>
+              <span className="text-center">Estación</span>
               <span className="text-right">Distrito/Ciudad</span>
             </div>
             <div className="grid grid-cols-3 py-1 text-sm">
-              <span className="text-[var(--muted)]">Ocupacion media</span>
+              <span className="text-[var(--muted)]">Ocupación media</span>
               <span className="text-center font-semibold text-[var(--foreground)]">
                 {formatPercent(currentOccupancy)}
               </span>
@@ -548,7 +548,7 @@ export function StationDetailPanel({
               <span className="font-bold text-[var(--primary)]">Conclusión:</span>{' '}
               {districtAverage === null
                 ? 'Sin datos de distrito para comparar.'
-                : `Esta estacion esta ${
+                : `Esta estación está ${
                     currentOccupancy >= districtAverage ? 'por encima' : 'por debajo'
                   } de la media distrital en ${formatPercent(
                     Math.abs(currentOccupancy - districtAverage)
@@ -558,8 +558,8 @@ export function StationDetailPanel({
         </article>
 
         <article className="rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)] p-5 text-white">
-          <h3 className="text-lg font-bold">Prediccion de disponibilidad</h3>
-          <p className="mt-1 text-sm text-white/80">Estimacion de disponibilidad para 60 minutos.</p>
+          <h3 className="text-lg font-bold">Predicción de disponibilidad</h3>
+          <p className="mt-1 text-sm text-white/80">Estimación de disponibilidad para 60 minutos.</p>
           <div className="mt-4 space-y-3">
             <div className="rounded-lg border border-white/25 bg-white/10 px-3 py-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/70">En 30 min</p>

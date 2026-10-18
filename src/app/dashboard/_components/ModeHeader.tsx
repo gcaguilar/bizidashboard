@@ -36,7 +36,6 @@ export function ModeHeader({ activeMode, onChangeMode }: ModeHeaderProps) {
                 size="sm"
                 role="tab"
                 aria-selected={isActive}
-                aria-pressed={isActive}
                 onClick={() => onChangeMode(mode.id)}
                 className={`h-full w-full flex-col items-start justify-start rounded-xl px-4 py-3 text-left ${
                   isActive

@@ -2,6 +2,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/ui/metric-card';
 import type { StationSnapshot } from '@/lib/api-types';
+import { formatDecimal } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import type { RecentStationSnapshot } from '@/lib/recent-station-history';
 
@@ -95,7 +96,7 @@ export function ResearchSummaryCard({
           value={<span className="text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</span>}
           detail={
             topDemandDay
-              ? `${topDemandDay.demandScore.toFixed(1)} puntos de movimiento estimado`
+              ? `${formatDecimal(topDemandDay.demandScore)} puntos de movimiento estimado`
               : 'Todavía no hay histórico suficiente.'
           }
         />
@@ -108,7 +109,7 @@ export function ResearchSummaryCard({
           }
           detail={
             topHour
-              ? `${topHour.avgBikesAvailable.toFixed(1)} bicis de media por estación`
+              ? `${formatDecimal(topHour.avgBikesAvailable)} bicis de media por estación`
               : 'Todavía no hay datos suficientes por hora.'
           }
         />

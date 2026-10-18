@@ -124,7 +124,7 @@ describe('RankingsTable navigation sync', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Criticas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Críticas' }));
 
     expect(navigateMock).not.toHaveBeenCalled();
   });

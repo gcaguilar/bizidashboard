@@ -12,6 +12,7 @@ import { ResearchVolatilityCard } from './ResearchVolatilityCard';
 import { StationPicker } from './StationPicker';
 import { StationStabilityCard } from './StationStabilityCard';
 import { SystemIntradayCard } from './SystemIntradayCard';
+import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import type { RecentStationSnapshot } from '@/lib/recent-station-history';
 
 type StationTrend = 'up' | 'down' | 'flat';
@@ -34,6 +35,7 @@ type ResearchModeViewProps = {
   hourlySignals: Array<{ stationId: string; hour: number; departures: number; arrivals: number; sampleCount: number }>;
   windowLabel: string;
   requestedDays: number;
+  isWindowLoading?: boolean;
   recentSnapshots: RecentStationSnapshot[];
   currentMonth?: string | null;
 };
@@ -41,7 +43,25 @@ type ResearchModeViewProps = {
 export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewProps) {
   return (
     <>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div
+        aria-busy={props.isWindowLoading ? true : undefined}
+        className="relative grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+      >
+        {props.isWindowLoading ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none absolute -top-3 left-0 right-0 z-10 flex justify-center"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-[11px] font-semibold text-[var(--muted)] shadow-[var(--shadow-soft)]">
+              <span
+                aria-hidden="true"
+                className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]"
+              />
+              Recalculando la ventana {props.windowLabel.toLowerCase()}…
+            </span>
+          </div>
+        ) : null}
         <DemandFlowCard
           dailyDemand={props.dailyDemand}
           windowLabel={props.windowLabel}
@@ -57,6 +77,14 @@ export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewPro
           stations={props.stations}
         />
         <ResearchVolatilityCard rankings={props.rankings.availability} />
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-xs text-[var(--muted)]">
+          Ventana de movilidad: <strong className="text-[var(--foreground)]">{props.windowLabel}</strong>. Los
+          rankings de fricción y rotación se calculan sobre una ventana fija de {ANALYTICS_WINDOWS.rankingDays} días
+          y no cambian con el selector temporal.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">

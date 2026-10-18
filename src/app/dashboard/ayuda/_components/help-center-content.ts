@@ -10,7 +10,7 @@ export type FaqItem = {
 
 export const CATEGORY_PRIORITY = [
   'Alertas',
-  'Prediccion',
+  'Predicción',
   'Movilidad',
   'Clasificaciones',
   'Datos',
@@ -111,35 +111,35 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     id: 'proyeccion',
-    category: 'Prediccion',
+    category: 'Predicción',
     question: 'La proyeccion de +30/+60 min es un modelo IA?',
     answer:
       'No es una "bola de cristal" ni una lectura real futura. Es una estimacion hecha con lo que suele pasar en esa estacion a esa hora y con su estado reciente.',
   },
   {
     id: 'confianza-prediccion',
-    category: 'Prediccion',
+    category: 'Predicción',
     question: 'Que significa el porcentaje de confianza?',
     answer:
       'Es una pista de cuanta fe darle a la prediccion. Si hay buen historico reciente, la confianza sube. Si faltan datos o hay mucho ruido, baja. No es garantia, es orientacion.',
   },
   {
     id: 'prediccion-sin-datos',
-    category: 'Prediccion',
+    category: 'Predicción',
     question: 'Por que a veces no hay prediccion o aparece muy plana?',
     answer:
       'Suele pasar cuando hay poco historico, datos irregulares o cambios recientes en la estacion. En esos casos se usa una estimacion mas conservadora y por eso la curva se ve "plana".',
   },
   {
     id: 'prediccion-que-es',
-    category: 'Prediccion',
+    category: 'Predicción',
     question: 'Que son exactamente las predicciones del dashboard?',
     answer:
       'Son valores estimados de disponibilidad futura (por ejemplo +30 y +60 min). Se calculan con patrones del pasado + situacion actual. Sirven para anticipar, no para confirmar lo que va a pasar al 100%.',
   },
   {
     id: 'prediccion-uso-practico',
-    category: 'Prediccion',
+    category: 'Predicción',
     question: 'Como usar la prediccion en la operativa diaria?',
     answer:
       'Usala como alerta temprana: si una estacion apunta a quedarse sin bicis o sin anclajes en +30/+60 min, adelantate con redistribucion. Es mejor para prevenir que para auditar a posteriori.',

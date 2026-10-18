@@ -27,7 +27,7 @@ export function SystemHealthCard({
         <MetricCard label="Estaciones activas" value={totalStations} />
         <MetricCard label="Bicis disponibles" value={bikesAvailable} />
         <MetricCard label="Anclajes libres" value={anchorsFree} />
-        <MetricCard label="Ocupacion media" value={formatPercent(avgOccupancy)} />
+        <MetricCard label="Ocupación media" value={formatPercent(avgOccupancy)} />
       </MetricGrid>
 
       <p className="mt-3 text-xs text-[var(--muted)]">Actualizado {updatedText}</p>

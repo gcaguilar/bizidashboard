@@ -56,26 +56,26 @@ export function useSystemMetrics({ stations, rankings, alerts, status }: SystemM
 
     const dailyInsight = (() => {
       if (status.pipeline.healthStatus === 'down') {
-        return 'El sistema necesita atencion: la ultima ingesta o la calidad de datos muestran un problema claro.';
+        return 'El sistema necesita atención: la última ingesta o la calidad de datos muestran un problema claro.';
       }
 
       if (criticalStations.length >= 10) {
-        return 'Hay muchas estaciones en estado critico. Conviene priorizar redistribucion en las zonas mas saturadas o vacias.';
+        return 'Hay muchas estaciones en estado crítico. Conviene priorizar redistribución en las zonas más saturadas o vacías.';
       }
 
       if (balanceIndex >= 0.82) {
-        return 'El sistema esta bastante equilibrado ahora mismo y la ocupacion media se mueve en una zona saludable.';
+        return 'El sistema está bastante equilibrado ahora mismo y la ocupación media se mueve en una zona saludable.';
       }
 
       if (avgOccupancy < 0.3) {
-        return 'La red muestra una ocupacion media baja. Puede haber tension por falta de bicis en zonas clave.';
+        return 'La red muestra una ocupación media baja. Puede haber tensión por falta de bicis en zonas clave.';
       }
 
       if (avgOccupancy > 0.7) {
-        return 'La red muestra una ocupacion media alta. Puede haber riesgo de falta de anclajes en estaciones populares.';
+        return 'La red muestra una ocupación media alta. Puede haber riesgo de falta de anclajes en estaciones populares.';
       }
 
-      return 'La situacion global es estable, pero conviene vigilar las estaciones con mas horas problema para evitar friccion.';
+      return 'La situación global es estable, pero conviene vigilar las estaciones con más horas problema para evitar fricción.';
     })();
 
     return {
