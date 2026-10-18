@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DashboardHeader } from '@/app/dashboard/_components/DashboardHeader';
 import { HelpCenterClient } from '@/app/dashboard/ayuda/_components/HelpCenterClient';
-import { DEFAULT_FEEDBACK_URL } from '@/lib/feedback';
 
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
@@ -98,13 +97,15 @@ describe('feedback entry points', () => {
     vi.unstubAllEnvs();
   });
 
-  it('shows a dashboard feedback CTA linked to tally by default', () => {
+  it('renders the dashboard feedback CTA as an in-app dialog trigger on every viewport', () => {
     vi.stubEnv('NEXT_PUBLIC_FEEDBACK_URL', '');
 
     const html = renderNode(<DashboardHeader {...dashboardHeaderProps} />);
 
-    expect(html).toContain(`href="${DEFAULT_FEEDBACK_URL}"`);
     expect(html).toContain('>Feedback<');
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).not.toContain('hidden sm:inline-flex');
+    expect(html).not.toContain('href="https://tally.so');
   });
 
   it('exposes explicit feedback copy in the help support block', () => {
@@ -130,8 +131,9 @@ describe('feedback entry points', () => {
       />
     );
 
-    expect(html).toContain(`href="${DEFAULT_FEEDBACK_URL}"`);
     expect(html).toContain('>Enviar feedback<');
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).not.toContain('href="https://tally.so');
     expect(html).toContain('>Contacto<');
     expect(html).toMatch(/compartir feedback/i);
   });

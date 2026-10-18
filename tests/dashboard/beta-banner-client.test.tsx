@@ -83,10 +83,12 @@ describe('BetaBanner client feedback behavior', () => {
       [FEEDBACK_VISIT_COUNT_STORAGE_KEY, '1'],
     ]);
 
-    expect(html).toContain('Ayudanos a mejorar DatosBizi');
+    expect(html).toContain('¿Cómo va DatosBizi?');
+    expect(html).toContain('Me gusta');
+    expect(html).toContain('No me gusta');
     expect(html).toContain('Cerrar dialogo de feedback');
     expect(html).toContain('Cerrar banner de feedback');
-    expect(html.match(/Dar feedback/g)?.length).toBe(2);
+    expect(html.match(/Dar feedback/g)?.length).toBe(1);
     expect(storage.get(FEEDBACK_VISIT_COUNT_STORAGE_KEY)).toBe('1');
   });
 
@@ -97,7 +99,7 @@ describe('BetaBanner client feedback behavior', () => {
       [FEEDBACK_MODAL_LAST_DISMISSED_VISIT_STORAGE_KEY, '2'],
     ]);
 
-    expect(html).not.toContain('Ayudanos a mejorar DatosBizi');
+    expect(html).not.toContain('¿Cómo va DatosBizi?');
     expect(html).toContain('Cerrar banner de feedback');
   });
 
@@ -109,7 +111,7 @@ describe('BetaBanner client feedback behavior', () => {
       [FEEDBACK_BANNER_DISMISSED_STORAGE_KEY, '1'],
     ]);
 
-    expect(html).toContain('Ayudanos a mejorar DatosBizi');
+    expect(html).toContain('¿Cómo va DatosBizi?');
     expect(html).not.toContain('Cerrar banner de feedback');
   });
 

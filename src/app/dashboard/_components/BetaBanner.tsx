@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
+import { FeedbackDialog } from '@/app/_components/FeedbackDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,7 @@ import {
   type FeedbackBannerState,
   type FeedbackModalState,
 } from '@/lib/feedback';
-import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
+import { buildCtaClickEvent, buildPanelOpenEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
 
 const BICIRADAR_URL = 'https://biciradar.es';
 const DISABLE_WELCOME_MODAL =
@@ -152,49 +153,6 @@ function WelcomeModal({
             onClick={() => onClose('dismiss_button')}
           >
             Cerrar
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function FeedbackModal({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Feedback</DialogTitle>
-        </DialogHeader>
-        <div className="mt-6 text-sm">
-          <h3 className="text-2xl font-black text-[var(--foreground)] md:text-4xl">
-            Ayudanos a mejorar DatosBizi
-          </h3>
-          <p className="mt-3 text-[var(--muted)] md:text-base">
-            Ya conoces la web. Cuéntanos qué te falta, qué te sobra o qué cambiarías para que el
-            dashboard te resulte más útil.
-          </p>
-        </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <FeedbackCta
-            source="global_feedback_modal"
-            ctaId="feedback_modal_open"
-            module="global_modal"
-            className=""
-            pendingClassName="min-h-8 px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted)]"
-          >
-            Dar feedback
-          </FeedbackCta>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-          >
-            Ahora no
           </Button>
         </div>
       </DialogContent>
@@ -360,6 +318,22 @@ export function BetaBanner() {
   }, [visitCount]);
 
   useEffect(() => {
+    if (!feedbackModalOpen) {
+      return;
+    }
+
+    trackUmamiEvent(
+      buildPanelOpenEvent({
+        surface: 'dashboard',
+        routeKey,
+        module: 'global_modal',
+        source: 'global_feedback_modal',
+        destination: 'feedback_dialog',
+      })
+    );
+  }, [feedbackModalOpen, routeKey]);
+
+  useEffect(() => {
     if (!welcomeModalOpen && !feedbackModalOpen) {
       return;
     }
@@ -384,10 +358,21 @@ export function BetaBanner() {
   return (
     <>
       {welcomeModalOpen ? <WelcomeModal onOpen={openBiciRadarFromModal} onClose={closeWelcomeModal} /> : null}
-      {!welcomeModalOpen && feedbackModalOpen ? <FeedbackModal onClose={closeFeedbackModal} /> : null}
+      {!welcomeModalOpen && feedbackModalOpen ? (
+        <FeedbackDialog
+          open
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              closeFeedbackModal();
+            }
+          }}
+          source="global_feedback_modal"
+          module="global_modal"
+        />
+      ) : null}
 
       {bannerVariant !== 'hidden' ? (
-        <div className="mx-auto mb-2 w-full max-w-[1280px] animate-[fadeSlideIn_0.3s_ease-out]">
+        <div className="mb-2 w-full animate-[fadeSlideIn_0.3s_ease-out]">
           {bannerVariant === 'biciradar' ? (
             renderBiciRadarBanner(openBiciRadarFromBanner, dismissBanner)
           ) : (

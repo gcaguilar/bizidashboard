@@ -10,6 +10,15 @@ export const FEEDBACK_MODAL_FIRST_ELIGIBLE_VISIT = 2;
 export const FEEDBACK_MODAL_REAPPEAR_INTERVAL = 5;
 
 export type FeedbackBannerVariant = 'biciradar' | 'feedback' | 'hidden';
+export type FeedbackRating = 'positive' | 'negative';
+
+export type FeedbackEmbedOptions = {
+  rating?: FeedbackRating;
+  source?: string;
+};
+
+const TALLY_FORM_URL_PATTERN =
+  /^https?:\/\/(?:www\.)?tally\.so\/(?:r|embed)\/([A-Za-z0-9]+)\/?(?:\?.*)?$/;
 export type FeedbackBannerState = {
   variant: FeedbackBannerVariant;
   visitCount: number;
@@ -127,6 +136,67 @@ export function resolveInitialFeedbackModalState(
       visitCount,
       lastDismissedVisit: null,
     });
+  }
+}
+
+/**
+ * Builds the Tally iframe URL so the form can be answered without leaving the app.
+ * Returns null when the configured URL is not a Tally form (e.g. a custom form provider).
+ */
+export function buildTallyEmbedUrl(
+  feedbackUrl: string | null | undefined,
+  { rating, source }: FeedbackEmbedOptions = {}
+): string | null {
+  if (!feedbackUrl) {
+    return null;
+  }
+
+  const match = feedbackUrl.trim().match(TALLY_FORM_URL_PATTERN);
+  if (!match) {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    alignLeft: '1',
+    hideTitle: '1',
+    transparentBackground: '1',
+  });
+
+  if (rating) {
+    params.set('rating', rating);
+  }
+
+  if (source) {
+    params.set('source', source);
+  }
+
+  return `https://tally.so/embed/${match[1]}?${params.toString()}`;
+}
+
+/**
+ * Records that the visitor already engaged with the feedback prompt during the
+ * current visit, so the automatic modal does not reappear too soon.
+ */
+export function markFeedbackModalSeenForCurrentVisit(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const visitCount = getStoredVisitCount(
+      window.localStorage.getItem(FEEDBACK_VISIT_COUNT_STORAGE_KEY)
+    );
+
+    if (visitCount <= 0) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      FEEDBACK_MODAL_LAST_DISMISSED_VISIT_STORAGE_KEY,
+      String(visitCount)
+    );
+  } catch {
+    // ignore storage errors
   }
 }
 

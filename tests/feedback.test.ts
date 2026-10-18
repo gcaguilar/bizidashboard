@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   DEFAULT_FEEDBACK_URL,
+  buildTallyEmbedUrl,
   getFeedbackUrl,
   getNextVisitCount,
   getStoredDismissedVisit,
@@ -125,5 +126,30 @@ describe('feedback helpers', () => {
     process.env.NEXT_PUBLIC_FEEDBACK_URL = 'https://example.com/form';
     expect(getFeedbackUrl()).toBe('https://example.com/form');
     expect(isFeedbackEnabled()).toBe(true);
+  });
+
+  it('builds an embeddable tally URL and forwards the rating context', () => {
+    expect(buildTallyEmbedUrl(DEFAULT_FEEDBACK_URL)).toBe(
+      'https://tally.so/embed/ZjRAXz?alignLeft=1&hideTitle=1&transparentBackground=1'
+    );
+
+    expect(
+      buildTallyEmbedUrl(DEFAULT_FEEDBACK_URL, {
+        rating: 'negative',
+        source: 'dashboard_header',
+      })
+    ).toBe(
+      'https://tally.so/embed/ZjRAXz?alignLeft=1&hideTitle=1&transparentBackground=1&rating=negative&source=dashboard_header'
+    );
+
+    expect(buildTallyEmbedUrl('https://tally.so/embed/ZjRAXz')).toBe(
+      'https://tally.so/embed/ZjRAXz?alignLeft=1&hideTitle=1&transparentBackground=1'
+    );
+  });
+
+  it('does not embed non-tally feedback providers', () => {
+    expect(buildTallyEmbedUrl('https://example.com/form')).toBeNull();
+    expect(buildTallyEmbedUrl(null)).toBeNull();
+    expect(buildTallyEmbedUrl('')).toBeNull();
   });
 });
