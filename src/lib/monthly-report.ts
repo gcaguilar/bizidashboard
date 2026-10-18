@@ -1,27 +1,11 @@
-import {
-  getMonthlyCriticalEpisodes,
-  getMonthlyNetworkHeatmap,
-  getMonthlyStationMetrics,
-  type MonthlyCriticalEpisodeRow,
-} from '@/analytics/queries/monthly-report';
-import { getStationsWithLatestStatus } from '@/analytics/queries/read';
-import {
-  fetchCachedDailyDemandCurve,
-  fetchCachedMonthlyDemandCurve,
-  fetchCachedSystemHourlyProfile,
-} from '@/lib/analytics-series';
 import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
-import { fetchDistrictCollection } from '@/lib/districts.server';
 import { formatDateLabel, formatPercent, formatRatioMagnitude, roundTo } from '@/lib/format';
-import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import {
-  formatMonthName,
-  isValidMonthKey,
-  monthDayCount,
-  previousMonthKey,
-  REPORT_MONTHS_WINDOW,
-} from '@/lib/months';
+  createLiveMonthlyReportSources,
+  type MonthlyReportSources,
+} from '@/lib/monthly-report-sources';
+import { formatMonthName, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
 import {
   buildMonthlyTemporalComparison,
   buildPeriodCoverage,
@@ -36,6 +20,7 @@ import {
   EMPTY_SEASONALITY,
   EMPTY_WEEKDAY_WEEKEND,
   type DistrictMonthSummary,
+  type MonthlyCriticalEpisodeRow,
   type MonthlyNetworkHeatmapRow,
   type MonthlyRedistribution,
   type MonthlyReport,
@@ -105,7 +90,7 @@ function joinWithY(items: string[]): string {
  * Lee estacionalidad comparando el mes con el mismo mes calendario de años
  * anteriores de la serie; si no hay, cae a la media de toda la serie.
  */
-export function computeSeasonality(
+function computeSeasonality(
   monthly: MonthlyReportTrends['monthly'],
   monthKey: string
 ): MonthlySeasonality {
@@ -158,7 +143,7 @@ export function computeSeasonality(
  * Conclusiones concretas del mes: la franja dia-hora de mayor tension, el barrio
  * mas castigado y el dia mas atipico. Datos ya calculados, en lenguaje natural.
  */
-export function buildPracticalConclusions(input: {
+function buildPracticalConclusions(input: {
   heatmap: MonthlyNetworkHeatmapRow[];
   undersupplied: DistrictMonthSummary[];
   anomalies: ServiceAnomaly[];
@@ -230,7 +215,7 @@ export function buildPracticalConclusions(input: {
  * de operarios, asi que medimos el efecto: estaciones con rotacion alta (por
  * encima de la mediana) que siguen acumulando horas sin bicis o sin anclajes.
  */
-export function buildRedistribution(
+function buildRedistribution(
   stationMetrics: MonthlyStationMetricRow[],
   stationNameById: Map<string, string>,
   stationDistrictMap: Map<string, string>
@@ -332,25 +317,27 @@ function buildDistrictSummaries(
   }));
 }
 
-async function assembleMonthlyReport(monthKey: string, nowIso: string): Promise<MonthlyReport> {
+async function assembleMonthlyReport(
+  monthKey: string,
+  nowIso: string,
+  sources: MonthlyReportSources
+): Promise<MonthlyReport> {
   const referenceMonthKey = previousMonthKey(monthKey);
   const daysInMonth = monthDayCount(monthKey);
 
   // Si la serie mensual falla no podemos saber si el mes tiene informe: lo
   // tratamos como error (no como "sin datos") para no cachear un noindex falso.
   let monthlySeriesFailed = false;
-  const monthlySeriesPromise = fetchCachedMonthlyDemandCurve(REPORT_MONTHS_WINDOW).catch(
-    (error) => {
-      monthlySeriesFailed = true;
-      captureWarningWithContext('Monthly demand series unavailable.', {
-        area: 'reports.month',
-        operation: 'fetchCachedMonthlyDemandCurve',
-        dedupeKey: `reports.month.series.${monthKey}`,
-        extra: { reason: String(error) },
-      });
-      return [];
-    }
-  );
+  const monthlySeriesPromise = sources.loadMonthlySeries().catch((error) => {
+    monthlySeriesFailed = true;
+    captureWarningWithContext('Monthly demand series unavailable.', {
+      area: 'reports.month',
+      operation: 'fetchCachedMonthlyDemandCurve',
+      dedupeKey: `reports.month.series.${monthKey}`,
+      extra: { reason: String(error) },
+    });
+    return [];
+  });
 
   const [
     monthlySeries,
@@ -365,14 +352,12 @@ async function assembleMonthlyReport(monthKey: string, nowIso: string): Promise<
     districts,
   ] = await Promise.all([
     monthlySeriesPromise,
-    fetchCachedDailyDemandCurve(daysInMonth, monthKey).catch(() => []),
+    sources.loadDailyCurve(daysInMonth, monthKey).catch(() => []),
     referenceMonthKey
-      ? fetchCachedDailyDemandCurve(monthDayCount(referenceMonthKey), referenceMonthKey).catch(
-          () => []
-        )
+      ? sources.loadDailyCurve(monthDayCount(referenceMonthKey), referenceMonthKey).catch(() => [])
       : Promise.resolve([]),
-    fetchCachedSystemHourlyProfile(daysInMonth, monthKey).catch(() => []),
-    getDailyMobilityConclusions(monthKey).catch((error) => {
+    sources.loadHourlyProfile(daysInMonth, monthKey).catch(() => []),
+    sources.loadConclusions(monthKey).catch((error) => {
       captureWarningWithContext('Monthly report conclusions unavailable.', {
         area: 'reports.month',
         operation: 'getDailyMobilityConclusions',
@@ -381,11 +366,11 @@ async function assembleMonthlyReport(monthKey: string, nowIso: string): Promise<
       });
       return null;
     }),
-    getMonthlyStationMetrics(monthKey).catch(() => []),
-    getMonthlyCriticalEpisodes(monthKey).catch(() => ({})),
-    getMonthlyNetworkHeatmap(monthKey).catch(() => []),
-    getStationsWithLatestStatus().catch(() => []),
-    fetchDistrictCollection().catch(() => null),
+    sources.loadStationMetrics(monthKey).catch(() => []),
+    sources.loadEpisodes(monthKey).catch(() => ({})),
+    sources.loadHeatmap(monthKey).catch(() => []),
+    sources.loadStations().catch(() => []),
+    sources.loadDistricts().catch(() => null),
   ]);
 
   if (monthlySeriesFailed) {
@@ -582,7 +567,11 @@ async function assembleMonthlyReport(monthKey: string, nowIso: string): Promise<
   };
 }
 
-export async function buildMonthlyReport(monthKey: string, nowIso: string): Promise<MonthlyReport> {
+export async function buildMonthlyReport(
+  monthKey: string,
+  nowIso: string,
+  sources: MonthlyReportSources = createLiveMonthlyReportSources()
+): Promise<MonthlyReport> {
   if (!isValidMonthKey(monthKey)) {
     return buildFallbackMonthlyReport(monthKey, nowIso);
   }
@@ -590,5 +579,7 @@ export async function buildMonthlyReport(monthKey: string, nowIso: string): Prom
   const currentMonth = nowIso.slice(0, 7);
   const ttl = monthKey < currentMonth ? REPORT_CACHE_TTL_CLOSED_SECONDS : REPORT_CACHE_TTL_LIVE_SECONDS;
 
-  return withCache(`reports:monthly:${monthKey}`, ttl, () => assembleMonthlyReport(monthKey, nowIso));
+  return withCache(`reports:monthly:${monthKey}`, ttl, () =>
+    assembleMonthlyReport(monthKey, nowIso, sources)
+  );
 }
