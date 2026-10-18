@@ -10,7 +10,7 @@ vi.mock('@/lib/districts.server', () => ({
   fetchDistrictCollection: fetchDistrictCollectionMock,
 }));
 
-import { loadDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
+import { loadDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion.server';
 
 describe('dashboard redistribucion server data', () => {
   beforeEach(() => {
