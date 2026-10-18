@@ -414,6 +414,47 @@ export const openApiDocument = {
         }
       }
     },
+    '/api/reports': {
+      get: {
+        operationId: 'get_monthly_report',
+        summary: 'Monthly report payload, CSV export, or PDF document for a given month',
+        description: 'Returns the assembled monthly report for `month` (YYYY-MM): JSON payload by default, a CSV document with `format=csv`, or a server-rendered PDF with `format=pdf`. Use `section` to export a single table from a CSV. Closed months are sealed in cache after the first computation.',
+        parameters: [
+          {
+            name: 'month',
+            in: 'query',
+            required: true,
+            description: 'Month key in YYYY-MM format (e.g. "2026-03")',
+            schema: { type: 'string', pattern: '^\\d{4}-(0[1-9]|1[0-2])$' }
+          },
+          {
+            name: 'format',
+            in: 'query',
+            required: false,
+            description: 'Response format: json (default), csv or pdf',
+            schema: { type: 'string', enum: ['json', 'csv', 'pdf'] }
+          },
+          {
+            name: 'section',
+            in: 'query',
+            required: false,
+            description: 'When format=csv, export only this section (e.g. "barrios", "anomalias", "redistribucion")',
+            schema: { type: 'string' }
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Monthly report as JSON payload, as a CSV document when format=csv, or as a PDF when format=pdf'
+          },
+          400: {
+            description: 'Invalid month or unknown section'
+          },
+          500: {
+            description: 'Internal server error'
+          }
+        }
+      }
+    },
     '/api/docs': {
       get: {
         operationId: 'get_api_docs',

@@ -39,6 +39,24 @@ export type CsvResponseOptions = {
   extraHeaders?: Record<string, string>;
 };
 
+export type CsvSection = {
+  /** Human-readable block title, emitted as a single-cell row. */
+  title: string;
+  /** Ordered column headers of the block. */
+  headers: string[];
+  /** Block rows as objects keyed by header, or as ordered cell arrays. */
+  rows: CsvRow[] | Record<string, unknown>[];
+};
+
+export type CsvSectionsResponseOptions = {
+  /** Ordered blocks of a multi-table CSV document. */
+  sections: CsvSection[];
+  /** When set, the download filename (Content-Disposition attachment). */
+  filename?: string;
+  /** Extra response headers (e.g. rate-limit or cache headers). */
+  extraHeaders?: Record<string, string>;
+};
+
 function asCellRows(
   headers: string[],
   rows: CsvRow[] | Record<string, unknown>[]
@@ -59,7 +77,32 @@ function asCellRows(
  */
 export function csvResponse(options: CsvResponseOptions): Response {
   const { headers: columns, rows, filename, extraHeaders } = options;
-  return new Response(toCsv(columns, asCellRows(columns, rows)), {
+  return csvWithHeaders(toCsv(columns, asCellRows(columns, rows)), filename, extraHeaders);
+}
+
+/**
+ * Multi-table variant: each section becomes a titled block (`"Titulo"`) followed
+ * by its own table, separated by a blank line. Keeps a whole report export in a
+ * single, spreadsheet-readable file without call sites hand-joining it.
+ */
+export function csvSectionsResponse(options: CsvSectionsResponseOptions): Response {
+  const { sections, filename, extraHeaders } = options;
+  const body = sections
+    .map((section) => {
+      const titleLine = toCsv([section.title], []);
+      return `${titleLine}\n${toCsv(section.headers, asCellRows(section.headers, section.rows))}`;
+    })
+    .join('\n\n');
+
+  return csvWithHeaders(body, filename, extraHeaders);
+}
+
+function csvWithHeaders(
+  body: string,
+  filename: string | undefined,
+  extraHeaders: Record<string, string> | undefined
+): Response {
+  return new Response(body, {
     status: 200,
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',

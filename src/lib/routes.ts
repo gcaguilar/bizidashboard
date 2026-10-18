@@ -179,6 +179,16 @@ export const appRoutes = {
         days: params?.days,
         format: params?.format,
       }),
+    reports: (params: {
+      month: string;
+      format?: 'csv' | 'pdf' | null;
+      section?: string | null;
+    }) =>
+      buildQuery('/api/reports', {
+        month: params.month,
+        format: params.format,
+        section: params.section,
+      }),
     authSession: () => '/api/auth/session',
     authAccessToken: () => '/api/auth/access-token',
     authLogin: (params?: { returnTo?: string | null }) =>

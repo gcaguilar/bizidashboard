@@ -71,6 +71,7 @@ import { Route as ApiPatternsIndexRouteImport } from './app/api/patterns/index'
 import { Route as ApiPredictionsIndexRouteImport } from './app/api/predictions/index'
 import { Route as ApiRankingsIndexRouteImport } from './app/api/rankings/index'
 import { Route as ApiRebalancingReportIndexRouteImport } from './app/api/rebalancing-report/index'
+import { Route as ApiReportsIndexRouteImport } from './app/api/reports/index'
 import { Route as ApiStationsIndexRouteImport } from './app/api/stations/index'
 import { Route as ApiStatusIndexRouteImport } from './app/api/status/index'
 import { Route as DashboardAlertasIndexRouteImport } from './app/dashboard/alertas/index'
@@ -421,6 +422,11 @@ const ApiRebalancingReportIndexRoute =
     path: '/api/rebalancing-report/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiReportsIndexRoute = ApiReportsIndexRouteImport.update({
+  id: '/api/reports/',
+  path: '/api/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStationsIndexRoute = ApiStationsIndexRouteImport.update({
   id: '/api/stations/',
   path: '/api/stations/',
@@ -655,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/api/predictions/': typeof ApiPredictionsIndexRoute
   '/api/rankings/': typeof ApiRankingsIndexRoute
   '/api/rebalancing-report/': typeof ApiRebalancingReportIndexRoute
+  '/api/reports/': typeof ApiReportsIndexRoute
   '/api/stations/': typeof ApiStationsIndexRoute
   '/api/status/': typeof ApiStatusIndexRoute
   '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
@@ -746,6 +753,7 @@ export interface FileRoutesByTo {
   '/api/predictions': typeof ApiPredictionsIndexRoute
   '/api/rankings': typeof ApiRankingsIndexRoute
   '/api/rebalancing-report': typeof ApiRebalancingReportIndexRoute
+  '/api/reports': typeof ApiReportsIndexRoute
   '/api/stations': typeof ApiStationsIndexRoute
   '/api/status': typeof ApiStatusIndexRoute
   '/dashboard/alertas': typeof DashboardAlertasIndexRoute
@@ -842,6 +850,7 @@ export interface FileRoutesById {
   '/api/predictions/': typeof ApiPredictionsIndexRoute
   '/api/rankings/': typeof ApiRankingsIndexRoute
   '/api/rebalancing-report/': typeof ApiRebalancingReportIndexRoute
+  '/api/reports/': typeof ApiReportsIndexRoute
   '/api/stations/': typeof ApiStationsIndexRoute
   '/api/status/': typeof ApiStatusIndexRoute
   '/dashboard/alertas/': typeof DashboardAlertasIndexRoute
@@ -939,6 +948,7 @@ export interface FileRouteTypes {
     | '/api/predictions/'
     | '/api/rankings/'
     | '/api/rebalancing-report/'
+    | '/api/reports/'
     | '/api/stations/'
     | '/api/status/'
     | '/dashboard/alertas/'
@@ -1030,6 +1040,7 @@ export interface FileRouteTypes {
     | '/api/predictions'
     | '/api/rankings'
     | '/api/rebalancing-report'
+    | '/api/reports'
     | '/api/stations'
     | '/api/status'
     | '/dashboard/alertas'
@@ -1125,6 +1136,7 @@ export interface FileRouteTypes {
     | '/api/predictions/'
     | '/api/rankings/'
     | '/api/rebalancing-report/'
+    | '/api/reports/'
     | '/api/stations/'
     | '/api/status/'
     | '/dashboard/alertas/'
@@ -1208,6 +1220,7 @@ export interface RootRouteChildren {
   ApiPredictionsIndexRoute: typeof ApiPredictionsIndexRoute
   ApiRankingsIndexRoute: typeof ApiRankingsIndexRoute
   ApiRebalancingReportIndexRoute: typeof ApiRebalancingReportIndexRoute
+  ApiReportsIndexRoute: typeof ApiReportsIndexRoute
   ApiStationsIndexRoute: typeof ApiStationsIndexRoute
   ApiStatusIndexRoute: typeof ApiStatusIndexRoute
   ApiAuthAccessTokenIndexRoute: typeof ApiAuthAccessTokenIndexRoute
@@ -1661,6 +1674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRebalancingReportIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/reports/': {
+      id: '/api/reports/'
+      path: '/api/reports'
+      fullPath: '/api/reports/'
+      preLoaderRoute: typeof ApiReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stations/': {
       id: '/api/stations/'
       path: '/api/stations'
@@ -2039,6 +2059,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPredictionsIndexRoute: ApiPredictionsIndexRoute,
   ApiRankingsIndexRoute: ApiRankingsIndexRoute,
   ApiRebalancingReportIndexRoute: ApiRebalancingReportIndexRoute,
+  ApiReportsIndexRoute: ApiReportsIndexRoute,
   ApiStationsIndexRoute: ApiStationsIndexRoute,
   ApiStatusIndexRoute: ApiStatusIndexRoute,
   ApiAuthAccessTokenIndexRoute: ApiAuthAccessTokenIndexRoute,

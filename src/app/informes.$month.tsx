@@ -21,6 +21,7 @@ import { ReportDistricts } from '@/app/informes/_components/ReportDistricts';
 import { ReportProblems } from '@/app/informes/_components/ReportProblems';
 import { ReportAnomalies } from '@/app/informes/_components/ReportAnomalies';
 import { ReportConclusions } from '@/app/informes/_components/ReportConclusions';
+import { ReportExportBar } from '@/app/informes/_components/ReportExportBar';
 import { ReportRedistribution } from '@/app/informes/_components/ReportRedistribution';
 
 export const Route = createFileRoute('/informes/$month')({
@@ -103,7 +104,7 @@ function InformesMonthPage() {
       {structuredData ? (
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       ) : null}
-      <div className="mx-auto mb-4 w-full max-w-[1280px]">
+      <div className="mx-auto mb-4 w-full max-w-[1280px] ui-print-hide">
         <SiteBreadcrumbs items={breadcrumbs} />
       </div>
       <header className="ui-page-hero">
@@ -130,6 +131,8 @@ function InformesMonthPage() {
       {monthRow ? (
         <>
           <ReportSummary report={report} />
+
+          <ReportExportBar month={month} />
 
           <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
             <article className="ui-section-card">
@@ -190,7 +193,7 @@ function InformesMonthPage() {
 
           <ReportConclusions report={report} />
 
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section className="grid gap-4 lg:grid-cols-3 ui-print-hide">
             <article className="ui-section-card lg:col-span-2">
               <h2 className="text-xl font-black text-[var(--foreground)]">Sigue explorando</h2>
               <div className="mt-4 flex flex-wrap gap-2">

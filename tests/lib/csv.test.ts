@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeCsvCell, toCsv, rowsToCsv, type CsvRow } from '@/lib/csv';
+import { escapeCsvCell, toCsv, rowsToCsv, csvSectionsResponse, type CsvRow } from '@/lib/csv';
 
 describe('csv', () => {
   describe('escapeCsvCell', () => {
@@ -88,6 +88,34 @@ describe('csv', () => {
       const result = rowsToCsv(headers, rows);
 
       expect(result).toBe('"id","name","extra"\n"1","Test",""');
+    });
+  });
+
+  describe('csvSectionsResponse', () => {
+    it('emits a titled block per section separated by a blank line', async () => {
+      const response = csvSectionsResponse({
+        sections: [
+          { title: 'Resumen', headers: ['metrica', 'valor'], rows: [['Movimiento', 5200]] },
+          { title: 'Barrios', headers: ['barrio'], rows: [['Centro']] },
+        ],
+        filename: 'informe-2026-03.csv',
+      });
+
+      expect(response.headers.get('Content-Type')).toContain('text/csv');
+      expect(response.headers.get('Content-Disposition')).toBe(
+        'attachment; filename="informe-2026-03.csv"'
+      );
+      expect(await response.text()).toBe(
+        '"Resumen"\n"metrica","valor"\n"Movimiento","5200"\n\n"Barrios"\n"barrio"\n"Centro"'
+      );
+    });
+
+    it('neutralizes formula injection inside section titles and cells', async () => {
+      const response = csvSectionsResponse({
+        sections: [{ title: '=SUMA', headers: ['c'], rows: [['=1+1']] }],
+      });
+
+      expect(await response.text()).toBe('"\'=SUMA"\n"c"\n"\'=1+1"');
     });
   });
 });

@@ -32,7 +32,8 @@ These names describe modules that own behaviour behind a small interface.
 
 - **CSV export module** (`src/lib/csv.ts`) — the single seam for CSV responses:
   spreadsheet-formula neutralization, cell escaping, `Content-Type`, and
-  `Content-Disposition`. Callers pass headers and rows; they never hand-roll
+  `Content-Disposition`. Callers pass headers and rows (`csvResponse`) or titled
+  blocks (`csvSectionsResponse` for multi-table documents); they never hand-roll
   escaping.
 - **Public API route seam** (`src/lib/security/public-api-route.ts`) — wraps a
   public handler with credential checks, rate limiting, and rate-limit headers.
@@ -73,8 +74,21 @@ These names describe modules that own behaviour behind a small interface.
   behind `buildMonthlyReport(monthKey, nowIso, sources)`. `MonthlyReportSources`
   (`src/lib/monthly-report-sources.ts`) is the port a live or in-memory adapter
   fills; the module owns the per-source degradation policy, so it stays testable
-  through one interface. Pure helpers (seasonality, practical conclusions,
-  redistribution) are internal.
+  through one interface. It also owns the cache policy behind the same function:
+  the month in progress expires on a short TTL, a closed month is sealed with no
+  expiry and dropped only by `invalidateMonthlyReport(monthKey)`. Pure helpers
+  (seasonality, practical conclusions, redistribution) are internal.
+- **Monthly report export module** (`src/lib/monthly-report-export.ts`) — owns
+  the mapping from `MonthlyReport` to flat export tables (`CsvSection`), the
+  section ids and their titles. Pure over the payload; the route and the UI only
+  ask for sections, never build rows. `src/app/api/reports` is the adapter that
+  turns those sections into a CSV document or a JSON payload through the CSV
+  seam.
+- **Monthly report PDF module** (`src/lib/monthly-report-pdf.ts`) — owns the
+  server-side PDF layout of a `MonthlyReport` (`buildMonthlyReportPdf`) and its
+  filename. Pure over the payload and the export tables; it normalizes the
+  typographic characters the WinAnsi font cannot draw and paginates tables and
+  prose. No HTTP, no browser binary.
 
 ## Contracts that must hold
 

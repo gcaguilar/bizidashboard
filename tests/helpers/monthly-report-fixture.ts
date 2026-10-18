@@ -1,0 +1,197 @@
+import type { MonthlyReport } from '@/lib/monthly-report';
+
+/** Fixture mensual compacta para probar exportacion y rutas sin base de datos. */
+export function buildMonthlyReportFixture(
+  overrides: Partial<MonthlyReport> = {}
+): MonthlyReport {
+  return {
+    monthKey: '2026-03',
+    generatedAt: '2026-04-01T05:00:00.000Z',
+    hasReport: true,
+    coverage: {
+      monthKey: '2026-03',
+      startAt: '2026-03-01T00:00:00.000Z',
+      endAt: '2026-04-01T00:00:00.000Z',
+      coveredDays: 30,
+      expectedDays: 31,
+      sampleCount: 1200,
+      isClosed: true,
+      isComplete: false,
+      label: 'periodo incompleto',
+    },
+    comparison: {
+      isComparable: true,
+      periodLabel: 'mismos días del mes anterior',
+      reason: '',
+      normalizedDemandRatio: 0.05,
+      trend: 'mejora',
+      previousMonthKey: '2026-02',
+    },
+    balance: {
+      tone: 'up',
+      headline: 'La red creció frente al mes anterior',
+      detail: 'Detalle del balance.',
+    },
+    headline: {
+      demandScore: 5200,
+      avgOccupancy: 0.55,
+      activeStations: 120,
+      sampleCount: 1200,
+      demandDeltaRatio: 0.05,
+      occupancyDeltaRatio: -0.02,
+      peakHour: 9,
+      coveredDays: 30,
+      expectedDays: 31,
+    },
+    summary: 'Resumen del mes.',
+    highlights: [{ title: 'Hallazgo', detail: 'Detalle del hallazgo.' }],
+    recommendations: ['Recomendación uno.'],
+    monthlyConclusions: ['Conclusión práctica.'],
+    peakDemandHours: [{ hour: 9, demandScore: 400 }],
+    weekdayWeekendProfile: {
+      weekday: { avgDemand: 120, avgOccupancy: 0.55, daysCount: 22 },
+      weekend: { avgDemand: 90, avgOccupancy: 0.45, daysCount: 8 },
+      demandGapRatio: 0.33,
+      dominantPeriod: 'weekday',
+    },
+    trends: {
+      monthly: [
+        {
+          monthKey: '2026-03',
+          demandScore: 5200,
+          avgOccupancy: 0.55,
+          activeStations: 120,
+          sampleCount: 1200,
+        },
+      ],
+      daily: [{ day: '2026-03-01', demandScore: 180, avgOccupancy: 0.55, sampleCount: 40 }],
+      hourly: [{ hour: 9, avgOccupancy: 0.7, avgBikesAvailable: 3, sampleCount: 40 }],
+    },
+    seasonality: {
+      sameMonthYears: 1,
+      previousYearsAvgDemand: 5000,
+      ratioVsPreviousYears: 0.04,
+      seriesAvgDemand: 5100,
+      ratioVsSeries: 0.02,
+      label: 'Estabilidad respecto a años anteriores.',
+    },
+    districts: {
+      mostActive: [
+        {
+          district: 'Centro',
+          demandScore: 900,
+          avgOccupancy: 0.6,
+          stations: 12,
+          emptyHours: 40,
+          fullHours: 30,
+          totalHours: 500,
+          frictionRate: 0.14,
+        },
+      ],
+      leastActive: [
+        {
+          district: 'Rural',
+          demandScore: 100,
+          avgOccupancy: 0.2,
+          stations: 3,
+          emptyHours: 10,
+          fullHours: 0,
+          totalHours: 400,
+          frictionRate: 0.03,
+        },
+      ],
+      undersupplied: [
+        {
+          district: 'Delicias',
+          demandScore: 700,
+          avgOccupancy: 0.7,
+          stations: 10,
+          emptyHours: 120,
+          fullHours: 100,
+          totalHours: 500,
+          frictionRate: 0.44,
+        },
+      ],
+    },
+    heatmap: [{ dayOfWeek: 1, hour: 9, occupancyAvg: 0.8, sampleCount: 30 }],
+    problemSpots: {
+      worstFriction: [
+        {
+          stationId: '101',
+          stationName: 'Estación 101',
+          district: 'Centro',
+          emptyHours: 40,
+          fullHours: 30,
+          totalHours: 500,
+          frictionHours: 70,
+          frictionRate: 0.14,
+        },
+      ],
+      worstMorning: [
+        {
+          stationId: '102',
+          stationName: 'Estación 102',
+          district: 'Centro',
+          morningEmptyHours: 20,
+          morningFullHours: 5,
+          morningHours: 100,
+          morningEmptyRate: 0.2,
+          morningFullRate: 0.05,
+          morningFrictionRate: 0.25,
+        },
+      ],
+      longestEpisodes: [
+        {
+          stationId: '103',
+          stationName: 'Estación 103',
+          district: 'Delicias',
+          avgEmptyEpisodeMinutes: 30,
+          avgFullEpisodeMinutes: 15,
+          maxEmptyEpisodeMinutes: 90,
+          maxFullEpisodeMinutes: 45,
+          episodeCount: 7,
+        },
+      ],
+    },
+    redistribution: {
+      networkFrictionRate: 0.12,
+      emptyHours: 300,
+      fullHours: 250,
+      rotation: 5200,
+      ineffectiveStations: [
+        {
+          stationId: '104',
+          stationName: 'Estación 104',
+          district: 'Centro',
+          rotation: 300,
+          frictionHours: 50,
+          frictionRate: 0.1,
+        },
+      ],
+      note: 'Nota metodológica.',
+    },
+    topStations: [{ stationId: '105', stationName: 'Estación 105', avgDemand: 42 }],
+    leastUsedStations: [{ stationId: '106', stationName: 'Estación 106', avgDemand: 3 }],
+    anomalies: [
+      {
+        day: '2026-03-19',
+        demandScore: 400,
+        baseline: 180,
+        deviationRatio: 1.2,
+        zScore: 3.1,
+        direction: 'up',
+        cause: { kind: 'holiday', label: 'Festivo local' },
+      },
+      {
+        day: '2026-03-20',
+        demandScore: 10,
+        baseline: 180,
+        deviationRatio: -0.94,
+        zScore: -2.8,
+        direction: 'down',
+        cause: null,
+      },
+    ],
+    ...overrides,
+  };
+}
