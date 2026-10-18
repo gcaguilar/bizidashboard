@@ -9,6 +9,7 @@ import {
   districtCollectionQueryOptions,
 } from '@/lib/districts';
 import { appRoutes } from '@/lib/routes';
+import { getCategoricalColor } from '@/lib/chart-palette';
 import { WidgetEmptyState } from './WidgetEmptyState';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -21,20 +22,6 @@ type DistrictSlice = {
   district: string;
   stationCount: number;
 };
-
-const SLICE_BASE_RED = 234;
-const SLICE_BASE_GREEN = 6;
-const SLICE_BASE_BLUE = 21;
-
-function getSliceColor(index: number, total: number): string {
-  if (index === 0 || total <= 1) {
-    return `rgb(${SLICE_BASE_RED}, ${SLICE_BASE_GREEN}, ${SLICE_BASE_BLUE})`;
-  }
-
-  const ratio = index / Math.max(1, total - 1);
-  const alpha = 0.9 - ratio * 0.65;
-  return `rgba(${SLICE_BASE_RED}, ${SLICE_BASE_GREEN}, ${SLICE_BASE_BLUE}, ${Math.max(0.2, alpha).toFixed(2)})`;
-}
 
 function getOccupancy(station: StationSnapshot): number {
   if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
@@ -105,7 +92,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
     return slicesWithStations.map((slice, index) => {
       const size = (slice.stationCount / totalStations) * 100;
       const arc = {
-        color: getSliceColor(index, slicesWithStations.length),
+        color: getCategoricalColor(index),
         size,
         offset: currentOffset,
         district: slice.district,
@@ -131,7 +118,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
             Carga por barrio
           </h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Distribucion de estaciones por distrito y ocupacion media actual de ciudad.
+            Distribución de estaciones por distrito y ocupación media actual de ciudad.
           </p>
         </div>
         <div className="text-right text-xs text-[var(--muted)]">
@@ -140,7 +127,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
             <TrackedLink href={appRoutes.dashboardHelp('estados-mapa')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap"
             >
-              Como leerlo
+              Cómo leerlo
             </TrackedLink>
           </div>
         </div>
@@ -152,7 +139,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
             <path
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               fill="none"
-              stroke="rgba(234, 6, 21, 0.12)"
+              stroke="var(--border)"
               strokeWidth="4"
             />
             {donutSlices.map((slice) => (
@@ -192,7 +179,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
                   style={{
                     backgroundColor:
                       slice.stationCount > 0
-                        ? getSliceColor(index, slices.length)
+                        ? getCategoricalColor(index)
                         : 'rgba(100, 116, 139, 0.45)',
                   }}
                 />
@@ -204,7 +191,7 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
             ))
           )}
           <p className="pt-1 text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
-            Ocupacion media ciudad: {Math.round(avgOccupancy * 100)}%
+            Ocupación media ciudad: {Math.round(avgOccupancy * 100)}%
           </p>
         </ScrollArea>
       </div>

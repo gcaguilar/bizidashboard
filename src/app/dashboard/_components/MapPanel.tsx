@@ -5,6 +5,7 @@ import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
 import type { Coordinates } from '@/lib/geo';
 import { hasNoAvailability } from '@/lib/network-health';
+import { ANALYTICAL_MAP_LEGEND } from '@/lib/map-colors';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import { MapEngine } from './MapEngine';
 
@@ -47,15 +48,11 @@ export function MapPanel({
   const isFilteredView = stations.length !== totalStations;
   const criticalCount = stations.filter(hasNoAvailability).length;
   const headerTitle =
-    viewMode === 'operations' ? 'Mapa de accion operativa' : 'Mapa general del sistema';
+    viewMode === 'operations' ? 'Mapa de acción operativa' : 'Mapa general del sistema';
   const headerHint =
     viewMode === 'operations'
-      ? `${criticalCount} estaciones en estado critico ahora mismo.`
+      ? `${criticalCount} estaciones en estado crítico ahora mismo.`
       : 'Usa el mapa para localizar estaciones, favoritos y zonas con problemas de disponibilidad.';
-  const legendItems =
-    viewMode === 'operations'
-      ? ['Halo rojo = fricción alta', 'Rojo = tensión alta', 'Azul = favorita', 'Selecciona una estación para verla']
-      : ['Rojo = desequilibrio', 'Verde = estable', 'Azul = favorita', 'Toca para detalle'];
 
   return (
     <Card
@@ -72,9 +69,18 @@ export function MapPanel({
       </div>
 
       <div className="absolute bottom-4 left-4 z-20 flex max-w-[90%] flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)]/95 px-3 py-2 text-[11px] backdrop-blur">
-        {legendItems.map((item) => (
-          <span key={item} className="ui-legend-item">{item}</span>
+        {ANALYTICAL_MAP_LEGEND.map((item) => (
+          <span key={item.label} className="ui-legend-item" title={item.description}>
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: item.color }}
+              aria-hidden="true"
+            />
+            {item.label}
+          </span>
         ))}
+        <span className="ui-legend-item">★ Borde dorado = favorita</span>
+        <span className="ui-legend-item">Agrupación con su recuento</span>
       </div>
 
       <div className="h-full w-full">
