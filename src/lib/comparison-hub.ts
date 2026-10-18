@@ -22,86 +22,21 @@ import { buildFallbackDatasetSnapshot } from '@/services/shared-data';
 import {
   buildComparisonHubViewModel,
   buildFallbackComparisonSections,
+  type ComparisonSection,
+  type HistoryCompareRow,
+  type InteractiveComparisonData,
 } from '@/lib/comparison-hub-builders';
-import type { TemporalComparison } from '@/lib/temporal-comparison';
+
+export type {
+  ComparisonCard,
+  ComparisonSection,
+  InteractiveComparisonData,
+  InteractiveComparisonDimension,
+  InteractiveComparisonDimensionId,
+  InteractiveComparisonOption,
+} from '@/lib/comparison-hub-builders';
 
 const COMPARISON_HUB_CACHE_TTL_SECONDS = 300;
-
-type HistoryCompareRow = {
-  day: string;
-  demandScore: number;
-  avgOccupancy: number;
-  balanceIndex: number;
-  sampleCount: number;
-};
-
-export type ComparisonCard = {
-  id:
-    | 'station-vs-station'
-    | 'district-vs-district'
-    | 'month-vs-month'
-    | 'year-vs-year'
-    | 'weekday-vs-weekend'
-    | 'hour-vs-hour'
-    | 'periods'
-    | 'before-after-expansion'
-    | 'events-vs-normal'
-    | 'ranking-changes'
-    | 'demand-changes'
-    | 'balance-changes';
-  title: string;
-  eyebrow: string;
-  summary: string;
-  metricA: string;
-  metricB: string;
-  delta: string;
-  href: string;
-  note?: string;
-  temporalComparison?: TemporalComparison;
-};
-
-export type ComparisonSection = {
-  id: 'current' | 'historical' | 'changes';
-  title: string;
-  description: string;
-  cards: ComparisonCard[];
-};
-
-export type InteractiveComparisonDimensionId =
-  | 'stations'
-  | 'districts'
-  | 'months'
-  | 'years'
-  | 'hours'
-  | 'periods';
-
-export type InteractiveComparisonOption = {
-  id: string;
-  label: string;
-  href: string;
-  primaryLabel: string;
-  primaryValue: number | null;
-  primaryDisplay: string;
-  secondaryLabel: string;
-  secondaryDisplay: string;
-  tertiaryLabel?: string;
-  tertiaryDisplay?: string;
-  note?: string;
-};
-
-export type InteractiveComparisonDimension = {
-  id: InteractiveComparisonDimensionId;
-  label: string;
-  description: string;
-  options: InteractiveComparisonOption[];
-  defaultLeftId: string | null;
-  defaultRightId: string | null;
-};
-
-export type InteractiveComparisonData = {
-  defaultDimensionId: InteractiveComparisonDimensionId | null;
-  dimensions: InteractiveComparisonDimension[];
-};
 
 export type ComparisonHubData = {
   latestMonth: string | null;
@@ -266,42 +201,13 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
 
       const { interactive, sections } = buildComparisonHubViewModel({
         stations: stationsResponse.stations,
-        turnoverRankings: turnoverResponse.rankings.map((row) => ({
-          stationId: row.stationId,
-          turnoverScore: Number(row.turnoverScore),
-        })),
-        availabilityRankings: availabilityResponse.rankings.map((row) => ({
-          stationId: row.stationId,
-          emptyHours: Number(row.emptyHours),
-          fullHours: Number(row.fullHours),
-        })),
+        turnoverRankings: turnoverResponse.rankings,
+        availabilityRankings: availabilityResponse.rankings,
         districtRows,
-        monthlySeries: monthlySeries.map((row) => ({
-          monthKey: row.monthKey,
-          demandScore: Number(row.demandScore),
-          avgOccupancy: Number(row.avgOccupancy),
-          activeStations: Number(row.activeStations),
-          sampleCount: Number(row.sampleCount),
-        })),
-        recentDemand: recentDemand.map((row) => ({
-          day: row.day,
-          demandScore: Number(row.demandScore),
-          avgOccupancy: Number(row.avgOccupancy),
-          sampleCount: Number(row.sampleCount),
-        })),
-        hourlyProfile: hourlyProfile.map((row) => ({
-          hour: Number(row.hour),
-          avgOccupancy: Number(row.avgOccupancy),
-          avgBikesAvailable: Number(row.avgBikesAvailable),
-          sampleCount: Number(row.sampleCount),
-        })),
-        historyRows: historyRows.map((row) => ({
-          day: row.day,
-          demandScore: Number(row.demandScore),
-          avgOccupancy: Number(row.avgOccupancy),
-          balanceIndex: Number(row.balanceIndex),
-          sampleCount: Number(row.sampleCount),
-        })),
+        monthlySeries,
+        recentDemand,
+        hourlyProfile,
+        historyRows,
         datasetCoverageDays: dataset.coverage.totalDays,
         comparisonNow: nowIso,
         latestMonth,

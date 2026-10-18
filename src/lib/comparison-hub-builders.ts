@@ -3,16 +3,8 @@ import { averageOrNull, formatRatioDelta } from '@/lib/format';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { formatMonthLabel } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
-import { buildMonthlyTemporalComparison } from '@/lib/temporal-comparison';
+import { buildMonthlyTemporalComparison, type TemporalComparison } from '@/lib/temporal-comparison';
 import type { DistrictSeoRow } from '@/lib/seo-districts';
-import type {
-  ComparisonCard,
-  ComparisonSection,
-  InteractiveComparisonData,
-  InteractiveComparisonDimension,
-  InteractiveComparisonDimensionId,
-  InteractiveComparisonOption,
-} from '@/lib/comparison-hub';
 
 const integerFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
 const decimalFormatters = new Map<number, Intl.NumberFormat>();
@@ -22,7 +14,80 @@ const percentFormatter = new Intl.NumberFormat('es-ES', {
   maximumFractionDigits: 0,
 });
 
-type HistoryCompareRow = {
+/**
+ * Interfaz de la vista del comparador: este modulo la define y la construye; el
+ * adapter (`@/lib/comparison-hub`) solo la rellena con las filas crudas.
+ */
+export type ComparisonCard = {
+  id:
+    | 'station-vs-station'
+    | 'district-vs-district'
+    | 'month-vs-month'
+    | 'year-vs-year'
+    | 'weekday-vs-weekend'
+    | 'hour-vs-hour'
+    | 'periods'
+    | 'before-after-expansion'
+    | 'events-vs-normal'
+    | 'ranking-changes'
+    | 'demand-changes'
+    | 'balance-changes';
+  title: string;
+  eyebrow: string;
+  summary: string;
+  metricA: string;
+  metricB: string;
+  delta: string;
+  href: string;
+  note?: string;
+  temporalComparison?: TemporalComparison;
+};
+
+export type ComparisonSection = {
+  id: 'current' | 'historical' | 'changes';
+  title: string;
+  description: string;
+  cards: ComparisonCard[];
+};
+
+export type InteractiveComparisonDimensionId =
+  | 'stations'
+  | 'districts'
+  | 'months'
+  | 'years'
+  | 'hours'
+  | 'periods';
+
+export type InteractiveComparisonOption = {
+  id: string;
+  label: string;
+  href: string;
+  primaryLabel: string;
+  primaryValue: number | null;
+  primaryDisplay: string;
+  secondaryLabel: string;
+  secondaryDisplay: string;
+  tertiaryLabel?: string;
+  tertiaryDisplay?: string;
+  note?: string;
+};
+
+export type InteractiveComparisonDimension = {
+  id: InteractiveComparisonDimensionId;
+  label: string;
+  description: string;
+  options: InteractiveComparisonOption[];
+  defaultLeftId: string | null;
+  defaultRightId: string | null;
+};
+
+export type InteractiveComparisonData = {
+  defaultDimensionId: InteractiveComparisonDimensionId | null;
+  dimensions: InteractiveComparisonDimension[];
+};
+
+/** Fila cruda del query de historico reciente (la comparte el adapter). */
+export type HistoryCompareRow = {
   day: string;
   demandScore: number;
   avgOccupancy: number;
