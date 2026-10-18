@@ -1,6 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
-import type { RebalancingReport } from '@/types/rebalancing';
 import { fetchDistrictCollection } from '@/lib/districts.server';
 
 const RebalancingSearchParamsSchema = z.object({
@@ -13,50 +12,42 @@ const RebalancingSearchParamsSchema = z.object({
 
 type RebalancingSearchParams = z.infer<typeof RebalancingSearchParamsSchema>;
 
-export function compactInitialRebalancingReport(report: RebalancingReport): RebalancingReport {
+export type DashboardRebalancingPageData = {
+  districtNames: string[];
+  tableParams: RebalancingSearchParams;
+};
+
+/**
+ * Cabecera de la pagina (barrios y parametros de tabla). El informe completo lo
+ * pide el cliente al montar, asi que el SSR no carga ni compacta el informe.
+ */
+export async function loadDashboardRebalancingPageData(
+  params: RebalancingSearchParams | undefined
+): Promise<DashboardRebalancingPageData> {
+  const districtCollection = await fetchDistrictCollection().catch(() => null);
+
+  const districtNames = districtCollection
+    ? [...new Set(districtCollection.features
+        .map((feature) => feature.properties?.distrito)
+        .filter((district): district is string => typeof district === 'string')
+      )].sort((left, right) => left.localeCompare(right, 'es'))
+    : [];
+
   return {
-    ...report,
-    diagnostics: report.diagnostics.map((diagnostic) => ({
-      ...diagnostic,
-      timeBandMetrics: [],
-      network: {
-        ...diagnostic.network,
-        nearbyStationCount: diagnostic.network.nearbyStations.length,
-        nearbyStations: [],
-      },
-    })),
+    districtNames,
+    tableParams: {
+      sort: params?.sort,
+      filter: params?.filter,
+      search: params?.search,
+      page: params?.page,
+      pageSize: params?.pageSize,
+    },
   };
 }
 
 export const getDashboardRebalancingPageData = createServerFn({ method: 'GET' })
   .validator(RebalancingSearchParamsSchema)
-  .handler(async ({ data: params }: { data: RebalancingSearchParams | undefined }) => {
-    const sort = params?.sort;
-    const filter = params?.filter;
-    const search = params?.search;
-    const page = params?.page;
-    const pageSize = params?.pageSize;
-    const tableParams = {
-      sort,
-      filter,
-      search,
-      page,
-      pageSize,
-    };
-
-    const districtCollection = await fetchDistrictCollection().catch(() => null);
-
-    const districtNames = districtCollection
-      ? [...new Set(districtCollection.features
-          .map((feature) => feature.properties?.distrito)
-          .filter((district): district is string => typeof district === 'string')
-        )].sort((left, right) => left.localeCompare(right, 'es'))
-      : [];
-
-    return {
-      // Keep SSR lightweight; full report is fetched client-side on mount.
-      report: null as RebalancingReport | null,
-      districtNames,
-      tableParams,
-    };
-  });
+  .handler(
+    async ({ data: params }: { data: RebalancingSearchParams | undefined }) =>
+      loadDashboardRebalancingPageData(params)
+  );
