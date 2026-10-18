@@ -1,10 +1,59 @@
 'use client';
 
 import * as React from 'react';
-import { Select as SelectPrimitive } from '@base-ui/react/select';
+import { Select as SelectPrimitive, type SelectRootProps } from '@base-ui/react/select';
 import { cn } from '@/lib/utils';
 
-const Select = SelectPrimitive.Root;
+function collectSelectItemLabels(
+  node: React.ReactNode,
+  labels: Record<string, React.ReactNode>
+): void {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) {
+      return;
+    }
+
+    const props = child.props as { value?: unknown; children?: React.ReactNode };
+
+    if (child.type === SelectItem) {
+      if (typeof props.value === 'string' || typeof props.value === 'number') {
+        labels[String(props.value)] = props.children;
+      }
+      return;
+    }
+
+    collectSelectItemLabels(props.children, labels);
+  });
+}
+
+/**
+ * Envuelve `Select.Root` de Base UI derivando el mapa `items` a partir de los
+ * `SelectItem` declarados en el árbol. Sin ese mapa, `Select.Value` muestra el
+ * valor interno crudo (p. ej. `all` o el id de una estación) mientras el popup
+ * no está montado, en lugar de la etiqueta legible.
+ */
+function Select<Value, Multiple extends boolean | undefined = false>({
+  items,
+  children,
+  ...props
+}: SelectRootProps<Value, Multiple>) {
+  const derivedItems = React.useMemo(() => {
+    if (items) {
+      return items;
+    }
+
+    const labels: Record<string, React.ReactNode> = {};
+    collectSelectItemLabels(children, labels);
+
+    return Object.keys(labels).length > 0 ? labels : undefined;
+  }, [items, children]);
+
+  return (
+    <SelectPrimitive.Root items={derivedItems} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  );
+}
 
 const SelectTrigger = React.forwardRef<
   HTMLButtonElement,

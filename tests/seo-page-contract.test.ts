@@ -182,9 +182,9 @@ describe('seo navigation contract', () => {
     const twitterImage = head.meta.find((entry) => entry.name === 'twitter:image');
     const twitterImageAlt = head.meta.find((entry) => entry.name === 'twitter:image:alt');
 
-    expect(ogImage?.content).toContain('/opengraph-image');
+    expect(ogImage?.content).toContain('/og-image.png');
     expect(ogImageAlt?.content).toContain('Bizi Zaragoza');
-    expect(twitterImage?.content).toContain('/opengraph-image');
+    expect(twitterImage?.content).toContain('/og-image.png');
     expect(twitterImageAlt?.content).toContain('Bizi Zaragoza');
   });
 

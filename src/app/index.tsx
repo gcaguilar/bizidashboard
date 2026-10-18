@@ -5,7 +5,15 @@ import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { getSiteUrl, SEO_SITE_NAME, SEO_SITE_TITLE, SEO_SITE_DESCRIPTION } from '@/lib/site';
+import {
+  DEFAULT_SOCIAL_IMAGE_HEIGHT,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  DEFAULT_SOCIAL_IMAGE_WIDTH,
+  getSiteUrl,
+  SEO_SITE_NAME,
+  SEO_SITE_TITLE,
+  SEO_SITE_DESCRIPTION,
+} from '@/lib/site';
 import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
 import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
@@ -44,12 +52,15 @@ export const Route = createFileRoute('/')({
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: SEO_SITE_NAME },
       { property: 'og:locale', content: 'es_ES' },
-      { property: 'og:image', content: `${getSiteUrl()}/opengraph-image` },
+      { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+      { property: 'og:image:type', content: 'image/png' },
+      { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
+      { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
       { property: 'og:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
       { property: 'og:url', content: getSiteUrl() },
       { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:image', content: `${getSiteUrl()}/opengraph-image` },
+      { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
       { name: 'twitter:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
       { name: 'twitter:title', content: SEO_SITE_TITLE },
       { name: 'twitter:description', content: SEO_SITE_DESCRIPTION },

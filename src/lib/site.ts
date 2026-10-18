@@ -23,6 +23,11 @@ export const SEO_SITE_TITLE = `${SEO_SITE_NAME} ${getCityName()}`;
 export const SEO_SITE_DESCRIPTION =
   `DatosBizi reúne estaciones Bizi ${getCityName()}, disponibilidad, análisis de uso, informes mensuales y datos abiertos en un único observatorio público.`;
 
+/** Imagen Open Graph por defecto (PNG raster versionado en `public/`). */
+export const DEFAULT_SOCIAL_IMAGE_PATH = '/og-image.png';
+export const DEFAULT_SOCIAL_IMAGE_WIDTH = 1200;
+export const DEFAULT_SOCIAL_IMAGE_HEIGHT = 630;
+
 // Keep production metadata valid even if APP_URL/VITE_APP_URL is missing.
 // Local development still uses an explicit APP_URL from .env.example/.env.local.
 const FALLBACK_SITE_URL = 'https://datosbizi.com';

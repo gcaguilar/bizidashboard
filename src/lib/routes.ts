@@ -1,5 +1,5 @@
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
-import { getSiteUrl } from '@/lib/site';
+import { DEFAULT_SOCIAL_IMAGE_PATH, getSiteUrl } from '@/lib/site';
 
 export const CITY_SEGMENTS = ['zaragoza', 'madrid', 'barcelona'] as const;
 
@@ -460,8 +460,8 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   // Legacy URLs still present in Google's historical crawl data.
   { source: '/explorar-Explorar', destination: '/estadisticas' },
   { source: '/redistribucion-bizi-zaragoza', destination: '/estadisticas/redistribucion' },
-  { source: '/opengraph-image', destination: '/icon-512.svg' },
-  { source: '/twitter-image', destination: '/icon-512.svg' },
+  { source: '/opengraph-image', destination: DEFAULT_SOCIAL_IMAGE_PATH },
+  { source: '/twitter-image', destination: DEFAULT_SOCIAL_IMAGE_PATH },
   { source: '/$', destination: '/' },
   { source: '/barrios/actur-arrabal', destination: '/estadisticas/barrios/actur-rey-fernando' },
   ...CITY_SEGMENTS.flatMap((city) => [

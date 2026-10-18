@@ -5,7 +5,7 @@ import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
-import { getSiteUrl } from '@/lib/site'
+import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
@@ -49,8 +49,15 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${stationPath}` },
+        { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { property: 'og:image:type', content: 'image/png' },
+        { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
+        { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
+        { property: 'og:image:alt', content: title },
         { name: 'robots', content: loaderData ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { name: 'twitter:image:alt', content: title },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],

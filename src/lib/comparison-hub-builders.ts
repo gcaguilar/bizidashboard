@@ -200,7 +200,7 @@ export function buildFallbackComparisonSections(): ComparisonSection[] {
       id: 'historical',
       title: 'Comparativas historicas',
       description:
-        'Cortes temporales para comparar meses, anos, periodos y grandes cambios en la red o en la demanda.',
+        'Cortes temporales para comparar meses, años, periodos y grandes cambios en la red o en la demanda.',
       cards: [],
     },
     {
@@ -551,7 +551,7 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
 
     cards.push({
       id: 'year-vs-year',
-      title: 'Ano vs ano',
+      title: 'Año vs año',
       eyebrow: 'Lectura anual',
       summary: yearsAreComparable
         ? `${context.latestYear.year} agrega ${formatInteger(context.latestYear.demandScore)} puntos de demanda frente a ${context.previousYear.year}.`
@@ -570,7 +570,7 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
     cards.push(
       buildUnavailableCard(
         'year-vs-year',
-        'Ano vs ano',
+        'Año vs año',
         'Lectura anual',
         appRoutes.reports()
       )
@@ -948,9 +948,9 @@ function buildInteractiveComparisonData(
     }),
     buildInteractiveDimension({
       id: 'years',
-      label: 'Anos',
+      label: 'Años',
       description:
-        'Compara dos anos completos agregando los meses disponibles para cada periodo.',
+        'Compara dos años completos agregando los meses disponibles para cada periodo.',
       options: [...context.yearlyRows]
         .sort((left, right) => right.year.localeCompare(left.year, 'es'))
         .map((row) => ({
@@ -1030,7 +1030,7 @@ export function buildComparisonHubViewModel(
         id: 'historical',
         title: 'Comparativas historicas',
         description:
-          'Cortes temporales para comparar meses, anos, periodos y grandes cambios en la red o en la demanda.',
+          'Cortes temporales para comparar meses, años, periodos y grandes cambios en la red o en la demanda.',
         cards: buildHistoricalCards(context),
       },
       {
