@@ -52,6 +52,7 @@ ARG BUILD_DATE
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_SENTRY_DSN=
 ENV GIT_SHA=${GIT_SHA:-dev}
@@ -74,6 +75,10 @@ COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 # Production node_modules (pg, @prisma/client, prisma CLI, etc.)
 COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
+
+# Chromium headless para generar el PDF del informe desde la propia pagina.
+# Solo se usa cuando el PDF de un mes aun no esta guardado.
+RUN bunx playwright install --with-deps chromium && rm -rf /var/lib/apt/lists/*
 
 # Prisma client is generated to src/generated/prisma (custom output in schema.prisma)
 # Copy files so @prisma/client/default.js can resolve them

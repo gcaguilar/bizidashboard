@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -81,6 +82,23 @@ function InformesMonthPage() {
   const { month, monthRow, report, nearbyMonths, dataState } = Route.useLoaderData()
   const monthLabel = formatMonthLabel(month)
   const breadcrumbs = createReportBreadcrumb(monthLabel)
+
+  // Marca de hidratacion para el render de PDF en servidor: cuando existe, los
+  // graficos ya se han montado y la captura no sale vacia.
+  useEffect(() => {
+    let secondFrame = 0
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        document.documentElement.dataset.reportHydrated = 'true'
+      })
+    })
+
+    return () => {
+      cancelAnimationFrame(firstFrame)
+      cancelAnimationFrame(secondFrame)
+      delete document.documentElement.dataset.reportHydrated
+    }
+  }, [])
   const structuredData = monthRow
     ? {
         '@context': 'https://schema.org',
@@ -100,7 +118,7 @@ function InformesMonthPage() {
     : null
 
   return (
-    <PageShell>
+    <PageShell data-report-print data-report-export-root>
       {structuredData ? (
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }} />
       ) : null}

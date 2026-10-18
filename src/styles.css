@@ -620,11 +620,41 @@ table tbody tr:hover {
 }
 
 /**
- * Impresion del informe mensual: se oculta la navegacion global y las acciones
- * de exportacion, y se aplanan las tarjetas para que el navegador pueda
- * guardar el documento como PDF sin sombras ni transparencias.
+ * Impresion del informe mensual. El servidor usa estas reglas para generar el
+ * PDF publico (y el lector puede imprimir la pagina): se conservan colores,
+ * tarjetas y graficos, y solo se ocultan la navegacion global y las acciones
+ * que no tienen sentido en papel.
  */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
 @media print {
+  html,
+  body {
+    /* Conserva los fondos y colores del diseno al guardar como PDF. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* El informe se imprime en claro y sin los margenes de la pantalla. */
+  [data-report-print] {
+    --background: #ffffff;
+    --background-2: #ffffff;
+    --foreground: #111827;
+    --muted: #475569;
+    --muted-foreground: #64748b;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --secondary: #f5f0f2;
+    --secondary-foreground: #111827;
+    --border: rgba(169, 22, 34, 0.24);
+
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
   body > header,
   body > footer,
   .ui-print-hide {
@@ -632,18 +662,35 @@ table tbody tr:hover {
   }
 
   body {
-    background: #fff;
-    color: #000;
+    background: #ffffff;
   }
 
+  /* Las tarjetas no se parten entre paginas; las tablas largas si pueden. */
   .ui-page-hero,
   [data-card-variant='hero'],
-  .ui-section-card,
-  [data-card-variant='section'],
   .ui-metric-card,
   [data-card-variant='metric'] {
-    box-shadow: none;
     backdrop-filter: none;
     break-inside: avoid;
+  }
+
+  .ui-section-card,
+  [data-card-variant='section'] {
+    backdrop-filter: none;
+    break-inside: avoid;
+  }
+
+  /* Evita que un titulo quede solo al final de una pagina. */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* Los graficos se midieron en pantalla; se ajustan al ancho del papel. */
+  .recharts-wrapper,
+  .recharts-responsive-container,
+  .recharts-surface {
+    max-width: 100% !important;
   }
 }
