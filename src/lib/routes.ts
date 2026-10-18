@@ -94,7 +94,8 @@ export const appRoutes = {
   explore: (params?: { q?: string | null }) =>
     buildQuery('/explorar', { q: params?.q }),
   exploreHub: () => '/explorar',
-  reports: () => '/informes',
+  reports: (params?: { subscription?: string | null }) =>
+    buildQuery('/informes', { sub: params?.subscription }),
   reportMonth: (month: string) => `/informes/${encodeSegment(month)}`,
   status: () => '/estado',
   dashboard: () => '/dashboard',
@@ -189,6 +190,11 @@ export const appRoutes = {
         format: params.format,
         section: params.section,
       }),
+    reportSubscribe: () => '/api/reports/subscribe',
+    reportSubscribeConfirm: (params?: { token?: string | null }) =>
+      buildQuery('/api/reports/subscribe/confirm', { token: params?.token }),
+    reportSubscribeUnsubscribe: (params?: { token?: string | null }) =>
+      buildQuery('/api/reports/subscribe/unsubscribe', { token: params?.token }),
     authSession: () => '/api/auth/session',
     authAccessToken: () => '/api/auth/access-token',
     authLogin: (params?: { returnTo?: string | null }) =>
