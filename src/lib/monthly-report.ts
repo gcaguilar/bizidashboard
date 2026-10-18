@@ -6,6 +6,7 @@ import {
   type MonthlyReportSources,
 } from '@/lib/monthly-report-sources';
 import { formatMonthName, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
+import { logger } from '@/lib/logger';
 import {
   buildMonthlyTemporalComparison,
   buildPeriodCoverage,
@@ -586,10 +587,24 @@ export function isClosedReportMonth(monthKey: string, nowIso: string): boolean {
 
 /**
  * Fuerza el recalculo de un mes persistido (p. ej. tras un backfill o un cambio
- * de retencion). El siguiente informe se vuelve a sellar en la proxima lectura.
+ * de retencion). El siguiente informe se vuelve a sellar en la proxima lectura
+ * y su PDF publico se regenera en la siguiente descarga.
  */
 export async function invalidateMonthlyReport(monthKey: string): Promise<void> {
   await deleteCachedJson(reportCacheKey(monthKey));
+
+  try {
+    const { deleteStoredMonthlyReportPdf } = await import('@/lib/monthly-report-pdf-store');
+    await deleteStoredMonthlyReportPdf(monthKey);
+  } catch (error) {
+    captureWarningWithContext('Failed to delete the stored monthly report PDF', {
+      area: 'reports.pdf',
+      operation: 'invalidate',
+      extra: { month: monthKey },
+      tags: { handled: true },
+    });
+    logger.warn('reports.pdf_delete_failed', { month: monthKey, error });
+  }
 }
 
 export async function buildMonthlyReport(

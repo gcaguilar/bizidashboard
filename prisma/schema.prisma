@@ -175,6 +175,17 @@ model MobilityBriefingCache {
   @@index([generatedAt])
 }
 
+// PDF publico del informe mensual: se genera una vez al sellar el mes y se
+// sirve tal cual desde /api/reports?format=pdf. La clave es el mes (YYYY-MM);
+// no hay expiracion porque un mes cerrado es inmutable.
+model MonthlyReportPdf {
+  monthKey    String   @id
+  bytes       Bytes
+  byteSize    Int
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model JobLock {
   name          String   @id
   lockedAt      DateTime?

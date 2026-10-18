@@ -12,6 +12,7 @@ import { acquireJobLock } from '@/analytics/job-lock';
 import { logger } from '@/lib/logger';
 import { previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
 import { buildMonthlyReport } from '@/lib/monthly-report';
+import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import * as Sentry from '@sentry/tanstackstart-react';
 import { defineCronJob } from './cron-job';
@@ -23,6 +24,39 @@ import { ensureLockRefreshed } from './utils';
  * primer run cada mes ya esta sellado y el coste es solo de lectura.
  */
 const SEAL_MONTHS = REPORT_MONTHS_WINDOW;
+
+/**
+ * PDFs que se precalientan en cada run: el mes recien cerrado y el anterior
+ * (por si un run se perdio). Los meses mas antiguos se generan bajo demanda la
+ * primera vez que alguien los descarga y quedan guardados.
+ */
+const PDF_WARM_MONTHS = 2;
+
+/**
+ * Pide a la web el PDF del mes para que lo genere y lo guarde. El job no
+ * renderiza: el unico proceso con navegador es el servidor web. Requiere
+ * `REPORT_PDF_BASE_URL`; sin el se omite (el PDF se generara en la primera
+ * descarga), y asi un despliegue de desarrollo con `ENABLE_INTERNAL_JOBS=1`
+ * nunca dispara trabajo contra `APP_URL`.
+ */
+async function warmMonthlyReportPdf(month: string): Promise<void> {
+  const baseUrl = process.env.REPORT_PDF_BASE_URL?.trim()?.replace(/\/+$/u, '');
+
+  if (!baseUrl) {
+    logger.warn('reports.pdf_warm_skipped', { month, reason: 'missing_base_url' });
+    return;
+  }
+
+  const response = await fetch(`${baseUrl}${appRoutes.api.reports({ month, format: 'pdf' })}`, {
+    headers: { 'User-Agent': 'DatosBizi-report-seal' },
+  });
+
+  if (!response.ok) {
+    throw new Error(`PDF warm request failed with ${response.status}`);
+  }
+
+  await response.arrayBuffer();
+}
 
 export function recentClosedMonths(nowIso: string, count: number): string[] {
   const months: string[] = [];
@@ -50,7 +84,7 @@ export async function runMonthlyReportSeal(): Promise<void> {
     try {
       const nowIso = new Date().toISOString();
 
-      for (const month of recentClosedMonths(nowIso, SEAL_MONTHS)) {
+      for (const [index, month] of recentClosedMonths(nowIso, SEAL_MONTHS).entries()) {
         // Sellar la ventana entera puede tardar mas que el TTL del lock: se
         // renueva antes de cada mes y, si se ha perdido, se aborta el run.
         await ensureLockRefreshed(lock, `before-month-${month}`, 'reports');
@@ -58,6 +92,20 @@ export async function runMonthlyReportSeal(): Promise<void> {
         try {
           const report = await buildMonthlyReport(month, nowIso);
           logger.info('reports.sealed', { month, hasReport: report.hasReport });
+
+          if (index < PDF_WARM_MONTHS && report.hasReport) {
+            try {
+              await warmMonthlyReportPdf(month);
+              logger.info('reports.pdf_warmed', { month });
+            } catch (error) {
+              captureExceptionWithContext(error, {
+                area: 'jobs.reports',
+                operation: 'warmPdf',
+                extra: { month },
+              });
+              logger.warn('reports.pdf_warm_failed', { month, error });
+            }
+          }
         } catch (error) {
           captureExceptionWithContext(error, {
             area: 'jobs.reports',

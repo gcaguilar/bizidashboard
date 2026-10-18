@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -51,6 +51,11 @@ describe('monthly report seal job', () => {
     buildMonthlyReportMock.mockResolvedValue({ hasReport: true });
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.REPORT_PDF_BASE_URL;
+  });
+
   it('lists the previous months, most recent first', () => {
     expect(recentClosedMonths('2026-04-15T10:00:00.000Z', 3)).toEqual([
       '2026-03',
@@ -68,6 +73,23 @@ describe('monthly report seal job', () => {
     expect(refreshMock).toHaveBeenCalledTimes(REPORT_MONTHS_WINDOW);
     expect(releaseMock).toHaveBeenCalledTimes(1);
     expect(captureExceptionWithContextMock).not.toHaveBeenCalled();
+  });
+
+  it('warms the pdf of the newest closed months through the web api', async () => {
+    process.env.REPORT_PDF_BASE_URL = 'http://web:3000';
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(0),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await runMonthlyReportSeal();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
+      'http://web:3000/api/reports?month='
+    );
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('format=pdf');
   });
 
   it('skips the run when another job holds the lock', async () => {

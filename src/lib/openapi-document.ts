@@ -418,7 +418,7 @@ export const openApiDocument = {
       get: {
         operationId: 'get_monthly_report',
         summary: 'Monthly report payload, CSV export, or PDF document for a given month',
-        description: 'Returns the assembled monthly report for `month` (YYYY-MM): JSON payload by default, a CSV document with `format=csv`, or a server-rendered PDF with `format=pdf`. Use `section` to export a single table from a CSV. Closed months are sealed in cache after the first computation.',
+        description: 'Returns the assembled monthly report for `month` (YYYY-MM): JSON payload by default, a CSV document with `format=csv`, or a PDF of the report page with `format=pdf`. The PDF is rendered once per closed month and served from storage; if it is missing it is generated on demand and saved. Use `section` to export a single table from a CSV. Closed months are sealed in cache after the first computation.',
         parameters: [
           {
             name: 'month',

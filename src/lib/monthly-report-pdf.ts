@@ -15,7 +15,8 @@ import { formatMonthLabel } from '@/lib/months';
  * Reutiliza las tablas planas de `monthly-report-export` para las secciones de
  * datos, y las secciones de texto (resumen, conclusiones, hallazgos,
  * recomendaciones) las redacta como prosa. El PDF sale de JS puro, sin binario
- * de navegador: el diseno de la pagina web se reproduce con `Imprimir / PDF`.
+ * de navegador: es el fallback de la API cuando el render de la pagina
+ * (`monthly-report-page-pdf`) no esta disponible.
  */
 
 const PAGE_MARGIN = 40;

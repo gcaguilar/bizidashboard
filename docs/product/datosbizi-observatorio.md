@@ -59,13 +59,13 @@ Endpoint público (documentado en OpenAPI) que devuelve el informe de un mes:
 - `GET /api/reports?month=YYYY-MM` → payload JSON del informe.
 - `GET /api/reports?month=YYYY-MM&format=csv` → un único CSV con todas las tablas del informe, separadas por bloques titulados.
 - `GET /api/reports?month=YYYY-MM&format=csv&section=<id>` → una sola tabla (p. ej. `barrios`, `anomalias`, `redistribucion`, `tendencias-diarias`).
-- `GET /api/reports?month=YYYY-MM&format=pdf` → PDF del informe generado en el servidor.
+- `GET /api/reports?month=YYYY-MM&format=pdf` → PDF de la propia página del informe.
 
 El módulo `src/lib/monthly-report-export.ts` mapea el payload a secciones planas (cabeceras y filas) de forma pura; el escapado de CSV y la respuesta HTTP viven en el seam `src/lib/csv.ts` (`csvSectionsResponse`), incluida la neutralización de inyección de fórmulas. La descarga usa el mismo informe cacheado, así que no recalcula nada.
 
-`src/lib/monthly-report-pdf.ts` compone el PDF a partir de ese mismo payload (resumen ejecutivo y titulares, luego las secciones de texto como prosa y las de datos como tablas paginadas) con `jsPDF` + `jspdf-autotable`, **sin binario de navegador**. Es un informe de datos: la tipografía y el diseño de la página web solo se reproducen con «Imprimir / PDF».
+El PDF `format=pdf` se obtiene de `src/lib/monthly-report-page-pdf.ts`, que abre la página pública del informe en Chromium headless y la imprime a A4 con las reglas `@media print`, de modo que el documento es el informe que se ve en la web (diseño, gráficos y cifras). El resultado se guarda por mes con `src/lib/monthly-report-pdf-store.ts` en la tabla `MonthlyReportPdf`: se genera una sola vez al sellar el mes, o bajo demanda si aún no existe, y las descargas siguientes lo sirven desde la base de datos. La respuesta indica el origen en la cabecera `X-Report-Pdf` (`page` o `table`): si el render falla, la API cae al PDF de tablas de `src/lib/monthly-report-pdf.ts` y la web, al ver `table`, captura la página con html2pdf.js (`src/lib/report-pdf-download.ts`) para mantener el diseño; el PDF de tablas queda como último recurso. El job diario de sellado precalienta el mes recién cerrado.
 
-En `/informes/:month` la tarjeta «Exportar informe» ofrece la descarga PDF, CSV y JSON del mes, la exportación por sección y la impresión del documento completo (vía hoja de estilos `@media print`, que oculta la navegación global y las acciones).
+En `/informes/:month` la tarjeta «Exportar informe» ofrece la descarga PDF, CSV y JSON del mes y la exportación por sección.
 
 ## Suscripción al informe mensual por email
 

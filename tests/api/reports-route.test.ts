@@ -4,22 +4,53 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-const { buildMonthlyReportMock } = vi.hoisted(() => ({
+const {
+  buildMonthlyReportMock,
+  isClosedReportMonthMock,
+  getStoredMonthlyReportPdfMock,
+  storeMonthlyReportPdfMock,
+  renderMonthlyReportPagePdfMock,
+} = vi.hoisted(() => ({
   buildMonthlyReportMock: vi.fn(),
+  isClosedReportMonthMock: vi.fn(),
+  getStoredMonthlyReportPdfMock: vi.fn(),
+  storeMonthlyReportPdfMock: vi.fn(),
+  renderMonthlyReportPagePdfMock: vi.fn(),
 }));
 
 vi.mock('@/lib/monthly-report', () => ({
   buildMonthlyReport: buildMonthlyReportMock,
+  isClosedReportMonth: isClosedReportMonthMock,
+}));
+
+vi.mock('@/lib/monthly-report-pdf-store', () => ({
+  getStoredMonthlyReportPdf: getStoredMonthlyReportPdfMock,
+  storeMonthlyReportPdf: storeMonthlyReportPdfMock,
+}));
+
+vi.mock('@/lib/monthly-report-page-pdf', () => ({
+  renderMonthlyReportPagePdf: renderMonthlyReportPagePdfMock,
 }));
 
 import { Route } from '@/app/api/reports/index';
 
 const handler = serverHandlers(Route).GET!
+const STORED_PDF = new Uint8Array(Buffer.from('%PDF-stored'))
 
 describe('GET /api/reports', () => {
   beforeEach(() => {
     buildMonthlyReportMock.mockReset();
     buildMonthlyReportMock.mockResolvedValue(buildMonthlyReportFixture());
+    isClosedReportMonthMock.mockReset();
+    isClosedReportMonthMock.mockReturnValue(true);
+    getStoredMonthlyReportPdfMock.mockReset();
+    getStoredMonthlyReportPdfMock.mockResolvedValue(STORED_PDF);
+    storeMonthlyReportPdfMock.mockReset();
+    storeMonthlyReportPdfMock.mockResolvedValue(undefined);
+    renderMonthlyReportPagePdfMock.mockReset();
+    renderMonthlyReportPagePdfMock.mockResolvedValue(
+      new Uint8Array(Buffer.from('%PDF-rendered'))
+    );
   });
 
   it('returns the report payload as json with cache headers', async () => {
@@ -65,7 +96,7 @@ describe('GET /api/reports', () => {
     expect(body).not.toContain('"Resumen"');
   });
 
-  it('generates a pdf download when format=pdf', async () => {
+  it('serves the stored pdf when the month is sealed', async () => {
     const response = await handler({
       request: new Request('http://localhost/api/reports?month=2026-03&format=pdf'),
     });
@@ -74,7 +105,41 @@ describe('GET /api/reports', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('application/pdf');
     expect(response.headers.get('Content-Disposition')).toContain('informe-2026-03.pdf');
+    expect(response.headers.get('X-Report-Pdf')).toBe('page');
+    expect(bytes).toEqual(STORED_PDF);
+    expect(renderMonthlyReportPagePdfMock).not.toHaveBeenCalled();
+  });
+
+  it('renders and stores the pdf when it does not exist yet', async () => {
+    getStoredMonthlyReportPdfMock.mockResolvedValue(null);
+
+    const response = await handler({
+      request: new Request('http://localhost/api/reports?month=2026-03&format=pdf'),
+    });
+    const bytes = new Uint8Array(await response.arrayBuffer());
+
     expect(String.fromCharCode(...bytes.slice(0, 5))).toBe('%PDF-');
+    expect(response.headers.get('X-Report-Pdf')).toBe('page');
+    expect(renderMonthlyReportPagePdfMock).toHaveBeenCalledWith('2026-03');
+    expect(storeMonthlyReportPdfMock).toHaveBeenCalledWith(
+      '2026-03',
+      expect.any(Uint8Array)
+    );
+  });
+
+  it('falls back to the table pdf if the page render fails', async () => {
+    getStoredMonthlyReportPdfMock.mockResolvedValue(null);
+    renderMonthlyReportPagePdfMock.mockRejectedValue(new Error('browser unavailable'));
+
+    const response = await handler({
+      request: new Request('http://localhost/api/reports?month=2026-03&format=pdf'),
+    });
+    const bytes = new Uint8Array(await response.arrayBuffer());
+
+    expect(response.status).toBe(200);
+    expect(String.fromCharCode(...bytes.slice(0, 5))).toBe('%PDF-');
+    expect(response.headers.get('X-Report-Pdf')).toBe('table');
+    expect(storeMonthlyReportPdfMock).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid month', async () => {

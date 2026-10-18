@@ -85,10 +85,27 @@ These names describe modules that own behaviour behind a small interface.
   turns those sections into a CSV document or a JSON payload through the CSV
   seam.
 - **Monthly report PDF module** (`src/lib/monthly-report-pdf.ts`) — owns the
-  server-side PDF layout of a `MonthlyReport` (`buildMonthlyReportPdf`) and its
-  filename. Pure over the payload and the export tables; it normalizes the
-  typographic characters the WinAnsi font cannot draw and paginates tables and
-  prose. No HTTP, no browser binary.
+  server-side table PDF layout of a `MonthlyReport` (`buildMonthlyReportPdf`)
+  and its filename. Pure over the payload and the export tables; it normalizes
+  the typographic characters the WinAnsi font cannot draw and paginates tables
+  and prose. No HTTP, no browser binary. It is the fallback when the page
+  renderer is unavailable, and the PDF linked from the digest email.
+- **Report page PDF renderer** (`src/lib/monthly-report-page-pdf.ts`) — opens
+  the public report page in headless Chromium and prints it to A4 with the
+  page's print rules, so the exported document is the report the reader sees
+  (layout, charts and figures). Server-only; it does not know about storage or
+  HTTP.
+- **Report page PDF client fallback** (`src/lib/report-pdf-download.ts`) — when
+  the API cannot render the page and answers `X-Report-Pdf: table`, the export
+  bar captures the rendered page with html2pdf.js (html2canvas + jsPDF) so the
+  reader still gets the web design. It resolves the SVG `var(--token)` colours
+  html2canvas would lose; its output is raster, which is why it is only the
+  fallback. Browser-only.
+- **Monthly report PDF store** (`src/lib/monthly-report-pdf-store.ts`) — owns
+  persistence of one public PDF per closed month (`MonthlyReportPdf`). The
+  reports API serves the stored bytes and, if they are missing, renders the
+  page once, stores the result and returns it. The seal job warms the newest
+  closed months; older months fill in on their first download.
 - **Report subscription module** (`src/lib/report-subscriptions.ts`) — owns the
   monthly-report mailing list behind `ReportSubscriptionStore`: the
   `PENDING → CONFIRMED → UNSUBSCRIBED` state machine, double opt-in, the

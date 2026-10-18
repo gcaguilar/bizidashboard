@@ -187,10 +187,13 @@ services:
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - CITY=${CITY:-zaragoza}
       - GBFS_URL=${GBFS_URL:-https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REPORT_PDF_BASE_URL=http://bizi-zaragoza:3000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      bizi-zaragoza:
         condition: service_healthy
 
   jobs-madrid:
@@ -203,10 +206,13 @@ services:
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - CITY=${CITY:-madrid}
       - GBFS_URL=${GBFS_URL:-https://madrid.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REPORT_PDF_BASE_URL=http://bizi-madrid:3000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      bizi-madrid:
         condition: service_healthy
 
   jobs-barcelona:
@@ -219,10 +225,13 @@ services:
       - ENABLE_INTERNAL_JOBS=${ENABLE_INTERNAL_JOBS:-false}
       - CITY=${CITY:-barcelona}
       - GBFS_URL=${GBFS_URL:-https://barcelona-sp.publicbikesystem.net/customer/gbfs/v2/gbfs.json}
+      - REPORT_PDF_BASE_URL=http://bizi-barcelona:3000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      bizi-barcelona:
         condition: service_healthy
 
   collect-zaragoza:
