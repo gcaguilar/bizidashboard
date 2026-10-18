@@ -22,7 +22,8 @@ export type UmamiTrackedEventName =
   | 'comparison_validated_viewed'
   | 'report_opened'
   | 'api_docs_opened'
-  | 'biciradar_handoff_clicked';
+  | 'biciradar_handoff_clicked'
+  | 'feedback_rating';
 
 export type LegacyUmamiInteractionName =
   | 'api_cta_click'
@@ -56,7 +57,8 @@ type AllowedPayloadKey =
   | 'is_external'
   | 'source_role'
   | 'destination_role'
-  | 'transition_kind';
+  | 'transition_kind'
+  | 'rating';
 
 export type UmamiEventPayload = Partial<Record<AllowedPayloadKey, UmamiEventValue>>;
 
@@ -203,6 +205,7 @@ const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
   'source_role',
   'destination_role',
   'transition_kind',
+  'rating',
 ];
 
 const ALLOWED_PAYLOAD_KEY_SET = new Set<string>(ALLOWED_PAYLOAD_KEYS);
@@ -502,6 +505,32 @@ export function buildCtaClickEvent({
       source_role: sourceRole,
       destination_role: destinationRole,
       transition_kind: transitionKind,
+    },
+  };
+}
+
+export type FeedbackRatingInput = {
+  surface: UmamiSurface;
+  routeKey: string;
+  source: string;
+  rating: 'positive' | 'negative';
+  module?: string;
+};
+
+export function buildFeedbackRatingEvent({
+  surface,
+  routeKey,
+  source,
+  rating,
+  module,
+}: FeedbackRatingInput): UmamiTrackedEvent {
+  return {
+    name: 'feedback_rating',
+    payload: {
+      ...basePayload(surface, routeKey),
+      source,
+      module,
+      rating,
     },
   };
 }

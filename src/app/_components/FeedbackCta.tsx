@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { getFeedbackUrl } from '@/lib/feedback';
+import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
+import { FeedbackDialog } from '@/app/_components/FeedbackDialog';
+import { Button } from '@/components/ui/button';
+import { getFeedbackUrl, markFeedbackModalSeenForCurrentVisit } from '@/lib/feedback';
 import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
 
 type FeedbackCtaProps = {
@@ -15,7 +17,6 @@ type FeedbackCtaProps = {
   pendingLabel?: ReactNode;
   module?: string;
   destination?: string;
-  target?: '_blank' | '_self';
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'>;
 
 export function FeedbackCta({
@@ -27,12 +28,13 @@ export function FeedbackCta({
   pendingLabel = 'Feedback pronto',
   module,
   destination = 'feedback_form',
-  target = '_blank',
   type = 'button',
+  onClick,
   ...buttonProps
 }: FeedbackCtaProps) {
   const pathname = useLocation().pathname;
   const feedbackUrl = getFeedbackUrl();
+  const [isOpen, setIsOpen] = useState(false);
 
   if (!feedbackUrl) {
     return (
@@ -51,28 +53,56 @@ export function FeedbackCta({
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
 
+  const handleClick: MouseEventHandler<HTMLButtonElement> = (event) => {
+    onClick?.(event);
+
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    trackUmamiEvent(
+      buildCtaClickEvent({
+        surface,
+        routeKey,
+        source,
+        ctaId,
+        destination,
+        module,
+        entityType: 'help',
+        isExternal: false,
+      })
+    );
+    setIsOpen(true);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      markFeedbackModalSeenForCurrentVisit();
+    }
+
+    setIsOpen(nextOpen);
+  };
+
   return (
-    <a
-      href={feedbackUrl}
-      target={target}
-      rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-      onClick={() =>
-        trackUmamiEvent(
-          buildCtaClickEvent({
-            surface,
-            routeKey,
-            source,
-            ctaId,
-            destination,
-            module,
-            entityType: 'help',
-            isExternal: true,
-          })
-        )
-      }
-      className={buttonVariants({ className })}
-    >
-      {children}
-    </a>
+    <>
+      <Button
+        {...buttonProps}
+        type={type}
+        className={className}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        onClick={handleClick}
+      >
+        {children}
+      </Button>
+      {isOpen ? (
+        <FeedbackDialog
+          open={isOpen}
+          onOpenChange={handleOpenChange}
+          source={source}
+          module={module}
+        />
+      ) : null}
+    </>
   );
 }
