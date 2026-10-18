@@ -240,7 +240,7 @@ To avoid telemetry regressions while tightening CSP:
 
 - Keep Sentry and Umami domains explicitly allowlisted.
 - Use `CSP_REPORT_ONLY=true` first to emit `Content-Security-Policy-Report-Only`.
-- Add exceptional script or connection origins only through `CSP_SCRIPT_SRC_ORIGINS` or `CSP_CONNECT_SRC_ORIGINS`; invalid URLs stop server startup.
+- Add exceptional script, connection, or frame origins only through `CSP_SCRIPT_SRC_ORIGINS`, `CSP_CONNECT_SRC_ORIGINS`, or `CSP_FRAME_SRC_ORIGINS`; invalid URLs stop server startup. The feedback form iframe origin (Tally by default) is allowlisted automatically in `frame-src`.
 - Review violations in staging, then enable strict enforcement in production.
 
 After deployment, run the production security smoke test with the same expected analytics values:
