@@ -3,6 +3,7 @@ import { avgDemand, coalesceSumDemand, sumDemand } from '@/analytics/queries/dem
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
+import { formatRatioDelta, roundTo, toNumber } from '@/lib/format';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
 import { getCoverageSummary } from '@/services/shared-data';
@@ -135,35 +136,12 @@ function getMadridDateKey(value: Date = new Date()): string {
   return value.toISOString().slice(0, 10);
 }
 
-function toNumber(value: unknown): number {
-  if (value === null || value === undefined) {
-    return 0;
-  }
-
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
-}
-
-function round(value: number, decimals = 2): number {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
-}
-
 function calculateDelta(current: number, previous: number): number | null {
   if (!Number.isFinite(previous) || previous <= 0) {
     return null;
   }
 
   return (current - previous) / previous;
-}
-
-function formatDelta(deltaRatio: number | null): string {
-  if (deltaRatio === null || !Number.isFinite(deltaRatio)) {
-    return 'sin referencia previa';
-  }
-
-  const prefix = deltaRatio >= 0 ? '+' : '';
-  return `${prefix}${Math.round(deltaRatio * 100)}%`;
 }
 
 function toDateOrNull(value: string | null): Date | null {
@@ -455,13 +433,13 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   const topStationsByDemand = topStationsRows.map((row) => ({
     stationId: row.stationId,
     stationName: row.stationName,
-    avgDemand: round(toNumber(row.avgDemand), 1),
+    avgDemand: roundTo(toNumber(row.avgDemand), 1),
   }));
 
   const leastUsedStations = leastUsedStationsRows.map((row) => ({
     stationId: row.stationId,
     stationName: row.stationName,
-    avgDemand: round(toNumber(row.avgDemand), 1),
+    avgDemand: roundTo(toNumber(row.avgDemand), 1),
   }));
 
   const weekdayProfile = dayTypeProfileRows.find((row) => row.dayType === 'weekday');
@@ -469,13 +447,13 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
 
   const weekdayWeekendProfile = {
     weekday: {
-      avgDemand: round(toNumber(weekdayProfile?.avgDemand), 1),
-      avgOccupancy: round(toNumber(weekdayProfile?.avgOccupancy), 4),
+      avgDemand: roundTo(toNumber(weekdayProfile?.avgDemand), 1),
+      avgOccupancy: roundTo(toNumber(weekdayProfile?.avgOccupancy), 4),
       daysCount: Math.round(toNumber(weekdayProfile?.daysCount)),
     },
     weekend: {
-      avgDemand: round(toNumber(weekendProfile?.avgDemand), 1),
-      avgOccupancy: round(toNumber(weekendProfile?.avgOccupancy), 4),
+      avgDemand: roundTo(toNumber(weekendProfile?.avgDemand), 1),
+      avgOccupancy: roundTo(toNumber(weekendProfile?.avgOccupancy), 4),
       daysCount: Math.round(toNumber(weekendProfile?.daysCount)),
     },
     demandGapRatio: calculateDelta(
@@ -524,20 +502,21 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       ? `La ciudad acumula ${Math.round(demandLast7Days)} puntos de demanda agregada ${range.summaryScope}, con ocupacion media del ${Math.round(
           occupancyLast7Days * 100
         )}% sobre ${sharedCoverage.totalDays} dias historicos disponibles.`
-      : `La demanda ${selectedMonth ? 'mensual' : 'semanal'} se mueve ${formatDelta(demandDeltaRatio)} ${range.comparisonScope} y la ocupacion media se situa en ${Math.round(
+      : `La demanda ${selectedMonth ? 'mensual' : 'semanal'} se mueve ${formatRatioDelta(demandDeltaRatio, 'sin referencia previa')} ${range.comparisonScope} y la ocupacion media se situa en ${Math.round(
           occupancyLast7Days * 100
-        )}% (${formatDelta(occupancyDeltaRatio)}).`;
+        )}% (${formatRatioDelta(occupancyDeltaRatio, 'sin referencia previa')}).`;
 
   const highlights = [
     {
       title: selectedMonth ? 'Demanda del mes' : 'Demanda semanal',
-      detail: `${Math.round(demandLast7Days)} puntos ${selectedMonth ? `en ${formatMonthLabel(selectedMonth)}` : 'en 7 dias'} (${formatDelta(
-        demandDeltaRatio
+      detail: `${Math.round(demandLast7Days)} puntos ${selectedMonth ? `en ${formatMonthLabel(selectedMonth)}` : 'en 7 dias'} (${formatRatioDelta(
+        demandDeltaRatio,
+        'sin referencia previa'
       )} ${range.comparisonScope}).`,
     },
     {
       title: selectedMonth ? 'Ocupacion media del mes' : 'Ocupacion media',
-      detail: `${Math.round(occupancyLast7Days * 100)}% ${range.summaryScope} (${formatDelta(occupancyDeltaRatio)}).`,
+      detail: `${Math.round(occupancyLast7Days * 100)}% ${range.summaryScope} (${formatRatioDelta(occupancyDeltaRatio, 'sin referencia previa')}).`,
     },
     {
       title: 'Cobertura historica',
@@ -628,10 +607,10 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
     metrics: {
       demandLast7Days: Math.round(demandLast7Days),
       demandPrevious7Days: Math.round(demandPrevious7Days),
-      demandDeltaRatio: demandDeltaRatio === null ? null : round(demandDeltaRatio, 4),
-      occupancyLast7Days: round(occupancyLast7Days, 4),
-      occupancyPrevious7Days: round(occupancyPrevious7Days, 4),
-      occupancyDeltaRatio: occupancyDeltaRatio === null ? null : round(occupancyDeltaRatio, 4),
+      demandDeltaRatio: demandDeltaRatio === null ? null : roundTo(demandDeltaRatio, 4),
+      occupancyLast7Days: roundTo(occupancyLast7Days, 4),
+      occupancyPrevious7Days: roundTo(occupancyPrevious7Days, 4),
+      occupancyDeltaRatio: occupancyDeltaRatio === null ? null : roundTo(occupancyDeltaRatio, 4),
     },
     summary,
     highlights,

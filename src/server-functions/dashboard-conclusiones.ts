@@ -5,18 +5,9 @@ import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { toNumber } from '@/lib/format';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
-
-function safeNumber(value: unknown): number {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
-  }
-  if (typeof value === 'bigint') return Number(value);
-  return 0;
-}
 
 function safeString(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -42,50 +33,50 @@ function serializeConclusionsPayload(payload: unknown): MobilityConclusionsPaylo
     selectedMonth: p.selectedMonth ? safeString(p.selectedMonth) : null,
     sourceFirstDay: p.sourceFirstDay ? safeString(p.sourceFirstDay) : null,
     sourceLastDay: p.sourceLastDay ? safeString(p.sourceLastDay) : null,
-    totalHistoricalDays: safeNumber(p.totalHistoricalDays),
-    stationsWithData: safeNumber(p.stationsWithData),
-    activeStations: safeNumber(p.activeStations),
+    totalHistoricalDays: toNumber(p.totalHistoricalDays),
+    stationsWithData: toNumber(p.stationsWithData),
+    activeStations: toNumber(p.activeStations),
     metrics: {
-      demandLast7Days: safeNumber(metrics.demandLast7Days),
-      demandPrevious7Days: safeNumber(metrics.demandPrevious7Days),
-      demandDeltaRatio: metrics.demandDeltaRatio != null ? safeNumber(metrics.demandDeltaRatio) : null,
-      occupancyLast7Days: safeNumber(metrics.occupancyLast7Days),
-      occupancyPrevious7Days: safeNumber(metrics.occupancyPrevious7Days),
-      occupancyDeltaRatio: metrics.occupancyDeltaRatio != null ? safeNumber(metrics.occupancyDeltaRatio) : null,
+      demandLast7Days: toNumber(metrics.demandLast7Days),
+      demandPrevious7Days: toNumber(metrics.demandPrevious7Days),
+      demandDeltaRatio: metrics.demandDeltaRatio != null ? toNumber(metrics.demandDeltaRatio) : null,
+      occupancyLast7Days: toNumber(metrics.occupancyLast7Days),
+      occupancyPrevious7Days: toNumber(metrics.occupancyPrevious7Days),
+      occupancyDeltaRatio: metrics.occupancyDeltaRatio != null ? toNumber(metrics.occupancyDeltaRatio) : null,
     },
     summary: safeString(p.summary),
     highlights: Array.isArray(p.highlights) ? p.highlights : [],
     recommendations: Array.isArray(p.recommendations) ? p.recommendations : [],
     peakDemandHours: Array.isArray(p.peakDemandHours) ? (p.peakDemandHours as Array<Record<string, unknown>>).map((h: Record<string, unknown>) => ({
-      hour: safeNumber(h.hour),
-      demandScore: safeNumber(h.demandScore),
+      hour: toNumber(h.hour),
+      demandScore: toNumber(h.demandScore),
     })) : [],
     topDistrictsByDemand: Array.isArray(p.topDistrictsByDemand) ? (p.topDistrictsByDemand as Array<Record<string, unknown>>).map((d: Record<string, unknown>) => ({
       district: safeString(d.district),
-      demandScore: safeNumber(d.demandScore),
+      demandScore: toNumber(d.demandScore),
     })) : [],
     topStationsByDemand: Array.isArray(p.topStationsByDemand) ? (p.topStationsByDemand as Array<Record<string, unknown>>).map((s: Record<string, unknown>) => ({
       stationId: safeString(s.stationId),
       stationName: safeString(s.stationName),
-      avgDemand: safeNumber(s.avgDemand),
+      avgDemand: toNumber(s.avgDemand),
     })) : [],
     leastUsedStations: Array.isArray(p.leastUsedStations) ? (p.leastUsedStations as Array<Record<string, unknown>>).map((s: Record<string, unknown>) => ({
       stationId: safeString(s.stationId),
       stationName: safeString(s.stationName),
-      avgDemand: safeNumber(s.avgDemand),
+      avgDemand: toNumber(s.avgDemand),
     })) : [],
     weekdayWeekendProfile: {
       weekday: {
-        avgDemand: safeNumber(weekday.avgDemand),
-        avgOccupancy: safeNumber(weekday.avgOccupancy),
-        daysCount: safeNumber(weekday.daysCount),
+        avgDemand: toNumber(weekday.avgDemand),
+        avgOccupancy: toNumber(weekday.avgOccupancy),
+        daysCount: toNumber(weekday.daysCount),
       },
       weekend: {
-        avgDemand: safeNumber(weekend.avgDemand),
-        avgOccupancy: safeNumber(weekend.avgOccupancy),
-        daysCount: safeNumber(weekend.daysCount),
+        avgDemand: toNumber(weekend.avgDemand),
+        avgOccupancy: toNumber(weekend.avgOccupancy),
+        daysCount: toNumber(weekend.daysCount),
       },
-      demandGapRatio: weekdayWeekendProfile.demandGapRatio != null ? safeNumber(weekdayWeekendProfile.demandGapRatio) : null,
+      demandGapRatio: weekdayWeekendProfile.demandGapRatio != null ? toNumber(weekdayWeekendProfile.demandGapRatio) : null,
       dominantPeriod: (weekdayWeekendProfile.dominantPeriod as 'weekday' | 'weekend' | null) ?? null,
     },
   };

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationPatternRow } from '@/lib/api-types';
 import { DayType } from '@/analytics/types';
-import { formatDayType, formatPercent } from '@/lib/format';
+import { formatDayType, formatPercent, toNumber } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
 import {
   Legend,
@@ -43,10 +43,6 @@ type TooltipProps = {
 const HOUR_LABELS = Array.from({ length: 24 }, (_, hour) =>
   `${String(hour).padStart(2, '0')}:00`
 );
-
-function toNumber(value: number): number {
-  return Number.isFinite(value) ? value : 0;
-}
 
 function buildChartData(patterns: StationPatternRow[]): ChartPoint[] {
   const totals = new Map<string, { sum: number; count: number }>();

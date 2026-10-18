@@ -129,10 +129,16 @@ export function roundTo(value: number, decimals = 4): number {
   return Math.round(value * factor) / factor;
 }
 
-/** Ratio (-0.15) -> "-15%"; ratio (0.2) -> "+20%". */
-export function formatRatioDelta(ratio: number): string {
-  if (!Number.isFinite(ratio)) {
-    return '0%';
+/**
+ * Ratio (-0.15) -> "-15%"; ratio (0.2) -> "+20%". Si no hay referencia (null,
+ * undefined o no finito) devuelve `fallback`, que cada contexto elige.
+ */
+export function formatRatioDelta(
+  ratio: number | null | undefined,
+  fallback = '0%'
+): string {
+  if (ratio === null || ratio === undefined || !Number.isFinite(ratio)) {
+    return fallback;
   }
 
   return `${ratio >= 0 ? '+' : '-'}${Math.round(Math.abs(ratio) * 100)}%`;
@@ -152,4 +158,26 @@ export function average(values: number[]): number {
     return 0;
   }
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+/** Media de la lista, o `null` si esta vacia (para distinguir "sin datos"). */
+export function averageOrNull(values: number[]): number | null {
+  if (values.length === 0) {
+    return null;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+/** Coacciona cualquier valor a un numero finito; lo no numerico cae a 0. */
+export function toNumber(value: unknown): number {
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+
+  if (value === null || value === undefined) {
+    return 0;
+  }
+
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
 }
