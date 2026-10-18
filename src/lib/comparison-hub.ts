@@ -17,10 +17,8 @@ import {
   fetchSharedDatasetSnapshot,
   fetchStations,
 } from '@/lib/api';
-import {
-  buildFallbackDatasetSnapshot,
-  buildFallbackStations,
-} from '@/lib/shared-data-fallbacks';
+import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import { buildFallbackDatasetSnapshot } from '@/services/shared-data';
 import {
   buildComparisonHubViewModel,
   buildFallbackComparisonSections,

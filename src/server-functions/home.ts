@@ -3,7 +3,7 @@ import { getStationSeoRows } from '@/lib/seo-stations'
 import type { StationSeoSummary } from '@/lib/seo-stations'
 import { buildNetworkBriefing } from '@/lib/network-briefing'
 import { fetchAlerts, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api'
-import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/lib/shared-data-fallbacks'
+import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/services/shared-data'
 import { fetchComparableNetworkBaseline } from '@/lib/network-briefing-baseline'
 
 export type HomePageData = {

@@ -7,7 +7,8 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { getSiteUrl, SITE_NAME, SITE_TITLE } from '@/lib/site';
 import type { DashboardInitialData } from '@/app/dashboard/_components/DashboardClient';
 import { fetchAlerts, fetchSharedDatasetSnapshot, fetchRankings, fetchStations, fetchStatus } from '@/lib/api';
-import { buildFallbackDatasetSnapshot, buildFallbackStatus, buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/services/shared-data';
 import { fetchComparableNetworkBaseline } from '@/lib/network-briefing-baseline';
 
 type ErrorWithMeta = {

@@ -5,11 +5,8 @@ import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatDateLabel } from '@/lib/format';
-import {
-  buildFallbackAvailableMonths,
-  buildFallbackDatasetSnapshot,
-  buildFallbackStatus,
-} from '@/lib/shared-data-fallbacks';
+import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
+import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/services/shared-data';
 import { getCityName, getSiteUrl } from '@/lib/site';
 import { getApiVersionLabel, getDatasetVersionLabel } from '@/lib/system-status';
 

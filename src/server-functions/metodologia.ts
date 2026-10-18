@@ -5,13 +5,13 @@ import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 import {
-  buildFallbackAvailableMonths,
   buildFallbackDatasetSnapshot,
   buildFallbackHistoryMetadata,
   buildFallbackStatus,
-} from '@/lib/shared-data-fallbacks';
-import { getSharedDataSource } from '@/services/shared-data';
+  getSharedDataSource,
+} from '@/services/shared-data';
 
 const FAQ_IDS = [
   'fuente-datos',

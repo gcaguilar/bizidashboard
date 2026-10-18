@@ -11,11 +11,8 @@ vi.mock('@/lib/sentry-reporting', () => ({
 import { useDashboardLiveData } from '@/app/dashboard/_components/useDashboardLiveData';
 import type { DashboardInitialData } from '@/app/dashboard/_components/DashboardClient';
 import type { RankingsResponse, StationsResponse } from '@/lib/api-types';
-import {
-  buildFallbackDatasetSnapshot,
-  buildFallbackStations,
-  buildFallbackStatus,
-} from '@/lib/shared-data-fallbacks';
+import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import { buildFallbackDatasetSnapshot, buildFallbackStatus } from '@/services/shared-data';
 
 function makeEmptyRanking(type: 'turnover' | 'availability', nowIso: string): RankingsResponse {
   return {
