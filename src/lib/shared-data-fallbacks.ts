@@ -1,14 +1,5 @@
-import type {
-  AvailableMonthsResponse,
-  SharedDatasetSnapshot,
-  StationsResponse,
-  StatusResponse,
-} from '@/lib/api-types';
-import {
-  resolveDataState,
-  resolveDatasetDataState,
-  resolveStatusDataState,
-} from '@/lib/data-state';
+import type { AvailableMonthsResponse, StationsResponse } from '@/lib/api-types';
+import { resolveDataState } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey, previousMonthKey } from '@/lib/months';
 import {
   EMPTY_SEASONALITY,
@@ -19,99 +10,12 @@ import {
 } from '@/lib/monthly-report-types';
 import { buildReportBalance } from '@/lib/report-balance';
 import { buildPeriodCoverage } from '@/lib/temporal-comparison';
-import type { HistoryMetadata, SharedDataSource } from '@/services/shared-data/types';
 
-const FALLBACK_SHARED_DATA_SOURCE = {
-  provider: 'Bizi Zaragoza GBFS',
-  gbfsDiscoveryUrl: 'https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json',
-};
-
-export function buildFallbackStatus(nowIso: string): StatusResponse {
-  const fallback = {
-    pipeline: {
-      lastSuccessfulPoll: null,
-      totalRowsCollected: 0,
-      pollsLast24Hours: 0,
-        validationErrors: 0,
-        consecutiveFailures: 0,
-        lastDataFreshness: false,
-        lastStationCount: 0,
-        averageStationsPerPoll: 0,
-        healthStatus: 'down' as const,
-        healthReason: 'No se pudieron consultar las tablas de datos.',
-      },
-    quality: {
-      freshness: {
-        isFresh: false,
-        lastUpdated: null,
-        maxAgeSeconds: 600,
-      },
-      volume: {
-        recentStationCount: 0,
-        averageStationsPerPoll: 0,
-        expectedRange: { min: 200, max: 500 },
-      },
-      lastCheck: null,
-    },
-    system: {
-      uptime: nowIso,
-      version: process.env.npm_package_version ?? '0.1.0',
-      environment: process.env.NODE_ENV ?? 'production',
-    },
-    operations: {
-      cache: {
-        configured: false,
-        available: false,
-        backend: 'disabled' as const,
-      },
-      recentCollections: [],
-      security: {
-        failedAuthLast24Hours: 0,
-        rateLimitedLast24Hours: 0,
-        refreshTokenReuseLast24Hours: 0,
-      },
-    },
-    timestamp: nowIso,
-  };
-
-  return {
-    ...fallback,
-    dataState: resolveStatusDataState(fallback),
-  };
-}
-
-export function buildFallbackDatasetSnapshot(nowIso: string): SharedDatasetSnapshot {
-  const fallback = {
-    source: FALLBACK_SHARED_DATA_SOURCE,
-    coverage: {
-      firstRecordedAt: null,
-      lastRecordedAt: null,
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    lastUpdated: {
-      lastSampleAt: null,
-      generatedAt: nowIso,
-    },
-    stats: {
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
-    pipeline: buildFallbackStatus(nowIso),
-  };
-
-  return {
-    ...fallback,
-    dataState: resolveDatasetDataState({
-      coverage: fallback.coverage,
-      status: fallback.pipeline,
-    }),
-  };
-}
+/**
+ * Fallbacks de los payloads de la API publica (estaciones, meses disponibles e
+ * informe mensual). Las formas propias de shared-data (status, snapshot,
+ * metadata) viven en `@/services/shared-data`.
+ */
 
 export function buildFallbackStations(nowIso: string): StationsResponse {
   return {
@@ -127,24 +31,6 @@ export function buildFallbackStations(nowIso: string): StationsResponse {
 export function buildFallbackAvailableMonths(nowIso: string): AvailableMonthsResponse {
   return {
     months: [],
-    generatedAt: nowIso,
-  };
-}
-
-export function buildFallbackHistoryMetadata(
-  nowIso: string,
-  source: SharedDataSource
-): HistoryMetadata {
-  return {
-    source,
-    coverage: {
-      firstRecordedAt: null,
-      lastRecordedAt: null,
-      totalSamples: 0,
-      totalStations: 0,
-      totalDays: 0,
-      generatedAt: nowIso,
-    },
     generatedAt: nowIso,
   };
 }

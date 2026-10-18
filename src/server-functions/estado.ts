@@ -4,15 +4,16 @@ import { buildSystemCapabilities, buildSystemIncidents } from '@/lib/system-stat
 import { getNetworkBalanceSummary } from '@/lib/product-copy';
 
 export const getSystemStatusPageData = createServerFn({ method: 'GET' }).handler(async () => {
-  const [api, fallbacks] = await Promise.all([
+  const [api, fallbacks, sharedData] = await Promise.all([
     import('@/lib/api'),
     import('@/lib/shared-data-fallbacks'),
+    import('@/services/shared-data'),
   ]);
   const nowIso = new Date().toISOString();
   const [status, stations, dataset, availableMonths] = await Promise.all([
-    api.fetchStatus().catch(() => fallbacks.buildFallbackStatus(nowIso)),
+    api.fetchStatus().catch(() => sharedData.buildFallbackStatus(nowIso)),
     api.fetchStations().catch(() => fallbacks.buildFallbackStations(nowIso)),
-    api.fetchSharedDatasetSnapshot().catch(() => fallbacks.buildFallbackDatasetSnapshot(nowIso)),
+    api.fetchSharedDatasetSnapshot().catch(() => sharedData.buildFallbackDatasetSnapshot(nowIso)),
     api.fetchAvailableDataMonths().catch(() => fallbacks.buildFallbackAvailableMonths(nowIso)),
   ]);
   const months = availableMonths.months.filter(isValidMonthKey);

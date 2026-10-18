@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { buildFallbackHistoryMetadata } from '@/lib/shared-data-fallbacks';
+import { buildFallbackHistoryMetadata } from '@/services/shared-data';
 
 export const getDashboardHelpPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [{ fetchHistoryMetadata }, { getSharedDataSource }] = await Promise.all([

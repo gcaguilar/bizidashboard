@@ -149,6 +149,32 @@ describe('getSharedDatasetSnapshot', () => {
     });
   });
 
+  it('uses the shared fallback pipeline when the status source fails', async () => {
+    getCoverageSummaryMock.mockResolvedValue(SHARED_COVERAGE);
+    getPipelineStatusSummaryMock.mockRejectedValue(new Error('pipeline unavailable'));
+    const getSharedDatasetSnapshot = await loadGetSharedDatasetSnapshot();
+
+    const snapshot = await getSharedDatasetSnapshot();
+
+    expect(snapshot.pipeline.pipeline.healthStatus).toBe('down');
+    expect(snapshot.pipeline.pipeline.healthReason).toBe(
+      'No se pudieron consultar las tablas de datos.'
+    );
+    expect(snapshot.pipeline.quality.freshness).toEqual({
+      isFresh: false,
+      lastUpdated: null,
+      maxAgeSeconds: 600,
+    });
+    expect(captureWarningWithContextMock).toHaveBeenCalledWith(
+      'Shared dataset snapshot degraded: pipeline fallback applied.',
+      expect.objectContaining({
+        area: 'shared-data.snapshot',
+        operation: 'getSharedDatasetSnapshot',
+        dedupeKey: 'shared-data.snapshot.pipeline-fallback',
+      })
+    );
+  });
+
   it('uses a coherent zeroed fallback when coverage fails', async () => {
     getCoverageSummaryMock.mockRejectedValue(new Error('coverage unavailable'));
     const getSharedDatasetSnapshot = await loadGetSharedDatasetSnapshot();

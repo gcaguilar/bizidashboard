@@ -4,7 +4,7 @@ import { combineDataStates, resolveDataState } from '@/lib/data-state';
 import { formatMonthLabel, isValidMonthKey, previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
+import { buildFallbackDatasetSnapshot } from '@/services/shared-data';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { buildItemListStructuredData } from '@/lib/structured-data';
 import { buildMonthlyTemporalComparison, buildPeriodCoverage } from '@/lib/temporal-comparison';
