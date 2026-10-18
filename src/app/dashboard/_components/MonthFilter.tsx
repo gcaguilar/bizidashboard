@@ -53,6 +53,8 @@ function MonthFilterContent({
     void navigate({
       replace: true,
       to: '.',
+      // Solo cambia el parametro month: no debe saltar el scroll arriba.
+      resetScroll: false,
       search: (prev: Record<string, unknown>) => ({ ...prev, month: nextMonth ?? undefined }),
     });
   };

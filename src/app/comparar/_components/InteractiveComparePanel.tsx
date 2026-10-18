@@ -229,6 +229,8 @@ export function InteractiveComparePanel({
         right: selection.rightId,
       },
       replace: true,
+      // Misma ruta, solo cambian parametros de busqueda: no debe saltar el scroll arriba.
+      resetScroll: false,
     });
   }
 

@@ -281,6 +281,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     (partial: Partial<DashboardClientUrlState>) => {
       void navigate({
         replace: true,
+        // Sincroniza el estado de UI en la URL sin resetear el scroll de la pagina.
+        resetScroll: false,
         search: (prev) => {
           const next = buildDashboardClientSearch(prev, {
             activeWindowId,

@@ -229,7 +229,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
       return;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    void navigate({ search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as any : {}, replace: true });
+    void navigate({ search: viewQueryString ? Object.fromEntries(new URLSearchParams(viewQueryString)) as any : {}, replace: true, resetScroll: false });
   }, [isUrlReady, navigate, searchQueryString, stations, viewQueryString]);
 
   const historyQuery = useQuery({

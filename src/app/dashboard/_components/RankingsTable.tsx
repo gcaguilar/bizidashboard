@@ -53,6 +53,8 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
 
     void navigate({
       replace: true,
+      // Solo cambian parametros de busqueda: no debe saltar el scroll arriba.
+      resetScroll: false,
       search: (prev) => ({
         ...prev,
         rankingTab: nextTab,
