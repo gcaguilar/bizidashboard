@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 import { parseBucketStart } from './date-utils';
+import { toSerializableNumber } from './serialize';
 
 export type RankingType = 'turnover' | 'availability';
 
@@ -213,31 +214,6 @@ type SystemHourlyProfileRow = {
   avgBikesAvailable: number;
   sampleCount: number;
 };
-
-function toSerializableNumber(value: unknown): number {
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  if (typeof value === 'bigint') {
-    return Number(value);
-  }
-
-  if (typeof value === 'string') {
-    return Number(value);
-  }
-
-  if (
-    value &&
-    typeof value === 'object' &&
-    'toString' in value &&
-    typeof value.toString === 'function'
-  ) {
-    return Number((value as { toString: () => string }).toString());
-  }
-
-  return 0;
-}
 
 export async function getStationRankings(
   type: RankingType,

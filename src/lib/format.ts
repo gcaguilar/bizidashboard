@@ -119,6 +119,34 @@ export function formatHourRange(hour: number): string {
   return `${String(hour).padStart(2, '0')}:00-${String(nextHour).padStart(2, '0')}:00`;
 }
 
+/** Redondea a un numero fijo de decimales. */
+export function roundTo(value: number, decimals = 4): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+}
+
+/** Ratio (-0.15) -> "-15%"; ratio (0.2) -> "+20%". */
+export function formatRatioDelta(ratio: number): string {
+  if (!Number.isFinite(ratio)) {
+    return '0%';
+  }
+
+  return `${ratio >= 0 ? '+' : '-'}${Math.round(Math.abs(ratio) * 100)}%`;
+}
+
+/** Magnitud de un ratio sin signo: (-0.15) -> "15%". */
+export function formatRatioMagnitude(ratio: number): string {
+  if (!Number.isFinite(ratio)) {
+    return '0%';
+  }
+
+  return `${Math.round(Math.abs(ratio) * 100)}%`;
+}
+
 export function average(values: number[]): number {
   if (values.length === 0) {
     return 0;

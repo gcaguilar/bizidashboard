@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { HeatmapCell } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
+import { getHeatColor } from '@/lib/heatmap-color';
 import { appRoutes } from '@/lib/routes';
 import {
   Scatter,
@@ -71,17 +72,6 @@ function getHeatmapStats(cells: HeatmapCell[]) {
     max: totals.max,
     avg: totals.sum / cells.length,
   };
-}
-
-function getHeatColor(value: number | null, min: number, max: number): string {
-  if (value === null || !Number.isFinite(value)) {
-    return 'hsl(338 22% 20%)';
-  }
-
-  const range = max - min || 1;
-  const ratio = Math.min(1, Math.max(0, (value - min) / range));
-  const lightness = 22 + ratio * 42;
-  return `hsl(354 82% ${lightness}%)`;
 }
 
 function HeatTooltip({ active, payload }: TooltipProps) {
