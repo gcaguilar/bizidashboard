@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
+import { sumDemand } from './demand-sql';
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import { executeRollupPipeline } from '@/analytics/rollup-engine';
 import type { RollupResult } from '@/analytics/types';
@@ -16,7 +17,7 @@ export async function runRankingRollup(cutoff: Date): Promise<RollupResult> {
     watermarkKey: RANKING_WATERMARK,
     sourceQuery: (_watermark: Date, queryEnd: Date) => Prisma.sql`
       SELECT "stationId" as "stationId",
-        SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) as "turnoverScore",
+        ${sumDemand()} as "turnoverScore",
         SUM(CASE WHEN "bikesAvg" <= 1 THEN 1 ELSE 0 END) as "emptyHours",
         SUM(CASE WHEN "anchorsAvg" <= 1 THEN 1 ELSE 0 END) as "fullHours",
         COUNT(*) as "totalHours"

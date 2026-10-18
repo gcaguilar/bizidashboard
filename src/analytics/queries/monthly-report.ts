@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { TIMEZONE } from '@/lib/timezone';
+import { coalesceSumDemand } from './demand-sql';
 import { toSerializableNumber } from './serialize';
 
 export type MonthlyStationMetricRow = {
@@ -65,7 +66,7 @@ export async function getMonthlyStationMetrics(monthKey: string): Promise<Monthl
   >`
     SELECT
       "stationId",
-      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore",
+      ${coalesceSumDemand()} AS "demandScore",
       COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
       COUNT(*) FILTER (WHERE "bikesAvg" <= 1) AS "emptyHours",
       COUNT(*) FILTER (WHERE "anchorsAvg" <= 1) AS "fullHours",

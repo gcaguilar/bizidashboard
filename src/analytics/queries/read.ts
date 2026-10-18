@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 import { parseBucketStart } from './date-utils';
+import { coalesceSumDemand, sumDemand } from './demand-sql';
 import { toSerializableNumber } from './serialize';
 
 export type RankingType = 'turnover' | 'availability';
@@ -68,7 +69,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
       daily AS (
         SELECT
           TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-          SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+          ${sumDemand()} AS "demandScore",
           AVG("occupancyAvg") AS "avgOccupancy",
           SUM("sampleCount") AS "sampleCount"
         FROM "HourlyStationStat"
@@ -93,7 +94,7 @@ function buildDemandSeriesQuery(days: number, monthKey?: string): Prisma.Sql {
   return Prisma.sql`
     SELECT
       TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-      SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) AS "demandScore",
+      ${sumDemand()} AS "demandScore",
       AVG("occupancyAvg") AS "avgOccupancy",
       SUM("sampleCount") AS "sampleCount"
     FROM "HourlyStationStat"
@@ -557,7 +558,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     WITH monthly AS (
       SELECT
         TO_CHAR("bucketDate", 'YYYY-MM') AS "monthKey",
-        COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore",
+        ${coalesceSumDemand()} AS "demandScore",
         COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
         COUNT(DISTINCT "stationId") AS "activeStations",
         COALESCE(SUM("sampleCount"), 0) AS "sampleCount"
@@ -589,7 +590,7 @@ export async function getMonthlyDemandCurve(limitMonths = 12): Promise<MonthlyDe
     WITH monthly AS (
       SELECT
         TO_CHAR("bucketStart", 'YYYY-MM') AS "monthKey",
-        COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "demandScore",
+        ${coalesceSumDemand()} AS "demandScore",
         COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
         COUNT(DISTINCT "stationId") AS "activeStations",
         COALESCE(SUM("sampleCount"), 0) AS "sampleCount"

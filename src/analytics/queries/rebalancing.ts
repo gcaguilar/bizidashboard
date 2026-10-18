@@ -1,4 +1,5 @@
 import { Prisma } from '@/generated/prisma/client';
+import { coalesceSumDemand, sumDemand } from './demand-sql';
 import { prisma } from '@/lib/db';
 import { haversineDistanceMeters } from '@/lib/geo';
 import type { NearbyStation, StationBaseMetrics, TimeBandMetrics } from '@/types/rebalancing';
@@ -60,8 +61,8 @@ export async function getStationGlobalMetrics(days: number = 15): Promise<Record
       COALESCE(AVG("occupancyAvg"), 0) AS "occupancyAvg",
       COALESCE(COUNT(*) FILTER (WHERE "bikesMin" <= 0)::float / NULLIF(COUNT(*), 0), 0) AS "pctTimeEmpty",
       COALESCE(COUNT(*) FILTER (WHERE "anchorsMin" <= 0)::float / NULLIF(COUNT(*), 0), 0) AS "pctTimeFull",
-      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "rotation",
-      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) / NULLIF(AVG("bikesAvg"), 0), 0) AS "rotationPerBike",
+      ${coalesceSumDemand()} AS "rotation",
+      COALESCE(${sumDemand()} / NULLIF(AVG("bikesAvg"), 0), 0) AS "rotationPerBike",
       COALESCE(COUNT(*) FILTER (WHERE "bikesMax" = "bikesMin")::float / NULLIF(COUNT(*), 0), 0) AS "persistenceProxy",
       COALESCE(STDDEV_POP("occupancyAvg"), 0) AS "variability",
       COALESCE(SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END), 0)
@@ -113,8 +114,8 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
       COALESCE(AVG("occupancyAvg"), 0) AS "occupancyAvg",
       COALESCE(COUNT("stationId") FILTER (WHERE "bikesMin" <= 0)::float / NULLIF(COUNT("stationId"), 0), 0) AS "pctTimeEmpty",
       COALESCE(COUNT("stationId") FILTER (WHERE "anchorsMin" <= 0)::float / NULLIF(COUNT("stationId"), 0), 0) AS "pctTimeFull",
-      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")), 0) AS "rotation",
-      COALESCE(SUM(("bikesMax" - "bikesMin") + ("anchorsMax" - "anchorsMin")) / NULLIF(AVG("bikesAvg"), 0), 0) AS "rotationPerBike",
+      ${coalesceSumDemand()} AS "rotation",
+      COALESCE(${sumDemand()} / NULLIF(AVG("bikesAvg"), 0), 0) AS "rotationPerBike",
       COALESCE(COUNT("stationId") FILTER (WHERE "bikesMax" = "bikesMin")::float / NULLIF(COUNT("stationId"), 0), 0) AS "persistenceProxy",
       COALESCE(STDDEV_POP("occupancyAvg"), 0) AS "variability"
     FROM "HourlyStationStat"
