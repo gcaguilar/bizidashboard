@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { withCache } from '@/lib/cache/cache';
 import { prisma } from '@/lib/db';
+import { toNumber } from '@/lib/format';
 import type { CoverageSummary, HistoryMetadata, SharedDataSource } from './types';
 
 const CACHE_KEY = 'shared-data:coverage';
@@ -20,18 +21,6 @@ type StationsRow = {
 type DaysRow = {
   totalDays: bigint | number | null;
 };
-
-function toNumber(value: bigint | number | null | undefined): number {
-  if (typeof value === 'bigint') {
-    return Number(value);
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  return 0;
-}
 
 function toIsoString(value: Date | string | null | undefined): string | null {
   if (!value) {

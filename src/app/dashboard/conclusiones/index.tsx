@@ -4,7 +4,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
 import { z } from 'zod';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { formatDateLabel, formatInteger, formatPercent } from '@/lib/format';
+import { formatDateLabel, formatInteger, formatPercent, formatRatioDelta } from '@/lib/format';
 import { toMonthOptions } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
@@ -18,15 +18,6 @@ import { getDashboardConclusionsPageData } from '@/server-functions/dashboard-co
 import { toJsonLdScript } from '@/lib/structured-data';
 
 // Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
-
-function formatDelta(deltaRatio: number | null): string {
-  if (deltaRatio === null || !Number.isFinite(deltaRatio)) {
-    return 'Sin referencia';
-  }
-
-  const prefix = deltaRatio >= 0 ? '+' : '';
-  return `${prefix}${Math.round(deltaRatio * 100)}%`;
-}
 
 function formatDate(value: string | null): string {
   if (!value) {
@@ -160,7 +151,7 @@ export default function DashboardConclusionsPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <article className="ui-section-card">
           <p className="stat-label">{getDemandCardLabel(payload.selectedMonth)}</p>
-          <p className="stat-value">{formatDelta(payload.metrics.demandDeltaRatio)}</p>
+          <p className="stat-value">{formatRatioDelta(payload.metrics.demandDeltaRatio, 'Sin referencia')}</p>
           <p className="text-xs text-[var(--muted)]">{getDemandCardDetail(payload)}</p>
         </article>
 
@@ -168,7 +159,7 @@ export default function DashboardConclusionsPage() {
           <p className="stat-label">{getOccupancyCardLabel(payload.selectedMonth)}</p>
           <p className="stat-value">{formatPercent(payload.metrics.occupancyLast7Days)}</p>
           <p className="text-xs text-[var(--muted)]">
-            Variacion: {formatDelta(payload.metrics.occupancyDeltaRatio)}
+            Variacion: {formatRatioDelta(payload.metrics.occupancyDeltaRatio, 'Sin referencia')}
           </p>
         </article>
 
@@ -253,7 +244,7 @@ export default function DashboardConclusionsPage() {
           </div>
 
           <p className="mt-3 text-xs text-[var(--muted)]">
-            Variacion relativa fin de semana vs laborable: {formatDelta(payload.weekdayWeekendProfile.demandGapRatio)}
+            Variacion relativa fin de semana vs laborable: {formatRatioDelta(payload.weekdayWeekendProfile.demandGapRatio, 'Sin referencia')}
           </p>
         </article>
 
