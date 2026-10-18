@@ -1,3 +1,4 @@
+import '@/lib/zod-jitless'
 import './instrument.server'
 
 import handler, { createServerEntry } from '@tanstack/react-start/server-entry'

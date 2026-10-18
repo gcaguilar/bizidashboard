@@ -1,3 +1,4 @@
+import '@/lib/zod-jitless'
 import './instrument.client'
 
 import { StrictMode, startTransition } from 'react'
