@@ -44,7 +44,6 @@ type TableParams = {
 };
 
 type Props = {
-  initialReport: RebalancingReport | null;
   districtNames: string[];
   tableParams?: TableParams;
 };
@@ -54,20 +53,13 @@ const ANALYSIS_WINDOWS = [7, 15, 30, 60] as const;
 const ANONYMOUS_MAX_WINDOW_DAYS = 30;
 const ALL_DISTRICTS_VALUE = '__all_districts__';
 
-export function RedistribucionClient({ initialReport, districtNames, tableParams }: Props) {
+export function RedistribucionClient({ districtNames, tableParams }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
-  const [selectedDistrict, setSelectedDistrict] = useState<string>(
-    initialReport?.districtFilter ?? ''
-  );
-  const [selectedDays, setSelectedDays] = useState<number>(initialReport?.analysisWindowDays ?? 15);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('');
+  const [selectedDays, setSelectedDays] = useState<number>(15);
   const session = useDeveloperSession();
 
   const districtFilter = selectedDistrict || null;
-  // El informe del loader ya cubre estos parametros: evita un refetch redundante al montar.
-  const matchesInitialReport =
-    initialReport !== null &&
-    (initialReport.districtFilter ?? null) === districtFilter &&
-    initialReport.analysisWindowDays === selectedDays;
 
   const reportQuery = useQuery({
     queryKey: ['dashboard', 'rebalancing-report', districtFilter, selectedDays] as const,
@@ -76,12 +68,11 @@ export function RedistribucionClient({ initialReport, districtNames, tableParams
         appRoutes.api.rebalancingReport({ district: districtFilter, days: selectedDays }),
         { signal, cache: 'no-store', errorMessage: 'HTTP fetch failed' }
       ),
-    initialData: matchesInitialReport ? initialReport : undefined,
     // Conserva el informe anterior mientras se recalcula con los nuevos filtros.
     placeholderData: (previous) => previous,
   });
 
-  const report = reportQuery.data ?? initialReport;
+  const report = reportQuery.data;
   const isReportLoading = reportQuery.isFetching;
   const loadError = reportQuery.error
     ? 'No se pudo actualizar el informe. Mostramos la ultima version disponible.'

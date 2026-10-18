@@ -3,7 +3,6 @@ import { buildSeoHead } from '@/lib/seo-head'
 import { lazy, Suspense } from 'react';
 import { z } from 'zod';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
-import type { RebalancingReport } from '@/types/rebalancing';
 
 const RedistribucionClient = lazy(() =>
   import('@/app/dashboard/redistribucion/_components/RedistribucionClient').then(m => ({ default: m.RedistribucionClient }))
@@ -44,12 +43,11 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
 });
 
 export default function RedistribucionPage() {
-  const { report, districtNames, tableParams } = Route.useLoaderData();
-  
+  const { districtNames, tableParams } = Route.useLoaderData();
+
   return (
     <Suspense fallback={<RebalancingSkeleton />}>
       <RedistribucionClientWrapper
-        initialReport={report}
         districtNames={districtNames}
         tableParams={tableParams}
       />
@@ -83,18 +81,15 @@ function RebalancingSkeleton() {
   );
 }
 
-function RedistribucionClientWrapper({ 
-  initialReport, 
-  districtNames, 
-  tableParams 
+function RedistribucionClientWrapper({
+  districtNames,
+  tableParams
 }: {
-  initialReport: RebalancingReport | null;
   districtNames: string[];
   tableParams: Record<string, unknown>;
 }) {
   return (
     <RedistribucionClient
-      initialReport={initialReport}
       districtNames={districtNames}
       tableParams={tableParams}
     />
