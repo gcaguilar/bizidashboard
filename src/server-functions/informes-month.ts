@@ -1,10 +1,12 @@
 import { redirect } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
+import { resolveDataState } from '@/lib/data-state';
+import { buildMonthlyReport } from '@/lib/monthly-report';
 import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { buildPeriodCoverage } from '@/lib/temporal-comparison';
+import { buildFallbackMonthlyReport } from '@/lib/shared-data-fallbacks';
 
 const MonthInputSchema = z.string().optional();
 
@@ -15,44 +17,37 @@ export const getReportMonthPageData = createServerFn({ method: 'GET' })
       throw redirect({ to: appRoutes.reports() });
     }
 
+    const nowIso = new Date().toISOString();
+
     try {
-      const [{ fetchCachedDailyDemandCurve, fetchCachedMonthlyDemandCurve }] = await Promise.all([
-        import('@/lib/analytics-series'),
-        import('@/lib/shared-data-fallbacks'),
-      ]);
-      const [monthlySeries, dailySeries] = await Promise.all([
-        fetchCachedMonthlyDemandCurve(12).catch((error) => {
-          captureExceptionWithContext(error, { area: 'informes.month', operation: 'fetchCachedMonthlyDemandCurve' });
-          return [];
-        }),
-        fetchCachedDailyDemandCurve(31, month).catch((error) => {
-          captureExceptionWithContext(error, { area: 'informes.month', operation: 'fetchCachedDailyDemandCurve' });
-          return [];
-        }),
-      ]);
-      const monthRow = monthlySeries.find((row) => row.monthKey === month) ?? null;
-      const periodCoverage = buildPeriodCoverage(
-        month,
-        dailySeries.map((row) => ({
-          day: row.day,
-          demandScore: Number(row.demandScore),
-          sampleCount: Number(row.sampleCount),
-        })),
-        new Date().toISOString()
-      );
+      const report = await buildMonthlyReport(month, nowIso);
+      const monthRow =
+        report.trends.monthly.find((row) => row.monthKey === month) ?? null;
 
       return {
         month,
         monthRow,
-        periodCoverage,
-        nearbyMonths: monthlySeries
+        report,
+        nearbyMonths: report.trends.monthly
           .filter((row) => row.monthKey !== month)
-          .slice(0, 6)
+          .slice(-6)
+          .reverse()
           .map((row) => row.monthKey),
-        dataState: monthRow ? ('ok' as const) : ('no_coverage' as const),
+        dataState: resolveDataState({
+          hasData: report.hasReport,
+          hasCoverage: report.hasReport || report.coverage.coveredDays > 0,
+        }),
       };
     } catch (error) {
-      captureExceptionWithContext(error, { area: 'informes.month', operation: 'loader' });
-      return { month, dataState: 'error' as const };
+      captureExceptionWithContext(error, { area: 'reports.month', operation: 'loader' });
+      const report = buildFallbackMonthlyReport(month, nowIso);
+
+      return {
+        month,
+        monthRow: null,
+        report,
+        nearbyMonths: [] as string[],
+        dataState: 'error' as const,
+      };
     }
   });

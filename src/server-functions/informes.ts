@@ -1,13 +1,13 @@
 import { createServerFn } from '@tanstack/react-start';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { combineDataStates, resolveDataState } from '@/lib/data-state';
-import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
+import { formatMonthLabel, isValidMonthKey, previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackDatasetSnapshot } from '@/lib/shared-data-fallbacks';
 import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { buildItemListStructuredData } from '@/lib/structured-data';
-import { buildPeriodCoverage } from '@/lib/temporal-comparison';
+import { buildMonthlyTemporalComparison, buildPeriodCoverage } from '@/lib/temporal-comparison';
 
 function resolvePublishedMonths(availableMonths: string[], monthlySeriesKeys: string[]): string[] {
   const monthSet = new Set<string>();
@@ -67,7 +67,7 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
       });
       return { months: [], generatedAt: new Date().toISOString() };
     }),
-    fetchCachedMonthlyDemandCurve(24).catch(() => []),
+    fetchCachedMonthlyDemandCurve(REPORT_MONTHS_WINDOW).catch(() => []),
     fetchCachedDailyDemandCurve(90).catch(() => []),
     fetchSharedDatasetSnapshot().catch((error) => {
       captureExceptionWithContext(error, {
@@ -98,16 +98,24 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
   const months = filterMonthsWithSeries(monthsSource, monthlySeries);
   const monthMap = Object.fromEntries(monthlySeries.map((row) => [row.monthKey, row]));
   const latestMonth = months[0] ?? null;
+  const recentDemandRows = recentDemand.map((row) => ({
+    day: row.day,
+    demandScore: Number(row.demandScore),
+    sampleCount: Number(row.sampleCount),
+  }));
   const latestPeriodCoverage = latestMonth
-    ? buildPeriodCoverage(
-        latestMonth,
-        recentDemand.map((row) => ({
-          day: row.day,
-          demandScore: Number(row.demandScore),
-          sampleCount: Number(row.sampleCount),
-        })),
-        nowIso
-      )
+    ? buildPeriodCoverage(latestMonth, recentDemandRows, nowIso)
+    : null;
+  // Comparativa del ultimo mes normalizada por cobertura: comparte la misma
+  // logica que el informe mensual, de modo que el chip del indice y la ficha del
+  // mes no pueden discrepar.
+  const latestComparison = latestMonth
+    ? buildMonthlyTemporalComparison({
+        monthKey: latestMonth,
+        referenceMonthKey: previousMonthKey(latestMonth),
+        rows: recentDemandRows,
+        nowIso,
+      })
     : null;
   const reportsDataState = combineDataStates([
     dataset.dataState,
@@ -154,6 +162,9 @@ export const getReportsIndexPageData = createServerFn({ method: 'GET' }).handler
     monthMap,
     latestMonth,
     latestPeriodCoverage,
+    latestTrend: latestComparison?.normalizedDemandRatio ?? null,
+    latestComparisonLabel: latestComparison?.periodLabel ?? null,
+    currentMonth: nowIso.slice(0, 7),
     reportsDataState,
     breadcrumbs,
     structuredData,
