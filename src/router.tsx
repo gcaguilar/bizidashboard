@@ -1,6 +1,7 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import * as Sentry from '@sentry/tanstackstart-react'
 import { routeTree } from './routeTree.gen'
+import { stringifyRouterSearch } from './lib/router-search'
 
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 import {
@@ -25,6 +26,9 @@ export function getRouter() {
     defaultPendingComponent: PublicPageLoading,
     defaultErrorComponent: PublicErrorPage,
     defaultNotFoundComponent: NotFoundPage,
+    // Emite los params como texto plano: evita que `?stationId=254` se
+    // reescriba con comillas JSON (`%22254%22`). Ver `stringifyRouterSearch`.
+    stringifySearch: stringifyRouterSearch,
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })
