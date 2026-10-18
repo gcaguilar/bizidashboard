@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
@@ -29,8 +29,16 @@ function formatPredictionLabel(value: number | null, capacity: number): string {
 }
 
 export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
-  loader: ({ params }) => getPublicStationPageData({ data: params.stationId }),
+  // Una estación fuera de catálogo no es un 200 con estado vacío: lanzamos
+  // `notFound` para que el SSR responda 404 a crawlers y motores de búsqueda,
+  // y `notFoundComponent` conserva la ficha amable para la persona usuaria.
+  loader: async ({ params }) => {
+    const data = await getPublicStationPageData({ data: params.stationId })
+    if (!data) throw notFound()
+    return data
+  },
   pendingComponent: StationDetailSkeleton,
+  notFoundComponent: StationNotFoundPage,
   head: ({ params, loaderData }) => {
     const id = params.stationId ?? ''
     const stationPath = appRoutes.stationDetail(id)
@@ -86,22 +94,23 @@ function StationErrorPage({ error }: { error: unknown }) {
   );
 }
 
-function StationPage() {
-  const data = Route.useLoaderData()
+function StationNotFoundPage() {
   const { stationId } = Route.useParams()
 
-  if (!data) {
-    return (
-      <PageShell>
-        <section className="ui-page-hero">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estación</p>
-          <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estación {stationId}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar esta estación con confianza.</p>
-          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'station_empty', ctaId: 'back_to_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver todas las estaciones</TrackedLink>
-        </section>
-      </PageShell>
-    )
-  }
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de estación</p>
+        <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Estación {stationId}</h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar esta estación con confianza.</p>
+        <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'station_empty', ctaId: 'back_to_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver todas las estaciones</TrackedLink>
+      </section>
+    </PageShell>
+  )
+}
+
+function StationPage() {
+  const data = Route.useLoaderData()
 
   const { summary, relatedStations } = data
   const station = summary.station
