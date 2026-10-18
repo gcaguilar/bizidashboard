@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
+import type { DistrictOption } from '@/server-functions/home';
 import { parseJsonStringArray, useStorageValue } from '@/lib/use-storage-value';
 import {
   buildSearchSubmitEvent,
@@ -14,19 +15,38 @@ import {
 
 const FAVORITES_KEY = 'bizidashboard-favorite-stations';
 const EMPTY_FAVORITE_IDS: string[] = [];
+const MAX_SUGGESTIONS = 8;
 
-type StationSuggestion = {
+export type StationSuggestion = {
   id: string;
   name: string;
   bikesAvailable: number;
 };
+
+type SearchSuggestion =
+  | { kind: 'station'; station: StationSuggestion }
+  | { kind: 'district'; district: DistrictOption };
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 type PublicSearchFormProps = {
   className?: string;
   placeholder?: string;
   defaultQuery?: string;
   buttonLabel?: string;
+  /** Etiqueta visible del campo (por defecto, "Buscar estación"). */
+  label?: string;
   eventSource?: string;
+  /** Fuente de sugerencias ya resuelta (p. ej. la portada); evita el fetch a /api/stations. */
+  stations?: StationSuggestion[];
+  /** Barrios sugeridos además de estaciones cuando la consulta tiene 2+ caracteres. */
+  districts?: DistrictOption[];
 };
 
 export function PublicSearchForm({
@@ -34,7 +54,10 @@ export function PublicSearchForm({
   placeholder = 'Busca una estación por nombre o ID',
   defaultQuery = '',
   buttonLabel = 'Buscar',
+  label = 'Buscar estación',
   eventSource = 'public_search',
+  stations,
+  districts,
 }: PublicSearchFormProps) {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
@@ -43,31 +66,45 @@ export function PublicSearchForm({
   const blurTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const [query, setQuery] = useState(defaultQuery);
-  const [stations, setStations] = useState<StationSuggestion[]>([]);
+  const [fetchedStations, setFetchedStations] = useState<StationSuggestion[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS);
 
-  const suggestions = useMemo(() => {
+  const suggestionPool = stations ?? fetchedStations;
+
+  const suggestions = useMemo<SearchSuggestion[]>(() => {
     if (query.length < 2) {
       return [];
     }
 
     const q = query.toLowerCase();
-    const matches = stations.filter(
+    const stationMatches = suggestionPool.filter(
       (s) => s.name.toLowerCase().includes(q) || s.id.includes(q),
     );
-    const sorted = [...matches].sort((a, b) => {
+    const sortedStations = [...stationMatches].sort((a, b) => {
       const aFav = favoriteIds.includes(a.id) ? 1 : 0;
       const bFav = favoriteIds.includes(b.id) ? 1 : 0;
       return bFav - aFav;
     });
 
-    return sorted.slice(0, 8);
-  }, [query, stations, favoriteIds]);
+    const stationSuggestions: SearchSuggestion[] = sortedStations
+      .slice(0, MAX_SUGGESTIONS)
+      .map((station) => ({ kind: 'station', station }));
+
+    const districtSuggestions: SearchSuggestion[] = (districts ?? [])
+      .filter((district) => normalizeSearchText(district.name).includes(normalizeSearchText(query)))
+      .map((district) => ({ kind: 'district', district }));
+
+    return [...stationSuggestions, ...districtSuggestions].slice(0, MAX_SUGGESTIONS);
+  }, [query, suggestionPool, favoriteIds, districts]);
   const showSuggestions = isFocused && suggestions.length > 0;
 
   useEffect(() => {
+    if (stations) {
+      return;
+    }
+
     const controller = new AbortController();
     fetch(appRoutes.api.stations(), { signal: controller.signal })
       .then((res) => {
@@ -75,21 +112,27 @@ export function PublicSearchForm({
         return res.json();
       })
       .then((data) => {
-        if (data?.stations) setStations(data.stations);
+        if (data?.stations) setFetchedStations(data.stations);
       })
       .catch(() => {})
     return () => controller.abort();
-  }, []);
+  }, [stations]);
 
   useEffect(() => {
     return () => clearTimeout(blurTimerRef.current);
   }, []);
 
   const selectSuggestion = useCallback(
-    (station: StationSuggestion) => {
+    (suggestion: SearchSuggestion) => {
       setIsFocused(false);
       setQuery('');
-      void navigate({ to: appRoutes.stationDetail(station.id) });
+
+      if (suggestion.kind === 'district') {
+        void navigate({ to: appRoutes.districtDetail(suggestion.district.slug) });
+        return;
+      }
+
+      void navigate({ to: appRoutes.stationDetail(suggestion.station.id) });
     },
     [navigate],
   );
@@ -135,7 +178,7 @@ export function PublicSearchForm({
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3 ${className ?? ''}`.trim()}
     >
       <label htmlFor="public-search" className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-        Buscar estación
+        {label}
       </label>
       <div className="relative flex flex-wrap gap-2">
         <div className="relative min-w-0 flex-1">
@@ -165,14 +208,14 @@ export function PublicSearchForm({
               role="listbox"
               className="absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-auto rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-lg"
             >
-              {suggestions.map((station, i) => (
+              {suggestions.map((suggestion, i) => (
                 <li
-                  key={station.id}
+                  key={suggestion.kind === 'station' ? suggestion.station.id : `district-${suggestion.district.slug}`}
                   role="option"
                   aria-selected={i === selectedIndex}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    selectSuggestion(station);
+                    selectSuggestion(suggestion);
                   }}
                   onMouseEnter={() => setSelectedIndex(i)}
                   className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors ${
@@ -181,16 +224,27 @@ export function PublicSearchForm({
                       : 'text-[var(--foreground)] hover:bg-[var(--secondary)]'
                   }`}
                 >
-                  <span className="truncate">
-                    {favoriteIds.includes(station.id) && (
-                      <span className="mr-1 text-[var(--warning)]" aria-label="Favorita">★</span>
-                    )}
-                    {station.name}{' '}
-                    <span className="text-[11px] text-[var(--muted)]">(#{station.id})</span>
-                  </span>
-                  <span className="ml-2 shrink-0 text-xs text-[var(--muted)]">
-                    {station.bikesAvailable} <span className="text-[10px]">bicis</span>
-                  </span>
+                  {suggestion.kind === 'station' ? (
+                    <>
+                      <span className="truncate">
+                        {favoriteIds.includes(suggestion.station.id) && (
+                          <span className="mr-1 text-[var(--warning)]" aria-label="Favorita">★</span>
+                        )}
+                        {suggestion.station.name}{' '}
+                        <span className="text-[11px] text-[var(--muted)]">(#{suggestion.station.id})</span>
+                      </span>
+                      <span className="ml-2 shrink-0 text-xs text-[var(--muted)]">
+                        {suggestion.station.bikesAvailable} <span className="text-[10px]">bicis</span>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="truncate">{suggestion.district.name}</span>
+                      <span className="ml-2 shrink-0 text-[10px] uppercase text-[var(--muted)] border rounded px-1">
+                        Barrio
+                      </span>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>

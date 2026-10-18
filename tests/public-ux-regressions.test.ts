@@ -355,11 +355,20 @@ describe('public UX regressions', () => {
 
   it('home positions the observatory separately from BiciRadar', () => {
     const source = readSource('src/app/index.tsx');
+    const mapSection = readSource('src/app/_components/home/HomeMapSection.tsx');
+    const liveSection = readSource('src/app/_components/home/HomeLiveSection.tsx');
+    const diagnosis = readSource('src/app/_components/home/HomeDiagnosis.tsx');
+
     expect(source).toContain('Datos públicos de Bizi Zaragoza');
     expect(source).toContain('Entiende cómo está Bizi Zaragoza ahora');
-    expect(source).toContain('Abrir BiciRadar');
-    expect(source).toContain('no es el número oficial de viajes');
+    expect(source).toContain('<HomeStatusHero');
+    expect(source).toContain('<HomeLiveSection');
+    expect(mapSection).toContain('biciradar_handoff_clicked');
+    expect(mapSection).toContain('Bicis cerca de ti');
+    expect(diagnosis).toContain('no es el número oficial de viajes');
     expect(source).not.toContain('Usar mi ubicación');
+    expect(liveSection).not.toContain('Usar mi ubicación');
+    expect(mapSection).not.toContain('Usar mi ubicación');
   });
 
   it('public search describes station search accurately', () => {

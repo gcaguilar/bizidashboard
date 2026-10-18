@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
-import { NetworkBriefing } from '@/app/dashboard/_components/NetworkBriefing';
+import { HomeLiveSection } from '@/app/_components/home/HomeLiveSection';
+import { HomeStatusHero } from '@/app/_components/HomeStatusHero';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
@@ -14,8 +15,6 @@ import {
   SEO_SITE_TITLE,
   SEO_SITE_DESCRIPTION,
 } from '@/lib/site';
-import { formatPercent, formatInteger, formatHourMinute } from '@/lib/format';
-import { buildObservatoryEvent } from '@/lib/umami';
 import { getHomePageData } from '@/server-functions/home';
 import { toJsonLdScript } from '@/lib/structured-data';
 
@@ -72,8 +71,20 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const { mostUsedStations, problemStations, bikesAvailable, activeStationsCount, generatedAt, briefing } = Route.useLoaderData();
-  const generatedAtLabel = formatHourMinute(generatedAt);
+  const {
+    mostUsedStations,
+    problemStations,
+    stationRows,
+    bikesAvailable,
+    activeStationsCount,
+    generatedAt,
+    briefing,
+    anchorsFreeTotal,
+    criticalStationsCount,
+    health,
+    topCriticalDistricts,
+    districts,
+  } = Route.useLoaderData();
 
   return (
     <PageShell>
@@ -140,77 +151,26 @@ function Home() {
             Ver informes mensuales
           </TrackedLink>
         </div>
-
       </header>
 
-      <div className="flex flex-wrap gap-3 text-xs text-[var(--muted)]">
-        <span className="ui-chip">{formatInteger(bikesAvailable)} bicis disponibles</span>
-        <span className="ui-chip">{formatInteger(activeStationsCount)} estaciones activas</span>
-        <span className="ui-chip" suppressHydrationWarning>Actualizado {generatedAtLabel}</span>
-      </div>
-
-      <NetworkBriefing briefing={briefing} className="mt-4" />
+      <HomeStatusHero
+        briefing={briefing}
+        health={health}
+        bikesAvailable={bikesAvailable}
+        anchorsFreeTotal={anchorsFreeTotal}
+        activeStationsCount={activeStationsCount}
+        criticalStationsCount={criticalStationsCount}
+        topCriticalDistricts={topCriticalDistricts}
+        generatedAt={generatedAt}
+      />
       <NetworkBriefingViewTracker />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="ui-section-card">
-          <p className="stat-label">Estaciones que conviene revisar</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">Han pasado más tiempo sin bicis o sin huecos libres en el periodo disponible.</p>
-          <div className="mt-2 space-y-2">
-            {problemStations.map((s) => {
-              const problemHours = Number(s.availability?.emptyHours ?? 0) + Number(s.availability?.fullHours ?? 0);
-              return (
-                <TrackedLink
-                  key={s.station.id}
-                  href={appRoutes.stationDetail(s.station.id)}
-                  entitySelectEvent={{ source: 'home_problem', entityType: 'station', module: s.station.id }}
-                  className="ui-surface-block ui-surface-block-interactive"
-                >
-                  <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
-                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
-                    <span>{formatInteger(problemHours)} h sin bicis o huecos</span>
-                    <span>{formatPercent(s.currentOccupancy)} ocupación</span>
-                  </div>
-                </TrackedLink>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="ui-section-card">
-          <p className="stat-label">Estaciones con más movimiento</p>
-          <p className="mt-1 text-xs text-[var(--muted)]">El movimiento estimado ayuda a comparar estaciones; no es el número oficial de viajes.</p>
-          <div className="mt-2 space-y-2">
-            {mostUsedStations.map((s) => (
-              <TrackedLink
-                key={s.station.id}
-                href={appRoutes.stationDetail(s.station.id)}
-                entitySelectEvent={{ source: 'home_most_used', entityType: 'station', module: s.station.id }}
-                className="ui-surface-block ui-surface-block-interactive"
-              >
-                <p className="text-sm font-semibold text-[var(--foreground)]">{s.station.name}</p>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
-                  <span>{formatInteger(Number(s.turnover?.turnoverScore ?? 0))} puntos de movimiento estimado</span>
-                  <span>{formatInteger(s.station.bikesAvailable)} bicis ahora</span>
-                </div>
-              </TrackedLink>
-            ))}
-          </div>
-        </div>
-
-        <div className="ui-section-card">
-          <p className="stat-label">¿Buscas una bici ahora?</p>
-          <h2 className="mt-1 text-lg font-bold text-[var(--foreground)]">Encuentra una bici o un hueco cerca de ti</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">Abre BiciRadar para ver las estaciones cercanas y cuántas bicis o huecos libres tienen ahora mismo.</p>
-          <TrackedLink
-            href={appRoutes.biciradar()}
-            trackingEvent={buildObservatoryEvent('biciradar_handoff_clicked', { surface: 'public', routeKey: 'home', source: 'home_biciradar_handoff' })}
-            className="ui-primary-button mt-4"
-          >
-            Abrir BiciRadar
-          </TrackedLink>
-        </div>
-      </section>
+      <HomeLiveSection
+        stations={stationRows.map((row) => row.station)}
+        districts={districts}
+        problemStations={problemStations}
+        mostUsedStations={mostUsedStations}
+      />
 
       <section className="ui-section-card" aria-labelledby="home-faq-title">
         <h2 id="home-faq-title" className="text-xl font-black text-[var(--foreground)]">Preguntas frecuentes</h2>
@@ -224,7 +184,7 @@ function Home() {
         </div>
       </section>
 
-<HomeExploreSection />
+      <HomeExploreSection />
     </PageShell>
   );
 }

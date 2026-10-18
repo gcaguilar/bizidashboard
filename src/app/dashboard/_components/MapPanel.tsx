@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
 import type { Coordinates } from '@/lib/geo';
+import { hasNoAvailability } from '@/lib/network-health';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 import { MapEngine } from './MapEngine';
 
@@ -44,9 +45,7 @@ export function MapPanel({
   onViewStateCommit,
 }: MapPanelProps) {
   const isFilteredView = stations.length !== totalStations;
-  const criticalCount = stations.filter(
-    (station) => station.bikesAvailable <= 0 || station.anchorsFree <= 0
-  ).length;
+  const criticalCount = stations.filter(hasNoAvailability).length;
   const headerTitle =
     viewMode === 'operations' ? 'Mapa de accion operativa' : 'Mapa general del sistema';
   const headerHint =
