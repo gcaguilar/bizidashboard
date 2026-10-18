@@ -2,6 +2,13 @@ const DEFAULT_CONNECT_URLS = [
   'https://tile.openstreetmap.org',
 ];
 
+// Tally es el proveedor incrustable por defecto del formulario de feedback
+// (`FeedbackDialog`). Sin `frame-src` explícito, `default-src 'self'` bloquea
+// el iframe y el formulario se queda en blanco.
+const DEFAULT_FRAME_URLS = [
+  'https://tally.so',
+];
+
 function readFirst(env, names) {
   for (const name of names) {
     const value = env[name]?.trim();
@@ -39,6 +46,28 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+/**
+ * Devuelve el origin del formulario de feedback configurado, o cadena vacía si
+ * no está definido o no es una URL http(s) válida. Un valor inválido nunca debe
+ * impedir el arranque del servidor: el fallback externo sigue disponible.
+ */
+function resolveFeedbackFrameOrigin(env) {
+  const feedbackUrl = readFirst(env, [
+    'VITE_FEEDBACK_URL',
+    'NEXT_PUBLIC_FEEDBACK_URL',
+  ]);
+
+  if (!feedbackUrl) {
+    return '';
+  }
+
+  try {
+    return parseHttpUrl(feedbackUrl, 'FEEDBACK_URL').origin;
+  } catch {
+    return '';
+  }
+}
+
 export function resolveExternalServiceConfig(env = process.env) {
   const umamiScriptSrc = readFirst(env, [
     'UMAMI_SCRIPT_SRC',
@@ -73,6 +102,7 @@ export function buildContentSecurityPolicy(env = process.env) {
   const config = resolveExternalServiceConfig(env);
   const scriptOrigins = ['https://fonts.googleapis.com'];
   const connectOrigins = DEFAULT_CONNECT_URLS.map((value) => new URL(value).origin);
+  const frameOrigins = DEFAULT_FRAME_URLS.map((value) => new URL(value).origin);
 
   if (config.umamiScriptSrc) {
     scriptOrigins.push(parseHttpUrl(config.umamiScriptSrc, 'UMAMI_SCRIPT_SRC').origin);
@@ -90,6 +120,8 @@ export function buildContentSecurityPolicy(env = process.env) {
 
   scriptOrigins.push(...parseOriginList(env.CSP_SCRIPT_SRC_ORIGINS, 'CSP_SCRIPT_SRC_ORIGINS'));
   connectOrigins.push(...parseOriginList(env.CSP_CONNECT_SRC_ORIGINS, 'CSP_CONNECT_SRC_ORIGINS'));
+  frameOrigins.push(resolveFeedbackFrameOrigin(env));
+  frameOrigins.push(...parseOriginList(env.CSP_FRAME_SRC_ORIGINS, 'CSP_FRAME_SRC_ORIGINS'));
 
   return [
     "default-src 'self'",
@@ -98,6 +130,7 @@ export function buildContentSecurityPolicy(env = process.env) {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https:",
     `connect-src 'self' ${unique(connectOrigins).join(' ')}`,
+    `frame-src 'self' ${unique(frameOrigins).join(' ')}`,
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
   ].join('; ');

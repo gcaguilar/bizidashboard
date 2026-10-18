@@ -32,6 +32,31 @@ describe('content security policy', () => {
     expect(policy).toContain('https://api.example.com');
   });
 
+  it('allows the tally feedback iframe by default', () => {
+    const policy = buildContentSecurityPolicy({});
+
+    expect(policy).toContain("frame-src 'self' https://tally.so");
+  });
+
+  it('frames the configured feedback origin and controlled extra origins without duplicates', () => {
+    const policy = buildContentSecurityPolicy({
+      NEXT_PUBLIC_FEEDBACK_URL: 'https://forms.example.com/embed/abc',
+      CSP_FRAME_SRC_ORIGINS: 'https://frames.example.net, https://forms.example.com/otra',
+    });
+
+    expect(policy).toContain('https://forms.example.com');
+    expect(policy).toContain('https://frames.example.net');
+    expect(policy.match(/https:\/\/forms\.example\.com/g)).toHaveLength(1);
+  });
+
+  it('ignores an invalid feedback url instead of failing startup', () => {
+    const policy = buildContentSecurityPolicy({
+      NEXT_PUBLIC_FEEDBACK_URL: 'not-a-url',
+    });
+
+    expect(policy).toContain("frame-src 'self' https://tally.so");
+  });
+
   it('rejects invalid configured URLs', () => {
     expect(() =>
       buildContentSecurityPolicy({ UMAMI_SCRIPT_SRC: 'javascript:alert(1)' })
