@@ -2,6 +2,8 @@ import {
   getDailyDemandCurve,
   getHourlyMobilitySignals,
   getMonthlyDemandCurve,
+  getStationDailyDemand,
+  getStationHourlyProfiles,
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
@@ -14,6 +16,12 @@ export type DailyDemandSeriesRow = Awaited<ReturnType<typeof getDailyDemandCurve
 export type MonthlyDemandSeriesRow = Awaited<ReturnType<typeof getMonthlyDemandCurve>>[number];
 export type SystemHourlyProfileSeriesRow = Awaited<
   ReturnType<typeof getSystemHourlyProfile>
+>[number];
+export type StationHourlyProfileSeriesRow = Awaited<
+  ReturnType<typeof getStationHourlyProfiles>
+>[number];
+export type StationDailyDemandSeriesRow = Awaited<
+  ReturnType<typeof getStationDailyDemand>
 >[number];
 export type HourlyMobilitySignalSeriesRow = Awaited<
   ReturnType<typeof getHourlyMobilitySignals>
@@ -82,5 +90,34 @@ export async function fetchCachedHourlyMobilitySignals(
     `analytics:hourly-mobility-signals:days=${normalizedDays}:month=${normalizedMonth ?? 'all'}`,
     LIVE_SERIES_TTL_SECONDS,
     () => getHourlyMobilitySignals(normalizedDays, normalizedMonth ?? undefined)
+  );
+}
+
+/**
+ * Perfil horario por estacion para el comparador ("efecto marea"). Se cachea con
+ * la misma TTL corta que el resto de series vivas porque depende de la ingesta.
+ */
+export async function fetchCachedStationHourlyProfiles(
+  days = 30
+): Promise<StationHourlyProfileSeriesRow[]> {
+  const normalizedDays = normalizeDays(days);
+
+  return withCache(
+    `analytics:station-hourly-profiles:days=${normalizedDays}`,
+    LIVE_SERIES_TTL_SECONDS,
+    () => getStationHourlyProfiles(normalizedDays)
+  );
+}
+
+/** Demanda diaria por estacion para comparaciones "hoy vs mismo dia de la semana". */
+export async function fetchCachedStationDailyDemand(
+  days = 90
+): Promise<StationDailyDemandSeriesRow[]> {
+  const normalizedDays = normalizeDays(days);
+
+  return withCache(
+    `analytics:station-daily-demand:days=${normalizedDays}`,
+    LIVE_SERIES_TTL_SECONDS,
+    () => getStationDailyDemand(normalizedDays)
   );
 }

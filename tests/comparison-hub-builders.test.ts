@@ -15,6 +15,9 @@ function buildInput(
         name: 'Plaza Espana',
         bikesAvailable: 9,
         capacity: 20,
+        anchorsFree: 11,
+        lat: 41.65,
+        lon: -0.88,
         recordedAt: new Date('2026-04-01T14:35:00.000Z').toISOString(),
       },
       {
@@ -22,6 +25,9 @@ function buildInput(
         name: 'Paraninfo',
         bikesAvailable: 4,
         capacity: 18,
+        anchorsFree: 14,
+        lat: 41.66,
+        lon: -0.89,
         recordedAt: new Date('2026-04-01T14:30:00.000Z').toISOString(),
       },
     ],
@@ -91,6 +97,10 @@ function buildInput(
       sampleCount: 60 + index,
     })),
     datasetCoverageDays: 90,
+    stationHourlyProfiles: [],
+    stationDailyDemand: [],
+    stationDistricts: [],
+    cityName: 'Zaragoza',
     comparisonNow: '2026-04-01T14:35:00.000Z',
     latestMonth: '2026-03',
     previousMonth: '2026-02',
@@ -210,6 +220,9 @@ describe('comparison hub builders', () => {
             name: 'Plaza Espana',
             bikesAvailable: 9,
             capacity: 20,
+            anchorsFree: 11,
+            lat: 41.65,
+            lon: -0.88,
             recordedAt: new Date('2026-04-01T14:35:00.000Z'),
           },
           {
@@ -217,6 +230,9 @@ describe('comparison hub builders', () => {
             name: 'Paraninfo',
             bikesAvailable: 4,
             capacity: 18,
+            anchorsFree: 14,
+            lat: 41.66,
+            lon: -0.89,
             recordedAt: '2026-04-01T14:30:00.000Z',
           },
         ],
@@ -329,5 +345,103 @@ describe('comparison hub builders', () => {
 
     expect(yearCard?.delta).toBe('Comparación no disponible todavía');
     expect(yearCard?.note).toContain('2 de 12 meses disponibles en 2026');
+  });
+});
+
+describe('comparison hub citizen assistant view model', () => {
+  function buildDecisionInput(
+    overrides: Partial<ComparisonHubViewModelInput> = {}
+  ): ComparisonHubViewModelInput {
+    return buildInput({
+      stationHourlyProfiles: [
+        {
+          stationId: '101',
+          hour: 8,
+          avgBikes: 1,
+          avgAnchors: 19,
+          avgOccupancy: 0.05,
+          sampleCount: 10,
+          emptyShare: 0.8,
+          fullShare: 0,
+        },
+        {
+          stationId: '101',
+          hour: 18,
+          avgBikes: 12,
+          avgAnchors: 8,
+          avgOccupancy: 0.6,
+          sampleCount: 10,
+          emptyShare: 0,
+          fullShare: 0,
+        },
+      ],
+      stationDistricts: [
+        { stationId: '101', districtSlug: 'centro', districtName: 'Centro' },
+        { stationId: '102', districtSlug: 'romareda', districtName: 'Romareda' },
+      ],
+      stationDailyDemand: Array.from({ length: 14 }, (_, index) => ({
+        stationId: '101',
+        day: `2026-03-${String(index + 1).padStart(2, '0')}`,
+        demandScore: 100 + index,
+        avgOccupancy: 0.5,
+        sampleCount: 10,
+      })),
+      ...overrides,
+    });
+  }
+
+  it('adds traffic-light bands and contextual metrics to station options', () => {
+    const { interactive } = buildComparisonHubViewModel(buildDecisionInput());
+    const station = interactive.dimensions
+      .find((dimension) => dimension.id === 'stations')
+      ?.options.find((option) => option.id === '101');
+
+    expect(station?.bands).toHaveLength(6);
+    const morningBand = station?.bands?.find((band) => band.id === 'morning');
+    const afternoonBand = station?.bands?.find((band) => band.id === 'afternoon');
+    expect(morningBand?.status).toBe('red');
+    expect(morningBand?.peakHour).toBe(8);
+    expect(afternoonBand?.status).toBe('green');
+    expect(station?.metrics?.map((metric) => metric.key)).toEqual([
+      'bikes',
+      'anchors',
+      'availability',
+      'tension',
+    ]);
+    expect(station?.reliabilityScore).not.toBeNull();
+  });
+
+  it('offers the city average as a district comparison option', () => {
+    const { interactive } = buildComparisonHubViewModel(buildDecisionInput());
+    const districtOptions =
+      interactive.dimensions.find((dimension) => dimension.id === 'districts')?.options ?? [];
+
+    expect(districtOptions.some((option) => option.kind === 'city-average')).toBe(true);
+  });
+
+  it('builds one-click presets for the citizen questions', () => {
+    const { interactive } = buildComparisonHubViewModel(buildDecisionInput());
+    const ids = interactive.presets.map((preset) => preset.id);
+
+    expect(ids).toEqual([
+      'nearest-alternative',
+      'district-vs-city',
+      'today-vs-last-week',
+      'saved-stations',
+    ]);
+    expect(
+      interactive.presets.find((preset) => preset.id === 'district-vs-city')?.rightId
+    ).toBe('city-average');
+  });
+
+  it('builds period scopes per city and district from station daily demand', () => {
+    const { interactive } = buildComparisonHubViewModel(buildDecisionInput());
+    const periods = interactive.dimensions.find((dimension) => dimension.id === 'periods');
+    const cityScope = periods?.scopes?.find((scope) => scope.id === 'city');
+
+    expect(periods?.primary).toBe(true);
+    expect(cityScope?.options.some((option) => option.id === 'today')).toBe(true);
+    expect(cityScope?.options.some((option) => option.id === 'same-weekday-last-week')).toBe(true);
+    expect(periods?.scopes?.some((scope) => scope.id === 'centro')).toBe(true);
   });
 });

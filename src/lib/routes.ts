@@ -80,11 +80,13 @@ export const appRoutes = {
     dimension?: string | null;
     left?: string | null;
     right?: string | null;
+    scope?: string | null;
   }) =>
     buildQuery('/comparar', {
       dimension: params?.dimension,
       left: params?.left,
       right: params?.right,
+      scope: params?.scope,
     }),
   developers: () => '/developers',
   mcp: () => '/mcp',

@@ -58,6 +58,65 @@ export type InteractiveComparisonDimensionId =
   | 'hours'
   | 'periods';
 
+/** Franjas del "efecto marea" y semáforo de disponibilidad por entidad. */
+export type ComparisonBandId =
+  | 'dawn'
+  | 'early-morning'
+  | 'morning'
+  | 'midday'
+  | 'afternoon'
+  | 'night';
+export type ComparisonTrafficLight = 'green' | 'amber' | 'red' | 'unknown';
+
+export type ComparisonBand = {
+  id: ComparisonBandId;
+  label: string;
+  rangeLabel: string;
+  avgBikes: number | null;
+  avgAnchors: number | null;
+  sampleCount: number;
+  status: ComparisonTrafficLight;
+  /** Hora del día con más tiempo sin servicio dentro de la franja, si la hay. */
+  peakHour: number | null;
+};
+
+/** Métrica contextualizada para las tarjetas lado a lado. */
+export type ComparisonMetricKey =
+  | 'bikes'
+  | 'anchors'
+  | 'availability'
+  | 'rotation'
+  | 'tension'
+  | 'demand'
+  | 'occupancy'
+  | 'coverage';
+
+export type ComparisonMetric = {
+  key: ComparisonMetricKey;
+  label: string;
+  value: string;
+  hint?: string;
+};
+
+/** Accesos directos a preguntas ciudadanas frecuentes. */
+export type ComparisonPresetId =
+  | 'nearest-alternative'
+  | 'district-vs-city'
+  | 'today-vs-last-week'
+  | 'saved-stations';
+
+export type ComparisonPreset = {
+  id: ComparisonPresetId;
+  emoji: string;
+  label: string;
+  description: string;
+  dimensionId: InteractiveComparisonDimensionId;
+  leftId: string | null;
+  rightId: string | null;
+  requiresGeolocation?: boolean;
+  requiresFavorites?: boolean;
+};
+
 export type InteractiveComparisonOption = {
   id: string;
   label: string;
@@ -70,6 +129,26 @@ export type InteractiveComparisonOption = {
   tertiaryLabel?: string;
   tertiaryDisplay?: string;
   note?: string;
+  /** Tarjetas de métricas lado a lado (disponibilidad, huecos, tensión...). */
+  metrics?: ComparisonMetric[];
+  /** Semáforo por franja horaria para el "efecto marea". */
+  bands?: ComparisonBand[];
+  /** Fiabilidad 0..1 derivada de franjas sin servicio (para el veredicto). */
+  reliabilityScore?: number | null;
+  /** Coordenadas para resolver la estación más cercana sin volver al servidor. */
+  lat?: number;
+  lon?: number;
+  /** `city-average` marca la opción sintética "Media de la ciudad". */
+  kind?: 'entity' | 'city-average';
+};
+
+/** Ámbito del comparador de periodos: toda la red o un barrio concreto. */
+export type InteractiveComparisonScope = {
+  id: string;
+  label: string;
+  options: InteractiveComparisonOption[];
+  defaultLeftId: string | null;
+  defaultRightId: string | null;
 };
 
 export type InteractiveComparisonDimension = {
@@ -79,11 +158,45 @@ export type InteractiveComparisonDimension = {
   options: InteractiveComparisonOption[];
   defaultLeftId: string | null;
   defaultRightId: string | null;
+  /** Pestañas destacadas del rediseño (estaciones, barrios, periodos). */
+  primary?: boolean;
+  /** Solo en periodos: un juego de opciones por ámbito. */
+  scopes?: InteractiveComparisonScope[];
 };
 
 export type InteractiveComparisonData = {
   defaultDimensionId: InteractiveComparisonDimensionId | null;
   dimensions: InteractiveComparisonDimension[];
+  /** Preguntas frecuentes a un clic. */
+  presets: ComparisonPreset[];
+};
+
+/** Fila cruda del perfil horario por estación (la comparte el adapter). */
+export type StationHourlyProfileInput = {
+  stationId: string;
+  hour: number;
+  avgBikes: number;
+  avgAnchors: number;
+  avgOccupancy: number;
+  sampleCount: number;
+  emptyShare: number;
+  fullShare: number;
+};
+
+/** Fila cruda de demanda diaria por estación (la comparte el adapter). */
+export type StationDailyDemandInput = {
+  stationId: string;
+  day: string;
+  demandScore: number;
+  avgOccupancy: number;
+  sampleCount: number;
+};
+
+/** Asignación estación → barrio, para agregar por distrito sin volver a la BD. */
+export type StationDistrictInput = {
+  stationId: string;
+  districtSlug: string;
+  districtName: string;
 };
 
 /** Fila cruda del query de historico reciente (la comparte el adapter). */
@@ -96,7 +209,10 @@ export type HistoryCompareRow = {
 };
 
 type StationComparisonSnapshot = Omit<
-  Pick<StationSnapshot, 'id' | 'name' | 'bikesAvailable' | 'capacity' | 'recordedAt'>,
+  Pick<
+    StationSnapshot,
+    'id' | 'name' | 'bikesAvailable' | 'capacity' | 'anchorsFree' | 'recordedAt' | 'lat' | 'lon'
+  >,
   'recordedAt'
 > & {
   recordedAt: string | Date;
@@ -151,6 +267,10 @@ export type ComparisonHubViewModelInput = {
   recentPayload: MobilityConclusionsPayload | null;
   latestMonthPayload: MobilityConclusionsPayload | null;
   previousMonthPayload: MobilityConclusionsPayload | null;
+  stationHourlyProfiles: StationHourlyProfileInput[];
+  stationDailyDemand: StationDailyDemandInput[];
+  stationDistricts: StationDistrictInput[];
+  cityName: string;
 };
 
 type DerivedComparisonContext = ComparisonHubViewModelInput & {
@@ -185,6 +305,10 @@ type DerivedComparisonContext = ComparisonHubViewModelInput & {
   peakHour: HourlyProfileInput | null;
   quietHour: HourlyProfileInput | null;
   weekdayWeekendProfile: MobilityConclusionsPayload['weekdayWeekendProfile'] | null;
+  hourlyByStation: Map<string, StationHourlyProfileInput[]>;
+  dailyByStation: Map<string, StationDailyDemandInput[]>;
+  districtByStation: Map<string, StationDistrictInput>;
+  stationsByDistrict: Map<string, StationComparisonSnapshot[]>;
 };
 
 export function buildFallbackComparisonSections(): ComparisonSection[] {
@@ -288,6 +412,8 @@ function buildInteractiveDimension(config: {
   options: InteractiveComparisonOption[];
   defaultLeftId?: string | null;
   defaultRightId?: string | null;
+  primary?: boolean;
+  scopes?: InteractiveComparisonScope[];
 }): InteractiveComparisonDimension | null {
   if (config.options.length === 0) {
     return null;
@@ -303,6 +429,8 @@ function buildInteractiveDimension(config: {
     options: config.options,
     defaultLeftId: config.defaultLeftId ?? fallbackLeftId,
     defaultRightId: config.defaultRightId ?? fallbackRightId,
+    ...(config.primary ? { primary: true } : {}),
+    ...(config.scopes && config.scopes.length > 0 ? { scopes: config.scopes } : {}),
   };
 }
 
@@ -317,6 +445,38 @@ function deriveComparisonContext(input: ComparisonHubViewModelInput): DerivedCom
       Number(row.emptyHours) + Number(row.fullHours),
     ])
   );
+  const hourlyByStation = new Map<string, StationHourlyProfileInput[]>();
+  for (const row of input.stationHourlyProfiles) {
+    const list = hourlyByStation.get(row.stationId);
+    if (list) {
+      list.push(row);
+    } else {
+      hourlyByStation.set(row.stationId, [row]);
+    }
+  }
+  const dailyByStation = new Map<string, StationDailyDemandInput[]>();
+  for (const row of input.stationDailyDemand) {
+    const list = dailyByStation.get(row.stationId);
+    if (list) {
+      list.push(row);
+    } else {
+      dailyByStation.set(row.stationId, [row]);
+    }
+  }
+  const districtByStation = new Map(input.stationDistricts.map((row) => [row.stationId, row]));
+  const stationsByDistrict = new Map<string, StationComparisonSnapshot[]>();
+  for (const station of input.stations) {
+    const assignment = districtByStation.get(station.id);
+    if (!assignment) {
+      continue;
+    }
+    const list = stationsByDistrict.get(assignment.districtSlug);
+    if (list) {
+      list.push(station);
+    } else {
+      stationsByDistrict.set(assignment.districtSlug, [station]);
+    }
+  }
   const yearlyMap = new Map<
     string,
     { year: string; demandScore: number; occupancyValues: number[]; activeStations: number[] }
@@ -362,6 +522,10 @@ function deriveComparisonContext(input: ComparisonHubViewModelInput): DerivedCom
     peakHour: sortedHoursByDemand[0] ?? null,
     quietHour: sortedHoursByDemand[sortedHoursByDemand.length - 1] ?? null,
     weekdayWeekendProfile: input.recentPayload?.weekdayWeekendProfile ?? null,
+    hourlyByStation,
+    dailyByStation,
+    districtByStation,
+    stationsByDistrict,
   };
 }
 
@@ -810,6 +974,648 @@ function buildChangeCards(context: DerivedComparisonContext): ComparisonCard[] {
   return cards;
 }
 
+const CITY_AVERAGE_ID = 'city-average';
+
+const BAND_DEFINITIONS: Array<{
+  id: ComparisonBandId;
+  label: string;
+  rangeLabel: string;
+  hours: readonly number[];
+}> = [
+  { id: 'dawn', label: 'Madrugada', rangeLabel: '00–03 h', hours: [0, 1, 2, 3] },
+  { id: 'early-morning', label: 'Primera mañana', rangeLabel: '04–07 h', hours: [4, 5, 6, 7] },
+  { id: 'morning', label: 'Mañana', rangeLabel: '08–11 h', hours: [8, 9, 10, 11] },
+  { id: 'midday', label: 'Mediodía', rangeLabel: '12–15 h', hours: [12, 13, 14, 15] },
+  { id: 'afternoon', label: 'Tarde', rangeLabel: '16–19 h', hours: [16, 17, 18, 19] },
+  { id: 'night', label: 'Noche', rangeLabel: '20–23 h', hours: [20, 21, 22, 23] },
+];
+
+type BandAggregate = {
+  avgBikes: number;
+  avgAnchors: number;
+  occupancy: number;
+  emptyShare: number;
+  fullShare: number;
+  sampleCount: number;
+};
+
+function aggregateHours(
+  rows: StationHourlyProfileInput[],
+  hours: readonly number[]
+): BandAggregate | null {
+  const inBand = rows.filter((row) => hours.includes(Number(row.hour)));
+  const totalSamples = inBand.reduce((sum, row) => sum + (Number(row.sampleCount) || 0), 0);
+
+  if (inBand.length === 0 || totalSamples <= 0) {
+    return null;
+  }
+
+  const weighted = (pick: (row: StationHourlyProfileInput) => number) =>
+    inBand.reduce((sum, row) => sum + pick(row) * (Number(row.sampleCount) || 0), 0) / totalSamples;
+
+  return {
+    avgBikes: weighted((row) => Number(row.avgBikes) || 0),
+    avgAnchors: weighted((row) => Number(row.avgAnchors) || 0),
+    occupancy: weighted((row) => Number(row.avgOccupancy) || 0),
+    emptyShare: weighted((row) => Number(row.emptyShare) || 0),
+    fullShare: weighted((row) => Number(row.fullShare) || 0),
+    sampleCount: totalSamples,
+  };
+}
+
+function resolveBandStatus(input: {
+  avgBikes: number;
+  avgAnchors: number;
+  emptyShare: number;
+  fullShare: number;
+  totalCapacity: number;
+  sampleCount: number;
+}): ComparisonTrafficLight {
+  if (input.sampleCount <= 0) {
+    return 'unknown';
+  }
+
+  const bikesShare = input.totalCapacity > 0 ? input.avgBikes / input.totalCapacity : null;
+  const anchorsShare = input.totalCapacity > 0 ? input.avgAnchors / input.totalCapacity : null;
+
+  if (
+    input.emptyShare >= 0.5 ||
+    input.fullShare >= 0.5 ||
+    (bikesShare !== null && bikesShare < 0.1) ||
+    (anchorsShare !== null && anchorsShare < 0.1)
+  ) {
+    return 'red';
+  }
+
+  if (
+    input.emptyShare >= 0.2 ||
+    input.fullShare >= 0.2 ||
+    (bikesShare !== null && bikesShare < 0.3) ||
+    (anchorsShare !== null && anchorsShare < 0.3)
+  ) {
+    return 'amber';
+  }
+
+  return 'green';
+}
+
+/**
+ * Agrega el perfil horario de una o varias estaciones en franjas con semáforo.
+ * `stationRowSets` es una lista por estación: las métricas de bicis/huecos se
+ * suman entre estaciones, mientras ocupación y proporción sin servicio se
+ * ponderan por muestras. Así el semáforo funciona igual para una estación, un
+ * barrio o la red entera.
+ */
+function buildBands(
+  stationRowSets: StationHourlyProfileInput[][],
+  totalCapacity: number
+): ComparisonBand[] {
+  return BAND_DEFINITIONS.map((definition) => {
+    let avgBikes = 0;
+    let avgAnchors = 0;
+    let occupancyWeighted = 0;
+    let emptyWeighted = 0;
+    let fullWeighted = 0;
+    let sampleCount = 0;
+
+    for (const rows of stationRowSets) {
+      const aggregate = aggregateHours(rows, definition.hours);
+      if (!aggregate) {
+        continue;
+      }
+      avgBikes += aggregate.avgBikes;
+      avgAnchors += aggregate.avgAnchors;
+      occupancyWeighted += aggregate.occupancy * aggregate.sampleCount;
+      emptyWeighted += aggregate.emptyShare * aggregate.sampleCount;
+      fullWeighted += aggregate.fullShare * aggregate.sampleCount;
+      sampleCount += aggregate.sampleCount;
+    }
+
+    if (sampleCount <= 0) {
+      return {
+        id: definition.id,
+        label: definition.label,
+        rangeLabel: definition.rangeLabel,
+        avgBikes: null,
+        avgAnchors: null,
+        sampleCount: 0,
+        status: 'unknown' as const,
+        peakHour: null,
+      };
+    }
+
+    const emptyShare = emptyWeighted / sampleCount;
+    const fullShare = fullWeighted / sampleCount;
+
+    return {
+      id: definition.id,
+      label: definition.label,
+      rangeLabel: definition.rangeLabel,
+      avgBikes,
+      avgAnchors,
+      sampleCount,
+      status: resolveBandStatus({
+        avgBikes,
+        avgAnchors,
+        emptyShare,
+        fullShare,
+        totalCapacity,
+        sampleCount,
+      }),
+      peakHour: resolvePeakHour(stationRowSets, definition.hours),
+    };
+  });
+}
+
+/**
+ * Hora dentro de la franja con más tiempo medio sin servicio (vacía o llena).
+ * Permite pasar de "por la mañana" a "sobre las 08:00" en el veredicto. Devuelve
+ * `null` cuando no hay incidencias agregadas en la franja.
+ */
+function resolvePeakHour(
+  stationRowSets: StationHourlyProfileInput[][],
+  hours: readonly number[]
+): number | null {
+  const byHour = new Map<number, { unavailableWeighted: number; sampleCount: number }>();
+
+  for (const rows of stationRowSets) {
+    for (const row of rows) {
+      const hour = Number(row.hour);
+      if (!hours.includes(hour)) {
+        continue;
+      }
+      const samples = Number(row.sampleCount) || 0;
+      if (samples <= 0) {
+        continue;
+      }
+      const unavailable = Math.min(
+        1,
+        Math.max(0, (Number(row.emptyShare) || 0) + (Number(row.fullShare) || 0))
+      );
+      const current = byHour.get(hour) ?? { unavailableWeighted: 0, sampleCount: 0 };
+      current.unavailableWeighted += unavailable * samples;
+      current.sampleCount += samples;
+      byHour.set(hour, current);
+    }
+  }
+
+  let peakHour: number | null = null;
+  let peakRatio = 0;
+
+  for (const [hour, value] of byHour) {
+    const ratio = value.sampleCount > 0 ? value.unavailableWeighted / value.sampleCount : 0;
+    if (ratio > peakRatio) {
+      peakRatio = ratio;
+      peakHour = hour;
+    }
+  }
+
+  return peakRatio > 0 ? peakHour : null;
+}
+
+/** Fiabilidad 0..1: proporción de horas agregadas con servicio (ni vacía ni llena). */
+function computeReliability(stationRowSets: StationHourlyProfileInput[][]): number | null {
+  let serviceWeighted = 0;
+  let sampleCount = 0;
+
+  for (const rows of stationRowSets) {
+    for (const row of rows) {
+      const samples = Number(row.sampleCount) || 0;
+      if (samples <= 0) {
+        continue;
+      }
+      const unavailable = Math.min(
+        1,
+        Math.max(0, (Number(row.emptyShare) || 0) + (Number(row.fullShare) || 0))
+      );
+      serviceWeighted += (1 - unavailable) * samples;
+      sampleCount += samples;
+    }
+  }
+
+  return sampleCount > 0 ? serviceWeighted / sampleCount : null;
+}
+
+function averageBandValue(
+  bands: ComparisonBand[] | undefined,
+  pick: (band: ComparisonBand) => number | null
+): number | null {
+  if (!bands) {
+    return null;
+  }
+
+  const values = bands
+    .map(pick)
+    .filter((value): value is number => value !== null && Number.isFinite(value));
+
+  return averageOrNull(values);
+}
+
+function buildStationMetrics({
+  station,
+  turnoverScore,
+  availabilityHours,
+  bands,
+}: {
+  station: StationComparisonSnapshot;
+  turnoverScore: number | null;
+  availabilityHours: number | null;
+  bands: ComparisonBand[];
+}): ComparisonMetric[] {
+  const capacity = Math.max(0, Number(station.capacity) || 0);
+  const avgBikes = averageBandValue(bands, (band) => band.avgBikes);
+  const avgAnchors = averageBandValue(bands, (band) => band.avgAnchors);
+  const rotation = turnoverScore;
+  const tension = rotation !== null && capacity > 0 ? rotation / capacity : null;
+
+  return [
+    {
+      key: 'bikes',
+      label: 'Bicis disponibles (media)',
+      value: avgBikes !== null ? `${formatDecimal(avgBikes)} bicis` : 'Sin datos',
+      hint: capacity > 0 ? `Capacidad ${formatInteger(capacity)} anclajes` : undefined,
+    },
+    {
+      key: 'anchors',
+      label: 'Huecos libres (media)',
+      value: avgAnchors !== null ? `${formatDecimal(avgAnchors)} huecos` : 'Sin datos',
+    },
+    {
+      key: 'availability',
+      label: 'Horas sin servicio',
+      value: availabilityHours !== null ? `${formatDecimal(availabilityHours)} h` : 'Sin datos',
+      hint: 'Vacía o llena en el periodo',
+    },
+    {
+      key: 'tension',
+      label: 'Tensión por anclaje',
+      value: tension !== null ? `${formatDecimal(tension, 2)} pts/anclaje` : 'Sin datos',
+      hint: rotation !== null ? `${formatDecimal(rotation)} pts de giro` : undefined,
+    },
+  ];
+}
+
+function buildDistrictMetrics(district: DistrictSeoRow): ComparisonMetric[] {
+  return [
+    {
+      key: 'bikes',
+      label: 'Bicis disponibles ahora',
+      value: `${formatInteger(district.bikesAvailable)} bicis`,
+      hint: `${formatInteger(district.stationCount)} estaciones`,
+    },
+    {
+      key: 'anchors',
+      label: 'Huecos libres ahora',
+      value: `${formatInteger(district.anchorsFree)} huecos`,
+    },
+    {
+      key: 'availability',
+      label: 'Riesgo medio de disponibilidad',
+      value: `${formatDecimal(district.avgAvailabilityRisk)} h`,
+      hint: 'Media de horas sin servicio por estación',
+    },
+    {
+      key: 'tension',
+      label: 'Giro medio por estación',
+      value: `${formatDecimal(district.avgTurnover)} pts`,
+    },
+  ];
+}
+
+function buildCityAverageOption(context: DerivedComparisonContext): InteractiveComparisonOption {
+  const stationRowSets = context.stations.map(
+    (station) => context.hourlyByStation.get(station.id) ?? []
+  );
+  const totalCapacity = context.stations.reduce(
+    (sum, station) => sum + (Number(station.capacity) || 0),
+    0
+  );
+  const totalBikes = context.stations.reduce(
+    (sum, station) => sum + (Number(station.bikesAvailable) || 0),
+    0
+  );
+  const totalAnchors = context.stations.reduce(
+    (sum, station) => sum + (Number(station.anchorsFree) || 0),
+    0
+  );
+  const bands = buildBands(stationRowSets, totalCapacity);
+  const avgTurnover = averageOrNull(context.districtRows.map((district) => district.avgTurnover));
+  const avgRisk = averageOrNull(
+    context.districtRows.map((district) => district.avgAvailabilityRisk)
+  );
+
+  return {
+    id: CITY_AVERAGE_ID,
+    kind: 'city-average',
+    label: `Media de ${context.cityName}`,
+    href: appRoutes.districtLanding(),
+    primaryLabel: 'Giro medio',
+    primaryValue: avgTurnover,
+    primaryDisplay: `${formatDecimal(avgTurnover ?? 0)} pts`,
+    secondaryLabel: 'Estaciones',
+    secondaryDisplay: `${formatInteger(context.stations.length)} estaciones`,
+    tertiaryLabel: 'Bicis disponibles',
+    tertiaryDisplay: `${formatInteger(totalBikes)} bicis`,
+    note: `Referencia agregada de toda la red de ${context.cityName}`,
+    metrics: [
+      {
+        key: 'bikes',
+        label: 'Bicis disponibles ahora',
+        value: `${formatInteger(totalBikes)} bicis`,
+        hint: `${formatInteger(context.stations.length)} estaciones`,
+      },
+      {
+        key: 'anchors',
+        label: 'Huecos libres ahora',
+        value: `${formatInteger(totalAnchors)} huecos`,
+      },
+      {
+        key: 'availability',
+        label: 'Riesgo medio de disponibilidad',
+        value: avgRisk !== null ? `${formatDecimal(avgRisk)} h` : 'Sin datos',
+      },
+      {
+        key: 'tension',
+        label: 'Giro medio por estación',
+        value: `${formatDecimal(avgTurnover ?? 0)} pts`,
+      },
+    ],
+    bands,
+    reliabilityScore: computeReliability(stationRowSets),
+  };
+}
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function haversineMeters(
+  left: { lat: number; lon: number },
+  right: { lat: number; lon: number }
+): number {
+  const earthRadius = 6_371_000;
+  const dLat = toRadians(right.lat - left.lat);
+  const dLon = toRadians(right.lon - left.lon);
+  const lat1 = toRadians(left.lat);
+  const lat2 = toRadians(right.lat);
+  const a =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * earthRadius * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+function findNearestStationId(
+  context: DerivedComparisonContext,
+  fromStationId: string
+): string | null {
+  const from = context.stationMap.get(fromStationId);
+  if (!from) {
+    return null;
+  }
+
+  let nearestId: string | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  for (const station of context.stations) {
+    if (station.id === fromStationId) {
+      continue;
+    }
+    const distance = haversineMeters(from, station);
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestId = station.id;
+    }
+  }
+
+  return nearestId;
+}
+
+type ScopeDailyAggregate = {
+  day: string;
+  demandScore: number;
+  occupancy: number;
+  sampleCount: number;
+};
+
+function aggregateScopeDaily(
+  context: DerivedComparisonContext,
+  stationIds: Set<string> | null
+): ScopeDailyAggregate[] {
+  const byDay = new Map<string, { demand: number; occupancyWeighted: number; sampleCount: number }>();
+
+  for (const station of context.stations) {
+    if (stationIds && !stationIds.has(station.id)) {
+      continue;
+    }
+    for (const row of context.dailyByStation.get(station.id) ?? []) {
+      const samples = Number(row.sampleCount) || 0;
+      const current = byDay.get(row.day) ?? { demand: 0, occupancyWeighted: 0, sampleCount: 0 };
+      current.demand += Number(row.demandScore) || 0;
+      current.occupancyWeighted += (Number(row.avgOccupancy) || 0) * samples;
+      current.sampleCount += samples;
+      byDay.set(row.day, current);
+    }
+  }
+
+  return Array.from(byDay.entries())
+    .map(([day, value]) => ({
+      day,
+      demandScore: value.demand,
+      occupancy: value.sampleCount > 0 ? value.occupancyWeighted / value.sampleCount : 0,
+      sampleCount: value.sampleCount,
+    }))
+    .sort((left, right) => left.day.localeCompare(right.day));
+}
+
+function shiftDay(day: string, deltaDays: number): string {
+  const date = new Date(`${day}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + deltaDays);
+  return date.toISOString().slice(0, 10);
+}
+
+function buildPeriodOption(
+  id: string,
+  label: string,
+  rows: ScopeDailyAggregate[],
+  notePrefix: string,
+  href: string
+): InteractiveComparisonOption | null {
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const withSamples = rows.filter((row) => row.sampleCount > 0);
+  const demandAverage = averageOrNull(withSamples.map((row) => row.demandScore));
+  const occupancyAverage = averageOrNull(withSamples.map((row) => row.occupancy));
+  const totalSamples = rows.reduce((sum, row) => sum + row.sampleCount, 0);
+  const rangeLabel =
+    rows.length > 1
+      ? `${rows[0]?.day ?? ''} → ${rows[rows.length - 1]?.day ?? ''}`
+      : rows[0]?.day ?? '';
+
+  return {
+    id,
+    label,
+    href,
+    primaryLabel: 'Demanda media',
+    primaryValue: demandAverage,
+    primaryDisplay: `${formatDecimal(demandAverage ?? 0)} pts/día`,
+    secondaryLabel: 'Ocupación media',
+    secondaryDisplay: formatPercent(occupancyAverage),
+    tertiaryLabel: 'Cobertura',
+    tertiaryDisplay: `${formatInteger(totalSamples)} muestras`,
+    note: `${notePrefix}: ${rangeLabel}`,
+  };
+}
+
+/**
+ * Un juego de periodos comparables por ámbito (toda la red o un barrio). Así el
+ * preset "Hoy vs mismo día de la semana anterior" responde por zona, no solo a
+ * nivel de red.
+ */
+function buildPeriodScopes(context: DerivedComparisonContext): InteractiveComparisonScope[] {
+  const scopes: InteractiveComparisonScope[] = [];
+
+  const addScope = (id: string, label: string, stationIds: Set<string> | null) => {
+    const daily = aggregateScopeDaily(context, stationIds);
+    const latest = daily[daily.length - 1]?.day;
+    if (!latest) {
+      return;
+    }
+
+    const byDay = new Map(daily.map((row) => [row.day, row]));
+    const range = (start: string, end: string) =>
+      daily.filter((row) => row.day >= start && row.day <= end);
+    const single = (day: string) => {
+      const row = byDay.get(day);
+      return row ? [row] : [];
+    };
+
+    const href = id === 'city' ? appRoutes.dashboardConclusions() : appRoutes.districtDetail(id);
+    const options = [
+      buildPeriodOption('today', 'Hoy', single(latest), 'Día más reciente con datos', href),
+      buildPeriodOption(
+        'same-weekday-last-week',
+        'Mismo día de la semana anterior',
+        single(shiftDay(latest, -7)),
+        'Misma jornada, hace una semana',
+        href
+      ),
+      buildPeriodOption('yesterday', 'Ayer', single(shiftDay(latest, -1)), 'Jornada anterior', href),
+      buildPeriodOption('last-7d', 'Últimos 7 días', range(shiftDay(latest, -6), latest), 'Ventana reciente', href),
+      buildPeriodOption(
+        'previous-7d',
+        '7 días previos',
+        range(shiftDay(latest, -13), shiftDay(latest, -7)),
+        'Ventana previa',
+        href
+      ),
+      buildPeriodOption('last-30d', 'Últimos 30 días', range(shiftDay(latest, -29), latest), 'Ventana reciente', href),
+      buildPeriodOption(
+        'previous-30d',
+        '30 días previos',
+        range(shiftDay(latest, -59), shiftDay(latest, -30)),
+        'Ventana previa',
+        href
+      ),
+    ].filter((option): option is InteractiveComparisonOption => Boolean(option));
+
+    if (options.length < 2) {
+      return;
+    }
+
+    scopes.push({
+      id,
+      label,
+      options,
+      defaultLeftId: options.find((option) => option.id === 'today')?.id ?? options[0]?.id ?? null,
+      defaultRightId:
+        options.find((option) => option.id === 'same-weekday-last-week')?.id ??
+        options[1]?.id ??
+        null,
+    });
+  };
+
+  addScope('city', 'Toda la red', null);
+
+  for (const district of context.districtRows) {
+    const stations = context.stationsByDistrict.get(district.slug) ?? [];
+    if (stations.length === 0) {
+      continue;
+    }
+    addScope(district.slug, district.name, new Set(stations.map((station) => station.id)));
+  }
+
+  return scopes;
+}
+
+function buildComparisonPresets(
+  context: DerivedComparisonContext,
+  dimensions: InteractiveComparisonDimension[]
+): ComparisonPreset[] {
+  const presets: ComparisonPreset[] = [];
+  const stationsDimension = dimensions.find((dimension) => dimension.id === 'stations');
+  const districtsDimension = dimensions.find((dimension) => dimension.id === 'districts');
+  const periodsDimension = dimensions.find((dimension) => dimension.id === 'periods');
+
+  const topStationId =
+    context.topStation?.stationId ?? stationsDimension?.options[0]?.id ?? null;
+  if (topStationId) {
+    const nearestId = findNearestStationId(context, topStationId);
+    if (nearestId) {
+      presets.push({
+        id: 'nearest-alternative',
+        emoji: '🔄',
+        label: 'Estación A vs. su alternativa más cercana',
+        description: 'Disponibilidad y fiabilidad frente a la estación más próxima.',
+        dimensionId: 'stations',
+        leftId: topStationId,
+        rightId: nearestId,
+        requiresGeolocation: true,
+      });
+    }
+  }
+
+  if (districtsDimension?.options.some((option) => option.kind === 'city-average')) {
+    presets.push({
+      id: 'district-vs-city',
+      emoji: '🏙️',
+      label: `Un barrio vs. media de ${context.cityName}`,
+      description: 'Contextualiza un distrito frente al conjunto de la red.',
+      dimensionId: 'districts',
+      leftId: context.topDistrict?.slug ?? null,
+      rightId: CITY_AVERAGE_ID,
+    });
+  }
+
+  if (periodsDimension?.scopes && periodsDimension.scopes.length > 0) {
+    const scope = periodsDimension.scopes[0];
+    presets.push({
+      id: 'today-vs-last-week',
+      emoji: '📅',
+      label: 'Hoy vs. mismo día de la semana anterior',
+      description: 'Comprueba si la saturación de hoy es un hecho aislado o un patrón semanal.',
+      dimensionId: 'periods',
+      leftId: scope?.defaultLeftId ?? 'today',
+      rightId: scope?.defaultRightId ?? 'same-weekday-last-week',
+    });
+  }
+
+  if (stationsDimension) {
+    presets.push({
+      id: 'saved-stations',
+      emoji: '⭐',
+      label: 'Estaciones guardadas en este dispositivo',
+      description: 'Vuelve a tus comparaciones frecuentes guardadas con la estrella.',
+      dimensionId: 'stations',
+      leftId: null,
+      rightId: null,
+      requiresFavorites: true,
+    });
+  }
+
+  return presets;
+}
+
 function buildPeriodOptions(
   sortedRecentDemand: DailyDemandInput[]
 ): InteractiveComparisonOption[] {
@@ -875,28 +1681,43 @@ function buildInteractiveComparisonData(
   context: DerivedComparisonContext
 ): InteractiveComparisonData {
   const periodOptions = buildPeriodOptions(context.sortedRecentDemand);
+  const periodScopes = buildPeriodScopes(context);
 
   const dimensions = [
     buildInteractiveDimension({
       id: 'stations',
       label: 'Estaciones',
       description:
-        'Compara manualmente dos estaciones concretas por giro, disponibilidad actual y horas problema.',
+        'Compara dos estaciones concretas por giro, fiabilidad y disponibilidad franja a franja.',
+      primary: true,
       options: [...context.stations]
         .sort((left, right) => left.name.localeCompare(right.name, 'es'))
-        .map((station) => ({
-          id: station.id,
-          label: `${station.name} (${station.id})`,
-          href: appRoutes.dashboardStation(station.id),
-          primaryLabel: 'Giro',
-          primaryValue: context.turnoverMap.get(station.id) ?? null,
-          primaryDisplay: `${formatDecimal(context.turnoverMap.get(station.id) ?? 0)} pts`,
-          secondaryLabel: 'Snapshot',
-          secondaryDisplay: `${station.bikesAvailable}/${station.capacity} bicis`,
-          tertiaryLabel: 'Horas problema',
-          tertiaryDisplay: `${formatDecimal(context.availabilityMap.get(station.id) ?? 0)} h`,
-          note: `Ultima muestra ${formatRecordedAtSummary(station.recordedAt)}`,
-        })),
+        .map((station) => {
+          const turnoverScore = context.turnoverMap.get(station.id) ?? null;
+          const availabilityHours = context.availabilityMap.get(station.id) ?? null;
+          const hourly = context.hourlyByStation.get(station.id) ?? [];
+          const bands = buildBands([hourly], Number(station.capacity) || 0);
+
+          return {
+            id: station.id,
+            label: `${station.name} (${station.id})`,
+            href: appRoutes.dashboardStation(station.id),
+            primaryLabel: 'Giro',
+            primaryValue: turnoverScore,
+            primaryDisplay: `${formatDecimal(turnoverScore ?? 0)} pts`,
+            secondaryLabel: 'Snapshot',
+            secondaryDisplay: `${station.bikesAvailable}/${station.capacity} bicis`,
+            tertiaryLabel: 'Horas sin servicio',
+            tertiaryDisplay: `${formatDecimal(availabilityHours ?? 0)} h`,
+            note: `Ultima muestra ${formatRecordedAtSummary(station.recordedAt)}`,
+            metrics: buildStationMetrics({ station, turnoverScore, availabilityHours, bands }),
+            bands,
+            reliabilityScore: computeReliability([hourly]),
+            lat: station.lat,
+            lon: station.lon,
+            kind: 'entity' as const,
+          };
+        }),
       defaultLeftId: context.topStation?.stationId ?? null,
       defaultRightId: context.secondStation?.stationId ?? null,
     }),
@@ -904,22 +1725,37 @@ function buildInteractiveComparisonData(
       id: 'districts',
       label: 'Barrios',
       description:
-        'Enfrenta dos barrios con datos reales de estaciones, disponibilidad y giro medio.',
-      options: [...context.districtRows]
-        .sort((left, right) => left.name.localeCompare(right.name, 'es'))
-        .map((district) => ({
-          id: district.slug,
-          label: district.name,
-          href: appRoutes.districtDetail(district.slug),
-          primaryLabel: 'Giro medio',
-          primaryValue: district.avgTurnover,
-          primaryDisplay: `${formatDecimal(district.avgTurnover)} pts`,
-          secondaryLabel: 'Estaciones',
-          secondaryDisplay: `${formatInteger(district.stationCount)} estaciones`,
-          tertiaryLabel: 'Bicis disponibles',
-          tertiaryDisplay: `${formatInteger(district.bikesAvailable)} bicis`,
-          note: `Riesgo medio ${formatDecimal(district.avgAvailabilityRisk)} h problema`,
-        })),
+        'Enfrenta dos barrios (o un barrio con la media de la ciudad) con estaciones, disponibilidad y giro medio.',
+      primary: true,
+      options: [
+        ...(context.districtRows.length > 1 ? [buildCityAverageOption(context)] : []),
+        ...[...context.districtRows]
+          .sort((left, right) => left.name.localeCompare(right.name, 'es'))
+          .map((district) => {
+            const stationRowSets = (context.stationsByDistrict.get(district.slug) ?? []).map(
+              (station) => context.hourlyByStation.get(station.id) ?? []
+            );
+            const bands = buildBands(stationRowSets, Number(district.capacity) || 0);
+
+            return {
+              id: district.slug,
+              label: district.name,
+              href: appRoutes.districtDetail(district.slug),
+              primaryLabel: 'Giro medio',
+              primaryValue: district.avgTurnover,
+              primaryDisplay: `${formatDecimal(district.avgTurnover)} pts`,
+              secondaryLabel: 'Estaciones',
+              secondaryDisplay: `${formatInteger(district.stationCount)} estaciones`,
+              tertiaryLabel: 'Bicis disponibles',
+              tertiaryDisplay: `${formatInteger(district.bikesAvailable)} bicis`,
+              note: `Riesgo medio ${formatDecimal(district.avgAvailabilityRisk)} h sin servicio`,
+              metrics: buildDistrictMetrics(district),
+              bands,
+              reliabilityScore: computeReliability(stationRowSets),
+              kind: 'entity' as const,
+            };
+          }),
+      ],
       defaultLeftId: context.topDistrict?.slug ?? null,
       defaultRightId: context.bottomDistrict?.slug ?? null,
     }),
@@ -995,16 +1831,25 @@ function buildInteractiveComparisonData(
       id: 'periods',
       label: 'Periodos',
       description:
-        'Compara ventanas temporales recientes sin salir del comparador para detectar aceleracion o frenada.',
-      options: periodOptions,
-      defaultLeftId: periodOptions.find((option) => option.id === 'last-7d')?.id ?? null,
-      defaultRightId: periodOptions.find((option) => option.id === 'previous-30d')?.id ?? null,
+        'Compara dos periodos del mismo ámbito: hoy, el mismo día de la semana anterior o ventanas móviles.',
+      primary: true,
+      options: periodScopes[0]?.options ?? periodOptions,
+      defaultLeftId:
+        periodScopes[0]?.defaultLeftId ??
+        periodOptions.find((option) => option.id === 'last-7d')?.id ??
+        null,
+      defaultRightId:
+        periodScopes[0]?.defaultRightId ??
+        periodOptions.find((option) => option.id === 'previous-30d')?.id ??
+        null,
+      scopes: periodScopes,
     }),
   ].filter((dimension): dimension is InteractiveComparisonDimension => Boolean(dimension));
 
   return {
     defaultDimensionId: dimensions[0]?.id ?? null,
     dimensions,
+    presets: buildComparisonPresets(context, dimensions),
   };
 }
 

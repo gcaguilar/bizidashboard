@@ -5,9 +5,12 @@ vi.mock('server-only', () => ({}));
 const {
   buildComparisonHubViewModelMock,
   buildDistrictSeoRowsMock,
+  buildStationDistrictMapMock,
   fetchAvailableDataMonthsMock,
   fetchCachedDailyDemandCurveMock,
   fetchCachedMonthlyDemandCurveMock,
+  fetchCachedStationDailyDemandMock,
+  fetchCachedStationHourlyProfilesMock,
   fetchCachedSystemHourlyProfileMock,
   fetchDistrictCollectionMock,
   fetchRankingsLiteMock,
@@ -19,9 +22,12 @@ const {
 } = vi.hoisted(() => ({
   buildComparisonHubViewModelMock: vi.fn(),
   buildDistrictSeoRowsMock: vi.fn(),
+  buildStationDistrictMapMock: vi.fn(),
   fetchAvailableDataMonthsMock: vi.fn(),
   fetchCachedDailyDemandCurveMock: vi.fn(),
   fetchCachedMonthlyDemandCurveMock: vi.fn(),
+  fetchCachedStationDailyDemandMock: vi.fn(),
+  fetchCachedStationHourlyProfilesMock: vi.fn(),
   fetchCachedSystemHourlyProfileMock: vi.fn(),
   fetchDistrictCollectionMock: vi.fn(),
   fetchRankingsLiteMock: vi.fn(),
@@ -51,10 +57,13 @@ vi.mock('@/lib/api', async (importOriginal) => {
 vi.mock('@/lib/analytics-series', () => ({
   fetchCachedDailyDemandCurve: fetchCachedDailyDemandCurveMock,
   fetchCachedMonthlyDemandCurve: fetchCachedMonthlyDemandCurveMock,
+  fetchCachedStationDailyDemand: fetchCachedStationDailyDemandMock,
+  fetchCachedStationHourlyProfiles: fetchCachedStationHourlyProfilesMock,
   fetchCachedSystemHourlyProfile: fetchCachedSystemHourlyProfileMock,
 }));
 
 vi.mock('@/lib/districts', () => ({
+  buildStationDistrictMap: buildStationDistrictMapMock,
   fetchDistrictCollection: fetchDistrictCollectionMock,
 }));
 
@@ -83,9 +92,12 @@ describe('getComparisonHubData', () => {
   beforeEach(() => {
     buildComparisonHubViewModelMock.mockReset();
     buildDistrictSeoRowsMock.mockReset();
+    buildStationDistrictMapMock.mockReset();
     fetchAvailableDataMonthsMock.mockReset();
     fetchCachedDailyDemandCurveMock.mockReset();
     fetchCachedMonthlyDemandCurveMock.mockReset();
+    fetchCachedStationDailyDemandMock.mockReset();
+    fetchCachedStationHourlyProfilesMock.mockReset();
     fetchCachedSystemHourlyProfileMock.mockReset();
     fetchDistrictCollectionMock.mockReset();
     fetchRankingsLiteMock.mockReset();
@@ -147,6 +159,9 @@ describe('getComparisonHubData', () => {
     fetchDistrictCollectionMock.mockResolvedValue(null);
     getDailyMobilityConclusionsMock.mockResolvedValue({ payload: null });
     buildDistrictSeoRowsMock.mockReturnValue([]);
+    buildStationDistrictMapMock.mockReturnValue(new Map());
+    fetchCachedStationHourlyProfilesMock.mockResolvedValue([]);
+    fetchCachedStationDailyDemandMock.mockResolvedValue([]);
     buildComparisonHubViewModelMock.mockReturnValue({
       interactive: {
         defaultDimensionId: null,

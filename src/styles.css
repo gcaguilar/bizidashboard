@@ -694,3 +694,128 @@ table tbody tr:hover {
     max-width: 100% !important;
   }
 }
+
+/* --- Comparador ciudadano (/comparar) --- */
+
+.compare-preset-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.compare-preset {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--secondary);
+  padding: 0.75rem 0.85rem;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.compare-preset:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--card));
+}
+
+.compare-preset[data-active='true'] {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--card));
+}
+
+.compare-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.5rem 0.9rem;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.compare-tab[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.compare-verdict {
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
+    var(--card);
+  padding: 1rem 1.1rem;
+}
+
+.compare-verdict[data-tone='positive'] {
+  border-color: color-mix(in srgb, var(--success) 40%, var(--border));
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--success) 14%, transparent), transparent 70%),
+    var(--card);
+}
+
+.compare-verdict[data-tone='warning'] {
+  border-color: color-mix(in srgb, var(--warning) 42%, var(--border));
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--warning) 16%, transparent), transparent 70%),
+    var(--card);
+}
+
+.compare-band {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.6rem;
+  min-width: 0;
+}
+
+.compare-band[data-status='green'] {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success) 14%, var(--card));
+}
+
+.compare-band[data-status='amber'] {
+  border-color: color-mix(in srgb, var(--warning) 48%, var(--border));
+  background: color-mix(in srgb, var(--warning) 16%, var(--card));
+}
+
+.compare-band[data-status='red'] {
+  border-color: color-mix(in srgb, var(--danger) 48%, var(--border));
+  background: color-mix(in srgb, var(--danger) 16%, var(--card));
+}
+
+.compare-band[data-status='unknown'] {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.compare-band-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.compare-band-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--foreground);
+}

@@ -18,6 +18,7 @@ export const Route = createFileRoute('/comparar')({
     dimension: z.string().optional(),
     left: z.string().optional(),
     right: z.string().optional(),
+    scope: z.string().optional(),
   }),
   head: () =>
     buildSeoHead({
@@ -61,6 +62,7 @@ export default function ComparePage() {
     dimensionId: search.dimension ?? null,
     leftId: search.left ?? null,
     rightId: search.right ?? null,
+    scopeId: search.scope ?? null,
   };
 
   return (
@@ -78,13 +80,15 @@ export default function ComparePage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Comparar datos
+              Asistente de comparación
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Comparar estaciones y barrios
+              Compara y decide en un vistazo
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Elige dos estaciones, barrios o periodos y descubre de un vistazo qué cambia entre ellos.
+              Elige dos estaciones, barrios o periodos y lee una conclusión clara sobre la
+              disponibilidad de Bizi. Sin registro: tus estaciones guardadas se quedan en este
+              dispositivo.
             </p>
           </div>
         </div>

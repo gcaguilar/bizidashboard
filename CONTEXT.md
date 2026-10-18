@@ -50,7 +50,22 @@ These names describe modules that own behaviour behind a small interface.
   `InteractiveComparison*`, `ComparisonHubViewModelInput`) and the builders that
   fill it. `src/lib/comparison-hub.ts` is the adapter above the seam: it gathers
   the analytics rows, hands them over untouched, and re-exports the interface.
-  Neither module imports the other.
+  Neither module imports the other. The view model also carries the citizen
+  affordances: per-entity `bands` (traffic-light franjas) and `metrics`, the
+  synthetic `Media de <ciudad>` district option, period `scopes` per ámbito, and
+  the one-click `presets`.
+- **Comparison verdict module** (`src/lib/comparison-verdict.ts`) — pure
+  `buildComparisonVerdict({ dimensionId, left, right })`, client-safe. Turns two
+  comparable options into the natural-language conclusion, detail and
+  recommendation shown in the hero; it reads only the view-model fields, so the
+  UI recalculates it on selection without a server round trip.
+- **Station comparison series** (`getStationHourlyProfiles`,
+  `getStationDailyDemand` in `src/analytics/queries/read.ts`, wrapped by
+  `fetchCachedStationHourlyProfiles` / `fetchCachedStationDailyDemand`) — the
+  per-station hourly and daily reads that feed the "efecto marea" and the
+  "hoy vs. mismo día de la semana" comparisons. The adapter aggregates them into
+  the compact per-entity bands and period options, so raw rows never reach the
+  client payload.
 - **SEO landing module** (`src/lib/seo-landing.server.tsx`) — one content
   builder per slug, pure over `SeoLandingSources`
   (`src/lib/seo-landing-sources.server.ts`). The live adapter owns the fetches
