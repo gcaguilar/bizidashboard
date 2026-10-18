@@ -30,6 +30,26 @@ Las siguientes rutas son públicas y no se pueden eliminar, renombrar ni hacer q
 
 No se modificarán contratos de `/api/*`, no se harán migraciones de base de datos y no se moverá ni reescribirá la lógica de BiciRadar durante este programa.
 
+## Informe mensual `/informes/:month`
+
+El informe mensual se compone en el servidor (`src/lib/monthly-report.ts`) y se sirve como payload serializable. Se mantienen las URLs, el `robots` condicional (`index, follow` solo si el mes tiene informe publicado) y el JSON-LD de tipo `Article` con migas de pan.
+
+- Resumen ejecutivo: balance frente al mes anterior en lenguaje claro, titulares (movimiento estimado, ocupación media, estaciones activas, días analizados, hora punta y picos anómalos) y nota de método.
+- Evolución temporal: serie mensual, curva diaria del mes, perfil horario y mapa de calor de la red por día de la semana y hora.
+- Estacionalidad: comparación del mes con el mismo mes calendario de años anteriores de la serie; si no hay años previos, con la media de toda la serie.
+- Zonas y barrios: rankings de barrios más dinámicos, menos usados y con más horas de fricción (estaciones vacías o sin huecos).
+- Problemas recurrentes: estaciones que más fallan, dónde cuesta más encontrar bici o hueco por la mañana (07:00–10:00) y rachas continuas más largas sin servicio.
+- Eficacia de la redistribución: la base de datos no registra los movimientos de los operarios, así que se mide por su efecto. Se señalan las estaciones con rotación por encima de la mediana que siguen acumulando horas sin servicio.
+- Conclusiones concretas del mes: la franja día-hora de mayor ocupación, el barrio con más tensión y el día más atípico, redactadas en lenguaje natural.
+- Picos anómalos: detección estadística robusta por día de la semana (`src/lib/service-anomalies.ts`). Un día se marca si su z-score robusto alcanza o supera `2.5` o, cuando la dispersión es cero, si se desvía al menos un `35 %`. Un día marcado no implica una causa confirmada.
+- Calendario curado: `src/lib/service-calendar.ts` adjunta festivos nacionales, Semana Santa, la ventana de Fiestas del Pilar y una lista editable de eventos (huelgas, obras, meteo adversa). Esa lista (`CURATED_SERVICE_EVENTS`) la mantiene el equipo cuando se confirma un evento.
+
+Las consultas por día de la semana y hora convierten `bucketStart` (guardado en UTC) a la zona `Europe/Madrid` en SQL (`AT TIME ZONE`), igual que hacen los rollups del dashboard con `getLocalBucket`. Así la franja de mañana y el mapa de calor coinciden con el resto del producto.
+
+La ventana de meses del informe y del índice es de `36` meses (`REPORT_MONTHS_WINDOW`), la misma que usa el sitemap para que ningún mes indexable quede marcado como `noindex`.
+
+La caché usa `reports:monthly:<mes>` con TTL corto (10 min) para el mes en curso y largo (1 h) para meses cerrados, de modo que los informes históricos no se recalculan en cada visita. Si falla la serie mensual no se cachea el resultado: se devuelve un estado de error y se reintenta en la siguiente petición, para no fijar un `noindex` falso.
+
 ## Línea base — 2 de septiembre de 2026
 
 La línea base funcional antes del rediseño fue `119` archivos y `476` pruebas unitarias correctas. Las rutas principales tienen una prueba E2E de URL canónica y ausencia de página de error; BiciRadar se comprueba por separado para evitar que derive al dashboard.
