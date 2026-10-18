@@ -56,6 +56,8 @@
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/router-plugin": "^1.168.46",
     "jose": "^6.2.12",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "maplibre-gl": "^6.14.0",
     "node-cron": "^4.6.0",
     "pg": "^8.23.1",

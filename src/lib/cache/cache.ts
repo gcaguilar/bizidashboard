@@ -61,10 +61,15 @@ export async function getCachedJson<T>(key: string): Promise<T | null> {
   }
 }
 
+/**
+ * `ttlSeconds` may be `null` to persist the entry with no expiry: useful for
+ * immutable, expensive artifacts (e.g. a closed month report) that should be
+ * computed once and served until explicitly invalidated.
+ */
 export async function setCachedJson(
   key: string,
   value: unknown,
-  ttlSeconds: number = DEFAULT_TTL_SECONDS
+  ttlSeconds: number | null = DEFAULT_TTL_SECONDS
 ): Promise<void> {
   const client = await getRedisClient()
 
@@ -74,10 +79,34 @@ export async function setCachedJson(
 
   try {
     const payload = JSON.stringify(value)
-    await client.set(fullKey, payload, { EX: ttlSeconds })
+    await (ttlSeconds === null
+      ? client.set(fullKey, payload)
+      : client.set(fullKey, payload, { EX: ttlSeconds }))
   } catch (error) {
     reportCacheErrorOnce('setCachedJson.write', error, { key: fullKey })
     logger.warn('cache.redis_write_failed', {
+      key: fullKey,
+      error,
+    })
+  }
+}
+
+/**
+ * Removes an entry so the next read recomputes it. Used to invalidate persisted
+ * artifacts after a backfill or retention change.
+ */
+export async function deleteCachedJson(key: string): Promise<void> {
+  const client = await getRedisClient()
+
+  if (!client) return
+
+  const fullKey = getNamespacedKey(key)
+
+  try {
+    await client.del(fullKey)
+  } catch (error) {
+    reportCacheErrorOnce('deleteCachedJson.delete', error, { key: fullKey })
+    logger.warn('cache.redis_delete_failed', {
       key: fullKey,
       error,
     })
@@ -88,7 +117,7 @@ const inflight = new Map<string, Promise<unknown>>()
 
 export async function withCache<T>(
   key: string,
-  ttlSeconds: number = DEFAULT_TTL_SECONDS,
+  ttlSeconds: number | null = DEFAULT_TTL_SECONDS,
   fetcher: () => Promise<T>
 ): Promise<T> {
   const cachedValue = await getCachedJson<T>(key)

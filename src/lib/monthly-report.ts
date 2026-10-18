@@ -1,4 +1,4 @@
-import { withCache } from '@/lib/cache/cache';
+import { deleteCachedJson, withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
 import { formatDateLabel, formatPercent, formatRatioMagnitude, roundTo } from '@/lib/format';
 import {
@@ -45,8 +45,12 @@ export type {
   StationRedistributionSpot,
 } from '@/lib/monthly-report-types';
 
-const REPORT_CACHE_TTL_CLOSED_SECONDS = 3600;
 const REPORT_CACHE_TTL_LIVE_SECONDS = 600;
+/**
+ * Bump when the assembled payload changes shape or a data backfill must
+ * invalidate every persisted month report at once.
+ */
+const REPORT_CACHE_VERSION = 'v1';
 const TREND_THRESHOLD = 0.03;
 const MAX_RANKING = 6;
 
@@ -567,6 +571,27 @@ async function assembleMonthlyReport(
   };
 }
 
+function reportCacheKey(monthKey: string): string {
+  return `reports:monthly:${REPORT_CACHE_VERSION}:${monthKey}`;
+}
+
+/**
+ * Un mes cerrado es inmutable a efectos del informe: se compone una vez y se
+ * persiste sin caducidad. El mes en curso sigue con TTL corto para reflejar la
+ * cobertura parcial.
+ */
+export function isClosedReportMonth(monthKey: string, nowIso: string): boolean {
+  return monthKey < nowIso.slice(0, 7);
+}
+
+/**
+ * Fuerza el recalculo de un mes persistido (p. ej. tras un backfill o un cambio
+ * de retencion). El siguiente informe se vuelve a sellar en la proxima lectura.
+ */
+export async function invalidateMonthlyReport(monthKey: string): Promise<void> {
+  await deleteCachedJson(reportCacheKey(monthKey));
+}
+
 export async function buildMonthlyReport(
   monthKey: string,
   nowIso: string,
@@ -576,10 +601,9 @@ export async function buildMonthlyReport(
     return buildFallbackMonthlyReport(monthKey, nowIso);
   }
 
-  const currentMonth = nowIso.slice(0, 7);
-  const ttl = monthKey < currentMonth ? REPORT_CACHE_TTL_CLOSED_SECONDS : REPORT_CACHE_TTL_LIVE_SECONDS;
+  const ttl = isClosedReportMonth(monthKey, nowIso) ? null : REPORT_CACHE_TTL_LIVE_SECONDS;
 
-  return withCache(`reports:monthly:${monthKey}`, ttl, () =>
+  return withCache(reportCacheKey(monthKey), ttl, () =>
     assembleMonthlyReport(monthKey, nowIso, sources)
   );
 }

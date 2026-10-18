@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 // El cache es irrelevante para el ensamblado: se ejecuta el fetcher directamente.
 vi.mock('@/lib/cache/cache', () => ({
-  withCache: <T,>(_key: string, _ttl: number, fetcher: () => Promise<T>) => fetcher(),
+  withCache: <T,>(_key: string, _ttl: number | null, fetcher: () => Promise<T>) => fetcher(),
 }));
 
 import { formatDateLabel } from '@/lib/format';

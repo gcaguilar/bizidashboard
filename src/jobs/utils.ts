@@ -3,7 +3,7 @@ export type RefreshableLock = { refresh: () => Promise<boolean> };
 export async function ensureLockRefreshed(
   lock: RefreshableLock,
   stage: string,
-  context: 'collection' | 'analytics'
+  context: 'collection' | 'analytics' | 'reports'
 ): Promise<void> {
   const refreshed = await lock.refresh();
   if (!refreshed) {

@@ -15,6 +15,10 @@ import {
   startAnalyticsAggregationJob,
   stopAnalyticsAggregationJob,
 } from '@/jobs/analytics-aggregation';
+import {
+  startMonthlyReportSealJob,
+  stopMonthlyReportSealJob,
+} from '@/jobs/monthly-report-seal';
 import { logger } from '@/lib/logger';
 
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
@@ -48,6 +52,7 @@ export function initJobs(): void {
 
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
+    startMonthlyReportSealJob();
     analyticsStartTimer = null;
     logger.info('jobs.analytics_started_after_delay');
   }, ANALYTICS_START_DELAY_MS);
@@ -70,6 +75,7 @@ export function shutdownJobs(): void {
   }
   stopCollectionJob();
   stopAnalyticsAggregationJob();
+  stopMonthlyReportSealJob();
   jobsInitialized = false;
 }
 

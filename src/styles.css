@@ -618,3 +618,32 @@ table tbody tr:hover {
     padding: 1.15rem;
   }
 }
+
+/**
+ * Impresion del informe mensual: se oculta la navegacion global y las acciones
+ * de exportacion, y se aplanan las tarjetas para que el navegador pueda
+ * guardar el documento como PDF sin sombras ni transparencias.
+ */
+@media print {
+  body > header,
+  body > footer,
+  .ui-print-hide {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .ui-page-hero,
+  [data-card-variant='hero'],
+  .ui-section-card,
+  [data-card-variant='section'],
+  .ui-metric-card,
+  [data-card-variant='metric'] {
+    box-shadow: none;
+    backdrop-filter: none;
+    break-inside: avoid;
+  }
+}
