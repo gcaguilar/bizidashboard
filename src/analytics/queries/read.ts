@@ -647,3 +647,94 @@ export async function getSystemHourlyProfile(
     sampleCount: toSerializableNumber(row.sampleCount),
   }));
 }
+
+/**
+ * Perfil horario agregado por estacion (una fila por estacion y hora del dia).
+ * Alimenta el "efecto marea": franjas con semaforo de disponibilidad por entidad,
+ * no solo a nivel de red. `emptyShare`/`fullShare` son la proporcion de horas
+ * agregadas en las que la estacion llego a quedarse sin bicis o sin huecos.
+ */
+export type StationHourlyProfileRow = {
+  stationId: string;
+  hour: number;
+  avgBikes: number;
+  avgAnchors: number;
+  avgOccupancy: number;
+  sampleCount: number;
+  emptyShare: number;
+  fullShare: number;
+};
+
+export async function getStationHourlyProfiles(days = 30): Promise<StationHourlyProfileRow[]> {
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+
+  const rows = await prisma.$queryRaw<Array<{
+    stationId: unknown;
+    hour: unknown;
+    avgBikes: unknown;
+    avgAnchors: unknown;
+    avgOccupancy: unknown;
+    sampleCount: unknown;
+    emptyShare: unknown;
+    fullShare: unknown;
+  }>>`
+    SELECT
+      "stationId",
+      EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+      AVG("bikesAvg") AS "avgBikes",
+      AVG("anchorsAvg") AS "avgAnchors",
+      AVG("occupancyAvg") AS "avgOccupancy",
+      SUM("sampleCount")::int AS "sampleCount",
+      AVG(CASE WHEN "bikesMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "emptyShare",
+      AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare"
+    FROM "HourlyStationStat"
+    WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${safeDays - 1}
+    GROUP BY "stationId", EXTRACT(HOUR FROM "bucketStart")::int
+    ORDER BY "stationId" ASC, hour ASC;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    hour: toSerializableNumber(row.hour),
+    avgBikes: toSerializableNumber(row.avgBikes),
+    avgAnchors: toSerializableNumber(row.avgAnchors),
+    avgOccupancy: toSerializableNumber(row.avgOccupancy),
+    sampleCount: toSerializableNumber(row.sampleCount),
+    emptyShare: toSerializableNumber(row.emptyShare),
+    fullShare: toSerializableNumber(row.fullShare),
+  }));
+}
+
+/** Demanda diaria agregada por estacion (una fila por estacion y dia). */
+export type StationDailyDemandRow = {
+  stationId: string;
+  day: string;
+  demandScore: number;
+  avgOccupancy: number;
+  sampleCount: number;
+};
+
+export async function getStationDailyDemand(days = 90): Promise<StationDailyDemandRow[]> {
+  const safeDays = Math.max(1, Math.min(365, Math.floor(days)));
+
+  const rows = await prisma.$queryRaw<StationDailyDemandRow[]>`
+    SELECT
+      "stationId",
+      TO_CHAR("bucketDate", 'YYYY-MM-DD') AS day,
+      ${coalesceSumDemand()} AS "demandScore",
+      COALESCE(AVG("occupancyAvg"), 0) AS "avgOccupancy",
+      COALESCE(SUM("sampleCount"), 0)::int AS "sampleCount"
+    FROM "DailyStationStat"
+    WHERE "bucketDate" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${safeDays - 1}
+    GROUP BY "stationId", TO_CHAR("bucketDate", 'YYYY-MM-DD')
+    ORDER BY day ASC, "stationId" ASC;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    day: String(row.day),
+    demandScore: toSerializableNumber(row.demandScore),
+    avgOccupancy: toSerializableNumber(row.avgOccupancy),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
+}

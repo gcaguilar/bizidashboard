@@ -4,13 +4,17 @@ import { withCache } from '@/lib/cache/cache';
 import {
   fetchCachedDailyDemandCurve,
   fetchCachedMonthlyDemandCurve,
+  fetchCachedStationDailyDemand,
+  fetchCachedStationHourlyProfiles,
   fetchCachedSystemHourlyProfile,
 } from '@/lib/analytics-series';
 import { combineDataStates, type DataState } from '@/lib/data-state';
+import { buildStationDistrictMap } from '@/lib/districts';
 import { fetchDistrictCollection } from '@/lib/districts.server';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { isValidMonthKey } from '@/lib/months';
 import { buildDistrictSeoRows } from '@/lib/seo-districts';
+import { getCityName } from '@/lib/site';
 import {
   fetchAvailableDataMonths,
   fetchRankingsLite,
@@ -28,12 +32,23 @@ import {
 } from '@/lib/comparison-hub-builders';
 
 export type {
+  ComparisonBand,
+  ComparisonBandId,
   ComparisonCard,
+  ComparisonMetric,
+  ComparisonMetricKey,
+  ComparisonPreset,
+  ComparisonPresetId,
   ComparisonSection,
+  ComparisonTrafficLight,
   InteractiveComparisonData,
   InteractiveComparisonDimension,
   InteractiveComparisonDimensionId,
   InteractiveComparisonOption,
+  InteractiveComparisonScope,
+  StationDailyDemandInput,
+  StationDistrictInput,
+  StationHourlyProfileInput,
 } from '@/lib/comparison-hub-builders';
 
 const COMPARISON_HUB_CACHE_TTL_SECONDS = 300;
@@ -69,6 +84,7 @@ export function buildFallbackComparisonHubData(
     interactive: {
       defaultDimensionId: null,
       dimensions: [],
+      presets: [],
     },
     sections: buildFallbackComparisonSections(),
   };
@@ -111,6 +127,8 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
         hourlyProfile,
         historyRows,
         dataset,
+        stationHourlyProfiles,
+        stationDailyDemand,
       ] = await Promise.all([
         withTimeout(
           fetchStations().catch(() => buildFallbackStations(nowIso)),
@@ -166,6 +184,8 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
           sourceTimeoutMs,
           buildFallbackDatasetSnapshot(nowIso)
         ),
+        withTimeout(fetchCachedStationHourlyProfiles(30).catch(() => []), sourceTimeoutMs, []),
+        withTimeout(fetchCachedStationDailyDemand(90).catch(() => []), sourceTimeoutMs, []),
       ]);
 
       const districtRows = buildDistrictSeoRows({
@@ -174,6 +194,23 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
         turnoverRankings: turnoverResponse.rankings,
         availabilityRankings: availabilityResponse.rankings,
       });
+
+      const stationDistrictNames = districtCollection
+        ? buildStationDistrictMap(stationsResponse.stations, districtCollection)
+        : new Map<string, string>();
+      const districtSlugByName = new Map(districtRows.map((row) => [row.name, row.slug]));
+      const stationDistricts = stationsResponse.stations.flatMap((station) => {
+        const districtName = stationDistrictNames.get(station.id);
+        if (!districtName) {
+          return [];
+        }
+        const districtSlug = districtSlugByName.get(districtName);
+        if (!districtSlug) {
+          return [];
+        }
+        return [{ stationId: station.id, districtSlug, districtName }];
+      });
+      const cityName = getCityName();
 
       const validMonths = monthsResponse.months.filter(isValidMonthKey);
       const latestMonth =
@@ -209,6 +246,10 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
         hourlyProfile,
         historyRows,
         datasetCoverageDays: dataset.coverage.totalDays,
+        stationHourlyProfiles,
+        stationDailyDemand,
+        stationDistricts,
+        cityName,
         comparisonNow: nowIso,
         latestMonth,
         previousMonth,

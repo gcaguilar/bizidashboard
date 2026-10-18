@@ -16,7 +16,7 @@ const partialMonthData: ComparisonHubData = {
   latestMonth: '2026-03',
   generatedAt: '2026-03-02T12:00:00.000Z',
   dataState: 'partial',
-  interactive: { defaultDimensionId: null, dimensions: [] },
+  interactive: { defaultDimensionId: null, dimensions: [], presets: [] },
   sections: [
     {
       id: 'historical',

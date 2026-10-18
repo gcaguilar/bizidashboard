@@ -15,4 +15,15 @@ describe('public route query helpers', () => {
   it('builds explore URLs with global search params', () => {
     expect(appRoutes.explore({ q: 'api status' })).toBe('/explorar?q=api+status');
   });
+
+  it('includes the period scope when sharing a temporal comparison', () => {
+    expect(
+      appRoutes.compare({
+        dimension: 'periods',
+        left: 'today',
+        right: 'same-weekday-last-week',
+        scope: 'centro',
+      })
+    ).toBe('/comparar?dimension=periods&left=today&right=same-weekday-last-week&scope=centro');
+  });
 });
