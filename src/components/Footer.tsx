@@ -67,7 +67,7 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
               </TrackedLink>
             </p>
             {version && (
-              <p className="text-[10px] text-[var(--muted)]/60">
+              <p className="text-[10px] text-[var(--muted)]">
                 Build{' '}
                 <a
                   href={`${GITHUB_REPO}/commit/${version.gitSha}`}

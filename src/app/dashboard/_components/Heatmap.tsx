@@ -93,7 +93,7 @@ function HeatTooltip({ active, payload }: TooltipProps) {
         {dayLabel} · {hourLabel}
       </p>
       <div className="mt-1 flex items-center justify-between gap-4">
-        <span className="text-[var(--muted)]">Ocupacion</span>
+        <span className="text-[var(--muted)]">Ocupación</span>
         <span className="font-semibold text-[var(--foreground)]">{formatPercent(point.value)}</span>
       </div>
       <p className="mt-1 text-[10px] text-[var(--muted)]">{point.sampleCount} muestras</p>
@@ -143,19 +143,19 @@ export function Heatmap({
     <section className="ui-section-card gap-4">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Heatmap de ocupacion</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Heatmap de ocupación</h2>
           <p className="text-xs text-[var(--muted)]">
-            Estacion {stationName} ({stationId || 'sin seleccion'})
+            Estación {stationName} ({stationId || 'sin selección'})
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Cada celda resume la ocupacion media por dia de semana y hora para detectar patrones repetidos.
+            Cada celda resume la ocupación media por día de semana y hora para detectar patrones repetidos.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <TrackedLink href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap"
           >
-            Como leerlo
+            Cómo leerlo
           </TrackedLink>
           {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>

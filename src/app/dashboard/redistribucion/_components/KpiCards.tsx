@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { ReportKPIs, BaselineComparison } from '@/types/rebalancing';
+import { formatDecimal } from '@/lib/format';
 
 type Props = {
   kpis: ReportKPIs;
@@ -23,7 +24,7 @@ function pct(v: number): string {
 
 function fmt(v: number | null, unit = ''): string {
   if (v === null) return '—';
-  return `${v.toFixed(1)}${unit}`;
+  return `${formatDecimal(v)}${unit}`;
 }
 
 export function KpiCards({ kpis, baseline }: Props) {

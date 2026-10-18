@@ -41,7 +41,7 @@ test('dashboard syncs selected window and station with URL', async ({ page }) =>
 
   const initialStationId = await stationPicker.inputValue();
 
-  await page.getByRole('button', { name: 'Mes' }).first().click();
+  await page.getByRole('tab', { name: 'Mes' }).first().click();
   await expect.poll(() => getSearchParam(page.url(), 'timeWindow')).toBe('30d');
 
   await stationPicker.selectOption({ index: 1 });
@@ -50,7 +50,7 @@ test('dashboard syncs selected window and station with URL', async ({ page }) =>
 
   await page.reload();
 
-  await expect(page.getByRole('button', { name: 'Mes' }).first()).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('tab', { name: 'Mes' }).first()).toHaveAttribute('aria-selected', 'true');
   await expect.poll(() => getSearchParam(page.url(), 'timeWindow')).toBe('30d');
 });
 

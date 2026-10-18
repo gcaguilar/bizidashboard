@@ -93,7 +93,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
 
                 <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted)]">
                   <span>{severityLabel(alert.severity)}</span>
-                  <span>{isEmptyLike ? 'Vacia' : 'Llena'} desde aprox. {alert.windowHours}h</span>
+                  <span>{isEmptyLike ? 'Vacía' : 'Llena'} desde aprox. {alert.windowHours}h</span>
                   <span>Valor {alert.metricValue.toFixed(1)}</span>
                 </div>
                 <p className="mt-2 text-[11px] text-[var(--muted)]">

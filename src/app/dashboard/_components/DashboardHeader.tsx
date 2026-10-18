@@ -118,19 +118,35 @@ export function DashboardHeader({
       <div
         role="tablist"
         aria-label="Ventana temporal"
+        aria-busy={isMobilityPreviewLoading}
         className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--primary)]/8 p-1"
       >
         {timeWindows.map((window) => (
           <Button
             key={window.id}
+            role="tab"
+            aria-selected={activeWindowId === window.id}
             onClick={() => onChangeWindow(window.id)}
-            aria-pressed={activeWindowId === window.id}
             variant={activeWindowId === window.id ? 'default' : 'ghost'}
             size="sm"
           >
             {window.label}
           </Button>
         ))}
+
+        {isMobilityPreviewLoading ? (
+          <span
+            role="status"
+            aria-live="polite"
+            className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--secondary)] px-2 py-1 text-[11px] font-semibold text-[var(--muted)]"
+          >
+            <span
+              aria-hidden="true"
+              className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]"
+            />
+            Actualizando {activeWindowLabel.toLowerCase()}…
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-[var(--border)]/70 pt-3">
