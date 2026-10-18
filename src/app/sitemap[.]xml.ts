@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { fetchCachedMonthlyDemandCurve } from '@/lib/analytics-series'
 import { fetchAvailableDataMonths } from '@/lib/api'
-import { isValidMonthKey } from '@/lib/months'
+import { isValidMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months'
 import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes'
 import { getDistrictSeoRows } from '@/lib/seo-districts'
 import { getStationSeoRows } from '@/lib/seo-stations'
@@ -63,7 +63,7 @@ async function buildSitemapXml(): Promise<string> {
       console.error('[sitemap.xml] fetchAvailableDataMonths failed:', error)
       return { months: [] }
     }),
-    fetchCachedMonthlyDemandCurve(36).catch((error) => {
+    fetchCachedMonthlyDemandCurve(REPORT_MONTHS_WINDOW).catch((error) => {
       console.error('[sitemap.xml] fetchCachedMonthlyDemandCurve failed:', error)
       return []
     }),
