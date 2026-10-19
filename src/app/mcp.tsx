@@ -19,10 +19,10 @@ function McpPage() {
       <header className="ui-page-hero">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">BiziDashboard MCP</p>
         <h1 className="mt-2 max-w-4xl text-3xl font-black leading-tight text-[var(--foreground)] md:text-5xl">
-          Conector MCP de Bizi Zaragoza para tu asistente de IA
+          Conecta Bizi Zaragoza a tu asistente de IA
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)] md:text-base">
-          Conecta Claude o ChatGPT para consultar disponibilidad, alertas, patrones, movilidad e informes de Bizi Zaragoza desde tu asistente habitual.
+          Pregúntale a Claude o ChatGPT cuántas bicis hay en tu estación, qué estaciones están fallando o cómo se mueve la ciudad. Conectarlo lleva un minuto y no necesitas instalar nada.
         </p>
         <a href="#install" className="ui-primary-button mt-2 w-full sm:w-auto">Instalar conector</a>
       </header>

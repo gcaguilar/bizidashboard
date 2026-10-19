@@ -30,10 +30,10 @@ function mockClipboard() {
 }
 
 describe('McpInstallGuide', () => {
-  it('renders the public credentials and the Claude and ChatGPT options', () => {
+  it('renders the public credentials and the assistant options', () => {
     render(<McpInstallGuide />);
 
-    expect(screen.getByRole('heading', { name: 'BiziDashboard para tu asistente de IA' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Cómo conectarlo' })).toBeTruthy();
     expect(screen.getByDisplayValue(MCP_SERVER_URL).getAttribute('readonly')).not.toBeNull();
     expect(screen.getByDisplayValue(MCP_CLIENT_ID).getAttribute('readonly')).not.toBeNull();
     expect(screen.getByText('read:dashboard')).toBeTruthy();
@@ -49,6 +49,7 @@ describe('McpInstallGuide', () => {
     expect(chatgptLink.getAttribute('href')).toBe(CHATGPT_PLUGINS_URL);
 
     expect(screen.getByRole('heading', { name: 'Claude' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Claude Code' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'ChatGPT' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Perplexity' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Grok' })).toBeNull();
@@ -58,7 +59,7 @@ describe('McpInstallGuide', () => {
     const writeText = mockClipboard();
 
     render(<McpInstallGuide />);
-    fireEvent.click(screen.getByRole('button', { name: 'Copiar URL' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar' }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(MCP_SERVER_URL));
     expect(await screen.findByText('URL MCP copiada.')).toBeTruthy();
@@ -78,9 +79,9 @@ describe('McpInstallGuide', () => {
     render(<McpInstallGuide />);
 
     expect(screen.getByRole('heading', { name: 'Comprueba que funciona' })).toBeTruthy();
-    expect(screen.getByText(/Lista los dashboards disponibles/i)).toBeTruthy();
+    expect(screen.getByText(/¿Cuántas estaciones hay ahora mismo\?/i)).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Problemas frecuentes' })).toBeTruthy();
-    expect(screen.getByText(/is not authorized to access resource server/i)).toBeTruthy();
-    expect(screen.getByText(/too_many_entities/i)).toBeTruthy();
+    expect(screen.getByText(/No está autorizado/i)).toBeTruthy();
+    expect(screen.getByText(/Unknown client/i)).toBeTruthy();
   });
 });
