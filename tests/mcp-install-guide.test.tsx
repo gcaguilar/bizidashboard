@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   CHATGPT_PLUGINS_URL,
-  CLAUDE_CONNECTORS_URL,
+  CLAUDE_CONNECTOR_URL,
   MCP_CLIENT_ID,
   MCP_SERVER_URL,
   McpInstallGuide,
@@ -40,9 +40,9 @@ describe('McpInstallGuide', () => {
     expect(screen.getByText('read:exports')).toBeTruthy();
     expect(screen.getByText('Client Secret:')).toBeTruthy();
 
-    const claudeLink = screen.getByRole('link', { name: 'Abrir conectores de Claude' });
+    const claudeLink = screen.getByRole('link', { name: 'Conectar con Claude' });
     expect(claudeLink.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(claudeLink.getAttribute('href')).toBe(CLAUDE_CONNECTORS_URL);
+    expect(claudeLink.getAttribute('href')).toBe(CLAUDE_CONNECTOR_URL);
 
     const chatgptLink = screen.getByRole('link', { name: 'Abrir Plugins de ChatGPT' });
     expect(chatgptLink.getAttribute('rel')).toBe('noopener noreferrer');

@@ -9,7 +9,7 @@ export const MCP_SERVER_URL = 'https://mcp.datosbizi.com/mcp';
 export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
 export const MCP_SCOPES = ['read:dashboard', 'read:exports'] as const;
 export const MCP_SUPPORT_EMAIL = 'guillermo.castella@adevinta.com';
-export const CLAUDE_CONNECTORS_URL = 'https://claude.ai/customize/connectors';
+export const CLAUDE_CONNECTOR_URL = `https://claude.ai/customize/connectors?connectorName=BiziDashboard&connectorUrl=${encodeURIComponent(MCP_SERVER_URL)}&modal=add-custom-connector`;
 export const CHATGPT_PLUGINS_URL = 'https://chatgpt.com/plugins';
 
 type Notice =
@@ -128,7 +128,9 @@ export function McpInstallGuide() {
     trackInstallAction(`mcp_connect_${connector}`, connector);
     void copyValue(
       MCP_SERVER_URL,
-      'URL copiada. Sigue los pasos para añadirla en el conector.',
+      connector === 'claude'
+        ? 'URL copiada. Claude se abre en otra pestaña; en Advanced settings pega el Client ID.'
+        : 'URL copiada. ChatGPT se abre en otra pestaña; elige OAuth y pega el Client ID si lo pide.',
       'No se pudo copiar automáticamente. Selecciona y copia la URL del campo.'
     );
   }
@@ -213,12 +215,12 @@ export function McpInstallGuide() {
             </p>
             <Button asChild className="mt-1 w-full">
               <a
-                href={CLAUDE_CONNECTORS_URL}
+                href={CLAUDE_CONNECTOR_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleConnectorClick('claude')}
               >
-                Abrir conectores de Claude
+                Conectar con Claude
               </a>
             </Button>
             <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
