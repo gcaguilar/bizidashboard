@@ -8,7 +8,6 @@ import { buildCtaClickEvent, trackUmamiEvent } from '@/lib/umami';
 export const MCP_SERVER_URL = 'https://mcp.datosbizi.com/mcp';
 export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
 export const MCP_SCOPES = ['read:dashboard', 'read:exports'] as const;
-export const MCP_SUPPORT_EMAIL = 'guillermo.castella@adevinta.com';
 export const CLAUDE_CONNECTOR_URL = `https://claude.ai/customize/connectors?connectorName=BiziDashboard&connectorUrl=${encodeURIComponent(MCP_SERVER_URL)}&modal=add-custom-connector`;
 export const CHATGPT_PLUGINS_URL = 'https://chatgpt.com/plugins';
 
@@ -303,11 +302,7 @@ export function McpInstallGuide() {
           ))}
         </dl>
         <p className="text-sm leading-6 text-[var(--muted)]">
-          Si el problema no está en esta lista, escríbenos a{' '}
-          <a className="font-semibold text-[var(--primary)] underline" href={`mailto:${MCP_SUPPORT_EMAIL}`}>
-            {MCP_SUPPORT_EMAIL}
-          </a>
-          . No nos envíes contraseñas ni tokens.
+          Si el problema no está en esta lista, contacta con soporte de DatosBizi. No compartas contraseñas ni tokens.
         </p>
       </section>
 
