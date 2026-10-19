@@ -3,7 +3,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  CHATGPT_PLUGINS_URL,
   CLAUDE_CONNECTOR_URL,
   MCP_CLIENT_ID,
   MCP_SERVER_URL,
@@ -44,13 +43,9 @@ describe('McpInstallGuide', () => {
     expect(claudeLink.getAttribute('rel')).toBe('noopener noreferrer');
     expect(claudeLink.getAttribute('href')).toBe(CLAUDE_CONNECTOR_URL);
 
-    const chatgptLink = screen.getByRole('link', { name: 'Abrir Plugins de ChatGPT' });
-    expect(chatgptLink.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(chatgptLink.getAttribute('href')).toBe(CHATGPT_PLUGINS_URL);
-
     expect(screen.getByRole('heading', { name: 'Claude' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Claude Code' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'ChatGPT' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'ChatGPT' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Perplexity' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Grok' })).toBeNull();
   });

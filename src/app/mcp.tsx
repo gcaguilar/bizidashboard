@@ -22,7 +22,7 @@ function McpPage() {
           Conecta Bizi Zaragoza a tu asistente de IA
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)] md:text-base">
-          Pregúntale a Claude o ChatGPT cuántas bicis hay en tu estación, qué estaciones están fallando o cómo se mueve la ciudad. Conectarlo lleva un minuto y no necesitas instalar nada.
+          Pregúntale a Claude cuántas bicis hay en tu estación, qué estaciones están fallando o cómo se mueve la ciudad. Conectarlo lleva un minuto y no necesitas instalar nada.
         </p>
         <a href="#install" className="ui-primary-button mt-2 w-full sm:w-auto">Instalar conector</a>
       </header>

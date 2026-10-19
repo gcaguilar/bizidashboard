@@ -10,11 +10,9 @@ export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
 export const MCP_SCOPES = ['read:dashboard', 'read:exports'] as const;
 export const MCP_CALLBACK_URLS = [
   'https://claude.ai/api/mcp/auth_callback',
-  'https://chatgpt.com/connector_platform_oauth_redirect',
 ] as const;
 export const CLAUDE_CODE_COMMAND = `claude mcp add --transport http bizidashboard ${MCP_SERVER_URL}`;
 export const CLAUDE_CONNECTOR_URL = `https://claude.ai/customize/connectors?connectorName=BiziDashboard&connectorUrl=${encodeURIComponent(MCP_SERVER_URL)}&modal=add-custom-connector`;
-export const CHATGPT_PLUGINS_URL = 'https://chatgpt.com/plugins';
 
 type Notice =
   | { kind: 'success'; text: string }
@@ -90,14 +88,6 @@ const INSTALL_STEPS = {
     'Abre Claude Code, escribe /mcp, elige bizidashboard y pulsa Autenticar.',
     'Inicia sesión con tu cuenta de DatosBizi y acepta el permiso.',
   ],
-  chatgpt: [
-    'Abre ChatGPT en el navegador y ve a Plugins.',
-    'Pulsa + y elige «Añadir servidor MCP personalizado».',
-    'Ponle el nombre BiziDashboard y pega la dirección de arriba.',
-    'En autenticación elige OAuth. Deja vacío cualquier otro campo.',
-    'Marca que entiendes el aviso y pulsa «Crear como plugin».',
-    'Pulsa Conectar e inicia sesión con tu cuenta de DatosBizi.',
-  ],
 } as const;
 
 const TROUBLESHOOTING = [
@@ -129,13 +119,11 @@ export function McpInstallGuide() {
     setNotice({ kind: 'error', text: fallbackMessage });
   }
 
-  function handleConnectorClick(connector: 'claude' | 'chatgpt') {
-    trackInstallAction(`mcp_connect_${connector}`, connector);
+  function handleClaudeConnect() {
+    trackInstallAction('mcp_connect_claude', 'claude');
     void copyValue(
       MCP_SERVER_URL,
-      connector === 'claude'
-        ? 'URL copiada. Claude se abre en otra pestaña.'
-        : 'URL copiada. ChatGPT se abre en otra pestaña.',
+      'URL copiada. Claude se abre en otra pestaña.',
       'No se pudo copiar automáticamente. Selecciona y copia la URL del campo.'
     );
   }
@@ -203,7 +191,7 @@ export function McpInstallGuide() {
                 href={CLAUDE_CONNECTOR_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => handleConnectorClick('claude')}
+                onClick={handleClaudeConnect}
               >
                 Conectar con Claude
               </a>
@@ -235,29 +223,6 @@ export function McpInstallGuide() {
             </Button>
           </article>
 
-          <article className="ui-section-card lg:col-span-2" aria-labelledby="chatgpt-title">
-            <p className="stat-label">Conector</p>
-            <h3 id="chatgpt-title" className="text-xl font-black text-[var(--foreground)]">ChatGPT</h3>
-            <p className="text-sm leading-6 text-[var(--muted)]">
-              Da de alta el servidor MCP manualmente desde Plugins. No hace falta que BiziDashboard esté publicado en el directorio de ChatGPT.
-            </p>
-            <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
-              {INSTALL_STEPS.chatgpt.map((step) => <li key={step}>{step}</li>)}
-            </ol>
-            <p className="text-xs leading-5 text-[var(--muted)]">
-              Si usas ChatGPT Business o Enterprise, solo los administradores pueden crear el conector.
-            </p>
-            <Button asChild variant="outline" className="mt-1 w-full md:w-auto">
-              <a
-                href={CHATGPT_PLUGINS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => handleConnectorClick('chatgpt')}
-              >
-                Abrir Plugins de ChatGPT
-              </a>
-            </Button>
-          </article>
         </div>
 
         <p
