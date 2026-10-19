@@ -22,7 +22,7 @@ function McpPage() {
           Conector MCP de Bizi Zaragoza para tu asistente de IA
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)] md:text-base">
-          Conecta ChatGPT, Claude, Perplexity o Grok para consultar disponibilidad, alertas, patrones, movilidad e informes de Bizi Zaragoza desde tu asistente habitual.
+          Conecta Claude o ChatGPT para consultar disponibilidad, alertas, patrones, movilidad e informes de Bizi Zaragoza desde tu asistente habitual.
         </p>
         <a href="#install" className="ui-primary-button mt-2 w-full sm:w-auto">Instalar conector</a>
       </header>
