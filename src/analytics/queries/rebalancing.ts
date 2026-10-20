@@ -254,6 +254,20 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
   return map;
 }
 
+/**
+ * Rachas exactas sin bicis o sin anclajes por estacion.
+ *
+ * Se resuelve con un unico CTE ordenado una vez por estacion: el numero de
+ * grupo de cada racha sale de restar dos `ROW_NUMBER()` (el clasico
+ * group-and-gaps), y las rachas vacia/llena se apilan con `UNION ALL` antes de
+ * agregar. La version anterior repetia el `ROW_NUMBER()` base dos veces y
+ * unia las dos tablas de rachas contra `Station` (275 x N x M filas), lo que
+ * dominaba el coste del informe sobre ~3M de snapshots.
+ *
+ * Nota: las estaciones sin ninguna racha no aparecen en el mapa. El consumidor
+ * (`buildRebalancingReport`) mantiene el valor por defecto 0, igual que hacia
+ * el `LEFT JOIN` anterior.
+ */
 export async function getCriticalEpisodes(days: number = 15): Promise<Record<string, CriticalEpisodeRow>> {
   const filter = buildRangeFilter('recordedAt', days);
 
@@ -267,44 +281,45 @@ export async function getCriticalEpisodes(days: number = 15): Promise<Record<str
       episodeCount: number;
     }>
   >`
-    WITH gaps AS (
-      SELECT "stationId", "recordedAt", "bikesAvailable", "anchorsFree",
-        CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END AS empty_flag,
-        CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END AS full_flag,
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS empty_grp,
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS full_grp
+    WITH ordered AS (
+      SELECT "stationId", "recordedAt",
+        "bikesAvailable" <= 0 AS empty_flag,
+        "anchorsFree" <= 0 AS full_flag,
+        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt") AS position
       FROM "StationStatus"
       WHERE ${filter}
     ),
-    empty_episodes AS (
-      SELECT "stationId", MIN("recordedAt") AS start_time, MAX("recordedAt") AS end_time,
-             EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 AS duration_min
-      FROM gaps
-      WHERE empty_flag = 0
-      GROUP BY "stationId", empty_grp
-      HAVING EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 > 0
+    gaps AS (
+      SELECT "stationId", "recordedAt", empty_flag, full_flag,
+        position - ROW_NUMBER() OVER (PARTITION BY "stationId", empty_flag ORDER BY "recordedAt") AS empty_grp,
+        position - ROW_NUMBER() OVER (PARTITION BY "stationId", full_flag ORDER BY "recordedAt") AS full_grp
+      FROM ordered
     ),
-    full_episodes AS (
-      SELECT "stationId", MIN("recordedAt") AS start_time, MAX("recordedAt") AS end_time,
-             EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 AS duration_min
+    episodes AS (
+      SELECT "stationId", 'empty' AS kind, MIN("recordedAt") AS started_at, MAX("recordedAt") AS ended_at
       FROM gaps
-      WHERE full_flag = 0
+      WHERE empty_flag
+      GROUP BY "stationId", empty_grp
+      HAVING MAX("recordedAt") > MIN("recordedAt")
+      UNION ALL
+      SELECT "stationId", 'full' AS kind, MIN("recordedAt") AS started_at, MAX("recordedAt") AS ended_at
+      FROM gaps
+      WHERE full_flag
       GROUP BY "stationId", full_grp
-      HAVING EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 > 0
+      HAVING MAX("recordedAt") > MIN("recordedAt")
     )
     SELECT
-      s.id AS "stationId",
-      COALESCE(AVG(e.duration_min), 0) AS "avgEmptyMinutes",
-      COALESCE(MAX(e.duration_min), 0) AS "maxEmptyMinutes",
-      COALESCE(AVG(f.duration_min), 0) AS "avgFullMinutes",
-      COALESCE(MAX(f.duration_min), 0) AS "maxFullMinutes",
-      COUNT(DISTINCT e.start_time) + COUNT(DISTINCT f.start_time) AS "episodeCount"
-    FROM "Station" s
-    LEFT JOIN empty_episodes e ON s.id = e."stationId"
-    LEFT JOIN full_episodes f ON s.id = f."stationId"
-    GROUP BY s.id
+      "stationId",
+      COALESCE(AVG(duration_min) FILTER (WHERE kind = 'empty'), 0) AS "avgEmptyMinutes",
+      COALESCE(MAX(duration_min) FILTER (WHERE kind = 'empty'), 0) AS "maxEmptyMinutes",
+      COALESCE(AVG(duration_min) FILTER (WHERE kind = 'full'), 0) AS "avgFullMinutes",
+      COALESCE(MAX(duration_min) FILTER (WHERE kind = 'full'), 0) AS "maxFullMinutes",
+      COUNT(*) AS "episodeCount"
+    FROM (
+      SELECT "stationId", kind, EXTRACT(EPOCH FROM (ended_at - started_at)) / 60 AS duration_min
+      FROM episodes
+    ) durations
+    GROUP BY "stationId"
   `;
 
   const map: Record<string, CriticalEpisodeRow> = {};
