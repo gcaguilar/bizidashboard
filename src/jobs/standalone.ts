@@ -10,6 +10,7 @@
  */
 
 import '@/instrument.server'
+import { acquireJobLock } from '@/analytics/job-lock';
 import { startCollectionJob, stopCollectionJob } from '@/jobs/bizi-collection';
 import {
   startAnalyticsAggregationJob,
@@ -23,10 +24,17 @@ import {
   startMonthlyReportDigestJob,
   stopMonthlyReportDigestJob,
 } from '@/jobs/monthly-report-digest';
+import {
+  startOfUtcDay,
+  syncDailySystemStats,
+} from '@/analytics/queries/daily-system';
+import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const ANALYTICS_START_DELAY_MS = 2 * 60 * 1000;
+const DAILY_SYSTEM_BOOTSTRAP_LOCK = 'daily-system-stat-bootstrap';
+const DAILY_SYSTEM_BOOTSTRAP_LOCK_TTL_MS = 10 * 60 * 1000;
 
 let jobsInitialized = false;
 let analyticsStartTimer: ReturnType<typeof setTimeout> | null = null;
@@ -42,6 +50,44 @@ function shouldEnableInternalJobs(): boolean {
   return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
 }
 
+/**
+ * La serie diaria de /api/history se siembra al arrancar el proceso de jobs,
+ * sin esperar a los 2 minutos de retraso del primer tick de analitica. Asi,
+ * tras un despliegue, el endpoint deja de escanear StationStatus en cuanto
+ * termina el backfill y no hace falta ningun comando manual.
+ */
+async function bootstrapDailySystemStats(): Promise<void> {
+  const lock = await acquireJobLock(
+    DAILY_SYSTEM_BOOTSTRAP_LOCK,
+    DAILY_SYSTEM_BOOTSTRAP_LOCK_TTL_MS
+  );
+
+  if (!lock) {
+    logger.info('analytics.daily_system_bootstrap_skipped', { reason: 'lock' });
+    return;
+  }
+
+  try {
+    const startedAt = Date.now();
+    const result = await syncDailySystemStats(startOfUtcDay());
+
+    logger.info('analytics.daily_system_bootstrap_completed', {
+      ...result,
+      durationMs: Date.now() - startedAt,
+    });
+  } catch (error) {
+    // El primer tick de analitica lo reintenta; no impedimos que arranquen
+    // los cron jobs por un fallo del backfill.
+    captureExceptionWithContext(error, {
+      area: 'jobs.analytics',
+      operation: 'bootstrapDailySystemStats',
+    });
+    logger.warn('analytics.daily_system_bootstrap_failed', { error });
+  } finally {
+    await lock.release();
+  }
+}
+
 export function initJobs(): void {
   if (jobsInitialized) {
     return;
@@ -53,6 +99,9 @@ export function initJobs(): void {
   logger.info('jobs.initializing');
   startCollectionJob();
   logger.info('jobs.collection_started');
+
+  // Fire-and-forget: el health server y los cron jobs no esperan al backfill.
+  void bootstrapDailySystemStats();
 
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();

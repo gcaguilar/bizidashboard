@@ -9,6 +9,7 @@
  */
 
 import { acquireJobLock } from '@/analytics/job-lock';
+import { refreshMonthlyCriticalEpisodes } from '@/analytics/queries/monthly-report';
 import { logger } from '@/lib/logger';
 import { previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
 import { buildMonthlyReport } from '@/lib/monthly-report';
@@ -90,6 +91,24 @@ export async function runMonthlyReportSeal(): Promise<void> {
         await ensureLockRefreshed(lock, `before-month-${month}`, 'reports');
 
         try {
+          // Solo el mes recien cerrado necesita recalcular sus episodios desde
+          // el crudo. El anterior ya se sello en el run previo y su crudo puede
+          // estar fuera de la retencion de 40 dias: recalcularlo borraria
+          // episodios buenos y los sustituiria por un mes incompleto.
+          if (index === 0) {
+            try {
+              const episodes = await refreshMonthlyCriticalEpisodes(month);
+              logger.info('reports.critical_episodes_warmed', { ...episodes });
+            } catch (error) {
+              captureExceptionWithContext(error, {
+                area: 'jobs.reports',
+                operation: 'refreshCriticalEpisodes',
+                extra: { month },
+              });
+              logger.warn('reports.critical_episodes_failed', { month, error });
+            }
+          }
+
           const report = await buildMonthlyReport(month, nowIso);
           logger.info('reports.sealed', { month, hasReport: report.hasReport });
 

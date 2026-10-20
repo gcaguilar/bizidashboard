@@ -2,10 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-const { acquireJobLockMock, buildMonthlyReportMock, captureExceptionWithContextMock } = vi.hoisted(() => ({
+const {
+  acquireJobLockMock,
+  buildMonthlyReportMock,
+  captureExceptionWithContextMock,
+  refreshMonthlyCriticalEpisodesMock,
+} = vi.hoisted(() => ({
   acquireJobLockMock: vi.fn(),
   buildMonthlyReportMock: vi.fn(),
   captureExceptionWithContextMock: vi.fn(),
+  refreshMonthlyCriticalEpisodesMock: vi.fn(),
 }));
 
 vi.mock('@/analytics/job-lock', () => ({
@@ -14,6 +20,10 @@ vi.mock('@/analytics/job-lock', () => ({
 
 vi.mock('@/lib/monthly-report', () => ({
   buildMonthlyReport: buildMonthlyReportMock,
+}));
+
+vi.mock('@/analytics/queries/monthly-report', () => ({
+  refreshMonthlyCriticalEpisodes: refreshMonthlyCriticalEpisodesMock,
 }));
 
 vi.mock('@/lib/sentry-reporting', () => ({
@@ -44,6 +54,8 @@ describe('monthly report seal job', () => {
     acquireJobLockMock.mockReset();
     buildMonthlyReportMock.mockReset();
     captureExceptionWithContextMock.mockReset();
+    refreshMonthlyCriticalEpisodesMock.mockReset();
+    refreshMonthlyCriticalEpisodesMock.mockResolvedValue({ monthKey: '2026-03', episodes: 0 });
     releaseMock.mockClear();
     refreshMock.mockReset();
     refreshMock.mockResolvedValue(true);

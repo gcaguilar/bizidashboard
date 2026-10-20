@@ -9,6 +9,9 @@ const reportSealStopMock = vi.fn();
 const reportDigestStartMock = vi.fn();
 const reportDigestStopMock = vi.fn();
 const loggerInfoMock = vi.fn();
+const acquireLockMock = vi.fn();
+const lockReleaseMock = vi.fn();
+const syncDailySystemStatsMock = vi.fn();
 
 vi.mock('@/jobs/bizi-collection', () => ({
   startCollectionJob: collectionStartMock,
@@ -28,6 +31,15 @@ vi.mock('@/jobs/monthly-report-seal', () => ({
 vi.mock('@/jobs/monthly-report-digest', () => ({
   startMonthlyReportDigestJob: reportDigestStartMock,
   stopMonthlyReportDigestJob: reportDigestStopMock,
+}));
+
+vi.mock('@/analytics/job-lock', () => ({
+  acquireJobLock: acquireLockMock,
+}));
+
+vi.mock('@/analytics/queries/daily-system', () => ({
+  startOfUtcDay: () => new Date('2026-10-20T00:00:00.000Z'),
+  syncDailySystemStats: syncDailySystemStatsMock,
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -50,6 +62,11 @@ describe('standalone jobs', () => {
     analyticsStartMock.mockReset();
     analyticsStopMock.mockReset();
     loggerInfoMock.mockReset();
+    acquireLockMock.mockReset();
+    lockReleaseMock.mockReset();
+    syncDailySystemStatsMock.mockReset();
+    acquireLockMock.mockResolvedValue({ release: lockReleaseMock });
+    syncDailySystemStatsMock.mockResolvedValue({ seeded: true, days: 0 });
 
     setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation((_fn, _ms) => {
       return { unref: () => {} } as ReturnType<typeof setTimeout>;
@@ -83,6 +100,21 @@ describe('standalone jobs', () => {
     expect(collectionStartMock).toHaveBeenCalledTimes(1);
     expect(loggerInfoMock).toHaveBeenCalledWith('jobs.initializing');
     expect(loggerInfoMock).toHaveBeenCalledWith('jobs.collection_started');
+  });
+
+  it('should seed the daily system series at startup', async () => {
+    process.env.ENABLE_INTERNAL_JOBS = '1';
+    process.env.NODE_ENV = 'production';
+    await import('@/jobs/standalone');
+
+    await vi.waitFor(() => {
+      expect(acquireLockMock).toHaveBeenCalledWith(
+        'daily-system-stat-bootstrap',
+        expect.any(Number)
+      );
+      expect(syncDailySystemStatsMock).toHaveBeenCalledTimes(1);
+    });
+    expect(lockReleaseMock).toHaveBeenCalledTimes(1);
   });
 
   it('should schedule analytics aggregation with 2min delay', async () => {

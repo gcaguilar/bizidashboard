@@ -14,6 +14,8 @@ import { runHourlyRollup } from '@/analytics/queries/hourly';
 import { runPatternRollup } from '@/analytics/queries/patterns';
 import { runRankingRollup } from '@/analytics/queries/rankings';
 import { runRetentionCleanup, runVacuumIfDue } from '@/analytics/retention';
+import { syncDailySystemStats } from '@/analytics/queries/daily-system';
+import { refreshMonthlyCriticalEpisodes } from '@/analytics/queries/monthly-report';
 import { setCachedJson } from '@/lib/cache/cache';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import * as Sentry from '@sentry/tanstackstart-react';
@@ -21,12 +23,10 @@ import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
 import { ensureLockRefreshed } from './utils';
 import { defineCronJob } from './cron-job';
-import {
-  getStationsWithLatestStatus,
-  getDailyDemandCurve,
-  getHourlyMobilitySignals,
-  getSystemHourlyProfile
-} from '@/analytics/queries/read';
+import { getStationsWithLatestStatus } from '@/analytics/queries/read';
+import { getHistorySeries } from '@/lib/history-read-model';
+import { getMobilityData } from '@/lib/mobility-read-model';
+import { buildMonthlyReport } from '@/lib/monthly-report';
 
 const LIVE_CACHE_TTL_SECONDS = CacheTTL.LIVE;
 
@@ -42,41 +42,25 @@ async function warmCache(): Promise<void> {
       generatedAt: new Date().toISOString(),
     }, LIVE_CACHE_TTL_SECONDS);
 
-    // 2. Warm mobility:all
-    const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
-      getHourlyMobilitySignals(14),
-      getDailyDemandCurve(30),
-      getSystemHourlyProfile(14),
-    ]);
+    // 2. Warm mobility (default dashboard window)
+    await getMobilityData({ mobilityDays: 14, demandDays: 30 });
 
-    const mobilityPayload = {
-      mobilityDays: 14,
-      demandDays: 30,
-      selectedMonth: null,
-      methodology: 'Matriz O-D estimada con variaciones netas horarias de bicis por estacion; no representa viajes individuales observados.',
-      hourlySignals: hourlySignals.map((row) => ({
-        stationId: row.stationId,
-        hour: Number(row.hour),
-        departures: Number(row.departures),
-        arrivals: Number(row.arrivals),
-        sampleCount: Number(row.sampleCount),
-      })),
-      dailyDemand: dailyDemand.map((row) => ({
-        day: row.day,
-        demandScore: Number(row.demandScore),
-        avgOccupancy: Number(row.avgOccupancy),
-        sampleCount: Number(row.sampleCount),
-      })),
-      systemHourlyProfile: systemHourlyProfile.map((row) => ({
-        hour: Number(row.hour),
-        avgOccupancy: Number(row.avgOccupancy),
-        avgBikesAvailable: Number(row.avgBikesAvailable),
-        sampleCount: Number(row.sampleCount),
-      })),
-      generatedAt: new Date().toISOString(),
-    };
+    // 3. Warm the daily history series, which aggregates raw snapshots.
+    await getHistorySeries();
 
-    await setCachedJson('mobility:mobilityDays=14:demandDays=30:month=all', mobilityPayload, 300);
+    // 4. Warm the current-month report. Es la pagina mas cara y la unica que
+    // no esta sellada; dejarla caliente evita el primer fallo en frio.
+    try {
+      const nowIso = new Date().toISOString();
+      await buildMonthlyReport(nowIso.slice(0, 7), nowIso);
+    } catch (error) {
+      // Un fallo del prewarm no debe tumbar el job de rollups.
+      captureExceptionWithContext(error, {
+        area: 'jobs.analytics',
+        operation: 'warmMonthlyReport',
+      });
+      logger.warn('analytics.monthly_report_warm_failed', { error });
+    }
 
     const duration = Date.now() - start;
     logger.info('analytics.cache_warming_completed', { durationMs: duration });
@@ -220,6 +204,46 @@ async function runAnalyticsAggregationInner(): Promise<void> {
       if (vacuumed) {
         logger.info('analytics.retention_maintenance_completed');
       }
+    }
+
+    // Serie diaria de red para /api/history. La primera vez siembra todo el
+    // historico (aproximado desde el rollup y exacto en la ventana reciente);
+    // despues solo rellena los dias que falten. Incluye recuperacion
+    // automatica si el job ha estado caido.
+    await ensureLockRefreshed(lock, 'before-daily-system-stats', 'analytics');
+    try {
+      const startedAt = Date.now();
+      const result = await syncDailySystemStats(dailyCutoff);
+
+      logger.info('analytics.daily_system_stats_completed', {
+        ...result,
+        durationMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      captureExceptionWithContext(error, {
+        area: 'jobs.analytics',
+        operation: 'syncDailySystemStats',
+      });
+      logger.warn('analytics.daily_system_stats_failed', { error });
+    }
+
+    // Los episodios exactos del mes en curso se refrescan tras los rollups.
+    // Si falla, el informe cae a la consulta cruda; no se bloquea el job.
+    await ensureLockRefreshed(lock, 'before-critical-episodes', 'analytics');
+    try {
+      const currentMonth = now.toISOString().slice(0, 7);
+      const episodesStart = Date.now();
+      const episodeResult = await refreshMonthlyCriticalEpisodes(currentMonth);
+      logger.info('analytics.critical_episodes_completed', {
+        ...episodeResult,
+        durationMs: Date.now() - episodesStart,
+      });
+    } catch (error) {
+      captureExceptionWithContext(error, {
+        area: 'jobs.analytics',
+        operation: 'refreshMonthlyCriticalEpisodes',
+      });
+      logger.warn('analytics.critical_episodes_failed', { error });
     }
 
     // Warm cache for high-traffic endpoints after rollups complete
