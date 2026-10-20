@@ -2,23 +2,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-const { withCacheMock } = vi.hoisted(() => ({
-  withCacheMock: vi.fn(),
+const { withStaleCacheMock } = vi.hoisted(() => ({
+  withStaleCacheMock: vi.fn(),
 }));
 
 vi.mock('@/lib/cache/cache', () => ({
-  withCache: withCacheMock,
+  withStaleCache: withStaleCacheMock,
 }));
 
 import { buildRebalancingReport } from '@/lib/rebalancing-report';
 
 describe('buildRebalancingReport', () => {
   beforeEach(() => {
-    withCacheMock.mockReset();
+    withStaleCacheMock.mockReset();
   });
 
   it('reuses a district-agnostic base cache key and filters the cached report afterwards', async () => {
-    withCacheMock.mockResolvedValue({
+    withStaleCacheMock.mockResolvedValue({
       generatedAt: '2026-04-01T10:00:00.000Z',
       modelVersion: 'rebalancing-v1-historical-baseline',
       analysisWindowDays: 15,
@@ -82,9 +82,9 @@ describe('buildRebalancingReport', () => {
 
     const report = await buildRebalancingReport({ days: 15, district: 'Centro' });
 
-    expect(withCacheMock).toHaveBeenCalledWith(
+    expect(withStaleCacheMock).toHaveBeenCalledWith(
       'rebalancing-report:days=15:base',
-      300,
+      { softTtlSeconds: 300, hardTtlSeconds: 900 },
       expect.any(Function)
     );
     expect(report.districtFilter).toBe('Centro');

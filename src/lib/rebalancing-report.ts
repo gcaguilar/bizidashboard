@@ -7,7 +7,7 @@ import {
 import { getStationsWithLatestStatus, getStationPatternsBulk } from '@/analytics/queries/read';
 import { buildStationDistrictMap } from '@/lib/districts';
 import { fetchDistrictCollection } from '@/lib/districts.server';
-import { withCache } from '@/lib/cache/cache';
+import { withStaleCache } from '@/lib/cache/cache';
 
 import { inferStationType } from '@/lib/station-typology';
 import { getTargetBand, getCurrentTimeBand } from '@/lib/target-bands';
@@ -27,7 +27,11 @@ export async function buildRebalancingReport(options: {
   const days = options.days ?? 15;
   const cacheKey = `rebalancing-report:days=${days}:base`;
 
-  const baseReport = await withCache(cacheKey, 300, async () => {
+  // El informe base agrega 15 dias de snapshots (millones de filas). Se sirve
+  // con stale-while-revalidate: entre 5 y 15 minutos se devuelve la version
+  // anterior al instante y se recalcula en segundo plano, en lugar de bloquear
+  // la peticion durante decenas de segundos.
+  const baseReport = await withStaleCache(cacheKey, { softTtlSeconds: 300, hardTtlSeconds: 900 }, async () => {
     // 1. Parallel fetch
     const [
       stations,
