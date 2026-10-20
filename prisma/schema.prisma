@@ -27,6 +27,7 @@ model Station {
   patterns      StationPattern[]
   heatmapCells  StationHeatmapCell[]
   alerts        StationAlert[]
+  criticalEpisodes StationCriticalEpisode[]
 
   @@index([isActive])
   @@index([lat, lon])
@@ -94,6 +95,21 @@ model DailyStationStat {
 
   @@id([stationId, bucketDate])
   @@index([bucketDate])
+}
+
+// Serie diaria a nivel de red para /api/history. Se calcula una vez por dia a
+// partir de los mismos snapshots crudos que StationStatus y guarda las cinco
+// metricas ya agregadas, de modo que el endpoint no tenga que escanear la tabla
+// cruda (millones de filas) en cada peticion. El dia en curso no se persiste:
+// se calcula en vivo y se fusiona con esta serie.
+model DailySystemStat {
+  day          DateTime @id @db.Date
+  demandScore  Int
+  avgOccupancy Float
+  balanceIndex Float
+  sampleCount  Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model StationRanking {
@@ -184,6 +200,40 @@ model MonthlyReportPdf {
   byteSize    Int
   generatedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Snapshot JSON del informe mensual ya ensamblado. Es la cache L2: Redis sigue
+// siendo la L1, pero si Redis se vacia o se reinicia un mes cerrado se sirve
+// desde Postgres sin volver a agregar millones de snapshots crudos.
+model MonthlyReportSnapshot {
+  monthKey      String   @id
+  payload       Json
+  schemaVersion Int
+  generatedAt   DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Rachas exactas (al minuto) sin bicis o sin anclajes, ya extraidas de
+// StationStatus. Se recalculan para el mes en curso y al sellar un mes cerrado;
+// el informe las lee de aqui y solo cae a la consulta cruda si faltan.
+model StationCriticalEpisode {
+  id              BigInt   @id @default(autoincrement())
+  stationId       String
+  kind            String   // 'empty' | 'full'
+  startedAt       DateTime
+  endedAt         DateTime
+  durationMinutes Float
+  monthKey        String   // YYYY-MM
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([stationId, kind, startedAt])
+  @@index([monthKey, stationId])
+  @@index([monthKey, kind, durationMinutes])
+  @@index([startedAt])
 }
 
 model JobLock {
