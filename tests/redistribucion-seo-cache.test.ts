@@ -105,11 +105,13 @@ describe('redistribucion public landing cache contract', () => {
     expect(sources).not.toContain('loadRebalancingReport');
   });
 
-  it('caches only the redistribucion server-function payload explicitly', () => {
+  it('serves the redistribucion payload through stale-while-revalidate', () => {
     const source = readFileSync('src/server-functions/seo-landing.ts', 'utf8');
 
     expect(source).toContain("slug === 'redistribucion'");
     expect(source).toContain("'seo-landing:redistribucion:snapshot'");
-    expect(source).toContain('REDISTRIBUCION_SEO_CACHE_TTL_SECONDS = 300');
+    expect(source).toContain('withStaleCache');
+    expect(source).toContain('REDISTRIBUCION_SEO_SOFT_TTL_SECONDS = 300');
+    expect(source).toContain('REDISTRIBUCION_SEO_HARD_TTL_SECONDS = 6 * 60 * 60');
   });
 });

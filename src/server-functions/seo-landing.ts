@@ -1,11 +1,20 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getSeoLandingPageData } from '@/lib/seo-landing.server';
-import { withCache } from '@/lib/cache/cache';
+import { withStaleCache } from '@/lib/cache/cache';
 import { isSeoPageSlug } from '@/lib/seo-pages';
 
 const SeoLandingInputSchema = z.object({ slug: z.string() });
-const REDISTRIBUCION_SEO_CACHE_TTL_SECONDS = 300;
+
+/**
+ * La landing ya no lee el informe completo (ver `loadAvailabilitySummary`),
+ * asi que incluso en frio cuesta decenas de milisegundos. Se mantiene una
+ * cache con stale-while-revalidate para que una caida de Redis o un pico de
+ * trafico no repita la consulta en cada request: entre 5 minutos y 6 horas se
+ * sirve el contenido anterior al instante y se refresca en segundo plano.
+ */
+const REDISTRIBUCION_SEO_SOFT_TTL_SECONDS = 300;
+const REDISTRIBUCION_SEO_HARD_TTL_SECONDS = 6 * 60 * 60;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
   .validator(SeoLandingInputSchema)
@@ -18,9 +27,12 @@ export const fetchSeoLandingData = createServerFn({ method: 'GET' })
     }
     const data =
       slug === 'redistribucion'
-        ? await withCache(
+        ? await withStaleCache(
             'seo-landing:redistribucion:snapshot',
-            REDISTRIBUCION_SEO_CACHE_TTL_SECONDS,
+            {
+              softTtlSeconds: REDISTRIBUCION_SEO_SOFT_TTL_SECONDS,
+              hardTtlSeconds: REDISTRIBUCION_SEO_HARD_TTL_SECONDS,
+            },
             () => getSeoLandingPageData(slug)
           )
         : await getSeoLandingPageData(slug);
