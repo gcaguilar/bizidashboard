@@ -15,7 +15,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 
 import { appRoutes } from '@/lib/routes'
-import { getGoogleSiteVerificationToken, getSiteUrl, SEO_SITE_NAME } from '@/lib/site'
+import { getGoogleSiteVerificationToken, getSiteUrl, INTER_FONT_PATH, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
 
@@ -51,11 +51,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     links: [
       { rel: 'manifest', href: appRoutes.manifest() },
       { rel: 'icon', href: appRoutes.favicon(), type: 'image/svg+xml' },
-      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://tiles.openfreemap.org', crossOrigin: 'anonymous' },
+      { rel: 'preload', href: INTER_FONT_PATH, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
       { rel: 'alternate', type: 'application/rss+xml', title: 'Informes mensuales de Bizi Zaragoza', href: appRoutes.feed() },
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap' },
       { rel: 'stylesheet', href: appCss },
     ],
   }

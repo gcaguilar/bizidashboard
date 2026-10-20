@@ -103,7 +103,7 @@ export function resolveExternalServiceConfig(env = process.env) {
 
 export function buildContentSecurityPolicy(env = process.env) {
   const config = resolveExternalServiceConfig(env);
-  const scriptOrigins = ['https://fonts.googleapis.com'];
+  const scriptOrigins = [];
   const connectOrigins = DEFAULT_CONNECT_URLS.map((value) => new URL(value).origin);
   const frameOrigins = DEFAULT_FRAME_URLS.map((value) => new URL(value).origin);
 
@@ -129,8 +129,8 @@ export function buildContentSecurityPolicy(env = process.env) {
   return [
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline' ${unique(scriptOrigins).join(' ')}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob: https:",
     `connect-src 'self' ${unique(connectOrigins).join(' ')}`,
     `frame-src 'self' ${unique(frameOrigins).join(' ')}`,
