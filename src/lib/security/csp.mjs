@@ -1,12 +1,8 @@
 const DEFAULT_CONNECT_URLS = [
   'https://tile.openstreetmap.org',
-  // Teselas oscuras (retina) por defecto y glifos para la capa de recuento de
-  // clústeres. Ver `src/lib/map-style.ts`.
-  'https://a.basemaps.cartocdn.com',
-  'https://b.basemaps.cartocdn.com',
-  'https://c.basemaps.cartocdn.com',
-  'https://d.basemaps.cartocdn.com',
-  'https://demotiles.maplibre.org',
+  // Estilo vectorial oscuro (style.json, teselas y glifos) sin clave ni
+  // registro. Ver `src/lib/map-style.ts`.
+  'https://tiles.openfreemap.org',
 ];
 
 // Tally es el proveedor incrustable por defecto del formulario de feedback

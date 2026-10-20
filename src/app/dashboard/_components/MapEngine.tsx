@@ -22,7 +22,7 @@ import {
   type MapColorScale,
 } from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
-import { resolveMapStyle } from '@/lib/map-style';
+import { MAP_FONT_STACK, resolveMapStyle } from '@/lib/map-style';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
 
 type StationTrend = 'up' | 'down' | 'flat';
@@ -86,7 +86,7 @@ const CLUSTER_COUNT_LAYER: LayerProps = {
   filter: ['has', 'point_count'],
   layout: {
     'text-field': ['get', 'point_count_abbreviated'],
-    'text-font': ['Open Sans Semibold'],
+    'text-font': MAP_FONT_STACK,
     'text-size': 12,
     'text-allow-overlap': true,
   },

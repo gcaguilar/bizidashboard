@@ -3,19 +3,26 @@ import type { StyleSpecification } from 'react-map-gl/maplibre';
 export type MapTheme = 'light' | 'dark';
 
 /**
- * Configuración de teselas del mapa. Los valores por defecto evitan el servicio
- * raster 1× sin política de producción de OSM:
+ * Estilo listo para `mapStyle`: una especificación local (teselas raster) o la
+ * URL de un estilo vectorial alojado (MapLibre la descarga en cliente).
+ */
+export type MapStyle = StyleSpecification | string;
+
+/**
+ * Configuración del mapa base. Los valores por defecto no necesitan clave:
  *
- * - claro: teselas de OpenStreetMap (degradado razonable, sin clave).
- * - oscuro: teselas oscuras reales de CARTO (`@2x` → soporte retina), no una
- *   copia de la fuente clara como ocurría antes.
+ * - claro: teselas raster de OpenStreetMap.
+ * - oscuro: estilo vectorial de OpenFreeMap (gratuito, sin registro).
  *
- * En producción conviene fijar un proveedor con clave propia (MapTiler, Stadia,
- * Protomaps…) mediante las variables `VITE_MAP_TILE_URLS_*`, ya contempladas en
- * `connect-src`/`img-src` de la CSP. Acepta varias URLs separadas por comas para
- * rotar subdominios.
+ * CARTO dejó de servir sus teselas oscuras sin clave (`a.basemaps.cartocdn.com`
+ * devuelve una tesela con el texto "API KEY REQUIRED"), así que no se usa por
+ * defecto. Para usar un proveedor con clave propia (CARTO, MapTiler, Stadia…)
+ * basta con definir `VITE_MAP_STYLE_URL_DARK` con su URL de estilo, o
+ * `VITE_MAP_TILE_URLS_DARK` para forzar teselas raster. Acepta varias URLs
+ * separadas por comas para rotar subdominios.
  */
 type MapEnv = {
+  VITE_MAP_STYLE_URL_DARK?: string;
   VITE_MAP_TILE_URLS_LIGHT?: string;
   VITE_MAP_TILE_URLS_DARK?: string;
   VITE_MAP_TILE_ATTRIBUTION_LIGHT?: string;
@@ -24,21 +31,23 @@ type MapEnv = {
 };
 
 const DEFAULT_LIGHT_TILES = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
-const DEFAULT_DARK_TILES = [
-  'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-  'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-  'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-  'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-];
+
+// OpenFreeMap sirve estilos vectoriales completos (claros y oscuros) sin clave
+// ni límite de peticiones. Solo usamos el oscuro: el claro sigue en OSM para no
+// cambiar el aspecto del tema diurno.
+export const DEFAULT_DARK_STYLE_URL = 'https://tiles.openfreemap.org/styles/dark';
 
 const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
-const DARK_ATTRIBUTION = '&copy; OpenStreetMap contributors &copy; CARTO';
 
 // Los glifos son necesarios para la capa `symbol` que dibuja el recuento de
-// estaciones dentro de cada clúster.
-const DEFAULT_GLYPHS_URL = 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf';
+// estaciones dentro de cada clúster. OpenFreeMap expone "Noto Sans Regular",
+// que es la fuente que usa la capa de recuento.
+const DEFAULT_GLYPHS_URL = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
+
+export const MAP_FONT_STACK = ['Noto Sans Regular'];
 
 const DEFAULT_THEME_ENV: MapEnv = {
+  VITE_MAP_STYLE_URL_DARK: undefined,
   VITE_MAP_TILE_URLS_LIGHT: undefined,
   VITE_MAP_TILE_URLS_DARK: undefined,
   VITE_MAP_TILE_ATTRIBUTION_LIGHT: undefined,
@@ -59,17 +68,13 @@ function parseTileUrls(value: string | undefined, fallback: string[]): string[] 
   return urls.length > 0 ? urls : fallback;
 }
 
-export function buildMapStyle(theme: MapTheme, env: MapEnv = DEFAULT_THEME_ENV): StyleSpecification {
-  const isDark = theme === 'dark';
-  const tiles = parseTileUrls(
-    isDark ? env.VITE_MAP_TILE_URLS_DARK : env.VITE_MAP_TILE_URLS_LIGHT,
-    isDark ? DEFAULT_DARK_TILES : DEFAULT_LIGHT_TILES
-  );
-  const attribution = isDark
-    ? env.VITE_MAP_TILE_ATTRIBUTION_DARK?.trim() || DARK_ATTRIBUTION
-    : env.VITE_MAP_TILE_ATTRIBUTION_LIGHT?.trim() || OSM_ATTRIBUTION;
-  const glyphs = env.VITE_MAP_GLYPHS_URL?.trim() || DEFAULT_GLYPHS_URL;
-  const sourceId = isDark ? 'basemapDark' : 'basemapLight';
+function buildRasterStyle(
+  theme: MapTheme,
+  tiles: string[],
+  attribution: string,
+  glyphs: string
+): StyleSpecification {
+  const sourceId = theme === 'dark' ? 'basemapDark' : 'basemapLight';
 
   return {
     version: 8,
@@ -92,7 +97,26 @@ export function buildMapStyle(theme: MapTheme, env: MapEnv = DEFAULT_THEME_ENV):
   };
 }
 
-export function resolveMapStyle(theme: MapTheme): StyleSpecification {
+export function buildMapStyle(theme: MapTheme, env: MapEnv = DEFAULT_THEME_ENV): MapStyle {
+  const isDark = theme === 'dark';
+  const glyphs = env.VITE_MAP_GLYPHS_URL?.trim() || DEFAULT_GLYPHS_URL;
+  // Una lista de teselas explícita tiene prioridad: permite seguir usando un
+  // proveedor raster con clave propia sin tocar el resto de la configuración.
+  const explicitTiles = env.VITE_MAP_TILE_URLS_DARK?.trim();
+
+  if (isDark && !explicitTiles) {
+    return env.VITE_MAP_STYLE_URL_DARK?.trim() || DEFAULT_DARK_STYLE_URL;
+  }
+
+  const tiles = parseTileUrls(isDark ? explicitTiles : env.VITE_MAP_TILE_URLS_LIGHT, DEFAULT_LIGHT_TILES);
+  const attribution = isDark
+    ? env.VITE_MAP_TILE_ATTRIBUTION_DARK?.trim() || OSM_ATTRIBUTION
+    : env.VITE_MAP_TILE_ATTRIBUTION_LIGHT?.trim() || OSM_ATTRIBUTION;
+
+  return buildRasterStyle(theme, tiles, attribution, glyphs);
+}
+
+export function resolveMapStyle(theme: MapTheme): MapStyle {
   const env = import.meta.env as unknown as MapEnv;
   return buildMapStyle(theme, env);
 }
