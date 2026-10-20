@@ -90,9 +90,11 @@ These names describe modules that own behaviour behind a small interface.
   (`src/lib/monthly-report-sources.ts`) is the port a live or in-memory adapter
   fills; the module owns the per-source degradation policy, so it stays testable
   through one interface. It also owns the cache policy behind the same function:
-  the month in progress expires on a short TTL, a closed month is sealed with no
-  expiry and dropped only by `invalidateMonthlyReport(monthKey)`. Pure helpers
-  (seasonality, practical conclusions, redistribution) are internal.
+  the month in progress uses stale-while-revalidate (10 min soft / 6 h hard), a
+  closed month is sealed with no Redis expiry and backed by the
+  `MonthlyReportSnapshot` Postgres L2, and
+  `invalidateMonthlyReport(monthKey)` drops both cache keys and the snapshot.
+  Pure helpers (seasonality, practical conclusions, redistribution) are internal.
 - **Monthly report export module** (`src/lib/monthly-report-export.ts`) — owns
   the mapping from `MonthlyReport` to flat export tables (`CsvSection`), the
   section ids and their titles. Pure over the payload; the route and the UI only
