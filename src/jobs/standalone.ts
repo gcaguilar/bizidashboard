@@ -25,6 +25,10 @@ import {
   stopMonthlyReportDigestJob,
 } from '@/jobs/monthly-report-digest';
 import {
+  startRebalancingPrewarmJob,
+  stopRebalancingPrewarmJob,
+} from '@/jobs/rebalancing-prewarm';
+import {
   startOfUtcDay,
   syncDailySystemStats,
 } from '@/analytics/queries/daily-system';
@@ -103,6 +107,12 @@ export function initJobs(): void {
   // Fire-and-forget: el health server y los cron jobs no esperan al backfill.
   void bootstrapDailySystemStats();
 
+  // Calienta el informe de redistribucion en cuanto arranca el proceso (el job
+  // corre tambien en `runOnInit`), para que un despliegue con Redis frio no
+  // haga esperar a los primeros visitantes.
+  startRebalancingPrewarmJob();
+  logger.info('jobs.rebalancing_prewarm_started');
+
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
     startMonthlyReportSealJob();
@@ -131,6 +141,7 @@ export function shutdownJobs(): void {
   }
   stopCollectionJob();
   stopAnalyticsAggregationJob();
+  stopRebalancingPrewarmJob();
   stopMonthlyReportSealJob();
   stopMonthlyReportDigestJob();
   jobsInitialized = false;

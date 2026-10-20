@@ -34,6 +34,11 @@ COPY --from=builder /app/src/generated /app/src/generated
 COPY --from=builder /app/prisma /app/prisma
 COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 
+# Static data read by server modules (district GeoJSON). El prewarm de
+# redistribucion construye el mismo informe que el servidor web, asi que
+# necesita el fichero para asignar barrios.
+COPY --from=builder /app/public /app/public
+
 # Production node_modules
 COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json

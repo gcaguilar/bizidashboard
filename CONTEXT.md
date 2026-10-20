@@ -85,6 +85,15 @@ These names describe modules that own behaviour behind a small interface.
   definition of a station's demand difference (`(bikesMax - bikesMin) +
   (anchorsMax - anchorsMin)`) and its aggregates. Rankings, reports and
   conclusions compose these fragments; no query re-inlines the formula.
+- **Rebalancing report module** (`src/lib/rebalancing-report.ts`) — assembles the
+  15-day diagnostic from the analytics reads and owns its cache policy
+  (stale-while-revalidate, 5 min soft / 6 h hard) behind
+  `buildRebalancingReport(options)`. The 6 h hard TTL is only a safety net: the
+  `rebalancing-prewarm` cron (`src/jobs/rebalancing-prewarm.ts`) refreshes the
+  base report every 15 minutes, so a visitor never waits for the aggregation.
+  The public landing does **not** use this module: it reads
+  `getRebalancingAvailabilitySummary` (`src/analytics/queries/rebalancing.ts`),
+  which returns the three scalars the page shows from the hourly rollup alone.
 - **Monthly report module** (`src/lib/monthly-report.ts`) — owns report assembly
   behind `buildMonthlyReport(monthKey, nowIso, sources)`. `MonthlyReportSources`
   (`src/lib/monthly-report-sources.ts`) is the port a live or in-memory adapter

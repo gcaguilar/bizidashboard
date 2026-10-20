@@ -8,6 +8,8 @@ const reportSealStartMock = vi.fn();
 const reportSealStopMock = vi.fn();
 const reportDigestStartMock = vi.fn();
 const reportDigestStopMock = vi.fn();
+const prewarmStartMock = vi.fn();
+const prewarmStopMock = vi.fn();
 const loggerInfoMock = vi.fn();
 const acquireLockMock = vi.fn();
 const lockReleaseMock = vi.fn();
@@ -31,6 +33,11 @@ vi.mock('@/jobs/monthly-report-seal', () => ({
 vi.mock('@/jobs/monthly-report-digest', () => ({
   startMonthlyReportDigestJob: reportDigestStartMock,
   stopMonthlyReportDigestJob: reportDigestStopMock,
+}));
+
+vi.mock('@/jobs/rebalancing-prewarm', () => ({
+  startRebalancingPrewarmJob: prewarmStartMock,
+  stopRebalancingPrewarmJob: prewarmStopMock,
 }));
 
 vi.mock('@/analytics/job-lock', () => ({
@@ -98,6 +105,7 @@ describe('standalone jobs', () => {
     process.env.NODE_ENV = 'production';
     await import('@/jobs/standalone');
     expect(collectionStartMock).toHaveBeenCalledTimes(1);
+    expect(prewarmStartMock).toHaveBeenCalledTimes(1);
     expect(loggerInfoMock).toHaveBeenCalledWith('jobs.initializing');
     expect(loggerInfoMock).toHaveBeenCalledWith('jobs.collection_started');
   });
@@ -142,6 +150,7 @@ describe('standalone jobs', () => {
     shutdownJobs();
     expect(collectionStopMock).toHaveBeenCalledTimes(1);
     expect(analyticsStopMock).toHaveBeenCalledTimes(1);
+    expect(prewarmStopMock).toHaveBeenCalledTimes(1);
     expect(reportSealStopMock).toHaveBeenCalledTimes(1);
     expect(reportDigestStopMock).toHaveBeenCalledTimes(1);
     expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);

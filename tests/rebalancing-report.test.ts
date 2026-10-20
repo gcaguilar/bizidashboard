@@ -84,7 +84,7 @@ describe('buildRebalancingReport', () => {
 
     expect(withStaleCacheMock).toHaveBeenCalledWith(
       'rebalancing-report:days=15:base',
-      { softTtlSeconds: 300, hardTtlSeconds: 900 },
+      { softTtlSeconds: 300, hardTtlSeconds: 21_600 },
       expect.any(Function)
     );
     expect(report.districtFilter).toBe('Centro');

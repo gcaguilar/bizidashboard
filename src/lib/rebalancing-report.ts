@@ -28,10 +28,13 @@ export async function buildRebalancingReport(options: {
   const cacheKey = `rebalancing-report:days=${days}:base`;
 
   // El informe base agrega 15 dias de snapshots (millones de filas). Se sirve
-  // con stale-while-revalidate: entre 5 y 15 minutos se devuelve la version
-  // anterior al instante y se recalcula en segundo plano, en lugar de bloquear
-  // la peticion durante decenas de segundos.
-  const baseReport = await withStaleCache(cacheKey, { softTtlSeconds: 300, hardTtlSeconds: 900 }, async () => {
+  // con stale-while-revalidate: entre 5 minutos y 6 horas se devuelve la
+  // version anterior al instante y se recalcula en segundo plano, en lugar de
+  // bloquear la peticion durante decenas de segundos. El hard TTL es amplio a
+  // proposito: el job `rebalancing-prewarm` refresca la entrada cada 15
+  // minutos, asi que un usuario nunca deberia pagar el computo en su request
+  // (ni siquiera tras un despliegue o una noche sin trafico).
+  const baseReport = await withStaleCache(cacheKey, { softTtlSeconds: 300, hardTtlSeconds: 21_600 }, async () => {
     // 1. Parallel fetch
     const [
       stations,
