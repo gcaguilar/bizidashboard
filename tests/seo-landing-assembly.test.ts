@@ -7,7 +7,6 @@ import type { SeoLandingSources } from '@/lib/seo-landing-sources.server';
 import type { DistrictSeoRow } from '@/lib/seo-districts';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import type { EnrichedRankingRow, RankingsResponse } from '@/lib/api-types';
-import type { RebalancingReport } from '@/types/rebalancing';
 
 const NOW = '2026-06-01T12:00:00.000Z';
 
@@ -136,8 +135,8 @@ function createFixtureSources(
       calls.push('months');
       return { months: [], generatedAt: NOW };
     },
-    async loadRebalancingReport() {
-      calls.push('rebalancing');
+    async loadAvailabilitySummary(days) {
+      calls.push(`rebalancing-summary:${days}`);
       return null;
     },
     ...overrides,
@@ -237,34 +236,35 @@ describe('SEO landing content assembly', () => {
     ]);
   });
 
-  it('builds redistribucion from the rebalancing report fixture', async () => {
+  it('builds redistribucion from the availability summary fixture', async () => {
     const calls: string[] = [];
 
     const data = await getSeoLandingPageData(
       'redistribucion',
       createFixtureSources(calls, {
-        async loadRebalancingReport() {
-          calls.push('rebalancing');
+        async loadAvailabilitySummary(days) {
+          calls.push(`rebalancing-summary:${days}`);
           return {
+            stationCount: 130,
+            pctTimeEmpty: 0.12,
+            pctTimeFull: 0.08,
             generatedAt: '2026-04-01T10:00:00.000Z',
-            summary: { totalStations: 130 },
-            kpis: { service: { systemPctTimeEmpty: 0.12, systemPctTimeFull: 0.08 } },
-          } as unknown as RebalancingReport;
+          };
         },
       })
     );
 
-    expect(calls).toEqual(['rebalancing']);
+    expect(calls).toEqual(['rebalancing-summary:15']);
     expect(data.content.generatedAt).toBe('2026-04-01T10:00:00.000Z');
     expect(data.content.stats.map((stat) => stat.value)).toEqual(['130', '12%', '8%']);
   });
 
-  it('degrades redistribucion to the stations snapshot when the report fixture is absent', async () => {
+  it('degrades redistribucion to the stations snapshot when the summary fixture is absent', async () => {
     const calls: string[] = [];
 
     const data = await getSeoLandingPageData('redistribucion', createFixtureSources(calls));
 
-    expect(calls).toEqual(['rebalancing', 'stations']);
+    expect(calls).toEqual(['rebalancing-summary:15', 'stations']);
     // Ocupacion media = (5/10 + 20/20) / 2 = 0.75 (solo estaciones con capacidad).
     expect(data.content.stats.map((stat) => stat.value)).toEqual(['3', '25%', '75%']);
     expect(data.content.generatedAt).toBe(NOW);

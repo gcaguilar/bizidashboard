@@ -852,13 +852,15 @@ export async function buildRedistribucionContent(
   let pctTimeFull = 0;
   let generatedAt = nowIso;
 
-  const report = await sources.loadRebalancingReport();
+  // Solo hacen falta tres escalares: el informe completo (15 dias de
+  // StationStatus) se reserva para el dashboard y la API.
+  const summary = await sources.loadAvailabilitySummary(15);
 
-  if (report && report.summary.totalStations > 0) {
-    generatedAt = report.generatedAt;
-    stationCount = report.summary.totalStations;
-    pctTimeEmpty = report.kpis.service.systemPctTimeEmpty;
-    pctTimeFull = report.kpis.service.systemPctTimeFull;
+  if (summary && summary.stationCount > 0) {
+    stationCount = summary.stationCount;
+    pctTimeEmpty = summary.pctTimeEmpty;
+    pctTimeFull = summary.pctTimeFull;
+    generatedAt = summary.generatedAt ?? nowIso;
   } else {
     const stationsResponse = await sources.loadStations();
     generatedAt = stationsResponse.generatedAt;

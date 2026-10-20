@@ -2,7 +2,12 @@ import { Prisma } from '@/generated/prisma/client';
 import { coalesceSumDemand, sumDemand } from './demand-sql';
 import { prisma } from '@/lib/db';
 import { haversineDistanceMeters } from '@/lib/geo';
-import type { NearbyStation, StationBaseMetrics, TimeBandMetrics } from '@/types/rebalancing';
+import type {
+  NearbyStation,
+  RebalancingAvailabilitySummary,
+  StationBaseMetrics,
+  TimeBandMetrics,
+} from '@/types/rebalancing';
 
 export type CriticalEpisodeRow = {
   stationId: string;
@@ -88,6 +93,62 @@ export async function getStationGlobalMetrics(days: number = 15): Promise<Record
   }
 
   return map;
+}
+
+/**
+ * Resumen barato para las landings publicas de redistribucion.
+ *
+ * Devuelve los mismos tres escalares que `buildRebalancingReport` expone en
+ * `summary.totalStations` y `kpis.service.systemPctTimeEmpty/systemPctTimeFull`
+ * (media por estacion sobre el rollup horario), pero leyendo solo
+ * `HourlyStationStat` (~100k filas en 15 dias) en lugar de `StationStatus`
+ * (~3M) y sin ejecutar el motor de clasificacion ni el matching de traslados.
+ */
+export async function getRebalancingAvailabilitySummary(
+  days: number = 15
+): Promise<RebalancingAvailabilitySummary> {
+  const filter = buildRangeFilter('bucketStart', days);
+
+  const rows = await prisma.$queryRaw<
+    Array<{
+      stationCount: number;
+      pctTimeEmpty: number;
+      pctTimeFull: number;
+      latestBucketStart: Date | string | null;
+    }>
+  >`
+    WITH per_station AS (
+      SELECT
+        "stationId",
+        COUNT(*) FILTER (WHERE "bikesMin" <= 0)::float / NULLIF(COUNT(*), 0) AS "pctTimeEmpty",
+        COUNT(*) FILTER (WHERE "anchorsMin" <= 0)::float / NULLIF(COUNT(*), 0) AS "pctTimeFull",
+        MAX("bucketStart") AS "latestBucketStart"
+      FROM "HourlyStationStat"
+      WHERE ${filter}
+      GROUP BY "stationId"
+    )
+    SELECT
+      COUNT(*)::int AS "stationCount",
+      COALESCE(AVG("pctTimeEmpty"), 0) AS "pctTimeEmpty",
+      COALESCE(AVG("pctTimeFull"), 0) AS "pctTimeFull",
+      MAX("latestBucketStart") AS "latestBucketStart"
+    FROM per_station;
+  `;
+
+  const row = rows[0];
+
+  if (!row) {
+    return { stationCount: 0, pctTimeEmpty: 0, pctTimeFull: 0, generatedAt: null };
+  }
+
+  const latest = row.latestBucketStart;
+
+  return {
+    stationCount: Number(row.stationCount ?? 0),
+    pctTimeEmpty: Number(row.pctTimeEmpty ?? 0),
+    pctTimeFull: Number(row.pctTimeFull ?? 0),
+    generatedAt: latest ? new Date(latest).toISOString() : null,
+  };
 }
 
 export async function getStationTimeBandMetrics(days: number = 15): Promise<Record<string, TimeBandMetrics[]>> {

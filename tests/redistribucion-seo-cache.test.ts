@@ -4,13 +4,13 @@ import { getSeoPageConfig } from '@/lib/seo-pages';
 
 vi.mock('server-only', () => ({}));
 
-const { buildRebalancingReportMock, fetchStationsMock } = vi.hoisted(() => ({
-  buildRebalancingReportMock: vi.fn(),
+const { availabilitySummaryMock, fetchStationsMock } = vi.hoisted(() => ({
+  availabilitySummaryMock: vi.fn(),
   fetchStationsMock: vi.fn(),
 }));
 
-vi.mock('@/lib/rebalancing-report', () => ({
-  buildRebalancingReport: buildRebalancingReportMock,
+vi.mock('@/analytics/queries/rebalancing', () => ({
+  getRebalancingAvailabilitySummary: availabilitySummaryMock,
 }));
 
 vi.mock('@/lib/api', async (importOriginal) => {
@@ -32,20 +32,16 @@ const redistribucionConfig = getSeoPageConfig('redistribucion');
 
 describe('redistribucion public landing cache contract', () => {
   beforeEach(() => {
-    buildRebalancingReportMock.mockReset();
+    availabilitySummaryMock.mockReset();
     fetchStationsMock.mockReset();
   });
 
-  it('uses the rebalancing report generatedAt as the stable modified date', async () => {
-    buildRebalancingReportMock.mockResolvedValue({
+  it('uses the availability summary as the stable modified date', async () => {
+    availabilitySummaryMock.mockResolvedValue({
+      stationCount: 130,
+      pctTimeEmpty: 0.12,
+      pctTimeFull: 0.08,
       generatedAt: '2026-04-01T10:00:00.000Z',
-      summary: { totalStations: 130 },
-      kpis: {
-        service: {
-          systemPctTimeEmpty: 0.12,
-          systemPctTimeFull: 0.08,
-        },
-      },
     });
 
     const content = await buildRedistribucionContent(
@@ -57,8 +53,8 @@ describe('redistribucion public landing cache contract', () => {
     expect(content.stats[0]?.value).toBe('130');
   });
 
-  it('uses the stations snapshot generatedAt when the report is unavailable', async () => {
-    buildRebalancingReportMock.mockRejectedValue(new Error('report unavailable'));
+  it('uses the stations snapshot generatedAt when the summary is unavailable', async () => {
+    availabilitySummaryMock.mockRejectedValue(new Error('summary unavailable'));
     fetchStationsMock.mockResolvedValue({
       generatedAt: '2026-04-01T11:00:00.000Z',
       stations: [
@@ -99,6 +95,14 @@ describe('redistribucion public landing cache contract', () => {
 
     expect(source).toContain('requestIdleCallback');
     expect(source).toContain('cancelIdleCallback');
+  });
+
+  it('keeps the redistribucion landing on the cheap summary source', () => {
+    const sources = readFileSync('src/lib/seo-landing-sources.server.ts', 'utf8');
+
+    expect(sources).toContain('getRebalancingAvailabilitySummary');
+    expect(sources).not.toContain('rebalancing-report');
+    expect(sources).not.toContain('loadRebalancingReport');
   });
 
   it('caches only the redistribucion server-function payload explicitly', () => {

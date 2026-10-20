@@ -166,6 +166,20 @@ export type BaselineComparison = {
   recommended: ReportKPIs['impact'] & { label: string; totalMoves: number; emptiesAvoided: number; fullsAvoided: number };
 };
 
+/**
+ * Resumen de disponibilidad de la red que consumen las landings publicas.
+ * Reproduce los tres escalares del informe completo (estaciones monitorizadas y
+ * porcentaje de tiempo vacia/llena) leyendo solo el rollup horario, sin pasar
+ * por el motor de diagnostico ni por StationStatus.
+ */
+export type RebalancingAvailabilitySummary = {
+  stationCount: number;
+  pctTimeEmpty: number;
+  pctTimeFull: number;
+  /** Ultimo bucket horario usado; null si no hay datos en la ventana. */
+  generatedAt: string | null;
+};
+
 export type RebalancingReport = {
   generatedAt: string;
   modelVersion: string;

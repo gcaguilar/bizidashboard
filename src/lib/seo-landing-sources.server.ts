@@ -18,7 +18,8 @@ import {
 } from '@/lib/mobility-conclusions';
 import { getDistrictSeoRows, type DistrictSeoRow } from '@/lib/seo-districts';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
-import type { RebalancingReport } from '@/types/rebalancing';
+import { getRebalancingAvailabilitySummary } from '@/analytics/queries/rebalancing';
+import type { RebalancingAvailabilitySummary } from '@/types/rebalancing';
 
 /**
  * Puerto de fuentes de las landings SEO. Los constructores de contenido son
@@ -34,7 +35,12 @@ export type SeoLandingSources = {
   loadMonthlySeries(limitMonths: number): Promise<MonthlyDemandSeriesRow[]>;
   loadRecentConclusions(): Promise<MobilityConclusionsPayload | null>;
   loadAvailableMonths(): Promise<AvailableMonthsResponse>;
-  loadRebalancingReport(): Promise<RebalancingReport | null>;
+  /**
+   * Resumen barato de disponibilidad para la landing de redistribucion. No
+   * devuelve el informe completo: la landing publica solo necesita el numero
+   * de estaciones y los porcentajes de tiempo vacia/llena.
+   */
+  loadAvailabilitySummary(days: number): Promise<RebalancingAvailabilitySummary | null>;
 };
 
 function warnDegraded(source: string, error: unknown): void {
@@ -125,13 +131,11 @@ export function createLiveSeoLandingSources(nowIso: string): SeoLandingSources {
       });
     },
 
-    loadRebalancingReport() {
-      return import('@/lib/rebalancing-report')
-        .then(({ buildRebalancingReport }) => buildRebalancingReport({ days: 15 }))
-        .catch((error) => {
-          warnDegraded('rebalancing-report', error);
-          return null;
-        });
+    loadAvailabilitySummary(days) {
+      return getRebalancingAvailabilitySummary(days).catch((error) => {
+        warnDegraded('rebalancing-summary', error);
+        return null;
+      });
     },
   };
 }
