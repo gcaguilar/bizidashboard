@@ -73,6 +73,16 @@ export const appRoutes = {
   cityStationsAlias: (city: string) => `/${encodeSegment(city)}/estaciones`,
   beta: () => '/beta',
   about: () => '/about',
+  prensa: () => '/prensa',
+  contacto: () => '/contacto',
+  privacidad: () => '/privacidad',
+  avisoLegal: () => '/aviso-legal',
+  faq: () => '/preguntas-frecuentes',
+  feed: () => '/feed.xml',
+  cuantasEstaciones: () => '/cuantas-estaciones-tiene-bizi-zaragoza',
+  dondeHayBici: () => '/donde-hay-bici-zaragoza',
+  queAppBiciPublica: () => '/que-app-usar-bici-publica',
+  comoFuncionaBizi: () => '/como-funciona-bizi-zaragoza',
   biciradar: () => '/biciradar',
   utilityLanding: () => '/estadisticas/mapa',
   insightsLanding: () => '/estadisticas',
@@ -246,6 +256,87 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     },
   },
   {
+    id: 'dashboard',
+    href: appRoutes.dashboard(),
+    label: 'Rendimiento de red',
+    sitemap: {
+      changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+  },
+  {
+    id: 'about',
+    href: appRoutes.about(),
+    label: 'Sobre DatosBizi',
+    sitemap: {
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+  },
+  {
+    id: 'prensa',
+    href: appRoutes.prensa(),
+    label: 'Prensa',
+    sitemap: {
+      changeFrequency: 'monthly',
+      priority: 0.55,
+    },
+  },
+  {
+    id: 'contacto',
+    href: appRoutes.contacto(),
+    label: 'Contacto',
+    sitemap: {
+      changeFrequency: 'yearly',
+      priority: 0.4,
+    },
+  },
+  {
+    id: 'faq',
+    href: appRoutes.faq(),
+    label: 'Preguntas frecuentes',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+  },
+  {
+    id: 'cuantas-estaciones',
+    href: appRoutes.cuantasEstaciones(),
+    label: 'Cuántas estaciones tiene Bizi Zaragoza',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.75,
+    },
+  },
+  {
+    id: 'donde-hay-bici',
+    href: appRoutes.dondeHayBici(),
+    label: 'Dónde hay bici en Zaragoza',
+    sitemap: {
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+  },
+  {
+    id: 'que-app-bici-publica',
+    href: appRoutes.queAppBiciPublica(),
+    label: 'Qué app usar para bicis públicas',
+    sitemap: {
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+  },
+  {
+    id: 'como-funciona-bizi',
+    href: appRoutes.comoFuncionaBizi(),
+    label: 'Cómo funciona Bizi Zaragoza',
+    sitemap: {
+      changeFrequency: 'monthly',
+      priority: 0.65,
+    },
+  },
+  {
     id: 'biciradar',
     href: appRoutes.biciradar(),
     label: 'Bici Radar',
@@ -363,15 +454,6 @@ export const TOOL_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: {
       changeFrequency: 'daily',
       priority: 0.84,
-    },
-  },
-  {
-    id: 'dashboard',
-    href: appRoutes.dashboard(),
-    label: 'Mapa avanzado',
-    sitemap: {
-      changeFrequency: 'hourly',
-      priority: 0.9,
     },
   },
   {

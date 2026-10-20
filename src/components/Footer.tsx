@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
-import { FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
+import { FOOTER_LEGAL_ITEMS, FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
 import { formatDateLabel } from '@/lib/format'
 import type { FooterData } from '@/server-functions/footer'
 
@@ -56,6 +56,13 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
                 ))}
               </nav>
             ))}
+            <nav aria-label="Información y legal" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-[var(--border)] pt-2 text-xs text-[var(--muted)]">
+              {FOOTER_LEGAL_ITEMS.map(link => (
+                <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
+                  {link.label}
+                </TrackedLink>
+              ))}
+            </nav>
           </div>
 
           <div className="text-xs text-[var(--muted)] text-center space-y-1">

@@ -12,17 +12,23 @@ import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as SplatRouteImport } from './app/$'
 import { Route as AboutRouteImport } from './app/about'
+import { Route as AvisoLegalRouteImport } from './app/aviso-legal'
 import { Route as BarriosBiziZaragozaRouteImport } from './app/barrios-bizi-zaragoza'
 import { Route as BiciradarRouteImport } from './app/biciradar'
+import { Route as ComoFuncionaBiziZaragozaRouteImport } from './app/como-funciona-bizi-zaragoza'
 import { Route as CompararRouteImport } from './app/comparar'
+import { Route as ContactoRouteImport } from './app/contacto'
+import { Route as CuantasEstacionesTieneBiziZaragozaRouteImport } from './app/cuantas-estaciones-tiene-bizi-zaragoza'
 import { Route as DashboardRouteRouteImport } from './app/dashboard/route'
 import { Route as DevelopersRouteImport } from './app/developers'
+import { Route as DondeHayBiciZaragozaRouteImport } from './app/donde-hay-bici-zaragoza'
 import { Route as EstacionesConMasBicisRouteImport } from './app/estaciones-con-mas-bicis'
 import { Route as EstacionesMasUsadasZaragozaRouteImport } from './app/estaciones-mas-usadas-zaragoza'
 import { Route as EstadisticasRouteRouteImport } from './app/estadisticas/route'
 import { Route as EstadisticasBiziZaragozaRouteImport } from './app/estadisticas-bizi-zaragoza'
 import { Route as EstadoRouteImport } from './app/estado'
 import { Route as ExplorarRouteImport } from './app/explorar'
+import { Route as FeedDotxmlRouteImport } from './app/feed[.]xml'
 import { Route as InformesRouteImport } from './app/informes'
 import { Route as InformesMensualesBiziZaragozaRouteImport } from './app/informes-mensuales-bizi-zaragoza'
 import { Route as LlmTxtRouteImport } from './app/llm-txt'
@@ -33,6 +39,10 @@ import { Route as ManifestDotjsonRouteImport } from './app/manifest[.]json'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
 import { Route as McpRouteImport } from './app/mcp'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
+import { Route as PreguntasFrecuentesRouteImport } from './app/preguntas-frecuentes'
+import { Route as PrensaRouteImport } from './app/prensa'
+import { Route as PrivacidadRouteImport } from './app/privacidad'
+import { Route as QueAppUsarBiciPublicaRouteImport } from './app/que-app-usar-bici-publica'
 import { Route as RankingEstacionesBiziRouteImport } from './app/ranking-estaciones-bizi'
 import { Route as RedistribucionRouteImport } from './app/redistribucion'
 import { Route as RobotsDottxtRouteImport } from './app/robots[.]txt'
@@ -123,6 +133,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AvisoLegalRoute = AvisoLegalRouteImport.update({
+  id: '/aviso-legal',
+  path: '/aviso-legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BarriosBiziZaragozaRoute = BarriosBiziZaragozaRouteImport.update({
   id: '/barrios-bizi-zaragoza',
   path: '/barrios-bizi-zaragoza',
@@ -133,11 +148,28 @@ const BiciradarRoute = BiciradarRouteImport.update({
   path: '/biciradar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComoFuncionaBiziZaragozaRoute =
+  ComoFuncionaBiziZaragozaRouteImport.update({
+    id: '/como-funciona-bizi-zaragoza',
+    path: '/como-funciona-bizi-zaragoza',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CompararRoute = CompararRouteImport.update({
   id: '/comparar',
   path: '/comparar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactoRoute = ContactoRouteImport.update({
+  id: '/contacto',
+  path: '/contacto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuantasEstacionesTieneBiziZaragozaRoute =
+  CuantasEstacionesTieneBiziZaragozaRouteImport.update({
+    id: '/cuantas-estaciones-tiene-bizi-zaragoza',
+    path: '/cuantas-estaciones-tiene-bizi-zaragoza',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -146,6 +178,11 @@ const DashboardRouteRoute = DashboardRouteRouteImport.update({
 const DevelopersRoute = DevelopersRouteImport.update({
   id: '/developers',
   path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DondeHayBiciZaragozaRoute = DondeHayBiciZaragozaRouteImport.update({
+  id: '/donde-hay-bici-zaragoza',
+  path: '/donde-hay-bici-zaragoza',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstacionesConMasBicisRoute = EstacionesConMasBicisRouteImport.update({
@@ -178,6 +215,11 @@ const EstadoRoute = EstadoRouteImport.update({
 const ExplorarRoute = ExplorarRouteImport.update({
   id: '/explorar',
   path: '/explorar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InformesRoute = InformesRouteImport.update({
@@ -230,6 +272,26 @@ const McpRoute = McpRouteImport.update({
 const MetodologiaRoute = MetodologiaRouteImport.update({
   id: '/metodologia',
   path: '/metodologia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreguntasFrecuentesRoute = PreguntasFrecuentesRouteImport.update({
+  id: '/preguntas-frecuentes',
+  path: '/preguntas-frecuentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrensaRoute = PrensaRouteImport.update({
+  id: '/prensa',
+  path: '/prensa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QueAppUsarBiciPublicaRoute = QueAppUsarBiciPublicaRouteImport.update({
+  id: '/que-app-usar-bici-publica',
+  path: '/que-app-usar-bici-publica',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RankingEstacionesBiziRoute = RankingEstacionesBiziRouteImport.update({
@@ -627,15 +689,21 @@ export interface FileRoutesByFullPath {
   '/estadisticas': typeof EstadisticasRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
+  '/aviso-legal': typeof AvisoLegalRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/biciradar': typeof BiciradarRoute
+  '/como-funciona-bizi-zaragoza': typeof ComoFuncionaBiziZaragozaRoute
   '/comparar': typeof CompararRoute
+  '/contacto': typeof ContactoRoute
+  '/cuantas-estaciones-tiene-bizi-zaragoza': typeof CuantasEstacionesTieneBiziZaragozaRoute
   '/developers': typeof DevelopersRoute
+  '/donde-hay-bici-zaragoza': typeof DondeHayBiciZaragozaRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
   '/estadisticas-bizi-zaragoza': typeof EstadisticasBiziZaragozaRoute
   '/estado': typeof EstadoRoute
   '/explorar': typeof ExplorarRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
   '/llm-txt': typeof LlmTxtRoute
@@ -646,6 +714,10 @@ export interface FileRoutesByFullPath {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
+  '/prensa': typeof PrensaRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/que-app-usar-bici-publica': typeof QueAppUsarBiciPublicaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -725,15 +797,21 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
+  '/aviso-legal': typeof AvisoLegalRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/biciradar': typeof BiciradarRoute
+  '/como-funciona-bizi-zaragoza': typeof ComoFuncionaBiziZaragozaRoute
   '/comparar': typeof CompararRoute
+  '/contacto': typeof ContactoRoute
+  '/cuantas-estaciones-tiene-bizi-zaragoza': typeof CuantasEstacionesTieneBiziZaragozaRoute
   '/developers': typeof DevelopersRoute
+  '/donde-hay-bici-zaragoza': typeof DondeHayBiciZaragozaRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
   '/estadisticas-bizi-zaragoza': typeof EstadisticasBiziZaragozaRoute
   '/estado': typeof EstadoRoute
   '/explorar': typeof ExplorarRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
   '/llm-txt': typeof LlmTxtRoute
   '/llm.txt': typeof LlmDottxtRoute
@@ -743,6 +821,10 @@ export interface FileRoutesByTo {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
+  '/prensa': typeof PrensaRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/que-app-usar-bici-publica': typeof QueAppUsarBiciPublicaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -823,15 +905,21 @@ export interface FileRoutesById {
   '/estadisticas': typeof EstadisticasRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
+  '/aviso-legal': typeof AvisoLegalRoute
   '/barrios-bizi-zaragoza': typeof BarriosBiziZaragozaRoute
   '/biciradar': typeof BiciradarRoute
+  '/como-funciona-bizi-zaragoza': typeof ComoFuncionaBiziZaragozaRoute
   '/comparar': typeof CompararRoute
+  '/contacto': typeof ContactoRoute
+  '/cuantas-estaciones-tiene-bizi-zaragoza': typeof CuantasEstacionesTieneBiziZaragozaRoute
   '/developers': typeof DevelopersRoute
+  '/donde-hay-bici-zaragoza': typeof DondeHayBiciZaragozaRoute
   '/estaciones-con-mas-bicis': typeof EstacionesConMasBicisRoute
   '/estaciones-mas-usadas-zaragoza': typeof EstacionesMasUsadasZaragozaRoute
   '/estadisticas-bizi-zaragoza': typeof EstadisticasBiziZaragozaRoute
   '/estado': typeof EstadoRoute
   '/explorar': typeof ExplorarRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
   '/llm-txt': typeof LlmTxtRoute
@@ -842,6 +930,10 @@ export interface FileRoutesById {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
+  '/prensa': typeof PrensaRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/que-app-usar-bici-publica': typeof QueAppUsarBiciPublicaRoute
   '/ranking-estaciones-bizi': typeof RankingEstacionesBiziRoute
   '/redistribucion': typeof RedistribucionRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -925,15 +1017,21 @@ export interface FileRouteTypes {
     | '/estadisticas'
     | '/$'
     | '/about'
+    | '/aviso-legal'
     | '/barrios-bizi-zaragoza'
     | '/biciradar'
+    | '/como-funciona-bizi-zaragoza'
     | '/comparar'
+    | '/contacto'
+    | '/cuantas-estaciones-tiene-bizi-zaragoza'
     | '/developers'
+    | '/donde-hay-bici-zaragoza'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
     | '/estadisticas-bizi-zaragoza'
     | '/estado'
     | '/explorar'
+    | '/feed.xml'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
     | '/llm-txt'
@@ -944,6 +1042,10 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/preguntas-frecuentes'
+    | '/prensa'
+    | '/privacidad'
+    | '/que-app-usar-bici-publica'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
     | '/robots.txt'
@@ -1023,15 +1125,21 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/about'
+    | '/aviso-legal'
     | '/barrios-bizi-zaragoza'
     | '/biciradar'
+    | '/como-funciona-bizi-zaragoza'
     | '/comparar'
+    | '/contacto'
+    | '/cuantas-estaciones-tiene-bizi-zaragoza'
     | '/developers'
+    | '/donde-hay-bici-zaragoza'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
     | '/estadisticas-bizi-zaragoza'
     | '/estado'
     | '/explorar'
+    | '/feed.xml'
     | '/informes-mensuales-bizi-zaragoza'
     | '/llm-txt'
     | '/llm.txt'
@@ -1041,6 +1149,10 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/preguntas-frecuentes'
+    | '/prensa'
+    | '/privacidad'
+    | '/que-app-usar-bici-publica'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
     | '/robots.txt'
@@ -1120,15 +1232,21 @@ export interface FileRouteTypes {
     | '/estadisticas'
     | '/$'
     | '/about'
+    | '/aviso-legal'
     | '/barrios-bizi-zaragoza'
     | '/biciradar'
+    | '/como-funciona-bizi-zaragoza'
     | '/comparar'
+    | '/contacto'
+    | '/cuantas-estaciones-tiene-bizi-zaragoza'
     | '/developers'
+    | '/donde-hay-bici-zaragoza'
     | '/estaciones-con-mas-bicis'
     | '/estaciones-mas-usadas-zaragoza'
     | '/estadisticas-bizi-zaragoza'
     | '/estado'
     | '/explorar'
+    | '/feed.xml'
     | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
     | '/llm-txt'
@@ -1139,6 +1257,10 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/preguntas-frecuentes'
+    | '/prensa'
+    | '/privacidad'
+    | '/que-app-usar-bici-publica'
     | '/ranking-estaciones-bizi'
     | '/redistribucion'
     | '/robots.txt'
@@ -1221,15 +1343,21 @@ export interface RootRouteChildren {
   EstadisticasRouteRoute: typeof EstadisticasRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
   AboutRoute: typeof AboutRoute
+  AvisoLegalRoute: typeof AvisoLegalRoute
   BarriosBiziZaragozaRoute: typeof BarriosBiziZaragozaRoute
   BiciradarRoute: typeof BiciradarRoute
+  ComoFuncionaBiziZaragozaRoute: typeof ComoFuncionaBiziZaragozaRoute
   CompararRoute: typeof CompararRoute
+  ContactoRoute: typeof ContactoRoute
+  CuantasEstacionesTieneBiziZaragozaRoute: typeof CuantasEstacionesTieneBiziZaragozaRoute
   DevelopersRoute: typeof DevelopersRoute
+  DondeHayBiciZaragozaRoute: typeof DondeHayBiciZaragozaRoute
   EstacionesConMasBicisRoute: typeof EstacionesConMasBicisRoute
   EstacionesMasUsadasZaragozaRoute: typeof EstacionesMasUsadasZaragozaRoute
   EstadisticasBiziZaragozaRoute: typeof EstadisticasBiziZaragozaRoute
   EstadoRoute: typeof EstadoRoute
   ExplorarRoute: typeof ExplorarRoute
+  FeedDotxmlRoute: typeof FeedDotxmlRoute
   InformesRoute: typeof InformesRouteWithChildren
   InformesMensualesBiziZaragozaRoute: typeof InformesMensualesBiziZaragozaRoute
   LlmTxtRoute: typeof LlmTxtRoute
@@ -1240,6 +1368,10 @@ export interface RootRouteChildren {
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
   McpRoute: typeof McpRoute
   MetodologiaRoute: typeof MetodologiaRoute
+  PreguntasFrecuentesRoute: typeof PreguntasFrecuentesRoute
+  PrensaRoute: typeof PrensaRoute
+  PrivacidadRoute: typeof PrivacidadRoute
+  QueAppUsarBiciPublicaRoute: typeof QueAppUsarBiciPublicaRoute
   RankingEstacionesBiziRoute: typeof RankingEstacionesBiziRoute
   RedistribucionRoute: typeof RedistribucionRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -1313,6 +1445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aviso-legal': {
+      id: '/aviso-legal'
+      path: '/aviso-legal'
+      fullPath: '/aviso-legal'
+      preLoaderRoute: typeof AvisoLegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/barrios-bizi-zaragoza': {
       id: '/barrios-bizi-zaragoza'
       path: '/barrios-bizi-zaragoza'
@@ -1327,11 +1466,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BiciradarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/como-funciona-bizi-zaragoza': {
+      id: '/como-funciona-bizi-zaragoza'
+      path: '/como-funciona-bizi-zaragoza'
+      fullPath: '/como-funciona-bizi-zaragoza'
+      preLoaderRoute: typeof ComoFuncionaBiziZaragozaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comparar': {
       id: '/comparar'
       path: '/comparar'
       fullPath: '/comparar'
       preLoaderRoute: typeof CompararRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contacto': {
+      id: '/contacto'
+      path: '/contacto'
+      fullPath: '/contacto'
+      preLoaderRoute: typeof ContactoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuantas-estaciones-tiene-bizi-zaragoza': {
+      id: '/cuantas-estaciones-tiene-bizi-zaragoza'
+      path: '/cuantas-estaciones-tiene-bizi-zaragoza'
+      fullPath: '/cuantas-estaciones-tiene-bizi-zaragoza'
+      preLoaderRoute: typeof CuantasEstacionesTieneBiziZaragozaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1346,6 +1506,13 @@ declare module '@tanstack/react-router' {
       path: '/developers'
       fullPath: '/developers'
       preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/donde-hay-bici-zaragoza': {
+      id: '/donde-hay-bici-zaragoza'
+      path: '/donde-hay-bici-zaragoza'
+      fullPath: '/donde-hay-bici-zaragoza'
+      preLoaderRoute: typeof DondeHayBiciZaragozaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estaciones-con-mas-bicis': {
@@ -1388,6 +1555,13 @@ declare module '@tanstack/react-router' {
       path: '/explorar'
       fullPath: '/explorar'
       preLoaderRoute: typeof ExplorarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.xml': {
+      id: '/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/feed.xml'
+      preLoaderRoute: typeof FeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/informes': {
@@ -1458,6 +1632,34 @@ declare module '@tanstack/react-router' {
       path: '/metodologia'
       fullPath: '/metodologia'
       preLoaderRoute: typeof MetodologiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preguntas-frecuentes': {
+      id: '/preguntas-frecuentes'
+      path: '/preguntas-frecuentes'
+      fullPath: '/preguntas-frecuentes'
+      preLoaderRoute: typeof PreguntasFrecuentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prensa': {
+      id: '/prensa'
+      path: '/prensa'
+      fullPath: '/prensa'
+      preLoaderRoute: typeof PrensaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/que-app-usar-bici-publica': {
+      id: '/que-app-usar-bici-publica'
+      path: '/que-app-usar-bici-publica'
+      fullPath: '/que-app-usar-bici-publica'
+      preLoaderRoute: typeof QueAppUsarBiciPublicaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ranking-estaciones-bizi': {
@@ -2093,15 +2295,22 @@ const rootRouteChildren: RootRouteChildren = {
   EstadisticasRouteRoute: EstadisticasRouteRouteWithChildren,
   SplatRoute: SplatRoute,
   AboutRoute: AboutRoute,
+  AvisoLegalRoute: AvisoLegalRoute,
   BarriosBiziZaragozaRoute: BarriosBiziZaragozaRoute,
   BiciradarRoute: BiciradarRoute,
+  ComoFuncionaBiziZaragozaRoute: ComoFuncionaBiziZaragozaRoute,
   CompararRoute: CompararRoute,
+  ContactoRoute: ContactoRoute,
+  CuantasEstacionesTieneBiziZaragozaRoute:
+    CuantasEstacionesTieneBiziZaragozaRoute,
   DevelopersRoute: DevelopersRoute,
+  DondeHayBiciZaragozaRoute: DondeHayBiciZaragozaRoute,
   EstacionesConMasBicisRoute: EstacionesConMasBicisRoute,
   EstacionesMasUsadasZaragozaRoute: EstacionesMasUsadasZaragozaRoute,
   EstadisticasBiziZaragozaRoute: EstadisticasBiziZaragozaRoute,
   EstadoRoute: EstadoRoute,
   ExplorarRoute: ExplorarRoute,
+  FeedDotxmlRoute: FeedDotxmlRoute,
   InformesRoute: InformesRouteWithChildren,
   InformesMensualesBiziZaragozaRoute: InformesMensualesBiziZaragozaRoute,
   LlmTxtRoute: LlmTxtRoute,
@@ -2112,6 +2321,10 @@ const rootRouteChildren: RootRouteChildren = {
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
   McpRoute: McpRoute,
   MetodologiaRoute: MetodologiaRoute,
+  PreguntasFrecuentesRoute: PreguntasFrecuentesRoute,
+  PrensaRoute: PrensaRoute,
+  PrivacidadRoute: PrivacidadRoute,
+  QueAppUsarBiciPublicaRoute: QueAppUsarBiciPublicaRoute,
   RankingEstacionesBiziRoute: RankingEstacionesBiziRoute,
   RedistribucionRoute: RedistribucionRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,

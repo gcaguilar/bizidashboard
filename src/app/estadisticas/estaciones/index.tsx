@@ -5,6 +5,7 @@ import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/brea
 import { toAbsoluteRouteUrl } from '@/lib/routes'
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { TrackedLink } from '@/app/_components/TrackedLink';
 import { StationsDirectory } from '@/app/estadisticas/estaciones/_components/StationsDirectory';
 import { StationsSkeleton } from '@/app/estadisticas/estaciones/_components/StationsSkeleton';
 import { getStationsDirectoryData } from '@/server-functions/estaciones';
@@ -53,6 +54,17 @@ function EstadisticasEstacionesPage() {
           </h1>
           <p className="text-base text-[var(--muted)] md:text-lg">
             Busca una estación y filtra por bicis, huecos, disponibilidad o movimiento estimado. Así podrás encontrar una opción útil ahora o analizar la red con más calma.
+          </p>
+          <p className="text-sm text-[var(--muted)]">
+            ¿Buscas el número total de estaciones? Consulta{' '}
+            <TrackedLink href={appRoutes.cuantasEstaciones()} className="text-[var(--primary)] underline underline-offset-2">
+              cuántas estaciones tiene Bizi Zaragoza
+            </TrackedLink>{' '}
+            o resuelve dudas en las{' '}
+            <TrackedLink href={appRoutes.faq()} className="text-[var(--primary)] underline underline-offset-2">
+              preguntas frecuentes
+            </TrackedLink>
+            .
           </p>
         </header>
         <StationsDirectory stationRows={stationRows} />

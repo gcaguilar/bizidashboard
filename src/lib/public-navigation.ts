@@ -56,6 +56,15 @@ export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
   { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
   { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
   { id: 'mcp', label: 'Conector MCP', href: appRoutes.mcp(), ctaId: 'mcp' },
+  { id: 'faq', label: 'Preguntas frecuentes', href: appRoutes.faq(), ctaId: 'faq' },
+];
+
+export const FOOTER_LEGAL_ITEMS: PublicNavItem[] = [
+  { id: 'faq', label: 'Preguntas frecuentes', href: appRoutes.faq(), ctaId: 'faq' },
+  { id: 'prensa', label: 'Prensa', href: appRoutes.prensa(), ctaId: 'prensa' },
+  { id: 'contacto', label: 'Contacto', href: appRoutes.contacto(), ctaId: 'contacto' },
+  { id: 'privacidad', label: 'Privacidad', href: appRoutes.privacidad(), ctaId: 'privacidad' },
+  { id: 'aviso-legal', label: 'Aviso legal', href: appRoutes.avisoLegal(), ctaId: 'aviso_legal' },
 ];
 
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [

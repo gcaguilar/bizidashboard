@@ -49,6 +49,14 @@ function EstadisticasHubPage() {
           <TrackedLink href={appRoutes.advancedMap()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'open_map', destination: 'stats_map', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-primary-button">Abrir mapa avanzado</TrackedLink>
           <TrackedLink href={appRoutes.statsEstaciones()} ctaEvent={{ source: 'stats_hub_hero', ctaId: 'browse_stations', destination: 'stats_estaciones', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="ui-inline-action">Buscar estación</TrackedLink>
         </div>
+        <div className="mt-5 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/8 p-4 text-sm text-[var(--foreground)]">
+          <strong>Respuesta rápida:</strong> a 20/10/2026 la red tenía 276 estaciones operativas.
+          Aquí puedes ver cuántas tienen bicis, cuáles acumulan más problemas y cómo evoluciona el
+          uso. Si buscas el número actualizado, abre el{' '}
+          <TrackedLink href={appRoutes.cuantasEstaciones()} className="text-[var(--primary)] underline underline-offset-2">dato de estaciones</TrackedLink>{' '}
+          o las{' '}
+          <TrackedLink href={appRoutes.faq()} className="text-[var(--primary)] underline underline-offset-2">preguntas frecuentes</TrackedLink>.
+        </div>
       </header>
       <section className="mb-6 sm:mb-10">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)] mb-3">Necesito una bici ahora</p>
