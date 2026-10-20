@@ -6,7 +6,7 @@ import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { appRoutes } from '@/lib/routes';
-import { getSiteUrl, SITE_NAME } from '@/lib/site';
+import { getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import { PageShell } from '@/components/layout/page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -178,12 +178,22 @@ export default function BiciRadarPage() {
       buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'SoftwareApplication',
-        name: 'Bici Radar',
+        name: 'BiciRadar',
+        alternateName: 'Bici Radar',
         description:
-          'App para encontrar estaciones de bicis compartidas en Zaragoza, Madrid, Barcelona, Valencia y Sevilla, con bicis y huecos libres cerca de ti.',
+          'App gratuita y sin publicidad para encontrar estaciones de bicis compartidas en Zaragoza, Madrid, Barcelona, Valencia y Sevilla, con bicis y huecos libres cerca de ti.',
         applicationCategory: 'TravelApplication',
         operatingSystem: 'Android, iOS',
         url: `${siteUrl}${appRoutes.biciradar()}`,
+        installUrl: [APP_STORE_URL, PLAY_STORE_URL],
+        sameAs: [APP_STORE_URL, PLAY_STORE_URL],
+        featureList: [
+          'Estaciones cercanas con distancia y dirección',
+          'Bicis y huecos disponibles en tiempo real',
+          'Estaciones favoritas',
+          'Alertas de estaciones vacías o llenas',
+          'Histórico y patrones de uso según ciudad',
+        ],
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -191,7 +201,7 @@ export default function BiciRadarPage() {
         },
         publisher: {
           '@type': 'Organization',
-          name: SITE_NAME,
+          name: SEO_SITE_NAME,
           url: siteUrl,
         },
       },

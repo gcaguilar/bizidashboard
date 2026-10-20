@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
+import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
@@ -160,7 +161,10 @@ function StationPage() {
       { '@type': 'FAQPage', mainEntity: faqItems.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) },
     ],
   }
-  const breadcrumbs = createStationBreadcrumb(station.name)
+  const breadcrumbs = createStationBreadcrumb(
+    station.name,
+    appRoutes.stationDetail(station.id)
+  )
 
   return (
     <PageShell>
@@ -189,6 +193,11 @@ function StationPage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Ver en mapa avanzado</TrackedLink>
           {summary.districtSlug ? <TrackedLink className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)} ctaEvent={{ source: 'station_detail', ctaId: 'view_district', destination: summary.districtSlug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver barrio</TrackedLink> : null}
+          <WhatsAppShareLink
+            url={`${siteUrl}${appRoutes.stationDetail(station.id)}`}
+            text={`Disponibilidad de ${station.name} en Bizi Zaragoza`}
+            source="station_detail"
+          />
         </div>
       </header>
       <section className="grid gap-4 grid-cols-1 sm:grid-cols-3">

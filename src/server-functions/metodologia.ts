@@ -41,7 +41,7 @@ export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(
   const cityName = getCityName();
   const siteUrl = getSiteUrl();
   const breadcrumbs = createRootBreadcrumbs({
-    label: 'Metodologia',
+    label: 'Metodología',
     href: appRoutes.methodology(),
   });
   const faqItems = getMethodologyFaqItems();
@@ -52,12 +52,12 @@ export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(
       buildBreadcrumbStructuredData(breadcrumbs),
       {
         '@type': 'TechArticle',
-        headline: `Metodologia y calidad de datos de Bizi ${cityName}`,
-        name: `Metodologia y calidad de datos de Bizi ${cityName}`,
+        headline: `Metodología y calidad de datos de Bizi ${cityName}`,
+        name: `Metodología y calidad de datos de Bizi ${cityName}`,
         description:
-          'Guia publica para interpretar la fuente, la cobertura, la frecuencia y las metricas de las paginas publicas de DatosBizi.',
+          'Guía pública para interpretar la fuente, la cobertura, la frecuencia y las métricas de las páginas públicas de DatosBizi.',
         url: `${siteUrl}${appRoutes.methodology()}`,
-        inLanguage: 'es',
+        inLanguage: 'es-ES',
         dateModified: dataset.coverage.generatedAt ?? historyMeta.generatedAt ?? nowIso,
         author: {
           '@type': 'Organization',
@@ -74,9 +74,9 @@ export const getMethodologyPageData = createServerFn({ method: 'GET' }).handler(
         '@type': 'Dataset',
         name: `Dataset Bizi ${cityName}`,
         description:
-          'Cobertura historica, snapshot actual y criterios de interpretacion del dataset usado por estaciones, barrios, informes y API.',
+          'Cobertura histórica, snapshot actual y criterios de interpretación del dataset usado por estaciones, barrios, informes y API.',
         url: `${siteUrl}${appRoutes.methodology()}`,
-        inLanguage: 'es',
+        inLanguage: 'es-ES',
         isAccessibleForFree: true,
         dateModified: dataset.coverage.generatedAt,
         distribution: [

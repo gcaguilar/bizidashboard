@@ -14,14 +14,21 @@ export function getCityName(): string {
   return CITY_CONFIGS[getCurrentCityKey()].name;
 }
 
-export const SITE_NAME = 'BiziDashboard';
-export const SITE_TITLE = `BiziDashboard ${getCityName()}`;
+export const SITE_NAME = 'DatosBizi';
+export const SITE_TITLE = `DatosBizi ${getCityName()}`;
 export const SITE_DESCRIPTION =
   `Panel público con datos de estaciones Bizi ${getCityName()}: disponibilidad, alertas, patrones horarios y movilidad urbana.`;
 export const SEO_SITE_NAME = 'DatosBizi';
 export const SEO_SITE_TITLE = `${SEO_SITE_NAME} ${getCityName()}`;
 export const SEO_SITE_DESCRIPTION =
   `DatosBizi reúne estaciones Bizi ${getCityName()}, disponibilidad, análisis de uso, informes mensuales y datos abiertos en un único observatorio público.`;
+export const SEO_HOME_TITLE =
+  `Bizi ${getCityName()} en tiempo real: estaciones y bicis | DatosBizi`;
+export const SEO_HOME_DESCRIPTION =
+  `Consulta en tiempo real las estaciones de Bizi ${getCityName()}: bicis y huecos disponibles, histórico, barrios, informes y API pública. Datos cada 2 minutos.`;
+
+/** Tipografía variable self-hosted (SIL OFL) que evita depender de Google Fonts. */
+export const INTER_FONT_PATH = '/fonts/inter-latin.woff2';
 
 /** Imagen Open Graph por defecto (PNG raster versionado en `public/`). */
 export const DEFAULT_SOCIAL_IMAGE_PATH = '/og-image.png';

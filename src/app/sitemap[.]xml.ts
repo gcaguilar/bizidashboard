@@ -23,6 +23,15 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&apos;')
 }
 
+/** Un informe cerrado se sella al terminar el mes; el mes en curso usa "ahora". */
+function reportLastModified(month: string): string {
+  const [year, monthNumber] = month.split('-').map(Number)
+  const monthEnd = new Date(Date.UTC(year, monthNumber, 1))
+  const now = new Date()
+
+  return (monthEnd > now ? now : monthEnd).toISOString()
+}
+
 function dedupeEntries(entries: SitemapEntry[]): SitemapEntry[] {
   const seen = new Set<string>()
   const uniqueEntries: SitemapEntry[] = []
@@ -93,6 +102,7 @@ async function buildSitemapXml(): Promise<string> {
     })),
     ...validMonths.map((month) => ({
       href: appRoutes.reportMonth(month),
+      lastModified: reportLastModified(month),
       changeFrequency: 'monthly',
       priority: 0.74,
     })),

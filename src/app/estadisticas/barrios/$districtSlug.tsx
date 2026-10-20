@@ -103,7 +103,10 @@ function DistrictPage() {
       buildItemListStructuredData('Estaciones destacadas', district.topStations.map((station) => ({ name: station.stationName, url: `${siteUrl}${appRoutes.stationDetail(station.stationId)}` }))),
     ],
   }
-  const breadcrumbs = createDistrictBreadcrumb(district.name)
+  const breadcrumbs = createDistrictBreadcrumb(
+    district.name,
+    appRoutes.districtDetail(district.slug)
+  )
 
   return (
     <PageShell>

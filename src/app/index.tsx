@@ -12,8 +12,8 @@ import {
   DEFAULT_SOCIAL_IMAGE_WIDTH,
   getSiteUrl,
   SEO_SITE_NAME,
-  SEO_SITE_TITLE,
-  SEO_SITE_DESCRIPTION,
+  SEO_HOME_TITLE,
+  SEO_HOME_DESCRIPTION,
 } from '@/lib/site';
 import { getHomePageData } from '@/server-functions/home';
 import { toJsonLdScript } from '@/lib/structured-data';
@@ -42,12 +42,12 @@ export const Route = createFileRoute('/')({
   }),
   head: () => ({
     meta: [
-      { title: SEO_SITE_TITLE },
+      { title: SEO_HOME_TITLE },
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { name: 'description', content: SEO_SITE_DESCRIPTION },
-      { property: 'og:title', content: SEO_SITE_TITLE },
-      { property: 'og:description', content: SEO_SITE_DESCRIPTION },
+      { name: 'description', content: SEO_HOME_DESCRIPTION },
+      { property: 'og:title', content: SEO_HOME_TITLE },
+      { property: 'og:description', content: SEO_HOME_DESCRIPTION },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: SEO_SITE_NAME },
       { property: 'og:locale', content: 'es_ES' },
@@ -61,8 +61,8 @@ export const Route = createFileRoute('/')({
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
       { name: 'twitter:image:alt', content: `${SEO_SITE_NAME} · Bizi Zaragoza` },
-      { name: 'twitter:title', content: SEO_SITE_TITLE },
-      { name: 'twitter:description', content: SEO_SITE_DESCRIPTION },
+      { name: 'twitter:title', content: SEO_HOME_TITLE },
+      { name: 'twitter:description', content: SEO_HOME_DESCRIPTION },
     ],
     links: [{ rel: 'canonical', href: getSiteUrl() }],
   }),
@@ -97,8 +97,8 @@ function Home() {
             '@graph': [
               {
                 '@type': 'WebPage',
-                name: SEO_SITE_TITLE,
-                description: SEO_SITE_DESCRIPTION,
+                name: SEO_HOME_TITLE,
+                description: SEO_HOME_DESCRIPTION,
                 url: getSiteUrl(),
                 inLanguage: 'es',
                 isAccessibleForFree: true,

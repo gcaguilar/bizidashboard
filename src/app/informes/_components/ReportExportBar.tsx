@@ -4,9 +4,12 @@ import { useState } from 'react';
 import { listReportExportSections } from '@/lib/monthly-report-export';
 import { downloadReportPagePdf } from '@/lib/report-pdf-download';
 import { appRoutes } from '@/lib/routes';
+import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink';
 
 type ReportExportBarProps = {
   month: string;
+  shareUrl?: string;
+  shareText?: string;
 };
 
 /** Cabecera que indica de donde salio el PDF servido por la API. */
@@ -33,7 +36,7 @@ function saveBlob(blob: Blob, filename: string): void {
  * pagina con html2pdf.js, de modo que el lector sigue recibiendo el informe
  * con su diseno.
  */
-export function ReportExportBar({ month }: ReportExportBarProps) {
+export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarProps) {
   const sections = listReportExportSections();
   const [isGenerating, setIsGenerating] = useState(false);
   const filename = `informe-${month}.pdf`;
@@ -107,6 +110,13 @@ export function ReportExportBar({ month }: ReportExportBarProps) {
           <a href={appRoutes.api.reports({ month })} download className="ui-inline-action">
             Descargar JSON
           </a>
+          {shareUrl ? (
+            <WhatsAppShareLink
+              url={shareUrl}
+              text={shareText ?? `Informe de Bizi Zaragoza · ${month}`}
+              source="report_export"
+            />
+          ) : null}
         </div>
       </div>
 

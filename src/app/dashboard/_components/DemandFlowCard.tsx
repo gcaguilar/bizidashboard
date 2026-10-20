@@ -98,7 +98,7 @@ export function DemandFlowCard({
         </div>
         <div className="text-right text-xs text-[var(--muted)]">
           <span>
-            {windowLabel} · {dailyDemand.length}/{requestedDays} dias
+            {windowLabel} · {dailyDemand.length}/{requestedDays} días
           </span>
           <div>
             <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
@@ -114,7 +114,7 @@ export function DemandFlowCard({
         <DataStateNotice
           state={demandDataState}
           subject="la curva diaria"
-          description={`Hay datos reales en ${daysWithSamples}/${requestedDays} dias; el resto se rellena como 0 para mantener la comparativa.`}
+          description={`Hay datos reales en ${daysWithSamples}/${requestedDays} días; el resto se rellena como 0 para mantener la comparativa.`}
           href={appRoutes.status()}
           actionLabel="Ver estado"
           className="mt-4"

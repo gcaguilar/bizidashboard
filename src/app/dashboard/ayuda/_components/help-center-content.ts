@@ -133,9 +133,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'prediccion-que-es',
     category: 'Predicción',
-    question: 'Que son exactamente las predicciones del dashboard?',
+    question: '¿Qué son exactamente las predicciones del dashboard?',
     answer:
-      'Son valores estimados de disponibilidad futura (por ejemplo +30 y +60 min). Se calculan con patrones del pasado + situacion actual. Sirven para anticipar, no para confirmar lo que va a pasar al 100%.',
+      'Son valores estimados de disponibilidad futura (por ejemplo +30 y +60 min). Se calculan con patrones del pasado y la situación actual. Sirven para anticipar, no para confirmar lo que va a pasar al 100%.',
   },
   {
     id: 'prediccion-uso-practico',
@@ -189,9 +189,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'demanda-no-viajes-reales',
     category: 'Movilidad',
-    question: 'Demanda significa numero real de viajes?',
+    question: '¿La demanda significa número real de viajes?',
     answer:
-      'No exactamente. Es un indice para medir "actividad" del sistema. Va muy bien para comparar dias y zonas, pero no debe leerse como contador oficial de viajes cerrados.',
+      'No exactamente. Es un índice para medir la actividad del sistema. Va muy bien para comparar días y zonas, pero no debe leerse como contador oficial de viajes cerrados.',
   },
   {
     id: 'movilidad-causalidad',
@@ -224,9 +224,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'actualizacion',
     category: 'Datos',
-    question: 'Con que frecuencia se actualiza el dashboard?',
+    question: '¿Con qué frecuencia se actualiza el dashboard?',
     answer:
-      'Los datos se refrescan de forma periodica y la API usa cache corta para no saturar consultas. Por eso puede haber unos minutos de diferencia entre una vista y otra.',
+      'Los datos se refrescan de forma periódica y la API usa caché corta para no saturar consultas. Por eso puede haber unos minutos de diferencia entre una vista y otra.',
   },
   {
     id: 'ventana-analitica',
@@ -238,9 +238,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'fuente-datos',
     category: 'Datos',
-    question: 'De donde salen los datos de estaciones?',
+    question: '¿De dónde salen los datos de estaciones?',
     answer:
-      'La fuente principal es el feed GBFS oficial de Bizi Zaragoza: https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json. A partir de ese discovery se consultan station_information y station_status de forma periodica, y luego se validan y agregan para analitica.',
+      'La fuente principal es el feed GBFS oficial de Bizi Zaragoza: https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json. A partir de ese discovery se consultan station_information y station_status de forma periódica, y luego se validan y agregan para analítica.',
   },
   {
     id: 'sin-datos',

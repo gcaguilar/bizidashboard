@@ -27,28 +27,37 @@ export function buildBreadcrumbStructuredData(items: BreadcrumbItem[]) {
   };
 }
 
-export function createStationBreadcrumb(stationName: string): BreadcrumbItem[] {
+export function createStationBreadcrumb(
+  stationName: string,
+  href: string = appRoutes.statsEstaciones()
+): BreadcrumbItem[] {
   return [
     { label: 'Inicio', href: appRoutes.home() },
     { label: 'Estadísticas', href: appRoutes.statsHub() },
     { label: 'Estaciones', href: appRoutes.statsEstaciones() },
-    { label: stationName, href: null },
+    { label: stationName, href },
   ]
 }
 
-export function createDistrictBreadcrumb(districtName: string): BreadcrumbItem[] {
+export function createDistrictBreadcrumb(
+  districtName: string,
+  href: string = appRoutes.statsBarrios()
+): BreadcrumbItem[] {
   return [
     { label: 'Inicio', href: appRoutes.home() },
     { label: 'Estadísticas', href: appRoutes.statsHub() },
     { label: 'Barrios', href: appRoutes.statsBarrios() },
-    { label: districtName, href: null },
+    { label: districtName, href },
   ]
 }
 
-export function createReportBreadcrumb(monthLabel: string): BreadcrumbItem[] {
+export function createReportBreadcrumb(
+  monthLabel: string,
+  href: string = appRoutes.reports()
+): BreadcrumbItem[] {
   return [
     { label: 'Inicio', href: appRoutes.home() },
     { label: 'Informes', href: appRoutes.reports() },
-    { label: monthLabel, href: null },
+    { label: monthLabel, href },
   ]
 }

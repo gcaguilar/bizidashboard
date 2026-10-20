@@ -103,7 +103,7 @@ type TimeWindow = {
 
 const TIME_WINDOWS: TimeWindow[] = [
   { id: '24h', label: 'Últimas 24h', mobilityDays: 1, demandDays: 7 },
-  { id: '7d', label: '7 dias', mobilityDays: 7, demandDays: 14 },
+  { id: '7d', label: '7 días', mobilityDays: 7, demandDays: 14 },
   { id: '30d', label: 'Mes', mobilityDays: 30, demandDays: 30 },
   { id: '365d', label: 'Anual', mobilityDays: 365, demandDays: 365 },
 ];

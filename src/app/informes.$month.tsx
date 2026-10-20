@@ -11,7 +11,12 @@ import { formatInteger, formatPercent, formatRatioDelta } from '@/lib/format'
 import { PageShell } from '@/components/layout/page-shell'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { getReportMonthPageData } from '@/server-functions/informes-month'
-import { getSiteUrl } from '@/lib/site'
+import {
+  DEFAULT_SOCIAL_IMAGE_HEIGHT,
+  DEFAULT_SOCIAL_IMAGE_PATH,
+  DEFAULT_SOCIAL_IMAGE_WIDTH,
+  getSiteUrl,
+} from '@/lib/site'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
 import { buildObservatoryEvent } from '@/lib/umami'
 import { toJsonLdScript } from '@/lib/structured-data';
@@ -51,8 +56,9 @@ export const Route = createFileRoute('/informes/$month')({
   head: (opts) => {
     const month = opts.params.month ?? ''
     const monthPath = appRoutes.reportMonth(month)
-    const title = `Informe ${formatMonthLabel(month)} - DatosBizi`
-    const description = `Informe mensual de Bizi Zaragoza para ${formatMonthLabel(month)}: resumen ejecutivo, evolución, barrios y problemas recurrentes del servicio.`
+    const monthLabel = formatMonthLabel(month)
+    const title = `Informe ${monthLabel} - DatosBizi`
+    const description = `Informe mensual de Bizi Zaragoza para ${monthLabel}: resumen ejecutivo, evolución, barrios y problemas recurrentes del servicio.`
     return {
       meta: [
         { title },
@@ -64,9 +70,18 @@ export const Route = createFileRoute('/informes/$month')({
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
+        { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { property: 'og:image:type', content: 'image/png' },
+        { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
+        { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
+        { property: 'og:image:alt', content: `DatosBizi · Informe ${monthLabel}` },
         { property: 'og:url', content: `${getSiteUrl()}${monthPath}` },
+        { property: 'article:published_time', content: `${month}-01T00:00:00.000Z` },
+        { property: 'article:modified_time', content: opts.loaderData?.report?.generatedAt ?? `${month}-01T00:00:00.000Z` },
         { name: 'robots', content: opts.loaderData?.monthRow ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { name: 'twitter:image:alt', content: `DatosBizi · Informe ${monthLabel}` },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
       ],
@@ -121,7 +136,7 @@ function ReportChartsFallback() {
 function InformesMonthPage() {
   const { month, monthRow, report, nearbyMonths, dataState } = Route.useLoaderData()
   const monthLabel = formatMonthLabel(month)
-  const breadcrumbs = createReportBreadcrumb(monthLabel)
+  const breadcrumbs = createReportBreadcrumb(monthLabel, appRoutes.reportMonth(month))
 
   // Los graficos son un chunk perezoso. La pagina espera a que ReportCharts
   // avise de que ya esta montado (o a un margen de seguridad si el informe no
@@ -172,10 +187,20 @@ function InformesMonthPage() {
             '@type': 'Article',
             headline: `Actividad de Bizi Zaragoza en ${monthLabel}`,
             description: `Informe mensual con resumen ejecutivo, evolución, barrios y problemas recurrentes de Bizi Zaragoza en ${monthLabel}.`,
-            inLanguage: 'es',
+            inLanguage: 'es-ES',
             mainEntityOfPage: `${getSiteUrl()}${appRoutes.reportMonth(month)}`,
-            author: { '@type': 'Organization', name: 'DatosBizi', url: getSiteUrl() },
-            publisher: { '@type': 'Organization', name: 'DatosBizi', url: getSiteUrl() },
+            datePublished: `${month}-01T00:00:00.000Z`,
+            dateModified: report.generatedAt,
+            author: {
+              '@type': 'Organization',
+              name: 'DatosBizi',
+              url: getSiteUrl(),
+              sameAs: [
+                'https://github.com/gcaguilar/bizidashboard',
+                'https://www.linkedin.com/in/guillermocastella/',
+              ],
+            },
+            publisher: { '@id': `${getSiteUrl()}/#organization` },
           },
         ],
       }
@@ -214,7 +239,11 @@ function InformesMonthPage() {
         <>
           <ReportSummary report={report} />
 
-          <ReportExportBar month={month} />
+          <ReportExportBar
+            month={month}
+            shareUrl={`${getSiteUrl()}${appRoutes.reportMonth(month)}`}
+            shareText={`Informe de Bizi Zaragoza · ${monthLabel}`}
+          />
 
           <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
             <article className="ui-section-card">
