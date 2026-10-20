@@ -38,6 +38,7 @@ services:
     environment:
       - CITY=${CITY:-zaragoza}
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - DATABASE_STATEMENT_TIMEOUT_MS=${DATABASE_STATEMENT_TIMEOUT_MS:-25000}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
@@ -87,6 +88,7 @@ services:
     environment:
       - CITY=madrid
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - DATABASE_STATEMENT_TIMEOUT_MS=${DATABASE_STATEMENT_TIMEOUT_MS:-25000}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
@@ -136,6 +138,7 @@ services:
     environment:
       - CITY=barcelona
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - DATABASE_STATEMENT_TIMEOUT_MS=${DATABASE_STATEMENT_TIMEOUT_MS:-25000}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
       - SIGNATURE_SECRET=${SIGNATURE_SECRET:?SIGNATURE_SECRET is required}
       - COLLECT_API_KEY=${COLLECT_API_KEY:-change-me}
