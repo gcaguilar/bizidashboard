@@ -53,6 +53,7 @@ import { Route as EstadisticasHorariosRouteImport } from './app/estadisticas/hor
 import { Route as EstadisticasMapaRouteImport } from './app/estadisticas/mapa'
 import { Route as EstadisticasRedistribucionRouteImport } from './app/estadisticas/redistribucion'
 import { Route as EstadisticasViajesRouteImport } from './app/estadisticas/viajes'
+import { Route as InformesIndexRouteImport } from './app/informes/index'
 import { Route as InformesMonthRouteImport } from './app/informes.$month'
 import { Route as ManifestWebmanifestRouteImport } from './app/manifest.webmanifest'
 import { Route as ApiAlertsIndexRouteImport } from './app/api/alerts/index'
@@ -333,6 +334,11 @@ const EstadisticasViajesRoute = EstadisticasViajesRouteImport.update({
   id: '/viajes',
   path: '/viajes',
   getParentRoute: () => EstadisticasRouteRoute,
+} as any)
+const InformesIndexRoute = InformesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InformesRoute,
 } as any)
 const InformesMonthRoute = InformesMonthRouteImport.update({
   id: '/$month',
@@ -662,6 +668,7 @@ export interface FileRoutesByFullPath {
   '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/estadisticas/': typeof EstadisticasIndexRoute
+  '/informes/': typeof InformesIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -727,7 +734,6 @@ export interface FileRoutesByTo {
   '/estadisticas-bizi-zaragoza': typeof EstadisticasBiziZaragozaRoute
   '/estado': typeof EstadoRoute
   '/explorar': typeof ExplorarRoute
-  '/informes': typeof InformesRouteWithChildren
   '/informes-mensuales-bizi-zaragoza': typeof InformesMensualesBiziZaragozaRoute
   '/llm-txt': typeof LlmTxtRoute
   '/llm.txt': typeof LlmDottxtRoute
@@ -757,6 +763,7 @@ export interface FileRoutesByTo {
   '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard': typeof DashboardIndexRoute
   '/estadisticas': typeof EstadisticasIndexRoute
+  '/informes': typeof InformesIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -857,6 +864,7 @@ export interface FileRoutesById {
   '/manifest/webmanifest': typeof ManifestWebmanifestRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/estadisticas/': typeof EstadisticasIndexRoute
+  '/informes/': typeof InformesIndexRoute
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -958,6 +966,7 @@ export interface FileRouteTypes {
     | '/manifest/webmanifest'
     | '/dashboard/'
     | '/estadisticas/'
+    | '/informes/'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
@@ -1023,7 +1032,6 @@ export interface FileRouteTypes {
     | '/estadisticas-bizi-zaragoza'
     | '/estado'
     | '/explorar'
-    | '/informes'
     | '/informes-mensuales-bizi-zaragoza'
     | '/llm-txt'
     | '/llm.txt'
@@ -1053,6 +1061,7 @@ export interface FileRouteTypes {
     | '/manifest/webmanifest'
     | '/dashboard'
     | '/estadisticas'
+    | '/informes'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
@@ -1152,6 +1161,7 @@ export interface FileRouteTypes {
     | '/manifest/webmanifest'
     | '/dashboard/'
     | '/estadisticas/'
+    | '/informes/'
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
@@ -1589,6 +1599,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/estadisticas/viajes'
       preLoaderRoute: typeof EstadisticasViajesRouteImport
       parentRoute: typeof EstadisticasRouteRoute
+    }
+    '/informes/': {
+      id: '/informes/'
+      path: '/'
+      fullPath: '/informes/'
+      preLoaderRoute: typeof InformesIndexRouteImport
+      parentRoute: typeof InformesRoute
     }
     '/informes/$month': {
       id: '/informes/$month'
@@ -2058,10 +2075,12 @@ const EstadisticasRouteRouteWithChildren =
 
 interface InformesRouteChildren {
   InformesMonthRoute: typeof InformesMonthRoute
+  InformesIndexRoute: typeof InformesIndexRoute
 }
 
 const InformesRouteChildren: InformesRouteChildren = {
   InformesMonthRoute: InformesMonthRoute,
+  InformesIndexRoute: InformesIndexRoute,
 }
 
 const InformesRouteWithChildren = InformesRoute._addFileChildren(

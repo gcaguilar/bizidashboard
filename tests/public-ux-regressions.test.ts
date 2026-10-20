@@ -10,7 +10,7 @@ describe('public UX regressions', () => {
   it('does not render duplicate secondary nav in public pages', () => {
     const publicPages = [
       'src/app/estado.tsx',
-      'src/app/informes.tsx',
+      'src/app/informes/index.tsx',
       'src/app/informes.$month.tsx',
       'src/app/metodologia.tsx',
       'src/app/developers.tsx',
@@ -461,7 +461,7 @@ describe('public UX regressions', () => {
   });
 
   it('informes page uses TrackedLink for monthly report navigation', () => {
-    const source = readSource('src/app/informes.tsx');
+    const source = readSource('src/app/informes/index.tsx');
     expect(source).toContain('TrackedLink');
     expect(source).toContain('appRoutes.reportMonth');
   });

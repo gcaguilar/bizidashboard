@@ -105,7 +105,10 @@ describe('seo navigation contract', () => {
   });
 
   it('keeps the report archive labels correctly accented', () => {
-    const source = readFileSync(path.join(process.cwd(), 'src/app/informes.tsx'), 'utf8');
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/app/informes/index.tsx'),
+      'utf8'
+    );
 
     expect(source).toContain('Abrir último informe');
     expect(source).toContain('Último mes con informe');
