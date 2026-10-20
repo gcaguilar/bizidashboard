@@ -4,14 +4,14 @@
   "license": "GPL-3.0-only",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.3",
   "imports": {
     "#/*": "./src/*",
     "@/*": "./src/*"
   },
   "engines": {
     "node": ">=20.0.0",
-    "bun": ">=1.4.0"
+    "bun": ">=1.4.3"
   },
   "scripts": {
     "dev": "dotenv -e .env.local -- vite dev --port 3000",
