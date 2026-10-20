@@ -16,6 +16,8 @@ describe('robots.txt', () => {
 
     expect(body).toContain('Host: https://datosbizi.com');
     expect(body).toContain('Sitemap: https://datosbizi.com/sitemap.xml');
+    expect(body).toContain('ai-input=yes');
+    expect(body).not.toContain('ai-input=no');
     expect(body).not.toContain('bizidashboard.com');
   });
 

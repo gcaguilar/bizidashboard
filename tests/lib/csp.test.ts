@@ -14,8 +14,10 @@ describe('content security policy', () => {
     });
 
     expect(policy).toContain(
-      "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://analytics.example.com"
+      "script-src 'self' 'unsafe-inline' https://analytics.example.com"
     );
+    expect(policy).not.toContain('fonts.googleapis.com');
+    expect(policy).not.toContain('fonts.gstatic.com');
     expect(policy).toContain('https://collector.example.net');
     expect(policy).toContain('https://errors.example.org');
     expect(policy).not.toContain('cloud.umami.is');

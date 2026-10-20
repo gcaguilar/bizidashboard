@@ -33,8 +33,10 @@ describe('llms discovery routes', () => {
     const body = await response.text();
 
     expect(response.headers.get('content-type')).toContain('text/plain');
-    expect(body).toContain(`${SITE_URL}/estaciones-mas-usadas-zaragoza`);
+    expect(body).toContain(`${SITE_URL}/estadisticas/estaciones`);
     expect(body).toContain(`GET ${SITE_URL}/api/status`);
     expect(body).toContain('## Guidance for AI Assistants');
+    expect(body).not.toContain(`${SITE_URL}/uso-bizi-por-estacion`);
+    expect(body).not.toContain(`${SITE_URL}/comparar`);
   });
 });
