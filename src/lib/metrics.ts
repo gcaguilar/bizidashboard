@@ -147,8 +147,19 @@ async function getTotalRowsCollected(): Promise<number> {
  * A "poll" is a distinct recordedAt timestamp
  */
 async function getPollsLast24Hours(): Promise<number> {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
   try {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    // Cada CollectionRun es una encuesta. Contar en esa tabla usa su indice por
+    // `startedAt`; contar `recordedAt` distintos en StationStatus recorre
+    // millones de filas para el mismo dato.
+    const runCount = await prisma.collectionRun.count({
+      where: { startedAt: { gte: twentyFourHoursAgo } },
+    })
+
+    if (runCount > 0) {
+      return runCount
+    }
 
     const rows = await prisma.$queryRaw<Array<{ pollCount: bigint | number }>>`
       SELECT COUNT(DISTINCT "recordedAt") AS "pollCount"
@@ -192,6 +203,18 @@ async function getLastSuccessfulPoll(): Promise<Date | null> {
  */
 async function getLastStationCount(): Promise<number> {
   try {
+    const latestRun = await prisma.collectionRun.findFirst({
+      where: { insertedCount: { gt: 0 } },
+      orderBy: { startedAt: 'desc' },
+      select: { expectedStationCount: true, insertedCount: true },
+    })
+
+    const runCount = latestRun?.expectedStationCount ?? latestRun?.insertedCount ?? 0
+
+    if (runCount > 0) {
+      return runCount
+    }
+
     const rows = await prisma.$queryRaw<Array<{ stationCount: bigint | number }>>`
       SELECT COUNT(*) AS "stationCount"
       FROM "StationStatus"
@@ -210,8 +233,21 @@ async function getLastStationCount(): Promise<number> {
  * Calculate average stations per poll over the last 7 days
  */
 async function getAverageStationsPerPoll(): Promise<number> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
   try {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    // `insertedCount` es el numero de estaciones de cada encuesta; el promedio
+    // en CollectionRun evita el COUNT(*) sobre la tabla cruda.
+    const aggregate = await prisma.collectionRun.aggregate({
+      where: { startedAt: { gte: sevenDaysAgo }, status: 'succeeded' },
+      _avg: { insertedCount: true },
+    })
+
+    const runAverage = aggregate._avg.insertedCount
+
+    if (runAverage && runAverage > 0) {
+      return Math.round(runAverage)
+    }
 
     const rows = await prisma.$queryRaw<Array<{ avgStations: number | null }>>`
       SELECT COUNT(*)::float / NULLIF(COUNT(DISTINCT "recordedAt"), 0) AS "avgStations"
