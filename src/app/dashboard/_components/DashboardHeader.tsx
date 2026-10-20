@@ -96,9 +96,9 @@ export function DashboardHeader({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Dashboard</p>
-          <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
             {mode === 'overview' ? 'Resumen operativo' : `Vista de ${DASHBOARD_MODE_META[mode].label.toLowerCase()}`}
-          </h1>
+          </h2>
         </div>
 
         <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">

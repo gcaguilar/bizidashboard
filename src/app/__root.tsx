@@ -4,6 +4,7 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useLocation,
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 import Footer from '../components/Footer'
@@ -53,6 +54,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://tiles.openfreemap.org', crossOrigin: 'anonymous' },
+      { rel: 'alternate', type: 'application/rss+xml', title: 'Informes mensuales de Bizi Zaragoza', href: appRoutes.feed() },
       { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap' },
       { rel: 'stylesheet', href: appCss },
     ],
@@ -85,6 +87,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
   const umamiConfig = footerData.umami
+  const location = useLocation()
   const siteUrl = getSiteUrl()
   const structuredData = {
     '@context': 'https://schema.org',
@@ -93,14 +96,46 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         '@type': 'Organization',
         '@id': `${siteUrl}/#organization`,
         name: SEO_SITE_NAME,
+        alternateName: ['BiziDashboard', 'BiciRadar', 'Bici Radar'],
         url: siteUrl,
+        description:
+          'Observatorio público e independiente de Bizi Zaragoza: disponibilidad, histórico, informes y API de datos abiertos.',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${siteUrl}/og-image.png`,
+          width: 1200,
+          height: 630,
+        },
+        foundingDate: '2026',
+        founder: {
+          '@type': 'Person',
+          name: 'Guillermo Castella',
+          sameAs: 'https://www.linkedin.com/in/guillermocastella/',
+        },
+        areaServed: {
+          '@type': 'City',
+          name: 'Zaragoza',
+        },
+        contactPoint: [
+          {
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            url: `${siteUrl}${appRoutes.contacto()}`,
+            availableLanguage: ['es'],
+          },
+        ],
+        sameAs: [
+          'https://github.com/gcaguilar/bizidashboard',
+          'https://www.linkedin.com/in/guillermocastella/',
+        ],
       },
       {
         '@type': 'WebSite',
         '@id': `${siteUrl}/#website`,
         name: SEO_SITE_NAME,
+        alternateName: ['BiziDashboard', 'BiciRadar'],
         url: siteUrl,
-        inLanguage: 'es',
+        inLanguage: 'es-ES',
         publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
@@ -128,6 +163,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[var(--selection-bg)]">
+        {location.pathname === '/dashboard' || location.pathname === '/dashboard/' ? (
+          <h1 className="sr-only">Estado y análisis de Bizi Zaragoza: dashboard de la red</h1>
+        ) : null}
         <Header />
         {children}
         <Footer footerData={footerData} />

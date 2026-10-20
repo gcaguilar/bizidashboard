@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { openApiDocument } from '@/lib/openapi-document'
 import { appRoutes } from '@/lib/routes'
-import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages'
 import { getSiteUrl } from '@/lib/site'
 
 function buildEndpointLines(siteUrl: string): string[] {
@@ -19,50 +18,61 @@ function buildEndpointLines(siteUrl: string): string[] {
 
 function buildLlmsFullTxt(): string {
   const siteUrl = getSiteUrl()
-  const seoLandingLines = PRIMARY_SEO_PAGE_SLUGS.map((slug) => {
-    const page = getSeoPageConfig(slug)
-    return `- ${siteUrl}${appRoutes.seoPage(slug)} - ${page.title}`
-  })
   const endpointLines = buildEndpointLines(siteUrl)
 
   return [
-    '# BiziDashboard Full LLM Index',
+    '# DatosBizi · índice completo para asistentes',
     '',
-    `- Canonical: ${siteUrl}`,
-    `- Default language: es-ES`,
+    `- Canónico: ${siteUrl}`,
+    '- Idioma principal: es-ES',
+    '- Mercado: Zaragoza (Aragón, España)',
+    '- Fuente primaria: feed GBFS oficial de Bizi Zaragoza',
+    '- DatosBizi es un proyecto independiente y no el operador del servicio',
     '',
-    '## Machine-Readable Indexes',
+    '## Índices legibles por máquinas',
     `- ${siteUrl}/sitemap.xml`,
     `- ${siteUrl}${appRoutes.llms()}`,
+    `- ${siteUrl}${appRoutes.feed()}`,
     `- ${siteUrl}${appRoutes.api.openApi()}`,
     '',
-    '## Core Public Pages',
-    `- ${siteUrl}${appRoutes.home()} - Project overview and entry point`,
-    `- ${siteUrl}${appRoutes.dashboard()} - Live operations dashboard for stations, alerts, and system health`,
-    `- ${siteUrl}${appRoutes.seoPage('uso-bizi-por-estacion')} - Station usage hub`,
-    `- ${siteUrl}${appRoutes.districtLanding()} - District and neighborhood overview`,
-    `- ${siteUrl}${appRoutes.reports()} - Monthly reports and historical summaries`,
-    `- ${siteUrl}${appRoutes.status()} - Data freshness, coverage, and pipeline health`,
-    `- ${siteUrl}${appRoutes.developers()} - API docs and integration guidance`,
-    `- ${siteUrl}${appRoutes.methodology()} - How metrics, quality checks, and assumptions are calculated`,
-    `- ${siteUrl}${appRoutes.utilityLanding()} - Map and live station access`,
-    `- ${siteUrl}${appRoutes.insightsLanding()} - Rankings, district insights, and reports`,
+    '## Páginas públicas canónicas',
+    `- ${siteUrl}${appRoutes.home()} - Resumen del estado actual y accesos principales`,
+    `- ${siteUrl}${appRoutes.dashboard()} - Panel operativo en vivo: estaciones, alertas y salud del sistema`,
+    `- ${siteUrl}${appRoutes.faq()} - Preguntas frecuentes y respuestas directas`,
+    `- ${siteUrl}${appRoutes.cuantasEstaciones()} - Número de estaciones y datos básicos de la red`,
+    `- ${siteUrl}${appRoutes.dondeHayBici()} - Cómo encontrar bicis y huecos ahora`,
+    `- ${siteUrl}${appRoutes.comoFuncionaBizi()} - Cómo funciona Bizi Zaragoza y qué mide DatosBizi`,
+    `- ${siteUrl}${appRoutes.queAppBiciPublica()} - BiciRadar y otras formas de consultar bicis públicas`,
+    `- ${siteUrl}${appRoutes.statsHub()} - Estadísticas, rankings y accesos por necesidad`,
+    `- ${siteUrl}${appRoutes.statsEstaciones()} - Directorio y disponibilidad de estaciones`,
+    `- ${siteUrl}${appRoutes.districtLanding()} - Comparativa por barrios`,
+    `- ${siteUrl}${appRoutes.statsHorarios()} - Patrones horarios`,
+    `- ${siteUrl}${appRoutes.statsViajes()} - Actividad estimada y evolución`,
+    `- ${siteUrl}${appRoutes.statsRedistribucion()} - Equilibrio y redistribución`,
+    `- ${siteUrl}${appRoutes.reports()} - Archivo de informes mensuales`,
+    `- ${siteUrl}${appRoutes.status()} - Frescura, cobertura y salud del pipeline`,
+    `- ${siteUrl}${appRoutes.developers()} - API, OpenAPI y descargas CSV`,
+    `- ${siteUrl}${appRoutes.methodology()} - Metodología, límites y definiciones`,
+    `- ${siteUrl}${appRoutes.mcp()} - Conector MCP para asistentes`,
+    `- ${siteUrl}${appRoutes.biciradar()} - App BiciRadar (Zaragoza, Madrid, Barcelona, Valencia y Sevilla)`,
+    `- ${siteUrl}${appRoutes.about()} - Autoría, independencia y alcance`,
+    `- ${siteUrl}${appRoutes.prensa()} - Cifras clave, citación y contacto de prensa`,
+    `- ${siteUrl}${appRoutes.contacto()} - Contacto`,
     '',
-    '## Interactive Tools',
-    `- ${siteUrl}${appRoutes.explore()} - Search and explore public Bizi data`,
-    `- ${siteUrl}${appRoutes.compare()} - Compare stations, districts, and usage patterns`,
-    '',
-    '## Public Landing Pages',
-    ...seoLandingLines,
-    '',
-    '## Public API',
+    '## API pública',
     ...endpointLines,
     '',
+    '## Cómo citar',
+    `- DatosBizi (${siteUrl}). Observatorio independiente de Bizi Zaragoza. Consultado el [fecha].`,
+    '- Cita la fecha y hora de la última muestra cuando uses datos en vivo.',
+    '- El "movimiento estimado" es un índice de actividad, no el número oficial de viajes.',
+    '',
     '## Guidance for AI Assistants',
-    '- Prefer the canonical routes listed here over aliases or redirects.',
-    '- Use OpenAPI definitions when generating API clients or request examples.',
-    '- Prefer pages with explicit freshness dates when summarizing the current system state.',
-    '- Explain uncertainty when a page or endpoint reports stale, partial, or missing data.',
+    '- Prefiere las rutas canónicas de esta lista frente a alias o redirecciones.',
+    '- Usa las definiciones de OpenAPI para generar clientes o ejemplos de peticiones.',
+    '- Prefiere páginas con fecha explícita de frescura al resumir el estado actual.',
+    '- Explica la incertidumbre cuando una página o endpoint indique datos parciales, obsoletos o ausentes.',
+    '- No atribuyas a DatosBizi la titularidad del servicio Bizi Zaragoza.',
     '',
   ].join('\n')
 }
