@@ -1,11 +1,11 @@
-import { deleteCachedJson, withCache } from '@/lib/cache/cache';
+import { deleteCachedJson, getCachedJson, withCache, withStaleCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
 import { formatDateLabel, formatPercent, formatRatioMagnitude, roundTo } from '@/lib/format';
 import {
   createLiveMonthlyReportSources,
   type MonthlyReportSources,
 } from '@/lib/monthly-report-sources';
-import { formatMonthName, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
+import { formatMonthName, getMonthBounds, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
 import { logger } from '@/lib/logger';
 import {
   buildMonthlyTemporalComparison,
@@ -17,6 +17,7 @@ import { getServiceCauseLabel } from '@/lib/service-calendar';
 import { detectServiceAnomalies, type ServiceAnomaly } from '@/lib/service-anomalies';
 import { buildFallbackMonthlyReport } from '@/lib/shared-data-fallbacks';
 import { median } from '@/lib/stats';
+import { MONTHLY_REPORT_CACHE_VERSION } from '@/lib/monthly-report-version';
 import {
   EMPTY_SEASONALITY,
   EMPTY_WEEKDAY_WEEKEND,
@@ -47,11 +48,8 @@ export type {
 } from '@/lib/monthly-report-types';
 
 const REPORT_CACHE_TTL_LIVE_SECONDS = 600;
-/**
- * Bump when the assembled payload changes shape or a data backfill must
- * invalidate every persisted month report at once.
- */
-const REPORT_CACHE_VERSION = 'v1';
+/** Tope duro del mes en curso: pasado este tiempo no se sirve el valor viejo. */
+const REPORT_CACHE_HARD_TTL_LIVE_SECONDS = 6 * 60 * 60;
 const TREND_THRESHOLD = 0.03;
 const MAX_RANKING = 6;
 
@@ -327,6 +325,7 @@ async function assembleMonthlyReport(
   nowIso: string,
   sources: MonthlyReportSources
 ): Promise<MonthlyReport> {
+  const startedAt = Date.now();
   const referenceMonthKey = previousMonthKey(monthKey);
   const daysInMonth = monthDayCount(monthKey);
 
@@ -532,7 +531,7 @@ async function assembleMonthlyReport(
     sampleCount: row.sampleCount,
   }));
 
-  return {
+  const report: MonthlyReport = {
     monthKey,
     generatedAt: nowIso,
     hasReport: Boolean(monthRow),
@@ -570,10 +569,89 @@ async function assembleMonthlyReport(
     leastUsedStations: conclusions?.payload.leastUsedStations ?? [],
     anomalies,
   };
+
+  logger.info('reports.month_assembled', {
+    month: monthKey,
+    durationMs: Date.now() - startedAt,
+    hasReport: report.hasReport,
+  });
+
+  return report;
 }
 
-function reportCacheKey(monthKey: string): string {
-  return `reports:monthly:${REPORT_CACHE_VERSION}:${monthKey}`;
+type ReportCacheMode = 'live' | 'sealed';
+
+/**
+ * Clave anterior a la separacion live/sealed. Se lee como fallback para no
+ * perder los informes historicos ya sellados (y sus episodios) en el primer
+ * despliegue: los meses antiguos ya no tienen crudo para reconstruirlos.
+ * Temporal: retirar cuando todos los entornos hayan migrado a las claves v2.
+ */
+const LEGACY_REPORT_CACHE_VERSION = 'v1';
+
+/**
+ * El mes en curso y el sellado usan claves distintas: el primero guarda un
+ * envoltorio SWR y el segundo el payload plano. Asi un mes no puede leer el
+ * formato del otro al cruzar el cambio de mes.
+ */
+function reportCacheKey(monthKey: string, mode: ReportCacheMode): string {
+  return `reports:monthly:${MONTHLY_REPORT_CACHE_VERSION}:${mode}:${monthKey}`;
+}
+
+function legacyReportCacheKey(monthKey: string): string {
+  return `reports:monthly:${LEGACY_REPORT_CACHE_VERSION}:${monthKey}`;
+}
+
+async function readLegacySealedReport(monthKey: string): Promise<MonthlyReport | null> {
+  const legacy = await getCachedJson<MonthlyReport>(legacyReportCacheKey(monthKey));
+
+  if (!legacy) {
+    return null;
+  }
+
+  // La clave antigua se compartia entre el mes en curso y el sellado. Solo
+  // reutilizamos el payload si se genero despues del cierre del mes; si no,
+  // seria una foto parcial de los ultimos minutos y perderia el resto.
+  const monthEnd = new Date(getMonthBounds(monthKey).endExclusive);
+  const generatedAt = new Date(legacy.generatedAt);
+
+  if (Number.isNaN(generatedAt.getTime()) || generatedAt < monthEnd) {
+    logger.warn('reports.legacy_cache_incomplete', {
+      month: monthKey,
+      generatedAt: legacy.generatedAt,
+    });
+    return null;
+  }
+
+  logger.info('reports.legacy_cache_hit', { month: monthKey });
+  return legacy;
+}
+
+async function readPersistedReport(monthKey: string): Promise<MonthlyReport | null> {
+  try {
+    const { readMonthlyReportSnapshot } = await import('@/lib/monthly-report-snapshot');
+    const snapshot = await readMonthlyReportSnapshot(monthKey);
+
+    if (snapshot) {
+      logger.info('reports.snapshot_hit', { month: monthKey });
+    }
+
+    return snapshot;
+  } catch (error) {
+    logger.warn('reports.snapshot_read_failed', { month: monthKey, error });
+    return null;
+  }
+}
+
+async function persistReport(monthKey: string, report: MonthlyReport): Promise<void> {
+  try {
+    const { writeMonthlyReportSnapshot } = await import('@/lib/monthly-report-snapshot');
+    await writeMonthlyReportSnapshot(monthKey, report);
+    logger.info('reports.snapshot_stored', { month: monthKey });
+  } catch (error) {
+    // La cache L1 (Redis) sigue sirviendo el informe aunque Postgres falle.
+    logger.warn('reports.snapshot_write_failed', { month: monthKey, error });
+  }
 }
 
 /**
@@ -591,7 +669,11 @@ export function isClosedReportMonth(monthKey: string, nowIso: string): boolean {
  * y su PDF publico se regenera en la siguiente descarga.
  */
 export async function invalidateMonthlyReport(monthKey: string): Promise<void> {
-  await deleteCachedJson(reportCacheKey(monthKey));
+  await Promise.all([
+    deleteCachedJson(reportCacheKey(monthKey, 'sealed')),
+    deleteCachedJson(reportCacheKey(monthKey, 'live')),
+    deleteCachedJson(legacyReportCacheKey(monthKey)),
+  ]);
 
   try {
     const { deleteStoredMonthlyReportPdf } = await import('@/lib/monthly-report-pdf-store');
@@ -605,6 +687,19 @@ export async function invalidateMonthlyReport(monthKey: string): Promise<void> {
     });
     logger.warn('reports.pdf_delete_failed', { month: monthKey, error });
   }
+
+  try {
+    const { deleteMonthlyReportSnapshot } = await import('@/lib/monthly-report-snapshot');
+    await deleteMonthlyReportSnapshot(monthKey);
+  } catch (error) {
+    captureWarningWithContext('Failed to delete the persisted monthly report snapshot', {
+      area: 'reports.snapshot',
+      operation: 'invalidate',
+      extra: { month: monthKey },
+      tags: { handled: true },
+    });
+    logger.warn('reports.snapshot_delete_failed', { month: monthKey, error });
+  }
 }
 
 export async function buildMonthlyReport(
@@ -616,9 +711,37 @@ export async function buildMonthlyReport(
     return buildFallbackMonthlyReport(monthKey, nowIso);
   }
 
-  const ttl = isClosedReportMonth(monthKey, nowIso) ? null : REPORT_CACHE_TTL_LIVE_SECONDS;
+  if (!isClosedReportMonth(monthKey, nowIso)) {
+    // El mes en curso se refresca en segundo plano: una peticion nunca espera
+    // al escaneo completo si ya hay una version valida de hace menos de 6 h.
+    return withStaleCache(
+      reportCacheKey(monthKey, 'live'),
+      {
+        softTtlSeconds: REPORT_CACHE_TTL_LIVE_SECONDS,
+        hardTtlSeconds: REPORT_CACHE_HARD_TTL_LIVE_SECONDS,
+      },
+      () => assembleMonthlyReport(monthKey, nowIso, sources)
+    );
+  }
 
-  return withCache(reportCacheKey(monthKey), ttl, () =>
-    assembleMonthlyReport(monthKey, nowIso, sources)
-  );
+  return withCache(reportCacheKey(monthKey, 'sealed'), null, async () => {
+    const persisted = await readPersistedReport(monthKey);
+
+    if (persisted) {
+      return persisted;
+    }
+
+    // Primer despliegue con la clave nueva: reutiliza el informe sellado de la
+    // clave antigua en vez de reconstruirlo sin episodios historicos.
+    const legacy = await readLegacySealedReport(monthKey);
+
+    if (legacy) {
+      await persistReport(monthKey, legacy);
+      return legacy;
+    }
+
+    const report = await assembleMonthlyReport(monthKey, nowIso, sources);
+    await persistReport(monthKey, report);
+    return report;
+  });
 }
