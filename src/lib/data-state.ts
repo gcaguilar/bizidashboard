@@ -227,7 +227,8 @@ export function resolveHistoryDataState({
   coverage,
   status,
   expectedDays,
-}: CollectionStateInput & { expectedDays?: number }): DataState {
+  compareCoverageDays = true,
+}: CollectionStateInput & { expectedDays?: number; compareCoverageDays?: boolean }): DataState {
   const normalizedCount = normalizeCount(count);
   const normalizedExpectedDays = normalizeCount(expectedDays);
 
@@ -237,7 +238,7 @@ export function resolveHistoryDataState({
     isPartial:
       normalizedCount > 0 &&
       ((normalizedExpectedDays > 0 && normalizedCount < normalizedExpectedDays) ||
-        normalizeCount(coverage?.totalDays) > normalizedCount),
+        (compareCoverageDays && normalizeCount(coverage?.totalDays) > normalizedCount)),
     isStale: normalizedCount > 0 && isDataStateStale(status),
   });
 }

@@ -1,16 +1,14 @@
 import { serverHandlers } from '@tests/helpers/route-handlers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { queryRawMock, getHistoryMetadataMock, getPipelineStatusSummaryMock } = vi.hoisted(() => ({
-  queryRawMock: vi.fn(),
+const { getHistorySeriesMock, getHistoryMetadataMock, getPipelineStatusSummaryMock } = vi.hoisted(() => ({
+  getHistorySeriesMock: vi.fn(),
   getHistoryMetadataMock: vi.fn(),
   getPipelineStatusSummaryMock: vi.fn(),
 }));
 
-vi.mock('@/lib/db', () => ({
-  prisma: {
-    $queryRaw: queryRawMock,
-  },
+vi.mock('@/lib/history-read-model', () => ({
+  getHistorySeries: getHistorySeriesMock,
 }));
 
 vi.mock('@/services/shared-data', () => ({
@@ -22,11 +20,19 @@ vi.mock('@/lib/security/public-api-route', () => ({
   withPublicApiRoute: (_opts: unknown, handler: (args: { request: Request; access: { headers: Record<string, string> } }) => Promise<Response>) => handler,
 }));
 
+function buildRequest(url = 'http://localhost/api/history') {
+  return {
+    request: new Request(url),
+    access: { headers: {} },
+  };
+}
+
 describe('GET /api/history', () => {
   beforeEach(() => {
-    queryRawMock.mockReset();
+    getHistorySeriesMock.mockReset();
     getHistoryMetadataMock.mockReset();
     getPipelineStatusSummaryMock.mockReset();
+    getHistorySeriesMock.mockResolvedValue([]);
   });
 
   it('exposes GET handler through server options', async () => {
@@ -39,7 +45,7 @@ describe('GET /api/history', () => {
   it('returns 200 with fallback payload when history metadata fails', async () => {
     getHistoryMetadataMock.mockRejectedValue(new Error('metadata unavailable'));
     getPipelineStatusSummaryMock.mockRejectedValue(new Error('status unavailable'));
-    queryRawMock.mockResolvedValue([
+    getHistorySeriesMock.mockResolvedValue([
       {
         day: '2026-05-01',
         demandScore: 12,
@@ -51,10 +57,7 @@ describe('GET /api/history', () => {
 
     const { Route } = await import('@/app/api/history/index');
     const handler = serverHandlers(Route).GET!;
-    const response = await handler({
-      request: new Request('http://localhost/api/history'),
-      access: { headers: {} },
-    });
+    const response = await handler(buildRequest());
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -62,5 +65,36 @@ describe('GET /api/history', () => {
     expect(payload.history).toHaveLength(1);
     expect(payload.coverage).toBeDefined();
     expect(payload.generatedAt).toBeDefined();
+  });
+
+  it('passes an optional days window to the cached series', async () => {
+    getHistoryMetadataMock.mockResolvedValue({
+      source: { provider: 'test', gbfsDiscoveryUrl: 'https://example.test' },
+      coverage: {
+        firstRecordedAt: '2026-05-01T00:00:00.000Z',
+        lastRecordedAt: '2026-05-10T00:00:00.000Z',
+        totalSamples: 100,
+        totalStations: 10,
+        totalDays: 10,
+        generatedAt: '2026-05-10T00:00:00.000Z',
+      },
+      generatedAt: '2026-05-10T00:00:00.000Z',
+    });
+    getPipelineStatusSummaryMock.mockResolvedValue(null);
+
+    const { Route } = await import('@/app/api/history/index');
+    const handler = serverHandlers(Route).GET!;
+    await handler(buildRequest('http://localhost/api/history?days=7'));
+
+    expect(getHistorySeriesMock).toHaveBeenCalledWith({ days: 7 });
+  });
+
+  it('rejects an invalid days window', async () => {
+    const { Route } = await import('@/app/api/history/index');
+    const handler = serverHandlers(Route).GET!;
+    const response = await handler(buildRequest('http://localhost/api/history?days=0'));
+
+    expect(response.status).toBe(400);
+    expect(getHistorySeriesMock).not.toHaveBeenCalled();
   });
 });

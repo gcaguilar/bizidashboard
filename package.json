@@ -29,6 +29,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
+    "db:backfill:daily-system": "tsx scripts/backfill-daily-system-stat.ts",
     "qa:seed": "tsx scripts/seed-qa-db.ts",
     "qa:audit": "bun scripts/site-audit.ts",
     "qa:audit:check": "bun scripts/check-site-audit.ts",

@@ -1,27 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { prisma } from '@/lib/db'
 import { csvResponse } from '@/lib/csv'
 import { resolveHistoryDataState } from '@/lib/data-state'
+import { getHistorySeries } from '@/lib/history-read-model'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import { getHistoryMetadata, getPipelineStatusSummary } from '@/services/shared-data'
 
-type DailyHistoryRow = {
-  day: string
-  demandScore: number
-  avgOccupancy: number
-  sampleCount: number
-  balanceIndex: number
-}
-
 const HISTORY_CSV_HEADERS = ['day', 'demandScore', 'avgOccupancy', 'balanceIndex', 'sampleCount']
+const MAX_HISTORY_DAYS = 365
 
-function d<T>(v: T | null | undefined, dflt: T): T {
-  return v ?? dflt
+function parseDays(value: string | null): number | null | 'invalid' {
+  if (value === null) return null
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_HISTORY_DAYS) return 'invalid'
+  return parsed
 }
 
-async function buildHistoryPayload() {
+async function buildHistoryPayload(days?: number) {
   const nowIso = new Date().toISOString()
-  const [historyMeta, dailyHistoryRows, status] = await Promise.all([
+  const [historyMeta, history, status] = await Promise.all([
     getHistoryMetadata().catch(() => ({
       source: {
         provider: 'Bizi Zaragoza GBFS',
@@ -37,45 +33,11 @@ async function buildHistoryPayload() {
       },
       generatedAt: nowIso,
     })),
-    // Compute daily history directly from StationStatus so it always
-    // reflects the latest ingested data regardless of analytics aggregation.
-    prisma.$queryRaw<DailyHistoryRow[]>`
-      WITH daily_station AS (
-        SELECT
-          TO_CHAR("recordedAt", 'YYYY-MM-DD') AS day,
-          "stationId",
-          AVG("bikesAvailable"::float / NULLIF("bikesAvailable" + "anchorsFree", 0))
-            AS "stationAvgOccupancy",
-          MAX("bikesAvailable") - MIN("bikesAvailable") AS "bikesRange",
-          MAX("anchorsFree") - MIN("anchorsFree") AS "anchorsRange",
-          COUNT(*)::int AS "stationSamples"
-        FROM "StationStatus"
-        GROUP BY TO_CHAR("recordedAt", 'YYYY-MM-DD'), "stationId"
-      )
-      SELECT
-        day,
-        SUM("bikesRange" + "anchorsRange")::int AS "demandScore",
-        AVG("stationAvgOccupancy") AS "avgOccupancy",
-        AVG(CASE
-          WHEN "stationAvgOccupancy" IS NULL THEN 0.5
-          WHEN ABS("stationAvgOccupancy" - 0.5) >= 0.5 THEN 0
-          ELSE 1 - (2 * ABS("stationAvgOccupancy" - 0.5))
-        END) AS "balanceIndex",
-        SUM("stationSamples")::int AS "sampleCount"
-      FROM daily_station
-      GROUP BY day
-      ORDER BY day ASC;
-    `.catch(() => [] as DailyHistoryRow[]),
+    // Daily series is cached in Redis (see history-read-model); raw snapshots
+    // are only aggregated once per cache window instead of on every request.
+    getHistorySeries({ days }),
     getPipelineStatusSummary().catch(() => null),
   ])
-
-  const history = dailyHistoryRows.map((row) => ({
-    day: row.day,
-    demandScore: d(row.demandScore, 0),
-    avgOccupancy: d(row.avgOccupancy, 0),
-    balanceIndex: d(row.balanceIndex, 0),
-    sampleCount: d(row.sampleCount, 0),
-  }))
 
   return {
     source: historyMeta.source,
@@ -87,6 +49,10 @@ async function buildHistoryPayload() {
       coverage: historyMeta.coverage,
       status,
       expectedDays: 30,
+      // Coverage counts the full rollup history; the series now does too, but
+      // the current day is computed live and historical days may be
+      // approximate, so the comparison is not meaningful here.
+      compareCoverageDays: false,
     }),
   }
 }
@@ -105,8 +71,18 @@ export const Route = createFileRoute('/api/history/')({
           cacheControl: 'public, max-age=300, stale-while-revalidate=120',
         },
         async ({ request }) => {
-          const format = new URL(request.url).searchParams.get('format')
-          const payload = await buildHistoryPayload()
+          const { searchParams } = new URL(request.url)
+          const format = searchParams.get('format')
+          const days = parseDays(searchParams.get('days'))
+
+          if (days === 'invalid') {
+            return new Response(
+              JSON.stringify({ error: `Invalid days parameter. Must be an integer between 1 and ${MAX_HISTORY_DAYS}.` }),
+              { status: 400, headers: { 'Content-Type': 'application/json' } }
+            )
+          }
+
+          const payload = await buildHistoryPayload(days ?? undefined)
 
           if (format === 'csv') {
             return csvResponse({

@@ -326,7 +326,31 @@ export const openApiDocument = {
     '/api/history': {
       get: {
         operationId: 'get_history',
-        summary: 'Get full historical demand data since first record',
+        summary: 'Get historical daily demand and balance for the retained raw window',
+        parameters: [
+          {
+            name: 'days',
+            in: 'query',
+            required: false,
+            description: 'Return only the last N daily rows (default: all retained days)',
+            schema: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 365
+            }
+          },
+          {
+            name: 'format',
+            in: 'query',
+            required: false,
+            description: 'Response format',
+            schema: {
+              type: 'string',
+              enum: ['json', 'csv'],
+              default: 'json'
+            }
+          }
+        ],
         responses: {
           200: {
             description: 'Historical coverage metadata and daily history'
