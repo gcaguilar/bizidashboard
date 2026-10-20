@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -17,7 +17,6 @@ import { buildObservatoryEvent } from '@/lib/umami'
 import { toJsonLdScript } from '@/lib/structured-data';
 import { DemandFlowCard } from '@/app/dashboard/_components/DemandFlowCard';
 import { ReportSummary } from '@/app/informes/_components/ReportSummary';
-import { ReportCharts } from '@/app/informes/_components/ReportCharts';
 import { ReportDistricts } from '@/app/informes/_components/ReportDistricts';
 import { ReportProblems } from '@/app/informes/_components/ReportProblems';
 import { ReportAnomalies } from '@/app/informes/_components/ReportAnomalies';
@@ -25,8 +24,30 @@ import { ReportConclusions } from '@/app/informes/_components/ReportConclusions'
 import { ReportExportBar } from '@/app/informes/_components/ReportExportBar';
 import { ReportRedistribution } from '@/app/informes/_components/ReportRedistribution';
 
+// recharts y d3 son pesados y solo se necesitan en esta pagina: cargarlos en
+// un chunk aparte evita incluirlos en el bundle inicial del informe.
+const ReportCharts = lazy(() =>
+  import('@/app/informes/_components/ReportCharts').then((module) => ({
+    default: module.ReportCharts,
+  }))
+);
+
+type ReportMonthPageData = Awaited<ReturnType<typeof getReportMonthPageData>>;
+
+/** El mes en curso es parcial y cambia durante el dia. */
+export const REPORTS_LIVE_CACHE_CONTROL =
+  'public, max-age=60, s-maxage=300, stale-while-revalidate=600';
+/**
+ * Un mes cerrado esta sellado. Cloudflare puede servirlo desde edge; si un
+ * backfill lo invalida, el edge puede tardar como maximo una semana en
+ * refrescarlo (o antes si la revalidacion en segundo plano tiene exito).
+ */
+export const REPORTS_CLOSED_CACHE_CONTROL =
+  'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800';
+
 export const Route = createFileRoute('/informes/$month')({
-  loader: async ({ params }) => getReportMonthPageData({ data: params.month }),
+  loader: async ({ params }): Promise<ReportMonthPageData> =>
+    getReportMonthPageData({ data: params.month }),
   head: (opts) => {
     const month = opts.params.month ?? ''
     const monthPath = appRoutes.reportMonth(month)
@@ -55,6 +76,17 @@ export const Route = createFileRoute('/informes/$month')({
   },
   errorComponent: InformesMonthErrorPage,
   component: InformesMonthPage,
+  // `headers` va al final a proposito: declararlo antes del loader hace que
+  // TypeScript pierda la inferencia de `loaderData` en `head` y `useLoaderData`.
+  headers: ({ params }) => {
+    const month = params.month ?? '';
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    return {
+      'Cache-Control':
+        month < currentMonth ? REPORTS_CLOSED_CACHE_CONTROL : REPORTS_LIVE_CACHE_CONTROL,
+    };
+  },
 })
 
 function InformesMonthErrorPage({ error }: { error: unknown }) {
@@ -78,27 +110,59 @@ function InformesMonthErrorPage({ error }: { error: unknown }) {
   );
 }
 
+function ReportChartsFallback() {
+  return (
+    <section className="ui-section-card" aria-busy="true">
+      <p className="text-sm text-[var(--muted)]">Cargando gráficos…</p>
+    </section>
+  );
+}
+
 function InformesMonthPage() {
   const { month, monthRow, report, nearbyMonths, dataState } = Route.useLoaderData()
   const monthLabel = formatMonthLabel(month)
   const breadcrumbs = createReportBreadcrumb(monthLabel)
 
-  // Marca de hidratacion para el render de PDF en servidor: cuando existe, los
-  // graficos ya se han montado y la captura no sale vacia.
+  // Los graficos son un chunk perezoso. La pagina espera a que ReportCharts
+  // avise de que ya esta montado (o a un margen de seguridad si el informe no
+  // tiene graficos) antes de marcar la hidratacion que usa el render de PDF.
+  const hasCharts =
+    report.trends.monthly.length > 0 ||
+    report.trends.hourly.length > 0 ||
+    report.heatmap.length > 0
+
   useEffect(() => {
-    let secondFrame = 0
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        document.documentElement.dataset.reportHydrated = 'true'
+    let cancelled = false
+
+    const markHydrated = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!cancelled) {
+            document.documentElement.dataset.reportHydrated = 'true'
+          }
+        })
       })
-    })
+    }
+
+    const onChartsReady = () => markHydrated()
+
+    // Si los graficos ya se montaron antes de este efecto (el hijo ejecuta su
+    // efecto primero), el evento ya paso: el flag evita perderlo.
+    if (document.documentElement.dataset.reportChartsReady === 'true') {
+      markHydrated()
+    } else {
+      window.addEventListener('report-charts-ready', onChartsReady, { once: true })
+    }
+
+    const fallbackTimer = window.setTimeout(markHydrated, hasCharts ? 5000 : 0)
 
     return () => {
-      cancelAnimationFrame(firstFrame)
-      cancelAnimationFrame(secondFrame)
+      cancelled = true
+      window.clearTimeout(fallbackTimer)
+      window.removeEventListener('report-charts-ready', onChartsReady)
       delete document.documentElement.dataset.reportHydrated
     }
-  }, [])
+  }, [hasCharts])
   const structuredData = monthRow
     ? {
         '@context': 'https://schema.org',
@@ -193,7 +257,9 @@ function InformesMonthPage() {
             </article>
           </section>
 
-          <ReportCharts report={report} />
+          <Suspense fallback={<ReportChartsFallback />}>
+            <ReportCharts report={report} />
+          </Suspense>
 
           <DemandFlowCard
             dailyDemand={report.trends.daily}

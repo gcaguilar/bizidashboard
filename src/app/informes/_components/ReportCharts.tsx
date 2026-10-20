@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Bar,
   BarChart,
@@ -209,6 +209,18 @@ export function ReportCharts({ report }: ReportChartsProps) {
   const hasMonthly = report.trends.monthly.length > 0;
   const hasHourly = report.trends.hourly.length > 0;
   const hasHeatmap = report.heatmap.length > 0;
+
+  // Avisa al render de PDF de que el chunk perezoso de graficos ya esta montado.
+  // El flag cubre el caso en que el efecto del hijo corre antes que el listener
+  // del padre; el evento cubre el montaje posterior.
+  useEffect(() => {
+    document.documentElement.dataset.reportChartsReady = 'true';
+    window.dispatchEvent(new Event('report-charts-ready'));
+
+    return () => {
+      delete document.documentElement.dataset.reportChartsReady;
+    };
+  }, []);
 
   return (
     <section className="grid gap-4 xl:grid-cols-2">
