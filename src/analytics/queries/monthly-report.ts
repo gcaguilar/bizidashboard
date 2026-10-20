@@ -1,4 +1,6 @@
+import { findWatermark, setWatermark } from '@/analytics/watermarks';
 import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 import { TIMEZONE } from '@/lib/timezone';
 import { coalesceSumDemand } from './demand-sql';
@@ -103,20 +105,116 @@ export async function getMonthlyStationMetrics(monthKey: string): Promise<Monthl
   }));
 }
 
+export type StationCriticalEpisodeKind = 'empty' | 'full';
+
+export type StationCriticalEpisodeRow = {
+  stationId: string;
+  kind: StationCriticalEpisodeKind;
+  startedAt: Date;
+  endedAt: Date;
+  durationMinutes: number;
+};
+
+type RawStationCriticalEpisodeRow = {
+  stationId: string;
+  kind: string;
+  startedAt: string | Date;
+  endedAt: string | Date;
+  durationMinutes: unknown;
+};
+
+function toDate(value: string | Date): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
 /**
- * Episodios criticos (rachas continuas sin bicis o sin anclajes) dentro del mes.
- * Es la variante mensual de `getCriticalEpisodes`, que trabaja con ventanas
- * relativas a "ahora".
+ * Extrae las rachas exactas del mes con los timestamps reales de StationStatus.
+ * La duracion se calcula con los minutos reales (con decimales); no se aproxima
+ * con los rollups horarios.
  */
-export async function getMonthlyCriticalEpisodes(
+export async function getMonthlyEpisodeRows(
   monthKey: string
-): Promise<Record<string, MonthlyCriticalEpisodeRow>> {
+): Promise<StationCriticalEpisodeRow[]> {
   if (!isValidMonthKey(monthKey)) {
-    return {};
+    return [];
   }
 
   const { start, endExclusive } = getMonthBounds(monthKey);
 
+  const rows = await prisma.$queryRaw<RawStationCriticalEpisodeRow[]>`
+    WITH gaps AS (
+      SELECT "stationId", "recordedAt", "bikesAvailable", "anchorsFree",
+        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
+        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS empty_grp,
+        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
+        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS full_grp
+      FROM "StationStatus"
+      WHERE "recordedAt" >= ${start}::timestamp AND "recordedAt" < ${endExclusive}::timestamp
+    ),
+    empty_episodes AS (
+      SELECT "stationId", 'empty' AS kind, MIN("recordedAt") AS "startedAt", MAX("recordedAt") AS "endedAt",
+        EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt"))) / 60 AS "durationMinutes"
+      FROM gaps
+      WHERE "bikesAvailable" <= 0
+      GROUP BY "stationId", empty_grp
+      HAVING MAX("recordedAt") > MIN("recordedAt")
+    ),
+    full_episodes AS (
+      SELECT "stationId", 'full' AS kind, MIN("recordedAt") AS "startedAt", MAX("recordedAt") AS "endedAt",
+        EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt"))) / 60 AS "durationMinutes"
+      FROM gaps
+      WHERE "anchorsFree" <= 0
+      GROUP BY "stationId", full_grp
+      HAVING MAX("recordedAt") > MIN("recordedAt")
+    )
+    SELECT * FROM empty_episodes
+    UNION ALL
+    SELECT * FROM full_episodes;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    kind: row.kind === 'full' ? 'full' : 'empty',
+    startedAt: toDate(row.startedAt),
+    endedAt: toDate(row.endedAt),
+    durationMinutes: toSerializableNumber(row.durationMinutes),
+  }));
+}
+
+function aggregateEpisodeRows(
+  rows: StationCriticalEpisodeRow[]
+): Record<string, MonthlyCriticalEpisodeRow> {
+  const byStation = new Map<string, { empty: number[]; full: number[] }>();
+
+  for (const row of rows) {
+    const entry = byStation.get(row.stationId) ?? { empty: [], full: [] };
+    entry[row.kind].push(row.durationMinutes);
+    byStation.set(row.stationId, entry);
+  }
+
+  const map: Record<string, MonthlyCriticalEpisodeRow> = {};
+
+  for (const [stationId, entry] of byStation) {
+    const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
+    const max = (values: number[]) =>
+      values.reduce((highest, value) => Math.max(highest, value), 0);
+
+    map[stationId] = {
+      stationId,
+      avgEmptyEpisodeMinutes: entry.empty.length > 0 ? sum(entry.empty) / entry.empty.length : 0,
+      avgFullEpisodeMinutes: entry.full.length > 0 ? sum(entry.full) / entry.full.length : 0,
+      maxEmptyEpisodeMinutes: max(entry.empty),
+      maxFullEpisodeMinutes: max(entry.full),
+      episodeCount: entry.empty.length + entry.full.length,
+    };
+  }
+
+  return map;
+}
+
+async function getPersistedMonthlyEpisodes(
+  monthKey: string
+): Promise<Record<string, MonthlyCriticalEpisodeRow>> {
   const rows = await prisma.$queryRaw<
     Array<{
       stationId: string;
@@ -127,44 +225,16 @@ export async function getMonthlyCriticalEpisodes(
       episodeCount: unknown;
     }>
   >`
-    WITH gaps AS (
-      SELECT "stationId", "recordedAt", "bikesAvailable", "anchorsFree",
-        CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END AS empty_flag,
-        CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END AS full_flag,
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS empty_grp,
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS full_grp
-      FROM "StationStatus"
-      WHERE "recordedAt" >= ${start}::timestamp AND "recordedAt" < ${endExclusive}::timestamp
-    ),
-    empty_episodes AS (
-      SELECT "stationId", MIN("recordedAt") AS start_time,
-             EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 AS duration_min
-      FROM gaps
-      WHERE empty_flag = 0
-      GROUP BY "stationId", empty_grp
-      HAVING EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 > 0
-    ),
-    full_episodes AS (
-      SELECT "stationId", MIN("recordedAt") AS start_time,
-             EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 AS duration_min
-      FROM gaps
-      WHERE full_flag = 0
-      GROUP BY "stationId", full_grp
-      HAVING EXTRACT(EPOCH FROM (MAX("recordedAt") - MIN("recordedAt")))/60 > 0
-    )
     SELECT
-      s.id AS "stationId",
-      COALESCE(AVG(e.duration_min), 0) AS "avgEmptyMinutes",
-      COALESCE(MAX(e.duration_min), 0) AS "maxEmptyMinutes",
-      COALESCE(AVG(f.duration_min), 0) AS "avgFullMinutes",
-      COALESCE(MAX(f.duration_min), 0) AS "maxFullMinutes",
-      COUNT(DISTINCT e.start_time) + COUNT(DISTINCT f.start_time) AS "episodeCount"
-    FROM "Station" s
-    LEFT JOIN empty_episodes e ON s.id = e."stationId"
-    LEFT JOIN full_episodes f ON s.id = f."stationId"
-    GROUP BY s.id;
+      "stationId",
+      COALESCE(AVG("durationMinutes") FILTER (WHERE "kind" = 'empty'), 0) AS "avgEmptyMinutes",
+      COALESCE(MAX("durationMinutes") FILTER (WHERE "kind" = 'empty'), 0) AS "maxEmptyMinutes",
+      COALESCE(AVG("durationMinutes") FILTER (WHERE "kind" = 'full'), 0) AS "avgFullMinutes",
+      COALESCE(MAX("durationMinutes") FILTER (WHERE "kind" = 'full'), 0) AS "maxFullMinutes",
+      COUNT(*) AS "episodeCount"
+    FROM "StationCriticalEpisode"
+    WHERE "monthKey" = ${monthKey}
+    GROUP BY "stationId";
   `;
 
   const map: Record<string, MonthlyCriticalEpisodeRow> = {};
@@ -181,6 +251,78 @@ export async function getMonthlyCriticalEpisodes(
   }
 
   return map;
+}
+
+/**
+ * Recalcula la tabla de episodios de un mes. Es idempotente: borra e inserta
+ * dentro de una transaccion corta. Se llama al sellar el mes y, para el mes en
+ * curso, desde el job horario.
+ */
+export async function refreshMonthlyCriticalEpisodes(
+  monthKey: string
+): Promise<{ monthKey: string; episodes: number }> {
+  if (!isValidMonthKey(monthKey)) {
+    return { monthKey, episodes: 0 };
+  }
+
+  const startedAt = Date.now();
+  const rows = await getMonthlyEpisodeRows(monthKey);
+  const data = rows.map((row) => ({
+    stationId: row.stationId,
+    kind: row.kind,
+    startedAt: row.startedAt,
+    endedAt: row.endedAt,
+    durationMinutes: row.durationMinutes,
+    monthKey,
+  }));
+
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.stationCriticalEpisode.deleteMany({ where: { monthKey } });
+
+      for (let index = 0; index < data.length; index += 5_000) {
+        await tx.stationCriticalEpisode.createMany({
+          data: data.slice(index, index + 5_000),
+        });
+      }
+    },
+    { timeout: 120_000 }
+  );
+
+  await setWatermark(`critical-episodes:${monthKey}`, new Date());
+
+  logger.info('analytics.critical_episodes_refreshed', {
+    month: monthKey,
+    episodes: data.length,
+    durationMs: Date.now() - startedAt,
+  });
+
+  return { monthKey, episodes: data.length };
+}
+
+/**
+ * Episodios criticos del mes. Usa la tabla precalculada si el job ya la ha
+ * refrescado; si no (primer arranque o backfill), calcula las rachas exactas
+ * desde StationStatus.
+ */
+export async function getMonthlyCriticalEpisodes(
+  monthKey: string
+): Promise<Record<string, MonthlyCriticalEpisodeRow>> {
+  if (!isValidMonthKey(monthKey)) {
+    return {};
+  }
+
+  const watermark = await findWatermark(`critical-episodes:${monthKey}`);
+
+  if (watermark) {
+    try {
+      return await getPersistedMonthlyEpisodes(monthKey);
+    } catch (error) {
+      logger.warn('analytics.critical_episodes_read_failed', { month: monthKey, error });
+    }
+  }
+
+  return aggregateEpisodeRows(await getMonthlyEpisodeRows(monthKey));
 }
 
 /** Ocupacion media de toda la red por dia de la semana y hora para un mes. */

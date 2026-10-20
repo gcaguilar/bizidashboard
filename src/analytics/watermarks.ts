@@ -16,6 +16,32 @@ function toDate(value: string | Date | null | undefined): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * Lee un watermark sin crearlo si no existe. Necesario para saber si un
+ * artefacto precalculado esta disponible: `getWatermark` insertaria el valor
+ * por defecto y marcaria como calculado algo que nunca se calculo.
+ */
+export async function findWatermark(name: string): Promise<Date | null> {
+  try {
+    const rows = await prisma.$queryRaw<WatermarkRow[]>`
+      SELECT name, "lastAggregatedAt"
+      FROM "AnalyticsWatermark"
+      WHERE name = ${name}
+      LIMIT 1;
+    `;
+
+    return toDate(rows[0]?.lastAggregatedAt);
+  } catch (error) {
+    captureExceptionWithContext(error, {
+      area: 'watermarks',
+      operation: 'findWatermark',
+      extra: { watermarkName: name },
+    });
+    logger.error('watermarks.find_failed', { error, watermarkName: name });
+    return null;
+  }
+}
+
 export async function getWatermark(name: string, defaultDate: Date): Promise<Date> {
   try {
     const rows = await prisma.$queryRaw<WatermarkRow[]>`
