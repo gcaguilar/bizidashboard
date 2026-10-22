@@ -6,12 +6,18 @@ const {
   acquireJobLockMock,
   buildMonthlyReportMock,
   captureExceptionWithContextMock,
+  getWatermarkMock,
   refreshMonthlyCriticalEpisodesMock,
 } = vi.hoisted(() => ({
   acquireJobLockMock: vi.fn(),
   buildMonthlyReportMock: vi.fn(),
   captureExceptionWithContextMock: vi.fn(),
+  getWatermarkMock: vi.fn(),
   refreshMonthlyCriticalEpisodesMock: vi.fn(),
+}));
+
+vi.mock('@/analytics/watermarks', () => ({
+  getWatermark: getWatermarkMock,
 }));
 
 vi.mock('@/analytics/job-lock', () => ({
@@ -56,6 +62,8 @@ describe('monthly report seal job', () => {
     captureExceptionWithContextMock.mockReset();
     refreshMonthlyCriticalEpisodesMock.mockReset();
     refreshMonthlyCriticalEpisodesMock.mockResolvedValue({ monthKey: '2026-03', episodes: 0 });
+    getWatermarkMock.mockReset();
+    getWatermarkMock.mockImplementation((_name: string, defaultDate: Date) => Promise.resolve(defaultDate));
     releaseMock.mockClear();
     refreshMock.mockReset();
     refreshMock.mockResolvedValue(true);
@@ -85,6 +93,22 @@ describe('monthly report seal job', () => {
     expect(refreshMock).toHaveBeenCalledTimes(REPORT_MONTHS_WINDOW);
     expect(releaseMock).toHaveBeenCalledTimes(1);
     expect(captureExceptionWithContextMock).not.toHaveBeenCalled();
+  });
+
+  it('recomputes the episodes of the newest closed month only until they cover its close', async () => {
+    const [newestMonth] = recentClosedMonths(new Date().toISOString(), 1);
+
+    await runMonthlyReportSeal();
+    expect(refreshMonthlyCriticalEpisodesMock).toHaveBeenCalledTimes(1);
+    expect(refreshMonthlyCriticalEpisodesMock).toHaveBeenCalledWith(newestMonth);
+    expect(getWatermarkMock).toHaveBeenCalledWith(`critical-episodes:${newestMonth}`, expect.any(Date));
+
+    refreshMonthlyCriticalEpisodesMock.mockClear();
+    getWatermarkMock.mockResolvedValue(new Date());
+
+    await runMonthlyReportSeal();
+    expect(refreshMonthlyCriticalEpisodesMock).not.toHaveBeenCalled();
+    expect(buildMonthlyReportMock).toHaveBeenCalledWith(newestMonth, expect.any(String));
   });
 
   it('warms the pdf of the newest closed months through the web api', async () => {

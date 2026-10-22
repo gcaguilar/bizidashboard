@@ -10,8 +10,9 @@
 
 import { acquireJobLock } from '@/analytics/job-lock';
 import { refreshMonthlyCriticalEpisodes } from '@/analytics/queries/monthly-report';
+import { getWatermark } from '@/analytics/watermarks';
 import { logger } from '@/lib/logger';
-import { previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
+import { getMonthBounds, previousMonthKey, REPORT_MONTHS_WINDOW } from '@/lib/months';
 import { buildMonthlyReport } from '@/lib/monthly-report';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
@@ -71,6 +72,11 @@ export function recentClosedMonths(nowIso: string, count: number): string[] {
   return months;
 }
 
+async function hasEpisodesRefreshedAfterClose(month: string): Promise<boolean> {
+  const refreshedAt = await getWatermark(`critical-episodes:${month}`, new Date(0));
+  return refreshedAt >= new Date(getMonthBounds(month).endExclusive);
+}
+
 export async function runMonthlyReportSeal(): Promise<void> {
   return Sentry.startSpan({ name: 'reports.seal', op: 'function' }, async () => {
     const lock = await acquireJobLock('monthly-report-seal');
@@ -94,8 +100,10 @@ export async function runMonthlyReportSeal(): Promise<void> {
           // Solo el mes recien cerrado necesita recalcular sus episodios desde
           // el crudo. El anterior ya se sello en el run previo y su crudo puede
           // estar fuera de la retencion de 40 dias: recalcularlo borraria
-          // episodios buenos y los sustituiria por un mes incompleto.
-          if (index === 0) {
+          // episodios buenos y los sustituiria por un mes incompleto. Por lo
+          // mismo, el mes recien cerrado solo se recalcula una vez: el job es
+          // diario y sin esta guarda lo repetiria todo el mes siguiente.
+          if (index === 0 && !(await hasEpisodesRefreshedAfterClose(month))) {
             try {
               const episodes = await refreshMonthlyCriticalEpisodes(month);
               logger.info('reports.critical_episodes_warmed', { ...episodes });
