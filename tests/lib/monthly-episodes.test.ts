@@ -231,7 +231,8 @@ describe('monthly critical episodes', () => {
       expect(anchorQuery.values).toEqual(['2026-03-13T10:10:00.000Z', '2026-03-15T10:10:00.000Z']);
 
       const episodeQuery = flattenTaggedCall(queryRawMock.mock.calls[1]);
-      expect(episodeQuery.sql).toContain('JOIN (VALUES');
+      expect(episodeQuery.sql).toContain('CROSS JOIN LATERAL');
+      expect(episodeQuery.sql).toContain('OFFSET 0');
       expect(episodeQuery.values).toEqual(
         expect.arrayContaining(['a', '2026-03-15T09:58:00.000Z', 'b', '2026-03-01T00:00:00.000Z'])
       );

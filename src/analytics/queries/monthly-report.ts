@@ -148,11 +148,27 @@ export async function getMonthlyEpisodeRows(
   }
 
   // Con ventanas por estacion solo se leen las muestras desde su ancla (una
-  // muestra sin rachas abiertas), en vez de todo el mes de StationStatus.
-  const windowJoin = stationWindows
-    ? Prisma.sql`JOIN (VALUES ${stationWindowValues(stationWindows)}) AS w("stationId", "after")
-        ON w."stationId" = s."stationId" AND s."recordedAt" >= w."after"`
-    : Prisma.empty;
+  // muestra sin rachas abiertas), en vez de todo el mes de StationStatus. Un
+  // LATERAL por estacion (con OFFSET 0 para que no se aplane en un join) fija
+  // ambos extremos del rango en el indice (stationId, recordedAt); con un
+  // JOIN normal la cota por estacion es una condicion entre columnas y el
+  // planificador puede preferir un hash join sobre el mes entero.
+  const source = stationWindows
+    ? Prisma.sql`
+        SELECT w."stationId", st."recordedAt", st."bikesAvailable", st."anchorsFree"
+        FROM (VALUES ${stationWindowValues(stationWindows)}) AS w("stationId", "after")
+        CROSS JOIN LATERAL (
+          SELECT "recordedAt", "bikesAvailable", "anchorsFree"
+          FROM "StationStatus"
+          WHERE "stationId" = w."stationId"
+            AND "recordedAt" >= GREATEST(w."after", ${start}::timestamp)
+            AND "recordedAt" < ${endExclusive}::timestamp
+          OFFSET 0
+        ) st`
+    : Prisma.sql`
+        SELECT "stationId", "recordedAt", "bikesAvailable", "anchorsFree"
+        FROM "StationStatus"
+        WHERE "recordedAt" >= ${start}::timestamp AND "recordedAt" < ${endExclusive}::timestamp`;
 
   const rows = await prisma.$queryRaw<RawStationCriticalEpisodeRow[]>`
     WITH gaps AS (
@@ -161,9 +177,7 @@ export async function getMonthlyEpisodeRows(
         - ROW_NUMBER() OVER (PARTITION BY s."stationId", CASE WHEN s."bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY s."recordedAt") AS empty_grp,
         ROW_NUMBER() OVER (PARTITION BY s."stationId" ORDER BY s."recordedAt")
         - ROW_NUMBER() OVER (PARTITION BY s."stationId", CASE WHEN s."anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY s."recordedAt") AS full_grp
-      FROM "StationStatus" s
-      ${windowJoin}
-      WHERE s."recordedAt" >= ${start}::timestamp AND s."recordedAt" < ${endExclusive}::timestamp
+      FROM (${source}) s
     ),
     empty_episodes AS (
       SELECT "stationId", 'empty' AS kind, MIN("recordedAt") AS "startedAt", MAX("recordedAt") AS "endedAt",
