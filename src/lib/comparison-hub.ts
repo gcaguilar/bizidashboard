@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/db';
-import { sumDemand } from '@/analytics/queries/demand-sql';
 import { withCache } from '@/lib/cache/cache';
 import {
   fetchCachedDailyDemandCurve,
@@ -11,6 +9,7 @@ import {
 import { combineDataStates, type DataState } from '@/lib/data-state';
 import { buildStationDistrictMap } from '@/lib/districts';
 import { fetchDistrictCollection } from '@/lib/districts.server';
+import { getHistorySeries } from '@/lib/history-read-model';
 import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
 import { isValidMonthKey } from '@/lib/months';
 import { buildDistrictSeoRows } from '@/lib/seo-districts';
@@ -27,7 +26,6 @@ import {
   buildComparisonHubViewModel,
   buildFallbackComparisonSections,
   type ComparisonSection,
-  type HistoryCompareRow,
   type InteractiveComparisonData,
 } from '@/lib/comparison-hub-builders';
 
@@ -88,25 +86,6 @@ export function buildFallbackComparisonHubData(
     },
     sections: buildFallbackComparisonSections(),
   };
-}
-
-async function getRecentHistoryRows(): Promise<HistoryCompareRow[]> {
-  return prisma.$queryRaw<HistoryCompareRow[]>`
-    SELECT
-      TO_CHAR("bucketStart", 'YYYY-MM-DD') AS day,
-      ${sumDemand()}::int AS "demandScore",
-      AVG("occupancyAvg") AS "avgOccupancy",
-      AVG(CASE
-        WHEN ABS("occupancyAvg" - 0.5) >= 0.5 THEN 0
-        ELSE 1 - (2 * ABS("occupancyAvg" - 0.5))
-      END) AS "balanceIndex",
-      SUM("sampleCount")::int AS "sampleCount"
-    FROM "HourlyStationStat"
-    WHERE "bucketStart" >= NOW() - INTERVAL '90 days'
-      AND "occupancyAvg" IS NOT NULL
-    GROUP BY TO_CHAR("bucketStart", 'YYYY-MM-DD')
-    ORDER BY day ASC;
-  `;
 }
 
 export async function getComparisonHubData(): Promise<ComparisonHubData> {
@@ -178,7 +157,7 @@ export async function getComparisonHubData(): Promise<ComparisonHubData> {
         withTimeout(fetchCachedMonthlyDemandCurve(24).catch(() => []), sourceTimeoutMs, []),
         withTimeout(fetchCachedDailyDemandCurve(90).catch(() => []), sourceTimeoutMs, []),
         withTimeout(fetchCachedSystemHourlyProfile(30).catch(() => []), sourceTimeoutMs, []),
-        withTimeout(getRecentHistoryRows().catch(() => []), sourceTimeoutMs, []),
+        withTimeout(getHistorySeries({ days: 90 }).catch(() => []), sourceTimeoutMs, []),
         withTimeout(
           fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
           sourceTimeoutMs,
