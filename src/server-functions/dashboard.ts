@@ -203,4 +203,7 @@ export const dashboardPageQueryOptions = queryOptions({
   queryKey: ['dashboard', 'page-data'] as const,
   queryFn: () => getDashboardPageData(),
   staleTime: 30_000,
+  // useDashboardLiveData ya sondea estaciones, estado, alertas y rankings; al
+  // volver a la pestaña no hace falta recalcular todo el payload de SSR.
+  refetchOnWindowFocus: false,
 });

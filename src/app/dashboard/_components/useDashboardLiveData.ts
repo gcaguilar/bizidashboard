@@ -175,8 +175,9 @@ export function useDashboardLiveData(initialData: DashboardInitialData) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-    // El sondeo original con setTimeout seguía activo en pestañas en segundo plano.
-    refetchIntervalInBackground: true,
+    // Una pestaña oculta no necesita sondear cinco endpoints (y gastar el cupo de
+    // rate limit del usuario); el siguiente tick tras volver la pone al día.
+    refetchIntervalInBackground: false,
     refetchInterval: (activeQuery) => {
       const nextAt = activeQuery.state.data?.nextRefreshAtMs ?? Date.now() + MIN_REFRESH_FALLBACK_MS;
       return Math.max(MIN_REFETCH_DELAY_MS, nextAt - Date.now());
