@@ -10,3 +10,17 @@ tests
 .DS_Store
 design
 *.tsbuildinfo
+
+# Artefactos locales: el build los regenera y solo inflan el contexto
+# (e invalidan la cache de `COPY . .`).
+dist
+.output
+.vitest
+coverage
+test-results
+playwright-report
+postman
+docs
+informes-page.png
+untitled.pen
+snapshot-inicial.txt

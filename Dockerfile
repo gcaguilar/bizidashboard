@@ -4,7 +4,14 @@ FROM oven/bun:1.4.3 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install
+    bun install --frozen-lockfile
+
+# ── prod-deps: runtime dependencies only (no vite, vitest, typescript…) ──
+FROM oven/bun:1.4.3 AS prod-deps
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --production
 
 # ── builder: generate prisma client & build TanStack Start ───────────
 FROM oven/bun:1.4.3 AS builder
@@ -72,8 +79,8 @@ COPY --from=builder /app/src/lib/security/csp.mjs /app/src/lib/security/csp.mjs
 COPY --from=builder /app/prisma /app/prisma
 COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 
-# Production node_modules (pg, @prisma/client, prisma CLI, etc.)
-COPY --from=deps /app/node_modules /app/node_modules
+# Production node_modules (pg, @prisma/client, prisma CLI, playwright, etc.)
+COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
 
 # Chromium headless para generar el PDF del informe desde la propia pagina.

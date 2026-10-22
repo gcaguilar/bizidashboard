@@ -1,8 +1,17 @@
+# syntax=docker/dockerfile:1
 # ── deps: install all dependencies (dev + prod) ─────────────────────
 FROM oven/bun:1.4.3 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
+
+# ── prod-deps: runtime dependencies only (no vite, vitest, typescript…) ──
+FROM oven/bun:1.4.3 AS prod-deps
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --production
 
 # ── builder: generate prisma client & compile jobs ───────────────────
 FROM oven/bun:1.4.3 AS builder
@@ -40,7 +49,7 @@ COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 COPY --from=builder /app/public /app/public
 
 # Production node_modules
-COPY --from=deps /app/node_modules /app/node_modules
+COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/dist/jobs /app/dist/jobs
 
