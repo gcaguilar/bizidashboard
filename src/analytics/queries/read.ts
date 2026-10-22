@@ -7,6 +7,7 @@ import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
 import { parseBucketStart } from './date-utils';
 import { coalesceSumDemand, sumDemand } from './demand-sql';
+import { localHour } from './local-time-sql';
 import { toSerializableNumber } from './serialize';
 
 export type RankingType = 'turnover' | 'availability';
@@ -560,13 +561,13 @@ export async function getHourlyMobilitySignals(
     hourly AS (
       SELECT
         "stationId",
-        EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+        ${localHour()} AS hour,
         SUM(CASE WHEN delta < 0 THEN ABS(delta) ELSE 0 END) AS departures,
         SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END) AS arrivals,
         COUNT(*) AS "sampleCount"
       FROM with_lag
       WHERE delta IS NOT NULL
-      GROUP BY "stationId", EXTRACT(HOUR FROM "bucketStart")::int
+      GROUP BY "stationId", ${localHour()}
     )
     SELECT "stationId", hour, departures, arrivals, "sampleCount"
     FROM hourly
@@ -677,13 +678,13 @@ export async function getSystemHourlyProfile(
     sampleCount: unknown;
   }>>`
     SELECT
-      EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+      ${localHour()} AS hour,
       AVG("occupancyAvg") AS "avgOccupancy",
       AVG("bikesAvg") AS "avgBikesAvailable",
       SUM("sampleCount") AS "sampleCount"
     FROM "HourlyStationStat"
     WHERE ${rangeFilter}
-    GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
+    GROUP BY ${localHour()}
     ORDER BY hour ASC;
   `;
 
@@ -727,7 +728,7 @@ export async function getStationHourlyProfiles(days = 30): Promise<StationHourly
   }>>`
     SELECT
       "stationId",
-      EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+      ${localHour()} AS hour,
       AVG("bikesAvg") AS "avgBikes",
       AVG("anchorsAvg") AS "avgAnchors",
       AVG("occupancyAvg") AS "avgOccupancy",
@@ -736,7 +737,7 @@ export async function getStationHourlyProfiles(days = 30): Promise<StationHourly
       AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare"
     FROM "HourlyStationStat"
     WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${safeDays - 1}
-    GROUP BY "stationId", EXTRACT(HOUR FROM "bucketStart")::int
+    GROUP BY "stationId", ${localHour()}
     ORDER BY "stationId" ASC, hour ASC;
   `;
 

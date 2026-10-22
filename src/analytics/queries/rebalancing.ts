@@ -1,5 +1,7 @@
 import { Prisma } from '@/generated/prisma/client';
 import { coalesceSumDemand, sumDemand } from './demand-sql';
+import { localDow, localHour } from './local-time-sql';
+import { getCurrentTimeBand } from '@/lib/target-bands';
 import { prisma } from '@/lib/db';
 import { haversineDistanceMeters } from '@/lib/geo';
 import type {
@@ -170,8 +172,8 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
   >`
     SELECT
       "stationId",
-      EXTRACT(HOUR FROM "bucketStart")::int AS "hourValue",
-      EXTRACT(DOW FROM "bucketStart")::int AS "dayOfWeek",
+      ${localHour()} AS "hourValue",
+      ${localDow()} AS "dayOfWeek",
       COALESCE(AVG("occupancyAvg"), 0) AS "occupancyAvg",
       COALESCE(COUNT("stationId") FILTER (WHERE "bikesMin" <= 0)::float / NULLIF(COUNT("stationId"), 0), 0) AS "pctTimeEmpty",
       COALESCE(COUNT("stationId") FILTER (WHERE "anchorsMin" <= 0)::float / NULLIF(COUNT("stationId"), 0), 0) AS "pctTimeFull",
@@ -181,22 +183,15 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
       COALESCE(STDDEV_POP("occupancyAvg"), 0) AS "variability"
     FROM "HourlyStationStat"
     WHERE ${filter}
-    GROUP BY "stationId", EXTRACT(HOUR FROM "bucketStart")::int, EXTRACT(DOW FROM "bucketStart")::int
+    GROUP BY "stationId", ${localHour()}, ${localDow()}
   `;
 
   const map: Record<string, TimeBandMetrics[]> = {};
 
-  const getBand = (hour: number) => {
-    if (hour >= 7 && hour <= 9) return 'morning_peak';
-    if (hour >= 10 && hour <= 16) return 'valley';
-    if (hour >= 17 && hour <= 19) return 'evening_peak';
-    return 'night';
-  };
-
   const getDayCategory = (dow: number) => (dow === 0 || dow === 6 ? 'weekend' : 'weekday');
 
   for (const row of rows) {
-    const timeBand = getBand(row.hourValue);
+    const timeBand = getCurrentTimeBand(row.hourValue);
     const dayCategory = getDayCategory(row.dayOfWeek);
 
     if (!map[row.stationId]) {

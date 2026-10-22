@@ -1,5 +1,6 @@
 import { Prisma } from '@/generated/prisma/client';
 import { avgDemand, coalesceSumDemand, sumDemand } from '@/analytics/queries/demand-sql';
+import { localHour } from '@/analytics/queries/local-time-sql';
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
@@ -402,11 +403,11 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
       `.catch(() => []),
       prisma.$queryRaw<PeakHourRow[]>`
         SELECT
-          EXTRACT(HOUR FROM "bucketStart")::int AS hour,
+          ${localHour()} AS hour,
           ${coalesceSumDemand()} AS "demandScore"
         FROM "HourlyStationStat"
         WHERE ${range.currentHourly}
-        GROUP BY EXTRACT(HOUR FROM "bucketStart")::int
+        GROUP BY ${localHour()}
         ORDER BY "demandScore" DESC, hour ASC
         LIMIT 3;
       `.catch(() => []),
