@@ -91,6 +91,9 @@ export async function refreshDailySystemStats(
  * aproximacion porque DailyStationStat usa capacidad como denominador. Los
  * dias recientes se sobrescriben despues con `refreshDailySystemStats`.
  *
+ * Solo lee los dias anteriores al primero ya guardado (la serie se rellena
+ * hacia delante con `refreshDailySystemStats`): con el indice de `bucketDate`,
+ * una vez sembrada la tabla la consulta no lee ninguna fila en cada pasada.
  * `ON CONFLICT DO NOTHING` para no pisar valores exactos ya calculados.
  */
 export async function backfillDailySystemStatsFromRollup(): Promise<number> {
@@ -110,6 +113,10 @@ export async function backfillDailySystemStatsFromRollup(): Promise<number> {
       SUM("sampleCount")::int,
       CURRENT_TIMESTAMP
     FROM "DailyStationStat"
+    WHERE "bucketDate" < COALESCE(
+      (SELECT MIN("day") FROM "DailySystemStat")::timestamp,
+      'infinity'::timestamp
+    )
     GROUP BY "bucketDate"::date
     ON CONFLICT ("day") DO NOTHING;
   `;
@@ -173,8 +180,8 @@ export async function syncDailySystemStats(
     days = result.days;
   }
 
-  // Idempotente y barato (DailyStationStat son decenas de miles de filas):
-  // completa el historico antiguo y repara un seed que fallase a medias.
+  // Idempotente y barato: solo mira los dias anteriores al primero guardado,
+  // asi que completa el historico antiguo tras el seed y despues no lee nada.
   // `ON CONFLICT DO NOTHING` no pisa los dias exactos recien calculados.
   await backfillDailySystemStatsFromRollup();
 
