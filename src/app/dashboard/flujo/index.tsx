@@ -36,7 +36,7 @@ export const Route = createFileRoute('/dashboard/flujo/')({
   component: DashboardFlowPage,
 });
 
-export default function DashboardFlowPage() {
+function DashboardFlowPage() {
   const { stations, availableMonths, activeMonth, selectedStationId, breadcrumbs, structuredData } = Route.useLoaderData();
 
   return (

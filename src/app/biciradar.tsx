@@ -165,7 +165,7 @@ function DownloadCtas({
   );
 }
 
-export default function BiciRadarPage() {
+function BiciRadarPage() {
   const siteUrl = getSiteUrl();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Bici Radar',

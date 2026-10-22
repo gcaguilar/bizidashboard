@@ -23,7 +23,7 @@ export const Route = createFileRoute('/dashboard/alertas/')({
   component: DashboardAlertsHistoryPage,
 });
 
-export default function DashboardAlertsHistoryPage() {
+function DashboardAlertsHistoryPage() {
   const { stations } = Route.useLoaderData();
   return <AlertsHistoryClient stations={stations.stations} />;
 }

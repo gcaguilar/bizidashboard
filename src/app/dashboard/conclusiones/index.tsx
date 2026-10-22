@@ -89,7 +89,7 @@ export const Route = createFileRoute('/dashboard/conclusiones/')({
   component: DashboardConclusionsPage,
 });
 
-export default function DashboardConclusionsPage() {
+function DashboardConclusionsPage() {
   const { payload, fromCache, availableMonths, activeMonth, breadcrumbs, structuredData } = Route.useLoaderData();
 
   return (

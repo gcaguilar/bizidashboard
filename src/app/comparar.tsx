@@ -55,7 +55,7 @@ function CompareErrorPage({ error }: { error: unknown }) {
   );
 }
 
-export default function ComparePage() {
+function ComparePage() {
   const { breadcrumbs, structuredData, comparisonData } = Route.useLoaderData();
   const search = Route.useSearch();
   const initialQuery = {

@@ -62,7 +62,7 @@ export const Route = createFileRoute('/developers')({
 
 
 
-export default function DevelopersPage() {
+function DevelopersPage() {
   const { siteUrl, cityName, breadcrumbs, latestMonth, endpointDocs, datasetVersion, apiVersion, codeLicense, developersDataState, datasetTemporalCoverage, curlExamples, pythonExample, jsExample, csvDownloads, accessPolicies, useCases, changelog, datasetDownloadEntries, dataset, consultedAtLabel } = Route.useLoaderData();
 
   return (

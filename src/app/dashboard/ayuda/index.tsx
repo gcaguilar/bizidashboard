@@ -14,7 +14,7 @@ export const Route = createFileRoute('/dashboard/ayuda/')({
   component: DashboardHelpPage,
 });
 
-export default function DashboardHelpPage() {
+function DashboardHelpPage() {
   const { historyMeta } = Route.useLoaderData();
   return <HelpCenterClient historyMeta={historyMeta} />;
 }

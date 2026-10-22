@@ -30,7 +30,7 @@ export const Route = createFileRoute('/metodologia')({
   component: MethodologyPage,
 });
 
-export default function MethodologyPage() {
+function MethodologyPage() {
   const { historyMeta, dataset, status, latestMonth, breadcrumbs, faqItems, structuredData } = Route.useLoaderData();
   const cityName = getCityName();
 

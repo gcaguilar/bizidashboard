@@ -38,7 +38,7 @@ export const Route = createFileRoute('/estado')({
   component: SystemStatusPage,
 });
 
-export default function SystemStatusPage() {
+function SystemStatusPage() {
   const { status, stations, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount, networkBalance } = Route.useLoaderData();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({

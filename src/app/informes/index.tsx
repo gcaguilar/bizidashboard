@@ -42,7 +42,7 @@ export const Route = createFileRoute('/informes/')({
   component: ReportsIndexPage,
 });
 
-export default function ReportsIndexPage() {
+function ReportsIndexPage() {
   const { sub } = Route.useSearch();
   const { months, monthMap, latestMonth, latestPeriodCoverage, latestTrend, latestComparisonLabel, currentMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
   const monthlyRows = new Map(Object.entries(monthMap));

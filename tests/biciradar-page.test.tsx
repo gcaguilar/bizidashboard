@@ -55,9 +55,10 @@ vi.mock('@tanstack/react-router', async () => {
 
 describe('biciradar public page', () => {
   it('renders product hero without duplicating public navigation', async () => {
-    const biciradarPage = await import('@/app/biciradar');
+    const { Route } = await import('@/app/biciradar');
+    const BiciRadarPage = Route.options.component!;
 
-    const markup = renderToStaticMarkup(biciradarPage.default());
+    const markup = renderToStaticMarkup(<BiciRadarPage />);
 
     expect(markup).toContain('Bici Radar');
     expect(markup).not.toContain('data-active-item-id');

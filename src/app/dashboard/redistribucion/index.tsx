@@ -42,7 +42,7 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
   component: RedistribucionPage,
 });
 
-export default function RedistribucionPage() {
+function RedistribucionPage() {
   const { districtNames, tableParams } = Route.useLoaderData();
 
   return (

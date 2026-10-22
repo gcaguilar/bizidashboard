@@ -16,7 +16,7 @@ export const Route = createFileRoute('/dashboard/estaciones/')({
   component: StationsDirectoryPage,
 });
 
-export default function StationsDirectoryPage() {
+function StationsDirectoryPage() {
   const { stations } = Route.useLoaderData();
   return (
     <StationsDirectoryClient
