@@ -28,11 +28,12 @@ const FINALIZED_CACHE_TTL_SECONDS = 6 * 60 * 60;
 
 /**
  * El dia en curso se calcula en vivo desde los snapshots crudos. Un dia son
- * ~200 K filas, pero se sirve de cache durante dos minutos para que las
- * peticiones concurrentes no repitan el escaneo.
+ * ~200 K filas, pero se sirve de cache durante diez minutos: es un punto
+ * diario (no un contador en vivo), asi que la frescura extra no se percibe y
+ * el escaneo de fondo baja de ~30 a 6 ejecuciones por hora.
  */
 const TODAY_CACHE_KEY = 'history:daily-series:today';
-const TODAY_CACHE_TTL_SECONDS = 2 * 60;
+const TODAY_CACHE_TTL_SECONDS = 10 * 60;
 
 /** Hard bound so the raw fallback cannot grow without limit if retention stalls. */
 const QUERY_WINDOW_DAYS = 400;

@@ -90,7 +90,7 @@ describe('getHistorySeries', () => {
     );
     expect(withCacheMock).toHaveBeenCalledWith(
       'history:daily-series:today',
-      2 * 60,
+      10 * 60,
       expect.any(Function)
     );
   });
