@@ -40,7 +40,9 @@ describe('runRetentionCleanup', () => {
       .mockResolvedValueOnce(50_000)
       .mockResolvedValueOnce(1_000)
       .mockResolvedValueOnce(10)
-      .mockResolvedValueOnce(5);
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(300)
+      .mockResolvedValueOnce(40);
 
     const result = await runRetentionCleanup();
 
@@ -49,22 +51,22 @@ describe('runRetentionCleanup', () => {
       hourlyStatsDeleted: 51_000,
       stationAlertsDeleted: 10,
       stationRankingsDeleted: 5,
+      collectionRunsDeleted: 300,
+      securityEventsDeleted: 40,
     });
     expect(transactionMock).not.toHaveBeenCalled();
-    expect(executeRawMock).toHaveBeenCalledTimes(7);
+    expect(executeRawMock).toHaveBeenCalledTimes(9);
   });
 
   it('stops after the first empty raw batch', async () => {
     executeRawMock
-      .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(0);
+      .mockResolvedValue(0);
 
     const result = await runRetentionCleanup();
 
     expect(result.stationStatusDeleted).toBe(0);
     expect(result.hourlyStatsDeleted).toBe(0);
-    expect(executeRawMock).toHaveBeenCalledTimes(4);
+    // Un lote crudo, uno horario, alertas, rankings, CollectionRun y SecurityEvent.
+    expect(executeRawMock).toHaveBeenCalledTimes(6);
   });
 });

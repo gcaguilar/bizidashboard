@@ -7,6 +7,12 @@ const RAW_RETENTION_DAYS = 40;
 const HOURLY_RETENTION_DAYS = 365;
 const ALERT_RETENTION_DAYS = 14;
 const RANKING_SNAPSHOT_RETENTION_DAYS = 7;
+/**
+ * Registros operativos (~720 ejecuciones de recogida al dia) y de seguridad.
+ * Las metricas y el panel de auditoria miran como mucho 7 dias; 90 dejan margen
+ * para investigar incidencias sin que las tablas e indices crezcan sin fin.
+ */
+const OPERATIONAL_LOG_RETENTION_DAYS = 90;
 const VACUUM_INTERVAL_DAYS = 7;
 
 /**
@@ -33,6 +39,8 @@ export interface RetentionResult {
   hourlyStatsDeleted: number;
   stationAlertsDeleted: number;
   stationRankingsDeleted: number;
+  collectionRunsDeleted: number;
+  securityEventsDeleted: number;
 }
 
 async function deleteStationStatusBatch(cutoff: Date): Promise<number> {
@@ -129,6 +137,7 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
   const rawCutoff = new Date(now - RAW_RETENTION_DAYS * 24 * 60 * 60 * 1000);
   const hourlyCutoff = new Date(now - HOURLY_RETENTION_DAYS * 24 * 60 * 60 * 1000);
   const alertCutoff = new Date(now - ALERT_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  const operationalCutoff = new Date(now - OPERATIONAL_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
   const stationStatusDeleted = await deleteStationStatusBefore(rawCutoff);
   const hourlyStatsDeleted = await deleteHourlyStatsBefore(hourlyCutoff);
@@ -149,11 +158,27 @@ export async function runRetentionCleanup(): Promise<RetentionResult> {
     `
   );
 
+  const collectionRunsDeleted = Number(
+    await prisma.$executeRaw`
+      DELETE FROM "CollectionRun"
+      WHERE "startedAt" < ${operationalCutoff};
+    `
+  );
+
+  const securityEventsDeleted = Number(
+    await prisma.$executeRaw`
+      DELETE FROM "SecurityEvent"
+      WHERE "createdAt" < ${operationalCutoff};
+    `
+  );
+
   const result: RetentionResult = {
     stationStatusDeleted,
     hourlyStatsDeleted,
     stationAlertsDeleted,
     stationRankingsDeleted,
+    collectionRunsDeleted,
+    securityEventsDeleted,
   };
 
   logger.info('analytics.retention.completed', {
