@@ -407,7 +407,7 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
           ${coalesceSumDemand()} AS "demandScore"
         FROM "HourlyStationStat"
         WHERE ${range.currentHourly}
-        GROUP BY ${localHour()}
+        GROUP BY 1
         ORDER BY "demandScore" DESC, hour ASC
         LIMIT 3;
       `.catch(() => []),

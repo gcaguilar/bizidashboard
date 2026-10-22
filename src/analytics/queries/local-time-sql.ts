@@ -6,6 +6,10 @@ import { TIMEZONE } from '@/lib/timezone';
  * guardada en UTC. Toda consulta que agrupe por franja horaria debe leer la
  * hora a traves de estos fragmentos, igual que los rollups de patrones
  * (`getLocalBucket`), para que perfiles, picos y redistribucion coincidan.
+ *
+ * La zona horaria va como parametro, asi que cada uso es un `$n` distinto:
+ * Postgres no considera iguales la expresion del SELECT y la del GROUP BY. Hay
+ * que agrupar por posicion (`GROUP BY 1, 2`), nunca repitiendo el fragmento.
  */
 function localTimestamp(column: string): Prisma.Sql {
   return Prisma.sql`((${Prisma.raw(`"${column}"`)} AT TIME ZONE 'UTC') AT TIME ZONE ${TIMEZONE}::text)`;

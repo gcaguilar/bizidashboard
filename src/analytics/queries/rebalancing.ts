@@ -184,7 +184,7 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
       COALESCE(STDDEV_POP("occupancyAvg"), 0) AS "variability"
     FROM "HourlyStationStat"
     WHERE ${filter}
-    GROUP BY "stationId", ${localHour()}, ${localDow()}
+    GROUP BY 1, 2, 3
   `;
 
   const map: Record<string, TimeBandMetrics[]> = {};

@@ -571,7 +571,7 @@ export async function getHourlyMobilitySignals(
         COUNT(*) AS "sampleCount"
       FROM with_lag
       WHERE delta IS NOT NULL
-      GROUP BY "stationId", ${localHour()}
+      GROUP BY 1, 2
     )
     SELECT "stationId", hour, departures, arrivals, "sampleCount"
     FROM hourly
@@ -688,7 +688,7 @@ export async function getSystemHourlyProfile(
       SUM("sampleCount") AS "sampleCount"
     FROM "HourlyStationStat"
     WHERE ${rangeFilter}
-    GROUP BY ${localHour()}
+    GROUP BY 1
     ORDER BY hour ASC;
   `;
 
@@ -741,7 +741,7 @@ export async function getStationHourlyProfiles(days = 30): Promise<StationHourly
       AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare"
     FROM "HourlyStationStat"
     WHERE "bucketStart" >= CURRENT_DATE::timestamp - INTERVAL '1 day' * ${safeDays - 1}
-    GROUP BY "stationId", ${localHour()}
+    GROUP BY 1, 2
     ORDER BY "stationId" ASC, hour ASC;
   `;
 
