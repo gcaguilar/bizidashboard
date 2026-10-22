@@ -66,6 +66,13 @@ These names describe modules that own behaviour behind a small interface.
   "hoy vs. mismo día de la semana" comparisons. The adapter aggregates them into
   the compact per-entity bands and period options, so raw rows never reach the
   client payload.
+- **Station network read** (`getStationsWithLatestStatus` /
+  `getStationWithLatestStatus` in `src/analytics/queries/read.ts`, wrapped by
+  `fetchCachedStationsWithLatestStatus` in `src/lib/analytics-series.ts`) — the
+  whole network (or a single station) joined with its latest snapshot. Public
+  API routes and predictions go through the 60 s cached wrapper; the rollup
+  jobs call the query directly, since they need the point-in-time truth, not a
+  cached payload.
 - **SEO landing module** (`src/lib/seo-landing.server.tsx`) — one content
   builder per slug, pure over `SeoLandingSources`
   (`src/lib/seo-landing-sources.server.ts`). The live adapter owns the fetches

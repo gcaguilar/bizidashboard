@@ -112,6 +112,8 @@ function logFallback<T>(label: string, fallback: T): (err: unknown) => T {
 }
 
 export async function fetchStations(): Promise<StationsResponse> {
+  // `cache.live` ya deduplica y cachea esta consulta 60 s (la misma ventana
+  // que `fetchCachedStationsWithLatestStatus`), así que no se anida el wrapper.
   const payload = await cache.live('stations:current', async () => {
     const [dbStations, dataset] = await Promise.all([
       getStationsWithLatestStatus().catch(logFallback('stations', [])),

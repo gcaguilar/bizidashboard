@@ -6,12 +6,14 @@ const {
   getDailyDemandCurveMock,
   getHourlyMobilitySignalsMock,
   getMonthlyDemandCurveMock,
+  getStationsWithLatestStatusMock,
   getSystemHourlyProfileMock,
   withCacheMock,
 } = vi.hoisted(() => ({
   getDailyDemandCurveMock: vi.fn(),
   getHourlyMobilitySignalsMock: vi.fn(),
   getMonthlyDemandCurveMock: vi.fn(),
+  getStationsWithLatestStatusMock: vi.fn(),
   getSystemHourlyProfileMock: vi.fn(),
   withCacheMock: vi.fn(),
 }));
@@ -20,6 +22,7 @@ vi.mock('@/analytics/queries/read', () => ({
   getDailyDemandCurve: getDailyDemandCurveMock,
   getHourlyMobilitySignals: getHourlyMobilitySignalsMock,
   getMonthlyDemandCurve: getMonthlyDemandCurveMock,
+  getStationsWithLatestStatus: getStationsWithLatestStatusMock,
   getSystemHourlyProfile: getSystemHourlyProfileMock,
 }));
 
@@ -31,6 +34,7 @@ import {
   fetchCachedDailyDemandCurve,
   fetchCachedHourlyMobilitySignals,
   fetchCachedMonthlyDemandCurve,
+  fetchCachedStationsWithLatestStatus,
   fetchCachedSystemHourlyProfile,
 } from '@/lib/analytics-series';
 
@@ -39,6 +43,7 @@ describe('analytics series cache wrappers', () => {
     getDailyDemandCurveMock.mockReset();
     getHourlyMobilitySignalsMock.mockReset();
     getMonthlyDemandCurveMock.mockReset();
+    getStationsWithLatestStatusMock.mockReset();
     getSystemHourlyProfileMock.mockReset();
     withCacheMock.mockReset();
 
@@ -104,5 +109,18 @@ describe('analytics series cache wrappers', () => {
       expect.any(Function)
     );
     expect(getMonthlyDemandCurveMock).toHaveBeenCalledWith(240);
+  });
+
+  it('caches the station network with its latest snapshot', async () => {
+    getStationsWithLatestStatusMock.mockResolvedValue([]);
+
+    await fetchCachedStationsWithLatestStatus();
+
+    expect(withCacheMock).toHaveBeenCalledWith(
+      'analytics:stations-latest',
+      60,
+      expect.any(Function)
+    );
+    expect(getStationsWithLatestStatusMock).toHaveBeenCalledWith();
   });
 });

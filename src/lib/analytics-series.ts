@@ -4,6 +4,7 @@ import {
   getMonthlyDemandCurve,
   getStationDailyDemand,
   getStationHourlyProfiles,
+  getStationsWithLatestStatus,
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
@@ -11,6 +12,17 @@ import { isValidMonthKey } from '@/lib/months';
 
 const LIVE_SERIES_TTL_SECONDS = 300;
 const MONTHLY_SERIES_TTL_SECONDS = 1800;
+/**
+ * La red completa con su último snapshot. La colección GBFS corre cada 2 min,
+ * así que 60 s de TTL no pierde frescura perceptible y evita repetir el
+ * LATERAL join por estación en cada petición de `/api/stations` y
+ * `/api/rankings` (predictions ya resuelve una sola fila).
+ */
+const STATIONS_LATEST_TTL_SECONDS = 60;
+
+export type StationsWithLatestStatusRow = Awaited<
+  ReturnType<typeof getStationsWithLatestStatus>
+>[number];
 
 export type DailyDemandSeriesRow = Awaited<ReturnType<typeof getDailyDemandCurve>>[number];
 export type MonthlyDemandSeriesRow = Awaited<ReturnType<typeof getMonthlyDemandCurve>>[number];
@@ -119,5 +131,18 @@ export async function fetchCachedStationDailyDemand(
     `analytics:station-daily-demand:days=${normalizedDays}`,
     LIVE_SERIES_TTL_SECONDS,
     () => getStationDailyDemand(normalizedDays)
+  );
+}
+
+/**
+ * Red completa con su último snapshot, servida de caché. Los jobs de rollup
+ * siguen llamando a `getStationsWithLatestStatus` directamente: es su fuente
+ * puntual de verdad, no un payload de API.
+ */
+export async function fetchCachedStationsWithLatestStatus(): Promise<StationsWithLatestStatusRow[]> {
+  return withCache(
+    'analytics:stations-latest',
+    STATIONS_LATEST_TTL_SECONDS,
+    () => getStationsWithLatestStatus()
   );
 }

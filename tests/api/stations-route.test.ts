@@ -15,6 +15,10 @@ vi.mock('@/analytics/queries/read', () => ({
   getStationsWithLatestStatus: getStationsWithLatestStatusMock,
 }));
 
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedStationsWithLatestStatus: getStationsWithLatestStatusMock,
+}));
+
 vi.mock('@/services/shared-data', () => ({
   getSharedDatasetSnapshot: getSharedDatasetSnapshotMock,
 }));

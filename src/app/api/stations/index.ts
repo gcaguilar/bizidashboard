@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getStationsWithLatestStatus } from '@/analytics/queries/read'
+import { fetchCachedStationsWithLatestStatus } from '@/lib/analytics-series'
 import { csvResponse } from '@/lib/csv'
 import { resolveStationsDataState } from '@/lib/data-state'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/stations/')({
           const format = new URL(request.url).searchParams.get('format')
 
           const [stations, dataset] = await Promise.all([
-            getStationsWithLatestStatus().catch(() => []),
+            fetchCachedStationsWithLatestStatus().catch(() => []),
             getSharedDatasetSnapshot().catch(() => null),
           ])
 
