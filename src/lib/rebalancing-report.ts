@@ -7,7 +7,8 @@ import {
 import { getStationsWithLatestStatus, getStationPatternsBulk } from '@/analytics/queries/read';
 import { buildStationDistrictMap } from '@/lib/districts';
 import { fetchDistrictCollection } from '@/lib/districts.server';
-import { withStaleCache } from '@/lib/cache/cache';
+import { withCache, withStaleCache } from '@/lib/cache/cache';
+import { CacheTTL } from '@/lib/cache/config';
 
 import { inferStationType } from '@/lib/station-typology';
 import { getTargetBand, getCurrentTimeBand } from '@/lib/target-bands';
@@ -44,8 +45,15 @@ export async function buildRebalancingReport(options: {
       districtsCollection,
     ] = await Promise.all([
       getStationsWithLatestStatus(),
-      getStationGlobalMetrics(days),
-      getStationTimeBandMetrics(days),
+      // Ambas leen `HourlyStationStat`, que solo cambia con el rollup horario:
+      // se cachean aparte para que el prewarm de cada 15 minutos (que si
+      // necesita refrescar el estado en vivo) no las recalcule cada vez.
+      withCache(`rebalancing:global-metrics:days=${days}`, CacheTTL.HISTORICAL, () =>
+        getStationGlobalMetrics(days)
+      ),
+      withCache(`rebalancing:time-band-metrics:days=${days}`, CacheTTL.HISTORICAL, () =>
+        getStationTimeBandMetrics(days)
+      ),
       getCriticalEpisodes(days),
       fetchDistrictCollection().catch(() => null),
     ]);

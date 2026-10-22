@@ -3,6 +3,7 @@ import { coalesceSumDemand, sumDemand } from './demand-sql';
 import { localDow, localHour } from './local-time-sql';
 import { getCurrentTimeBand } from '@/lib/target-bands';
 import { prisma } from '@/lib/db';
+import { findWatermark } from '@/analytics/watermarks';
 import { haversineDistanceMeters } from '@/lib/geo';
 import type {
   NearbyStation,
@@ -264,6 +265,69 @@ export async function getStationTimeBandMetrics(days: number = 15): Promise<Reco
  * el `LEFT JOIN` anterior.
  */
 export async function getCriticalEpisodes(days: number = 15): Promise<Record<string, CriticalEpisodeRow>> {
+  return (await getPersistedCriticalEpisodes(days)) ?? getCriticalEpisodesFromSnapshots(days);
+}
+
+/** Meses UTC (YYYY-MM) que toca la ventana `[now - days, now]`. */
+function monthKeysInWindow(from: Date, to: Date): string[] {
+  const keys: string[] = [];
+  const cursor = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), 1));
+  while (cursor <= to) {
+    keys.push(cursor.toISOString().slice(0, 7));
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+  return keys;
+}
+
+/**
+ * Las mismas rachas, leidas de `StationCriticalEpisode` (que el job horario
+ * mantiene al dia y el sellado cierra cada mes) en vez de recalcularlas con
+ * funciones de ventana sobre ~3M de snapshots. Devuelve `null` si algun mes de
+ * la ventana no esta precalculado, para caer a la consulta sobre el crudo.
+ *
+ * Diferencias asumidas: cuenta las rachas que empiezan dentro de la ventana
+ * (no las recorta en su inicio), las parte en el cambio de mes UTC, y la racha
+ * en curso llega hasta el ultimo refresco horario.
+ */
+async function getPersistedCriticalEpisodes(
+  days: number
+): Promise<Record<string, CriticalEpisodeRow> | null> {
+  const safeDays = Math.max(1, Math.min(90, Math.floor(days)));
+  const now = new Date();
+  const from = new Date(now.getTime() - safeDays * 24 * 60 * 60 * 1000);
+  const watermarks = await Promise.all(
+    monthKeysInWindow(from, now).map((monthKey) => findWatermark(`critical-episodes:${monthKey}`))
+  );
+  if (watermarks.some((watermark) => watermark === null)) {
+    return null;
+  }
+
+  const rows = await prisma.$queryRaw<
+    Array<{
+      stationId: string;
+      avgEmptyMinutes: number;
+      avgFullMinutes: number;
+      maxEmptyMinutes: number;
+      maxFullMinutes: number;
+      episodeCount: number;
+    }>
+  >`
+    SELECT
+      "stationId",
+      COALESCE(AVG("durationMinutes") FILTER (WHERE "kind" = 'empty'), 0) AS "avgEmptyMinutes",
+      COALESCE(MAX("durationMinutes") FILTER (WHERE "kind" = 'empty'), 0) AS "maxEmptyMinutes",
+      COALESCE(AVG("durationMinutes") FILTER (WHERE "kind" = 'full'), 0) AS "avgFullMinutes",
+      COALESCE(MAX("durationMinutes") FILTER (WHERE "kind" = 'full'), 0) AS "maxFullMinutes",
+      COUNT(*) AS "episodeCount"
+    FROM "StationCriticalEpisode"
+    WHERE "startedAt" >= ${from}
+    GROUP BY "stationId"
+  `;
+
+  return toCriticalEpisodeMap(rows);
+}
+
+async function getCriticalEpisodesFromSnapshots(days: number): Promise<Record<string, CriticalEpisodeRow>> {
   const filter = buildRangeFilter('recordedAt', days);
 
   const rows = await prisma.$queryRaw<
@@ -317,6 +381,19 @@ export async function getCriticalEpisodes(days: number = 15): Promise<Record<str
     GROUP BY "stationId"
   `;
 
+  return toCriticalEpisodeMap(rows);
+}
+
+function toCriticalEpisodeMap(
+  rows: Array<{
+    stationId: string;
+    avgEmptyMinutes: unknown;
+    avgFullMinutes: unknown;
+    maxEmptyMinutes: unknown;
+    maxFullMinutes: unknown;
+    episodeCount: unknown;
+  }>
+): Record<string, CriticalEpisodeRow> {
   const map: Record<string, CriticalEpisodeRow> = {};
   for (const row of rows) {
     map[row.stationId] = {

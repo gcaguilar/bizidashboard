@@ -8,6 +8,7 @@ const { withStaleCacheMock } = vi.hoisted(() => ({
 
 vi.mock('@/lib/cache/cache', () => ({
   withStaleCache: withStaleCacheMock,
+  withCache: (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher(),
 }));
 
 import { buildRebalancingReport } from '@/lib/rebalancing-report';
