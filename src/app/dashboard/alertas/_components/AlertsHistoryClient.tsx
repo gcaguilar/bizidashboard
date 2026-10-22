@@ -78,6 +78,8 @@ type AlertsHistoryClientProps = {
   stations: StationSnapshot[];
 };
 
+const EMPTY_ALERTS: AlertHistoryRow[] = [];
+
 function formatDateTime(value: string): string {
   return formatStatusDateTime(value);
 }
@@ -243,9 +245,8 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     placeholderData: (previous) => previous,
   });
 
-  const rows: AlertHistoryRow[] = Array.isArray(historyQuery.data?.alerts)
-    ? historyQuery.data.alerts
-    : [];
+  const alerts = historyQuery.data?.alerts;
+  const rows = Array.isArray(alerts) ? alerts : EMPTY_ALERTS;
   const totalRows = Number(historyQuery.data?.pagination?.total ?? 0);
   const isLoading = historyQuery.isPending;
   const errorMessage = historyQuery.error ? 'No hemos podido cargar el historial de alertas.' : null;

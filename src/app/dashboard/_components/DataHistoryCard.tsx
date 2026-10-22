@@ -28,6 +28,8 @@ type HistoryResponse = {
   dataState?: DataState;
 };
 
+const EMPTY_HISTORY: HistoryRow[] = [];
+
 function formatDayLabel(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
@@ -48,9 +50,11 @@ export function DataHistoryCard() {
     staleTime: 5 * 60_000,
   });
 
-  const rows: HistoryRow[] = Array.isArray(historyQuery.data?.history)
-    ? historyQuery.data.history.slice(-30)
-    : [];
+  const history = historyQuery.data?.history;
+  const rows = useMemo<HistoryRow[]>(
+    () => (Array.isArray(history) ? history.slice(-30) : EMPTY_HISTORY),
+    [history]
+  );
   const isLoading = historyQuery.isPending;
   const error = historyQuery.error ? 'No se pudo cargar el historico de balance.' : null;
   const responseState: DataState | null = historyQuery.error
