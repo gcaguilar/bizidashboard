@@ -1,5 +1,6 @@
 'use client';
 
+import { lazy, Suspense } from 'react';
 import { Card } from '@/components/ui/card';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -7,7 +8,10 @@ import type { Coordinates } from '@/lib/geo';
 import { hasNoAvailability } from '@/lib/network-health';
 import { ANALYTICAL_MAP_LEGEND } from '@/lib/map-colors';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
-import { MapEngine } from './MapEngine';
+
+// maplibre-gl y react-map-gl son la mayor parte del peso del dashboard; se cargan
+// en un chunk aparte para no bloquear el resto de la vista inicial.
+const MapEngine = lazy(() => import('./MapEngine').then((m) => ({ default: m.MapEngine })));
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -84,21 +88,32 @@ export function MapPanel({
       </div>
 
       <div className="h-full w-full">
-        <MapEngine
-          stations={stations}
-          viewMode={viewMode}
-          initialViewState={initialViewState}
-          frictionByStationId={frictionByStationId}
-          selectedStationId={selectedStationId}
-          onSelectStation={onSelectStation}
-          favoriteStationIds={favoriteStationIds}
-          onToggleFavorite={onToggleFavorite}
-          trendByStationId={trendByStationId}
-          nearestStationId={nearestStationId}
-          nearestDistanceMeters={nearestDistanceMeters}
-          userLocation={userLocation}
-          onViewStateCommit={onViewStateCommit}
-        />
+        <Suspense
+          fallback={
+            <div
+              aria-busy="true"
+              className="flex h-full items-center justify-center text-sm text-[var(--muted)]"
+            >
+              Cargando mapa…
+            </div>
+          }
+        >
+          <MapEngine
+            stations={stations}
+            viewMode={viewMode}
+            initialViewState={initialViewState}
+            frictionByStationId={frictionByStationId}
+            selectedStationId={selectedStationId}
+            onSelectStation={onSelectStation}
+            favoriteStationIds={favoriteStationIds}
+            onToggleFavorite={onToggleFavorite}
+            trendByStationId={trendByStationId}
+            nearestStationId={nearestStationId}
+            nearestDistanceMeters={nearestDistanceMeters}
+            userLocation={userLocation}
+            onViewStateCommit={onViewStateCommit}
+          />
+        </Suspense>
       </div>
     </Card>
   );
