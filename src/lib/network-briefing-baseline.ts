@@ -1,3 +1,5 @@
+import { withCache } from '@/lib/cache/cache';
+import { CacheTTL } from '@/lib/cache/config';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import type { NetworkBriefingBaseline } from '@/lib/network-briefing';
@@ -8,13 +10,15 @@ type BaselineRow = {
   criticalStationsCount: bigint | number;
 };
 
+const localPartsFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Madrid',
+  weekday: 'short',
+  hour: 'numeric',
+  hourCycle: 'h23',
+});
+
 function localParts(value: Date): { weekday: number; hour: number } {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Europe/Madrid',
-    weekday: 'short',
-    hour: 'numeric',
-    hourCycle: 'h23',
-  }).formatToParts(value);
+  const parts = localPartsFormatter.formatToParts(value);
   const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(
     parts.find((part) => part.type === 'weekday')?.value ?? 'Sun',
   );
@@ -99,13 +103,33 @@ async function fetchSnapshotRows(referenceAt: Date): Promise<BaselineRow[]> {
   `;
 }
 
-/** Finds a same-weekday, same-local-hour historical reference. */
+/**
+ * Finds a same-weekday, same-local-hour historical reference.
+ *
+ * Home and dashboard SSR call this on every render; the answer only changes
+ * when the reference hour (or the network size) does, so it is cached per
+ * UTC hour instead of re-grouping six weeks of hourly rows each request.
+ */
 export async function fetchComparableNetworkBaseline(
   referenceAt: Date,
   currentStationCount: number,
 ): Promise<NetworkBriefingBaseline | null> {
-  if (currentStationCount <= 0) return null;
+  if (currentStationCount <= 0 || Number.isNaN(referenceAt.getTime())) return null;
 
+  const referenceHour = new Date(referenceAt);
+  referenceHour.setUTCMinutes(0, 0, 0);
+
+  return withCache(
+    `network-briefing:baseline:${referenceHour.toISOString()}:${currentStationCount}`,
+    CacheTTL.LONG_TERM,
+    () => computeComparableNetworkBaseline(referenceAt, currentStationCount),
+  );
+}
+
+async function computeComparableNetworkBaseline(
+  referenceAt: Date,
+  currentStationCount: number,
+): Promise<NetworkBriefingBaseline | null> {
   let selection: ReturnType<typeof selectComparableHourlyBaseline> = null;
   try {
     selection = selectComparableHourlyBaseline(
