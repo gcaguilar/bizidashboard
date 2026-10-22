@@ -4,7 +4,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
-import { formatHourRange, formatPercent } from '@/lib/format'
+import { formatDayType, formatHourRange, formatPercent } from '@/lib/format'
 import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
@@ -14,10 +14,6 @@ import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
-
-function formatDayTypeLabel(dayType: string): string {
-  return dayType === 'WEEKEND' ? 'Fin de semana' : 'Laborable'
-}
 
 function describeOccupancyDelta(delta: number): string {
   const difference = Math.abs(delta)
@@ -141,13 +137,13 @@ function StationPage() {
     {
       question: '¿Cuándo suele ser más fácil encontrar bici?',
       answer: data.highOccupancySlots[0]
-        ? `${formatDayTypeLabel(String(data.highOccupancySlots[0].dayType))} sobre ${formatHourRange(data.highOccupancySlots[0].hour)}, con una ocupación media del ${formatPercent(data.highOccupancySlots[0].occupancyAvg)}.`
+        ? `${formatDayType(data.highOccupancySlots[0].dayType)} sobre ${formatHourRange(data.highOccupancySlots[0].hour)}, con una ocupación media del ${formatPercent(data.highOccupancySlots[0].occupancyAvg)}.`
         : 'Todavía no hay un patrón histórico suficientemente estable para responderlo con precisión.',
     },
     {
       question: '¿Cuándo suele haber más huecos para devolver?',
       answer: data.lowOccupancySlots[0]
-        ? `${formatDayTypeLabel(String(data.lowOccupancySlots[0].dayType))} sobre ${formatHourRange(data.lowOccupancySlots[0].hour)}, cuando la ocupación media baja a ${formatPercent(data.lowOccupancySlots[0].occupancyAvg)}.`
+        ? `${formatDayType(data.lowOccupancySlots[0].dayType)} sobre ${formatHourRange(data.lowOccupancySlots[0].hour)}, cuando la ocupación media baja a ${formatPercent(data.lowOccupancySlots[0].occupancyAvg)}.`
         : 'La serie disponible todavía no permite marcar una franja clara con más anclajes libres.',
     },
     {
@@ -245,8 +241,8 @@ function StationPage() {
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele ser más fácil usarla</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil encontrar bici</p>{data.highOccupancySlots.map((slot) => <p key={`h-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
-            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil devolverla</p>{data.lowOccupancySlots.map((slot) => <p key={`l-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayTypeLabel(String(slot.dayType))} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
+            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil encontrar bici</p>{data.highOccupancySlots.map((slot) => <p key={`h-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayType(slot.dayType)} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
+            <div className="ui-surface-block"><p className="text-sm font-semibold text-[var(--foreground)]">Suele ser más fácil devolverla</p>{data.lowOccupancySlots.map((slot) => <p key={`l-${slot.dayType}-${slot.hour}`} className="mt-1 text-[11px] text-[var(--muted)]">{formatDayType(slot.dayType)} · {formatHourRange(slot.hour)} · {formatPercent(slot.occupancyAvg)}</p>)}</div>
           </div>
         </section>
       ) : null}
