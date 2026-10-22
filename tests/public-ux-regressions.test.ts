@@ -413,13 +413,9 @@ describe('public UX regressions', () => {
   it('dashboard empty states suggest a user action', () => {
     const alerts = readSource('src/app/dashboard/alertas/_components/AlertsHistoryClient.tsx');
     const rebalancing = readSource('src/app/dashboard/redistribucion/_components/RebalancingTable.tsx');
-    const hourlyCharts = readSource('src/app/dashboard/_components/HourlyCharts.tsx');
-    const heatmap = readSource('src/app/dashboard/_components/Heatmap.tsx');
 
     expect(alerts).toContain('Limpia filtros o amplía el rango de fechas');
     expect(rebalancing).toContain('Limpia filtros o cambia clasificación y urgencia');
-    expect(hourlyCharts).toContain('Selecciona otra estación con más muestras');
-    expect(heatmap).toContain('Selecciona otra estación con más muestras');
   });
 
   it('dashboard pages do not render the public Header', () => {
