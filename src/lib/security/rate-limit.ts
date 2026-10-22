@@ -87,14 +87,14 @@ export async function consumeRateLimit(
     ...options.identifierParts.map((part) => normalizeKeyPart(part)),
   ].join(':');
 
-  const counter = await client.incr(key);
+  // INCR y PTTL en un solo viaje (MULTI): cada peticion publica pasa por aqui,
+  // incluidas las servidas de cache o con 304. Solo la primera de la ventana
+  // (o una clave que perdio su TTL) necesita un segundo viaje para fijarlo.
+  const [counterReply, ttlReply] = await client.multi().incr(key).pTTL(key).exec();
+  const counter = Number(counterReply);
 
-  if (counter === 1) {
-    await client.pExpire(key, options.windowMs);
-  }
-
-  let ttlMs = await client.pTTL(key);
-  if (ttlMs < 0) {
+  let ttlMs = Number(ttlReply);
+  if (!(ttlMs >= 0)) {
     ttlMs = options.windowMs;
     await client.pExpire(key, options.windowMs);
   }
