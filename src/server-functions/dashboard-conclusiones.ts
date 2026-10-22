@@ -7,7 +7,7 @@ import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { toNumber } from '@/lib/format';
 import { fetchAvailableDataMonths } from '@/lib/api';
-import { getDailyMobilityConclusions } from '@/lib/mobility-conclusions';
+import { getDailyMobilityConclusions, getMadridDateKey } from '@/lib/mobility-conclusions';
 
 function safeString(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -88,10 +88,8 @@ const ConclusionsSearchParamsSchema = z.object({
 type ConclusionsSearchParams = z.infer<typeof ConclusionsSearchParamsSchema>;
 
 function buildFallbackPayload(): MobilityConclusionsPayload {
-  const now = new Date().toISOString().slice(0, 10);
-
   return {
-    dateKey: now,
+    dateKey: getMadridDateKey(),
     generatedAt: new Date().toISOString(),
     selectedMonth: null,
     sourceFirstDay: null,
