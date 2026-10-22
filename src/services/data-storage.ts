@@ -220,8 +220,11 @@ export async function getSnapshotCount(recordedAt: Date): Promise<number> {
 export async function getRecentSnapshotSummaries(options?: {
   limit?: number
   minStationCount?: number
+  /** Solo mira esta ventana: sin cota, el GROUP BY puede recorrer toda la tabla cruda. */
+  lookbackHours?: number
 }): Promise<SnapshotSummary[]> {
   const limit = Math.max(1, options?.limit ?? 10)
+  const since = new Date(Date.now() - Math.max(1, options?.lookbackHours ?? 6) * 60 * 60 * 1000)
   const minStationCount = Math.max(0, options?.minStationCount ?? 0)
   const havingClause =
     minStationCount > 0
@@ -234,6 +237,7 @@ export async function getRecentSnapshotSummaries(options?: {
   }>>(Prisma.sql`
     SELECT "recordedAt", COUNT(*)::int AS "stationCount"
     FROM "StationStatus"
+    WHERE "recordedAt" >= ${since}
     GROUP BY "recordedAt"
     ${havingClause}
     ORDER BY "recordedAt" DESC
