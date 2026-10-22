@@ -171,8 +171,12 @@ export async function getAvailableDataMonths(): Promise<string[]> {
       logger.warn('analytics.read.monthly_keys_daily_failed', { error });
       return [];
     }),
+    // Solo el MAX del crudo: su retencion (40 dias) cabe siempre dentro de la
+    // del rollup horario, y MIN recorreria el extremo izquierdo del indice,
+    // justo donde los borrados diarios dejan entradas muertas. El MAX aporta
+    // el mes en curso antes de que llegue el primer rollup.
     prisma.$queryRaw<SourceBoundsRow[]>`
-      SELECT MIN("recordedAt") AS "minAt", MAX("recordedAt") AS "maxAt"
+      SELECT MAX("recordedAt") AS "minAt", MAX("recordedAt") AS "maxAt"
       FROM "StationStatus";
     `.catch((error) => {
       logger.warn('analytics.read.monthly_keys_status_failed', { error });
