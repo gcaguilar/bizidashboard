@@ -87,3 +87,7 @@ dist/
 .env.local
 dashboard.pen
 public/google5948ddc3aa9e019f.html
+
+# Local debugging artifacts
+/informes-page.png
+/snapshot-inicial.txt
