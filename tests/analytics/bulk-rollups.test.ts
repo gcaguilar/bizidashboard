@@ -66,28 +66,34 @@ describe('analytics bulk rollups', () => {
     }));
   });
 
-  it('splits pattern upserts into bounded chunks', async () => {
-    const hourlyStats = buildHourlyStats(800);
-    queryRawMock.mockResolvedValue(hourlyStats);
+  it.each([
+    ['pattern', runPatternRollup, 'pattern_rollup', '"StationPattern"'],
+    ['heatmap', runHeatmapRollup, 'heatmap_rollup', '"StationHeatmapCell"'],
+  ] as const)('aggregates the %s rollup in a single weighted INSERT ... SELECT', async (_name, run, watermarkKey, table) => {
+    executeRawMock.mockResolvedValue(42);
 
-    const result = await runPatternRollup(cutoff);
+    const result = await run(cutoff);
 
-    expect(executeRawMock).toHaveBeenCalledTimes(chunkRowsForBulkQuery(hourlyStats, 7).length);
-    expect(result.processedCount).toBe(hourlyStats.length);
-    expect(result.upsertedCount).toBe(hourlyStats.length);
-    expect(setWatermarkMock).toHaveBeenCalledWith('pattern_rollup', cutoff);
+    expect(queryRawMock).not.toHaveBeenCalled();
+    expect(executeRawMock).toHaveBeenCalledTimes(1);
+    const sql = (executeRawMock.mock.calls[0][0] as { sql: string }).sql;
+    expect(sql).toContain(`INSERT INTO ${table}`);
+    expect(sql).toContain('SUM("bikesAvg" * "sampleCount") / NULLIF(SUM("sampleCount"), 0)');
+    expect(sql).toContain('GROUP BY 1, 2, 3');
+    expect(result.upsertedCount).toBe(42);
+    expect(setWatermarkMock).toHaveBeenCalledWith(watermarkKey, cutoff);
   });
 
-  it('splits heatmap upserts into bounded chunks', async () => {
-    const hourlyStats = buildHourlyStats(800);
-    queryRawMock.mockResolvedValue(hourlyStats);
+  it.each([
+    ['pattern', runPatternRollup],
+    ['heatmap', runHeatmapRollup],
+  ] as const)('skips the %s rollup when the watermark already covers the cutoff', async (_name, run) => {
+    getWatermarkMock.mockResolvedValue(cutoff);
 
-    const result = await runHeatmapRollup(cutoff);
+    const result = await run(cutoff);
 
-    expect(executeRawMock).toHaveBeenCalledTimes(chunkRowsForBulkQuery(hourlyStats, 7).length);
-    expect(result.processedCount).toBe(hourlyStats.length);
-    expect(result.upsertedCount).toBe(hourlyStats.length);
-    expect(setWatermarkMock).toHaveBeenCalledWith('heatmap_rollup', cutoff);
+    expect(executeRawMock).not.toHaveBeenCalled();
+    expect(result.upsertedCount).toBe(0);
   });
 
   it('splits alert upserts into bounded chunks after deactivating existing alerts', async () => {
