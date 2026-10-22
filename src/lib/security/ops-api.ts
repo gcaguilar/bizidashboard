@@ -85,7 +85,7 @@ export type OperationalRouteContext = {
 export async function handleOperationalRoute(
   request: Request,
   options: OperationalAccessOptions & { route: string },
-  handler: (ctx: OperationalRouteContext) => Promise<Response>
+  handler: (ctx: OperationalRouteContext) => Response | Promise<Response>
 ): Promise<Response> {
   const clientIp = getClientIp(request.headers);
   const userAgent = request.headers.get('user-agent') || '';

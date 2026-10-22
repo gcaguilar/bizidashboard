@@ -65,7 +65,7 @@ export const Route = createFileRoute('/api/collect/')({
 
       GET: async ({ request }) => {
         try {
-          return await handleOperationalRoute(request, getAccessOptions(), async ({ headers }) => {
+          return await handleOperationalRoute(request, getAccessOptions(), ({ headers }) => {
             const state = getJobState()
             return new Response(JSON.stringify({ lastSuccess: toIsoString(state.lastSuccess), isScheduled: isCollectionScheduled() }), { status: 200, headers: { 'Content-Type': 'application/json', ...headers } })
           })
