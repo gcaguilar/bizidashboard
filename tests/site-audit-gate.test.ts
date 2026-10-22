@@ -102,7 +102,7 @@ describe('site audit gate', () => {
     expect(result.ok).toBe(false);
     expect(result.failures).toContain('1 enlaces internos rotos.');
     expect(result.failures).toContain('1 entradas del sitemap devuelven error.');
-    expect(result.failures).toContain('1 endpoints criticos de API fallan.');
+    expect(result.failures).toContain('1 endpoints críticos de API fallan.');
     expect(result.likely_infra_outage.detected).toBe(false);
   });
 
@@ -138,7 +138,7 @@ describe('site audit gate', () => {
 
     const result = evaluateSiteAuditReport(report);
     expect(result.ok).toBe(false);
-    expect(result.failures).toContain('1 paginas huerfanas criticas.');
+    expect(result.failures).toContain('1 páginas huérfanas críticas.');
   });
 
   it('flags likely infrastructure outage when 5xx dominates broken links', () => {

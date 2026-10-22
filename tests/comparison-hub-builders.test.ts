@@ -240,7 +240,7 @@ describe('comparison hub builders', () => {
     );
 
     expect(interactive.defaultDimensionId).toBe('stations');
-    expect(interactive.dimensions[0]?.options[0]?.note).toContain('Ultima muestra');
+    expect(interactive.dimensions[0]?.options[0]?.note).toContain('Última muestra');
     expect(interactive.dimensions[0]?.options[1]?.note).toContain('2026-04-01 14:35');
   });
 

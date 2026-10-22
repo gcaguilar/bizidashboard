@@ -16,14 +16,14 @@ const CLASSIFICATIONS: Array<{
     label: 'A — Sobrestock',
     color: 'text-[var(--warning)]',
     bg: 'bg-[var(--warning)]/10 border-[var(--warning)]/30',
-    description: 'Ocupacion alta sostenida, baja rotación e inmóvil. Bicis "paradas". Candidata a donar.',
+    description: 'Ocupación alta sostenida, baja rotación e inmóvil. Bicis "paradas". Candidata a donar.',
   },
   {
     code: 'deficit',
     label: 'B — Déficit',
     color: 'text-[var(--danger)]',
     bg: 'bg-[var(--danger)]/10 border-[var(--danger)]/30',
-    description: 'Ocupacion baja crónica, alta presión de salida. Necesita más stock base.',
+    description: 'Ocupación baja crónica, alta presión de salida. Necesita más stock base.',
   },
   {
     code: 'peak_saturation',

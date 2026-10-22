@@ -107,7 +107,7 @@ export function getCoverageLabel(dataset: SharedDatasetSnapshot): string {
   const firstRecordedAt = formatStatusDateTime(dataset.coverage.firstRecordedAt);
   const lastRecordedAt = formatStatusDateTime(dataset.coverage.lastRecordedAt);
 
-  return `${dataset.coverage.totalDays} dias · ${firstRecordedAt} -> ${lastRecordedAt}`;
+  return `${dataset.coverage.totalDays} días · ${firstRecordedAt} -> ${lastRecordedAt}`;
 }
 
 export function getDatasetVersionLabel(dataset: SharedDatasetSnapshot): string {
@@ -119,7 +119,7 @@ export function getDatasetVersionLabel(dataset: SharedDatasetSnapshot): string {
   const parsed = toDate(versionSeed);
 
   if (!parsed) {
-    return 'Sin version derivada';
+    return 'Sin versión derivada';
   }
 
   const datePart = parsed.toISOString().slice(0, 10).replace(/-/g, '');
@@ -160,8 +160,8 @@ export function buildSystemIncidents(
     incidents.push({
       id: 'validation-errors',
       severity: status.pipeline.validationErrors > 10 ? 'down' : 'degraded',
-      title: 'Errores de validacion acumulados',
-      description: `${formatStatusNumber(status.pipeline.validationErrors)} incidencias de validacion registradas.`,
+      title: 'Errores de validación acumulados',
+      description: `${formatStatusNumber(status.pipeline.validationErrors)} incidencias de validación registradas.`,
     });
   }
 
@@ -169,7 +169,7 @@ export function buildSystemIncidents(
     incidents.push({
       id: 'coverage',
       severity: 'down',
-      title: 'Sin cobertura historica suficiente',
+      title: 'Sin cobertura histórica suficiente',
       description: 'No hay historial agregado suficiente para alimentar rankings, predicciones o series temporales.',
     });
   }
@@ -223,8 +223,8 @@ export function buildSystemCapabilities(
       href: appRoutes.dashboardView('data'),
       state: predictionsState,
       description: hasHistory
-        ? 'La capa predictiva puede combinar historico y snapshot actual.'
-        : 'Falta historico suficiente para sostener predicciones fiables.',
+        ? 'La capa predictiva puede combinar histórico y snapshot actual.'
+        : 'Falta histórico suficiente para sostener predicciones fiables.',
     },
     {
       id: 'rankings',
@@ -233,11 +233,11 @@ export function buildSystemCapabilities(
       state: rankingsState,
       description: hasHistory
         ? 'Hay cobertura agregada para priorizacion por uso y disponibilidad.'
-        : 'Los rankings necesitan historico agregado para ser consistentes.',
+        : 'Los rankings necesitan histórico agregado para ser consistentes.',
     },
     {
       id: 'history',
-      label: 'Estado historico',
+      label: 'Estado histórico',
       href: appRoutes.dashboardView('data'),
       state: historyState,
       description: hasHistory
@@ -250,7 +250,7 @@ export function buildSystemCapabilities(
       href: appRoutes.developers(),
       state: apiState,
       description: hasLiveStations
-        ? `La API publica sirve snapshots con version ${getApiVersionLabel()}.`
+        ? `La API pública sirve snapshots con versión ${getApiVersionLabel()}.`
         : 'La API no tiene snapshot operativo reciente que publicar.',
     },
     {
@@ -269,7 +269,7 @@ export function buildSystemCapabilities(
       href: appRoutes.status(),
       state: ingestionState,
       description: status.quality.freshness.isFresh
-        ? `Ultima muestra util ${formatStatusDateTime(status.quality.freshness.lastUpdated)}.`
+        ? `Última muestra útil ${formatStatusDateTime(status.quality.freshness.lastUpdated)}.`
         : 'La ingesta va retrasada respecto al umbral de frescura esperado.',
     },
   ];

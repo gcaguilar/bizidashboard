@@ -322,7 +322,7 @@ export function buildFallbackComparisonSections(): ComparisonSection[] {
     },
     {
       id: 'historical',
-      title: 'Comparativas historicas',
+      title: 'Comparativas históricas',
       description:
         'Cortes temporales para comparar meses, años, periodos y grandes cambios en la red o en la demanda.',
       cards: [],
@@ -392,7 +392,7 @@ function buildUnavailableCard(
     id,
     title,
     eyebrow,
-    summary: 'Todavia no hay suficiente dato agregado para esta comparativa.',
+    summary: 'Todavía no hay suficiente dato agregado para esta comparativa.',
     metricA: 'Sin muestra suficiente',
     metricB: 'Sin referencia previa',
     delta: 'Pendiente de cobertura',
@@ -543,7 +543,7 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
 
     cards.push({
       id: 'station-vs-station',
-      title: 'Estacion vs estacion',
+      title: 'Estación vs estación',
       eyebrow: 'Comparativa operativa',
       summary: `${topStationMeta?.name ?? context.topStation.stationId} lidera el uso relativo frente a ${secondStationMeta?.name ?? context.secondStation.stationId}.`,
       metricA: `${topStationMeta?.name ?? context.topStation.stationId}: giro ${formatDecimal(Number(context.topStation.turnoverScore))} · ${topStationMeta?.bikesAvailable ?? 0}/${topStationMeta?.capacity ?? 0} bicis`,
@@ -556,7 +556,7 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
     cards.push(
       buildUnavailableCard(
         'station-vs-station',
-        'Estacion vs estacion',
+        'Estación vs estación',
         'Comparativa operativa',
         appRoutes.dashboardStations()
       )
@@ -611,14 +611,14 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
       href: context.latestMonth
         ? appRoutes.reportMonth(context.latestMonth)
         : appRoutes.dashboardConclusions(),
-      note: `${context.weekdayWeekendProfile.weekday.daysCount} dias laborables comparados con ${context.weekdayWeekendProfile.weekend.daysCount} dias de fin de semana.`,
+      note: `${context.weekdayWeekendProfile.weekday.daysCount} días laborables comparados con ${context.weekdayWeekendProfile.weekend.daysCount} días de fin de semana.`,
     });
   } else {
     cards.push(
       buildUnavailableCard(
         'weekday-vs-weekend',
         'Laboral vs fin de semana',
-        'Patron de uso',
+        'Patrón de uso',
         appRoutes.dashboardConclusions()
       )
     );
@@ -720,10 +720,10 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       summary: yearsAreComparable
         ? `${context.latestYear.year} agrega ${formatInteger(context.latestYear.demandScore)} puntos de demanda frente a ${context.previousYear.year}.`
         : `No hay dos años cerrados con doce meses disponibles para comparar ${context.latestYear.year} y ${context.previousYear.year}.`,
-      metricA: `${context.latestYear.year}: ${formatInteger(context.latestYear.demandScore)} pts · ocupacion media ${formatPercent(averageOrNull(context.latestYear.occupancyValues))}`,
-      metricB: `${context.previousYear.year}: ${formatInteger(context.previousYear.demandScore)} pts · ocupacion media ${formatPercent(averageOrNull(context.previousYear.occupancyValues))}`,
+      metricA: `${context.latestYear.year}: ${formatInteger(context.latestYear.demandScore)} pts · ocupación media ${formatPercent(averageOrNull(context.latestYear.occupancyValues))}`,
+      metricB: `${context.previousYear.year}: ${formatInteger(context.previousYear.demandScore)} pts · ocupación media ${formatPercent(averageOrNull(context.previousYear.occupancyValues))}`,
       delta: yearsAreComparable
-        ? `Variacion anual ${formatRatioDelta(yearDelta, NO_COMPARISON_LABEL)}`
+        ? `Variación anual ${formatRatioDelta(yearDelta, NO_COMPARISON_LABEL)}`
         : 'Comparación no disponible todavía',
       href: appRoutes.reports(),
       note: yearsAreComparable
@@ -756,12 +756,12 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       title: 'Periodos',
       eyebrow: 'Ventanas comparables',
       summary:
-        'La ultima semana se compara con la base movil previa de treinta dias para detectar aceleraciones o frenadas.',
-      metricA: `Ultimos 7 dias: ${formatDecimal(last7Demand ?? 0)} pts/dia · ocupacion ${formatPercent(averageOrNull(last7.map((row) => Number(row.avgOccupancy))))}`,
-      metricB: `Base previa 30 dias: ${formatDecimal(previous30Demand ?? 0)} pts/dia · ocupacion ${formatPercent(averageOrNull(previous30.map((row) => Number(row.avgOccupancy))))}`,
+        'La última semana se compara con la base movil previa de treinta días para detectar aceleraciones o frenadas.',
+      metricA: `Últimos 7 días: ${formatDecimal(last7Demand ?? 0)} pts/día · ocupación ${formatPercent(averageOrNull(last7.map((row) => Number(row.avgOccupancy))))}`,
+      metricB: `Base previa 30 días: ${formatDecimal(previous30Demand ?? 0)} pts/día · ocupación ${formatPercent(averageOrNull(previous30.map((row) => Number(row.avgOccupancy))))}`,
       delta: `Cambio de periodo ${formatRatioDelta(periodDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
-      note: `Cobertura reciente: ${context.datasetCoverageDays} dias historicos en total.`,
+      note: `Cobertura reciente: ${context.datasetCoverageDays} días históricos en total.`,
     });
   } else {
     cards.push(
@@ -813,12 +813,12 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
 
     cards.push({
       id: 'before-after-expansion',
-      title: 'Antes vs despues ampliacion',
+      title: 'Antes vs después ampliación',
       eyebrow: 'Hito detectado',
-      summary: `Se detecta la mayor ampliacion proxy en ${formatMonthLabel(expansionCandidate.monthKey)} por un salto de ${formatInteger(expansionCandidate.stationDelta)} estaciones activas.`,
+      summary: `Se detecta la mayor ampliación proxy en ${formatMonthLabel(expansionCandidate.monthKey)} por un salto de ${formatInteger(expansionCandidate.stationDelta)} estaciones activas.`,
       metricA: `Antes: ${formatDecimal(beforeDemand ?? 0)} pts/mes · ${formatDecimal(averageOrNull(beforeSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
-      metricB: `Despues: ${formatDecimal(afterDemand ?? 0)} pts/mes · ${formatDecimal(averageOrNull(afterSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
-      delta: `Cambio tras ampliacion ${formatRatioDelta(expansionDelta, NO_COMPARISON_LABEL)}`,
+      metricB: `Después: ${formatDecimal(afterDemand ?? 0)} pts/mes · ${formatDecimal(averageOrNull(afterSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
+      delta: `Cambio tras ampliación ${formatRatioDelta(expansionDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.reports(),
       note: 'La fecha se infiere por el mayor salto en estaciones activas, no por un calendario externo de hitos.',
     });
@@ -826,7 +826,7 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
     cards.push(
       buildUnavailableCard(
         'before-after-expansion',
-        'Antes vs despues ampliacion',
+        'Antes vs después ampliación',
         'Hito detectado',
         appRoutes.reports(),
         'Hace falta un salto claro en estaciones activas o un calendario de hitos para fijar el corte.'
@@ -849,9 +849,9 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       id: 'events-vs-normal',
       title: 'Eventos vs normal',
       eyebrow: 'Pico anomalo',
-      summary: `El dia ${peakDay?.day ?? 'sin fecha'} marca el mayor pico reciente y se compara con un dia normal medio del mismo tramo.`,
-      metricA: `Pico anomalo: ${formatInteger(Number(peakDay?.demandScore ?? 0))} pts · ocupacion ${formatPercent(Number(peakDay?.avgOccupancy ?? 0))}`,
-      metricB: `Dia normal: ${formatDecimal(normalDemand ?? 0)} pts · ocupacion ${formatPercent(averageOrNull(normalDays.map((row) => Number(row.avgOccupancy))))}`,
+      summary: `El día ${peakDay?.day ?? 'sin fecha'} marca el mayor pico reciente y se compara con un día normal medio del mismo tramo.`,
+      metricA: `Pico anomalo: ${formatInteger(Number(peakDay?.demandScore ?? 0))} pts · ocupación ${formatPercent(Number(peakDay?.avgOccupancy ?? 0))}`,
+      metricB: `Día normal: ${formatDecimal(normalDemand ?? 0)} pts · ocupación ${formatPercent(averageOrNull(normalDays.map((row) => Number(row.avgOccupancy))))}`,
       delta: `Exceso sobre normal ${formatRatioDelta(eventDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
       note: 'Esta lectura usa un pico estadistico reciente como proxy de evento; no consume un calendario oficial de eventos.',
@@ -921,12 +921,12 @@ function buildChangeCards(context: DerivedComparisonContext): ComparisonCard[] {
       title: 'Demanda cambios',
       eyebrow: 'Pulso reciente',
       summary:
-        'Cambio de demanda comparando la ultima ventana de siete dias frente a la anterior.',
-      metricA: `Ultimos 7 dias: ${formatInteger(context.recentPayload.metrics.demandLast7Days)} pts`,
-      metricB: `7 dias previos: ${formatInteger(context.recentPayload.metrics.demandPrevious7Days)} pts`,
+        'Cambio de demanda comparando la última ventana de siete días frente a la anterior.',
+      metricA: `Últimos 7 días: ${formatInteger(context.recentPayload.metrics.demandLast7Days)} pts`,
+      metricB: `7 días previos: ${formatInteger(context.recentPayload.metrics.demandPrevious7Days)} pts`,
       delta: `Cambio de demanda ${formatRatioDelta(context.recentPayload.metrics.demandDeltaRatio, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
-      note: `Ultima cobertura util ${context.recentPayload.sourceLastDay ?? 'sin fecha'}.`,
+      note: `Última cobertura útil ${context.recentPayload.sourceLastDay ?? 'sin fecha'}.`,
     });
   } else {
     cards.push(
@@ -953,9 +953,9 @@ function buildChangeCards(context: DerivedComparisonContext): ComparisonCard[] {
       id: 'balance-changes',
       title: 'Balance cambios',
       eyebrow: 'Equilibrio del sistema',
-      summary: 'Evolucion del indice de equilibrio comparando la ultima semana con la anterior.',
-      metricA: `Ultimos 7 dias: ${formatDecimal(last7Balance ?? 0, 2)} indice medio`,
-      metricB: `Semana previa: ${formatDecimal(previous7Balance ?? 0, 2)} indice medio`,
+      summary: 'Evolución del índice de equilibrio comparando la última semana con la anterior.',
+      metricA: `Últimos 7 días: ${formatDecimal(last7Balance ?? 0, 2)} índice medio`,
+      metricB: `Semana previa: ${formatDecimal(previous7Balance ?? 0, 2)} índice medio`,
       delta: `Cambio de balance ${formatRatioDelta(balanceDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardView('data'),
       note: `Series con ${formatInteger(last7.reduce((sum, row) => sum + Number(row.sampleCount), 0))} muestras recientes.`,
@@ -1645,8 +1645,8 @@ function buildPeriodOptions(
       href: appRoutes.dashboardConclusions(),
       primaryLabel: 'Demanda media',
       primaryValue: demandAverage,
-      primaryDisplay: `${formatDecimal(demandAverage ?? 0)} pts/dia`,
-      secondaryLabel: 'Ocupacion media',
+      primaryDisplay: `${formatDecimal(demandAverage ?? 0)} pts/día`,
+      secondaryLabel: 'Ocupación media',
       secondaryDisplay: formatPercent(occupancyAverage),
       tertiaryLabel: 'Cobertura',
       tertiaryDisplay: `${formatInteger(totalSamples)} muestras`,
@@ -1654,22 +1654,22 @@ function buildPeriodOptions(
     });
   };
 
-  appendPeriodOption('last-7d', 'Ultimos 7 dias', sortedRecentDemand.slice(-7), 'Ventana reciente');
+  appendPeriodOption('last-7d', 'Últimos 7 días', sortedRecentDemand.slice(-7), 'Ventana reciente');
   appendPeriodOption(
     'previous-7d',
-    '7 dias previos',
+    '7 días previos',
     sortedRecentDemand.slice(-14, -7),
     'Ventana previa'
   );
   appendPeriodOption(
     'last-30d',
-    'Ultimos 30 dias',
+    'Últimos 30 días',
     sortedRecentDemand.slice(-30),
     'Ventana reciente'
   );
   appendPeriodOption(
     'previous-30d',
-    '30 dias previos',
+    '30 días previos',
     sortedRecentDemand.slice(-60, -30),
     'Ventana previa'
   );
@@ -1709,7 +1709,7 @@ function buildInteractiveComparisonData(
             secondaryDisplay: `${station.bikesAvailable}/${station.capacity} bicis`,
             tertiaryLabel: 'Horas sin servicio',
             tertiaryDisplay: `${formatDecimal(availabilityHours ?? 0)} h`,
-            note: `Ultima muestra ${formatRecordedAtSummary(station.recordedAt)}`,
+            note: `Última muestra ${formatRecordedAtSummary(station.recordedAt)}`,
             metrics: buildStationMetrics({ station, turnoverScore, availabilityHours, bands }),
             bands,
             reliabilityScore: computeReliability([hourly]),
@@ -1763,7 +1763,7 @@ function buildInteractiveComparisonData(
       id: 'months',
       label: 'Meses',
       description:
-        'Permite elegir dos meses concretos del historico publicado y comparar demanda, ocupacion y red activa.',
+        'Permite elegir dos meses concretos del histórico publicado y comparar demanda, ocupación y red activa.',
       options: [...context.monthlySeries]
         .sort((left, right) => right.monthKey.localeCompare(left.monthKey, 'es'))
         .map((row) => ({
@@ -1773,7 +1773,7 @@ function buildInteractiveComparisonData(
           primaryLabel: 'Demanda mensual',
           primaryValue: Number(row.demandScore),
           primaryDisplay: `${formatInteger(Number(row.demandScore))} pts`,
-          secondaryLabel: 'Ocupacion media',
+          secondaryLabel: 'Ocupación media',
           secondaryDisplay: formatPercent(Number(row.avgOccupancy)),
           tertiaryLabel: 'Estaciones activas',
           tertiaryDisplay: `${formatInteger(Number(row.activeStations))} estaciones`,
@@ -1796,7 +1796,7 @@ function buildInteractiveComparisonData(
           primaryLabel: 'Demanda anual',
           primaryValue: row.demandScore,
           primaryDisplay: `${formatInteger(row.demandScore)} pts`,
-          secondaryLabel: 'Ocupacion media',
+          secondaryLabel: 'Ocupación media',
           secondaryDisplay: formatPercent(averageOrNull(row.occupancyValues)),
           tertiaryLabel: 'Estaciones activas medias',
           tertiaryDisplay: `${formatDecimal(averageOrNull(row.activeStations) ?? 0)} estaciones`,
@@ -1809,7 +1809,7 @@ function buildInteractiveComparisonData(
       id: 'hours',
       label: 'Horas',
       description:
-        'Selecciona dos horas del dia para comparar ritmo medio, ocupacion y muestras acumuladas.',
+        'Selecciona dos horas del día para comparar ritmo medio, ocupación y muestras acumuladas.',
       options: [...context.hourlyProfile]
         .sort((left, right) => Number(left.hour) - Number(right.hour))
         .map((row) => ({
@@ -1819,7 +1819,7 @@ function buildInteractiveComparisonData(
           primaryLabel: 'Bicis disponibles',
           primaryValue: Number(row.avgBikesAvailable),
           primaryDisplay: `${formatDecimal(Number(row.avgBikesAvailable))} bicis`,
-          secondaryLabel: 'Ocupacion media',
+          secondaryLabel: 'Ocupación media',
           secondaryDisplay: formatPercent(Number(row.avgOccupancy)),
           tertiaryLabel: 'Muestras',
           tertiaryDisplay: `${formatInteger(Number(row.sampleCount))} muestras`,
@@ -1873,7 +1873,7 @@ export function buildComparisonHubViewModel(
       },
       {
         id: 'historical',
-        title: 'Comparativas historicas',
+        title: 'Comparativas históricas',
         description:
           'Cortes temporales para comparar meses, años, periodos y grandes cambios en la red o en la demanda.',
         cards: buildHistoricalCards(context),

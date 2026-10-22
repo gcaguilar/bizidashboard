@@ -45,7 +45,7 @@ export function DataHistoryCard() {
     queryFn: ({ signal }) =>
       fetchJson<HistoryResponse>(appRoutes.api.history(), {
         signal,
-        errorMessage: 'No se pudo cargar el historico agregado.',
+        errorMessage: 'No se pudo cargar el histórico agregado.',
       }),
     staleTime: 5 * 60_000,
   });
@@ -56,7 +56,7 @@ export function DataHistoryCard() {
     [history]
   );
   const isLoading = historyQuery.isPending;
-  const error = historyQuery.error ? 'No se pudo cargar el historico de balance.' : null;
+  const error = historyQuery.error ? 'No se pudo cargar el histórico de balance.' : null;
   const responseState: DataState | null = historyQuery.error
     ? 'error'
     : historyQuery.data?.dataState ?? null;
@@ -122,16 +122,16 @@ export function DataHistoryCard() {
       {shouldShowDataStateNotice(historyDataState) ? (
         <DataStateNotice
           state={historyDataState}
-          subject="el historico agregado"
+          subject="el histórico agregado"
           description={
             error ??
             (isLoading
               ? 'Estamos cargando la serie agregada de balance y demanda.'
               : historyDataState === 'partial'
-                ? 'La serie historica existe, pero no cubre toda la ventana ideal todavia.'
+                ? 'La serie histórica existe, pero no cubre toda la ventana ideal todavía.'
                 : historyDataState === 'stale'
-                  ? 'La serie historica esta disponible, pero el dataset no esta fresco.'
-                  : 'Todavia no hay historico suficiente para pintar esta serie.')
+                  ? 'La serie histórica esta disponible, pero el dataset no esta fresco.'
+                  : 'Todavía no hay histórico suficiente para pintar esta serie.')
           }
           href={appRoutes.status()}
           actionLabel="Ver estado"
@@ -170,7 +170,7 @@ export function DataHistoryCard() {
             </div>
           </ChartWrapper>
           <p className="mt-3 text-[11px] text-[var(--muted)]">
-            Balance index cerca de 1 significa una red mas equilibrada. Cerca de 0 indica muchas estaciones alejadas del 50% de ocupacion.
+            Balance index cerca de 1 significa una red más equilibrada. Cerca de 0 indica muchas estaciones alejadas del 50% de ocupación.
           </p>
         </div>
       ) : null}

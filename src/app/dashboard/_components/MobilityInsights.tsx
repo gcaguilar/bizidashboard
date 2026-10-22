@@ -95,7 +95,7 @@ function MobilityInsightsContent({
     ),
     select: (payload): MobilityResponse => {
       if (!isMobilityResponse(payload)) {
-        throw new Error('Respuesta de movilidad invalida.');
+        throw new Error('Respuesta de movilidad inválida.');
       }
 
       return payload;
@@ -190,10 +190,10 @@ function MobilityInsightsContent({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black leading-tight tracking-tight text-[var(--foreground)]">
-            Analisis de flujo por barrios
+            Análisis de flujo por barrios
           </h2>
           <p className="text-sm text-[var(--muted)]">
-            Distribucion interdistrital de trayectos y metricas de balance neto.
+            Distribución interdistrital de trayectos y métricas de balance neto.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)]/80 p-1">
@@ -240,7 +240,7 @@ function MobilityInsightsContent({
               <div>
                 <h3 className="text-lg font-bold text-[var(--foreground)]">Diagrama chord interdistrital</h3>
                 <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[var(--muted)]">
-                  Resume de un vistazo que barrios parecen enviar o recibir mas flujo en el periodo activo. Cada nodo es un barrio y cada curva representa un corredor estimado: cuanto mas marcada, mas volumen relativo.
+                  Resume de un vistazo que barrios parecen enviar o recibir más flujo en el periodo activo. Cada nodo es un barrio y cada curva representa un corredor estimado: cuanto más marcada, más volumen relativo.
                 </p>
               </div>
               <div className="text-right text-xs text-[var(--muted)]">
@@ -359,7 +359,7 @@ function MobilityInsightsContent({
                   </SelectContent>
                 </Select>
                 <p className="mt-2 text-xs text-[var(--muted)]">
-                  Cambia el barrio para revisar su saldo neto y los barrios con mas flujo estimado hacia el y desde el.
+                  Cambia el barrio para revisar su saldo neto y los barrios con más flujo estimado hacia el y desde el.
                 </p>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
@@ -507,7 +507,7 @@ function MobilityInsightsContent({
               <div>
                 <h3 className="text-base font-bold text-[var(--foreground)]">Curva diaria de demanda</h3>
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  Muestra como cambia la actividad diaria y la ocupacion media en el periodo activo.
+                  Muestra como cambia la actividad diaria y la ocupación media en el periodo activo.
                 </p>
               </div>
               <div className="text-right text-xs text-[var(--muted)]">
@@ -552,7 +552,7 @@ function MobilityInsightsContent({
                               return [numericValue.toFixed(1), 'Demanda'];
                             }
 
-                            return [formatPercent(numericValue), 'Ocupacion media'];
+                            return [formatPercent(numericValue), 'Ocupación media'];
                           }}
                         />
                         <Area

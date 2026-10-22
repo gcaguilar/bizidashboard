@@ -68,7 +68,7 @@ export function classifyStation(
   }
   
   if (globalMetrics.variability < 0.02 && globalMetrics.rotation > 10) {
-    reasons.push(`Revisar datos: variabilidad anormalmente baja (${(globalMetrics.variability * 100).toFixed(1)}%) a pesar de tener rotacion activa`);
+    reasons.push(`Revisar datos: variabilidad anormalmente baja (${(globalMetrics.variability * 100).toFixed(1)}%) a pesar de tener rotación activa`);
     return { classification: 'data_review', reasons };
   }
 
@@ -90,14 +90,14 @@ export function classifyStation(
 
   // Rule A: Overstock
   if (globalMetrics.occupancyAvg > 0.70 && rotationPercentile <= 0.40 && globalMetrics.persistenceProxy > 0.40) {
-    reasons.push(`Sobrestock: ocupacion media alta (${(globalMetrics.occupancyAvg * 100).toFixed(1)}%), rotacion en el percentil ${(rotationPercentile * 100).toFixed(0)}, y el ${(globalMetrics.persistenceProxy * 100).toFixed(1)}% de las horas no hay movimiento`);
+    reasons.push(`Sobrestock: ocupación media alta (${(globalMetrics.occupancyAvg * 100).toFixed(1)}%), rotación en el percentil ${(rotationPercentile * 100).toFixed(0)}, y el ${(globalMetrics.persistenceProxy * 100).toFixed(1)}% de las horas no hay movimiento`);
     return { classification: 'overstock', reasons };
   }
 
   // Rule B: Deficit
   const anyPeakEmpty = peakBands.some((m) => m.pctTimeEmpty > 0.10);
   if (globalMetrics.occupancyAvg < 0.30 && anyPeakEmpty) {
-    reasons.push(`Deficit: ocupacion media muy baja (${(globalMetrics.occupancyAvg * 100).toFixed(1)}%) y sufre vaciados frecuentes en hora punta`);
+    reasons.push(`Déficit: ocupación media muy baja (${(globalMetrics.occupancyAvg * 100).toFixed(1)}%) y sufre vaciados frecuentes en hora punta`);
     return { classification: 'deficit', reasons };
   }
 
@@ -105,7 +105,7 @@ export function classifyStation(
   const anyPeakFull = peakBands.some((m) => m.pctTimeFull > 0.20);
   const allNonPeakNotFull = nonPeakBands.every((m) => m.pctTimeFull < 0.05);
   if (anyPeakFull && allNonPeakNotFull) {
-    reasons.push(`Saturacion en punta: se llena mas del 20% del tiempo en hora punta, pero funciona bien el resto del dia`);
+    reasons.push(`Saturacion en punta: se llena más del 20% del tiempo en hora punta, pero funciona bien el resto del día`);
     return { classification: 'peak_saturation', reasons };
   }
 
@@ -113,11 +113,11 @@ export function classifyStation(
   const anyPeakEmptyHigh = peakBands.some((m) => m.pctTimeEmpty > 0.20);
   const allNonPeakNotEmpty = nonPeakBands.every((m) => m.pctTimeEmpty < 0.05);
   if (anyPeakEmptyHigh && allNonPeakNotEmpty) {
-    reasons.push(`Vaciado en punta: se vacia mas del 20% del tiempo en hora punta, pero se recupera el resto del dia`);
+    reasons.push(`Vaciado en punta: se vacía más del 20% del tiempo en hora punta, pero se recupera el resto del día`);
     return { classification: 'peak_emptying', reasons };
   }
 
   // Rule E: Balanced
-  reasons.push(`Equilibrada: la ocupacion se mantiene dentro de los parametros normales sin riesgo cronico detectado`);
+  reasons.push(`Equilibrada: la ocupación se mantiene dentro de los parametros normales sin riesgo cronico detectado`);
   return { classification: 'balanced', reasons };
 }

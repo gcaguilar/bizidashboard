@@ -79,7 +79,7 @@ function DistrictPage() {
         <section className="ui-page-hero">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
           <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">Aun no hay datos suficientes para mostrar este barrio con confianza.</p>
+          <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar este barrio con confianza.</p>
           <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsBarrios()} ctaEvent={{ source: 'district_empty', ctaId: 'back_to_districts', destination: 'stats_barrios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver comparativa de barrios</TrackedLink>
         </section>
       </PageShell>

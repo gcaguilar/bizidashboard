@@ -586,7 +586,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
               <TableHeader className="sticky top-0 z-10 bg-[var(--secondary)]">
                 <TableRow className="text-left text-xs uppercase tracking-[0.12em] text-[var(--muted)]">
                   <TableHead className="h-auto px-4 py-3">Fecha</TableHead>
-                  <TableHead className="h-auto px-4 py-3">Estacion</TableHead>
+                  <TableHead className="h-auto px-4 py-3">Estación</TableHead>
                   <TableHead className="h-auto px-4 py-3">Tipo</TableHead>
                   <TableHead className="h-auto px-4 py-3">Severidad</TableHead>
                   <TableHead className="h-auto px-4 py-3">Estado</TableHead>
@@ -607,7 +607,7 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
                     <TableCell className="whitespace-nowrap px-4 py-3">{formatAlertType(row.alertType)}</TableCell>
                     <TableCell className="px-4 py-3">
                       <Badge variant={row.severity >= 2 ? 'danger' : 'warning'}>
-                        {row.severity >= 2 ? 'Critica' : 'Media'}
+                        {row.severity >= 2 ? 'Crítica' : 'Media'}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3">

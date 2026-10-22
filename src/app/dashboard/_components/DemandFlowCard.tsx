@@ -93,7 +93,7 @@ export function DemandFlowCard({
             Flujo diario de demanda
           </h3>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Indice de actividad por dia para comparar intensidad, no viajes cerrados exactos.
+            Índice de actividad por día para comparar intensidad, no viajes cerrados exactos.
           </p>
         </div>
         <div className="text-right text-xs text-[var(--muted)]">
@@ -104,7 +104,7 @@ export function DemandFlowCard({
             <TrackedLink href={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
               className="font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
             >
-              Entender metrica
+              Entender métrica
             </TrackedLink>
           </div>
         </div>
@@ -131,8 +131,8 @@ export function DemandFlowCard({
           }
           description={
             demandDataState === 'no_coverage'
-              ? 'Aun no hay historico agregado suficiente para dibujar esta curva.'
-              : 'Aun no hay suficiente serie diaria para dibujar la evolucion de la demanda en esta ventana.'
+              ? 'Aún no hay histórico agregado suficiente para dibujar esta curva.'
+              : 'Aún no hay suficiente serie diaria para dibujar la evolución de la demanda en esta ventana.'
           }
           helpHref={appRoutes.dashboardHelp('demanda-no-viajes-reales')}
         />

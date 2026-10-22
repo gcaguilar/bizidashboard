@@ -311,10 +311,10 @@ export function getDataStateMeta(
       return {
         state,
         label: 'Sin cobertura',
-        title: 'Aun no hay cobertura suficiente',
+        title: 'Aún no hay cobertura suficiente',
         description:
           options.noCoverageDescription ??
-          `Todavia no hay historico suficiente para mostrar ${subject} con confianza.`,
+          `Todavía no hay histórico suficiente para mostrar ${subject} con confianza.`,
         toneClasses:
           'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
         badgeClasses:
@@ -327,7 +327,7 @@ export function getDataStateMeta(
         title: 'La cobertura es parcial',
         description:
           options.partialDescription ??
-          `Hay datos para ${subject}, pero la ventana disponible todavia no esta completa.`,
+          `Hay datos para ${subject}, pero la ventana disponible todavía no esta completa.`,
         toneClasses:
           'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:
@@ -340,7 +340,7 @@ export function getDataStateMeta(
         title: 'Los datos no estan frescos',
         description:
           options.staleDescription ??
-          `Los datos disponibles para ${subject} pueden estar desactualizados. Revisa la hora de la ultima muestra antes de usarlos.`,
+          `Los datos disponibles para ${subject} pueden estar desactualizados. Revisa la hora de la última muestra antes de usarlos.`,
         toneClasses:
           'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:

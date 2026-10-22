@@ -222,10 +222,10 @@ export function StationPicker({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">
-            Selector de estacion
+            Selector de estación
           </h2>
           <p className="text-xs text-[var(--muted)]">
-            Cambia estacion para sincronizar mapa, patrones y heatmap.
+            Cambia estación para sincronizar mapa, patrones y heatmap.
           </p>
         </div>
         <span className="ui-chip">
@@ -285,7 +285,7 @@ export function StationPicker({
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger
             id="station-picker"
-            aria-label="Seleccionar estacion"
+            aria-label="Seleccionar estación"
             className={cn(
               'inline-flex min-h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-sm text-[var(--foreground)] outline-none transition',
               pickerOpen && 'border-[var(--primary)]'
@@ -393,7 +393,7 @@ export function StationPicker({
         </p>
       ) : (
         <p className="text-[11px] text-[var(--muted)]">
-          {selectedStation ? `Seleccionada: ${selectedStation.name}` : 'Sin seleccion'}
+          {selectedStation ? `Seleccionada: ${selectedStation.name}` : 'Sin selección'}
         </p>
       )}
 

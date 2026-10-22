@@ -92,7 +92,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
           subject="el directorio de estaciones"
           description={
             query.trim()
-              ? 'No hay estaciones que coincidan con la busqueda actual.'
+              ? 'No hay estaciones que coincidan con la búsqueda actual.'
               : 'El directorio usa los mismos datos que el dashboard principal.'
           }
           href={appRoutes.status()}
@@ -118,7 +118,7 @@ export function StationsDirectoryClient({ stations, dataState }: StationsDirecto
                   <p className="text-sm font-semibold text-[var(--foreground)]">{station.anchorsFree}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.12em]">Ocupacion</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em]">Ocupación</p>
                   <p className="text-sm font-semibold text-[var(--foreground)]">{formatPercent(occupancy)}</p>
                 </div>
               </div>

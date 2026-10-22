@@ -15,7 +15,7 @@ type AlertsTopListProps = {
 };
 
 function severityLabel(severity: number): string {
-  return severity >= 2 ? 'critica' : 'media';
+  return severity >= 2 ? 'crítica' : 'media';
 }
 
 export function AlertsTopList({ alerts, limit = 5 }: AlertsTopListProps) {
@@ -55,10 +55,10 @@ export function AlertsTopList({ alerts, limit = 5 }: AlertsTopListProps) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-semibold text-[var(--foreground)]">
-                      Estacion #{alert.stationId}
+                      Estación #{alert.stationId}
                     </p>
                     <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
-                      {isEmptyLike ? 'VACIA' : 'LLENA'}
+                      {isEmptyLike ? 'VACÍA' : 'LLENA'}
                     </span>
                   </div>
                   <p className="mt-1 text-[11px] text-[var(--muted)]">

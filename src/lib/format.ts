@@ -58,7 +58,7 @@ export function formatDayType(dayType?: DayType | string | null): string {
     case DayType.WEEKEND:
       return 'Fin de semana';
     default:
-      return 'Dia desconocido';
+      return 'Día desconocido';
   }
 }
 

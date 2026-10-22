@@ -203,7 +203,7 @@ export function DashboardHeader({
               variant="cta"
               size="sm"
             >
-              Ir a la mas cercana
+              Ir a la más cercana
             </Button>
           ) : canUseGeolocation ? (
             <Button
@@ -211,15 +211,15 @@ export function DashboardHeader({
               variant="cta"
               size="sm"
             >
-              Usar mi ubicacion
+              Usar mi ubicación
             </Button>
           ) : null}
         </div>
 
         <div className="w-full">
           <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--muted)]">
-            <span>Actualizacion automatica</span>
-            <span>{isRefreshingData ? 'actualizando...' : `siguiente actualizacion en ${refreshCountdownLabel}`}</span>
+            <span>Actualización automática</span>
+            <span>{isRefreshingData ? 'actualizando...' : `siguiente actualización en ${refreshCountdownLabel}`}</span>
           </div>
           <Progress
             className="bg-[var(--border)]"

@@ -14,7 +14,7 @@ type AlertsPanelProps = {
 };
 
 function severityLabel(severity: number): string {
-  return severity >= 2 ? 'critica' : 'media';
+  return severity >= 2 ? 'crítica' : 'media';
 }
 
 export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPanelProps) {
@@ -26,7 +26,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
     <section className="h-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow-soft)]">
       <header className={`flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--primary)]/8 px-4 ${compact ? 'py-3' : 'py-4'}`}>
         <h2 className="min-w-0 text-sm font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
-          Estaciones criticas
+          Estaciones críticas
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="default" className="bg-[var(--primary)] text-white whitespace-nowrap shrink-0">
@@ -56,7 +56,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
           <ul className={compact ? 'space-y-2' : 'space-y-3'}>
             {activeAlerts.map((alert) => {
             const station = stationMap.get(alert.stationId);
-            const stationName = station?.name ?? `Estacion ${alert.stationId}`;
+            const stationName = station?.name ?? `Estación ${alert.stationId}`;
             const occupancy =
               station && station.capacity > 0 ? (station.bikesAvailable / station.capacity) * 100 : 0;
             const isEmptyLike = alert.alertType === 'LOW_BIKES';
@@ -80,7 +80,7 @@ export function AlertsPanel({ alerts, stations, density = 'normal' }: AlertsPane
                   <div className="flex items-center gap-2">
                     <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--primary)] animate-pulse" aria-hidden="true" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
-                      {isEmptyLike ? 'VACIA' : 'LLENA'}
+                      {isEmptyLike ? 'VACÍA' : 'LLENA'}
                     </span>
                   </div>
                 </div>

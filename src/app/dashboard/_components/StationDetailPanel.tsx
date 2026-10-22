@@ -399,9 +399,9 @@ export function StationDetailPanel({
   if (!station) {
     return (
       <section className="ui-section-card">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">Detalle de estacion</h2>
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">Detalle de estación</h2>
         <p className="text-sm text-[var(--muted)]">
-          Selecciona una estacion para ver KPIs, benchmarking y proyecciones.
+          Selecciona una estación para ver KPIs, benchmarking y proyecciones.
         </p>
       </section>
     );
@@ -412,10 +412,10 @@ export function StationDetailPanel({
     station.bikesAvailable === 0 || station.anchorsFree === 0 || stationAlerts.length > 0;
   const statusLabel = isCritical
     ? station.bikesAvailable === 0
-      ? 'Critica - vacia'
+      ? 'Crítica - vacía'
       : station.anchorsFree === 0
-        ? 'Critica - llena'
-        : 'Critica - accion requerida'
+        ? 'Crítica - llena'
+        : 'Crítica - acción requerida'
     : 'Operativa';
   const problemHours =
     (availabilityRow?.emptyHours ?? turnoverRow?.emptyHours ?? 0) +
@@ -442,7 +442,7 @@ export function StationDetailPanel({
               {nearestDistanceMeters !== null ? (
                 <p className="mt-2 text-xs font-semibold text-[var(--primary)]">
                   📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
-                  {isNearestStation ? ' · Es la mas cercana' : ''}
+                  {isNearestStation ? ' · Es la más cercana' : ''}
                 </p>
               ) : !isGeolocationEnabled ? (
                 <Button
@@ -450,7 +450,7 @@ export function StationDetailPanel({
                   size="sm"
                   onClick={() => setIsGeolocationEnabled(true)}
                 >
-                  Usar mi ubicacion para calcular distancia
+                  Usar mi ubicación para calcular distancia
                 </Button>
               ) : null}
               <div
@@ -472,7 +472,7 @@ export function StationDetailPanel({
           <div className="flex flex-col items-start md:items-end">
             <div className="text-right">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--muted)]">
-                Ultima actualizacion
+                Última actualización
               </p>
               <p className="text-sm font-medium text-[var(--foreground)]">
                 {formatStatusDateTime(station.recordedAt)}

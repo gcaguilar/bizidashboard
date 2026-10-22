@@ -17,7 +17,7 @@ test('estado page shows health indicator and key metrics', async ({ page }) => {
   const healthDot = page.locator('.rounded-full.bg-green-500, .rounded-full.bg-amber-500, .rounded-full.bg-red-500');
   await expect(healthDot.first()).toBeVisible({ timeout: 10_000 });
 
-  await expect(page.getByText('Ultima muestra util')).toBeVisible();
+  await expect(page.getByText('Última muestra útil').first()).toBeVisible();
   await expect(page.getByText('Frecuencia de actualización')).toBeVisible();
   await expect(page.getByText('Historial disponible')).toBeVisible();
   await expect(page.getByText('Estaciones activas')).toBeVisible();
@@ -39,7 +39,7 @@ test('estaciones directory loads filter buttons then station cards', async ({ pa
 test('estacion detail for station 101 shows info, favorite button, and breadcrumb', async ({ page }) => {
   await page.goto('/estadisticas/estaciones/101');
 
-  await expect(page.getByText('Ficha publica de estacion')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('Ficha pública de estación')).toBeVisible({ timeout: 10_000 });
 
   await expect(page.getByRole('button', { name: /marcar favorita/i })).toBeVisible();
 

@@ -28,7 +28,7 @@ export function QuickHeader({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Vista rapida</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">Vista rápida</p>
             <h1 className="truncate text-xl font-bold tracking-tight text-[var(--foreground)]">
               Resumen operativo
             </h1>
@@ -60,13 +60,13 @@ export function QuickHeader({
 
       <div className="mt-3 border-t border-[var(--border)]/70 pt-3">
         <label htmlFor="dashboard-quick-search" className="sr-only">
-          Buscar estacion, identificador o barrio
+          Buscar estación, identificador o barrio
         </label>
         <Input
           id="dashboard-quick-search"
           type="text"
           className="min-h-11 border-[var(--border)] bg-[var(--secondary)] py-2"
-          placeholder="Buscar estacion, ID o barrio..."
+          placeholder="Buscar estación, ID o barrio..."
           value={searchQuery}
           onChange={(event) => onChangeSearch(event.target.value)}
         />

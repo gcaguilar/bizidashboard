@@ -40,11 +40,11 @@ export function inferStationType(
   if (morningDrop > 0.1) {
     type = 'offices';
     confidence = Math.min(0.95, 0.55 + morningDrop * 2);
-    reasons.push(`Patron de oficinas: alta ocupacion por la manana y vaciado por la tarde.`);
+    reasons.push(`Patrón de oficinas: alta ocupación por la manana y vaciado por la tarde.`);
   } else if (eveningDrop > 0.1) {
     type = 'residential';
     confidence = Math.min(0.95, 0.55 + eveningDrop * 2);
-    reasons.push(`Patron residencial: baja ocupacion por la manana y recuperacion por la tarde.`);
+    reasons.push(`Patrón residencial: baja ocupación por la manana y recuperacion por la tarde.`);
   } else {
     // Check if it's consistently stable but we need external rotation metrics to classify intermodal/tourist perfectly.
     // For now, if no strong asymmetry, it's mixed.

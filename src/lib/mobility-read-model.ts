@@ -130,7 +130,7 @@ export async function getMobilityData(options?: {
       demandDays,
       selectedMonth: monthKey,
       methodology:
-        'Matriz O-D estimada con variaciones netas horarias de bicis por estacion; no representa viajes individuales observados.',
+        'Matriz O-D estimada con variaciones netas horarias de bicis por estación; no representa viajes individuales observados.',
       hourlySignals: hourlySignals ?? [],
       dailyDemand: dailyDemand ?? [],
       systemHourlyProfile: systemHourlyProfile ?? [],

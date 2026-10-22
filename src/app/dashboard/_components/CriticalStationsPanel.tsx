@@ -44,7 +44,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Operaciones</p>
-          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones criticas</h3>
+          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Top estaciones críticas</h3>
           <p className="mt-1 text-sm text-[var(--muted)]">Muestra estaciones vacías, llenas o con una ocupación extrema para revisar dónde puede haber problemas.</p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('alertas-activas')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
@@ -53,7 +53,7 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
       </div>
 
       {criticalStations.length === 0 ? (
-        <p className="mt-4 text-sm text-[var(--muted)]">No hay estaciones criticas destacadas ahora mismo.</p>
+        <p className="mt-4 text-sm text-[var(--muted)]">No hay estaciones críticas destacadas ahora mismo.</p>
       ) : (
         <div className={`mt-4 ${compact ? 'space-y-1.5' : 'space-y-2'}`}>
           {criticalStations.map((station) => {

@@ -62,7 +62,7 @@ export function DataModeCard({
       </article>
 
       <article className="ui-section-card">
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Historico agregado</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Histórico agregado</h3>
         <p className="text-sm text-[var(--muted)]">Consulta el histórico de actividad, ocupación y equilibrio para analizarlo por tu cuenta.</p>
         <div className="mt-auto flex flex-wrap gap-2">
           <Button asChild variant="cta" size="sm">

@@ -288,7 +288,7 @@ function buildConclusionsRange(monthKey?: string): {
     previousDaily: Prisma.sql`"bucketDate" >= CURRENT_DATE - INTERVAL '13 days' AND "bucketDate" < CURRENT_DATE - INTERVAL '6 days'`,
     currentHourly: Prisma.sql`"bucketStart" >= CURRENT_DATE - INTERVAL '6 days'`,
     topStationsDaily: Prisma.sql`"DailyStationStat"."bucketDate" >= CURRENT_DATE - INTERVAL '29 days'`,
-    summaryScope: 'en la ultima semana',
+    summaryScope: 'en la última semana',
     comparisonScope: 'vs semana previa',
   };
 }
@@ -510,35 +510,35 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
   const highlights = [
     {
       title: selectedMonth ? 'Demanda del mes' : 'Demanda semanal',
-      detail: `${Math.round(demandLast7Days)} puntos ${selectedMonth ? `en ${formatMonthLabel(selectedMonth)}` : 'en 7 dias'} (${formatRatioDelta(
+      detail: `${Math.round(demandLast7Days)} puntos ${selectedMonth ? `en ${formatMonthLabel(selectedMonth)}` : 'en 7 días'} (${formatRatioDelta(
         demandDeltaRatio,
         'sin referencia previa'
       )} ${range.comparisonScope}).`,
     },
     {
-      title: selectedMonth ? 'Ocupacion media del mes' : 'Ocupacion media',
+      title: selectedMonth ? 'Ocupación media del mes' : 'Ocupación media',
       detail: `${Math.round(occupancyLast7Days * 100)}% ${range.summaryScope} (${formatRatioDelta(occupancyDeltaRatio, 'sin referencia previa')}).`,
     },
     {
-      title: 'Cobertura historica',
-      detail: `${sharedCoverage.totalDays} dias con datos y ${sharedCoverage.totalStations} estaciones activas cubiertas.`,
+      title: 'Cobertura histórica',
+      detail: `${sharedCoverage.totalDays} días con datos y ${sharedCoverage.totalStations} estaciones activas cubiertas.`,
     },
   ];
 
   if (topStationsByDemand[0]) {
     highlights.push({
-      title: 'Estacion con mayor presion',
-      detail: `${topStationsByDemand[0].stationName} lidera el promedio diario de demanda (indice ${topStationsByDemand[0].avgDemand}).`,
+      title: 'Estación con mayor presion',
+      detail: `${topStationsByDemand[0].stationName} lidera el promedio diario de demanda (índice ${topStationsByDemand[0].avgDemand}).`,
     });
   }
 
   if (weekdayWeekendProfile.dominantPeriod) {
     highlights.push({
-      title: 'Patron semanal',
+      title: 'Patrón semanal',
       detail:
         weekdayWeekendProfile.dominantPeriod === 'weekday'
-          ? `La red rinde mas entre semana, con ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} puntos medios al dia frente a ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} en fin de semana.`
-          : `La red rinde mas en fin de semana, con ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} puntos medios al dia frente a ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} entre semana.`,
+          ? `La red rinde más entre semana, con ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} puntos medios al día frente a ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} en fin de semana.`
+          : `La red rinde más en fin de semana, con ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} puntos medios al día frente a ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} entre semana.`,
     });
   }
 
@@ -546,11 +546,11 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
 
   if (demandDeltaRatio !== null && demandDeltaRatio > 0.08) {
     recommendations.push(
-       `Refuerza la redistribucion preventiva para absorber el incremento de demanda ${selectedMonth ? 'del mes' : 'semanal'}.`
+       `Refuerza la redistribución preventiva para absorber el incremento de demanda ${selectedMonth ? 'del mes' : 'semanal'}.`
      );
   } else if (demandDeltaRatio !== null && demandDeltaRatio < -0.08) {
     recommendations.push(
-      `Ajusta el despliegue operativo a una demanda mas contenida ${selectedMonth ? 'en el mes seleccionado' : 'esta semana'} y prioriza zonas con mayor variabilidad.`
+      `Ajusta el despliegue operativo a una demanda más contenida ${selectedMonth ? 'en el mes seleccionado' : 'esta semana'} y prioriza zonas con mayor variabilidad.`
     );
   } else {
     recommendations.push(
@@ -560,15 +560,15 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
 
   if (occupancyLast7Days < 0.32) {
     recommendations.push(
-      'Hay margen para reforzar disponibilidad de bicicletas en nodos de salida temprana para reducir riesgo de estaciones vacias.'
+      'Hay margen para reforzar disponibilidad de bicicletas en nodos de salida temprana para reducir riesgo de estaciones vacías.'
     );
   } else if (occupancyLast7Days > 0.68) {
     recommendations.push(
-      'La ocupacion media alta sugiere reforzar retirada en estaciones de alta recepcion para evitar saturacion de anclajes.'
+      'La ocupación media alta sugiere reforzar retirada en estaciones de alta recepcion para evitar saturacion de anclajes.'
     );
   } else {
     recommendations.push(
-      'La ocupacion media se mantiene equilibrada; conviene centrar recursos en estaciones con picos abruptos de demanda.'
+      'La ocupación media se mantiene equilibrada; conviene centrar recursos en estaciones con picos abruptos de demanda.'
     );
   }
 
@@ -582,13 +582,13 @@ async function buildMobilityConclusionsPayload(dateKey: string, monthKey?: strin
 
   if (peakDemandHours[0]) {
     recommendations.push(
-      `Refuerza seguimiento y redistribucion en torno a las ${String(peakDemandHours[0].hour).padStart(2, '0')}:00, la franja con mayor intensidad reciente.`
+      `Refuerza seguimiento y redistribución en torno a las ${String(peakDemandHours[0].hour).padStart(2, '0')}:00, la franja con mayor intensidad reciente.`
     );
   }
 
   if (weekdayWeekendProfile.dominantPeriod === 'weekday') {
     recommendations.push(
-      'Dimensiona el operativo principal para dias laborables y reserva ajustes mas ligeros para sabados y domingos.'
+      'Dimensiona el operativo principal para días laborables y reserva ajustes más ligeros para sabados y domingos.'
     );
   } else if (weekdayWeekendProfile.dominantPeriod === 'weekend') {
     recommendations.push(

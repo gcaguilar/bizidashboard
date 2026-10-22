@@ -188,7 +188,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
           subject={`el ranking de ${activeTab === 'turnover' ? 'rotación' : 'criticidad'}`}
           description={
             rankingsState === 'partial'
-              ? 'El ranking tiene datos utiles, pero la cobertura disponible no llena toda la ventana ideal.'
+              ? 'El ranking tiene datos útiles, pero la cobertura disponible no llena toda la ventana ideal.'
               : 'El ranking se ha calculado con datos antiguos y puede no reflejar el estado actual.'
           }
           href={appRoutes.status()}
@@ -266,7 +266,7 @@ function RankingsTableContent({ rankings, stations, density = 'normal' }: Rankin
             updateQuery({ showAll: !showAll });
           }}
         >
-          {showAll ? 'Mostrar menos' : 'Ver mas'}
+          {showAll ? 'Mostrar menos' : 'Ver más'}
         </Button>
       ) : null}
     </section>

@@ -309,7 +309,7 @@ export default function DashboardConclusionsPage() {
           </div>
 
           {payload.topStationsByDemand.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones disponible todavia.</p>
+            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones disponible todavía.</p>
           ) : (
             <div className="mt-4 space-y-2">
               {payload.topStationsByDemand.map((station, index) => (
@@ -339,11 +339,11 @@ export default function DashboardConclusionsPage() {
             <h3 className="text-base font-bold text-[var(--foreground)]">
               {payload.selectedMonth ? 'Estaciones menos usadas del mes' : 'Estaciones menos usadas'}
             </h3>
-            <span className="text-xs text-[var(--muted)]">Tambien enlaza al detalle</span>
+            <span className="text-xs text-[var(--muted)]">También enlaza al detalle</span>
           </div>
 
           {payload.leastUsedStations.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones menos usadas disponible todavia.</p>
+            <p className="text-sm text-[var(--muted)]">Sin ranking de estaciones menos usadas disponible todavía.</p>
           ) : (
             <div className="mt-4 space-y-2">
               {payload.leastUsedStations.map((station, index) => (

@@ -43,23 +43,23 @@ const GROUP_META: Record<
 > = {
   stations: {
     title: 'Estaciones',
-    emptyLabel: 'No hay estaciones que encajen con esta busqueda.',
+    emptyLabel: 'No hay estaciones que encajen con esta búsqueda.',
   },
   districts: {
     title: 'Barrios',
-    emptyLabel: 'No hay barrios que encajen con esta busqueda.',
+    emptyLabel: 'No hay barrios que encajen con esta búsqueda.',
   },
   reports: {
     title: 'Informes',
-    emptyLabel: 'No hay informes o periodos que encajen con esta busqueda.',
+    emptyLabel: 'No hay informes o periodos que encajen con esta búsqueda.',
   },
   pages: {
-    title: 'Paginas y herramientas',
-    emptyLabel: 'No hay paginas publicas relevantes para esta busqueda.',
+    title: 'Páginas y herramientas',
+    emptyLabel: 'No hay páginas públicas relevantes para esta búsqueda.',
   },
   api: {
     title: 'API y developers',
-    emptyLabel: 'No hay endpoints o recursos API que encajen con esta busqueda.',
+    emptyLabel: 'No hay endpoints o recursos API que encajen con esta búsqueda.',
   },
 };
 
@@ -183,7 +183,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       description:
         'Presentacion de la app, ciudades soportadas y enlaces de descarga.',
       href: appRoutes.biciradar(),
-      badge: 'Landing publica',
+      badge: 'Landing pública',
       keywords: ['biciradar', 'app', 'movil', 'descarga'],
     },
     {
@@ -199,7 +199,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
     {
       id: 'page:insights-landing',
       group: 'pages',
-      title: 'Estadisticas y ranking de Bizi Zaragoza',
+      title: 'Estadísticas y ranking de Bizi Zaragoza',
       description:
         'Landing de descubrimiento para entrar por informes, rankings y barrios.',
       href: appRoutes.insightsLanding(),
@@ -211,7 +211,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       group: 'pages',
       title: 'Comparador de estaciones',
       description:
-        'Comparativas manuales estacion vs estacion con URL compartible.',
+        'Comparativas manuales estación vs estación con URL compartible.',
       href: appRoutes.compare({ dimension: 'stations' }),
       badge: 'Comparador',
       keywords: ['comparar estaciones', 'station vs station', 'comparador'],
@@ -231,7 +231,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       group: 'pages',
       title: 'Comparador de periodos',
       description:
-        'Comparativas entre periodos, meses, años y horas desde una unica vista.',
+        'Comparativas entre periodos, meses, años y horas desde una única vista.',
       href: appRoutes.compare({ dimension: 'periods' }),
       badge: 'Comparador',
       keywords: ['periodos', 'mes vs mes', 'año vs año', 'hora vs hora'],
@@ -255,9 +255,9 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
     id: `station:${station.id}`,
     group: 'stations',
     title: station.name,
-    description: `Estacion ${station.id} · ${station.bikesAvailable}/${station.capacity} bicis · ${station.anchorsFree} huecos libres.`,
+    description: `Estación ${station.id} · ${station.bikesAvailable}/${station.capacity} bicis · ${station.anchorsFree} huecos libres.`,
     href: appRoutes.stationDetail(station.id),
-    badge: 'Estacion',
+    badge: 'Estación',
     keywords: [
       station.id,
       station.name,
@@ -287,7 +287,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
       id: `report:${month}`,
       group: 'reports' as const,
       title: `Informe ${formatMonthLabel(month)}`,
-      description: `Informe mensual con demanda, ocupacion, balance y comparativas para ${formatMonthLabel(month)}.`,
+      description: `Informe mensual con demanda, ocupación, balance y comparativas para ${formatMonthLabel(month)}.`,
       href: appRoutes.reportMonth(month),
       badge: 'Informe mensual',
       keywords: [month, formatMonthLabel(month), 'informes', 'archivo'],
@@ -307,7 +307,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
           title: `${method.toUpperCase()} ${path}`,
           description:
             operationRecord.summary ??
-            'Endpoint publicado en la documentacion OpenAPI.',
+            'Endpoint publicado en la documentación OpenAPI.',
           href: `${appRoutes.developers()}#${anchorId}`,
           badge: 'Endpoint API',
           keywords: [

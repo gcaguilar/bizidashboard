@@ -29,7 +29,7 @@ describe('station-typology', () => {
     const { type, reasons } = inferStationType(patterns);
 
     expect(type).toBe('offices');
-    expect(reasons[0]).toContain('Patron de oficinas');
+    expect(reasons[0]).toContain('Patrón de oficinas');
   });
 
   it('infers residential pattern when evening occupancy > morning occupancy', () => {
@@ -57,7 +57,7 @@ describe('station-typology', () => {
     const { type, reasons } = inferStationType(patterns);
 
     expect(type).toBe('residential');
-    expect(reasons[0]).toContain('Patron residencial');
+    expect(reasons[0]).toContain('Patrón residencial');
   });
 
   it('infers mixed pattern when no strong asymmetry exists', () => {

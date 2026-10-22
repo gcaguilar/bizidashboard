@@ -73,7 +73,7 @@ describe('BetaBanner client feedback behavior', () => {
     const { html } = renderBannerWithStorage([]);
 
     expect(html).toContain('Pedalea con menos sorpresas con BiciRadar');
-    expect(html).toContain('Mira incidencias, cortes y avisos utiles antes de salir en bici');
+    expect(html).toContain('Mira incidencias, cortes y avisos útiles antes de salir en bici');
     expect(html.match(/Ver BiciRadar/g)?.length).toBe(2);
   });
 

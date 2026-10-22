@@ -7,7 +7,7 @@ export const Route = createFileRoute('/dashboard/ayuda/')({
   head: () =>
     buildSeoHead({
       title: 'Centro de ayuda - Dashboard Bizi',
-      description: 'Ayuda para entender alertas, rankings, movilidad, predicciones y metodologia del dashboard de Bizi Zaragoza.',
+      description: 'Ayuda para entender alertas, rankings, movilidad, predicciones y metodología del dashboard de Bizi Zaragoza.',
       robots: 'noindex, nofollow',
     }),
   loader: () => getDashboardHelpPageData(),

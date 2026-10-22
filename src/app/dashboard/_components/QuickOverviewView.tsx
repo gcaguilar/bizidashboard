@@ -88,7 +88,7 @@ export function QuickOverviewView({
           <QuickViewErrorBoundary
             fallback={
               <div className="flex h-[560px] items-center justify-center rounded-xl bg-[var(--secondary)] text-sm text-[var(--muted)]">
-                No se pudo cargar el mapa rapido.
+                No se pudo cargar el mapa rápido.
               </div>
             }
           >
@@ -127,7 +127,7 @@ export function QuickOverviewView({
         </article>
 
         <article className="ui-section-card">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Analisis</h3>
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Análisis</h3>
           <p className="text-sm text-[var(--muted)]">
             Corredores populares, matriz O-D y rutas con mayor volumen entre barrios.
           </p>

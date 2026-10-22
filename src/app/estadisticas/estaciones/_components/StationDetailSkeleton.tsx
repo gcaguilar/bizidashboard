@@ -17,7 +17,7 @@ export function StationDetailSkeleton() {
         <div className="mt-2 h-8 w-64 animate-pulse rounded bg-[var(--border)]" />
         <div className="mt-3 h-3 w-96 animate-pulse rounded bg-[var(--border)]" />
       </header>
-      <p className="mt-6 text-center text-sm text-[var(--muted)]">Preparando datos de la estacion...</p>
+      <p className="mt-6 text-center text-sm text-[var(--muted)]">Preparando datos de la estación...</p>
       <section className="mt-4 grid gap-4 sm:grid-cols-3">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="ui-section-card animate-pulse">

@@ -749,8 +749,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           {shouldShowDataStateNotice(dashboardDataState) ? (
             <DataStateNotice
               state={dashboardDataState}
-              subject="el mapa rapido"
-              description="Los datos y el mapa comparten el mismo snapshot. Si el banner indica cobertura parcial, el resto de widgets tambien."
+              subject="el mapa rápido"
+              description="Los datos y el mapa comparten el mismo snapshot. Si el banner indica cobertura parcial, el resto de widgets también."
               href={appRoutes.status()}
               actionLabel="Abrir estado"
             />

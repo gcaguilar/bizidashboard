@@ -165,7 +165,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
               Preguntas frecuentes
             </h1>
             <p className="mt-4 text-lg text-[var(--muted)]">
-              Explora nuestra metodologia y resuelve dudas sobre como procesamos los datos de Bizi Zaragoza en tiempo real.
+              Explora nuestra metodología y resuelve dudas sobre como procesamos los datos de Bizi Zaragoza en tiempo real.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--muted)]">
               <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1">
@@ -235,7 +235,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                   })}
                   className="ui-primary-button"
                 >
-                  Ver historico completo
+                  Ver histórico completo
                 </TrackedLink>
                 <Button asChild variant="outline" size="sm">
                   <TrackedLink
@@ -307,7 +307,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
         <div className="mt-14 space-y-8">
           {groupedItems.length === 0 ? (
             <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--muted)]">
-              No hay coincidencias para la busqueda actual.
+              No hay coincidencias para la búsqueda actual.
             </p>
           ) : (
             groupedItems.map(([category, items]) => (
@@ -344,7 +344,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
             <h2 className="text-2xl font-bold">No encontraste lo que buscabas?</h2>
             <p className="mt-2 text-sm text-white/85">
               Si necesitas soporte directo o quieres compartir feedback, usa el acceso dedicado y
-              deja contexto sobre la vista, la estacion o el problema detectado.
+              deja contexto sobre la vista, la estación o el problema detectado.
             </p>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">

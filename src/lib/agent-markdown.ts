@@ -21,7 +21,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `DatosBizi ${cityName}`,
       summary:
-        'Portal publico de analitica para Bizi con dashboard en vivo, hubs SEO, informes mensuales y documentacion de la API.',
+        'Portal público de analítica para Bizi con dashboard en vivo, hubs SEO, informes mensuales y documentación de la API.',
       links: [
         { label: 'Dashboard', href: appRoutes.dashboard() },
         { label: 'Informes', href: appRoutes.reports() },
@@ -30,7 +30,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
       ],
       bullets: [
         'El dashboard operativo y las herramientas interactivas siguen estando disponibles en HTML.',
-        'La capa publica incluye URLs canonicas, `llms.txt`, `llms-full.txt`, OpenAPI y sitemap.',
+        'La capa pública incluye URLs canónicas, `llms.txt`, `llms-full.txt`, OpenAPI y sitemap.',
       ],
     };
   }
@@ -39,7 +39,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `Developers ${cityName}`,
       summary:
-        'Hub de integracion para la API publica con OpenAPI, ejemplos de consumo, politicas de acceso y descargas CSV.',
+        'Hub de integración para la API pública con OpenAPI, ejemplos de consumo, políticas de acceso y descargas CSV.',
       links: [
         { label: 'OpenAPI', href: appRoutes.api.openApi() },
         { label: 'Estado API', href: appRoutes.api.status() },
@@ -47,7 +47,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
         { label: 'LLMs Full', href: appRoutes.llmsFull() },
       ],
       bullets: [
-        'Los endpoints costosos o CSV pueden requerir la cabecera `x-api-key`; la clave se crea en `/developers` tras iniciar sesion.',
+        'Los endpoints costosos o CSV pueden requerir la cabecera `x-api-key`; la clave se crea en `/developers` tras iniciar sesión.',
         'Las rutas operativas privadas siguen fuera de robots y del sitemap.',
       ],
     };
@@ -57,13 +57,13 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `Informes mensuales ${cityName}`,
       summary:
-        'Archivo historico de informes con URLs persistentes por mes y contexto editorial para cada periodo publicado.',
+        'Archivo histórico de informes con URLs persistentes por mes y contexto editorial para cada periodo publicado.',
       links: [
         { label: 'Ultimo estado', href: appRoutes.status() },
         { label: 'Developers', href: appRoutes.developers() },
       ],
       bullets: [
-        'Cada mes publicado tiene una URL canonica bajo `/informes/YYYY-MM`.',
+        'Cada mes publicado tiene una URL canónica bajo `/informes/YYYY-MM`.',
         'El sitemap se regenera en runtime para reflejar meses publicados o retirados.',
       ],
     };
@@ -73,7 +73,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `Estado del sistema ${cityName}`,
       summary:
-        'Resumen publico de frescura del dato, salud del pipeline, cobertura historica y versiones del dataset y de la API.',
+        'Resumen público de frescura del dato, salud del pipeline, cobertura histórica y versiones del dataset y de la API.',
       links: [
         { label: 'Dashboard', href: appRoutes.dashboard() },
         { label: 'Developers', href: appRoutes.developers() },
@@ -87,7 +87,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `Informe ${month}`,
       summary:
-        'Informe mensual indexable con la URL canonica del periodo, pensado para lectura editorial y descubrimiento por agentes.',
+        'Informe mensual indexable con la URL canónica del periodo, pensado para lectura editorial y descubrimiento por agentes.',
       links: [
         { label: 'Archivo de informes', href: appRoutes.reports() },
         { label: 'Dashboard', href: appRoutes.dashboard() },
@@ -98,9 +98,9 @@ function buildGenericPage(pathname: string): MarkdownPage {
   if (/^\/estaciones\/[^/]+$/u.test(normalized)) {
     const stationId = normalized.split('/').at(-1) ?? '';
     return {
-      title: `Estacion ${stationId}`,
+      title: `Estación ${stationId}`,
       summary:
-        'Ficha publica de estacion con disponibilidad, contexto operativo y enlaces a las rutas canonicas del producto.',
+        'Ficha pública de estación con disponibilidad, contexto operativo y enlaces a las rutas canónicas del producto.',
       links: [
         { label: 'Directorio operativo', href: appRoutes.dashboardStations() },
         { label: 'API estaciones', href: appRoutes.api.stations() },
@@ -113,7 +113,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
     return {
       title: `Barrio ${districtSlug}`,
       summary:
-        'Landing territorial con enlaces a estaciones destacadas, cobertura local y rutas canonicas de contexto urbano.',
+        'Landing territorial con enlaces a estaciones destacadas, cobertura local y rutas canónicas de contexto urbano.',
       links: [
         { label: 'Barrios', href: appRoutes.districtLanding() },
         { label: 'Dashboard flujo', href: appRoutes.dashboardFlow() },
@@ -124,7 +124,7 @@ function buildGenericPage(pathname: string): MarkdownPage {
   return {
     title: `DatosBizi ${normalized}`,
     summary:
-      'Representacion markdown de una ruta publica del sitio para agentes que negocian `Accept: text/markdown`.',
+      'Representación markdown de una ruta pública del sitio para agentes que negocian `Accept: text/markdown`.',
     links: [
       { label: 'Inicio', href: appRoutes.home() },
       { label: 'Developers', href: appRoutes.developers() },

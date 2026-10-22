@@ -44,13 +44,13 @@ export function decideAction(
 
   // Rule 0: Review
   if (classification === 'data_review') {
-    reasons.push("Estacion marcada para revision de calidad de datos. No se recomienda accion automatica.");
+    reasons.push("Estación marcada para revisión de calidad de datos. No se recomienda acción automática.");
     return { actionGroup: 'review', urgency: 'none', reasons, priorityScore: 0 };
   }
 
   // Rule 1: No-move (self-correction)
   if (risk.selfCorrectionProbability > 0.7 && risk.estimatedRecoveryMinutes !== null && risk.estimatedRecoveryMinutes < 45) {
-    reasons.push(`La estacion se autocorrige en ~${risk.estimatedRecoveryMinutes} min segun el patron historico.`);
+    reasons.push(`La estación se autocorrige en ~${risk.estimatedRecoveryMinutes} min según el patrón histórico.`);
     return { actionGroup: 'stable', urgency: 'none', reasons, priorityScore: 0 };
   }
 
@@ -76,7 +76,7 @@ export function decideAction(
       weight = 0.6;
     }
 
-    reasons.push(`Exceso de stock detectado (Ocupacion: ${(currentRatio * 100).toFixed(0)}% > Max: ${(targetBand.max * 100).toFixed(0)}%). Riesgo de saturacion a 1h: ${(risk.riskFullAt1h * 100).toFixed(0)}%.`);
+    reasons.push(`Exceso de stock detectado (Ocupación: ${(currentRatio * 100).toFixed(0)}% > Max: ${(targetBand.max * 100).toFixed(0)}%). Riesgo de saturacion a 1h: ${(risk.riskFullAt1h * 100).toFixed(0)}%.`);
     return { actionGroup: 'donor', urgency, reasons, priorityScore: calculatePriority(weight, risk.demandNextHour) };
   }
 
@@ -93,7 +93,7 @@ export function decideAction(
       weight = 0.8;
     }
 
-    reasons.push(`Deficit detectado (Ocupacion: ${(currentRatio * 100).toFixed(0)}% < Min: ${(targetBand.min * 100).toFixed(0)}%). Riesgo de vaciado a 1h: ${(risk.riskEmptyAt1h * 100).toFixed(0)}%.`);
+    reasons.push(`Déficit detectado (Ocupación: ${(currentRatio * 100).toFixed(0)}% < Min: ${(targetBand.min * 100).toFixed(0)}%). Riesgo de vaciado a 1h: ${(risk.riskEmptyAt1h * 100).toFixed(0)}%.`);
     return { actionGroup: 'receptor', urgency, reasons, priorityScore: calculatePriority(weight, risk.demandNextHour) };
   }
 
@@ -110,6 +110,6 @@ export function decideAction(
   }
 
   // Rule 7: Stable
-  reasons.push(`Operacion normal dentro de parametros aceptables.`);
+  reasons.push(`Operación normal dentro de parametros aceptables.`);
   return { actionGroup: 'stable', urgency: 'none', reasons, priorityScore: 0 };
 }

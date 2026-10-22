@@ -36,99 +36,99 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'alertas-activas',
     category: 'Alertas',
-    question: 'Cuando una estacion entra en alerta?',
-    answer: `Miramos las ultimas ${ANALYTICS_WINDOWS.alertWindowHours} horas (no solo el ultimo minuto). Si la media de bicis baja de ${ALERT_THRESHOLDS.lowBikes} o la media de anclajes libres baja de ${ALERT_THRESHOLDS.lowAnchors}, la estacion entra en alerta.`,
+    question: '¿Cuándo una estación entra en alerta?',
+    answer: `Miramos las últimas ${ANALYTICS_WINDOWS.alertWindowHours} horas (no solo el último minuto). Si la media de bicis baja de ${ALERT_THRESHOLDS.lowBikes} o la media de anclajes libres baja de ${ALERT_THRESHOLDS.lowAnchors}, la estación entra en alerta.`,
   },
   {
     id: 'severidad-alertas',
     category: 'Alertas',
-    question: 'Que significa una alerta critica?',
+    question: '¿Qué significa una alerta crítica?',
     answer:
-      'Tenemos dos niveles: severidad 1 (media) y severidad 2 (critica). Critica significa que la situacion es mas urgente y esa estacion suele ir primero en la cola de redistribucion.',
+      'Tenemos dos niveles: severidad 1 (media) y severidad 2 (crítica). Crítica significa que la situación es más urgente y esa estación suele ir primero en la cola de redistribución.',
   },
   {
     id: 'alerta-persistente',
     category: 'Alertas',
-    question: 'Por que la alerta sigue activa aunque la estacion mejoro?',
+    question: '¿Por qué la alerta sigue activa aunque la estación mejoró?',
     answer:
       'Porque no usamos solo una foto puntual. Si venia mal durante varias lecturas, puede tardar un poco en salir de alerta. Se limpia cuando la media reciente vuelve a valores normales.',
   },
   {
     id: 'alerta-resuelta-significado',
     category: 'Alertas',
-    question: 'Que significa que una alerta salga como resuelta?',
+    question: '¿Qué significa que una alerta salga como resuelta?',
     answer:
-      'Significa que ya no supera el umbral en la ventana reciente. Ojo: no siempre implica que la operacion en calle este cerrada; solo indica que el dato actual ya no esta en zona de alerta.',
+      'Significa que ya no supera el umbral en la ventana reciente. Ojo: no siempre implica que la operación en calle este cerrada; solo indica que el dato actual ya no esta en zona de alerta.',
   },
   {
     id: 'alerta-vacia-llena',
     category: 'Alertas',
-    question: 'Que diferencia hay entre alerta de vacia y de llena?',
+    question: '¿Qué diferencia hay entre alerta de vacía y de llena?',
     answer:
-      'Vacia = poca bici para sacar. Llena = pocos anclajes para devolver. En ambos casos hay friccion para la persona usuaria y suele requerir movimiento de flota.',
+      'Vacía = poca bici para sacar. Llena = pocos anclajes para devolver. En ambos casos hay fricción para la persona usuaria y suele requerir movimiento de flota.',
   },
   {
     id: 'balance-index',
     category: 'Clasificaciones',
-    question: 'Que es el Balance Index del sistema?',
+    question: '¿Qué es el Balance Index del sistema?',
     answer:
-      'Es una medida de equilibrio global. Compara la ocupacion de cada estacion con el 50%. Si muchas estaciones estan cerca de ese punto, el indice sube. Si muchas estan vacias o llenas, baja.',
+      'Es una medida de equilibrio global. Compara la ocupación de cada estación con el 50%. Si muchas estaciones estan cerca de ese punto, el índice sube. Si muchas estan vacías o llenas, baja.',
   },
   {
     id: 'rotacion-14d',
     category: 'Clasificaciones',
-    question: 'Que es la metrica de rotacion 14d?',
+    question: '¿Qué es la métrica de rotación 14d?',
     answer:
-      'Es un indicador para comparar actividad entre estaciones en los ultimos 14 dias. Cuanto mayor, mas movimiento. Es una puntuacion relativa (ranking), no un numero exacto de viajes.',
+      'Es un indicador para comparar actividad entre estaciones en los últimos 14 días. Cuanto mayor, más movimiento. Es una puntuacion relativa (ranking), no un número exacto de viajes.',
   },
   {
     id: 'horas-problema',
     category: 'Clasificaciones',
-    question: 'Como se calcula horas problema?',
+    question: '¿Cómo se calcula horas problema?',
     answer:
-      'Sumamos las horas en las que la estacion estuvo en zona complicada: muy pocas bicis o muy pocos anclajes libres. Cuantas mas horas problema, mas riesgo operativo.',
+      'Sumamos las horas en las que la estación estuvo en zona complicada: muy pocas bicis o muy pocos anclajes libres. Cuantas más horas problema, más riesgo operativo.',
   },
   {
     id: 'ranking-no-aparece',
     category: 'Clasificaciones',
-    question: 'Por que una estacion no aparece en el ranking?',
+    question: '¿Por qué una estación no aparece en el ranking?',
     answer:
-      'Puede no aparecer por falta de datos suficientes en la ventana analitica o porque queda fuera del limite de resultados mostrados.',
+      'Puede no aparecer por falta de datos suficientes en la ventana analítica o porque queda fuera del límite de resultados mostrados.',
   },
   {
     id: 'ranking-rotacion-vs-criticidad',
     category: 'Clasificaciones',
-    question: 'Que diferencia hay entre rotacion y criticidad?',
+    question: '¿Qué diferencia hay entre rotación y criticidad?',
     answer:
-      'Rotacion responde a "donde hay mas movimiento". Criticidad responde a "donde hay mas problemas de disponibilidad". Una estacion puede tener mucha rotacion y poca criticidad, o al reves.',
+      'Rotación responde a "donde hay más movimiento". Criticidad responde a "donde hay más problemas de disponibilidad". Una estación puede tener mucha rotación y poca criticidad, o al reves.',
   },
   {
     id: 'comparar-estaciones',
     category: 'Clasificaciones',
-    question: 'Como comparo estaciones de distinto tamano?',
+    question: '¿Cómo comparo estaciones de distinto tamaño?',
     answer:
-      'Para comparar justo, mira primero porcentaje de ocupacion y horas problema. Los valores absolutos (bicis/anclajes) pueden enganar porque una estacion grande siempre mueve mas volumen que una pequena.',
+      'Para comparar justo, mira primero porcentaje de ocupación y horas problema. Los valores absolutos (bicis/anclajes) pueden enganar porque una estación grande siempre mueve más volumen que una pequena.',
   },
   {
     id: 'proyeccion',
     category: 'Predicción',
-    question: 'La proyeccion de +30/+60 min es un modelo IA?',
+    question: '¿La proyección de +30/+60 min es un modelo IA?',
     answer:
-      'No es una "bola de cristal" ni una lectura real futura. Es una estimacion hecha con lo que suele pasar en esa estacion a esa hora y con su estado reciente.',
+      'No es una "bola de cristal" ni una lectura real futura. Es una estimación hecha con lo que suele pasar en esa estación a esa hora y con su estado reciente.',
   },
   {
     id: 'confianza-prediccion',
     category: 'Predicción',
-    question: 'Que significa el porcentaje de confianza?',
+    question: '¿Qué significa el porcentaje de confianza?',
     answer:
-      'Es una pista de cuanta fe darle a la prediccion. Si hay buen historico reciente, la confianza sube. Si faltan datos o hay mucho ruido, baja. No es garantia, es orientacion.',
+      'Es una pista de cuanta fe darle a la predicción. Si hay buen histórico reciente, la confianza sube. Si faltan datos o hay mucho ruido, baja. No es garantia, es orientacion.',
   },
   {
     id: 'prediccion-sin-datos',
     category: 'Predicción',
-    question: 'Por que a veces no hay prediccion o aparece muy plana?',
+    question: '¿Por qué a veces no hay predicción o aparece muy plana?',
     answer:
-      'Suele pasar cuando hay poco historico, datos irregulares o cambios recientes en la estacion. En esos casos se usa una estimacion mas conservadora y por eso la curva se ve "plana".',
+      'Suele pasar cuando hay poco histórico, datos irregulares o cambios recientes en la estación. En esos casos se usa una estimación más conservadora y por eso la curva se ve "plana".',
   },
   {
     id: 'prediccion-que-es',
@@ -140,51 +140,51 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'prediccion-uso-practico',
     category: 'Predicción',
-    question: 'Como usar la prediccion en la operativa diaria?',
+    question: '¿Cómo usar la predicción en la operativa diaria?',
     answer:
-      'Usala como alerta temprana: si una estacion apunta a quedarse sin bicis o sin anclajes en +30/+60 min, adelantate con redistribucion. Es mejor para prevenir que para auditar a posteriori.',
+      'Usala como alerta temprana: si una estación apunta a quedarse sin bicis o sin anclajes en +30/+60 min, adelantate con redistribución. Es mejor para prevenir que para auditar a posteriori.',
   },
   {
     id: 'matriz-od',
     category: 'Movilidad',
-    question: 'La matriz O-D representa viajes reales?',
+    question: '¿La matriz O-D representa viajes reales?',
     answer:
       'No son viajes uno a uno ni un registro oficial. Es una estimación agregada por distritos para entender hacia dónde parece moverse la demanda en cada franja horaria.',
   },
   {
     id: 'destinos-estimados',
     category: 'Movilidad',
-    question: 'Como se obtienen los destinos estimados?',
+    question: '¿Cómo se obtienen los destinos estimados?',
     answer:
-      'Primero vemos cuanto "sale" de cada distrito. Luego repartimos ese flujo entre distritos destino segun el peso de entradas observadas en ese mismo tramo horario.',
+      'Primero vemos cuanto "sale" de cada distrito. Luego repartimos ese flujo entre distritos destino según el peso de entradas observadas en ese mismo tramo horario.',
   },
   {
     id: 'balance-neto',
     category: 'Movilidad',
-    question: 'Que indica un balance neto positivo o negativo?',
+    question: '¿Qué indica un balance neto positivo o negativo?',
     answer:
-      'Positivo: entra mas flujo del que sale. Negativo: sale mas del que entra. Te ayuda a ver que barrios "reciben" o "expulsan" demanda en cada periodo.',
+      'Positivo: entra más flujo del que sale. Negativo: sale más del que entra. Te ayuda a ver que barrios "reciben" o "expulsan" demanda en cada periodo.',
   },
   {
     id: 'periodos-flujo',
     category: 'Movilidad',
-    question: 'Como cambian los resultados por franja horaria?',
+    question: '¿Cómo cambian los resultados por franja horaria?',
     answer:
       'Cada filtro (mañana, mediodia, tarde, noche) recalcula todo para ese tramo. Por eso una ruta puede ser fuerte por la mañana y casi desaparecer por la noche.',
   },
   {
     id: 'diagrama-chord',
     category: 'Movilidad',
-    question: 'Como leer el diagrama chord?',
+    question: '¿Cómo leer el diagrama chord?',
     answer:
-      'Cada bloque es un distrito y cada banda une origen-destino. Banda mas gruesa = mas flujo estimado. Sirve para ver "corredores" de demanda de un vistazo.',
+      'Cada bloque es un distrito y cada banda une origen-destino. Banda más gruesa = más flujo estimado. Sirve para ver "corredores" de demanda de un vistazo.',
   },
   {
     id: 'calculo-rutas',
     category: 'Movilidad',
-    question: 'Como se calculan las rutas estimadas?',
+    question: '¿Cómo se calculan las rutas estimadas?',
     answer:
-      'Tomamos cambios de disponibilidad por hora en estaciones, los agrupamos por distrito y estimamos que parte del flujo va a cada destino segun su peso relativo. Resultado: rutas probables entre zonas, no rutas GPS exactas.',
+      'Tomamos cambios de disponibilidad por hora en estaciones, los agrupamos por distrito y estimamos que parte del flujo va a cada destino según su peso relativo. Resultado: rutas probables entre zonas, no rutas GPS exactas.',
   },
   {
     id: 'demanda-no-viajes-reales',
@@ -196,30 +196,30 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'movilidad-causalidad',
     category: 'Movilidad',
-    question: 'Si dos metricas suben a la vez, significa causa directa?',
+    question: '¿Si dos métricas suben a la vez, significa causa directa?',
     answer:
-      'No siempre. El dashboard muestra relaciones utiles para tomar decisiones rapidas, pero correlacion no es prueba de causa. Para causalidad hace falta analisis mas profundo.',
+      'No siempre. El dashboard muestra relaciones útiles para tomar decisiones rápidas, pero correlación no es prueba de causa. Para causalidad hace falta análisis más profundo.',
   },
   {
     id: 'historico-balance-data',
     category: 'Datos',
-    question: 'Que enseña el historico de equilibrio y demanda?',
+    question: '¿Qué enseña el histórico de equilibrio y demanda?',
     answer:
-      'Combina dos lecturas: la demanda agregada y el balance index diario. Asi puedes ver si el sistema mueve mucha actividad pero sigue equilibrado, o si el volumen crece junto con la friccion.',
+      'Combina dos lecturas: la demanda agregada y el balance index diario. Asi puedes ver si el sistema mueve mucha actividad pero sigue equilibrado, o si el volumen crece junto con la fricción.',
   },
   {
     id: 'exportaciones',
     category: 'Datos',
-    question: 'Que datos puedo exportar desde el modo Data?',
+    question: '¿Qué datos puedo exportar desde el modo Data?',
     answer:
-      'Puedes descargar el estado actual de estaciones en CSV, el ranking de friccion, el historico agregado con balance, el historico de alertas y el resumen del sistema.',
+      'Puedes descargar el estado actual de estaciones en CSV, el ranking de fricción, el histórico agregado con balance, el histórico de alertas y el resumen del sistema.',
   },
   {
     id: 'desconectado-frescura',
     category: 'Datos',
-    question: 'Cuando aparece que el sistema esta desconectado?',
+    question: '¿Cuándo aparece que el sistema está desconectado?',
     answer:
-      'Cuando la ultima actualizacion util tiene mas de 10 minutos. Es una forma simple de avisar de que los datos pueden estar atrasados o que la ingesta necesita revisarse.',
+      'Cuando la última actualización útil tiene más de 10 minutos. Es una forma simple de avisar de que los datos pueden estar atrasados o que la ingesta necesita revisarse.',
   },
   {
     id: 'actualizacion',
@@ -231,9 +231,9 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'ventana-analitica',
     category: 'Datos',
-    question: 'Que ventana usa la analitica principal?',
+    question: '¿Qué ventana usa la analítica principal?',
     answer:
-      `Los rankings usan una ventana de ${ANALYTICS_WINDOWS.rankingDays} dias y las alertas se calculan sobre ${ANALYTICS_WINDOWS.alertWindowHours} horas moviles.`,
+      `Los rankings usan una ventana de ${ANALYTICS_WINDOWS.rankingDays} días y las alertas se calculan sobre ${ANALYTICS_WINDOWS.alertWindowHours} horas moviles.`,
   },
   {
     id: 'fuente-datos',
@@ -245,120 +245,120 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'sin-datos',
     category: 'Datos',
-    question: 'Por que a veces aparece "sin datos"?',
+    question: '¿Por qué a veces aparece "sin datos"?',
     answer:
-      'Las causas mas comunes son: estacion nueva, huecos temporales en la recogida o pocas muestras para calcular con fiabilidad. No siempre es fallo; a veces es falta de base suficiente.',
+      'Las causas más comunes son: estación nueva, huecos temporales en la recogida o pocas muestras para calcular con fiabilidad. No siempre es fallo; a veces es falta de base suficiente.',
   },
   {
     id: 'desfase-horario',
     category: 'Datos',
-    question: 'Por que a veces no coincide la hora exacta con otra app?',
+    question: '¿Por qué a veces no coincide la hora exacta con otra app?',
     answer:
-      'Puede haber pequenas diferencias por zona horaria mostrada, cache o momento de refresco. Para validar, revisa siempre la marca de "ultima actualizacion" del panel.',
+      'Puede haber pequenas diferencias por zona horaria mostrada, cache o momento de refresco. Para validar, revisa siempre la marca de "última actualización" del panel.',
   },
   {
     id: 'busqueda',
     category: 'Uso',
-    question: 'Como busco una estacion rapidamente?',
+    question: '¿Cómo busco una estación rápidamente?',
     answer:
-      'Puedes buscar por nombre o ID. El buscador ignora mayusculas y acentos para encontrar coincidencias de forma mas flexible.',
+      'Puedes buscar por nombre o ID. El buscador ignora mayusculas y acentos para encontrar coincidencias de forma más flexible.',
   },
   {
     id: 'enlaces-directos-modo',
     category: 'Uso',
-    question: 'Hay enlaces directos para abrir un modo concreto del dashboard?',
+    question: '¿Hay enlaces directos para abrir un modo concreto del dashboard?',
     answer:
       `Si. Tambien existen rutas directas por modo, como ${appRoutes.dashboardView('operations')} o ${appRoutes.dashboardView('research')}. Redirigen al dashboard con el modo correcto ya seleccionado.`,
   },
   {
     id: 'mapa-compartible',
     category: 'Uso',
-    question: 'Puedo compartir el mapa tal y como lo estoy viendo?',
+    question: '¿Puedo compartir el mapa tal y como lo estoy viendo?',
     answer:
-      'Si. La URL guarda el modo, los filtros principales y la posicion del mapa. Asi otra persona puede abrir el mismo contexto de trabajo con bastante precision.',
+      'Si. La URL guarda el modo, los filtros principales y la posición del mapa. Asi otra persona puede abrir el mismo contexto de trabajo con bastante precision.',
   },
   {
     id: 'mapa-por-modo',
     category: 'Uso',
-    question: 'Por que cambia el mensaje del mapa segun el modo?',
+    question: '¿Por qué cambia el mensaje del mapa según el modo?',
     answer:
       'Porque cada modo tiene un objetivo distinto. En overview el mapa ayuda a entender el estado general. En operations resalta mejor donde conviene intervenir primero.',
   },
   {
     id: 'mapa-friccion-operaciones',
     category: 'Uso',
-    question: 'Que significa el halo rojo en el mapa de operaciones?',
+    question: '¿Qué significa el halo rojo en el mapa de operaciones?',
     answer:
-      'Ese halo resalta estaciones con mas friccion acumulada. Cuanto mayor es, mas tiempo ha pasado la estacion en estados operativamente problematicos, como vacia o llena.',
+      'Ese halo resalta estaciones con más fricción acumulada. Cuanto mayor es, más tiempo ha pasado la estación en estados operativamente problematicos, como vacía o llena.',
   },
   {
     id: 'estados-mapa',
     category: 'Uso',
-    question: 'Que significan los colores del mapa?',
+    question: '¿Qué significan los colores del mapa?',
     answer:
-      'Verde indica buena disponibilidad, amarillo nivel intermedio y rojo estado critico respecto a la ocupacion de la estacion.',
+      'Verde indica buena disponibilidad, amarillo nivel intermedio y rojo estado crítico respecto a la ocupación de la estación.',
   },
   {
     id: 'estaciones-criticas-overview',
     category: 'Uso',
-    question: 'Que significa Top estaciones criticas?',
+    question: '¿Qué significa Top estaciones críticas?',
     answer:
-      'Es una lista priorizada para actuar rapido. Da mas peso a estaciones vacias o llenas, y despues a las que tienen una ocupacion muy extrema aunque todavia no hayan llegado al limite.',
+      'Es una lista priorizada para actuar rápido. Da más peso a estaciones vacías o llenas, y después a las que tienen una ocupación muy extrema aunque todavía no hayan llegado al límite.',
   },
   {
     id: 'volatilidad-operativa',
     category: 'Movilidad',
-    question: 'Que significa volatilidad operativa?',
+    question: '¿Qué significa volatilidad operativa?',
     answer:
-      'Es una forma simple de resumir cuanta inestabilidad hay en la red. Si muchas estaciones pasan una parte alta del tiempo vacias o llenas, la volatilidad sube.',
+      'Es una forma simple de resumir cuanta inestabilidad hay en la red. Si muchas estaciones pasan una parte alta del tiempo vacías o llenas, la volatilidad sube.',
   },
   {
     id: 'research-snapshots-recientes',
     category: 'Movilidad',
-    question: 'Que significa cambio mas visible en memoria?',
+    question: '¿Qué significa cambio más visible en memoria?',
     answer:
-      'Es una comparacion rapida entre el primer y el ultimo snapshot reciente guardado en el navegador. No sustituye al historico agregado, pero ayuda a ver movimientos inmediatos mientras exploras la vista de analisis.',
+      'Es una comparación rápida entre el primer y el último snapshot reciente guardado en el navegador. No sustituye al histórico agregado, pero ayuda a ver movimientos inmediatos mientras exploras la vista de análisis.',
   },
   {
     id: 'research-lectura-temporal',
     category: 'Movilidad',
-    question: 'Que aporta la lectura temporal rapida en research?',
+    question: '¿Qué aporta la lectura temporal rápida en research?',
     answer:
-      'Resume de forma sencilla que dia tuvo mas demanda y en que hora suele haber mas bici disponible. Es una puerta de entrada antes de ir a graficos mas detallados.',
+      'Resume de forma sencilla que día tuvo más demanda y en que hora suele haber más bici disponible. Es una puerta de entrada antes de ir a gráficos más detallados.',
   },
   {
     id: 'detalle-estacion',
     category: 'Uso',
-    question: 'Cuando debo ir a la pagina de detalle de estacion?',
+    question: '¿Cuándo debo ir a la página de detalle de estación?',
     answer:
-      'Cuando necesites analisis profundo: benchmarking, prediccion temporal, curva horaria y comparativas para una estacion concreta.',
+      'Cuando necesites análisis profundo: benchmarking, predicción temporal, curva horaria y comparativas para una estación concreta.',
   },
   {
     id: 'estabilidad-estacion',
     category: 'Clasificaciones',
-    question: 'Que significa estabilidad por estacion?',
+    question: '¿Qué significa estabilidad por estación?',
     answer:
-      'Resume cuanto tiempo pasa una estacion lejos de un comportamiento sano. Si acumula muchas horas vacia o llena, su estabilidad baja. Sirve para detectar puntos delicados en el tiempo.',
+      'Resume cuanto tiempo pasa una estación lejos de un comportamiento sano. Si acumula muchas horas vacía o llena, su estabilidad baja. Sirve para detectar puntos delicados en el tiempo.',
   },
   {
     id: 'predicciones-futuro-endpoint',
     category: 'Datos',
-    question: 'Que significa que el sistema ya este preparado para predicciones?',
+    question: '¿Qué significa que el sistema ya esté preparado para predicciones?',
     answer:
-      'Significa que ya existe un endpoint operativo de prediccion y una UI preparada para consumirlo. Ahora mismo estima ocupacion a corto plazo con patrones historicos y estado actual, sin necesidad de rehacer el dashboard.',
+      'Significa que ya existe un endpoint operativo de predicción y una UI preparada para consumirlo. Ahora mismo estima ocupación a corto plazo con patrones históricos y estado actual, sin necesidad de rehacer el dashboard.',
   },
   {
     id: 'api-documentacion',
     category: 'Soporte',
-    question: 'Hay endpoints API para integrar estos datos?',
+    question: '¿Hay endpoints API para integrar estos datos?',
     answer:
-      'Si. El proyecto expone endpoints para estado, estaciones, alertas, rankings, patrones, heatmap, movilidad, historico y predicciones por estacion. El modo Data resume los principales formatos y rutas.',
+      'Si. El proyecto expone endpoints para estado, estaciones, alertas, rankings, patrones, heatmap, movilidad, histórico y predicciones por estación. El modo Data resume los principales formatos y rutas.',
   },
   {
     id: 'contacto-soporte',
     category: 'Soporte',
-    question: 'Como reporto una incidencia de datos?',
+    question: '¿Cómo reporto una incidencia de datos?',
     answer:
-      'Incluye estacion, hora aproximada, vista donde aparece el problema y una captura. Con ese contexto se acelera la revision tecnica.',
+      'Incluye estación, hora aproximada, vista donde aparece el problema y una captura. Con ese contexto se acelera la revisión técnica.',
   },
 ];

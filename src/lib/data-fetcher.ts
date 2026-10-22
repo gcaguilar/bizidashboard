@@ -45,7 +45,7 @@ import {
 
 function assertArray(value: unknown, label: string): asserts value is unknown[] {
   if (!Array.isArray(value)) {
-    throw new Error(`Respuesta invalida: ${label} no es una lista.`);
+    throw new Error(`Respuesta inválida: ${label} no es una lista.`);
   }
 }
 
@@ -82,7 +82,7 @@ async function fetchLiveStationsFallback(): Promise<StationSnapshot[]> {
         const info = infoMap.get(status.station_id);
         return {
           id: status.station_id,
-          name: info?.name ?? `Estacion ${status.station_id}`,
+          name: info?.name ?? `Estación ${status.station_id}`,
           lat: Number(info?.lat ?? 0),
           lon: Number(info?.lon ?? 0),
           capacity: Number(info?.capacity ?? status.num_bikes_available + status.num_docks_available),
@@ -201,7 +201,7 @@ export async function fetchRankings(
   }
 
   if (!Number.isInteger(limit) || limit <= 0) {
-    throw new Error('El limite del ranking debe ser un entero positivo.');
+    throw new Error('El límite del ranking debe ser un entero positivo.');
   }
 
   const cacheKey = `rankings:type=${type}:limit=${limit}`;
@@ -272,7 +272,7 @@ export async function fetchRankings(
 
 export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
   if (!Number.isInteger(limit) || limit <= 0) {
-    throw new Error('El limite de alertas debe ser un entero positivo.');
+    throw new Error('El límite de alertas debe ser un entero positivo.');
   }
 
   const cacheKey = `alerts:limit=${limit}`;
@@ -294,7 +294,7 @@ export async function fetchStatus(): Promise<StatusResponse> {
     const data = await getPipelineStatusSummary();
 
     if (!data || typeof data !== 'object') {
-      throw new Error('Respuesta invalida al consultar el estado del sistema.');
+      throw new Error('Respuesta inválida al consultar el estado del sistema.');
     }
 
     return {

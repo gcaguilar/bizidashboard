@@ -133,7 +133,7 @@ function WelcomeModal({
             Pedalea con menos sorpresas con BiciRadar
           </h3>
           <p className="mt-3 text-[var(--muted)] md:text-base">
-            Mira incidencias, cortes y avisos utiles antes de salir en bici desde la web oficial de la app.
+            Mira incidencias, cortes y avisos útiles antes de salir en bici desde la web oficial de la app.
           </p>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">

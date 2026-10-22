@@ -121,7 +121,7 @@ export function computeTransfers(
         confidence: Number(((bestDonor.risk.confidence + receptor.risk.confidence) / 2).toFixed(2)),
         reasons: [
           `Distancia optima (${Math.round(distanceToBest)}m)`,
-          `Resuelve deficit critico en ${receptor.stationName} y sobrestock en ${bestDonor.stationName}`
+          `Resuelve déficit crítico en ${receptor.stationName} y sobrestock en ${bestDonor.stationName}`
         ],
       });
     }

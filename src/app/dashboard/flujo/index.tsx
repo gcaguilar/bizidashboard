@@ -23,7 +23,7 @@ export const Route = createFileRoute('/dashboard/flujo/')({
   }),
   head: () =>
     buildSeoHead({
-      title: 'Analisis de flujo - Dashboard Bizi',
+      title: 'Análisis de flujo - Dashboard Bizi',
       description: 'Analiza patrones de movimiento de Bizi Zaragoza, demanda por horas y diferencias entre zonas.',
       path: appRoutes.dashboardFlow(),
       robots: 'noindex, nofollow',

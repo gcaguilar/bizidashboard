@@ -32,9 +32,9 @@ export function StationStabilityCard({ rankings, stations }: StationStabilityCar
     <section className="ui-section-card h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Analisis</p>
-          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estacion</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">Una estacion es menos estable cuando pasa muchas horas vacia o llena respecto a su ventana observada.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Análisis</p>
+          <h3 className="mt-1 text-lg font-bold text-[var(--foreground)]">Estabilidad por estación</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">Una estación es menos estable cuando pasa muchas horas vacía o llena respecto a su ventana observada.</p>
         </div>
         <TrackedLink href={appRoutes.dashboardHelp('horas-problema')} className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline shrink-0 whitespace-nowrap">
           Como leerlo

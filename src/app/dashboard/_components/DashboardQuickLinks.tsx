@@ -34,7 +34,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl, currentMonth }: 
       <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Movimientos entre barrios</h3>
         <p className="text-sm text-[var(--muted)]">
-          Consulta la matriz O-D, el chord y las rutas de mayor volumen en una pagina dedicada.
+          Consulta la matriz O-D, el chord y las rutas de mayor volumen en una página dedicada.
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink
@@ -46,7 +46,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl, currentMonth }: 
               source: 'dashboard_quick_links',
             })}
           >
-            Ir a analisis de flujo
+            Ir a análisis de flujo
           </TrackedLink>
         </Button>
       </article>
@@ -74,7 +74,7 @@ export function DashboardQuickLinks({ selectedStationDetailUrl, currentMonth }: 
       <article className="ui-section-card">
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Centro de ayuda</h3>
         <p className="text-sm text-[var(--muted)]">
-          Metodologia, criterios de alertas y documentacion en una pagina independiente.
+          Metodología, criterios de alertas y documentación en una página independiente.
         </p>
         <Button asChild variant="cta" size="sm" className="mt-auto">
           <TrackedLink

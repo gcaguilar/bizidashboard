@@ -57,7 +57,7 @@ export function DataModeView({
       description: 'Permite consultar incidencias activas y resueltas por estado y número de resultados.',
     },
     {
-      label: 'Predicciones por estacion',
+      label: 'Predicciones por estación',
       path: appRoutes.api.predictions(),
       format: 'JSON',
       description: 'Calcula una estimación a corto plazo a partir del estado actual y los patrones por hora.',

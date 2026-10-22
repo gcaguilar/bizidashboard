@@ -84,7 +84,7 @@ function HeatTooltip({ active, payload }: TooltipProps) {
     return null;
   }
 
-  const dayLabel = DAY_LABELS[point.day] ?? 'Dia';
+  const dayLabel = DAY_LABELS[point.day] ?? 'Día';
   const hourLabel = `${String(point.hour).padStart(2, '0')}:00`;
 
   return (
@@ -200,7 +200,7 @@ export function Heatmap({
                     domain={[-0.5, 6.5]}
                     ticks={[0, 1, 2, 3, 4, 5, 6]}
                     allowDecimals={false}
-                    tickFormatter={(value) => DAY_LABELS[value] ?? 'Dia'}
+                    tickFormatter={(value) => DAY_LABELS[value] ?? 'Día'}
                     tick={{ fontSize: 11 }}
                     tickMargin={8}
                     width={52}

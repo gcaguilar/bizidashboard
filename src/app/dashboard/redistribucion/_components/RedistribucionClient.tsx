@@ -75,7 +75,7 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
   const report = reportQuery.data;
   const isReportLoading = reportQuery.isFetching;
   const loadError = reportQuery.error
-    ? 'No se pudo actualizar el informe. Mostramos la ultima version disponible.'
+    ? 'No se pudo actualizar el informe. Mostramos la última versión disponible.'
     : null;
 
   useEffect(() => {

@@ -433,7 +433,7 @@ describe('public UX regressions', () => {
     const routeSource = readSource('src/app/dashboard/estaciones/$stationId.tsx');
     const panelSource = readSource('src/app/dashboard/_components/StationDetailPanel.tsx');
 
-    expect(routeSource).toContain('const title = `Estacion ${stationId} - DatosBizi`');
+    expect(routeSource).toContain('const title = `Estación ${stationId} - DatosBizi`');
     expect(routeSource).toContain('title,');
     expect(panelSource).toContain('<h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{station.name}</h1>');
   });

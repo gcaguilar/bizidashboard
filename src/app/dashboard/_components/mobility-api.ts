@@ -66,7 +66,7 @@ export async function loadMobilityData(
   });
 
   if (!isValidatedMobilityPayload(response)) {
-    throw new Error('Respuesta de movilidad invalida.');
+    throw new Error('Respuesta de movilidad inválida.');
   }
 
   return response;

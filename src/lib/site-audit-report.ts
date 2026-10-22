@@ -191,7 +191,7 @@ function buildInfraOutageDiagnosis(report: AuditReport, apiErrors: ApiErrorEntry
       `Predominio de 5xx en links rotos (${fiveXxBrokenLinks}/${totalBrokenLinks}, ${(fiveXxRatio * 100).toFixed(1)}%).`
     );
     if (apiFiveXxCount > 0) {
-      notes.push(`${apiFiveXxCount} endpoint(s) criticos de API también devuelven 5xx.`);
+      notes.push(`${apiFiveXxCount} endpoint(s) críticos de API también devuelven 5xx.`);
     }
     notes.push(
       'Esto apunta primero a incidencia de origin/proxy/infra. Validar disponibilidad base antes de tratarlo como regresión funcional.'
@@ -220,7 +220,7 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
   }
 
   if (report.inconsistent_data_pages.length > 0) {
-    failures.push(`${report.inconsistent_data_pages.length} paginas con datos inconsistentes.`);
+    failures.push(`${report.inconsistent_data_pages.length} páginas con datos inconsistentes.`);
   }
 
   if (report.sitemap_mismatch.broken_entries.length > 0) {
@@ -235,26 +235,26 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
 
   if (report.sitemap_mismatch.redirected_entries.length > 0) {
     failures.push(
-      `${report.sitemap_mismatch.redirected_entries.length} entradas del sitemap redirigen en vez de resolver canonicas.`
+      `${report.sitemap_mismatch.redirected_entries.length} entradas del sitemap redirigen en vez de resolver canónicas.`
     );
   }
 
   if (report.sitemap_mismatch.missing_from_sitemap.length > 0) {
     failures.push(
-      `${report.sitemap_mismatch.missing_from_sitemap.length} paginas reales faltan en el sitemap.`
+      `${report.sitemap_mismatch.missing_from_sitemap.length} páginas reales faltan en el sitemap.`
     );
   }
 
   if (criticalOrphanPages.length > 0) {
-    failures.push(`${criticalOrphanPages.length} paginas huerfanas criticas.`);
+    failures.push(`${criticalOrphanPages.length} páginas huérfanas críticas.`);
   }
 
   if (apiErrors.length > 0) {
-    failures.push(`${apiErrors.length} endpoints criticos de API fallan.`);
+    failures.push(`${apiErrors.length} endpoints críticos de API fallan.`);
   }
 
   if (htmlShellIssues.length > 0) {
-    failures.push(`${htmlShellIssues.length} paginas HTML responden sin doctype valido.`);
+    failures.push(`${htmlShellIssues.length} páginas HTML responden sin doctype valido.`);
   }
 
   if (report.redirects.length > 0) {
@@ -262,11 +262,11 @@ export function evaluateSiteAuditReport(report: AuditReport): SiteAuditGateResul
   }
 
   if (report.pages_with_no_data.length > 0) {
-    warnings.push(`${report.pages_with_no_data.length} paginas muestran estados sin datos.`);
+    warnings.push(`${report.pages_with_no_data.length} páginas muestran estados sin datos.`);
   }
 
   if (report.stale_pages.length > 0) {
-    warnings.push(`${report.stale_pages.length} paginas usan datos antiguos o sin frescura.`);
+    warnings.push(`${report.stale_pages.length} páginas usan datos antiguos o sin frescura.`);
   }
 
   if (report.api_vs_frontend_diff.length > 0) {

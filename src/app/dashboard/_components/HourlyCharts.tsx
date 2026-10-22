@@ -120,19 +120,19 @@ export function HourlyCharts({
     <section className="ui-section-card h-full">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Ocupacion por hora</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">Ocupación por hora</h2>
           <p className="text-xs text-[var(--muted)]">
-            Estacion {stationName} ({stationId || 'sin seleccion'})
+            Estación {stationName} ({stationId || 'sin selección'})
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Compara el patron medio horario entre laborables y fines de semana para esta estacion.
+            Compara el patrón medio horario entre laborables y fines de semana para esta estación.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <TrackedLink href={appRoutes.dashboardHelp('detalle-estacion')}
             className="text-xs font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
           >
-            Entender grafico
+            Entender gráfico
           </TrackedLink>
           {isRefreshing ? <span className="ui-chip">Actualizando</span> : null}
         </div>

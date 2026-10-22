@@ -15,7 +15,7 @@ export const Route = createFileRoute('/dashboard/estaciones/$stationId')({
   },
   head: (opts) => {
     const { stationId } = opts.params;
-    const title = `Estacion ${stationId} - DatosBizi`;
+    const title = `Estación ${stationId} - DatosBizi`;
     return {
       meta: [
         { title },
