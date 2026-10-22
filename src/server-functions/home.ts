@@ -28,9 +28,9 @@ export type HomePageData = {
 }
 
 export const getHomePageData = createServerFn({ method: 'GET' }).handler(async () => {
-  const stationRows = await getStationSeoRows()
   const nowIso = new Date().toISOString()
-  const [status, dataset, alerts] = await Promise.all([
+  const [stationRows, status, dataset, alerts] = await Promise.all([
+    getStationSeoRows(),
     fetchStatus().catch(() => buildFallbackStatus(nowIso)),
     fetchSharedDatasetSnapshot().catch(() => buildFallbackDatasetSnapshot(nowIso)),
     fetchAlerts(20).catch(() => ({ limit: 20, alerts: [], generatedAt: nowIso })),
