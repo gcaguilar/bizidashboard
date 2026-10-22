@@ -6,12 +6,18 @@ import type { StationDiagnostic, TransferRecommendation } from '@/types/rebalanc
 
 const MAX_DAYS = 90
 const DEFAULT_DAYS = 15
+/**
+ * Cada ventana distinta es una entrada en frio de varias decenas de segundos
+ * sobre el crudo; se redondea hacia abajo al preset (como `quantizeMobilityDays`)
+ * y el informe devuelve la ventana real en `analysisWindowDays`.
+ */
+const DAY_PRESETS = [1, 7, 15, 30, 60, MAX_DAYS] as const
 
 function parseDays(value: string | null): number | null {
   if (value === null) return DEFAULT_DAYS
   const parsed = Number(value)
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_DAYS) return null
-  return parsed
+  return DAY_PRESETS.reduce<number>((resolved, preset) => (preset <= parsed ? preset : resolved), DAY_PRESETS[0])
 }
 
 function toCsvDiagnostics(rows: StationDiagnostic[]): string {
