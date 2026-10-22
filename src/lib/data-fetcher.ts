@@ -13,6 +13,7 @@ import type {
 import type { DataState } from '@/lib/data-state';
 import { withCache } from '@/lib/cache/cache';
 import { CacheTTL } from '@/lib/cache/config';
+import { fetchCachedStationsWithLatestStatus } from '@/lib/analytics-series';
 import {
   getActiveAlerts,
   getAvailableDataMonths,
@@ -20,7 +21,6 @@ import {
   getStationPatterns,
   getStationPatternsBulk,
   getStationRankings,
-  getStationsWithLatestStatus,
   getHistoryMetadata as _getHistoryMetadata,
   getPipelineStatusSummary,
   getSharedDatasetSnapshot as _getSharedDatasetSnapshot,
@@ -118,7 +118,9 @@ export const STATIONS_CACHE_KEY = 'stations:current';
  */
 export async function buildStationsPayload(): Promise<StationsResponse> {
   const [dbStations, dataset] = await Promise.all([
-    getStationsWithLatestStatus().catch(logFallback('stations', [])),
+    // Misma entrada (60 s) que `/api/stations` y los rankings: el LATERAL por
+    // estacion se ejecuta una vez por minuto, no una por cada consumidor.
+    fetchCachedStationsWithLatestStatus().catch(logFallback('stations', [])),
     _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
   ]);
   const nowIso = new Date().toISOString();
@@ -208,7 +210,7 @@ export async function fetchRankings(
   const payload = await withCache(cacheKey, CacheTTL.ANALYTICS, async () => {
     const [rankings, stations, districtCollection, dataset] = await Promise.all([
       getStationRankings(type, limit),
-      getStationsWithLatestStatus(),
+      fetchCachedStationsWithLatestStatus(),
       fetchDistrictCollection().catch(logFallback('districtCollection', null)),
       _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
     ]);
