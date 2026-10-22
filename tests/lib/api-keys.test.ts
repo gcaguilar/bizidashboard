@@ -29,6 +29,7 @@ import {
   createOwnApiKey,
   createOwnApiKeyForAccount,
   listApiKeysForAccount,
+  resetApiKeyCaches,
   revokeOwnApiKeyForAccount,
   validateApiKey,
 } from '@/lib/security/api-keys';
@@ -64,6 +65,7 @@ describe('API keys owned by global Accounts', () => {
     findUniqueMock.mockReset();
     updateMock.mockReset();
     updateMock.mockResolvedValue({});
+    resetApiKeyCaches();
   });
 
   it('creates account-owned keys with accountId and optional email metadata', async () => {
@@ -180,5 +182,46 @@ describe('API keys owned by global Accounts', () => {
       where: { id: 'key_123' },
       data: { lastUsedAt: expect.any(Date), requestCount: { increment: 1 } },
     });
+  });
+
+  it('serves repeated validations from the process cache and batches usage writes', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-22T10:00:00.000Z'));
+    try {
+      const secret = 'biz_live_cached-secret';
+      findUniqueMock.mockResolvedValue(apiKeyRecord());
+
+      await validateApiKey(secret);
+      await validateApiKey(secret);
+      await validateApiKey(secret);
+
+      expect(findUniqueMock).toHaveBeenCalledTimes(1);
+      // La primera peticion escribe al momento; las siguientes se acumulan.
+      expect(updateMock).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(61_000);
+      await validateApiKey(secret);
+
+      expect(findUniqueMock).toHaveBeenCalledTimes(2);
+      expect(updateMock).toHaveBeenCalledTimes(2);
+      expect(updateMock).toHaveBeenLastCalledWith({
+        where: { id: 'key_123' },
+        data: { lastUsedAt: expect.any(Date), requestCount: { increment: 3 } },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('stops accepting a key in this process as soon as it is revoked', async () => {
+    const secret = 'biz_live_revoked-secret';
+    findUniqueMock.mockResolvedValueOnce(apiKeyRecord());
+    await expect(validateApiKey(secret)).resolves.not.toBeNull();
+
+    findUniqueMock.mockResolvedValue(apiKeyRecord());
+    await expect(revokeOwnApiKeyForAccount('key_123', accountId)).resolves.toBe('revoked');
+
+    findUniqueMock.mockResolvedValue(apiKeyRecord({ isActive: false, revokedAt: new Date() }));
+    await expect(validateApiKey(secret)).resolves.toBeNull();
   });
 });

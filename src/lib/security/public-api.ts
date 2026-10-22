@@ -60,13 +60,34 @@ export function getPrincipalRateLimitKey(principal: DeveloperPrincipal): string 
  * a browser can't hold an API key (we only store its hash, and `<a download>`
  * navigations can't send headers), but it does carry this HttpOnly session.
  */
+const CITY_ACCESS_CACHE_TTL_MS = 30_000;
+const CITY_ACCESS_CACHE_MAX_ENTRIES = 1_000;
+const cityAccessCache = new Map<string, { allowed: boolean; expiresAt: number }>();
+
+/** Solo para tests. */
+export function resetCityAccessCache(): void {
+  cityAccessCache.clear();
+}
+
 async function isAccountKeyAllowedForCurrentCity(apiKeyInfo: ApiKeyInfo): Promise<boolean> {
   if (!apiKeyInfo.accountId) return true;
+  // Mismo TTL que la cache de claves: una peticion con API key ya no consulta
+  // la base para validar la clave ni el acceso a la ciudad.
+  const city = getCity();
+  const cacheKey = `${apiKeyInfo.accountId}:${city}`;
+  const now = Date.now();
+  const cached = cityAccessCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.allowed;
+  }
+
   try {
-    return await globalAccountRepository.hasCityAccess(
-      apiKeyInfo.accountId,
-      getCity()
-    );
+    const allowed = await globalAccountRepository.hasCityAccess(apiKeyInfo.accountId, city);
+    if (cityAccessCache.size >= CITY_ACCESS_CACHE_MAX_ENTRIES) {
+      cityAccessCache.clear();
+    }
+    cityAccessCache.set(cacheKey, { allowed, expiresAt: now + CITY_ACCESS_CACHE_TTL_MS });
+    return allowed;
   } catch {
     return false;
   }

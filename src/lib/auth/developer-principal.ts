@@ -28,6 +28,40 @@ async function accountCanUseCurrentCity(account: GlobalAccount): Promise<boolean
 }
 
 /**
+ * Cada peticion con Bearer (MCP, scripts) hacia dos upserts: provisionar la
+ * cuenta y concederle la ciudad. El resultado no cambia entre peticiones, asi
+ * que se recuerda por sujeto y ciudad durante un minuto en este proceso. El
+ * token se sigue verificando en cada peticion.
+ */
+const BEARER_ACCOUNT_CACHE_TTL_MS = 60_000;
+const BEARER_ACCOUNT_CACHE_MAX_ENTRIES = 1_000;
+const provisionedBearerAccounts = new Map<string, { account: GlobalAccount; expiresAt: number }>();
+
+/** Solo para tests. */
+export function resetBearerAccountCache(): void {
+  provisionedBearerAccounts.clear();
+}
+
+async function provisionBearerAccount(auth0Subject: string): Promise<GlobalAccount> {
+  const city = getCity();
+  const cacheKey = `${auth0Subject}:${city}`;
+  const now = Date.now();
+  const cached = provisionedBearerAccounts.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.account;
+  }
+
+  const account = await globalAccountRepository.provisionVerifiedAccount({ auth0Subject });
+  await globalAccountRepository.grantCityAccess(account.id, city);
+
+  if (provisionedBearerAccounts.size >= BEARER_ACCOUNT_CACHE_MAX_ENTRIES) {
+    provisionedBearerAccounts.clear();
+  }
+  provisionedBearerAccounts.set(cacheKey, { account, expiresAt: now + BEARER_ACCOUNT_CACHE_TTL_MS });
+  return account;
+}
+
+/**
  * Resolves an Auth0 bearer token. A first valid OAuth use provisions the same
  * local account as the web callback and grants the current public city.
  */
@@ -41,10 +75,7 @@ export async function resolveBearerDeveloperPrincipal(
   if (!verified) return null;
 
   try {
-    const account = await globalAccountRepository.provisionVerifiedAccount({
-      auth0Subject: verified.auth0Subject,
-    });
-    await globalAccountRepository.grantCityAccess(account.id, getCity());
+    const account = await provisionBearerAccount(verified.auth0Subject);
 
     return {
       account,

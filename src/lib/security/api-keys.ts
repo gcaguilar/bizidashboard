@@ -160,6 +160,64 @@ export async function createApiKeyForAccount(
 }
 
 /**
+ * Cache en proceso de claves validadas. Cada peticion autenticada hacia un
+ * `findUnique` y un `update`; con la cache, una clave en uso consulta la base
+ * como mucho cada `API_KEY_CACHE_TTL_MS`. Revocar o borrar invalida la entrada
+ * en este proceso; en el resto la revocacion tarda como mucho ese TTL.
+ */
+const API_KEY_CACHE_TTL_MS = 30_000;
+const API_KEY_CACHE_MAX_ENTRIES = 1_000;
+/** Los contadores de uso se acumulan y se escriben como mucho una vez por minuto y clave. */
+const USAGE_FLUSH_INTERVAL_MS = 60_000;
+
+type ValidatedKeyRecord = Parameters<typeof toApiKeyInfo>[0];
+
+const validatedKeyCache = new Map<string, { record: ValidatedKeyRecord | null; expiresAt: number }>();
+const pendingUsage = new Map<string, { count: number; lastFlushAt: number }>();
+
+function invalidateApiKeyCache(keyId: string): void {
+  for (const [keyHash, entry] of validatedKeyCache) {
+    if (entry.record?.id === keyId) {
+      validatedKeyCache.delete(keyHash);
+    }
+  }
+  pendingUsage.delete(keyId);
+}
+
+/** Solo para tests. */
+export function resetApiKeyCaches(): void {
+  validatedKeyCache.clear();
+  pendingUsage.clear();
+}
+
+function recordApiKeyUsage(keyId: string, now: number): void {
+  const usage = pendingUsage.get(keyId) ?? { count: 0, lastFlushAt: 0 };
+  usage.count += 1;
+  pendingUsage.set(keyId, usage);
+
+  if (now - usage.lastFlushAt < USAGE_FLUSH_INTERVAL_MS) {
+    return;
+  }
+
+  const increment = usage.count;
+  usage.count = 0;
+  usage.lastFlushAt = now;
+
+  // No bloquea la peticion; si falla, el lote se pierde (son estadisticas).
+  prisma.apiKey
+    .update({
+      where: { id: keyId },
+      data: {
+        lastUsedAt: new Date(now),
+        requestCount: { increment },
+      },
+    })
+    .catch((error) => {
+      logger.warn('api_key.usage_update_failed', { error });
+    });
+}
+
+/**
  * Validate an API key and return its info if valid
  */
 export async function validateApiKey(
@@ -170,8 +228,25 @@ export async function validateApiKey(
   }
 
   const keyHash = hashApiKey(providedKey);
+  const now = Date.now();
+  const cached = validatedKeyCache.get(keyHash);
+  const record =
+    cached && cached.expiresAt > now ? cached.record : await findValidatedKeyRecord(keyHash, now);
 
-  const record = await prisma.apiKey.findUnique({
+  if (!record) {
+    return null;
+  }
+
+  recordApiKeyUsage(record.id, now);
+
+  return toApiKeyInfo(record);
+}
+
+async function findValidatedKeyRecord(
+  keyHash: string,
+  now: number
+): Promise<ValidatedKeyRecord | null> {
+  const found = await prisma.apiKey.findUnique({
     where: { keyHash },
     select: {
       id: true,
@@ -190,28 +265,16 @@ export async function validateApiKey(
     },
   });
 
-  if (!record) {
-    return null;
+  // Tambien se cachean las claves inexistentes o revocadas: una clave invalida
+  // repetida no debe golpear la base en cada intento.
+  const record = found && found.isActive && !found.revokedAt ? found : null;
+
+  if (validatedKeyCache.size >= API_KEY_CACHE_MAX_ENTRIES) {
+    validatedKeyCache.clear();
   }
+  validatedKeyCache.set(keyHash, { record, expiresAt: now + API_KEY_CACHE_TTL_MS });
 
-  if (!record.isActive || record.revokedAt) {
-    return null;
-  }
-
-  // Update usage stats asynchronously (don't block the request)
-  prisma.apiKey
-    .update({
-      where: { id: record.id },
-      data: {
-        lastUsedAt: new Date(),
-        requestCount: { increment: 1 },
-      },
-    })
-    .catch((error) => {
-      logger.warn('api_key.usage_update_failed', { error });
-    });
-
-  return toApiKeyInfo(record);
+  return record;
 }
 
 /**
@@ -369,6 +432,7 @@ export async function revokeApiKey(
         revokedReason: reason,
       },
     });
+    invalidateApiKeyCache(keyId);
 
     logger.info('api_key.revoked', { keyId, reason });
     return true;
@@ -440,6 +504,7 @@ export async function deleteApiKey(keyId: string): Promise<boolean> {
     await prisma.apiKey.delete({
       where: { id: keyId },
     });
+    invalidateApiKeyCache(keyId);
 
     logger.info('api_key.deleted', { keyId });
     return true;
