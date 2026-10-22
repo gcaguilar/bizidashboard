@@ -107,7 +107,14 @@ export default defineConfig(async ({ command, mode }): Promise<import('vite').Us
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            // use-sync-external-store is shared by recharts, the router and base-ui;
+            // left unassigned it lands in vendor-recharts and drags that chunk into
+            // every page.
+            if (
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/use-sync-external-store')
+            ) {
               return 'vendor-react';
             }
             if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
