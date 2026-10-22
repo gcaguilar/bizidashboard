@@ -23,7 +23,7 @@ import { logger } from '@/lib/logger';
 import { CacheTTL } from '@/lib/cache/config';
 import { ensureLockRefreshed } from './utils';
 import { defineCronJob } from './cron-job';
-import { getStationsWithLatestStatus } from '@/analytics/queries/read';
+import { buildStationsPayload, STATIONS_CACHE_KEY } from '@/lib/data-fetcher';
 import { getHistorySeries } from '@/lib/history-read-model';
 import { getMobilityData } from '@/lib/mobility-read-model';
 import { buildMonthlyReport } from '@/lib/monthly-report';
@@ -36,11 +36,7 @@ async function warmCache(): Promise<void> {
 
   try {
     // 1. Warm stations:current
-    const stations = await getStationsWithLatestStatus();
-    await setCachedJson('stations:current', {
-      stations,
-      generatedAt: new Date().toISOString(),
-    }, LIVE_CACHE_TTL_SECONDS);
+    await setCachedJson(STATIONS_CACHE_KEY, await buildStationsPayload(), LIVE_CACHE_TTL_SECONDS);
 
     // 2. Warm mobility (default dashboard window)
     await getMobilityData({ mobilityDays: 14, demandDays: 30 });

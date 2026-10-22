@@ -11,7 +11,8 @@ import type {
   StatusResponse,
 } from '@/lib/api-types';
 import type { DataState } from '@/lib/data-state';
-import { DataCache } from '@/lib/data-cache';
+import { withCache } from '@/lib/cache/cache';
+import { CacheTTL } from '@/lib/cache/config';
 import {
   getActiveAlerts,
   getAvailableDataMonths,
@@ -102,8 +103,6 @@ async function fetchLiveStationsFallback(): Promise<StationSnapshot[]> {
   }
 }
 
-const cache = new DataCache();
-
 function logFallback<T>(label: string, fallback: T): (err: unknown) => T {
   return (err: unknown) => {
     logger.warn('data_fetcher_fallback', { label, error: err instanceof Error ? err.message : String(err) });
@@ -111,27 +110,35 @@ function logFallback<T>(label: string, fallback: T): (err: unknown) => T {
   };
 }
 
+export const STATIONS_CACHE_KEY = 'stations:current';
+
+/**
+ * Payload completo de `stations:current`. El prewarm del job de analítica lo
+ * reutiliza para que la caché caliente lleve también `dataState`.
+ */
+export async function buildStationsPayload(): Promise<StationsResponse> {
+  const [dbStations, dataset] = await Promise.all([
+    getStationsWithLatestStatus().catch(logFallback('stations', [])),
+    _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
+  ]);
+  const nowIso = new Date().toISOString();
+  const stations =
+    dbStations.length > 0 ? dbStations : await fetchLiveStationsFallback();
+  return {
+    stations,
+    generatedAt: nowIso,
+    dataState: resolveStationsDataState({
+      count: stations.length,
+      coverage: dataset?.coverage,
+      status: dataset?.pipeline,
+    }),
+  };
+}
+
 export async function fetchStations(): Promise<StationsResponse> {
-  // `cache.live` ya deduplica y cachea esta consulta 60 s (la misma ventana
+  // `withCache` ya deduplica y cachea esta consulta 60 s (la misma ventana
   // que `fetchCachedStationsWithLatestStatus`), así que no se anida el wrapper.
-  const payload = await cache.live('stations:current', async () => {
-    const [dbStations, dataset] = await Promise.all([
-      getStationsWithLatestStatus().catch(logFallback('stations', [])),
-      _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
-    ]);
-    const nowIso = new Date().toISOString();
-    const stations =
-      dbStations.length > 0 ? dbStations : await fetchLiveStationsFallback();
-    return {
-      stations,
-      generatedAt: nowIso,
-      dataState: resolveStationsDataState({
-        count: stations.length,
-        coverage: dataset?.coverage,
-        status: dataset?.pipeline,
-      }),
-    };
-  });
+  const payload = await withCache(STATIONS_CACHE_KEY, CacheTTL.LIVE, buildStationsPayload);
 
   assertArray(payload.stations, 'stations');
   return {
@@ -164,7 +171,7 @@ export async function fetchRankingsLite(
   limit = 20
 ): Promise<LiteRankingsResponse> {
   const cacheKey = `rankings-lite:type=${type}:limit=${limit}`;
-  return cache.analytics(cacheKey, async () => {
+  return withCache(cacheKey, CacheTTL.ANALYTICS, async () => {
     const [rankings, dataset] = await Promise.all([
       getStationRankings(type, limit),
       _getSharedDatasetSnapshot().catch(logFallback('dataset', null)),
@@ -198,7 +205,7 @@ export async function fetchRankings(
   }
 
   const cacheKey = `rankings:type=${type}:limit=${limit}`;
-  const payload = await cache.analytics(cacheKey, async () => {
+  const payload = await withCache(cacheKey, CacheTTL.ANALYTICS, async () => {
     const [rankings, stations, districtCollection, dataset] = await Promise.all([
       getStationRankings(type, limit),
       getStationsWithLatestStatus(),
@@ -269,7 +276,7 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
   }
 
   const cacheKey = `alerts:limit=${limit}`;
-  const payload = await cache.analytics(cacheKey, async () => {
+  const payload = await withCache(cacheKey, CacheTTL.ANALYTICS, async () => {
     const alerts = await getActiveAlerts(limit);
     return {
       limit,
@@ -283,7 +290,7 @@ export async function fetchAlerts(limit = 50): Promise<AlertsResponse> {
 }
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const payload = await cache.live('status:current', async () => {
+  const payload = await withCache('status:current', CacheTTL.LIVE, async () => {
     const data = await getPipelineStatusSummary();
 
     if (!data || typeof data !== 'object') {
@@ -307,8 +314,8 @@ export async function fetchPatterns(
     throw new Error('stationId es obligatorio para patrones.');
   }
 
-  const data = await cache.analytics(
-    `patterns:stationId=${stationId}:month=${monthKey ?? 'all'}`,
+  const data = await withCache(
+    `patterns:stationId=${stationId}:month=${monthKey ?? 'all'}`, CacheTTL.ANALYTICS,
     () => getStationPatterns(stationId, monthKey ?? undefined)
   );
 
@@ -321,8 +328,8 @@ export async function fetchHeatmap(stationId: string, monthKey?: string | null):
     throw new Error('stationId es obligatorio para el heatmap.');
   }
 
-  const data = await cache.analytics(
-    `heatmap:stationId=${stationId}:month=${monthKey ?? 'all'}`,
+  const data = await withCache(
+    `heatmap:stationId=${stationId}:month=${monthKey ?? 'all'}`, CacheTTL.ANALYTICS,
     () => getHeatmap(stationId, monthKey ?? undefined)
   );
 
@@ -331,7 +338,7 @@ export async function fetchHeatmap(stationId: string, monthKey?: string | null):
 }
 
 export async function fetchAvailableDataMonths(): Promise<AvailableMonthsResponse> {
-  const payload = await cache.analytics('data-months', async () => ({
+  const payload = await withCache('data-months', CacheTTL.ANALYTICS, async () => ({
     months: await getAvailableDataMonths(),
     generatedAt: new Date().toISOString(),
   }));
@@ -341,7 +348,7 @@ export async function fetchAvailableDataMonths(): Promise<AvailableMonthsRespons
 }
 
 export async function fetchHistoryMetadata(): Promise<HistoryMetadata> {
-  const payload = await cache.analytics('history:metadata', async () => {
+  const payload = await withCache('history:metadata', CacheTTL.ANALYTICS, async () => {
     const [historyMetadata, status] = await Promise.all([
       _getHistoryMetadata(),
       getPipelineStatusSummary().catch(logFallback('pipelineStatus', null)),
@@ -362,7 +369,7 @@ export async function fetchHistoryMetadata(): Promise<HistoryMetadata> {
 }
 
 export async function fetchSharedDatasetSnapshot(): Promise<SharedDatasetSnapshot> {
-  const payload = await cache.live('shared-dataset:snapshot', async () => {
+  const payload = await withCache('shared-dataset:snapshot', CacheTTL.LIVE, async () => {
     const snapshot = await _getSharedDatasetSnapshot();
 
     return {
