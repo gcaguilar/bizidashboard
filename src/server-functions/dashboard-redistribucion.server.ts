@@ -1,22 +1,20 @@
 import { fetchDistrictCollection } from '@/lib/districts.server';
-import type { RebalancingSearchParams } from '@/server-functions/dashboard-redistribucion';
 
 export type DashboardRebalancingPageData = {
   districtNames: string[];
-  tableParams: RebalancingSearchParams;
 };
 
 /**
- * Cabecera de la pagina (barrios y parametros de tabla). El informe completo lo
- * pide el cliente al montar, asi que el SSR no carga ni compacta el informe.
+ * Cabecera de la pagina (barrios). Los parametros de tabla viven en la URL y
+ * los lee la ruta, asi que cambiar de pagina u orden no relanza el loader. El
+ * informe completo lo pide el cliente al montar, asi que el SSR no carga ni
+ * compacta el informe.
  *
  * Vive en un modulo `.server` porque importa `districts.server`: el server
  * function solo lo usa dentro del handler, que el compilador extrae a servidor,
  * de modo que este modulo no entra en el bundle de cliente.
  */
-export async function loadDashboardRebalancingPageData(
-  params: RebalancingSearchParams | undefined
-): Promise<DashboardRebalancingPageData> {
+export async function loadDashboardRebalancingPageData(): Promise<DashboardRebalancingPageData> {
   const districtCollection = await fetchDistrictCollection().catch(() => null);
 
   const districtNames = districtCollection
@@ -26,14 +24,5 @@ export async function loadDashboardRebalancingPageData(
       )].sort((left, right) => left.localeCompare(right, 'es'))
     : [];
 
-  return {
-    districtNames,
-    tableParams: {
-      sort: params?.sort,
-      filter: params?.filter,
-      search: params?.search,
-      page: params?.page,
-      pageSize: params?.pageSize,
-    },
-  };
+  return { districtNames };
 }

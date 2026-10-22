@@ -28,32 +28,18 @@ describe('dashboard redistribucion server data', () => {
       ],
     });
 
-    const data = await loadDashboardRebalancingPageData({ page: 2, pageSize: 25 });
+    const data = await loadDashboardRebalancingPageData();
 
     // El loader no promete un informe: el cliente lo pide al montar.
-    expect(Object.keys(data).sort()).toEqual(['districtNames', 'tableParams']);
+    expect(Object.keys(data).sort()).toEqual(['districtNames']);
     expect(data.districtNames).toEqual(['Centro', 'Delicias']);
-    expect(data.tableParams).toEqual({
-      sort: undefined,
-      filter: undefined,
-      search: undefined,
-      page: 2,
-      pageSize: 25,
-    });
   });
 
   it('degrades to an empty district list when the geojson is unavailable', async () => {
     fetchDistrictCollectionMock.mockRejectedValue(new Error('no geojson'));
 
-    const data = await loadDashboardRebalancingPageData(undefined);
+    const data = await loadDashboardRebalancingPageData();
 
     expect(data.districtNames).toEqual([]);
-    expect(data.tableParams).toEqual({
-      sort: undefined,
-      filter: undefined,
-      search: undefined,
-      page: undefined,
-      pageSize: undefined,
-    });
   });
 });

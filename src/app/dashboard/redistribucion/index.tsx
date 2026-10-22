@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { z } from 'zod';
 import { getDashboardRebalancingPageData } from '@/server-functions/dashboard-redistribucion';
 
@@ -22,28 +22,16 @@ export const Route = createFileRoute('/dashboard/redistribucion/')({
       description: 'Revisa dónde faltan bicis o huecos en Bizi Zaragoza y qué señales apuntan a un desequilibrio.',
       robots: 'noindex, nofollow',
     }),
-  loaderDeps: ({ search }) => ({
-    sort: search.sort,
-    filter: search.filter,
-    search: search.search,
-    page: search.page,
-    pageSize: search.pageSize,
-  }),
-  loader: async ({ deps }) =>
-    getDashboardRebalancingPageData({
-      data: {
-        sort: deps.sort,
-        filter: deps.filter,
-        search: deps.search,
-        page: deps.page,
-        pageSize: deps.pageSize,
-      },
-    }),
+  loader: () => getDashboardRebalancingPageData(),
   component: RedistribucionPage,
 });
 
 function RedistribucionPage() {
-  const { districtNames, tableParams } = Route.useLoaderData();
+  const { districtNames } = Route.useLoaderData();
+  // La tabla solo usa los parametros como estado inicial; congelarlos evita
+  // re-renderizar el informe cada vez que la tabla reescribe la URL.
+  const search = Route.useSearch();
+  const [tableParams] = useState(() => search);
 
   return (
     <Suspense fallback={<RebalancingSkeleton />}>
