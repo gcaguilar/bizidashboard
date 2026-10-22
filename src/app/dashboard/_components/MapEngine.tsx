@@ -161,15 +161,18 @@ function getTrendLabel(trend: StationTrend | undefined): string {
   return '→ Sin cambios';
 }
 
+const EMPTY_FRICTION: Record<string, number> = {};
+const EMPTY_FAVORITES: string[] = [];
+
 export function MapEngine({
   stations,
   colorScale = 'analytical',
   viewMode = 'overview',
   initialViewState,
-  frictionByStationId = {},
+  frictionByStationId = EMPTY_FRICTION,
   selectedStationId,
   onSelectStation,
-  favoriteStationIds = [],
+  favoriteStationIds = EMPTY_FAVORITES,
   onToggleFavorite,
   trendByStationId,
   nearestStationId,
@@ -324,7 +327,7 @@ export function MapEngine({
     onSelectStation?.(stationId);
   };
 
-  const mapStyle = resolveMapStyle(isDarkTheme ? 'dark' : 'light');
+  const mapStyle = useMemo(() => resolveMapStyle(isDarkTheme ? 'dark' : 'light'), [isDarkTheme]);
 
   if (stations.length === 0) {
     return (
