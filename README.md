@@ -44,6 +44,7 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
   - `GET /api/rebalancing-report` when `days > 30`
   - `GET /api/alerts/history` when `format=csv` or `limit > 500`
   - `GET /api/mobility` when `mobilityDays > 30` or `demandDays > 60`
+- `/api/mobility` day windows snap down to the nearest preset (1, 7, 14, 30, 90, 180, 365) so cache cardinality stays bounded; the payload always reports the window actually applied.
 - `GET /api/health/live` and `GET /api/health/ready` stay unauthenticated for orchestration probes, but only expose probe-safe payloads. Use `GET /api/status` for richer operational visibility.
 - Sensitive routes (`/api/install/register`, `/api/token/refresh`, `/api/geo/*`, `/api/collect`, and elevated public routes) use shared Redis-backed rate limiting, structured audit events, and explicit CORS allowlists for mobile/auth surfaces.
 - Set `MOBILE_API_ENABLED=true` when mobile clients are deployed and list every browser origin in `MOBILE_API_ALLOWED_ORIGINS` (comma-separated). Production startup fails if mobile access is enabled without explicit origins. `APP_URL` is also accepted for same-origin calls.

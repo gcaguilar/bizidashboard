@@ -43,6 +43,30 @@ type MobilityPayload = {
 
 const CACHE_TTL_SECONDS = 300;
 
+/**
+ * Ventanas canónicas de `/api/mobility`. Cuantizar hacia abajo acota el espacio
+ * de claves de caché a 7 × 7 × 13 = 637 combinaciones: sin esto, cada valor de
+ * `mobilityDays`/`demandDays` entre 1 y 365 disparaba su propio `LAG` sobre
+ * hasta ~1,1 M de filas de `HourlyStationStat` y su propia entrada en Redis.
+ * La respuesta informa la ventana realmente consultada, así que el contrato
+ * sigue siendo honesto (pedir 45 días devuelve la ventana de 30).
+ */
+export const MOBILITY_DAY_PRESETS = [1, 7, 14, 30, 90, 180, 365] as const;
+
+/** Redondea hacia abajo al preset ≤ valor pedido (mismo criterio que la cobertura). */
+export function quantizeMobilityDays(requestedDays: number): number {
+  const normalized = Math.max(1, Math.floor(requestedDays));
+  let resolved: number = MOBILITY_DAY_PRESETS[0];
+
+  for (const preset of MOBILITY_DAY_PRESETS) {
+    if (preset <= normalized) {
+      resolved = preset;
+    }
+  }
+
+  return resolved;
+}
+
 function clampRequestedDays(value: number | undefined, fallback: number): number {
   return Math.max(1, Math.min(365, Math.floor(value ?? fallback)));
 }
@@ -64,8 +88,12 @@ export async function getMobilityData(options?: {
   demandDays?: number;
   monthKey?: string;
 }): Promise<MobilityPayload> {
-  const requestedMobilityDays = clampRequestedDays(options?.mobilityDays, 14);
-  const requestedDemandDays = clampRequestedDays(options?.demandDays, 30);
+  const requestedMobilityDays = quantizeMobilityDays(
+    clampRequestedDays(options?.mobilityDays, 14)
+  );
+  const requestedDemandDays = quantizeMobilityDays(
+    clampRequestedDays(options?.demandDays, 30)
+  );
   const monthKey = options?.monthKey ?? null;
 
   const cacheKey = `mobility:mobilityDays=${requestedMobilityDays}:demandDays=${requestedDemandDays}:month=${monthKey ?? 'all'}`;

@@ -295,7 +295,8 @@ export const openApiDocument = {
             name: 'mobilityDays',
             in: 'query',
             required: false,
-            description: 'Lookback days for hourly mobility signals',
+            description:
+              'Lookback days for hourly mobility signals. Rounded down to the nearest preset (1, 7, 14, 30, 90, 180, 365); the response reports the applied window.',
             schema: {
               type: 'integer',
               minimum: 1,
@@ -307,7 +308,8 @@ export const openApiDocument = {
             name: 'demandDays',
             in: 'query',
             required: false,
-            description: 'Lookback days for daily demand curve',
+            description:
+              'Lookback days for daily demand curve. Rounded down to the nearest preset (1, 7, 14, 30, 90, 180, 365); the response reports the applied window.',
             schema: {
               type: 'integer',
               minimum: 1,
