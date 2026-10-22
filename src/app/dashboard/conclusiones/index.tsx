@@ -4,7 +4,7 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Suspense } from 'react';
 import { z } from 'zod';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
-import { formatDateLabel, formatInteger, formatPercent, formatRatioDelta } from '@/lib/format';
+import { formatDateLabel, formatHourRange, formatInteger, formatPercent, formatRatioDelta } from '@/lib/format';
 import { toMonthOptions } from '@/lib/months';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
 import { appRoutes } from '@/lib/routes';
@@ -31,10 +31,6 @@ function formatDate(value: string | null): string {
   }
 
   return formatDateLabel(parsed);
-}
-
-function formatHourLabel(hour: number): string {
-  return `${String(hour).padStart(2, '0')}:00-${String((hour + 1) % 24).padStart(2, '0')}:00`;
 }
 
 function getDemandCardLabel(selectedMonth: string | null): string {
@@ -264,7 +260,7 @@ export default function DashboardConclusionsPage() {
                   className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-3"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourLabel(slot.hour)}</p>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourRange(slot.hour)}</p>
                     <p className="text-[11px] text-[var(--muted)]">Franja con mayor actividad agregada</p>
                   </div>
                   <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(slot.demandScore)} pts</p>

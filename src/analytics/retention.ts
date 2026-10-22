@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { sleep } from '@/lib/retry';
 import { getWatermark, setWatermark } from '@/analytics/watermarks';
 
 const RAW_RETENTION_DAYS = 40;
@@ -32,10 +33,6 @@ export interface RetentionResult {
   hourlyStatsDeleted: number;
   stationAlertsDeleted: number;
   stationRankingsDeleted: number;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function deleteStationStatusBatch(cutoff: Date): Promise<number> {

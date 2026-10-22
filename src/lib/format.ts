@@ -1,6 +1,7 @@
 import { AlertType, DayType } from '@/analytics/types';
+import { TIMEZONE } from '@/lib/timezone';
 
-export const DEFAULT_TIME_ZONE = 'Europe/Madrid';
+export const DEFAULT_TIME_ZONE = TIMEZONE;
 
 export function formatInteger(value: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
@@ -117,6 +118,10 @@ export function formatDateTimeLabel(value: string | Date, timeZone: string = DEF
 export function formatHourRange(hour: number): string {
   const nextHour = (hour + 1) % 24;
   return `${String(hour).padStart(2, '0')}:00-${String(nextHour).padStart(2, '0')}:00`;
+}
+
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 /** Redondea a un numero fijo de decimales. */

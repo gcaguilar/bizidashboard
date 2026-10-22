@@ -34,8 +34,8 @@ import {
 } from '@/analytics/queries/daily-system';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
+import { isTruthyEnv } from '@/lib/security/config';
 
-const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const ANALYTICS_START_DELAY_MS = 2 * 60 * 1000;
 const DAILY_SYSTEM_BOOTSTRAP_LOCK = 'daily-system-stat-bootstrap';
 const DAILY_SYSTEM_BOOTSTRAP_LOCK_TTL_MS = 10 * 60 * 1000;
@@ -47,11 +47,7 @@ function shouldEnableInternalJobs(): boolean {
   if (process.env.NODE_ENV === 'test') {
     return false;
   }
-  const rawValue = process.env.ENABLE_INTERNAL_JOBS;
-  if (!rawValue || rawValue.trim() === '') {
-    return false;
-  }
-  return ENABLED_VALUES.has(rawValue.trim().toLowerCase());
+  return isTruthyEnv(process.env.ENABLE_INTERNAL_JOBS);
 }
 
 /**

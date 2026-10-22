@@ -1,6 +1,7 @@
 import { DayType } from '@/analytics/types';
 import { getStationPatterns, getStationWithLatestStatus } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { clamp } from '@/lib/format';
 import { getLocalBucket } from '@/analytics/time-buckets';
 
 export type PredictionHorizonMinutes = 30 | 60;
@@ -38,10 +39,6 @@ type StationPredictionContext = {
 
 const MODEL_VERSION = 'historical-baseline-v1';
 const PREDICTION_HORIZONS: PredictionHorizonMinutes[] = [30, 60];
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
 
 function normalizeDayType(value: DayType | string): DayType | null {
   if (value === DayType.WEEKDAY || value === 'WEEKDAY') {

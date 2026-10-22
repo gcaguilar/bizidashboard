@@ -3,10 +3,7 @@ import type { RiskAssessment, TimeBandMetrics, TargetBand } from '@/types/rebala
 import { estimateStationPredictions } from '@/lib/predictions';
 import { getCurrentTimeBand } from '@/lib/target-bands';
 import { getLocalBucket } from '@/analytics/time-buckets';
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
+import { clamp } from '@/lib/format';
 
 export function assessStationRisk(
   station: StationSnapshot,

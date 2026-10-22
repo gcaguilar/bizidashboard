@@ -1,5 +1,6 @@
 import { getCachedJson, setCachedJson } from '@/lib/cache/cache';
 import { captureWarningWithContext } from '@/lib/sentry-reporting';
+import { sleep } from '@/lib/retry';
 import { getSiteUrl, isFallbackSiteUrl, SITE_NAME } from '@/lib/site';
 import * as Sentry from '@sentry/tanstackstart-react';
 
@@ -54,12 +55,6 @@ function parseInteger(rawValue: string | undefined, fallback: number): number {
 
   const parsed = Number.parseInt(rawValue, 10);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function sleep(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
 }
 
 async function withNominatimRateLimit<T>(task: () => Promise<T>): Promise<T> {
