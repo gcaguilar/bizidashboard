@@ -1,8 +1,13 @@
 import { withCache } from '@/lib/cache/cache';
 import { CacheTTL } from '@/lib/cache/config';
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import type { NetworkBriefingBaseline } from '@/lib/network-briefing';
+
+const BASELINE_WEEKS = 6;
+const HOUR_MS = 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * HOUR_MS;
 
 type BaselineRow = {
   bucketStart: Date;
@@ -77,27 +82,49 @@ async function fetchHistoricalAlertCount(bucketStart: Date): Promise<number | nu
   }
 }
 
+/**
+ * Inicio de las horas UTC que pueden ser "la misma franja" en cada una de las
+ * ultimas seis semanas: la hora de referencia menos k semanas, con +-1 h para
+ * cubrir el cambio de horario. `selectComparableHourlyBaseline` comprueba
+ * despues el dia y la hora locales, asi que leer de mas no cambia el resultado.
+ */
+function candidateBucketStarts(referenceAt: Date): Date[] {
+  const referenceHour = new Date(referenceAt);
+  referenceHour.setUTCMinutes(0, 0, 0);
+  const starts: Date[] = [];
+  for (let week = 1; week <= BASELINE_WEEKS; week += 1) {
+    for (const shiftHours of [-1, 0, 1]) {
+      starts.push(new Date(referenceHour.getTime() - week * WEEK_MS + shiftHours * HOUR_MS));
+    }
+  }
+  return starts;
+}
+
+/** Lee solo los ~18 buckets candidatos en vez de agrupar seis semanas (~280k filas). */
 async function fetchHourlyRows(referenceAt: Date): Promise<BaselineRow[]> {
+  const candidates = candidateBucketStarts(referenceAt).map((start) => start.toISOString());
   return prisma.$queryRaw<BaselineRow[]>`
     SELECT "bucketStart",
            COUNT(*) AS "stationCount",
            COUNT(*) FILTER (WHERE "bikesMin" <= 0 OR "anchorsMin" <= 0) AS "criticalStationsCount"
     FROM "HourlyStationStat"
-    WHERE "bucketStart" >= ${new Date(referenceAt.getTime() - 42 * 24 * 60 * 60 * 1000)}
-      AND "bucketStart" < ${new Date(referenceAt.getTime() - 60 * 60 * 1000)}
+    WHERE "bucketStart" = ANY(${candidates}::timestamp[])
     GROUP BY "bucketStart"
     ORDER BY "bucketStart" DESC
   `;
 }
 
+/** Mismas horas candidatas sobre el crudo, como rangos de una hora cada uno. */
 async function fetchSnapshotRows(referenceAt: Date): Promise<BaselineRow[]> {
+  const ranges = candidateBucketStarts(referenceAt).map(
+    (start) => Prisma.sql`("recordedAt" >= ${start} AND "recordedAt" < ${new Date(start.getTime() + HOUR_MS)})`,
+  );
   return prisma.$queryRaw<BaselineRow[]>`
     SELECT "recordedAt" AS "bucketStart",
            COUNT(*) AS "stationCount",
            COUNT(*) FILTER (WHERE "bikesAvailable" <= 0 OR "anchorsFree" <= 0) AS "criticalStationsCount"
     FROM "StationStatus"
-    WHERE "recordedAt" >= ${new Date(referenceAt.getTime() - 42 * 24 * 60 * 60 * 1000)}
-      AND "recordedAt" < ${new Date(referenceAt.getTime() - 60 * 60 * 1000)}
+    WHERE ${Prisma.join(ranges, ' OR ')}
     GROUP BY "recordedAt"
     ORDER BY "recordedAt" DESC
   `;
@@ -108,7 +135,7 @@ async function fetchSnapshotRows(referenceAt: Date): Promise<BaselineRow[]> {
  *
  * Home and dashboard SSR call this on every render; the answer only changes
  * when the reference hour (or the network size) does, so it is cached per
- * UTC hour instead of re-grouping six weeks of hourly rows each request.
+ * UTC hour. Only the candidate buckets are read (see `candidateBucketStarts`).
  */
 export async function fetchComparableNetworkBaseline(
   referenceAt: Date,
@@ -119,18 +146,28 @@ export async function fetchComparableNetworkBaseline(
   const referenceHour = new Date(referenceAt);
   referenceHour.setUTCMinutes(0, 0, 0);
 
-  return withCache(
-    `network-briefing:baseline:${referenceHour.toISOString()}:${currentStationCount}`,
-    CacheTTL.LONG_TERM,
-    () => computeComparableNetworkBaseline(referenceAt, currentStationCount),
-  );
+  // Se cachea envuelto: `withCache` trata un `null` guardado como fallo de
+  // cache, y "no hay franja comparable" (despliegue nuevo, hueco de datos) es
+  // justo el caso en que se repetian las dos consultas en cada render. Un
+  // error de base de datos no se cachea.
+  try {
+    const { baseline } = await withCache(
+      `network-briefing:baseline:${referenceHour.toISOString()}:${currentStationCount}`,
+      CacheTTL.LONG_TERM,
+      () => computeComparableNetworkBaseline(referenceAt, currentStationCount),
+    );
+    return baseline;
+  } catch {
+    return null;
+  }
 }
 
 async function computeComparableNetworkBaseline(
   referenceAt: Date,
   currentStationCount: number,
-): Promise<NetworkBriefingBaseline | null> {
+): Promise<{ baseline: NetworkBriefingBaseline | null }> {
   let selection: ReturnType<typeof selectComparableHourlyBaseline> = null;
+  let failed = false;
   try {
     selection = selectComparableHourlyBaseline(
       await fetchHourlyRows(referenceAt),
@@ -139,6 +176,7 @@ async function computeComparableNetworkBaseline(
     );
   } catch (error) {
     logger.warn('network_briefing.hourly_baseline_failed', { error });
+    failed = true;
   }
 
   if (!selection) {
@@ -150,13 +188,22 @@ async function computeComparableNetworkBaseline(
       );
     } catch (error) {
       logger.warn('network_briefing.snapshot_baseline_failed', { error });
+      failed = true;
     }
   }
 
-  if (!selection) return null;
+  if (!selection) {
+    if (failed) {
+      // Que la consulta falle no es lo mismo que no haya franja: no se cachea.
+      throw new Error('network briefing baseline unavailable');
+    }
+    return { baseline: null };
+  }
 
   return {
-    ...selection.baseline,
-    activeAlertsCount: await fetchHistoricalAlertCount(selection.bucketStart),
+    baseline: {
+      ...selection.baseline,
+      activeAlertsCount: await fetchHistoricalAlertCount(selection.bucketStart),
+    },
   };
 }
