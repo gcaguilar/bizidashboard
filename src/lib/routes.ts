@@ -202,11 +202,6 @@ export const appRoutes = {
         format: params.format,
         section: params.section,
       }),
-    reportSubscribe: () => '/api/reports/subscribe',
-    reportSubscribeConfirm: (params?: { token?: string | null }) =>
-      buildQuery('/api/reports/subscribe/confirm', { token: params?.token }),
-    reportSubscribeUnsubscribe: (params?: { token?: string | null }) =>
-      buildQuery('/api/reports/subscribe/unsubscribe', { token: params?.token }),
     authSession: () => '/api/auth/session',
     authAccessToken: () => '/api/auth/access-token',
     authLogin: (params?: { returnTo?: string | null }) =>

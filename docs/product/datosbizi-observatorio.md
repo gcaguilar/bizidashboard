@@ -67,26 +67,6 @@ El PDF `format=pdf` se obtiene de `src/lib/monthly-report-page-pdf.ts`, que abre
 
 En `/informes/:month` la tarjeta «Exportar informe» ofrece la descarga PDF, CSV y JSON del mes y la exportación por sección.
 
-## Suscripción al informe mensual por email
-
-Cualquier persona puede apuntarse desde `/informes` (tarjeta «Recibe el informe mensual en tu correo») para recibir el informe del mes cuando se cierra el periodo. El envío se hace con **Resend** y el flujo es de **doble opt-in**:
-
-1. `POST /api/reports/subscribe` valida y normaliza el correo, deja la suscripción en `PENDING` y manda el correo de confirmación. Si el correo ya estaba confirmado, responde `already_confirmed` sin enviar nada; si se pide de nuevo sobre una suscripción pendiente o dada de baja, se reactiva como `PENDING` con tokens nuevos (los enlaces antiguos dejan de valer).
-2. `GET /api/reports/subscribe/confirm?token=…` (enlace del correo) confirma la suscripción y redirige a `/informes?sub=confirmada`. Un enlace antiguo no reactiva una baja: eso exige volver a apuntarse desde el formulario.
-3. `GET /api/reports/subscribe/unsubscribe?token=…` (enlace incluido en **todos** los envíos) da de baja desde cualquier estado y redirige a `/informes?sub=baja`.
-
-Los tres endpoints usan el seam de rutas públicas (`withPublicApiRoute`): rate limit propio (`5/min` para el alta, `20/min` para confirmación y baja), `cacheControl: no-store` y errores con `errorResponse`. Están documentados en OpenAPI.
-
-El dominio vive en `src/lib/report-subscriptions.ts` (estados, tokens de capacidad, elegibilidad y control de envíos) detrás del puerto `ReportSubscriptionStore`, que implementa el adaptador Prisma `src/lib/report-subscription-store.ts` sobre las tablas `ReportSubscription` y `ReportDelivery`. Las plantillas de correo (`src/lib/report-email.ts`) son puras: resumen ejecutivo, cifras del mes, titulares y enlaces al informe, al PDF y de baja, con versión HTML y texto plano; el transporte (`src/lib/email.ts`) es el único punto que conoce Resend y degrada a `not_configured` si faltan `RESEND_API_KEY` o `EMAIL_FROM`.
-
-El envío automático lo hace `src/jobs/monthly-report-digest.ts` (diario, `05:30 UTC`, justo después del sellado de las `05:00 UTC`). Cada run procesa los últimos `2` meses cerrados (`DIGEST_MONTHS`): el que acaba de cerrar se envía por primera vez y los runs siguientes solo reintentan fallos, así que un run perdido se recupera sin duplicar correos. Reglas:
-
-- Solo recibe el informe quien estaba **confirmado antes de que el mes terminara**; quien se apunta después recibe el del mes siguiente, nunca un envío tardío de un periodo ya cerrado.
-- El envío es **idempotente**: cada suscripción reclama su envío (`ReportDelivery`, único por suscripción y mes) antes de mandar, se registra `SENT`/`FAILED` con el id devuelto por Resend y cada correo lleva además una `idempotencyKey` (`report-digest-<mes>/<suscripcion>`). Los fallidos se reintentan hasta `DIGEST_MAX_ATTEMPTS` (3) y un claim abandonado por un run interrumpido se recupera pasados `DIGEST_STALE_CLAIM_MS` (15 min).
-- Un mes sin informe (`hasReport: false`) no se envía. Sin configuración de correo el job no crea controles de envío: avisa (log + Sentry) y al llegar la configuración los siguientes runs envían con normalidad.
-
-Variables de entorno: `RESEND_API_KEY` (clave de API de Resend), `EMAIL_FROM` (remitente con dominio verificado en Resend) y `EMAIL_REPLY_TO` (opcional).
-
 ## Línea base — 2 de septiembre de 2026
 
 La línea base funcional antes del rediseño fue `119` archivos y `476` pruebas unitarias correctas. Las rutas principales tienen una prueba E2E de URL canónica y ausencia de página de error; BiciRadar se comprueba por separado para evitar que derive al dashboard.

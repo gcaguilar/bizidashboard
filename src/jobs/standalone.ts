@@ -21,10 +21,6 @@ import {
   stopMonthlyReportSealJob,
 } from '@/jobs/monthly-report-seal';
 import {
-  startMonthlyReportDigestJob,
-  stopMonthlyReportDigestJob,
-} from '@/jobs/monthly-report-digest';
-import {
   startRebalancingPrewarmJob,
   stopRebalancingPrewarmJob,
 } from '@/jobs/rebalancing-prewarm';
@@ -112,9 +108,6 @@ export function initJobs(): void {
   analyticsStartTimer = setTimeout(() => {
     startAnalyticsAggregationJob();
     startMonthlyReportSealJob();
-    // El envío del informe a suscriptores va justo después del sellado: el
-    // sello corre a las 05:00 UTC y el envío a las 05:30.
-    startMonthlyReportDigestJob();
     analyticsStartTimer = null;
     logger.info('jobs.analytics_started_after_delay');
   }, ANALYTICS_START_DELAY_MS);
@@ -139,7 +132,6 @@ export function shutdownJobs(): void {
   stopAnalyticsAggregationJob();
   stopRebalancingPrewarmJob();
   stopMonthlyReportSealJob();
-  stopMonthlyReportDigestJob();
   jobsInitialized = false;
 }
 

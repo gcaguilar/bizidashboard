@@ -52,6 +52,7 @@ import { Route as UsoBiziPorHoraRouteImport } from './app/uso-bizi-por-hora'
 import { Route as ViajesPorDiaZaragozaRouteImport } from './app/viajes-por-dia-zaragoza'
 import { Route as ViajesPorMesZaragozaRouteImport } from './app/viajes-por-mes-zaragoza'
 import { Route as ApiOpenapiDotjsonRouteImport } from './app/api/openapi[.]json'
+import { Route as ApiRelayRouteImport } from './app/api/relay'
 import { Route as ApiVersionRouteImport } from './app/api/version'
 import { Route as BarriosDistrictSlugRouteImport } from './app/barrios/$districtSlug'
 import { Route as DashboardIndexRouteImport } from './app/dashboard/index'
@@ -113,10 +114,7 @@ import { Route as ApiGeoReverseIndexRouteImport } from './app/api/geo/reverse/in
 import { Route as ApiGeoSearchIndexRouteImport } from './app/api/geo/search/index'
 import { Route as ApiInstallRegisterIndexRouteImport } from './app/api/install/register/index'
 import { Route as ApiOpsSentryTestIndexRouteImport } from './app/api/ops/sentry-test/index'
-import { Route as ApiReportsSubscribeIndexRouteImport } from './app/api/reports/subscribe/index'
 import { Route as ApiTokenRefreshIndexRouteImport } from './app/api/token/refresh/index'
-import { Route as ApiReportsSubscribeConfirmIndexRouteImport } from './app/api/reports/subscribe/confirm/index'
-import { Route as ApiReportsSubscribeUnsubscribeIndexRouteImport } from './app/api/reports/subscribe/unsubscribe/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -337,6 +335,11 @@ const ViajesPorMesZaragozaRoute = ViajesPorMesZaragozaRouteImport.update({
 const ApiOpenapiDotjsonRoute = ApiOpenapiDotjsonRouteImport.update({
   id: '/api/openapi.json',
   path: '/api/openapi.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRelayRoute = ApiRelayRouteImport.update({
+  id: '/api/relay',
+  path: '/api/relay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVersionRoute = ApiVersionRouteImport.update({
@@ -659,29 +662,11 @@ const ApiOpsSentryTestIndexRoute = ApiOpsSentryTestIndexRouteImport.update({
   path: '/api/ops/sentry-test/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiReportsSubscribeIndexRoute =
-  ApiReportsSubscribeIndexRouteImport.update({
-    id: '/api/reports/subscribe/',
-    path: '/api/reports/subscribe/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiTokenRefreshIndexRoute = ApiTokenRefreshIndexRouteImport.update({
   id: '/api/token/refresh/',
   path: '/api/token/refresh/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiReportsSubscribeConfirmIndexRoute =
-  ApiReportsSubscribeConfirmIndexRouteImport.update({
-    id: '/api/reports/subscribe/confirm/',
-    path: '/api/reports/subscribe/confirm/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiReportsSubscribeUnsubscribeIndexRoute =
-  ApiReportsSubscribeUnsubscribeIndexRouteImport.update({
-    id: '/api/reports/subscribe/unsubscribe/',
-    path: '/api/reports/subscribe/unsubscribe/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -729,6 +714,7 @@ export interface FileRoutesByFullPath {
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/relay': typeof ApiRelayRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
@@ -788,10 +774,7 @@ export interface FileRoutesByFullPath {
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
   '/api/ops/sentry-test/': typeof ApiOpsSentryTestIndexRoute
-  '/api/reports/subscribe/': typeof ApiReportsSubscribeIndexRoute
   '/api/token/refresh/': typeof ApiTokenRefreshIndexRoute
-  '/api/reports/subscribe/confirm/': typeof ApiReportsSubscribeConfirmIndexRoute
-  '/api/reports/subscribe/unsubscribe/': typeof ApiReportsSubscribeUnsubscribeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -834,6 +817,7 @@ export interface FileRoutesByTo {
   '/viajes-por-dia-zaragoza': typeof ViajesPorDiaZaragozaRoute
   '/viajes-por-mes-zaragoza': typeof ViajesPorMesZaragozaRoute
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/relay': typeof ApiRelayRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
@@ -893,10 +877,7 @@ export interface FileRoutesByTo {
   '/api/geo/search': typeof ApiGeoSearchIndexRoute
   '/api/install/register': typeof ApiInstallRegisterIndexRoute
   '/api/ops/sentry-test': typeof ApiOpsSentryTestIndexRoute
-  '/api/reports/subscribe': typeof ApiReportsSubscribeIndexRoute
   '/api/token/refresh': typeof ApiTokenRefreshIndexRoute
-  '/api/reports/subscribe/confirm': typeof ApiReportsSubscribeConfirmIndexRoute
-  '/api/reports/subscribe/unsubscribe': typeof ApiReportsSubscribeUnsubscribeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -945,6 +926,7 @@ export interface FileRoutesById {
   '/estadisticas/barrios': typeof EstadisticasBarriosRouteRouteWithChildren
   '/estadisticas/estaciones': typeof EstadisticasEstacionesRouteRouteWithChildren
   '/api/openapi.json': typeof ApiOpenapiDotjsonRoute
+  '/api/relay': typeof ApiRelayRoute
   '/api/version': typeof ApiVersionRoute
   '/barrios/$districtSlug': typeof BarriosDistrictSlugRoute
   '/estaciones/$stationId': typeof EstacionesStationIdRoute
@@ -1004,10 +986,7 @@ export interface FileRoutesById {
   '/api/geo/search/': typeof ApiGeoSearchIndexRoute
   '/api/install/register/': typeof ApiInstallRegisterIndexRoute
   '/api/ops/sentry-test/': typeof ApiOpsSentryTestIndexRoute
-  '/api/reports/subscribe/': typeof ApiReportsSubscribeIndexRoute
   '/api/token/refresh/': typeof ApiTokenRefreshIndexRoute
-  '/api/reports/subscribe/confirm/': typeof ApiReportsSubscribeConfirmIndexRoute
-  '/api/reports/subscribe/unsubscribe/': typeof ApiReportsSubscribeUnsubscribeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1057,6 +1036,7 @@ export interface FileRouteTypes {
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
     | '/api/openapi.json'
+    | '/api/relay'
     | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
@@ -1116,10 +1096,7 @@ export interface FileRouteTypes {
     | '/api/geo/search/'
     | '/api/install/register/'
     | '/api/ops/sentry-test/'
-    | '/api/reports/subscribe/'
     | '/api/token/refresh/'
-    | '/api/reports/subscribe/confirm/'
-    | '/api/reports/subscribe/unsubscribe/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1162,6 +1139,7 @@ export interface FileRouteTypes {
     | '/viajes-por-dia-zaragoza'
     | '/viajes-por-mes-zaragoza'
     | '/api/openapi.json'
+    | '/api/relay'
     | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
@@ -1221,10 +1199,7 @@ export interface FileRouteTypes {
     | '/api/geo/search'
     | '/api/install/register'
     | '/api/ops/sentry-test'
-    | '/api/reports/subscribe'
     | '/api/token/refresh'
-    | '/api/reports/subscribe/confirm'
-    | '/api/reports/subscribe/unsubscribe'
   id:
     | '__root__'
     | '/'
@@ -1272,6 +1247,7 @@ export interface FileRouteTypes {
     | '/estadisticas/barrios'
     | '/estadisticas/estaciones'
     | '/api/openapi.json'
+    | '/api/relay'
     | '/api/version'
     | '/barrios/$districtSlug'
     | '/estaciones/$stationId'
@@ -1331,10 +1307,7 @@ export interface FileRouteTypes {
     | '/api/geo/search/'
     | '/api/install/register/'
     | '/api/ops/sentry-test/'
-    | '/api/reports/subscribe/'
     | '/api/token/refresh/'
-    | '/api/reports/subscribe/confirm/'
-    | '/api/reports/subscribe/unsubscribe/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1381,6 +1354,7 @@ export interface RootRouteChildren {
   ViajesPorDiaZaragozaRoute: typeof ViajesPorDiaZaragozaRoute
   ViajesPorMesZaragozaRoute: typeof ViajesPorMesZaragozaRoute
   ApiOpenapiDotjsonRoute: typeof ApiOpenapiDotjsonRoute
+  ApiRelayRoute: typeof ApiRelayRoute
   ApiVersionRoute: typeof ApiVersionRoute
   BarriosDistrictSlugRoute: typeof BarriosDistrictSlugRoute
   EstacionesStationIdRoute: typeof EstacionesStationIdRoute
@@ -1416,10 +1390,7 @@ export interface RootRouteChildren {
   ApiGeoSearchIndexRoute: typeof ApiGeoSearchIndexRoute
   ApiInstallRegisterIndexRoute: typeof ApiInstallRegisterIndexRoute
   ApiOpsSentryTestIndexRoute: typeof ApiOpsSentryTestIndexRoute
-  ApiReportsSubscribeIndexRoute: typeof ApiReportsSubscribeIndexRoute
   ApiTokenRefreshIndexRoute: typeof ApiTokenRefreshIndexRoute
-  ApiReportsSubscribeConfirmIndexRoute: typeof ApiReportsSubscribeConfirmIndexRoute
-  ApiReportsSubscribeUnsubscribeIndexRoute: typeof ApiReportsSubscribeUnsubscribeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1723,6 +1694,13 @@ declare module '@tanstack/react-router' {
       path: '/api/openapi.json'
       fullPath: '/api/openapi.json'
       preLoaderRoute: typeof ApiOpenapiDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/relay': {
+      id: '/api/relay'
+      path: '/api/relay'
+      fullPath: '/api/relay'
+      preLoaderRoute: typeof ApiRelayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/version': {
@@ -2152,32 +2130,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOpsSentryTestIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/reports/subscribe/': {
-      id: '/api/reports/subscribe/'
-      path: '/api/reports/subscribe'
-      fullPath: '/api/reports/subscribe/'
-      preLoaderRoute: typeof ApiReportsSubscribeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/token/refresh/': {
       id: '/api/token/refresh/'
       path: '/api/token/refresh'
       fullPath: '/api/token/refresh/'
       preLoaderRoute: typeof ApiTokenRefreshIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/reports/subscribe/confirm/': {
-      id: '/api/reports/subscribe/confirm/'
-      path: '/api/reports/subscribe/confirm'
-      fullPath: '/api/reports/subscribe/confirm/'
-      preLoaderRoute: typeof ApiReportsSubscribeConfirmIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/reports/subscribe/unsubscribe/': {
-      id: '/api/reports/subscribe/unsubscribe/'
-      path: '/api/reports/subscribe/unsubscribe'
-      fullPath: '/api/reports/subscribe/unsubscribe/'
-      preLoaderRoute: typeof ApiReportsSubscribeUnsubscribeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -2334,6 +2291,7 @@ const rootRouteChildren: RootRouteChildren = {
   ViajesPorDiaZaragozaRoute: ViajesPorDiaZaragozaRoute,
   ViajesPorMesZaragozaRoute: ViajesPorMesZaragozaRoute,
   ApiOpenapiDotjsonRoute: ApiOpenapiDotjsonRoute,
+  ApiRelayRoute: ApiRelayRoute,
   ApiVersionRoute: ApiVersionRoute,
   BarriosDistrictSlugRoute: BarriosDistrictSlugRoute,
   EstacionesStationIdRoute: EstacionesStationIdRoute,
@@ -2369,11 +2327,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGeoSearchIndexRoute: ApiGeoSearchIndexRoute,
   ApiInstallRegisterIndexRoute: ApiInstallRegisterIndexRoute,
   ApiOpsSentryTestIndexRoute: ApiOpsSentryTestIndexRoute,
-  ApiReportsSubscribeIndexRoute: ApiReportsSubscribeIndexRoute,
   ApiTokenRefreshIndexRoute: ApiTokenRefreshIndexRoute,
-  ApiReportsSubscribeConfirmIndexRoute: ApiReportsSubscribeConfirmIndexRoute,
-  ApiReportsSubscribeUnsubscribeIndexRoute:
-    ApiReportsSubscribeUnsubscribeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

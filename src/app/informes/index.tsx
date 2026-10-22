@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { z } from 'zod';
 import { buildSeoHead } from '@/lib/seo-head'
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
@@ -12,8 +11,6 @@ import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getReportsIndexPageData } from '@/server-functions/informes';
 import { toJsonLdScript } from '@/lib/structured-data';
-import { ReportSubscribeCard } from '@/app/informes/_components/ReportSubscribeCard';
-import { ReportSubscriptionNotice } from '@/app/informes/_components/ReportSubscriptionNotice';
 
 /**
  * El archivo cambia cuando se publica un mes nuevo, no en cada peticion. Se
@@ -33,17 +30,11 @@ export const Route = createFileRoute('/informes/')({
       description: 'Archivo de informes mensuales de Bizi Zaragoza con enlaces estables, comparativas y acceso directo a cada mes publicado.',
       path: appRoutes.reports(),
     }),
-  // `sub` recoge el resultado de confirmar la suscripción o darse de baja
-  // desde el enlace del correo.
-  validateSearch: z.object({
-    sub: z.enum(['confirmada', 'baja', 'error']).optional(),
-  }),
   loader: () => getReportsIndexPageData(),
   component: ReportsIndexPage,
 });
 
 function ReportsIndexPage() {
-  const { sub } = Route.useSearch();
   const { months, monthMap, latestMonth, latestPeriodCoverage, latestTrend, latestComparisonLabel, currentMonth, reportsDataState, breadcrumbs, structuredData } = Route.useLoaderData();
   const monthlyRows = new Map(Object.entries(monthMap));
   const latestTrendLabel =
@@ -154,8 +145,6 @@ function ReportsIndexPage() {
         </div>
       </header>
 
-      {sub ? <ReportSubscriptionNotice status={sub} /> : null}
-
       {shouldShowDataStateNotice(reportsDataState) ? (
         <DataStateNotice
           state={reportsDataState}
@@ -184,8 +173,6 @@ function ReportsIndexPage() {
           </p>
         </article>
       </section>
-
-      <ReportSubscribeCard />
 
       <section className="ui-section-card">
         <div className="mb-3">
