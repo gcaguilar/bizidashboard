@@ -21,6 +21,10 @@ vi.mock('@/analytics/queries/read', () => ({
   getStationPatternsBulk: getStationPatternsBulkMock,
 }));
 
+vi.mock('@/lib/analytics-series', () => ({
+  fetchCachedStationsWithLatestStatus: getStationsWithLatestStatusMock,
+}));
+
 vi.mock('@/lib/districts', () => ({
   fetchDistrictCollection: vi.fn().mockResolvedValue(null),
   buildStationDistrictMap: vi.fn(() => new Map<string, string>()),
