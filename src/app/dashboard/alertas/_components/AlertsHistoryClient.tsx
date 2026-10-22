@@ -243,6 +243,9 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
         errorMessage: 'No hemos podido cargar el historial de alertas.',
       }),
     placeholderData: (previous) => previous,
+    // Sin esperar a la URL se pediria primero la pagina por defecto y luego la filtrada.
+    enabled: isUrlReady,
+    staleTime: 60_000,
   });
 
   const alerts = historyQuery.data?.alerts;

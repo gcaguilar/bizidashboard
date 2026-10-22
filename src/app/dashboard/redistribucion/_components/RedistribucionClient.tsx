@@ -66,10 +66,12 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
     queryFn: ({ signal }) =>
       fetchJson<RebalancingReport>(
         appRoutes.api.rebalancingReport({ district: districtFilter, days: selectedDays }),
-        { signal, cache: 'no-store', errorMessage: 'HTTP fetch failed' }
+        { signal, errorMessage: 'HTTP fetch failed' }
       ),
     // Conserva el informe anterior mientras se recalcula con los nuevos filtros.
     placeholderData: (previous) => previous,
+    // La API ya lo sirve con max-age=300; volver a la pagina no debe recalcularlo.
+    staleTime: 5 * 60_000,
   });
 
   const report = reportQuery.data;
