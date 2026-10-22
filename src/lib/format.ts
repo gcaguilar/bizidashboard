@@ -3,18 +3,22 @@ import { TIMEZONE } from '@/lib/timezone';
 
 export const DEFAULT_TIME_ZONE = TIMEZONE;
 
+const integerFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
+const decimalFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
+const smallDecimalFormatter = new Intl.NumberFormat('es-ES', {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 1,
+});
+
 export function formatInteger(value: number): string {
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value);
+  return integerFormatter.format(value);
 }
 
 export function formatDecimal(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return '—';
   }
-  return new Intl.NumberFormat('es-ES', {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: value < 10 && value > 0 ? 1 : 0,
-  }).format(value);
+  return (value < 10 && value > 0 ? smallDecimalFormatter : decimalFormatter).format(value);
 }
 
 export function formatRelativeMinutes(minutes?: number | null): string {
