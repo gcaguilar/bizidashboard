@@ -159,8 +159,8 @@ export function DataHistoryCard() {
                         : [Number(value).toFixed(1), 'Demanda']
                     }
                   />
-                  <Area yAxisId="demand" type="monotone" dataKey="demandScore" name="Demanda" stroke="var(--primary)" fill="color-mix(in_srgb, var(--primary) 20%, transparent)" strokeWidth={2} />
-                  <Area yAxisId="balance" type="monotone" dataKey="balanceIndex" name="Balance index" stroke="var(--success)" fill="color-mix(in_srgb, var(--success) 16%, transparent)" strokeWidth={2} />
+                  <Area yAxisId="demand" type="monotone" dataKey="demandScore" name="Demanda" stroke="var(--primary)" fill="color-mix(in srgb, var(--primary) 20%, transparent)" strokeWidth={2} />
+                  <Area yAxisId="balance" type="monotone" dataKey="balanceIndex" name="Balance index" stroke="var(--success)" fill="color-mix(in srgb, var(--success) 16%, transparent)" strokeWidth={2} />
                 </AreaChart>
               </MeasuredResponsiveContainer>
             </div>

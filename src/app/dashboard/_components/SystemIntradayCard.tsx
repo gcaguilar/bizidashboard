@@ -130,7 +130,7 @@ export function SystemIntradayCard({ rows, windowLabel }: SystemIntradayCardProp
                     dataKey="avgOccupancy"
                     name="Ocupación media"
                     stroke="var(--primary)"
-                    fill="color-mix(in_srgb, var(--primary) 18%, transparent)"
+                    fill="color-mix(in srgb, var(--primary) 18%, transparent)"
                     strokeWidth={2}
                   />
                   <Line

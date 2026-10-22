@@ -275,7 +275,7 @@ function MobilityInsightsContent({
                       key={`${link.origin}-${link.destination}-${index}`}
                       d={`M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`}
                       fill="none"
-                      stroke={`color-mix(in_srgb, var(--primary) ${Math.round(opacity * 100)}%, transparent)`}
+                      stroke={`color-mix(in srgb, var(--primary) ${Math.round(opacity * 100)}%, transparent)`}
                       strokeWidth={1.2 + (link.flow / (activeInsights.maxFlow || 1)) * 3}
                     />
                   );
@@ -561,7 +561,7 @@ function MobilityInsightsContent({
                           dataKey="demandScore"
                           name="Demanda"
                           stroke="var(--primary)"
-                          fill="color-mix(in_srgb, var(--primary) 26%, transparent)"
+                          fill="color-mix(in srgb, var(--primary) 26%, transparent)"
                           strokeWidth={2}
                         />
                         <Area
@@ -570,7 +570,7 @@ function MobilityInsightsContent({
                           dataKey="avgOccupancyRatio"
                           name="Ocupacion"
                           stroke="var(--success)"
-                          fill="color-mix(in_srgb, var(--success) 20%, transparent)"
+                          fill="color-mix(in srgb, var(--success) 20%, transparent)"
                           strokeWidth={2}
                         />
                       </AreaChart>
