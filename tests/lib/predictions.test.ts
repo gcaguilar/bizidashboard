@@ -1,13 +1,40 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/analytics/queries/read', () => ({
-  getStationPatterns: vi.fn(),
-  getStationsWithLatestStatus: vi.fn(),
+const {
+  getStationPatternsMock,
+  getStationWithLatestStatusMock,
+  withCacheMock,
+} = vi.hoisted(() => ({
+  getStationPatternsMock: vi.fn(),
+  getStationWithLatestStatusMock: vi.fn(),
+  withCacheMock: vi.fn(),
 }));
 
-import { estimateStationPredictions, getEmptyStationPredictions } from '@/lib/predictions';
+vi.mock('@/analytics/queries/read', () => ({
+  getStationPatterns: getStationPatternsMock,
+  getStationWithLatestStatus: getStationWithLatestStatusMock,
+}));
+
+vi.mock('@/lib/cache/cache', () => ({
+  withCache: withCacheMock,
+}));
+
+import {
+  estimateStationPredictions,
+  getEmptyStationPredictions,
+  getStationPredictions,
+} from '@/lib/predictions';
 
 describe('predictions model', () => {
+  beforeEach(() => {
+    getStationPatternsMock.mockReset();
+    getStationWithLatestStatusMock.mockReset();
+    withCacheMock.mockReset();
+    withCacheMock.mockImplementation(
+      async (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher()
+    );
+  });
+
   it('returns empty scaffold when no historical patterns exist', () => {
     const payload = getEmptyStationPredictions('101');
 
@@ -80,5 +107,68 @@ describe('predictions model', () => {
       predictedAnchorsFree: 11,
       confidence: 0.65,
     });
+  });
+
+  it('queries a single station and serves the live call from cache', async () => {
+    getStationWithLatestStatusMock.mockResolvedValue({
+      id: '101',
+      name: 'Estación prueba',
+      lat: 41.65,
+      lon: -0.88,
+      capacity: 20,
+      bikesAvailable: 10,
+      anchorsFree: 10,
+      recordedAt: '2026-03-12T09:00:00.000Z',
+    });
+    getStationPatternsMock.mockResolvedValue([
+      {
+        dayType: 'WEEKDAY',
+        hour: 10,
+        bikesAvg: 10,
+        anchorsAvg: 10,
+        occupancyAvg: 0.5,
+        sampleCount: 24,
+      },
+    ]);
+
+    const payload = await getStationPredictions('101');
+
+    expect(withCacheMock).toHaveBeenCalledWith(
+      'predictions:stationId=101',
+      60,
+      expect.any(Function)
+    );
+    // Una sola estación, no la red completa.
+    expect(getStationWithLatestStatusMock).toHaveBeenCalledWith('101');
+    expect(getStationPatternsMock).toHaveBeenCalledWith('101');
+    expect(payload?.modelVersion).toBe('historical-baseline-v1');
+  });
+
+  it('returns null for an unknown station without touching the cache', async () => {
+    getStationWithLatestStatusMock.mockResolvedValue(null);
+    getStationPatternsMock.mockResolvedValue([]);
+
+    await expect(getStationPredictions('unknown')).resolves.toBeNull();
+    expect(withCacheMock).not.toHaveBeenCalled();
+    expect(getStationPatternsMock).not.toHaveBeenCalled();
+  });
+
+  it('skips the cache when an explicit now is provided', async () => {
+    getStationWithLatestStatusMock.mockResolvedValue({
+      id: '101',
+      name: 'Estación prueba',
+      lat: 41.65,
+      lon: -0.88,
+      capacity: 20,
+      bikesAvailable: 10,
+      anchorsFree: 10,
+      recordedAt: '2026-03-12T09:00:00.000Z',
+    });
+    getStationPatternsMock.mockResolvedValue([]);
+
+    const payload = await getStationPredictions('101', new Date('2026-03-12T09:20:00.000Z'));
+
+    expect(payload).not.toBeNull();
+    expect(withCacheMock).not.toHaveBeenCalled();
   });
 });

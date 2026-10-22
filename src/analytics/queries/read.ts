@@ -292,18 +292,55 @@ export async function getStationPatternsBulk(stationIds: string[]): Promise<Stat
   }));
 }
 
-export async function getStationsWithLatestStatus(): Promise<
-  {
-    id: string;
-    name: string;
-    lat: number;
-    lon: number;
-    capacity: number;
-    bikesAvailable: number;
-    anchorsFree: number;
-    recordedAt: string;
-  }[]
-> {
+export type StationWithLatestStatus = {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  capacity: number;
+  bikesAvailable: number;
+  anchorsFree: number;
+  recordedAt: string;
+};
+
+function toStationWithLatestStatus(row: {
+  id: unknown;
+  name: unknown;
+  lat: unknown;
+  lon: unknown;
+  capacity: unknown;
+  bikesAvailable: unknown;
+  anchorsFree: unknown;
+  recordedAt: unknown;
+}): StationWithLatestStatus {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    lat: toSerializableNumber(row.lat),
+    lon: toSerializableNumber(row.lon),
+    capacity: toSerializableNumber(row.capacity),
+    bikesAvailable: toSerializableNumber(row.bikesAvailable),
+    anchorsFree: toSerializableNumber(row.anchorsFree),
+    recordedAt:
+      row.recordedAt instanceof Date ? row.recordedAt.toISOString() : String(row.recordedAt),
+  };
+}
+
+const STATIONS_LATEST_STATUS_SQL = Prisma.sql`
+  SELECT s.id, s.name, s.lat, s.lon, s.capacity,
+    ss."bikesAvailable", ss."anchorsFree", ss."recordedAt"
+  FROM "Station" s
+  CROSS JOIN LATERAL (
+    SELECT "bikesAvailable", "anchorsFree", "recordedAt"
+    FROM "StationStatus"
+    WHERE "stationId" = s.id
+    ORDER BY "recordedAt" DESC
+    LIMIT 1
+  ) ss
+  WHERE s."isActive" = true
+`;
+
+export async function getStationsWithLatestStatus(): Promise<StationWithLatestStatus[]> {
   const rows = await prisma.$queryRaw<
     Array<{
       id: unknown;
@@ -316,31 +353,41 @@ export async function getStationsWithLatestStatus(): Promise<
       recordedAt: unknown;
     }>
   >`
-    SELECT s.id, s.name, s.lat, s.lon, s.capacity,
-      ss."bikesAvailable", ss."anchorsFree", ss."recordedAt"
-    FROM "Station" s
-    CROSS JOIN LATERAL (
-      SELECT "bikesAvailable", "anchorsFree", "recordedAt"
-      FROM "StationStatus"
-      WHERE "stationId" = s.id
-      ORDER BY "recordedAt" DESC
-      LIMIT 1
-    ) ss
-    WHERE s."isActive" = true
+    ${STATIONS_LATEST_STATUS_SQL}
     ORDER BY s.name ASC;
   `;
 
-  return rows.map((row) => ({
-    id: String(row.id),
-    name: String(row.name),
-    lat: toSerializableNumber(row.lat),
-    lon: toSerializableNumber(row.lon),
-    capacity: toSerializableNumber(row.capacity),
-    bikesAvailable: toSerializableNumber(row.bikesAvailable),
-    anchorsFree: toSerializableNumber(row.anchorsFree),
-    recordedAt:
-      row.recordedAt instanceof Date ? row.recordedAt.toISOString() : String(row.recordedAt),
-  }));
+  return rows.map(toStationWithLatestStatus);
+}
+
+/**
+ * Variante puntual de `getStationsWithLatestStatus` para una sola estación:
+ * resuelve en una fila vía el índice `unique(stationId, recordedAt)` en lugar
+ * de descargar la red completa y filtrar en memoria (lo que hacía
+ * `getStationPredictions` antes).
+ */
+export async function getStationWithLatestStatus(
+  stationId: string
+): Promise<StationWithLatestStatus | null> {
+  const rows = await prisma.$queryRaw<
+    Array<{
+      id: unknown;
+      name: unknown;
+      lat: unknown;
+      lon: unknown;
+      capacity: unknown;
+      bikesAvailable: unknown;
+      anchorsFree: unknown;
+      recordedAt: unknown;
+    }>
+  >`
+    ${STATIONS_LATEST_STATUS_SQL}
+      AND s.id = ${stationId}
+    LIMIT 1;
+  `;
+
+  const row = rows[0];
+  return row ? toStationWithLatestStatus(row) : null;
 }
 
 export async function getStationPatterns(stationId: string, monthKey?: string): Promise<StationPatternRow[]> {

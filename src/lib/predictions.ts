@@ -1,5 +1,6 @@
 import { DayType } from '@/analytics/types';
-import { getStationPatterns, getStationsWithLatestStatus } from '@/analytics/queries/read';
+import { getStationPatterns, getStationWithLatestStatus } from '@/analytics/queries/read';
+import { withCache } from '@/lib/cache/cache';
 import { getLocalBucket } from '@/analytics/time-buckets';
 
 export type PredictionHorizonMinutes = 30 | 60;
@@ -159,30 +160,50 @@ export function estimateStationPredictions(
   };
 }
 
+/**
+ * Horizonte de 30–60 min: servir la respuesta de caché durante 60 s es
+ * conservador respecto a la propia precisión del modelo.
+ */
+const PREDICTIONS_CACHE_TTL_SECONDS = 60;
+
 export async function getStationPredictions(
   stationId: string,
-  now: Date = new Date()
+  now?: Date
 ): Promise<StationPredictionsResponse | null> {
-  const [stations, patterns] = await Promise.all([
-    getStationsWithLatestStatus(),
-    getStationPatterns(stationId),
-  ]);
-
-  const station = stations.find((entry) => entry.id === stationId);
+  // La consulta puntual es una fila por índice único y barata; resolverla antes
+  // de tocar Redis deja el 404 sin caché (no se escribe `null` por cada
+  // estación desconocida).
+  const station = await getStationWithLatestStatus(stationId);
 
   if (!station) {
     return null;
   }
 
-  return estimateStationPredictions(
-    {
-      stationId,
-      capacity: station.capacity,
-      bikesAvailable: station.bikesAvailable,
-      anchorsFree: station.anchorsFree,
-      patterns,
-    },
-    now
+  const compute = async (): Promise<StationPredictionsResponse> => {
+    const patterns = await getStationPatterns(stationId);
+
+    return estimateStationPredictions(
+      {
+        stationId,
+        capacity: station.capacity,
+        bikesAvailable: station.bikesAvailable,
+        anchorsFree: station.anchorsFree,
+        patterns,
+      },
+      now ?? new Date()
+    );
+  };
+
+  // Un `now` explícito (tests, backfills) salta la caché: el resultado debe
+  // ser determinista respecto al instante pedido, no al último cálculo.
+  if (now) {
+    return compute();
+  }
+
+  return withCache(
+    `predictions:stationId=${stationId}`,
+    PREDICTIONS_CACHE_TTL_SECONDS,
+    compute
   );
 }
 

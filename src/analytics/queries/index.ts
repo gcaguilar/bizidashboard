@@ -10,5 +10,7 @@ export {
   getSystemHourlyProfile,
   getHourlyMobilitySignals,
   getStationsWithLatestStatus,
+  getStationWithLatestStatus,
+  type StationWithLatestStatus,
   type RankingType,
 } from './read';
