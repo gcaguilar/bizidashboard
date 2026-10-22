@@ -44,7 +44,13 @@ function simplifyJuntaName(title: string): string {
 function convertPosition(coord: Position): Position {
   const [x, y] = coord;
   const result = proj4(EPSG_23030, WGS84, [x, y]);
-  return [result[0], result[1]];
+  // 6 decimales son ~10 cm: de sobra para asignar estaciones a barrios, y el
+  // fichero lo descargan varias vistas del cliente.
+  return [roundCoordinate(result[0]), roundCoordinate(result[1])];
+}
+
+function roundCoordinate(value: number): number {
+  return Math.round(value * 1e6) / 1e6;
 }
 
 function convertRing(ring: Ring): Ring {
@@ -151,7 +157,7 @@ async function main() {
       console.log(`  - ${f.properties.distrito}: ${f.geometry.type}`);
     });
     
-    fs.writeFileSync(outputFile, JSON.stringify(transformed, null, 2));
+    fs.writeFileSync(outputFile, JSON.stringify(transformed));
     console.log(`\nSaved to: ${outputFile}`);
     console.log(`File size: ${(fs.statSync(outputFile).size / 1024).toFixed(1)} KB`);
     

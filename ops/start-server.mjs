@@ -81,6 +81,18 @@ function resolveClientPath(pathname) {
   return join(clientDir, relativePath);
 }
 
+function staticCacheControl(pathname) {
+  if (pathname.startsWith('/assets/')) {
+    return 'public, max-age=31536000, immutable';
+  }
+  // Datos estaticos sin hash (GeoJSON de barrios): cambian casi nunca, pero
+  // varias vistas los piden en cada visita.
+  if (pathname.startsWith('/data/')) {
+    return 'public, max-age=86400, stale-while-revalidate=604800';
+  }
+  return 'public, max-age=300';
+}
+
 async function serveStaticAsset(request) {
   const url = new URL(request.url);
 
@@ -103,7 +115,7 @@ async function serveStaticAsset(request) {
   if (contentType) {
     headers.set('content-type', contentType);
   }
-  headers.set('cache-control', url.pathname.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'public, max-age=300');
+  headers.set('cache-control', staticCacheControl(url.pathname));
 
   return new Response(file, { headers });
 }
