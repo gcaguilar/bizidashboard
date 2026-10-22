@@ -1,4 +1,10 @@
 /**
+ * Ruta del tunel de Sentry (`src/app/api/relay.ts`): el navegador envia ahi
+ * sus eventos y el servidor los reenvia al DSN.
+ */
+export const SENTRY_TUNNEL_PATH = '/api/relay'
+
+/**
  * Sentry v11 replaced `sendDefaultPii` with the per-category `dataCollection`
  * option and made its defaults far more permissive: by default it now attaches
  * user info, cookies, request/response bodies and DB query data.

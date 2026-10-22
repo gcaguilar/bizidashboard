@@ -139,14 +139,15 @@ export default defineConfig(async ({ command, mode }): Promise<import('vite').Us
       tailwindcss(),
       syncSsrCssAssets(),
       bundleVisualizer,
-      // Must stay last: injects the tunnel route, instruments middlewares, and
-      // uploads source maps during production builds when SENTRY_AUTH_TOKEN is set.
+      // Must stay last: instruments middlewares and uploads source maps during
+      // production builds when SENTRY_AUTH_TOKEN is set. The tunnel route is our
+      // own (`src/app/api/relay.ts`): the managed one leaks its server handler,
+      // and a namespace import of the whole SDK, into the client entry chunk.
       sentryTanstackStart({
         org: sentryOrg,
         project: sentryProject,
         authToken: sentryAuthToken,
         ...(sentryRelease ? { release: { name: sentryRelease } } : {}),
-        tunnelRoute: true,
         autoInstrumentMiddleware: true,
         sourcemaps: {
           filesToDeleteAfterUpload: ['./dist/**/*.map'],

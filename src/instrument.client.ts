@@ -7,7 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/manual-setup/
  */
 import * as Sentry from '@sentry/tanstackstart-react'
-import { parseSentrySampleRate, SENTRY_DATA_COLLECTION } from '@/lib/sentry-config'
+import { parseSentrySampleRate, SENTRY_DATA_COLLECTION, SENTRY_TUNNEL_PATH } from '@/lib/sentry-config'
 
 // Inlined at build time by Vite. `vite.config.ts` aliases `SENTRY_DSN` into this
 // value when `VITE_SENTRY_DSN` is not set, so a single `SENTRY_DSN` configures
@@ -17,6 +17,7 @@ const dsn = import.meta.env.VITE_SENTRY_DSN
 Sentry.init({
   dsn,
   enabled: Boolean(dsn),
+  tunnel: SENTRY_TUNNEL_PATH,
   // `release` is injected at build time by the Sentry Vite plugin
   // (`__SENTRY_RELEASE__`), so we intentionally don't override it here.
   environment: import.meta.env.VITE_APP_ENV ?? import.meta.env.MODE,
@@ -47,10 +48,30 @@ Sentry.init({
     0.05
   ),
 
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
 })
+
+// Replay (rrweb) pesa decenas de KB y no hace falta para hidratar: se carga en
+// diferido cuando el navegador queda libre. Los sample rates de arriba se leen
+// del cliente al registrar la integracion, asi que se respetan igual.
+function loadReplay() {
+  void import('@sentry/replay')
+    .then(({ replayIntegration }) => {
+      Sentry.addIntegration(
+        replayIntegration({
+          maskAllText: true,
+          blockAllMedia: true,
+        })
+      )
+    })
+    .catch(() => {
+      // Sin replay la app sigue funcionando; el error ya se ve en red.
+    })
+}
+
+if (dsn && typeof window !== 'undefined') {
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(loadReplay, { timeout: 5_000 })
+  } else {
+    setTimeout(loadReplay, 2_000)
+  }
+}
