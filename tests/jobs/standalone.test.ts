@@ -84,25 +84,24 @@ describe('standalone jobs', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete process.env.ENABLE_INTERNAL_JOBS;
-    delete process.env.NODE_ENV;
+    vi.unstubAllEnvs();
   });
 
   it('should not start jobs when ENABLE_INTERNAL_JOBS is empty', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '');
     await import('@/jobs/standalone');
     expect(collectionStartMock).not.toHaveBeenCalled();
   });
 
   it('should not start jobs when ENABLE_INTERNAL_JOBS is "0"', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '0';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '0');
     await import('@/jobs/standalone');
     expect(collectionStartMock).not.toHaveBeenCalled();
   });
 
   it('should start collection job when ENABLE_INTERNAL_JOBS is "1"', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'production');
     await import('@/jobs/standalone');
     expect(collectionStartMock).toHaveBeenCalledTimes(1);
     expect(prewarmStartMock).toHaveBeenCalledTimes(1);
@@ -111,8 +110,8 @@ describe('standalone jobs', () => {
   });
 
   it('should seed the daily system series at startup', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'production');
     await import('@/jobs/standalone');
 
     await vi.waitFor(() => {
@@ -126,16 +125,16 @@ describe('standalone jobs', () => {
   });
 
   it('should schedule analytics aggregation with 2min delay', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'production');
     await import('@/jobs/standalone');
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2 * 60 * 1000);
   });
 
   it('should only start jobs once (idempotent)', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'production');
     const { initJobs } = await import('@/jobs/standalone');
     initJobs();
     initJobs();
@@ -144,8 +143,8 @@ describe('standalone jobs', () => {
   });
 
   it('should stop all jobs when shutdownJobs is called', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'production');
     const { shutdownJobs } = await import('@/jobs/standalone');
     shutdownJobs();
     expect(collectionStopMock).toHaveBeenCalledTimes(1);
@@ -157,8 +156,8 @@ describe('standalone jobs', () => {
   });
 
   it('should not start jobs when NODE_ENV is test', async () => {
-    process.env.ENABLE_INTERNAL_JOBS = '1';
-    process.env.NODE_ENV = 'test';
+    vi.stubEnv('ENABLE_INTERNAL_JOBS', '1');
+    vi.stubEnv('NODE_ENV', 'test');
     await import('@/jobs/standalone');
     expect(collectionStartMock).not.toHaveBeenCalled();
   });
@@ -171,8 +170,8 @@ describe('standalone jobs', () => {
       loggerInfoMock.mockReset();
       setTimeoutSpy.mockReset();
       clearTimeoutSpy.mockReset();
-      process.env.ENABLE_INTERNAL_JOBS = value;
-      process.env.NODE_ENV = 'production';
+      vi.stubEnv('ENABLE_INTERNAL_JOBS', value);
+      vi.stubEnv('NODE_ENV', 'production');
       await import('@/jobs/standalone');
       expect(collectionStartMock).toHaveBeenCalledTimes(1);
     }
