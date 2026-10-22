@@ -5,6 +5,7 @@ vi.mock('server-only', () => ({}));
 const {
   queryRawMock,
   transactionMock,
+  executeRawMock,
   deleteManyMock,
   createManyMock,
   findWatermarkMock,
@@ -12,6 +13,7 @@ const {
 } = vi.hoisted(() => ({
   queryRawMock: vi.fn(),
   transactionMock: vi.fn(),
+  executeRawMock: vi.fn(),
   deleteManyMock: vi.fn(),
   createManyMock: vi.fn(),
   findWatermarkMock: vi.fn(),
@@ -41,10 +43,29 @@ import {
 
 const MONTH = '2026-03';
 
+/** `$queryRaw` como tagged template: aplana el texto y los valores (incluidos fragmentos `Prisma.sql`). */
+function flattenTaggedCall(call: unknown[]): { sql: string; values: unknown[] } {
+  const [strings, ...params] = call as [TemplateStringsArray, ...unknown[]];
+  const values: unknown[] = [];
+  let sql = strings[0];
+  params.forEach((param, index) => {
+    if (param && typeof param === 'object' && 'sql' in param && 'values' in param) {
+      sql += (param as { sql: string }).sql;
+      values.push(...(param as { values: unknown[] }).values);
+    } else {
+      sql += '?';
+      values.push(param);
+    }
+    sql += strings[index + 1];
+  });
+  return { sql, values };
+}
+
 describe('monthly critical episodes', () => {
   beforeEach(() => {
     queryRawMock.mockReset();
     transactionMock.mockReset();
+    executeRawMock.mockReset();
     deleteManyMock.mockReset();
     createManyMock.mockReset();
     findWatermarkMock.mockReset();
@@ -130,6 +151,7 @@ describe('monthly critical episodes', () => {
   });
 
   it('replaces the month table atomically and marks it as computed', async () => {
+    findWatermarkMock.mockResolvedValue(null);
     queryRawMock.mockResolvedValue([
       {
         stationId: 'a',
@@ -150,7 +172,7 @@ describe('monthly critical episodes', () => {
 
     const result = await refreshMonthlyCriticalEpisodes(MONTH);
 
-    expect(result).toEqual({ monthKey: MONTH, episodes: 1 });
+    expect(result).toEqual({ monthKey: MONTH, episodes: 1, mode: 'full' });
     expect(deleteManyMock).toHaveBeenCalledWith({ where: { monthKey: MONTH } });
     expect(createManyMock).toHaveBeenCalledWith({
       data: [
@@ -168,5 +190,76 @@ describe('monthly critical episodes', () => {
       `critical-episodes:${MONTH}`,
       expect.any(Date)
     );
+  });
+
+  it('only rereads each station from its last non-critical sample after a recent refresh', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-15T12:00:00.000Z'));
+    try {
+      findWatermarkMock.mockResolvedValue(new Date('2026-03-15T11:10:00.000Z'));
+      queryRawMock
+        // Anclas: `a` tuvo una muestra sana; `b` lleva critica toda la ventana.
+        .mockResolvedValueOnce([
+          { stationId: 'a', anchorAt: '2026-03-15T09:58:00.000Z' },
+          { stationId: 'b', anchorAt: null },
+        ])
+        .mockResolvedValueOnce([
+          {
+            stationId: 'a',
+            kind: 'empty',
+            startedAt: '2026-03-15T10:00:00.000Z',
+            endedAt: '2026-03-15T11:30:00.000Z',
+            durationMinutes: 90,
+          },
+        ]);
+      transactionMock.mockImplementation(async (callback: (tx: unknown) => Promise<void>) =>
+        callback({
+          $executeRaw: executeRawMock,
+          stationCriticalEpisode: { deleteMany: deleteManyMock, createMany: createManyMock },
+        })
+      );
+
+      const result = await refreshMonthlyCriticalEpisodes(MONTH);
+
+      expect(result).toEqual({ monthKey: MONTH, episodes: 1, mode: 'incremental' });
+      expect(deleteManyMock).not.toHaveBeenCalled();
+      expect(executeRawMock).toHaveBeenCalledTimes(1);
+
+      const anchorQuery = flattenTaggedCall(queryRawMock.mock.calls[0]);
+      expect(anchorQuery.sql).toContain('LEFT JOIN LATERAL');
+      // Frontera = ultimo refresco - 1 h; el ancla se busca hasta 48 h antes.
+      expect(anchorQuery.values).toEqual(['2026-03-13T10:10:00.000Z', '2026-03-15T10:10:00.000Z']);
+
+      const episodeQuery = flattenTaggedCall(queryRawMock.mock.calls[1]);
+      expect(episodeQuery.sql).toContain('JOIN (VALUES');
+      expect(episodeQuery.values).toEqual(
+        expect.arrayContaining(['a', '2026-03-15T09:58:00.000Z', 'b', '2026-03-01T00:00:00.000Z'])
+      );
+      expect(createManyMock).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ stationId: 'a', durationMinutes: 90, monthKey: MONTH })],
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('falls back to a full refresh when the last one is too old', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-15T12:00:00.000Z'));
+    try {
+      findWatermarkMock.mockResolvedValue(new Date('2026-03-13T12:00:00.000Z'));
+      queryRawMock.mockResolvedValue([]);
+      transactionMock.mockImplementation(async (callback: (tx: unknown) => Promise<void>) =>
+        callback({ stationCriticalEpisode: { deleteMany: deleteManyMock, createMany: createManyMock } })
+      );
+
+      const result = await refreshMonthlyCriticalEpisodes(MONTH);
+
+      expect(result.mode).toBe('full');
+      expect(queryRawMock).toHaveBeenCalledTimes(1);
+      expect(deleteManyMock).toHaveBeenCalledWith({ where: { monthKey: MONTH } });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

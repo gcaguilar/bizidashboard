@@ -1,4 +1,5 @@
 import { findWatermark, setWatermark } from '@/analytics/watermarks';
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { getMonthBounds, isValidMonthKey } from '@/lib/months';
@@ -133,7 +134,8 @@ function toDate(value: string | Date): Date {
  * con los rollups horarios.
  */
 export async function getMonthlyEpisodeRows(
-  monthKey: string
+  monthKey: string,
+  stationWindows?: readonly StationEpisodeWindow[]
 ): Promise<StationCriticalEpisodeRow[]> {
   if (!isValidMonthKey(monthKey)) {
     return [];
@@ -141,15 +143,27 @@ export async function getMonthlyEpisodeRows(
 
   const { start, endExclusive } = getMonthBounds(monthKey);
 
+  if (stationWindows && stationWindows.length === 0) {
+    return [];
+  }
+
+  // Con ventanas por estacion solo se leen las muestras desde su ancla (una
+  // muestra sin rachas abiertas), en vez de todo el mes de StationStatus.
+  const windowJoin = stationWindows
+    ? Prisma.sql`JOIN (VALUES ${stationWindowValues(stationWindows)}) AS w("stationId", "after")
+        ON w."stationId" = s."stationId" AND s."recordedAt" >= w."after"`
+    : Prisma.empty;
+
   const rows = await prisma.$queryRaw<RawStationCriticalEpisodeRow[]>`
     WITH gaps AS (
-      SELECT "stationId", "recordedAt", "bikesAvailable", "anchorsFree",
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS empty_grp,
-        ROW_NUMBER() OVER (PARTITION BY "stationId" ORDER BY "recordedAt")
-        - ROW_NUMBER() OVER (PARTITION BY "stationId", CASE WHEN "anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY "recordedAt") AS full_grp
-      FROM "StationStatus"
-      WHERE "recordedAt" >= ${start}::timestamp AND "recordedAt" < ${endExclusive}::timestamp
+      SELECT s."stationId", s."recordedAt", s."bikesAvailable", s."anchorsFree",
+        ROW_NUMBER() OVER (PARTITION BY s."stationId" ORDER BY s."recordedAt")
+        - ROW_NUMBER() OVER (PARTITION BY s."stationId", CASE WHEN s."bikesAvailable" <= 0 THEN 0 ELSE 1 END ORDER BY s."recordedAt") AS empty_grp,
+        ROW_NUMBER() OVER (PARTITION BY s."stationId" ORDER BY s."recordedAt")
+        - ROW_NUMBER() OVER (PARTITION BY s."stationId", CASE WHEN s."anchorsFree" <= 0 THEN 0 ELSE 1 END ORDER BY s."recordedAt") AS full_grp
+      FROM "StationStatus" s
+      ${windowJoin}
+      WHERE s."recordedAt" >= ${start}::timestamp AND s."recordedAt" < ${endExclusive}::timestamp
     ),
     empty_episodes AS (
       SELECT "stationId", 'empty' AS kind, MIN("recordedAt") AS "startedAt", MAX("recordedAt") AS "endedAt",
@@ -253,20 +267,91 @@ async function getPersistedMonthlyEpisodes(
   return map;
 }
 
+/** Desde que muestra (inclusive) hay que releer una estacion. */
+export type StationEpisodeWindow = { stationId: string; after: Date };
+
+function stationWindowValues(windows: readonly StationEpisodeWindow[]): Prisma.Sql {
+  return Prisma.join(
+    windows.map((window) => Prisma.sql`(${window.stationId}, ${window.after.toISOString()}::timestamp)`)
+  );
+}
+
+/** Margen sobre el ultimo refresco por si llegan snapshots con retraso. */
+const INCREMENTAL_OVERLAP_MS = 60 * 60 * 1000;
+/** Hasta donde se busca el ancla; una estacion critica mas tiempo se relee entera. */
+const ANCHOR_LOOKBACK_MS = 48 * 60 * 60 * 1000;
+/** Con un refresco mas antiguo (job caido) se recalcula el mes completo. */
+const MAX_INCREMENTAL_GAP_MS = 26 * 60 * 60 * 1000;
+
 /**
- * Recalcula la tabla de episodios de un mes. Es idempotente: borra e inserta
- * dentro de una transaccion corta. Se llama al sellar el mes y, para el mes en
- * curso, desde el job horario.
+ * Ancla de cada estacion: su ultima muestra antes de `boundary` sin bicis a
+ * cero ni anclajes a cero. Ninguna racha abierta en `boundary` empieza antes,
+ * asi que todo episodio anterior al ancla ya es definitivo. Sin ancla en la
+ * ventana, la estacion se relee desde el inicio del mes.
+ */
+async function getStationEpisodeWindows(
+  monthStart: Date,
+  boundary: Date
+): Promise<StationEpisodeWindow[]> {
+  const lookbackStart = new Date(Math.max(monthStart.getTime(), boundary.getTime() - ANCHOR_LOOKBACK_MS));
+  const rows = await prisma.$queryRaw<Array<{ stationId: string; anchorAt: Date | string | null }>>`
+    SELECT st.id AS "stationId", a."recordedAt" AS "anchorAt"
+    FROM "Station" st
+    LEFT JOIN LATERAL (
+      SELECT "recordedAt"
+      FROM "StationStatus"
+      WHERE "stationId" = st.id
+        AND "recordedAt" >= ${lookbackStart.toISOString()}::timestamp
+        AND "recordedAt" < ${boundary.toISOString()}::timestamp
+        AND "bikesAvailable" > 0
+        AND "anchorsFree" > 0
+      ORDER BY "recordedAt" DESC
+      LIMIT 1
+    ) a ON true;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    after: row.anchorAt ? toDate(row.anchorAt) : monthStart,
+  }));
+}
+
+/**
+ * Recalcula la tabla de episodios de un mes dentro de una transaccion. Se llama
+ * cada hora para el mes en curso y al sellar el mes cerrado.
+ *
+ * Si el ultimo refresco es reciente, solo se releen las muestras posteriores al
+ * ancla de cada estacion (ver `getStationEpisodeWindows`) y se reemplazan los
+ * episodios que empiezan despues de ella; el resto del mes no cambia. Si no hay
+ * refresco reciente, se borra y recalcula el mes completo.
  */
 export async function refreshMonthlyCriticalEpisodes(
   monthKey: string
-): Promise<{ monthKey: string; episodes: number }> {
+): Promise<{ monthKey: string; episodes: number; mode: 'full' | 'incremental' }> {
   if (!isValidMonthKey(monthKey)) {
-    return { monthKey, episodes: 0 };
+    return { monthKey, episodes: 0, mode: 'full' };
   }
 
   const startedAt = Date.now();
-  const rows = await getMonthlyEpisodeRows(monthKey);
+  const watermarkKey = `critical-episodes:${monthKey}`;
+  const lastRefresh = await findWatermark(watermarkKey);
+  const { start, endExclusive } = getMonthBounds(monthKey);
+  const monthStart = new Date(start);
+  const monthEnd = new Date(endExclusive);
+  const windows =
+    lastRefresh !== null && startedAt - lastRefresh.getTime() <= MAX_INCREMENTAL_GAP_MS
+      ? await getStationEpisodeWindows(
+          monthStart,
+          new Date(
+            Math.min(
+              monthEnd.getTime(),
+              Math.max(monthStart.getTime(), lastRefresh.getTime() - INCREMENTAL_OVERLAP_MS)
+            )
+          )
+        )
+      : undefined;
+
+  const rows = await getMonthlyEpisodeRows(monthKey, windows);
   const data = rows.map((row) => ({
     stationId: row.stationId,
     kind: row.kind,
@@ -278,7 +363,22 @@ export async function refreshMonthlyCriticalEpisodes(
 
   await prisma.$transaction(
     async (tx) => {
-      await tx.stationCriticalEpisode.deleteMany({ where: { monthKey } });
+      if (windows) {
+        if (windows.length > 0) {
+          // El ancla no es critica, asi que ningun episodio empieza en ella: se
+          // conservan los anteriores y se borran los que se van a reinsertar.
+          // Para estaciones sin ancla `after` es el inicio del mes y se borran todos.
+          await tx.$executeRaw`
+            DELETE FROM "StationCriticalEpisode" e
+            USING (VALUES ${stationWindowValues(windows)}) AS w("stationId", "after")
+            WHERE e."monthKey" = ${monthKey}
+              AND e."stationId" = w."stationId"
+              AND e."startedAt" >= w."after";
+          `;
+        }
+      } else {
+        await tx.stationCriticalEpisode.deleteMany({ where: { monthKey } });
+      }
 
       for (let index = 0; index < data.length; index += 5_000) {
         await tx.stationCriticalEpisode.createMany({
@@ -289,15 +389,17 @@ export async function refreshMonthlyCriticalEpisodes(
     { timeout: 120_000 }
   );
 
-  await setWatermark(`critical-episodes:${monthKey}`, new Date());
+  await setWatermark(watermarkKey, new Date());
 
+  const mode = windows ? 'incremental' : 'full';
   logger.info('analytics.critical_episodes_refreshed', {
     month: monthKey,
+    mode,
     episodes: data.length,
     durationMs: Date.now() - startedAt,
   });
 
-  return { monthKey, episodes: data.length };
+  return { monthKey, episodes: data.length, mode };
 }
 
 /**
