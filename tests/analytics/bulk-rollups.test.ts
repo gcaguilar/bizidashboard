@@ -96,7 +96,7 @@ describe('analytics bulk rollups', () => {
     expect(result.upsertedCount).toBe(0);
   });
 
-  it('splits alert upserts into bounded chunks after deactivating existing alerts', async () => {
+  it('splits alert upserts into bounded chunks and deactivates older windows', async () => {
     const hourlyStats = buildHourlyStats(800).map((row) => ({
       stationId: row.stationId,
       bikesAvg: row.bikesAvg,
@@ -108,7 +108,12 @@ describe('analytics bulk rollups', () => {
     const result = await runAlertRollup(cutoff);
     const expectedAlertCount = hourlyStats.length * 2;
 
-    expect(executeRawMock).toHaveBeenCalledTimes(chunkRowsForBulkQuery(new Array(expectedAlertCount), 7).length);
+    const upsertCalls = chunkRowsForBulkQuery(new Array(expectedAlertCount), 7).length;
+    expect(executeRawMock).toHaveBeenCalledTimes(upsertCalls + 1);
+    // Tras los upserts se desactiva toda fila activa de ventanas anteriores.
+    const deactivation = (executeRawMock.mock.calls[upsertCalls][0] as TemplateStringsArray).join('?');
+    expect(deactivation).toContain('"generatedAt" < ?');
+    expect(executeRawMock.mock.calls[upsertCalls][1]).toEqual(cutoff);
     expect(result.processedCount).toBe(hourlyStats.length);
     expect(result.upsertedCount).toBe(expectedAlertCount);
     expect(setWatermarkMock).toHaveBeenCalledWith('alert-rollup', cutoff);

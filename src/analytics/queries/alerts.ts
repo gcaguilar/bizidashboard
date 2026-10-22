@@ -23,24 +23,6 @@ interface AlertRow {
 
 const ALERT_WATERMARK = 'alert-rollup';
 
-const DEACTIVATE_BATCH_SIZE = 50;
-
-export async function deactivateActiveAlerts(): Promise<void> {
-  let updated: number;
-  do {
-    const result = await prisma.$executeRaw`
-      UPDATE "StationAlert" SET "isActive" = false
-      WHERE "id" IN (
-        SELECT "id" FROM "StationAlert"
-        WHERE "isActive" = true
-        LIMIT ${DEACTIVATE_BATCH_SIZE}
-        FOR UPDATE SKIP LOCKED
-      )
-    `;
-    updated = Number(result);
-  } while (updated >= DEACTIVATE_BATCH_SIZE);
-}
-
 export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
   const windowEnd = cutoff;
   const windowStart = new Date(
@@ -146,18 +128,15 @@ export async function runAlertRollup(cutoff: Date): Promise<RollupResult> {
     }
   }
 
-  // Then deactivate only for stations that no longer meet criteria
-  if (aggregates.size === 0) {
-    await deactivateActiveAlerts();
-  } else {
-    const stationIdsWithIssues = new Set(alerts.map((a) => a.stationId));
-    const resolvedStations = Array.from(aggregates.keys()).filter(
-      (id: string) => !stationIdsWithIssues.has(id)
-    );
-    if (resolvedStations.length > 0) {
-      await prisma.$executeRaw`UPDATE "StationAlert" SET "isActive" = false WHERE "isActive" = true AND "stationId" IN (${Prisma.join(resolvedStations)});`;
-    }
-  }
+  // Activa = de la ultima ventana. Antes solo se desactivaban las estaciones
+  // ya resueltas, asi que una estacion que seguia en alerta acumulaba una fila
+  // activa por hora (hasta la retencion de 14 dias): `/api/alerts` devolvia
+  // estaciones repetidas y la home inflaba el numero de alertas activas. Una
+  // sola sentencia sobre el indice (isActive, generatedAt) cubre ambos casos.
+  await prisma.$executeRaw`
+    UPDATE "StationAlert" SET "isActive" = false
+    WHERE "isActive" = true AND "generatedAt" < ${windowEnd};
+  `;
 
   await setWatermark(ALERT_WATERMARK, windowEnd);
 
