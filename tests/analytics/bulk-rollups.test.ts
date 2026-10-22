@@ -80,6 +80,8 @@ describe('analytics bulk rollups', () => {
     expect(sql).toContain(`INSERT INTO ${table}`);
     expect(sql).toContain('SUM("bikesAvg" * "sampleCount") / NULLIF(SUM("sampleCount"), 0)');
     expect(sql).toContain('GROUP BY 1, 2, 3');
+    // Solo se reescriben las celdas que cambian.
+    expect(sql).toContain('IS DISTINCT FROM excluded."sampleCount"');
     expect(result.upsertedCount).toBe(42);
     expect(setWatermarkMock).toHaveBeenCalledWith(watermarkKey, cutoff);
   });
@@ -124,5 +126,15 @@ describe('analytics bulk rollups', () => {
 
     expect(chunks.length).toBeGreaterThan(1);
     expect(chunks.every((chunk) => chunk.length * 7 <= 5_000)).toBe(true);
+  });
+
+  it('derives station patterns from the freshly written heatmap cells', async () => {
+    executeRawMock.mockResolvedValue(1);
+
+    await runPatternRollup(cutoff);
+
+    const sql = (executeRawMock.mock.calls[0][0] as { sql: string }).sql;
+    expect(sql).toContain('FROM "StationHeatmapCell"');
+    expect(sql).not.toContain('"HourlyStationStat"');
   });
 });

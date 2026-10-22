@@ -144,17 +144,7 @@ async function runAnalyticsAggregationInner(): Promise<void> {
         cutoff: hourlyCutoff.toISOString(),
       });
 
-      await ensureLockRefreshed(lock, 'before-pattern-rollup', 'analytics');
-      const patternStart = Date.now();
-      const patternResult = await runPatternRollup(hourlyCutoff);
-      const patternDuration = Date.now() - patternStart;
-
-      logger.info('analytics.pattern_rollup_completed', {
-        upsertedCount: patternResult.upsertedCount,
-        durationMs: patternDuration,
-        cutoff: hourlyCutoff.toISOString(),
-      });
-
+      // El heatmap va primero: el patron se deriva de sus celdas recien escritas.
       await ensureLockRefreshed(lock, 'before-heatmap-rollup', 'analytics');
       const heatmapStart = Date.now();
       const heatmapResult = await runHeatmapRollup(hourlyCutoff);
@@ -163,6 +153,17 @@ async function runAnalyticsAggregationInner(): Promise<void> {
       logger.info('analytics.heatmap_rollup_completed', {
         upsertedCount: heatmapResult.upsertedCount,
         durationMs: heatmapDuration,
+        cutoff: hourlyCutoff.toISOString(),
+      });
+
+      await ensureLockRefreshed(lock, 'before-pattern-rollup', 'analytics');
+      const patternStart = Date.now();
+      const patternResult = await runPatternRollup(hourlyCutoff);
+      const patternDuration = Date.now() - patternStart;
+
+      logger.info('analytics.pattern_rollup_completed', {
+        upsertedCount: patternResult.upsertedCount,
+        durationMs: patternDuration,
         cutoff: hourlyCutoff.toISOString(),
       });
     }

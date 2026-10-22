@@ -9,7 +9,12 @@ const HEATMAP_WATERMARK = 'heatmap_rollup';
 
 /**
  * Celda por estacion, dia de la semana y hora local sobre la ventana de
- * ranking, agregada en SQL y ponderada por `sampleCount` (ver `runPatternRollup`).
+ * ranking, agregada en SQL y ponderada por `sampleCount`.
+ *
+ * La ventana es de 14 dias exactos: cada hora entra y sale la misma celda
+ * (dia y hora), asi que casi todas las filas recalculadas son identicas. El
+ * `WHERE` del upsert solo reescribe las que cambian (<1 %), en vez de generar
+ * ~46k tuplas muertas y su WAL cada hora.
  */
 export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
   const watermark = await getWatermark(HEATMAP_WATERMARK, new Date(0));
@@ -41,7 +46,11 @@ export async function runHeatmapRollup(cutoff: Date): Promise<RollupResult> {
       "bikesAvg" = excluded."bikesAvg",
       "anchorsAvg" = excluded."anchorsAvg",
       "occupancyAvg" = excluded."occupancyAvg",
-      "sampleCount" = excluded."sampleCount";
+      "sampleCount" = excluded."sampleCount"
+    WHERE "StationHeatmapCell"."sampleCount" IS DISTINCT FROM excluded."sampleCount"
+      OR abs("StationHeatmapCell"."bikesAvg" - excluded."bikesAvg") > 1e-9
+      OR abs("StationHeatmapCell"."anchorsAvg" - excluded."anchorsAvg") > 1e-9
+      OR abs("StationHeatmapCell"."occupancyAvg" - excluded."occupancyAvg") > 1e-9;
   `);
 
   await setWatermark(HEATMAP_WATERMARK, cutoff);
