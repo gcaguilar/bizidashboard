@@ -468,16 +468,18 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     [updateUrlState]
   );
 
+  const isMobilityPreviewEnabled = showFull && viewMode === 'research';
   const mobilityQuery = useQuery({
     ...mobilityQueryOptions({
       mobilityDays: activeWindow.mobilityDays,
       demandDays: activeWindow.demandDays,
       month: parsedSearch.month,
     }),
-    enabled: showFull,
+    // Solo la vista de investigacion consume la serie de movilidad.
+    enabled: isMobilityPreviewEnabled,
   });
   const mobilityPreview = mobilityQuery.data ?? EMPTY_MOBILITY_PREVIEW;
-  const isMobilityPreviewLoading = showFull && mobilityQuery.isFetching;
+  const isMobilityPreviewLoading = isMobilityPreviewEnabled && mobilityQuery.isFetching;
 
   useEffect(() => {
     if (mobilityQuery.error) {
