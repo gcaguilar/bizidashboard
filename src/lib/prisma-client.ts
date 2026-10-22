@@ -27,6 +27,19 @@ function parseTimeoutMs(name: string): number | null {
   return parsed
 }
 
+function parsePositiveInt(name: string): number | null {
+  const parsed = parseTimeoutMs(name)
+  return parsed !== null && parsed > 0 ? parsed : null
+}
+
+/**
+ * `pg.Pool` usa 10 por defecto. Con las reglas de caché del CDN (Fase 4.3)
+ * los misses concurrentes pueden agotar ese pool; 20 da margen sin acercarse
+ * al `max_connections` habitual de un Postgres gestionado. Es por proceso:
+ * web y jobs configuran el suyo.
+ */
+const DEFAULT_DATABASE_POOL_MAX = 20
+
 /**
  * `search_path` plus optional server-side timeouts. Public API routes set
  * `DATABASE_STATEMENT_TIMEOUT_MS` so a runaway aggregation cannot hold a pool
@@ -59,10 +72,13 @@ export async function createPostgresPrismaClient({
 
   const schema = normalizeDatabaseSchemaName(city)
   const connectionString = stripPrismaSchemaParam(databaseUrl)
+  const poolMax = parsePositiveInt('DATABASE_POOL_MAX') ?? DEFAULT_DATABASE_POOL_MAX
   const adapter = new PrismaPg(
     {
       connectionString,
       options: buildPgConnectionOptions(schema),
+      // `PrismaPg` acepta un `pg.PoolConfig` completo; `max` viaja al pool real.
+      max: poolMax,
     },
     {
       schema,
