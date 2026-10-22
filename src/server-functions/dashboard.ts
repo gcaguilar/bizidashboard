@@ -27,7 +27,12 @@ function toErrorMessage(error: unknown): string {
 
 function isMissingTableError(error: unknown): boolean {
   const message = toErrorMessage(error).toLowerCase();
-  if (message.includes('no such table') || message.includes('p2021')) {
+  if (
+    message.includes('no such table') ||
+    message.includes('p2021') ||
+    message.includes('42p01') ||
+    (message.includes('relation') && message.includes('does not exist'))
+  ) {
     return true;
   }
 
