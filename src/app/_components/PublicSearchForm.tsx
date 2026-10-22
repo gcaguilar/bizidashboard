@@ -6,15 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
-import { parseJsonStringArray, useStorageValue } from '@/lib/use-storage-value';
+import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
 import {
   buildSearchSubmitEvent,
   resolveRouteKeyFromPathname,
   trackUmamiEvent,
 } from '@/lib/umami';
 
-const FAVORITES_KEY = 'bizidashboard-favorite-stations';
-const EMPTY_FAVORITE_IDS: string[] = [];
 const MAX_SUGGESTIONS = 8;
 
 export type StationSuggestion = {
@@ -69,7 +67,7 @@ export function PublicSearchForm({
   const [fetchedStations, setFetchedStations] = useState<StationSuggestion[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS);
+  const { favoriteStationIds: favoriteIds } = useFavoriteStations();
 
   const suggestionPool = stations ?? fetchedStations;
 

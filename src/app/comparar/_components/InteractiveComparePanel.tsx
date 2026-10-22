@@ -2,7 +2,7 @@
 
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFavorites } from '@/app/_components/HomeFavoritesClient';
+import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { CompareEntitySelect } from '@/app/comparar/_components/CompareEntitySelect';
 import { CompareMetricColumns } from '@/app/comparar/_components/CompareMetricColumns';
@@ -183,7 +183,7 @@ export function InteractiveComparePanel({
   const [presetNote, setPresetNote] = useState<string | null>(null);
   const lastSyncedHref = useRef<string | null>(null);
 
-  const { favoriteIds, toggleFavorite } = useFavorites();
+  const { favoriteStationIds: favoriteIds, toggleFavoriteStation: toggleFavorite } = useFavoriteStations();
   const { savedComparisons, saveComparison, removeComparison } = useSavedComparisons();
   const presets = data.presets ?? [];
 

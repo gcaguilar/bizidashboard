@@ -5,7 +5,7 @@ import { useLocation } from '@tanstack/react-router';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
-import { parseJsonStringArray, useStorageValue } from '@/lib/use-storage-value';
+import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,9 +14,6 @@ import {
   buildFilterChangeEvent,
   resolveRouteKeyFromPathname,
 } from '@/lib/umami';
-
-const FAVORITES_KEY = 'bizidashboard-favorite-stations';
-const EMPTY_FAVORITE_IDS: string[] = [];
 
 type FilterKey = 'todas' | 'con-bicis' | 'con-huecos' | 'casi-vacias' | 'casi-llenas' | 'favoritas';
 
@@ -56,7 +53,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const [filter, setFilter] = useState<FilterKey>('todas');
   const [sort, setSort] = useState<SortKey>('bicis');
-  const favoriteIds = useStorageValue(FAVORITES_KEY, parseJsonStringArray, EMPTY_FAVORITE_IDS);
+  const { favoriteStationIds: favoriteIds } = useFavoriteStations();
 
   const filteredAndSorted = useMemo(() => {
     let result = [...stationRows];
