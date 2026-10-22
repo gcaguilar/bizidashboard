@@ -22,6 +22,11 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
+vi.mock('@/lib/cache/rollup-version', () => ({
+  getRollupVersion: vi.fn().mockResolvedValue('v1'),
+  ROLLUP_SERIES_TTL_SECONDS: 7200,
+}));
+
 vi.mock('@/services/shared-data', () => ({
   getSharedDatasetSnapshot: vi.fn().mockResolvedValue(null),
   getPipelineStatusSummary: vi.fn().mockResolvedValue(null),
@@ -65,8 +70,8 @@ describe('mobility read model', () => {
     const payload = await getMobilityData({ mobilityDays: 45, demandDays: 8 });
 
     expect(withCacheMock).toHaveBeenCalledWith(
-      'mobility:mobilityDays=30:demandDays=7:month=all',
-      300,
+      'mobility:mobilityDays=30:demandDays=7:month=all:rollup=v1',
+      7200,
       expect.any(Function)
     );
     expect(payload.mobilityDays).toBe(30);
@@ -80,8 +85,8 @@ describe('mobility read model', () => {
     const payload = await getMobilityData();
 
     expect(withCacheMock).toHaveBeenCalledWith(
-      'mobility:mobilityDays=14:demandDays=30:month=all',
-      300,
+      'mobility:mobilityDays=14:demandDays=30:month=all:rollup=v1',
+      7200,
       expect.any(Function)
     );
     expect(payload.mobilityDays).toBe(14);

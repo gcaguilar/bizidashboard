@@ -8,9 +8,9 @@ import {
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
-import { isValidMonthKey } from '@/lib/months';
+import { getRollupVersion, ROLLUP_SERIES_TTL_SECONDS } from '@/lib/cache/rollup-version';
+import { getMonthBounds, isValidMonthKey } from '@/lib/months';
 
-const LIVE_SERIES_TTL_SECONDS = 300;
 const MONTHLY_SERIES_TTL_SECONDS = 1800;
 /**
  * La red completa con su último snapshot. La colección GBFS corre cada 2 min,
@@ -19,6 +19,32 @@ const MONTHLY_SERIES_TTL_SECONDS = 1800;
  * `/api/rankings` (predictions ya resuelve una sola fila).
  */
 const STATIONS_LATEST_TTL_SECONDS = 60;
+
+/** Un mes cerrado hace mas de dos horas ya no recibe rollups: es inmutable. */
+const CLOSED_MONTH_GRACE_MS = 2 * 60 * 60 * 1000;
+const CLOSED_MONTH_SERIES_TTL_SECONDS = 24 * 60 * 60;
+
+/**
+ * Clave y TTL de una serie leida de los rollups. Las abiertas llevan la version
+ * de rollup (ver `rollup-version.ts`) y duran hasta el siguiente rollup; las de
+ * un mes cerrado no cambian y se guardan un dia.
+ */
+async function rollupSeriesCache(
+  baseKey: string,
+  monthKey: string | null
+): Promise<{ key: string; ttlSeconds: number }> {
+  if (
+    monthKey &&
+    new Date(getMonthBounds(monthKey).endExclusive).getTime() + CLOSED_MONTH_GRACE_MS < Date.now()
+  ) {
+    return { key: baseKey, ttlSeconds: CLOSED_MONTH_SERIES_TTL_SECONDS };
+  }
+
+  return {
+    key: `${baseKey}:rollup=${await getRollupVersion()}`,
+    ttlSeconds: ROLLUP_SERIES_TTL_SECONDS,
+  };
+}
 
 export type StationsWithLatestStatusRow = Awaited<
   ReturnType<typeof getStationsWithLatestStatus>
@@ -58,10 +84,13 @@ export async function fetchCachedDailyDemandCurve(
   const normalizedDays = normalizeDays(days);
   const normalizedMonth = normalizeMonthKey(monthKey);
 
-  return withCache(
+  const cache = await rollupSeriesCache(
     `analytics:daily-demand:days=${normalizedDays}:month=${normalizedMonth ?? 'all'}`,
-    LIVE_SERIES_TTL_SECONDS,
-    () => getDailyDemandCurve(normalizedDays, normalizedMonth ?? undefined)
+    normalizedMonth ?? null
+  );
+
+  return withCache(cache.key, cache.ttlSeconds, () =>
+    getDailyDemandCurve(normalizedDays, normalizedMonth ?? undefined)
   );
 }
 
@@ -84,10 +113,13 @@ export async function fetchCachedSystemHourlyProfile(
   const normalizedDays = normalizeDays(days);
   const normalizedMonth = normalizeMonthKey(monthKey);
 
-  return withCache(
+  const cache = await rollupSeriesCache(
     `analytics:system-hourly-profile:days=${normalizedDays}:month=${normalizedMonth ?? 'all'}`,
-    LIVE_SERIES_TTL_SECONDS,
-    () => getSystemHourlyProfile(normalizedDays, normalizedMonth ?? undefined)
+    normalizedMonth ?? null
+  );
+
+  return withCache(cache.key, cache.ttlSeconds, () =>
+    getSystemHourlyProfile(normalizedDays, normalizedMonth ?? undefined)
   );
 }
 
@@ -98,27 +130,28 @@ export async function fetchCachedHourlyMobilitySignals(
   const normalizedDays = normalizeDays(days);
   const normalizedMonth = normalizeMonthKey(monthKey);
 
-  return withCache(
+  const cache = await rollupSeriesCache(
     `analytics:hourly-mobility-signals:days=${normalizedDays}:month=${normalizedMonth ?? 'all'}`,
-    LIVE_SERIES_TTL_SECONDS,
-    () => getHourlyMobilitySignals(normalizedDays, normalizedMonth ?? undefined)
+    normalizedMonth ?? null
+  );
+
+  return withCache(cache.key, cache.ttlSeconds, () =>
+    getHourlyMobilitySignals(normalizedDays, normalizedMonth ?? undefined)
   );
 }
 
-/**
- * Perfil horario por estacion para el comparador ("efecto marea"). Se cachea con
- * la misma TTL corta que el resto de series vivas porque depende de la ingesta.
- */
+/** Perfil horario por estacion para el comparador ("efecto marea"). */
 export async function fetchCachedStationHourlyProfiles(
   days = 30
 ): Promise<StationHourlyProfileSeriesRow[]> {
   const normalizedDays = normalizeDays(days);
 
-  return withCache(
+  const cache = await rollupSeriesCache(
     `analytics:station-hourly-profiles:days=${normalizedDays}`,
-    LIVE_SERIES_TTL_SECONDS,
-    () => getStationHourlyProfiles(normalizedDays)
+    null
   );
+
+  return withCache(cache.key, cache.ttlSeconds, () => getStationHourlyProfiles(normalizedDays));
 }
 
 /** Demanda diaria por estacion para comparaciones "hoy vs mismo dia de la semana". */
@@ -127,11 +160,12 @@ export async function fetchCachedStationDailyDemand(
 ): Promise<StationDailyDemandSeriesRow[]> {
   const normalizedDays = normalizeDays(days);
 
-  return withCache(
+  const cache = await rollupSeriesCache(
     `analytics:station-daily-demand:days=${normalizedDays}`,
-    LIVE_SERIES_TTL_SECONDS,
-    () => getStationDailyDemand(normalizedDays)
+    null
   );
+
+  return withCache(cache.key, cache.ttlSeconds, () => getStationDailyDemand(normalizedDays));
 }
 
 /**
@@ -145,4 +179,23 @@ export async function fetchCachedStationsWithLatestStatus(): Promise<StationsWit
     STATIONS_LATEST_TTL_SECONDS,
     () => getStationsWithLatestStatus()
   );
+}
+
+/**
+ * `true` si el id pertenece a la red (o si la lista no esta disponible, para no
+ * rechazar peticiones validas). Evita que ids inventados lleguen a la base o
+ * llenen Redis de entradas vacias.
+ */
+export async function isKnownStationId(stationId: string): Promise<boolean> {
+  const stations = await fetchCachedStationsWithLatestStatus().catch(() => []);
+  return stations.length === 0 || stations.some((station) => station.id === stationId);
+}
+
+/** Cache de un rollup por estacion (patron, heatmap), versionada por rollup. */
+export async function withStationRollupCache<T>(
+  baseKey: string,
+  fetcher: () => Promise<T>
+): Promise<T> {
+  const cache = await rollupSeriesCache(baseKey, null);
+  return withCache(cache.key, cache.ttlSeconds, fetcher);
 }

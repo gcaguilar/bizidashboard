@@ -30,6 +30,11 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: withCacheMock,
 }));
 
+vi.mock('@/lib/cache/rollup-version', () => ({
+  getRollupVersion: vi.fn().mockResolvedValue('v1'),
+  ROLLUP_SERIES_TTL_SECONDS: 7200,
+}));
+
 import {
   fetchCachedDailyDemandCurve,
   fetchCachedHourlyMobilitySignals,
@@ -61,14 +66,15 @@ describe('analytics series cache wrappers', () => {
 
     expect(withCacheMock).toHaveBeenNthCalledWith(
       1,
+      // Un mes cerrado es inmutable: sin version de rollup y un dia de TTL.
       'analytics:daily-demand:days=30:month=2026-03',
-      300,
+      86_400,
       expect.any(Function)
     );
     expect(withCacheMock).toHaveBeenNthCalledWith(
       2,
-      'analytics:hourly-mobility-signals:days=14:month=all',
-      300,
+      'analytics:hourly-mobility-signals:days=14:month=all:rollup=v1',
+      7200,
       expect.any(Function)
     );
     expect(getDailyDemandCurveMock).toHaveBeenCalledWith(30, '2026-03');
@@ -90,8 +96,8 @@ describe('analytics series cache wrappers', () => {
     );
     expect(withCacheMock).toHaveBeenNthCalledWith(
       2,
-      'analytics:system-hourly-profile:days=1:month=all',
-      300,
+      'analytics:system-hourly-profile:days=1:month=all:rollup=v1',
+      7200,
       expect.any(Function)
     );
     expect(getMonthlyDemandCurveMock).toHaveBeenCalledWith(99);

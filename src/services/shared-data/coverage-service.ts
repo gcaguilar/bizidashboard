@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { withCache } from '@/lib/cache/cache';
+import { getRollupVersion, ROLLUP_SERIES_TTL_SECONDS } from '@/lib/cache/rollup-version';
 import { prisma } from '@/lib/db';
 import { toNumber } from '@/lib/format';
 import { logger } from '@/lib/logger';
@@ -87,7 +88,27 @@ async function readCoverageTotals(): Promise<CoverageTotalsRow[]> {
       COALESCE(SUM("sampleCount"), 0) AS "totalSamples",
       COUNT(DISTINCT "bucketDate") AS "totalDays"
     FROM "DailyStationStat";
-  `.catch((error) => {
+  `;
+}
+
+/**
+ * The totals scan the whole `DailyStationStat` table (no retention), but only
+ * change when the hourly rollup lands: they are cached under the rollup
+ * version instead of being recomputed with the 5-minute coverage entry.
+ * Numbers are normalised first because `bigint` is not JSON-serialisable.
+ */
+async function readCachedCoverageTotals(): Promise<CoverageTotalsRow[]> {
+  // The error is caught outside `withCache` so a transient failure is not
+  // cached for the whole rollup window.
+  return withCache(
+    `shared-data:coverage-totals:rollup=${await getRollupVersion()}`,
+    ROLLUP_SERIES_TTL_SECONDS,
+    async () =>
+      (await readCoverageTotals()).map((row) => ({
+        totalSamples: toNumber(row.totalSamples),
+        totalDays: toNumber(row.totalDays),
+      }))
+  ).catch((error) => {
     logger.warn('shared_data.coverage_totals_failed', { error });
     return [];
   });
@@ -123,7 +144,7 @@ export const getCoverageSummary = cache(async (): Promise<CoverageSummary> => {
         logger.warn('shared_data.coverage_stations_failed', { error });
         return [];
       }),
-      readCoverageTotals(),
+      readCachedCoverageTotals(),
     ]);
 
     const coverage = coverageRows[0] ?? {

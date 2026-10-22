@@ -3,6 +3,7 @@ import { avgDemand, coalesceSumDemand, sumDemand } from '@/analytics/queries/dem
 import { localHour } from '@/analytics/queries/local-time-sql';
 import { prisma } from '@/lib/db';
 import { withCache } from '@/lib/cache/cache';
+import { getRollupVersion, ROLLUP_SERIES_TTL_SECONDS } from '@/lib/cache/rollup-version';
 import { buildStationDistrictMap, fetchDistrictCollection } from '@/lib/districts';
 import { formatRatioDelta, roundTo, toNumber } from '@/lib/format';
 import { formatMonthLabel, getMonthBounds, isValidMonthKey } from '@/lib/months';
@@ -23,7 +24,6 @@ type CoverageRow = {
   firstDay: string | null;
   lastDay: string | null;
   totalDays: number | null;
-  stationsWithData: number | null;
 };
 
 type NumericRow = {
@@ -648,10 +648,9 @@ function hasSameSourceLastDay(cachedSourceLastDay: Date | null, sourceLastDay: D
 async function getCoverageSignature(): Promise<CoverageSignature> {
   const [coverage] = await prisma.$queryRaw<CoverageRow[]>`
     SELECT
-      MIN(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "firstDay",
-      MAX(TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "lastDay",
-      COUNT(DISTINCT TO_CHAR("bucketDate", 'YYYY-MM-DD')) AS "totalDays",
-      COUNT(DISTINCT "stationId") AS "stationsWithData"
+      TO_CHAR(MIN("bucketDate"), 'YYYY-MM-DD') AS "firstDay",
+      TO_CHAR(MAX("bucketDate"), 'YYYY-MM-DD') AS "lastDay",
+      COUNT(DISTINCT "bucketDate"::date) AS "totalDays"
     FROM "DailyStationStat";
   `;
 
@@ -697,6 +696,20 @@ export async function getDailyMobilityConclusions(monthKey?: string | null): Pro
     };
   }
 
+  // Sin cache en Redis cada visita leia `MobilityBriefingCache` y escaneaba
+  // `DailyStationStat` entero para validar la firma de cobertura. El resultado
+  // solo cambia con el dia o con un rollup nuevo, que van en la clave.
+  return withCache(
+    `mobility:conclusions:day=${dateKey}:rollup=${await getRollupVersion()}`,
+    ROLLUP_SERIES_TTL_SECONDS,
+    () => loadDailyMobilityConclusions(dateKey)
+  );
+}
+
+async function loadDailyMobilityConclusions(dateKey: string): Promise<{
+  payload: MobilityConclusionsPayload;
+  fromCache: boolean;
+}> {
   let cached: CachedBriefingRecord | null = null;
   let cacheTableAvailable = true;
 

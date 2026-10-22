@@ -26,6 +26,7 @@ import { defineCronJob } from './cron-job';
 import { buildStationsPayload, STATIONS_CACHE_KEY } from '@/lib/data-fetcher';
 import { getHistorySeries } from '@/lib/history-read-model';
 import { getMobilityData } from '@/lib/mobility-read-model';
+import { bumpRollupVersion } from '@/lib/cache/rollup-version';
 import { buildMonthlyReport } from '@/lib/monthly-report';
 
 const LIVE_CACHE_TTL_SECONDS = CacheTTL.LIVE;
@@ -241,6 +242,10 @@ async function runAnalyticsAggregationInner(): Promise<void> {
       });
       logger.warn('analytics.critical_episodes_failed', { error });
     }
+
+    // Las series cacheadas llevan la version de rollup en la clave: al subirla
+    // caducan todas a la vez y el precalentamiento rellena ya las nuevas.
+    await bumpRollupVersion();
 
     // Warm cache for high-traffic endpoints after rollups complete
     await warmCache();

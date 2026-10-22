@@ -4,6 +4,7 @@ import {
   getSystemHourlyProfile,
 } from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
+import { getRollupVersion, ROLLUP_SERIES_TTL_SECONDS } from '@/lib/cache/rollup-version';
 import { getSharedDatasetSnapshot, getPipelineStatusSummary } from '@/services/shared-data';
 import { resolveDataState, type DataState } from '@/lib/data-state';
 
@@ -40,8 +41,6 @@ type MobilityPayload = {
   generatedAt: string;
   dataState: DataState;
 };
-
-const CACHE_TTL_SECONDS = 300;
 
 /**
  * Ventanas canónicas de `/api/mobility`. Cuantizar hacia abajo acota el espacio
@@ -96,46 +95,71 @@ export async function getMobilityData(options?: {
   );
   const monthKey = options?.monthKey ?? null;
 
-  const cacheKey = `mobility:mobilityDays=${requestedMobilityDays}:demandDays=${requestedDemandDays}:month=${monthKey ?? 'all'}`;
+  // Las series salen de los rollups: la clave lleva su version y dura hasta el
+  // siguiente rollup. La frescura de la ingesta cambia cada pocos minutos, asi
+  // que `dataState` se resuelve fuera de la entrada cacheada.
+  const cacheKey = `mobility:mobilityDays=${requestedMobilityDays}:demandDays=${requestedDemandDays}:month=${monthKey ?? 'all'}:rollup=${await getRollupVersion()}`;
 
-  return withCache(cacheKey, CACHE_TTL_SECONDS, async () => {
-    const [dataset, status] = await Promise.all([
-      getSharedDatasetSnapshot().catch(() => null),
-      getPipelineStatusSummary().catch(() => null),
-    ]);
+  const [series, status] = await Promise.all([
+    withCache(cacheKey, ROLLUP_SERIES_TTL_SECONDS, () =>
+      loadMobilitySeries(requestedMobilityDays, requestedDemandDays, monthKey, 'strict')
+    ).catch(() =>
+      // Un fallo no se cachea durante toda la ventana del rollup: se responde
+      // con lo que se pueda leer (series vacias si falla) y se reintenta luego.
+      loadMobilitySeries(requestedMobilityDays, requestedDemandDays, monthKey, 'tolerant')
+    ),
+    getPipelineStatusSummary().catch(() => null),
+  ]);
 
-    const totalCoverageDays = dataset?.coverage?.totalDays ?? 0;
-    const mobilityDays = resolveWindowDays(requestedMobilityDays, totalCoverageDays);
-    const demandDays = resolveWindowDays(requestedDemandDays, totalCoverageDays);
+  const { hasCoverage, ...payload } = series;
+  const hasData =
+    payload.hourlySignals.length > 0 ||
+    payload.dailyDemand.length > 0 ||
+    payload.systemHourlyProfile.length > 0;
 
-    const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
-      getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined).catch(() => []),
-      getDailyDemandCurve(demandDays, monthKey ?? undefined).catch(() => []),
-      getSystemHourlyProfile(mobilityDays, monthKey ?? undefined).catch(() => []),
-    ]);
-
-    const hasData =
-      (hourlySignals && hourlySignals.length > 0) ||
-      (dailyDemand && dailyDemand.length > 0) ||
-      (systemHourlyProfile && systemHourlyProfile.length > 0);
-
-    const dataState = resolveDataState({
-      hasCoverage: Boolean(dataset),
+  return {
+    ...payload,
+    dataState: resolveDataState({
+      hasCoverage,
       hasData,
       isStale: status ? !status.quality.freshness.isFresh : false,
-    });
+    }),
+  };
+}
 
-    return {
-      mobilityDays,
-      demandDays,
-      selectedMonth: monthKey,
-      methodology:
-        'Matriz O-D estimada con variaciones netas horarias de bicis por estación; no representa viajes individuales observados.',
-      hourlySignals: hourlySignals ?? [],
-      dailyDemand: dailyDemand ?? [],
-      systemHourlyProfile: systemHourlyProfile ?? [],
-      generatedAt: new Date().toISOString(),
-      dataState,
-    };
-  });
+async function loadMobilitySeries(
+  requestedMobilityDays: number,
+  requestedDemandDays: number,
+  monthKey: string | null,
+  mode: 'strict' | 'tolerant'
+): Promise<Omit<MobilityPayload, 'dataState'> & { hasCoverage: boolean }> {
+  const tolerate = <T>(promise: Promise<T[]>): Promise<T[]> =>
+    mode === 'tolerant' ? promise.catch(() => []) : promise;
+  const dataset =
+    mode === 'tolerant'
+      ? await getSharedDatasetSnapshot().catch(() => null)
+      : await getSharedDatasetSnapshot();
+
+  const totalCoverageDays = dataset?.coverage?.totalDays ?? 0;
+  const mobilityDays = resolveWindowDays(requestedMobilityDays, totalCoverageDays);
+  const demandDays = resolveWindowDays(requestedDemandDays, totalCoverageDays);
+
+  const [hourlySignals, dailyDemand, systemHourlyProfile] = await Promise.all([
+    tolerate(getHourlyMobilitySignals(mobilityDays, monthKey ?? undefined)),
+    tolerate(getDailyDemandCurve(demandDays, monthKey ?? undefined)),
+    tolerate(getSystemHourlyProfile(mobilityDays, monthKey ?? undefined)),
+  ]);
+
+  return {
+    hasCoverage: Boolean(dataset),
+    mobilityDays,
+    demandDays,
+    selectedMonth: monthKey,
+    methodology:
+      'Matriz O-D estimada con variaciones netas horarias de bicis por estación; no representa viajes individuales observados.',
+    hourlySignals: hourlySignals ?? [],
+    dailyDemand: dailyDemand ?? [],
+    systemHourlyProfile: systemHourlyProfile ?? [],
+    generatedAt: new Date().toISOString(),
+  };
 }
