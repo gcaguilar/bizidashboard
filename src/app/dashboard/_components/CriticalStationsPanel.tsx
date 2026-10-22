@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatPercent } from '@/lib/format';
+import { getOccupancyRatio, hasNoAvailability, OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
 import { appRoutes } from '@/lib/routes';
 
 type CriticalStationsPanelProps = {
@@ -8,27 +10,32 @@ type CriticalStationsPanelProps = {
   density?: 'normal' | 'compact';
 };
 
-function occupancyRatio(station: StationSnapshot): number {
-  if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(1, station.bikesAvailable / station.capacity));
-}
-
 function scoreCriticality(station: StationSnapshot): number {
-  const occupancy = occupancyRatio(station);
+  const occupancy = getOccupancyRatio(station);
   const occupancyDistance = Math.abs(occupancy - 0.5);
   const emptyBonus = station.bikesAvailable <= 0 ? 1000 : 0;
   const fullBonus = station.anchorsFree <= 0 ? 900 : 0;
   return emptyBonus + fullBonus + occupancyDistance * 100;
 }
 
+function isCritical(station: StationSnapshot): boolean {
+  const occupancy = getOccupancyRatio(station);
+  return (
+    hasNoAvailability(station) ||
+    occupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty ||
+    occupancy > OCCUPANCY_THRESHOLDS.nearlyFull
+  );
+}
+
 export function CriticalStationsPanel({ stations, density = 'normal' }: CriticalStationsPanelProps) {
-  const criticalStations = stations
-    .filter((station) => station.bikesAvailable <= 0 || station.anchorsFree <= 0 || occupancyRatio(station) < 0.1 || occupancyRatio(station) > 0.9)
-    .sort((left, right) => scoreCriticality(right) - scoreCriticality(left))
-    .slice(0, 10);
+  const criticalStations = useMemo(
+    () =>
+      stations
+        .filter(isCritical)
+        .sort((left, right) => scoreCriticality(right) - scoreCriticality(left))
+        .slice(0, 10),
+    [stations]
+  );
 
   const compact = density === 'compact';
 
@@ -50,8 +57,8 @@ export function CriticalStationsPanel({ stations, density = 'normal' }: Critical
       ) : (
         <div className={`mt-4 ${compact ? 'space-y-1.5' : 'space-y-2'}`}>
           {criticalStations.map((station) => {
-            const occupancy = occupancyRatio(station);
-            const stateLabel = station.bikesAvailable <= 0 ? 'Vacía' : station.anchorsFree <= 0 ? 'Llena' : occupancy < 0.1 ? 'Muy baja' : 'Muy alta';
+            const occupancy = getOccupancyRatio(station);
+            const stateLabel = station.bikesAvailable <= 0 ? 'Vacía' : station.anchorsFree <= 0 ? 'Llena' : occupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty ? 'Muy baja' : 'Muy alta';
 
             return (
               <TrackedLink

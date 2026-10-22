@@ -5,6 +5,7 @@ import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
+import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
@@ -132,8 +133,8 @@ function StationPage() {
   const predictionAdvice = (() => {
     if (next30 === null || station.capacity <= 0) return null
     const occupancy = next30 / station.capacity
-    if (next30Anchors !== null && next30Anchors / station.capacity < 0.2) return 'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.'
-    if (occupancy < 0.2) return 'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.'
+    if (next30Anchors !== null && 1 - next30Anchors / station.capacity > OCCUPANCY_THRESHOLDS.nearlyFull) return 'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.'
+    if (occupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty) return 'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.'
     return 'Se espera que siga disponible la próxima hora.'
   })()
   const faqItems = [

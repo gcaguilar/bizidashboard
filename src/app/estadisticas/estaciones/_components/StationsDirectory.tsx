@@ -5,6 +5,7 @@ import { useLocation } from '@tanstack/react-router';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
+import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
 import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -66,10 +67,10 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
         result = result.filter((s) => s.station.anchorsFree > 0);
         break;
       case 'casi-vacias':
-        result = result.filter((s) => s.currentOccupancy < 0.15);
+        result = result.filter((s) => s.currentOccupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty);
         break;
       case 'casi-llenas':
-        result = result.filter((s) => s.currentOccupancy > 0.85);
+        result = result.filter((s) => s.currentOccupancy > OCCUPANCY_THRESHOLDS.nearlyFull);
         break;
       case 'favoritas':
         result = result.filter((s) => favoriteIds.includes(s.station.id));
@@ -208,7 +209,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
                     className="h-full rounded-full transition-all"
                     style={{
                       width: formatPercent(s.currentOccupancy),
-                      backgroundColor: s.currentOccupancy > 0.85 ? 'var(--primary)' : s.currentOccupancy < 0.15 ? 'var(--muted)' : 'var(--accent)',
+                      backgroundColor: s.currentOccupancy > OCCUPANCY_THRESHOLDS.nearlyFull ? 'var(--primary)' : s.currentOccupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty ? 'var(--muted)' : 'var(--accent)',
                     }}
                   />
                 </div>

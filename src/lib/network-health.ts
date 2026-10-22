@@ -39,6 +39,25 @@ export function hasNoAvailability(station: StationSnapshot): boolean {
   return station.bikesAvailable <= 0 || station.anchorsFree <= 0;
 }
 
+/**
+ * Umbrales únicos de ocupación para "casi vacía" / "casi llena" en paneles,
+ * filtros y avisos ciudadanos. La escala de color del mapa (`map-colors.ts`) y
+ * el motor de redistribución usan sus propias bandas a propósito.
+ */
+export const OCCUPANCY_THRESHOLDS = {
+  nearlyEmpty: 0.15,
+  nearlyFull: 0.85,
+} as const;
+
+/** Ocupación (bicis / capacidad) acotada a 0..1; 0 si la capacidad no es válida. */
+export function getOccupancyRatio(station: Pick<StationSnapshot, 'bikesAvailable' | 'capacity'>): number {
+  if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(1, station.bikesAvailable / station.capacity));
+}
+
 function isDataStale(lastUpdatedAt: string | null, nowIso?: string): boolean {
   if (!lastUpdatedAt) {
     return false;
