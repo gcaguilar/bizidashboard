@@ -125,7 +125,6 @@ model StationRanking {
 
   station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
 
-  @@index([stationId])
   @@index([windowEnd, stationId]) // For latest-window queries (getStationRankings)
   @@unique([stationId, windowStart, windowEnd])
 }
@@ -232,7 +231,6 @@ model StationCriticalEpisode {
 
   @@unique([stationId, kind, startedAt])
   @@index([monthKey, stationId])
-  @@index([monthKey, kind, durationMinutes])
   @@index([startedAt])
 }
 
@@ -293,7 +291,6 @@ model CollectionRun {
 
   @@index([startedAt])
   @@index([status, startedAt])
-  @@index([city, startedAt])
 }
 
 model SecurityEvent {
@@ -312,9 +309,6 @@ model SecurityEvent {
 
   @@index([createdAt])
   @@index([eventType, createdAt])
-  @@index([route, createdAt])
-  @@index([installId, createdAt])
-  @@index([outcome, createdAt])
 }
 
 enum ReportSubscriptionStatus {
