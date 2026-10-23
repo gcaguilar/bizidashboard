@@ -9,6 +9,7 @@ import {
 import { lazy, Suspense } from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { NavigationProgress } from './_components/NavigationProgress'
 
 import appCss from '../styles.css?url'
 
@@ -164,6 +165,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {location.pathname === '/dashboard' || location.pathname === '/dashboard/' ? (
           <h1 className="sr-only">Estado y análisis de Bizi Zaragoza: dashboard de la red</h1>
         ) : null}
+        <NavigationProgress />
         <Header />
         {children}
         <Footer footerData={footerData} />
