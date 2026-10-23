@@ -17,8 +17,6 @@ import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { formatDateTimeLabel } from '@/lib/format';
 import { buildLoginHref, useDeveloperSession } from '@/lib/use-developer-session';
-import type { RebalancingReport } from '@/types/rebalancing';
-import { fetchJson } from '@/lib/fetch-json';
 import {
   buildExportClickEvent,
   buildFilterChangeEvent,
@@ -27,6 +25,10 @@ import {
 } from '@/lib/umami';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { PageShell } from '@/components/layout/page-shell';
+import {
+  DEFAULT_ANALYSIS_DAYS,
+  rebalancingReportQueryOptions,
+} from '../rebalancing-report-query';
 import { ClassificationLegend } from './ClassificationLegend';
 import { RebalancingSummaryCards } from './RebalancingSummaryCards';
 import { RebalancingTable } from './RebalancingTable';
@@ -56,22 +58,15 @@ const ALL_DISTRICTS_VALUE = '__all_districts__';
 export function RedistribucionClient({ districtNames, tableParams }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('estaciones');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('');
-  const [selectedDays, setSelectedDays] = useState<number>(15);
+  const [selectedDays, setSelectedDays] = useState<number>(DEFAULT_ANALYSIS_DAYS);
   const session = useDeveloperSession();
 
   const districtFilter = selectedDistrict || null;
 
   const reportQuery = useQuery({
-    queryKey: ['dashboard', 'rebalancing-report', districtFilter, selectedDays] as const,
-    queryFn: ({ signal }) =>
-      fetchJson<RebalancingReport>(
-        appRoutes.api.rebalancingReport({ district: districtFilter, days: selectedDays }),
-        { signal, errorMessage: 'HTTP fetch failed' }
-      ),
+    ...rebalancingReportQueryOptions(districtFilter, selectedDays),
     // Conserva el informe anterior mientras se recalcula con los nuevos filtros.
     placeholderData: (previous) => previous,
-    // La API ya lo sirve con max-age=300; volver a la pagina no debe recalcularlo.
-    staleTime: 5 * 60_000,
   });
 
   const report = reportQuery.data;
