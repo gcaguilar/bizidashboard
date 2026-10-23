@@ -1,7 +1,7 @@
 /**
  * Rebalancing prewarm job
  *
- * Mantiene caliente el informe base de redistribucion (15 dias), que es el
+ * Mantiene calientes los informes base de redistribucion (7, 15 y 30 dias), que son el
  * agregado mas caro del producto: recorre millones de snapshots y tarda
  * decenas de segundos en frio. `buildRebalancingReport` ya usa
  * stale-while-revalidate, asi que este tick solo paga el computo cuando la
@@ -18,27 +18,35 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
 import { defineCronJob } from './cron-job';
 
-const PREWARM_DAYS = 15;
+// Las ventanas que el selector del dashboard ofrece sin cuenta (la de 15 dias
+// es la de por defecto, asi que va primero). Las de 60/90 dias requieren
+// cuenta y se siguen calculando bajo demanda.
+const PREWARM_DAYS = [15, 7, 30] as const;
 const PREWARM_LOCK = 'rebalancing-prewarm';
-const PREWARM_LOCK_TTL_MS = 5 * 60 * 1000;
+const PREWARM_LOCK_TTL_MS = 15 * 60 * 1000;
 
 export async function prewarmRebalancingReport(): Promise<void> {
-  const startedAt = Date.now();
+  for (const days of PREWARM_DAYS) {
+    const startedAt = Date.now();
 
-  try {
-    const report = await buildRebalancingReport({ days: PREWARM_DAYS });
+    try {
+      const report = await buildRebalancingReport({ days });
 
-    logger.info('rebalancing.prewarm_completed', {
-      days: PREWARM_DAYS,
-      stations: report.summary.totalStations,
-      durationMs: Date.now() - startedAt,
-    });
-  } catch (error) {
-    captureExceptionWithContext(error, {
-      area: 'jobs.rebalancing',
-      operation: 'prewarmRebalancingReport',
-    });
-    logger.warn('rebalancing.prewarm_failed', { error });
+      logger.info('rebalancing.prewarm_completed', {
+        days,
+        stations: report.summary.totalStations,
+        durationMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      captureExceptionWithContext(error, {
+        area: 'jobs.rebalancing',
+        operation: 'prewarmRebalancingReport',
+        extra: { days },
+      });
+      logger.warn('rebalancing.prewarm_failed', { days, error });
+      // Si falla la base de datos fallaran todas; no insistir con el resto.
+      return;
+    }
   }
 }
 

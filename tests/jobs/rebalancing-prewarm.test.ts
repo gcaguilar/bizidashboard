@@ -47,11 +47,15 @@ describe('rebalancing prewarm job', () => {
     });
   });
 
-  it('rebuilds the 15-day base report under the prewarm lock and releases it', async () => {
+  it('rebuilds the 15, 7 and 30-day base reports under the prewarm lock and releases it', async () => {
     await runRebalancingPrewarm();
 
     expect(acquireJobLockMock).toHaveBeenCalledWith('rebalancing-prewarm', expect.any(Number));
-    expect(buildRebalancingReportMock).toHaveBeenCalledWith({ days: 15 });
+    expect(buildRebalancingReportMock.mock.calls.map(([options]) => options)).toEqual([
+      { days: 15 },
+      { days: 7 },
+      { days: 30 },
+    ]);
     expect(releaseMock).toHaveBeenCalledTimes(1);
   });
 
@@ -69,6 +73,7 @@ describe('rebalancing prewarm job', () => {
     await runRebalancingPrewarm();
 
     expect(releaseMock).toHaveBeenCalledTimes(1);
+    expect(buildRebalancingReportMock).toHaveBeenCalledTimes(1);
     expect(captureExceptionMock).toHaveBeenCalledTimes(1);
   });
 });
