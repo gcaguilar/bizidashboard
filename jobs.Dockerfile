@@ -1,20 +1,20 @@
 # syntax=docker/dockerfile:1
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.4.3 AS deps
+FROM oven/bun:1.4.4 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 
 # ── prod-deps: runtime dependencies only (no vite, vitest, typescript…) ──
-FROM oven/bun:1.4.3 AS prod-deps
+FROM oven/bun:1.4.4 AS prod-deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile --production
 
 # ── builder: generate prisma client & compile jobs ───────────────────
-FROM oven/bun:1.4.3 AS builder
+FROM oven/bun:1.4.4 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -30,7 +30,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun build src/jobs/standalone.ts --target=bun --outfile=/app/dist/jobs/standalone.js --packages=external
 
 # ── runner: minimal production image with pm2 ────────────────────────
-FROM oven/bun:1.4.3-slim AS runner
+FROM oven/bun:1.4.4-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
