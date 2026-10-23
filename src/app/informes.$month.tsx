@@ -31,11 +31,18 @@ import { ReportRedistribution } from '@/app/informes/_components/ReportRedistrib
 
 // recharts y d3 son pesados y solo se necesitan en esta pagina: cargarlos en
 // un chunk aparte evita incluirlos en el bundle inicial del informe.
-const ReportCharts = lazy(() =>
+const loadReportCharts = () =>
   import('@/app/informes/_components/ReportCharts').then((module) => ({
     default: module.ReportCharts,
-  }))
-);
+  }));
+const ReportCharts = lazy(loadReportCharts);
+
+// El chunk perezoso no sale como modulepreload en el HTML: sin esto, el
+// navegador no empieza a bajar recharts (~120 KB gz) hasta hidratar la pagina.
+// Pedirlo al evaluar el chunk de la ruta lo solapa con la hidratacion.
+if (typeof window !== 'undefined') {
+  void loadReportCharts();
+}
 
 type ReportMonthPageData = Awaited<ReturnType<typeof getReportMonthPageData>>;
 
