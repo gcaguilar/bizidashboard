@@ -23,7 +23,9 @@ export const ChartWrapper = memo(function ChartWrapper({ children, height = 'h-[
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   if (!mounted) {
-    return <div className={height} />;
+    // Reserva el hueco con un esqueleto: hasta hidratar (y, en los informes, hasta
+    // que baja el chunk de recharts) el area quedaba en blanco y parecia colgada.
+    return <div aria-hidden="true" className={`${height} animate-pulse rounded-xl bg-[var(--border)]/40`} />;
   }
 
   return <>{children}</>;
