@@ -91,8 +91,21 @@ describe('public UX regressions', () => {
   it('header exposes BiciRadar as a primary product and Redistribución as an analysis link', () => {
     const source = readSource('src/lib/public-navigation.ts');
     expect(source).toContain('appRoutes.biciradar()');
-    expect(source).toContain('appRoutes.statsRedistribucion()');
+    expect(source).toContain('appRoutes.dashboardRedistribucion()');
     expect(source).toContain("label: 'BiciRadar'");
+  });
+
+  it('keeps SEO stats landings out of the header and in the footer and search', () => {
+    const source = readSource('src/lib/public-navigation.ts');
+    const header = source.slice(
+      source.indexOf('export const PUBLIC_MAIN_NAV_ITEMS'),
+      source.indexOf('export const PUBLIC_STATS_NAV_ITEMS')
+    );
+    for (const route of ['statsHub', 'statsBarrios', 'statsHorarios', 'statsViajes', 'statsRedistribucion', 'exploreHub']) {
+      expect(header).not.toContain(`appRoutes.${route}()`);
+      expect(source).toContain(`appRoutes.${route}()`);
+    }
+    expect(source).toContain('PUBLIC_SEARCHABLE_PAGE_ITEMS');
   });
 
   it('keeps BiciRadar as an accessible public product distinct from the dashboard', () => {

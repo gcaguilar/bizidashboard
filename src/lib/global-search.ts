@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
 import { openApiDocument } from '@/lib/openapi-document';
-import { PUBLIC_NAV_ITEMS } from '@/lib/public-navigation';
+import { PUBLIC_SEARCHABLE_PAGE_ITEMS } from '@/lib/public-navigation';
 import { appRoutes } from '@/lib/routes';
 import { getDistrictSeoRows } from '@/lib/seo-districts';
 import { getSeoPageConfig, PRIMARY_SEO_PAGE_SLUGS } from '@/lib/seo-pages';
@@ -153,7 +153,7 @@ const getGlobalSearchEntries = cache(async (): Promise<GlobalSearchEntry[]> => {
   ]);
 
   const pageEntries: GlobalSearchEntry[] = [
-    ...PUBLIC_NAV_ITEMS.map((item) => ({
+    ...PUBLIC_SEARCHABLE_PAGE_ITEMS.map((item) => ({
       id: `page:${item.id}`,
       group: 'pages' as const,
       title: item.label,

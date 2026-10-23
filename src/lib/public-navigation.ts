@@ -46,17 +46,25 @@ export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
 ];
 
 export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
-  { id: 'stats', label: 'Estadísticas', href: appRoutes.statsHub(), ctaId: 'stats' },
-  { id: 'redistribucion', label: 'Redistribución', href: appRoutes.statsRedistribucion(), ctaId: 'redistribucion' },
+  { id: 'redistribucion', label: 'Redistribución', href: appRoutes.dashboardRedistribucion(), ctaId: 'redistribucion' },
   { id: 'compare', label: 'Comparar', href: appRoutes.compare(), ctaId: 'compare' },
-  { id: 'explore', label: 'Explorar análisis', href: appRoutes.exploreHub(), ctaId: 'explore' },
-  { id: 'barrios', label: 'Barrios', href: appRoutes.statsBarrios(), ctaId: 'barrios' },
-  { id: 'horarios', label: 'Horarios', href: appRoutes.statsHorarios(), ctaId: 'horarios' },
-  { id: 'viajes', label: 'Viajes', href: appRoutes.statsViajes(), ctaId: 'viajes' },
   { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
   { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
   { id: 'mcp', label: 'Conector MCP', href: appRoutes.mcp(), ctaId: 'mcp' },
-  { id: 'faq', label: 'Preguntas frecuentes', href: appRoutes.faq(), ctaId: 'faq' },
+];
+
+/**
+ * Landings de estadísticas pensadas para descubrimiento y SEO. Cada una acaba
+ * llevando a una herramienta del dashboard, así que no van en la cabecera: solo
+ * en el pie de página y en el buscador.
+ */
+export const PUBLIC_STATS_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'stats', label: 'Estadísticas', href: appRoutes.statsHub(), ctaId: 'stats' },
+  { id: 'stats-estaciones', label: 'Estaciones', href: appRoutes.statsEstaciones(), ctaId: 'stats_estaciones' },
+  { id: 'barrios', label: 'Barrios', href: appRoutes.statsBarrios(), ctaId: 'barrios' },
+  { id: 'horarios', label: 'Horarios', href: appRoutes.statsHorarios(), ctaId: 'horarios' },
+  { id: 'viajes', label: 'Viajes', href: appRoutes.statsViajes(), ctaId: 'viajes' },
+  { id: 'redistribucion-landing', label: 'Redistribución', href: appRoutes.statsRedistribucion(), ctaId: 'redistribucion_landing' },
 ];
 
 export const FOOTER_LEGAL_ITEMS: PublicNavItem[] = [
@@ -67,15 +75,32 @@ export const FOOTER_LEGAL_ITEMS: PublicNavItem[] = [
   { id: 'aviso-legal', label: 'Aviso legal', href: appRoutes.avisoLegal(), ctaId: 'aviso_legal' },
 ];
 
+function pickNavItems(items: PublicNavItem[], ids: string[]): PublicNavItem[] {
+  return ids.map((id) => {
+    const item = items.find((candidate) => candidate.id === id);
+    if (!item) {
+      throw new Error(`Unknown public navigation item: ${id}`);
+    }
+    return item;
+  });
+}
+
+const ALL_HEADER_NAV_ITEMS = [...PUBLIC_MAIN_NAV_ITEMS, ...PUBLIC_MORE_NAV_ITEMS];
+
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
-  [PUBLIC_MAIN_NAV_ITEMS[1], PUBLIC_MAIN_NAV_ITEMS[2], PUBLIC_MAIN_NAV_ITEMS[4]],
-  [PUBLIC_MORE_NAV_ITEMS[0], PUBLIC_MORE_NAV_ITEMS[1], PUBLIC_MORE_NAV_ITEMS[2], PUBLIC_MORE_NAV_ITEMS[3]],
-  [PUBLIC_MAIN_NAV_ITEMS[3], PUBLIC_MORE_NAV_ITEMS[6], PUBLIC_MORE_NAV_ITEMS[7], PUBLIC_MORE_NAV_ITEMS[8], PUBLIC_MORE_NAV_ITEMS[9]],
+  pickNavItems(ALL_HEADER_NAV_ITEMS, ['network', 'analysis', 'redistribucion', 'compare', 'biciradar']),
+  PUBLIC_STATS_NAV_ITEMS,
+  pickNavItems(ALL_HEADER_NAV_ITEMS, ['data', 'methodology', 'about', 'mcp']),
 ];
 
-export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
-  ...PUBLIC_MAIN_NAV_ITEMS,
-  ...PUBLIC_MORE_NAV_ITEMS,
+/** Navegación de la cabecera (escritorio y móvil). */
+export const PUBLIC_NAV_ITEMS: PublicNavItem[] = ALL_HEADER_NAV_ITEMS;
+
+/** Páginas que el buscador debe poder devolver aunque no estén en la cabecera. */
+export const PUBLIC_SEARCHABLE_PAGE_ITEMS: PublicNavItem[] = [
+  ...PUBLIC_NAV_ITEMS,
+  ...PUBLIC_STATS_NAV_ITEMS,
+  { id: 'explore', label: 'Explorar análisis', href: appRoutes.exploreHub(), ctaId: 'explore' },
 ];
 
 export function getExploreHubSections(options?: {

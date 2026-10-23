@@ -553,7 +553,6 @@ const EXACT_REDIRECT_ENTRIES: RedirectEntry[] = [
   { source: '/viajes-por-dia-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/viajes-por-mes-zaragoza', destination: '/estadisticas/viajes' },
   { source: '/estadisticas-bizi-zaragoza', destination: '/estadisticas' },
-  { source: '/explorar', destination: '/estadisticas' },
   // Legacy URLs still present in Google's historical crawl data.
   { source: '/explorar-Explorar', destination: '/estadisticas' },
   { source: '/redistribucion-bizi-zaragoza', destination: '/estadisticas/redistribucion' },
