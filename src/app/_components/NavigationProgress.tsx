@@ -13,19 +13,21 @@ const SHOW_AFTER_MS = 120;
  */
 export function NavigationProgress() {
   const isLoading = useRouterState({ select: (state) => state.isLoading });
-  const [visible, setVisible] = useState(false);
+  const [delayElapsed, setDelayElapsed] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
-      setVisible(false);
       return;
     }
 
-    const timer = window.setTimeout(() => setVisible(true), SHOW_AFTER_MS);
-    return () => window.clearTimeout(timer);
+    const timer = window.setTimeout(() => setDelayElapsed(true), SHOW_AFTER_MS);
+    return () => {
+      window.clearTimeout(timer);
+      setDelayElapsed(false);
+    };
   }, [isLoading]);
 
-  if (!visible) {
+  if (!isLoading || !delayElapsed) {
     return null;
   }
 
