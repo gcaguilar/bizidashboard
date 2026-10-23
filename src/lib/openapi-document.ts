@@ -425,6 +425,13 @@ export const openApiDocument = {
             required: false,
             description: 'Response format: json (default) or csv',
             schema: { type: 'string', enum: ['json', 'csv'] }
+          },
+          {
+            name: 'view',
+            in: 'query',
+            required: false,
+            description: 'full (default) or compact: compact omits per-station time-band metrics and neighbour lists, and returns the neighbour count in network.nearbyStationCount',
+            schema: { type: 'string', enum: ['full', 'compact'] }
           }
         ],
         responses: {

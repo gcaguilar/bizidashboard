@@ -186,11 +186,13 @@ export const appRoutes = {
       district?: string | null;
       days?: number | null;
       format?: 'csv' | null;
+      view?: 'compact' | null;
     }) =>
       buildQuery('/api/rebalancing-report', {
         district: params?.district,
         days: params?.days,
         format: params?.format,
+        view: params?.view,
       }),
     reports: (params: {
       month: string;

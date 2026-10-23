@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { buildRebalancingReport } from '@/lib/rebalancing-report'
+import { buildRebalancingReport, compactRebalancingReport } from '@/lib/rebalancing-report'
 import { escapeCsvCell } from '@/lib/csv'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 import type { StationDiagnostic, TransferRecommendation } from '@/types/rebalancing'
@@ -80,10 +80,15 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           const format = searchParams.get('format')
           const daysParam = searchParams.get('days')
           const district = searchParams.get('district')
+          const view = searchParams.get('view')
 
           const days = parseDays(daysParam)
           if (days === null) {
             return new Response(JSON.stringify({ error: `Invalid days parameter. Must be an integer between 1 and ${MAX_DAYS}.`, dataState: 'error' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
+          }
+
+          if (view !== null && view !== 'full' && view !== 'compact') {
+            return new Response(JSON.stringify({ error: 'Invalid view. Use full or compact.' }), { status: 400, headers: { 'Content-Type': 'application/json' } })
           }
 
           if (format !== null && format !== 'json' && format !== 'csv') {
@@ -105,7 +110,8 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
             })
           }
 
-          return new Response(JSON.stringify(report), {
+          // `compact` es lo que lee el dashboard; el valor por defecto sigue siendo el informe completo.
+          return new Response(JSON.stringify(view === 'compact' ? compactRebalancingReport(report) : report), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           })

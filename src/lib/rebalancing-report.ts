@@ -21,6 +21,32 @@ import { computeReportImpact } from '@/lib/rebalancing-impact';
 
 import type { RebalancingReport, StationDiagnostic } from '@/types/rebalancing';
 
+const NEARBY_RADIUS_METERS = 500;
+
+/**
+ * Version ligera para la tabla del dashboard. Cada diagnostico arrastra todos
+ * los vecinos a menos de 3 km (decenas por estacion) y las metricas por franja,
+ * que la UI no lee: solo muestra cuantas estaciones hay en 500 m. Quitarlos
+ * reduce el JSON varias veces, y con el el coste de leerlo de Redis,
+ * serializarlo, descargarlo y parsearlo en el cliente.
+ */
+export function compactRebalancingReport(report: RebalancingReport): RebalancingReport {
+  return {
+    ...report,
+    diagnostics: report.diagnostics.map((diagnostic) => ({
+      ...diagnostic,
+      timeBandMetrics: [],
+      network: {
+        ...diagnostic.network,
+        nearbyStationCount: diagnostic.network.nearbyStations.filter(
+          (neighbor) => neighbor.distanceMeters <= NEARBY_RADIUS_METERS
+        ).length,
+        nearbyStations: [],
+      },
+    })),
+  };
+}
+
 export async function buildRebalancingReport(options: {
   days?: number;
   district?: string | null;

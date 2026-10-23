@@ -11,7 +11,7 @@ vi.mock('@/lib/cache/cache', () => ({
   withCache: (_key: string, _ttl: number, fetcher: () => Promise<unknown>) => fetcher(),
 }));
 
-import { buildRebalancingReport } from '@/lib/rebalancing-report';
+import { buildRebalancingReport, compactRebalancingReport } from '@/lib/rebalancing-report';
 
 describe('buildRebalancingReport', () => {
   beforeEach(() => {
@@ -96,5 +96,37 @@ describe('buildRebalancingReport', () => {
     expect(report.summary.stationsWithTransfer).toBe(1);
     expect(report.summary.byClassification.deficit).toBe(1);
     expect(report.summary.byClassification.overstock).toBe(0);
+  });
+});
+
+describe('compactRebalancingReport', () => {
+  it('drops per-station neighbour lists and time bands but keeps the 500 m neighbour count', () => {
+    const neighbor = (stationId: string, distanceMeters: number) => ({
+      stationId,
+      distanceMeters,
+      walkingTimeMinutes: 0,
+      currentOccupancy: 0,
+      historicalRobustness: 0,
+    });
+    const report = {
+      diagnostics: [
+        {
+          stationId: 'a',
+          timeBandMetrics: [{ timeBand: 'night' }],
+          network: {
+            nearbyStations: [neighbor('b', 120), neighbor('c', 500), neighbor('d', 2400)],
+            urgencyAdjustment: 0.5,
+          },
+        },
+      ],
+      transfers: [],
+    } as unknown as Parameters<typeof compactRebalancingReport>[0];
+
+    const [diagnostic] = compactRebalancingReport(report).diagnostics;
+
+    expect(diagnostic.timeBandMetrics).toEqual([]);
+    expect(diagnostic.network.nearbyStations).toEqual([]);
+    expect(diagnostic.network.nearbyStationCount).toBe(2);
+    expect(diagnostic.network.urgencyAdjustment).toBe(0.5);
   });
 });
