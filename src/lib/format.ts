@@ -1,64 +1,80 @@
 import { AlertType, DayType } from '@/analytics/types';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 import { TIMEZONE } from '@/lib/timezone';
 
 export const DEFAULT_TIME_ZONE = TIMEZONE;
 
-const integerFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
-const decimalFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
-const smallDecimalFormatter = new Intl.NumberFormat('es-ES', {
-  maximumFractionDigits: 1,
-  minimumFractionDigits: 1,
-});
+const INTL_LOCALE: Record<Locale, string> = { es: 'es-ES', en: 'en-US' };
 
-export function formatInteger(value: number): string {
-  return integerFormatter.format(value);
+type NumberFormatters = { integer: Intl.NumberFormat; decimal: Intl.NumberFormat; smallDecimal: Intl.NumberFormat };
+
+const numberFormatters: Record<Locale, NumberFormatters> = {
+  es: buildNumberFormatters('es'),
+  en: buildNumberFormatters('en'),
+};
+
+function buildNumberFormatters(locale: Locale): NumberFormatters {
+  const tag = INTL_LOCALE[locale];
+  return {
+    integer: new Intl.NumberFormat(tag, { maximumFractionDigits: 0 }),
+    decimal: new Intl.NumberFormat(tag, { maximumFractionDigits: 1 }),
+    smallDecimal: new Intl.NumberFormat(tag, { maximumFractionDigits: 1, minimumFractionDigits: 1 }),
+  };
 }
 
-export function formatDecimal(value: number | null | undefined): string {
+export function formatInteger(value: number, locale: Locale = DEFAULT_LOCALE): string {
+  return numberFormatters[locale].integer.format(value);
+}
+
+export function formatDecimal(value: number | null | undefined, locale: Locale = DEFAULT_LOCALE): string {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return '—';
   }
-  return (value < 10 && value > 0 ? smallDecimalFormatter : decimalFormatter).format(value);
+  const formatters = numberFormatters[locale];
+  return (value < 10 && value > 0 ? formatters.smallDecimal : formatters.decimal).format(value);
 }
 
-export function formatRelativeMinutes(minutes?: number | null): string {
+export function formatRelativeMinutes(minutes?: number | null, locale: Locale = DEFAULT_LOCALE): string {
   if (minutes === null || minutes === undefined || Number.isNaN(minutes)) {
-    return 'sin datos';
+    return translate(locale, 'format.noData.lower');
   }
 
   const safeMinutes = Math.max(0, Math.round(minutes));
 
   if (safeMinutes < 1) {
-    return 'hace menos de 1 min';
+    return translate(locale, 'format.relative.lessThanMinute');
   }
 
   if (safeMinutes < 60) {
-    return `hace ${safeMinutes} min`;
+    return translate(locale, 'format.relative.minutes', { count: safeMinutes });
   }
 
   const hours = Math.round(safeMinutes / 60);
-  return hours === 1 ? 'hace 1 h' : `hace ${hours} h`;
+  return hours === 1
+    ? translate(locale, 'format.relative.hour')
+    : translate(locale, 'format.relative.hours', { count: hours });
 }
 
-export function formatAlertType(alertType?: AlertType | string | null): string {
+export function formatAlertType(alertType?: AlertType | string | null, locale: Locale = DEFAULT_LOCALE): string {
   switch (alertType) {
     case AlertType.LOW_BIKES:
-      return 'Pocas bicis';
+      return translate(locale, 'format.alertType.lowBikes');
     case AlertType.LOW_ANCHORS:
-      return 'Pocos anclajes';
+      return translate(locale, 'format.alertType.lowAnchors');
     default:
-      return 'Alerta desconocida';
+      return translate(locale, 'format.alertType.unknown');
   }
 }
 
-export function formatDayType(dayType?: DayType | string | null): string {
+export function formatDayType(dayType?: DayType | string | null, locale: Locale = DEFAULT_LOCALE): string {
   switch (dayType) {
     case DayType.WEEKDAY:
-      return 'Entre semana';
+      return translate(locale, 'format.dayType.weekday');
     case DayType.WEEKEND:
-      return 'Fin de semana';
+      return translate(locale, 'format.dayType.weekend');
     default:
-      return 'Día desconocido';
+      return translate(locale, 'format.dayType.unknown');
   }
 }
 
@@ -73,14 +89,18 @@ export function formatPercent(value?: number | null): string {
   return `${rounded}%`;
 }
 
-export function formatHourMinute(value: string | Date, timeZone: string = DEFAULT_TIME_ZONE): string {
+export function formatHourMinute(
+  value: string | Date,
+  timeZone: string = DEFAULT_TIME_ZONE,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
   const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return 'Sin datos';
+    return translate(locale, 'format.noData.capital');
   }
 
-  return date.toLocaleTimeString('es-ES', {
+  return date.toLocaleTimeString(INTL_LOCALE[locale], {
     timeZone,
     hour: '2-digit',
     minute: '2-digit',

@@ -2,6 +2,7 @@ import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
 import { homeMessages } from './home';
 import { methodologyMessages } from './methodology';
 import { navMessages } from './nav';
+import { networkMessages } from './network';
 import { productMessages } from './product';
 import { stationMessages } from './station';
 
@@ -13,6 +14,7 @@ const spanish = {
   ...homeMessages.es,
   ...methodologyMessages.es,
   ...navMessages.es,
+  ...networkMessages.es,
   ...productMessages.es,
   ...stationMessages.es,
 };
@@ -23,6 +25,7 @@ const english: Partial<Record<MessageKey, string>> = {
   ...homeMessages.en,
   ...methodologyMessages.en,
   ...navMessages.en,
+  ...networkMessages.en,
   ...productMessages.en,
   ...stationMessages.en,
 };
