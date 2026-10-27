@@ -83,7 +83,7 @@ export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) 
         className={
           copy.primary
             ? 'ui-primary-button w-full sm:w-auto'
-            : 'ui-primary-button w-full !border-[var(--border)] !bg-transparent !text-[var(--foreground)] !shadow-none sm:w-auto'
+            : 'ui-secondary-button w-full sm:w-auto'
         }
       >
         <span aria-hidden="true">{copy.icon}</span>
