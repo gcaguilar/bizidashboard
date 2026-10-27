@@ -63,6 +63,7 @@ COPY --from=builder /app/dist/jobs /app/dist/jobs
 COPY --from=builder /app/ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
 COPY --from=builder /app/ops/start-jobs.mjs /app/ops/start-jobs.mjs
+COPY --from=builder /app/ops/validate-env.mjs /app/ops/validate-env.mjs
 COPY --from=builder /app/scripts/start-social.mjs /app/scripts/start-social.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
@@ -75,4 +76,4 @@ EXPOSE 3000
 
 # Docker/Coolify manages lifecycle; the process runs compiled JavaScript directly.
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && bun ops/start-jobs.mjs"]
+CMD ["sh", "-c", "if [ \"${SOCIAL_ONLY:-0}\" = \"1\" ]; then echo social.image.compiled_entrypoint && exec bun scripts/start-social.mjs; else echo jobs.image.compiled_entrypoint && exec bun ops/start-jobs.mjs; fi"]
