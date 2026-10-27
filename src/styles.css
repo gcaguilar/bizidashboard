@@ -876,3 +876,19 @@ table tbody tr:hover {
   font-weight: 700;
   color: var(--foreground);
 }
+
+/* Acento del popup del mapa: --primary no llega a 4.5:1 sobre la tarjeta oscura. */
+.map-popup-accent {
+  color: var(--primary);
+}
+
+.dark .map-popup-accent {
+  color: #ff9aa2;
+}
+
+/* Foco visible del canvas del mapa para la navegación por teclado. */
+.maplibregl-canvas:focus-visible,
+.maplibregl-canvas-container:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}

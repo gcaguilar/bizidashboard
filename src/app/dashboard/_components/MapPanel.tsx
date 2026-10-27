@@ -76,10 +76,12 @@ export function MapPanel({
         {ANALYTICAL_MAP_LEGEND.map((item) => (
           <span key={item.label} className="ui-legend-item" title={item.description}>
             <span
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[11px] font-black leading-none text-white"
               style={{ backgroundColor: item.color }}
               aria-hidden="true"
-            />
+            >
+              {item.icon}
+            </span>
             {item.label}
           </span>
         ))}
@@ -91,6 +93,7 @@ export function MapPanel({
         <Suspense
           fallback={
             <div
+              role="status"
               aria-busy="true"
               className="flex h-full items-center justify-center text-sm text-[var(--muted)]"
             >

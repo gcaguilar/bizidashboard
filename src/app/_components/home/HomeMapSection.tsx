@@ -24,11 +24,15 @@ export type HomeMapSectionProps = {
   className?: string;
 };
 
+// Altura única del mapa y de todos sus placeholders: evita saltos de layout.
+const HOME_MAP_HEIGHT_CLASS = 'h-[420px]';
+
 function MapLoadingSkeleton() {
   return (
     <div
+      role="status"
       aria-busy="true"
-      className="flex h-[420px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]"
+      className={`flex ${HOME_MAP_HEIGHT_CLASS} items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]`}
     >
       El mapa se carga al llegar aquí…
     </div>
@@ -87,10 +91,12 @@ export function HomeMapSection({
         {CITIZEN_MAP_LEGEND.map((item) => (
           <span key={item.color} className="ui-legend-item">
             <span
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[11px] font-black leading-none text-white"
               style={{ backgroundColor: item.color }}
               aria-hidden="true"
-            />
+            >
+              {item.icon}
+            </span>
             <span className="text-xs font-semibold text-[var(--foreground)]">{item.label}</span>
             <span className="text-[11px] text-[var(--muted)]">{item.description}</span>
           </span>
@@ -101,11 +107,11 @@ export function HomeMapSection({
         {isLoading ? (
           <MapLoadingSkeleton />
         ) : stations.length === 0 ? (
-          <div className="flex h-[420px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]">
+          <div className={`flex ${HOME_MAP_HEIGHT_CLASS} items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]`}>
             No hay estaciones con este filtro.
           </div>
         ) : isMapVisible ? (
-          <div className="relative h-[420px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
+          <div className={`relative ${HOME_MAP_HEIGHT_CLASS} overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]`}>
             <Suspense fallback={<MapLoadingSkeleton />}>
               <MapEngineLazy
                 stations={stations}

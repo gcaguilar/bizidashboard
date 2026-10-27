@@ -11,19 +11,24 @@ import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplib
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
+import { StationStatusLabel } from '@/components/ui/station-status';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatDistanceMeters, type Coordinates } from '@/lib/geo';
 import {
   getAnalyticalMarkerColor,
+  getAnalyticalMarkerGlyph,
   getAnalyticalMarkerSeverity,
   getCitizenMarkerColor,
+  getCitizenMarkerGlyph,
   getCitizenMarkerSeverity,
+  getCitizenStatus,
   type MapColorScale,
 } from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
 import { MAP_FONT_STACK, resolveMapStyle } from '@/lib/map-style';
 import type { DashboardMapViewState } from '@/lib/map-view-state';
+import { appRoutes } from '@/lib/routes';
 
 type StationTrend = 'up' | 'down' | 'flat';
 
@@ -123,6 +128,29 @@ const UNCLUSTERED_POINTS_LAYER: LayerProps = {
   },
 };
 
+// Glifo del estado dentro de cada marcador: el estado no depende solo del color.
+const UNCLUSTERED_GLYPH_LAYER: LayerProps = {
+  id: 'unclustered-glyphs',
+  type: 'symbol',
+  source: 'stations-source',
+  filter: ['!', ['has', 'point_count']],
+  layout: {
+    'text-field': ['coalesce', ['get', 'markerGlyph'], ''],
+    'text-font': MAP_FONT_STACK,
+    'text-size': 12,
+    'text-allow-overlap': true,
+    'text-ignore-placement': true,
+  },
+  paint: {
+    'text-color': '#ffffff',
+    'text-halo-color': 'rgba(0, 0, 0, 0.35)',
+    'text-halo-width': 0.5,
+  },
+};
+
+// Si el estilo/teselas no responden pasado este tiempo se avisa al usuario.
+const MAP_LOAD_TIMEOUT_MS = 12000;
+
 const OPERATIONS_HEAT_LAYER: LayerProps = {
   id: 'operations-heat',
   type: 'circle',
@@ -184,6 +212,8 @@ export function MapEngine({
   const [isMapReady, setIsMapReady] = useState(false);
   const [dismissedPopupId, setDismissedPopupId] = useState<string | null>(null);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [hasTileError, setHasTileError] = useState(false);
+  const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
 
   const favoriteStationSet = useMemo(() => new Set(favoriteStationIds), [favoriteStationIds]);
 
@@ -213,6 +243,7 @@ export function MapEngine({
       getMarkerColor: colorScale === 'citizen' ? getCitizenMarkerColor : getAnalyticalMarkerColor,
       getMarkerSeverity:
         colorScale === 'citizen' ? getCitizenMarkerSeverity : getAnalyticalMarkerSeverity,
+      getMarkerGlyph: colorScale === 'citizen' ? getCitizenMarkerGlyph : getAnalyticalMarkerGlyph,
       favoriteStationIds: favoriteStationSet,
       selectedStationId,
       frictionByStationId,
@@ -246,6 +277,43 @@ export function MapEngine({
 
     return stations.find((station) => station.id === selectedStationId) ?? null;
   }, [dismissedPopupId, selectedStationId, stations]);
+
+  useEffect(() => {
+    if (isMapReady) {
+      return;
+    }
+
+    const timer = setTimeout(() => setHasLoadTimedOut(true), MAP_LOAD_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [isMapReady]);
+
+  // Teclado: Escape cierra la ficha emergente de la estación seleccionada.
+  useEffect(() => {
+    if (!popupStation) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDismissedPopupId(popupStation.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [popupStation]);
+
+  const handleMapLoad = () => {
+    setIsMapReady(true);
+    // El canvas de MapLibre es focusable (flechas = mover, +/- = zoom); le damos nombre accesible.
+    mapRef.current
+      ?.getMap()
+      .getCanvas()
+      .setAttribute(
+        'aria-label',
+        'Mapa de estaciones. Con el mapa enfocado usa las flechas para moverte y más o menos para acercar o alejar. La lista de estaciones tiene las mismas estaciones en texto.'
+      );
+  };
 
   const handleZoomIn = () => {
     mapRef.current?.getMap()?.zoomIn({ duration: 240 });
@@ -358,9 +426,30 @@ export function MapEngine({
         </Button>
       </div>
 
+      {(hasTileError || hasLoadTimedOut) && (!isMapReady || hasTileError) ? (
+        <div
+          role="status"
+          className="absolute inset-x-4 top-16 z-20 mx-auto max-w-sm rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-center text-xs text-[var(--foreground)] shadow-md"
+        >
+          {isMapReady
+            ? 'No se pudo cargar el mapa base. Las estaciones siguen siendo válidas. '
+            : 'El mapa tarda en cargar o no está disponible. '}
+          <a className="font-semibold underline" href={appRoutes.statsEstaciones()}>
+            Ver la lista de estaciones
+          </a>
+        </div>
+      ) : null}
+
       <Map
         ref={mapRef}
-        onLoad={() => setIsMapReady(true)}
+        onLoad={handleMapLoad}
+        onError={(event) => {
+          // Sin teselas el mapa base queda vacío, pero las estaciones se siguen pintando.
+          const message = String((event as { error?: { message?: string } }).error?.message ?? '');
+          if (!isMapReady || /tile|fetch|network|failed|load/i.test(message)) {
+            setHasTileError(true);
+          }
+        }}
         onClick={handleMapClick}
         onMoveEnd={commitMapViewState}
         interactiveLayerIds={['clusters', 'unclustered-points']}
@@ -390,6 +479,7 @@ export function MapEngine({
           <Layer {...CLUSTER_LAYER} />
           <Layer {...SELECTED_HALO_LAYER} />
           <Layer {...UNCLUSTERED_POINTS_LAYER} />
+          <Layer {...UNCLUSTERED_GLYPH_LAYER} />
           <Layer {...CLUSTER_COUNT_LAYER} />
         </Source>
 
@@ -424,13 +514,15 @@ export function MapEngine({
                   size="sm"
                   className={`min-h-0 rounded-md px-2 py-1 text-xs font-bold transition ${
                     favoriteStationSet.has(popupStation.id)
-                      ? 'border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/20'
+                      ? 'map-popup-accent border-[var(--primary)] bg-[var(--primary)]/15 hover:bg-[var(--primary)]/20'
                       : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)]'
                   }`}
                 >
                   {favoriteStationSet.has(popupStation.id) ? '★ Favorita' : '☆ Favorita'}
                 </Button>
               </div>
+
+              <StationStatusLabel status={getCitizenStatus(popupStation)} className="mb-2" />
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <p className="rounded bg-[var(--secondary)] px-2 py-1">
@@ -446,7 +538,7 @@ export function MapEngine({
               </p>
 
               {nearestStationId === popupStation.id ? (
-                <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
+                <p className="map-popup-accent mt-1 text-xs font-semibold">
                   📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
                 </p>
               ) : null}
