@@ -24,14 +24,6 @@ export function buildLocaleAlternates(path: string): LinkEntry[] {
   ];
 }
 
-/** Canonical URL plus alternates for `path` rendered in `locale`. */
-export function buildLocaleLinks(path: string, locale: Locale): LinkEntry[] {
-  return [
-    { rel: 'canonical', href: localizedUrl(path, locale) },
-    ...buildLocaleAlternates(path),
-  ];
-}
-
 export function ogLocale(locale: Locale): string {
   return OG_LOCALE[locale];
 }

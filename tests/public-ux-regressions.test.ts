@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { MESSAGE_CATALOGS } from '@/lib/i18n/messages';
 
 function readSource(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), 'utf8');
@@ -253,7 +254,8 @@ describe('public UX regressions', () => {
       expect(source, file).not.toMatch(/Ver mapa en vivo|Mapa en vivo|Abrir mapa en vivo|Ver disponibilidad en el mapa|Ver disponibilidad en mapa|Ver mapa por barrios/);
     }
 
-    expect(readSource('src/app/index.tsx')).toContain('Ver estado de la red');
+    expect(readSource('src/app/index.tsx')).toContain("t('home.hero.networkStatus')");
+    expect(MESSAGE_CATALOGS.es['home.hero.networkStatus']).toBe('Ver estado de la red');
     expect(readSource('src/app/estadisticas/index.tsx')).toContain('Mapa avanzado');
   });
 
@@ -326,7 +328,8 @@ describe('public UX regressions', () => {
 
   it('footer clarifies data freshness timestamp', () => {
     const source = readSource('src/components/Footer.tsx');
-    expect(source).toContain('Última muestra de datos Bizi');
+    expect(source).toContain("t('footer.lastSample'");
+    expect(MESSAGE_CATALOGS.es['footer.lastSample']).toContain('Última muestra de datos Bizi');
     expect(source).not.toContain('Última actualización:');
   });
 
@@ -372,8 +375,10 @@ describe('public UX regressions', () => {
     const liveSection = readSource('src/app/_components/home/HomeLiveSection.tsx');
     const diagnosis = readSource('src/app/_components/home/HomeDiagnosis.tsx');
 
-    expect(source).toContain('Datos públicos de Bizi Zaragoza');
-    expect(source).toContain('Entiende cómo está Bizi Zaragoza ahora');
+    expect(source).toContain("t('home.hero.eyebrow'");
+    expect(source).toContain("t('home.hero.title'");
+    expect(MESSAGE_CATALOGS.es['home.hero.eyebrow']).toBe('Datos públicos de Bizi {city}');
+    expect(MESSAGE_CATALOGS.es['home.hero.title']).toBe('Entiende cómo está Bizi {city} ahora');
     expect(source).toContain('<HomeStatusHero');
     expect(source).toContain('<HomeLiveSection');
     expect(mapSection).toContain('biciradar_handoff_clicked');
