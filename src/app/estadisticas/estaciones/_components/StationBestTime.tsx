@@ -1,8 +1,9 @@
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { PeakFullHourSlot, StationPatternRow } from '@/lib/api-types';
-import { formatDayType } from '@/lib/format';
+import { DayType } from '@/analytics/types';
+import { useT } from '@/lib/i18n/use-locale';
 import { buildStationBestTime, formatHourSpan, type HourSpan } from '@/lib/station-best-time';
-import { STATION_BEST_TIME_COPY as COPY } from '@/lib/station-insights-copy';
+import { getStationBestTimeCopy } from '@/lib/station-insights-copy';
 
 type StationBestTimeProps = {
   patterns: StationPatternRow[];
@@ -19,7 +20,15 @@ function SpanLine({ label, spans, fallback }: { label: string; spans: HourSpan[]
 }
 
 export function StationBestTime({ patterns, peakHours }: StationBestTimeProps) {
+  const { locale, t } = useT();
+  const COPY = getStationBestTimeCopy(locale);
   const view = buildStationBestTime(patterns, peakHours);
+  const dayTypeLabel = (dayType: string) =>
+    dayType === DayType.WEEKDAY
+      ? t('station.dayType.weekday')
+      : dayType === DayType.WEEKEND
+        ? t('station.dayType.weekend')
+        : t('station.dayType.unknown');
 
   return (
     <section className="ui-section-card" data-testid="station-best-time">
@@ -28,6 +37,7 @@ export function StationBestTime({ patterns, peakHours }: StationBestTimeProps) {
         <DataStateNotice
           className="mt-4"
           compact
+          locale={locale}
           state="empty"
           subject={COPY.subject}
           title={COPY.emptyTitle}
@@ -38,7 +48,7 @@ export function StationBestTime({ patterns, peakHours }: StationBestTimeProps) {
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {view.byDayType.map((entry) => (
               <div key={entry.dayType} className="ui-surface-block">
-                <p className="text-sm font-semibold text-[var(--foreground)]">{formatDayType(entry.dayType)}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)]">{dayTypeLabel(entry.dayType)}</p>
                 <SpanLine label={COPY.noBikesLabel} spans={entry.noBikes} fallback={COPY.noIssues} />
                 <SpanLine label={COPY.noAnchorsLabel} spans={entry.noAnchors} fallback={COPY.noIssues} />
                 <SpanLine label={COPY.betterLabel} spans={entry.better} fallback={COPY.noBetter} />

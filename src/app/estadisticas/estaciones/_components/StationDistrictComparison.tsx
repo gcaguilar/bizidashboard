@@ -5,7 +5,8 @@ import {
   type ComparisonMetricKey,
   type StationComparisonMetrics,
 } from '@/lib/station-district-comparison';
-import { STATION_DISTRICT_COMPARISON_COPY as COPY } from '@/lib/station-insights-copy';
+import { useT } from '@/lib/i18n/use-locale';
+import { getStationDistrictComparisonCopy } from '@/lib/station-insights-copy';
 
 type StationDistrictComparisonProps = {
   stationMetrics: StationComparisonMetrics;
@@ -22,6 +23,8 @@ export function StationDistrictComparison({
   districtName,
   peerMetrics,
 }: StationDistrictComparisonProps) {
+  const { locale } = useT();
+  const COPY = getStationDistrictComparisonCopy(locale);
   const comparison = districtName
     ? buildStationDistrictComparison(stationMetrics, peerMetrics)
     : null;
@@ -33,6 +36,7 @@ export function StationDistrictComparison({
         <DataStateNotice
           className="mt-4"
           compact
+          locale={locale}
           state="empty"
           subject={COPY.subject}
           title={COPY.emptyTitle}
@@ -48,7 +52,7 @@ export function StationDistrictComparison({
               <li key={row.key} className="ui-surface-block">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{COPY.metrics[row.key]}</p>
                 <p className="mt-1 text-sm text-[var(--muted)]">
-                  Esta estación: <strong>{formatMetric(row.key, row.stationValue)}</strong> · Barrio:{' '}
+                  {COPY.thisStation} <strong>{formatMetric(row.key, row.stationValue)}</strong> · {COPY.district}{' '}
                   <strong>{formatMetric(row.key, row.districtValue)}</strong>
                 </p>
                 <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
