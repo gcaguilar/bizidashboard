@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+import { Resvg } from '@resvg/resvg-js';
 import type { StationSnapshot } from '@/lib/api-types';
 import { getCitizenStatus } from '@/lib/map-colors';
 import { getNetworkBalanceSummary } from '@/lib/product-copy';
@@ -108,14 +110,53 @@ export function buildFallbackOgCard(): string {
   });
 }
 
-export function svgResponse(svg: string): Response {
-  return new Response(svg, {
-    status: 200,
-    headers: {
-      'Content-Type': 'image/svg+xml; charset=utf-8',
-      // SVG sin scripts; esta CSP evita ejecución si alguien lo abre directamente.
-      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-      'X-Content-Type-Options': 'nosniff',
+let cachedFontFiles: string[] | null = null;
+
+/** Fuentes Inter embebidas (OFL): resvg no usa fuentes del sistema. */
+function getFontFiles(): string[] {
+  if (!cachedFontFiles) {
+    const dir = process.env.OG_FONTS_DIR ?? join(process.cwd(), 'assets', 'og-fonts');
+    cachedFontFiles = ['Inter-Regular.ttf', 'Inter-Bold.ttf', 'Inter-Black.ttf'].map((file) =>
+      join(dir, file),
+    );
+  }
+  return cachedFontFiles;
+}
+
+export function renderSvgToPng(svg: string): Uint8Array {
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: OG_CARD_WIDTH },
+    font: {
+      fontFiles: getFontFiles(),
+      loadSystemFonts: false,
+      defaultFontFamily: 'Inter',
     },
   });
+  return resvg.render().asPng();
+}
+
+const CARD_SECURITY_HEADERS = {
+  // Sin scripts; esta CSP evita ejecución si alguien abre la imagen directamente.
+  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+  'X-Content-Type-Options': 'nosniff',
+};
+
+/**
+ * Convierte la tarjeta SVG a PNG (WhatsApp, X y Facebook no muestran og:image SVG).
+ * Si el render falla, sirve el SVG para no devolver un 500 al rastreador.
+ */
+export function svgResponse(svg: string): Response {
+  try {
+    const png = renderSvgToPng(svg);
+    return new Response(png as BodyInit, {
+      status: 200,
+      headers: { 'Content-Type': 'image/png', ...CARD_SECURITY_HEADERS },
+    });
+  } catch (error) {
+    console.error('[og-cards] png render failed, serving svg', error);
+    return new Response(svg, {
+      status: 200,
+      headers: { 'Content-Type': 'image/svg+xml; charset=utf-8', ...CARD_SECURITY_HEADERS },
+    });
+  }
 }
