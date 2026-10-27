@@ -18,13 +18,16 @@ import {
 } from '@/lib/system-status';
 import { getMethodologyPageData } from '@/server-functions/metodologia';
 import { toJsonLdScript } from '@/lib/structured-data';
+import { translate } from '@/lib/i18n/messages';
+import { useT } from '@/lib/i18n/use-locale';
 
 export const Route = createFileRoute('/metodologia')({
-  head: () =>
+  head: ({ match }) =>
     buildSeoHead({
-      title: 'Metodología y calidad de datos de Bizi Zaragoza',
-      description: 'Descubre de dónde salen los datos de Bizi Zaragoza, cómo se actualizan, qué significan sus métricas y qué límites tienen las estimaciones.',
+      title: translate(match.context.locale, 'methodology.seo.title'),
+      description: translate(match.context.locale, 'methodology.seo.description'),
       path: appRoutes.methodology(),
+      locale: match.context.locale,
     }),
   loader: () => getMethodologyPageData(),
   component: MethodologyPage,
@@ -33,6 +36,7 @@ export const Route = createFileRoute('/metodologia')({
 function MethodologyPage() {
   const { historyMeta, dataset, status, latestMonth, breadcrumbs, faqItems, structuredData } = Route.useLoaderData();
   const cityName = getCityName();
+  const { t } = useT();
 
   return (
     <PageShell>
@@ -49,18 +53,18 @@ function MethodologyPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-4xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">
-              Cómo leer los datos
+              {t('methodology.hero.eyebrow')}
             </p>
             <h1 className="mt-2 text-3xl font-black leading-tight text-[var(--foreground)] md:text-4xl">
-              Metodología y calidad de datos de Bizi en {cityName}
+              {t('methodology.hero.title', { city: cityName })}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Te contamos de dónde salen los datos, cuándo se actualizan y qué significan las cifras que ves. También señalamos qué métricas son estimaciones y cómo interpretarlas con cuidado.
+              {t('methodology.hero.intro')}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-            <span className="ui-chip">{historyMeta.coverage.totalDays} días de cobertura</span>
-            <span className="ui-chip">{historyMeta.coverage.totalStations} estaciones con histórico</span>
+            <span className="ui-chip">{t('methodology.chip.days', { count: historyMeta.coverage.totalDays })}</span>
+            <span className="ui-chip">{t('methodology.chip.stations', { count: historyMeta.coverage.totalStations })}</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
               {getHealthLabel(status.pipeline.healthStatus)}
             </span>
@@ -82,7 +86,7 @@ function MethodologyPage() {
               }}
               className="ui-inline-action"
             >
-              Ver API y descargas
+              {t('methodology.cta.api')}
             </TrackedLink>
             <TrackedLink
               href={appRoutes.status()}
@@ -95,7 +99,7 @@ function MethodologyPage() {
               }}
               className="ui-inline-action"
             >
-              Ver estado del sistema
+              {t('methodology.cta.status')}
             </TrackedLink>
           </div>
 
@@ -105,31 +109,31 @@ function MethodologyPage() {
 
       <section className="grid gap-4 md:grid-cols-4">
         <article className="ui-section-card">
-          <p className="stat-label">Fuente primaria</p>
+          <p className="stat-label">{t('methodology.source.label')}</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {historyMeta.source.provider}
           </p>
-          <p className="text-xs text-[var(--muted)]">El sistema oficial de Bizi, que consultamos y revisamos periódicamente.</p>
+          <p className="text-xs text-[var(--muted)]">{t('methodology.source.note')}</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Cobertura visible</p>
+          <p className="stat-label">{t('methodology.coverage.label')}</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getCoverageLabel(dataset)}
           </p>
-          <p className="text-xs text-[var(--muted)]">Es la misma base que alimenta informes, listas y fichas de estaciones.</p>
+          <p className="text-xs text-[var(--muted)]">{t('methodology.coverage.note')}</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Cadencia observada</p>
+          <p className="stat-label">{t('methodology.cadence.label')}</p>
           <p className="stat-value">{getObservedCadenceLabel(status)}</p>
-          <p className="text-xs text-[var(--muted)]">Ritmo observado en las recogidas recientes.</p>
+          <p className="text-xs text-[var(--muted)]">{t('methodology.cadence.note')}</p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Versiones activas</p>
+          <p className="stat-label">{t('methodology.versions.label')}</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
             {getDatasetVersionLabel(dataset)} · API v{getApiVersionLabel()}
           </p>
           <p className="text-xs text-[var(--muted)]">
-            {latestMonth ? `Último informe publicado: ${formatMonthLabel(latestMonth)}.` : 'Sin informe mensual publicado.'}
+            {latestMonth ? t('methodology.versions.latestReport', { month: formatMonthLabel(latestMonth) }) : t('methodology.versions.noReport')}
           </p>
         </article>
       </section>
@@ -138,48 +142,43 @@ function MethodologyPage() {
         <div className="max-w-5xl space-y-3 text-sm leading-7 text-[var(--muted)] md:text-base">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-              De dónde salen los datos
+              {t('methodology.origin.eyebrow')}
             </p>
             <h2 className="text-xl font-black leading-tight text-[var(--foreground)]">
-              Del sistema oficial a información útil para ti
+              {t('methodology.origin.title')}
             </h2>
           </div>
-          <p>
-            Partimos del sistema oficial de Bizi {cityName}. Recogemos el estado de cada estación,
-            comprobamos que los datos sean coherentes y los agrupamos para mostrar la disponibilidad
-            actual, el histórico, los barrios, los informes mensuales y la API. GBFS es el formato
-            técnico que usa esa fuente oficial.
-          </p>
+          <p>{t('methodology.origin.body', { city: cityName })}</p>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="ui-section-card">
-          <p className="stat-label">Estado actual</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que hay ahora</h2>
+          <p className="stat-label">{t('methodology.current.eyebrow')}</p>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">{t('methodology.current.title')}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Bicis disponibles, huecos libres y capacidad muestran el último estado conocido de una estación; no son una media histórica.
+            {t('methodology.current.body')}
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Histórico resumido</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Lo que suele ocurrir</h2>
+          <p className="stat-label">{t('methodology.history.eyebrow')}</p>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">{t('methodology.history.title')}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            El movimiento, las horas sin bicis o huecos, los horarios y las comparativas por barrio usan muchas muestras, no una única foto puntual.
+            {t('methodology.history.body')}
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Actividad y movilidad</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Medidas para comparar</h2>
+          <p className="stat-label">{t('methodology.activity.eyebrow')}</p>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">{t('methodology.activity.title')}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            El índice de actividad sirve para comparar actividad entre estaciones o zonas. No equivale al número oficial de viajes.
+            {t('methodology.activity.body')}
           </p>
         </article>
         <article className="ui-section-card">
-          <p className="stat-label">Predicción</p>
-          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Una pista, no una garantía</h2>
+          <p className="stat-label">{t('methodology.prediction.eyebrow')}</p>
+          <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">{t('methodology.prediction.title')}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Las predicciones combinan patrones anteriores y el estado reciente para avisar de posibles problemas a corto plazo. Comprueba siempre el estado real antes de desplazarte.
+            {t('methodology.prediction.body')}
           </p>
         </article>
       </section>
@@ -187,9 +186,9 @@ function MethodologyPage() {
       <section className="ui-section-card">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-            FAQs visibles
+            {t('methodology.faq.eyebrow')}
           </p>
-          <h2 className="text-xl font-black text-[var(--foreground)]">Preguntas que más cambian la interpretación</h2>
+          <h2 className="text-xl font-black text-[var(--foreground)]">{t('methodology.faq.title')}</h2>
         </div>
 
         <div className="mt-2 grid gap-3 md:grid-cols-2">

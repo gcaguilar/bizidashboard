@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
 import { homeMessages } from './home';
+import { methodologyMessages } from './methodology';
 import { navMessages } from './nav';
 import { productMessages } from './product';
 import { stationMessages } from './station';
@@ -10,6 +11,7 @@ import { stationMessages } from './station';
  */
 const spanish = {
   ...homeMessages.es,
+  ...methodologyMessages.es,
   ...navMessages.es,
   ...productMessages.es,
   ...stationMessages.es,
@@ -19,6 +21,7 @@ export type MessageKey = keyof typeof spanish;
 
 const english: Partial<Record<MessageKey, string>> = {
   ...homeMessages.en,
+  ...methodologyMessages.en,
   ...navMessages.en,
   ...productMessages.en,
   ...stationMessages.en,
