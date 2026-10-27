@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate, type MessageKey } from '@/lib/i18n/messages';
 import { appRoutes } from '@/lib/routes';
 
 export type ExploreHubItem = {
@@ -128,9 +130,58 @@ export const PUBLIC_SEARCHABLE_PAGE_ITEMS: PublicNavItem[] = [
 
 export function getExploreHubSections(options?: {
   latestMonth?: string | null;
+  /** Idioma de los textos; por defecto español. */
+  locale?: Locale;
 }): ExploreHubSection[] {
-  const latestMonthHref = options?.latestMonth
-    ? appRoutes.reportMonth(options.latestMonth)
+  const locale = options?.locale ?? DEFAULT_LOCALE;
+  const sections = buildSpanishExploreHubSections(options?.latestMonth);
+  return locale === DEFAULT_LOCALE ? sections : localizeExploreHubSections(sections, locale);
+}
+
+const EXPLORE_HUB_DESTINATION_KEYS: Record<string, string> = {
+  'Mapa avanzado > Operaciones': 'advancedOperations',
+  'Mapa avanzado > Alertas': 'advancedAlerts',
+  'Mapa avanzado': 'advanced',
+  'Página pública': 'public',
+  'Mapa avanzado > Flujo': 'advancedFlow',
+  'Mapa avanzado > Análisis': 'advancedAnalysis',
+  'Página dedicada': 'dedicated',
+  'Mapa avanzado > Datos': 'advancedData',
+  'Archivo mensual': 'archive',
+};
+
+function localizeExploreHubSections(
+  sections: ExploreHubSection[],
+  locale: Locale,
+): ExploreHubSection[] {
+  const text = (key: string, params?: Record<string, string>) =>
+    translate(locale, key as MessageKey, params);
+
+  return sections.map((section) => ({
+    ...section,
+    title: text(`explore.hub.section.${section.id}.title`),
+    description: text(`explore.hub.section.${section.id}.description`),
+    items: section.items.map((item) => {
+      const reportMonth = /^Informe (.+)$/.exec(item.destinationLabel)?.[1];
+      const destinationKey = EXPLORE_HUB_DESTINATION_KEYS[item.destinationLabel];
+      return {
+        ...item,
+        title: text(`explore.hub.item.${item.id}.title`),
+        eyebrow: text(`explore.hub.item.${item.id}.eyebrow`),
+        description: text(`explore.hub.item.${item.id}.description`),
+        destinationLabel: reportMonth
+          ? text('explore.hub.dest.report', { month: reportMonth })
+          : destinationKey
+            ? text(`explore.hub.dest.${destinationKey}`)
+            : item.destinationLabel,
+      };
+    }),
+  }));
+}
+
+function buildSpanishExploreHubSections(latestMonthOption?: string | null): ExploreHubSection[] {
+  const latestMonthHref = latestMonthOption
+    ? appRoutes.reportMonth(latestMonthOption)
     : appRoutes.reports();
 
   return [
@@ -280,7 +331,7 @@ export function getExploreHubSections(options?: {
           description:
             'Entra al mes más reciente o al archivo completo para seguir demanda, ocupación y balance.',
           href: latestMonthHref,
-          destinationLabel: options?.latestMonth ? `Informe ${options.latestMonth}` : 'Archivo mensual',
+          destinationLabel: latestMonthOption ? `Informe ${latestMonthOption}` : 'Archivo mensual',
         },
       ],
     },

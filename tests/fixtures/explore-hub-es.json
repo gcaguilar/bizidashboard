@@ -1,0 +1,272 @@
+{
+  "plain": [
+    {
+      "id": "operations",
+      "title": "Operación y lectura rápida",
+      "description": "Herramientas para abrir el sistema en vivo, detectar fricción y moverse entre mapas y alertas sin perder contexto.",
+      "items": [
+        {
+          "id": "stations",
+          "title": "Estaciones",
+          "eyebrow": "Directorio vivo",
+          "description": "Busca estaciones, entra al detalle operativo y abre predicciones, mapas y comparativas.",
+          "href": "/dashboard/estaciones",
+          "destinationLabel": "Mapa avanzado > Operaciones"
+        },
+        {
+          "id": "alerts",
+          "title": "Alertas",
+          "eyebrow": "Incidencias y fricción",
+          "description": "Consulta alertas activas, severidad y el historial operativo para priorizar intervenciones.",
+          "href": "/dashboard/alertas",
+          "destinationLabel": "Mapa avanzado > Alertas"
+        },
+        {
+          "id": "maps",
+          "title": "Mapas",
+          "eyebrow": "Vista cartográfica",
+          "description": "Abre el mapa principal con filtros, geolocalización, densidad y contexto de disponibilidad.",
+          "href": "/dashboard",
+          "destinationLabel": "Mapa avanzado"
+        },
+        {
+          "id": "system-kpis",
+          "title": "KPIs sistema",
+          "eyebrow": "Salud y cobertura",
+          "description": "Mide cobertura, lag, volumen y estado general del sistema desde una página pública.",
+          "href": "/estado",
+          "destinationLabel": "Página pública"
+        },
+        {
+          "id": "redistribucion",
+          "title": "Redistribución",
+          "eyebrow": "Logística y equilibrio",
+          "description": "Diagnóstico de redistribución con clasificación de estaciones, predicciones y transferencias origen-destino sugeridas.",
+          "href": "/estadisticas/redistribucion",
+          "destinationLabel": "Página pública"
+        }
+      ]
+    },
+    {
+      "id": "analysis",
+      "title": "Análisis y descubrimiento",
+      "description": "Bloques para leer patrones temporales, comparar zonas y entender movilidad, demanda y comportamiento.",
+      "items": [
+        {
+          "id": "flow",
+          "title": "Flujo",
+          "eyebrow": "Corredores urbanos",
+          "description": "Analiza movilidad agregada, corredores y balance entre zonas con una vista completa.",
+          "href": "/dashboard/flujo",
+          "destinationLabel": "Mapa avanzado > Flujo"
+        },
+        {
+          "id": "rankings",
+          "title": "Rankings",
+          "eyebrow": "Priorización",
+          "description": "Revisa estaciones con mayor uso, fricción o menor disponibilidad para decidir antes.",
+          "href": "/dashboard/views/operations",
+          "destinationLabel": "Mapa avanzado > Operaciones"
+        },
+        {
+          "id": "heatmap",
+          "title": "Heatmap",
+          "eyebrow": "Lectura horaria",
+          "description": "Usa la capa de análisis para localizar horas punta, ocupación y comportamiento por franja.",
+          "href": "/dashboard/views/research",
+          "destinationLabel": "Mapa avanzado > Análisis"
+        },
+        {
+          "id": "compare",
+          "title": "Comparador",
+          "eyebrow": "Benchmarking",
+          "description": "Compara estaciones y contextos con estabilidad, uso relativo y señales recientes.",
+          "href": "/comparar",
+          "destinationLabel": "Página pública"
+        },
+        {
+          "id": "patterns",
+          "title": "Patrones",
+          "eyebrow": "Comportamiento intradía",
+          "description": "Explora tendencias horarias, volatilidad y regularidad para una estación o el sistema.",
+          "href": "/dashboard/views/research",
+          "destinationLabel": "Mapa avanzado > Análisis"
+        },
+        {
+          "id": "mobility",
+          "title": "Movilidad",
+          "eyebrow": "Origen y destino",
+          "description": "Sigue señales de salidas, llegadas y demanda agregada para lectura de movilidad urbana.",
+          "href": "/dashboard/flujo",
+          "destinationLabel": "Página dedicada"
+        },
+        {
+          "id": "districts",
+          "title": "Barrios",
+          "eyebrow": "Contexto territorial",
+          "description": "Abre comparativas territoriales y páginas públicas para lectura por barrio y distrito.",
+          "href": "/estadisticas/barrios",
+          "destinationLabel": "Página pública"
+        }
+      ]
+    },
+    {
+      "id": "archive",
+      "title": "Histórico y series",
+      "description": "Accesos para auditar cobertura, leer la evolución temporal y enlazar informes mensuales persistentes.",
+      "items": [
+        {
+          "id": "history",
+          "title": "Histórico",
+          "eyebrow": "Auditoría del dataset",
+          "description": "Consulta histórico agregado, exportaciones y trazabilidad de los datos compartidos.",
+          "href": "/dashboard/views/data",
+          "destinationLabel": "Mapa avanzado > Datos"
+        },
+        {
+          "id": "time-series",
+          "title": "Series temporales",
+          "eyebrow": "Archivo por períodos",
+          "description": "Entra al mes más reciente o al archivo completo para seguir demanda, ocupación y balance.",
+          "href": "/informes",
+          "destinationLabel": "Archivo mensual"
+        }
+      ]
+    }
+  ],
+  "month": [
+    {
+      "id": "operations",
+      "title": "Operación y lectura rápida",
+      "description": "Herramientas para abrir el sistema en vivo, detectar fricción y moverse entre mapas y alertas sin perder contexto.",
+      "items": [
+        {
+          "id": "stations",
+          "title": "Estaciones",
+          "eyebrow": "Directorio vivo",
+          "description": "Busca estaciones, entra al detalle operativo y abre predicciones, mapas y comparativas.",
+          "href": "/dashboard/estaciones",
+          "destinationLabel": "Mapa avanzado > Operaciones"
+        },
+        {
+          "id": "alerts",
+          "title": "Alertas",
+          "eyebrow": "Incidencias y fricción",
+          "description": "Consulta alertas activas, severidad y el historial operativo para priorizar intervenciones.",
+          "href": "/dashboard/alertas",
+          "destinationLabel": "Mapa avanzado > Alertas"
+        },
+        {
+          "id": "maps",
+          "title": "Mapas",
+          "eyebrow": "Vista cartográfica",
+          "description": "Abre el mapa principal con filtros, geolocalización, densidad y contexto de disponibilidad.",
+          "href": "/dashboard",
+          "destinationLabel": "Mapa avanzado"
+        },
+        {
+          "id": "system-kpis",
+          "title": "KPIs sistema",
+          "eyebrow": "Salud y cobertura",
+          "description": "Mide cobertura, lag, volumen y estado general del sistema desde una página pública.",
+          "href": "/estado",
+          "destinationLabel": "Página pública"
+        },
+        {
+          "id": "redistribucion",
+          "title": "Redistribución",
+          "eyebrow": "Logística y equilibrio",
+          "description": "Diagnóstico de redistribución con clasificación de estaciones, predicciones y transferencias origen-destino sugeridas.",
+          "href": "/estadisticas/redistribucion",
+          "destinationLabel": "Página pública"
+        }
+      ]
+    },
+    {
+      "id": "analysis",
+      "title": "Análisis y descubrimiento",
+      "description": "Bloques para leer patrones temporales, comparar zonas y entender movilidad, demanda y comportamiento.",
+      "items": [
+        {
+          "id": "flow",
+          "title": "Flujo",
+          "eyebrow": "Corredores urbanos",
+          "description": "Analiza movilidad agregada, corredores y balance entre zonas con una vista completa.",
+          "href": "/dashboard/flujo",
+          "destinationLabel": "Mapa avanzado > Flujo"
+        },
+        {
+          "id": "rankings",
+          "title": "Rankings",
+          "eyebrow": "Priorización",
+          "description": "Revisa estaciones con mayor uso, fricción o menor disponibilidad para decidir antes.",
+          "href": "/dashboard/views/operations",
+          "destinationLabel": "Mapa avanzado > Operaciones"
+        },
+        {
+          "id": "heatmap",
+          "title": "Heatmap",
+          "eyebrow": "Lectura horaria",
+          "description": "Usa la capa de análisis para localizar horas punta, ocupación y comportamiento por franja.",
+          "href": "/dashboard/views/research",
+          "destinationLabel": "Mapa avanzado > Análisis"
+        },
+        {
+          "id": "compare",
+          "title": "Comparador",
+          "eyebrow": "Benchmarking",
+          "description": "Compara estaciones y contextos con estabilidad, uso relativo y señales recientes.",
+          "href": "/comparar",
+          "destinationLabel": "Página pública"
+        },
+        {
+          "id": "patterns",
+          "title": "Patrones",
+          "eyebrow": "Comportamiento intradía",
+          "description": "Explora tendencias horarias, volatilidad y regularidad para una estación o el sistema.",
+          "href": "/dashboard/views/research",
+          "destinationLabel": "Mapa avanzado > Análisis"
+        },
+        {
+          "id": "mobility",
+          "title": "Movilidad",
+          "eyebrow": "Origen y destino",
+          "description": "Sigue señales de salidas, llegadas y demanda agregada para lectura de movilidad urbana.",
+          "href": "/dashboard/flujo",
+          "destinationLabel": "Página dedicada"
+        },
+        {
+          "id": "districts",
+          "title": "Barrios",
+          "eyebrow": "Contexto territorial",
+          "description": "Abre comparativas territoriales y páginas públicas para lectura por barrio y distrito.",
+          "href": "/estadisticas/barrios",
+          "destinationLabel": "Página pública"
+        }
+      ]
+    },
+    {
+      "id": "archive",
+      "title": "Histórico y series",
+      "description": "Accesos para auditar cobertura, leer la evolución temporal y enlazar informes mensuales persistentes.",
+      "items": [
+        {
+          "id": "history",
+          "title": "Histórico",
+          "eyebrow": "Auditoría del dataset",
+          "description": "Consulta histórico agregado, exportaciones y trazabilidad de los datos compartidos.",
+          "href": "/dashboard/views/data",
+          "destinationLabel": "Mapa avanzado > Datos"
+        },
+        {
+          "id": "time-series",
+          "title": "Series temporales",
+          "eyebrow": "Archivo por períodos",
+          "description": "Entra al mes más reciente o al archivo completo para seguir demanda, ocupación y balance.",
+          "href": "/informes/2026-09",
+          "destinationLabel": "Informe 2026-09"
+        }
+      ]
+    }
+  ]
+}

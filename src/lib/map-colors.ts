@@ -241,20 +241,32 @@ export function getAnalyticalLegendEntry(station: StationSnapshot): MapLegendEnt
  * dentro de los tres niveles de `CITIZEN_MAP_LEGEND`. Mismos umbrales que
  * `getCitizenStatus`; úsala cuando la UI necesite saber qué falta.
  */
-export function getCitizenStatusDetail(station: StationSnapshot): string {
-  const status = getCitizenStatus(station);
+export function getCitizenStatusDetail(
+  station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const status = getCitizenStatus(station, locale);
 
   if (station.capacity <= 0) {
     return status.label;
   }
 
   if (status.level === 'depleted') {
-    return station.bikesAvailable <= 0 ? 'Sin bicis' : 'Sin huecos';
+    return translate(locale, station.bikesAvailable <= 0 ? 'status.citizen.detail.noBikes' : 'status.citizen.detail.noAnchors');
   }
 
   if (status.level === 'low') {
-    return station.bikesAvailable < 3 ? 'Pocas bicis' : 'Pocos huecos';
+    return translate(locale, station.bikesAvailable < 3 ? 'status.citizen.detail.fewBikes' : 'status.citizen.detail.fewAnchors');
   }
 
   return status.label;
+}
+
+/** Leyenda del mapa ciudadano en `locale` (español = `CITIZEN_MAP_LEGEND`). */
+export function getCitizenMapLegend(
+  locale: Locale = DEFAULT_LOCALE,
+): ReadonlyArray<CitizenStatus> {
+  return locale === DEFAULT_LOCALE
+    ? CITIZEN_MAP_LEGEND
+    : CITIZEN_MAP_LEGEND.map((entry) => getCitizenStatusByLevel(entry.level, locale));
 }

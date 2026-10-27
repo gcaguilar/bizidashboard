@@ -1,5 +1,7 @@
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
 import type { RankingRow } from '@/lib/api-types';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 
 /** Subconjunto de `StationSeoSummary` que pinta el diagnóstico de la portada. */
@@ -23,7 +25,10 @@ export type AvailabilityLike = {
  * saturación. Solo destaca la cara dominante y solo si explica al menos el 15%
  * del periodo; si no, no inventa diagnóstico (null).
  */
-export function buildStationIssueLabel(availability: AvailabilityLike): string | null {
+export function buildStationIssueLabel(
+  availability: AvailabilityLike,
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
   if (!availability) {
     return null;
   }
@@ -38,23 +43,37 @@ export function buildStationIssueLabel(availability: AvailabilityLike): string |
 
   const emptyShare = emptyHours / totalHours;
   const fullShare = fullHours / totalHours;
-  const windowLabel = `últimos ${ANALYTICS_WINDOWS.rankingDays} días`;
+  const windowLabel = translate(locale, 'home.diagnosis.issue.window', {
+    days: ANALYTICS_WINDOWS.rankingDays,
+  });
 
   if (emptyShare >= fullShare && emptyShare >= 0.15) {
-    return `Sin bicis el ${Math.round(emptyShare * 100)}% del tiempo (${windowLabel})`;
+    return translate(locale, 'home.diagnosis.issue.empty', {
+      percent: Math.round(emptyShare * 100),
+      window: windowLabel,
+    });
   }
 
   if (fullShare > emptyShare && fullShare >= 0.15) {
-    return `Llena el ${Math.round(fullShare * 100)}% del tiempo (${windowLabel})`;
+    return translate(locale, 'home.diagnosis.issue.full', {
+      percent: Math.round(fullShare * 100),
+      window: windowLabel,
+    });
   }
 
   return null;
 }
 
 /** Foto actual de la estación, sin acoplar a utilidades de formato de React. */
-export function buildStationCurrentLabel(station: {
-  bikesAvailable: number;
-  anchorsFree: number;
-}): string {
-  return `Ahora: ${station.bikesAvailable} bicis · ${station.anchorsFree} huecos`;
+export function buildStationCurrentLabel(
+  station: {
+    bikesAvailable: number;
+    anchorsFree: number;
+  },
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return translate(locale, 'home.diagnosis.current', {
+    bikes: station.bikesAvailable,
+    anchors: station.anchorsFree,
+  });
 }
