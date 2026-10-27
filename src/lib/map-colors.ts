@@ -32,19 +32,16 @@ export function getAnalyticalMarkerColor(station: StationSnapshot): string {
 
 /** Escala ciudadana: puedo coger o dejar una bici ahora mismo. */
 export function getCitizenMarkerColor(station: StationSnapshot): string {
-  if (station.capacity <= 0) {
-    return '#64748b';
-  }
+  return getCitizenStatus(station).color;
+}
 
-  if (hasNoAvailability(station)) {
-    return '#b91c1c';
-  }
+/** Glifo (ASCII, existe en cualquier fuente del mapa) que acompaña al color. */
+export function getCitizenMarkerGlyph(station: StationSnapshot): string {
+  return getCitizenStatus(station).icon;
+}
 
-  if (station.bikesAvailable < 3 || station.anchorsFree < 3) {
-    return '#b45309';
-  }
-
-  return '#0f766e';
+export function getAnalyticalMarkerGlyph(station: StationSnapshot): string {
+  return getAnalyticalLegendEntry(station).icon;
 }
 
 /**
@@ -91,66 +88,120 @@ export function getCitizenMarkerSeverity(station: StationSnapshot): number {
   return 0;
 }
 
-export const CITIZEN_MAP_LEGEND: ReadonlyArray<{
+export type CitizenStatusLevel = 'balanced' | 'low' | 'depleted';
+
+export type MapLegendEntry = {
   color: string;
+  /** Icono corto: el estado nunca debe depender solo del color. */
+  icon: string;
   label: string;
   description: string;
-}> = [
+};
+
+export type CitizenStatus = MapLegendEntry & { level: CitizenStatusLevel };
+
+/**
+ * Fuente única de los tres estados ciudadanos. Mapa, leyendas, comparador y
+ * fichas deben leer color, icono y texto de aquí, sin copiar los literales.
+ */
+export const CITIZEN_MAP_LEGEND: ReadonlyArray<CitizenStatus> = [
   {
+    level: 'balanced',
     color: '#0f766e',
+    icon: '=',
     label: 'Equilibrio',
     description: '3 o más bicis y 3 o más huecos',
   },
   {
+    level: 'low',
     color: '#b45309',
+    icon: '!',
     label: 'Poca disponibilidad',
     description: 'menos de 3 bicis o menos de 3 huecos',
   },
   {
+    level: 'depleted',
     color: '#b91c1c',
+    icon: '×',
     label: 'Agotada',
     description: 'sin bicis o sin huecos',
   },
 ];
+
+const CITIZEN_NO_DATA: CitizenStatus = {
+  level: 'balanced',
+  color: '#64748b',
+  icon: '?',
+  label: 'Sin datos',
+  description: 'estación sin capacidad declarada',
+};
+
+export function getCitizenStatusByLevel(level: CitizenStatusLevel): CitizenStatus {
+  return CITIZEN_MAP_LEGEND.find((entry) => entry.level === level) ?? CITIZEN_MAP_LEGEND[0];
+}
+
+export function getCitizenStatus(station: StationSnapshot): CitizenStatus {
+  if (station.capacity <= 0) {
+    return CITIZEN_NO_DATA;
+  }
+
+  if (hasNoAvailability(station)) {
+    return getCitizenStatusByLevel('depleted');
+  }
+
+  if (station.bikesAvailable < 3 || station.anchorsFree < 3) {
+    return getCitizenStatusByLevel('low');
+  }
+
+  return getCitizenStatusByLevel('balanced');
+}
 
 /**
  * Leyenda de la escala analítica del dashboard. Debe coincidir, tono a tono,
  * con `getAnalyticalMarkerColor` y con el degradado de los clústeres
  * (`CLUSTER_LAYER`), que resume la severidad media de las estaciones agrupadas.
  */
-export const ANALYTICAL_MAP_LEGEND: ReadonlyArray<{
-  color: string;
-  label: string;
-  description: string;
-}> = [
+export const ANALYTICAL_MAP_LEGEND: ReadonlyArray<MapLegendEntry> = [
   {
     color: '#0f766e',
+    icon: '=',
     label: 'Buena disponibilidad',
     description: 'más del 55 % de la capacidad ocupada',
   },
   {
     color: '#b45309',
+    icon: '~',
     label: 'Disponibilidad media',
     description: 'entre el 25 % y el 55 %',
   },
   {
     color: '#b91c1c',
-    label: 'Poca disponibilidad',
+    icon: '!',
+    label: 'Disponibilidad baja',
     description: '25 % o menos de ocupación',
   },
   {
     color: '#7c2d12',
+    icon: '0',
     label: 'Sin bicis',
     description: 'no hay bicicletas disponibles',
   },
   {
     color: '#991b1b',
+    icon: '×',
     label: 'Sin huecos',
     description: 'no hay anclajes libres',
   },
   {
     color: '#64748b',
+    icon: '?',
     label: 'Sin datos',
     description: 'estación sin capacidad declarada',
   },
 ];
+
+/** Entrada de `ANALYTICAL_MAP_LEGEND` que corresponde a la estación (mismos umbrales que el color). */
+export function getAnalyticalLegendEntry(station: StationSnapshot): MapLegendEntry {
+  const color = getAnalyticalMarkerColor(station);
+  return ANALYTICAL_MAP_LEGEND.find((entry) => entry.color === color) ?? ANALYTICAL_MAP_LEGEND[5];
+}

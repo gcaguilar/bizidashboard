@@ -9,6 +9,7 @@ import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
 import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import { Badge } from '@/components/ui/badge';
+import { getCitizenStatus } from '@/lib/map-colors';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -40,10 +41,12 @@ const SORTS: { key: SortKey; label: string }[] = [
 ];
 
 function stationBadge(s: StationSeoSummary): { label: string; variant: 'danger' | 'warning' | 'success' } {
-  if (s.station.bikesAvailable === 0) return { label: 'Vacía', variant: 'danger' };
-  if (s.station.anchorsFree === 0) return { label: 'Llena', variant: 'warning' };
+  // El icono sale de la escala ciudadana compartida; el texto concreto (vacía/llena) se mantiene.
+  const { icon } = getCitizenStatus(s.station);
+  if (s.station.bikesAvailable === 0) return { label: `${icon} Vacía`, variant: 'danger' };
+  if (s.station.anchorsFree === 0) return { label: `${icon} Llena`, variant: 'warning' };
   if (s.turnover && s.turnover.turnoverScore > 0.8) return { label: 'Muy usada', variant: 'warning' };
-  return { label: 'Sin problemas', variant: 'success' };
+  return { label: `${icon} Sin problemas`, variant: 'success' };
 }
 
 type StationsDirectoryProps = {

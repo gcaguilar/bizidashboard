@@ -1,3 +1,4 @@
+import { StationStatusBadge } from '@/components/ui/station-status';
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -188,6 +189,7 @@ function StationPage() {
         <article className="ui-section-card"><p className="stat-label">Capacidad</p><p className="stat-value">{station.capacity}</p></article>
         <article className="ui-section-card"><p className="stat-label">Ocupación</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
+      <StationStatusBadge station={station} className="mt-4" />
       {station.bikesAvailable <= 0 ? (
         <p className="mt-4 text-sm text-[var(--danger)]">
           ⚠️ Esta estación está vacía ahora. No encontrarás bicis disponibles.

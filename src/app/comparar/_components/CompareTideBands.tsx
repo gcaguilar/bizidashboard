@@ -1,10 +1,21 @@
 import type { ComparisonBand, InteractiveComparisonOption } from '@/lib/comparison-hub';
+import {
+  CITIZEN_MAP_LEGEND,
+  getCitizenStatusByLevel,
+  type CitizenStatusLevel,
+} from '@/lib/map-colors';
 
-const STATUS_META: Record<ComparisonBand['status'], { emoji: string; label: string; short: string }> = {
-  green: { emoji: '🟢', label: 'Disponibilidad holgada', short: 'Holgado' },
-  amber: { emoji: '🟠', label: 'Disponibilidad ajustada', short: 'Ajustado' },
-  red: { emoji: '🔴', label: 'Saturación o estación vacía', short: 'Saturado' },
-  unknown: { emoji: '⚪', label: 'Sin datos suficientes', short: 'Sin datos' },
+// Mismos tres estados (icono + texto + color) que el mapa; ver CITIZEN_MAP_LEGEND.
+function fromCitizenLevel(level: CitizenStatusLevel) {
+  const status = getCitizenStatusByLevel(level);
+  return { icon: status.icon, label: status.description, short: status.label };
+}
+
+const STATUS_META: Record<ComparisonBand['status'], { icon: string; label: string; short: string }> = {
+  green: fromCitizenLevel('balanced'),
+  amber: fromCitizenLevel('low'),
+  red: fromCitizenLevel('depleted'),
+  unknown: { icon: '?', label: 'Sin datos suficientes', short: 'Sin datos' },
 };
 
 const numberFormatter = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
@@ -33,7 +44,7 @@ function BandRow({ option }: { option: InteractiveComparisonOption }) {
                 {band.label} · {band.rangeLabel}
               </span>
               <span className="compare-band-value">
-                {meta.emoji} {meta.short}
+                <span aria-hidden="true">{meta.icon}</span> {meta.short}
               </span>
               {band.avgBikes !== null && band.avgAnchors !== null ? (
                 <span className="text-xs text-[var(--muted)]">
@@ -77,8 +88,8 @@ export function CompareTideBands({
           Efecto marea por franjas
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          🟢 holgado · 🟠 ajustado · 🔴 saturación o estación vacía. Así cambia la disponibilidad a lo
-          largo del día.
+          {CITIZEN_MAP_LEGEND.map((item) => `${item.icon} ${item.label.toLowerCase()}`).join(' · ')}. Así
+          cambia la disponibilidad a lo largo del día.
         </p>
       </div>
       <BandRow option={left} />

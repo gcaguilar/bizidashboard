@@ -64,17 +64,23 @@ describe('CITIZEN_MAP_LEGEND', () => {
   it('documents the three citizen states from green to red', () => {
     expect(CITIZEN_MAP_LEGEND).toEqual([
       {
+        level: 'balanced',
         color: '#0f766e',
+        icon: '=',
         label: 'Equilibrio',
         description: '3 o más bicis y 3 o más huecos',
       },
       {
+        level: 'low',
         color: '#b45309',
+        icon: '!',
         label: 'Poca disponibilidad',
         description: 'menos de 3 bicis o menos de 3 huecos',
       },
       {
+        level: 'depleted',
         color: '#b91c1c',
+        icon: '×',
         label: 'Agotada',
         description: 'sin bicis o sin huecos',
       },
