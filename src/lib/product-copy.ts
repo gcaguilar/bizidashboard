@@ -25,6 +25,20 @@ export const productTerms = {
   },
 } as const;
 
+/**
+ * Unidad del "movimiento estimado". Es una estimación a partir de los cambios
+ * netos de bicis por estación, nunca viajes observados. Todo texto que muestre
+ * la cifra debe usar estas unidades para no mezclar vocabularios.
+ */
+export const movementUnits = {
+  total: 'movimientos aprox.',
+  perDay: 'movimientos/día aprox.',
+  perMonth: 'movimientos/mes aprox.',
+  tooltipLabel: 'Qué es un movimiento aproximado',
+  tooltip:
+    'Estimación a partir de los cambios netos de bicis en cada estación entre muestras. No son viajes observados ni el número oficial de trayectos; sirve para comparar actividad.',
+} as const;
+
 export type NetworkBalanceSummary = {
   criticalStationsCount: number;
   state: 'balanced' | 'tense' | 'unknown';

@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { formatInteger, formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
@@ -21,7 +22,7 @@ export function ReportRedistribution({ report }: ReportRedistributionProps) {
       <h2 className="text-xl font-black text-[var(--foreground)]">Eficacia de la redistribución</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
         {formatPercent(redistribution.networkFrictionRate)} de las horas de la red fueron sin bicis o sin huecos,
-        con {formatInteger(redistribution.rotation)} puntos de movimiento estimado.
+        con {formatInteger(redistribution.rotation)} {movementUnits.total}.
       </p>
       <p className="mt-1 text-xs text-[var(--muted)]">{redistribution.note}</p>
 
@@ -49,7 +50,7 @@ export function ReportRedistribution({ report }: ReportRedistributionProps) {
                   </TrackedLink>
                   <p className="mt-0.5 text-[11px] text-[var(--muted)]">
                     {spot.district ? `${spot.district} · ` : ''}
-                    {formatInteger(spot.rotation)} pts de rotación · {formatPercent(spot.frictionRate)} sin servicio
+                    {formatInteger(spot.rotation)} {movementUnits.total} · {formatPercent(spot.frictionRate)} sin servicio
                   </p>
                 </div>
               </div>

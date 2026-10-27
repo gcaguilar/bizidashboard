@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import { deleteCachedJson, getCachedJson, withCache, withStaleCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
 import { formatDateLabel, formatPercent, formatRatioMagnitude, roundTo } from '@/lib/format';
@@ -72,7 +73,7 @@ function computeTrend(ratio: number | null): MonthlyReportComparison['trend'] {
 }
 
 function buildDefaultSummary(headline: MonthlyReportHeadline, monthKey: string): string {
-  return `En ${formatMonthName(monthKey)} estimamos ${Math.round(headline.demandScore)} puntos de movimiento, con una ocupación media del ${Math.round(
+  return `En ${formatMonthName(monthKey)} estimamos ${Math.round(headline.demandScore)} ${movementUnits.total}, con una ocupación media del ${Math.round(
     headline.avgOccupancy * 100
   )}% y ${Math.round(headline.activeStations)} estaciones activas.`;
 }

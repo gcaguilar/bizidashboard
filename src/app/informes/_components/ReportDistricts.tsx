@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import { formatInteger, formatPercent } from '@/lib/format';
 import type { DistrictMonthSummary, MonthlyReport } from '@/lib/monthly-report';
 
@@ -62,7 +63,7 @@ export function ReportDistricts({ report }: ReportDistrictsProps) {
         <DistrictList
           districts={mostActive}
           metric={(district) => district.demandScore}
-          metricLabel={(district) => `${formatInteger(district.demandScore)} pts`}
+          metricLabel={(district) => `${formatInteger(district.demandScore)} ${movementUnits.total}`}
           tone="primary"
         />
       </article>
@@ -73,7 +74,7 @@ export function ReportDistricts({ report }: ReportDistrictsProps) {
         <DistrictList
           districts={leastActive}
           metric={(district) => district.demandScore}
-          metricLabel={(district) => `${formatInteger(district.demandScore)} pts`}
+          metricLabel={(district) => `${formatInteger(district.demandScore)} ${movementUnits.total}`}
           tone="muted"
         />
       </article>

@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import type { StationSnapshot } from '@/lib/api-types';
 import { averageOrNull, formatRatioDelta } from '@/lib/format';
 import type { MobilityConclusionsPayload } from '@/lib/mobility-conclusions';
@@ -579,8 +580,8 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
       title: 'Barrio vs barrio',
       eyebrow: 'Lectura territorial',
       summary: `${context.topDistrict.name} concentra más movimiento estimado, mientras ${context.bottomDistrict.name} es el extremo más tranquilo.`,
-      metricA: `${context.topDistrict.name}: ${formatDecimal(context.topDistrict.avgTurnover)} puntos de movimiento estimado · ${context.topDistrict.stationCount} estaciones`,
-      metricB: `${context.bottomDistrict.name}: ${formatDecimal(context.bottomDistrict.avgTurnover)} puntos de movimiento estimado · ${context.bottomDistrict.stationCount} estaciones`,
+      metricA: `${context.topDistrict.name}: ${formatDecimal(context.topDistrict.avgTurnover)} ${movementUnits.total} · ${context.topDistrict.stationCount} estaciones`,
+      metricB: `${context.bottomDistrict.name}: ${formatDecimal(context.bottomDistrict.avgTurnover)} ${movementUnits.total} · ${context.bottomDistrict.stationCount} estaciones`,
       delta: `Brecha territorial ${formatRatioDelta(districtGap, NO_COMPARISON_LABEL)}`,
       href: appRoutes.districtLanding(),
       note: `${context.topDistrict.bikesAvailable} bicis disponibles ahora mismo frente a ${context.bottomDistrict.bikesAvailable}.`,
@@ -605,8 +606,8 @@ function buildCurrentCards(context: DerivedComparisonContext): ComparisonCard[] 
         context.weekdayWeekendProfile.dominantPeriod === 'weekend'
           ? 'La red muestra más movimiento estimado el fin de semana que entre semana.'
           : 'La red muestra más movimiento estimado entre semana que el fin de semana.',
-      metricA: `Laboral: ${formatDecimal(context.weekdayWeekendProfile.weekday.avgDemand)} puntos de movimiento estimado al día · ocupación ${formatPercent(context.weekdayWeekendProfile.weekday.avgOccupancy)}`,
-      metricB: `Fin de semana: ${formatDecimal(context.weekdayWeekendProfile.weekend.avgDemand)} puntos de movimiento estimado al día · ocupación ${formatPercent(context.weekdayWeekendProfile.weekend.avgOccupancy)}`,
+      metricA: `Laboral: ${formatDecimal(context.weekdayWeekendProfile.weekday.avgDemand)} ${movementUnits.perDay} · ocupación ${formatPercent(context.weekdayWeekendProfile.weekday.avgOccupancy)}`,
+      metricB: `Fin de semana: ${formatDecimal(context.weekdayWeekendProfile.weekend.avgDemand)} ${movementUnits.perDay} · ocupación ${formatPercent(context.weekdayWeekendProfile.weekend.avgOccupancy)}`,
       delta: `Diferencia relativa ${formatRatioDelta(context.weekdayWeekendProfile.demandGapRatio, NO_COMPARISON_LABEL)}`,
       href: context.latestMonth
         ? appRoutes.reportMonth(context.latestMonth)
@@ -678,8 +679,8 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       summary: temporalComparison.isComparable
         ? `${formatMonthLabel(context.latestMonthlyRow.monthKey)} se compara con ${formatMonthLabel(context.previousMonthlyRow.monthKey)} usando ${temporalComparison.periodLabel}.`
         : `${formatMonthLabel(context.latestMonthlyRow.monthKey)} no tiene todavía una comparación mensual equivalente.`,
-      metricA: `${formatMonthLabel(context.latestMonthlyRow.monthKey)}: ${formatInteger(Number(context.latestMonthlyRow.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(context.latestMonthlyRow.avgOccupancy))}`,
-      metricB: `${formatMonthLabel(context.previousMonthlyRow.monthKey)}: ${formatInteger(Number(context.previousMonthlyRow.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(context.previousMonthlyRow.avgOccupancy))}`,
+      metricA: `${formatMonthLabel(context.latestMonthlyRow.monthKey)}: ${formatInteger(Number(context.latestMonthlyRow.demandScore))} ${movementUnits.total} · ocupación ${formatPercent(Number(context.latestMonthlyRow.avgOccupancy))}`,
+      metricB: `${formatMonthLabel(context.previousMonthlyRow.monthKey)}: ${formatInteger(Number(context.previousMonthlyRow.demandScore))} ${movementUnits.total} · ocupación ${formatPercent(Number(context.previousMonthlyRow.avgOccupancy))}`,
       delta: temporalComparison.isComparable
         ? `Movimiento estimado comparable ${formatRatioDelta(temporalComparison.normalizedDemandRatio, NO_COMPARISON_LABEL)}`
         : 'Comparación no disponible todavía',
@@ -720,8 +721,8 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       summary: yearsAreComparable
         ? `${context.latestYear.year} agrega ${formatInteger(context.latestYear.demandScore)} puntos de demanda frente a ${context.previousYear.year}.`
         : `No hay dos años cerrados con doce meses disponibles para comparar ${context.latestYear.year} y ${context.previousYear.year}.`,
-      metricA: `${context.latestYear.year}: ${formatInteger(context.latestYear.demandScore)} pts · ocupación media ${formatPercent(averageOrNull(context.latestYear.occupancyValues))}`,
-      metricB: `${context.previousYear.year}: ${formatInteger(context.previousYear.demandScore)} pts · ocupación media ${formatPercent(averageOrNull(context.previousYear.occupancyValues))}`,
+      metricA: `${context.latestYear.year}: ${formatInteger(context.latestYear.demandScore)} ${movementUnits.total} · ocupación media ${formatPercent(averageOrNull(context.latestYear.occupancyValues))}`,
+      metricB: `${context.previousYear.year}: ${formatInteger(context.previousYear.demandScore)} ${movementUnits.total} · ocupación media ${formatPercent(averageOrNull(context.previousYear.occupancyValues))}`,
       delta: yearsAreComparable
         ? `Variación anual ${formatRatioDelta(yearDelta, NO_COMPARISON_LABEL)}`
         : 'Comparación no disponible todavía',
@@ -757,8 +758,8 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       eyebrow: 'Ventanas comparables',
       summary:
         'La última semana se compara con la base movil previa de treinta días para detectar aceleraciones o frenadas.',
-      metricA: `Últimos 7 días: ${formatDecimal(last7Demand ?? 0)} pts/día · ocupación ${formatPercent(averageOrNull(last7.map((row) => Number(row.avgOccupancy))))}`,
-      metricB: `Base previa 30 días: ${formatDecimal(previous30Demand ?? 0)} pts/día · ocupación ${formatPercent(averageOrNull(previous30.map((row) => Number(row.avgOccupancy))))}`,
+      metricA: `Últimos 7 días: ${formatDecimal(last7Demand ?? 0)} ${movementUnits.perDay} · ocupación ${formatPercent(averageOrNull(last7.map((row) => Number(row.avgOccupancy))))}`,
+      metricB: `Base previa 30 días: ${formatDecimal(previous30Demand ?? 0)} ${movementUnits.perDay} · ocupación ${formatPercent(averageOrNull(previous30.map((row) => Number(row.avgOccupancy))))}`,
       delta: `Cambio de periodo ${formatRatioDelta(periodDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
       note: `Cobertura reciente: ${context.datasetCoverageDays} días históricos en total.`,
@@ -816,8 +817,8 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       title: 'Antes vs después ampliación',
       eyebrow: 'Hito detectado',
       summary: `Se detecta la mayor ampliación proxy en ${formatMonthLabel(expansionCandidate.monthKey)} por un salto de ${formatInteger(expansionCandidate.stationDelta)} estaciones activas.`,
-      metricA: `Antes: ${formatDecimal(beforeDemand ?? 0)} pts/mes · ${formatDecimal(averageOrNull(beforeSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
-      metricB: `Después: ${formatDecimal(afterDemand ?? 0)} pts/mes · ${formatDecimal(averageOrNull(afterSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
+      metricA: `Antes: ${formatDecimal(beforeDemand ?? 0)} ${movementUnits.perMonth} · ${formatDecimal(averageOrNull(beforeSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
+      metricB: `Después: ${formatDecimal(afterDemand ?? 0)} ${movementUnits.perMonth} · ${formatDecimal(averageOrNull(afterSlice.map((row) => Number(row.activeStations))) ?? 0)} estaciones medias`,
       delta: `Cambio tras ampliación ${formatRatioDelta(expansionDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.reports(),
       note: 'La fecha se infiere por el mayor salto en estaciones activas, no por un calendario externo de hitos.',
@@ -850,8 +851,8 @@ function buildHistoricalCards(context: DerivedComparisonContext): ComparisonCard
       title: 'Eventos vs normal',
       eyebrow: 'Pico anomalo',
       summary: `El día ${peakDay?.day ?? 'sin fecha'} marca el mayor pico reciente y se compara con un día normal medio del mismo tramo.`,
-      metricA: `Pico anomalo: ${formatInteger(Number(peakDay?.demandScore ?? 0))} pts · ocupación ${formatPercent(Number(peakDay?.avgOccupancy ?? 0))}`,
-      metricB: `Día normal: ${formatDecimal(normalDemand ?? 0)} pts · ocupación ${formatPercent(averageOrNull(normalDays.map((row) => Number(row.avgOccupancy))))}`,
+      metricA: `Pico anomalo: ${formatInteger(Number(peakDay?.demandScore ?? 0))} ${movementUnits.total} · ocupación ${formatPercent(Number(peakDay?.avgOccupancy ?? 0))}`,
+      metricB: `Día normal: ${formatDecimal(normalDemand ?? 0)} ${movementUnits.total} · ocupación ${formatPercent(averageOrNull(normalDays.map((row) => Number(row.avgOccupancy))))}`,
       delta: `Exceso sobre normal ${formatRatioDelta(eventDelta, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
       note: 'Esta lectura usa un pico estadistico reciente como proxy de evento; no consume un calendario oficial de eventos.',
@@ -893,10 +894,10 @@ function buildChangeCards(context: DerivedComparisonContext): ComparisonCard[] {
             : `El lider cambia de ${previousLeader.stationName} a ${latestLeader.stationName}.`
           : 'No hay suficiente ranking mensual para medir cambios.',
       metricA: latestLeader
-        ? `${formatMonthLabel(context.latestMonthPayload.selectedMonth ?? context.latestMonth ?? '')}: ${latestLeader.stationName} · ${formatDecimal(latestLeader.avgDemand)} pts`
+        ? `${formatMonthLabel(context.latestMonthPayload.selectedMonth ?? context.latestMonth ?? '')}: ${latestLeader.stationName} · ${formatDecimal(latestLeader.avgDemand)} ${movementUnits.total}`
         : 'Sin lider mensual reciente',
       metricB: previousLeader
-        ? `${formatMonthLabel(context.previousMonthPayload.selectedMonth ?? context.previousMonth ?? '')}: ${previousLeader.stationName} · ${formatDecimal(previousLeader.avgDemand)} pts`
+        ? `${formatMonthLabel(context.previousMonthPayload.selectedMonth ?? context.previousMonth ?? '')}: ${previousLeader.stationName} · ${formatDecimal(previousLeader.avgDemand)} ${movementUnits.total}`
         : 'Sin lider mensual previo',
       delta: `${overlap}/5 estaciones coinciden entre ambos top 5`,
       href: context.latestMonthPayload.selectedMonth
@@ -922,8 +923,8 @@ function buildChangeCards(context: DerivedComparisonContext): ComparisonCard[] {
       eyebrow: 'Pulso reciente',
       summary:
         'Cambio de demanda comparando la última ventana de siete días frente a la anterior.',
-      metricA: `Últimos 7 días: ${formatInteger(context.recentPayload.metrics.demandLast7Days)} pts`,
-      metricB: `7 días previos: ${formatInteger(context.recentPayload.metrics.demandPrevious7Days)} pts`,
+      metricA: `Últimos 7 días: ${formatInteger(context.recentPayload.metrics.demandLast7Days)} ${movementUnits.total}`,
+      metricB: `7 días previos: ${formatInteger(context.recentPayload.metrics.demandPrevious7Days)} ${movementUnits.total}`,
       delta: `Cambio de demanda ${formatRatioDelta(context.recentPayload.metrics.demandDeltaRatio, NO_COMPARISON_LABEL)}`,
       href: appRoutes.dashboardConclusions(),
       note: `Última cobertura útil ${context.recentPayload.sourceLastDay ?? 'sin fecha'}.`,
@@ -1249,8 +1250,8 @@ function buildStationMetrics({
     {
       key: 'tension',
       label: 'Tensión por anclaje',
-      value: tension !== null ? `${formatDecimal(tension, 2)} pts/anclaje` : 'Sin datos',
-      hint: rotation !== null ? `${formatDecimal(rotation)} pts de giro` : undefined,
+      value: tension !== null ? `${formatDecimal(tension, 2)} ${movementUnits.total}/anclaje` : 'Sin datos',
+      hint: rotation !== null ? `${formatDecimal(rotation)} ${movementUnits.total}` : undefined,
     },
   ];
 }
@@ -1277,7 +1278,7 @@ function buildDistrictMetrics(district: DistrictSeoRow): ComparisonMetric[] {
     {
       key: 'tension',
       label: 'Giro medio por estación',
-      value: `${formatDecimal(district.avgTurnover)} pts`,
+      value: `${formatDecimal(district.avgTurnover)} ${movementUnits.total}`,
     },
   ];
 }
@@ -1311,7 +1312,7 @@ function buildCityAverageOption(context: DerivedComparisonContext): InteractiveC
     href: appRoutes.districtLanding(),
     primaryLabel: 'Giro medio',
     primaryValue: avgTurnover,
-    primaryDisplay: `${formatDecimal(avgTurnover ?? 0)} pts`,
+    primaryDisplay: `${formatDecimal(avgTurnover ?? 0)} ${movementUnits.total}`,
     secondaryLabel: 'Estaciones',
     secondaryDisplay: `${formatInteger(context.stations.length)} estaciones`,
     tertiaryLabel: 'Bicis disponibles',
@@ -1337,7 +1338,7 @@ function buildCityAverageOption(context: DerivedComparisonContext): InteractiveC
       {
         key: 'tension',
         label: 'Giro medio por estación',
-        value: `${formatDecimal(avgTurnover ?? 0)} pts`,
+        value: `${formatDecimal(avgTurnover ?? 0)} ${movementUnits.total}`,
       },
     ],
     bands,
@@ -1458,7 +1459,7 @@ function buildPeriodOption(
     href,
     primaryLabel: 'Demanda media',
     primaryValue: demandAverage,
-    primaryDisplay: `${formatDecimal(demandAverage ?? 0)} pts/día`,
+    primaryDisplay: `${formatDecimal(demandAverage ?? 0)} ${movementUnits.perDay}`,
     secondaryLabel: 'Ocupación media',
     secondaryDisplay: formatPercent(occupancyAverage),
     tertiaryLabel: 'Cobertura',
@@ -1645,7 +1646,7 @@ function buildPeriodOptions(
       href: appRoutes.dashboardConclusions(),
       primaryLabel: 'Demanda media',
       primaryValue: demandAverage,
-      primaryDisplay: `${formatDecimal(demandAverage ?? 0)} pts/día`,
+      primaryDisplay: `${formatDecimal(demandAverage ?? 0)} ${movementUnits.perDay}`,
       secondaryLabel: 'Ocupación media',
       secondaryDisplay: formatPercent(occupancyAverage),
       tertiaryLabel: 'Cobertura',
@@ -1704,7 +1705,7 @@ function buildInteractiveComparisonData(
             href: appRoutes.dashboardStation(station.id),
             primaryLabel: 'Giro',
             primaryValue: turnoverScore,
-            primaryDisplay: `${formatDecimal(turnoverScore ?? 0)} pts`,
+            primaryDisplay: `${formatDecimal(turnoverScore ?? 0)} ${movementUnits.total}`,
             secondaryLabel: 'Snapshot',
             secondaryDisplay: `${station.bikesAvailable}/${station.capacity} bicis`,
             tertiaryLabel: 'Horas sin servicio',
@@ -1743,7 +1744,7 @@ function buildInteractiveComparisonData(
               href: appRoutes.districtDetail(district.slug),
               primaryLabel: 'Giro medio',
               primaryValue: district.avgTurnover,
-              primaryDisplay: `${formatDecimal(district.avgTurnover)} pts`,
+              primaryDisplay: `${formatDecimal(district.avgTurnover)} ${movementUnits.total}`,
               secondaryLabel: 'Estaciones',
               secondaryDisplay: `${formatInteger(district.stationCount)} estaciones`,
               tertiaryLabel: 'Bicis disponibles',
@@ -1772,7 +1773,7 @@ function buildInteractiveComparisonData(
           href: appRoutes.reportMonth(row.monthKey),
           primaryLabel: 'Demanda mensual',
           primaryValue: Number(row.demandScore),
-          primaryDisplay: `${formatInteger(Number(row.demandScore))} pts`,
+          primaryDisplay: `${formatInteger(Number(row.demandScore))} ${movementUnits.total}`,
           secondaryLabel: 'Ocupación media',
           secondaryDisplay: formatPercent(Number(row.avgOccupancy)),
           tertiaryLabel: 'Estaciones activas',
@@ -1795,7 +1796,7 @@ function buildInteractiveComparisonData(
           href: appRoutes.reports(),
           primaryLabel: 'Demanda anual',
           primaryValue: row.demandScore,
-          primaryDisplay: `${formatInteger(row.demandScore)} pts`,
+          primaryDisplay: `${formatInteger(row.demandScore)} ${movementUnits.total}`,
           secondaryLabel: 'Ocupación media',
           secondaryDisplay: formatPercent(averageOrNull(row.occupancyValues)),
           tertiaryLabel: 'Estaciones activas medias',

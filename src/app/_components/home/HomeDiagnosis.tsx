@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MovementHint } from '@/app/_components/MovementHint';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -10,6 +11,7 @@ import {
   buildStationIssueLabel,
   type HomeDiagnosisSummary,
 } from '@/lib/home-diagnosis';
+import { movementUnits } from '@/lib/product-copy';
 import { appRoutes } from '@/lib/routes';
 
 export type HomeDiagnosisFilter = 'all' | 'bikes' | 'anchors';
@@ -108,9 +110,10 @@ function DiagnosisStationList({
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
               <span>{buildStationCurrentLabel(summary.station)}</span>
               {tab === 'movement' ? (
-                <span>
-                  {formatInteger(Number(summary.turnover?.turnoverScore ?? 0))} puntos de
-                  movimiento estimado
+                <span className="inline-flex items-center gap-1">
+                  {formatInteger(Number(summary.turnover?.turnoverScore ?? 0))}{' '}
+                  {movementUnits.total}
+                  <MovementHint />
                 </span>
               ) : (
                 <span>ocupación {formatPercent(summary.currentOccupancy)}</span>

@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import type { StationSnapshot } from '@/lib/api-types';
 import { average, formatDateLabel, formatDecimal, formatHourRange, formatInteger, formatPercent } from '@/lib/format';
 import { formatMonthLabel, isValidMonthKey } from '@/lib/months';
@@ -145,7 +146,7 @@ async function buildMostUsedStationsContent(
     const station = stationMap.get(row.stationId);
     return {
       title: `${index + 1}. ${station?.name ?? row.stationId}`,
-      detail: `${formatDecimal(row.turnoverScore)} puntos de movimiento estimado · ${station ? `${station.bikesAvailable} bicis disponibles ahora` : 'ver detalle de la estación'}`,
+      detail: `${formatDecimal(row.turnoverScore)} ${movementUnits.total} · ${station ? `${station.bikesAvailable} bicis disponibles ahora` : 'ver detalle de la estación'}`,
       href: appRoutes.stationDetail(row.stationId),
       badge: `Top ${index + 1}`,
     };
@@ -203,7 +204,7 @@ async function buildMostUsedStationsContent(
       },
       {
         label: 'Movimiento medio del top 5',
-        value: `${formatDecimal(average(rankingsResponse.rankings.slice(0, 5).map((row) => Number(row.turnoverScore))))} pts`,
+        value: `${formatDecimal(average(rankingsResponse.rankings.slice(0, 5).map((row) => Number(row.turnoverScore))))} ${movementUnits.total}`,
         detail: 'Movimiento estimado medio de las estaciones más activas.',
       },
       {
@@ -225,7 +226,7 @@ async function buildDistrictOverviewContent(
   const rows = await sources.loadDistrictRows();
   const items = rows.slice(0, 8).map((district, index) => ({
     title: `${index + 1}. ${district.name}`,
-    detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} puntos de movimiento medio · ${district.bikesAvailable} bicis disponibles`,
+    detail: `${district.stationCount} estaciones · ${formatDecimal(district.avgTurnover)} ${movementUnits.perDay} de media · ${district.bikesAvailable} bicis disponibles`,
     href: appRoutes.districtDetail(district.slug),
     badge: `${district.stationCount} est.`,
   }));
@@ -365,13 +366,13 @@ async function buildStationRankingContent(
   const items = [
     ...turnoverResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Uso ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
-      detail: `${formatDecimal(row.turnoverScore)} puntos de movimiento estimado · ${row.emptyHours + row.fullHours} h sin bicis o huecos`,
+      detail: `${formatDecimal(row.turnoverScore)} ${movementUnits.total} · ${row.emptyHours + row.fullHours} h sin bicis o huecos`,
       href: appRoutes.stationDetail(row.stationId),
       badge: 'Movimiento estimado',
     })),
     ...availabilityResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Riesgo ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
-      detail: `${row.emptyHours + row.fullHours} h sin bicis o huecos · ${formatDecimal(row.turnoverScore)} puntos de movimiento estimado`,
+      detail: `${row.emptyHours + row.fullHours} h sin bicis o huecos · ${formatDecimal(row.turnoverScore)} ${movementUnits.total}`,
       href: appRoutes.stationDetail(row.stationId),
       badge: 'Disponibilidad a revisar',
     })),
@@ -429,7 +430,7 @@ async function buildStationRankingContent(
       },
       {
         label: 'Más movimiento',
-        value: `${formatDecimal(Number(turnoverResponse.rankings[0]?.turnoverScore ?? 0))} pts`,
+        value: `${formatDecimal(Number(turnoverResponse.rankings[0]?.turnoverScore ?? 0))} ${movementUnits.total}`,
         detail: 'Movimiento estimado de la estación que encabeza el ranking.',
       },
       {
@@ -461,7 +462,7 @@ async function buildDailyTripsContent(
     .slice(0, 8)
     .map((row) => ({
       title: row.day,
-      detail: `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))}`,
+      detail: `${formatInteger(Number(row.demandScore))} ${movementUnits.total} · ocupación ${formatPercent(Number(row.avgOccupancy))}`,
       href: appRoutes.dashboardConclusions(),
       badge: `${formatInteger(Number(row.sampleCount))} muestras`,
     }));
@@ -523,7 +524,7 @@ async function buildDailyTripsContent(
       },
       {
         label: 'Movimiento reciente',
-        value: latestRow ? `${formatInteger(Number(latestRow.demandScore))} pts` : 'Sin datos',
+        value: latestRow ? `${formatInteger(Number(latestRow.demandScore))} ${movementUnits.total}` : 'Sin datos',
         detail: 'Índice de movimiento estimado del último día disponible.',
       },
     ],
@@ -543,7 +544,7 @@ async function buildMonthlyTripsContent(
     .slice(0, 8)
     .map((row) => ({
       title: isValidMonthKey(row.monthKey) ? formatMonthLabel(row.monthKey) : row.monthKey,
-      detail: `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`,
+      detail: `${formatInteger(Number(row.demandScore))} ${movementUnits.total} · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`,
       href: appRoutes.reportMonth(row.monthKey),
       badge: row.monthKey,
     }));
@@ -691,13 +692,13 @@ async function buildStationUsageContent(
   const items = [
     ...payload.topStationsByDemand.slice(0, 4).map((station, index) => ({
       title: `Alta demanda ${index + 1}. ${station.stationName}`,
-      detail: `${formatDecimal(station.avgDemand)} puntos de movimiento estimado al día · ver detalle de la estación`,
+      detail: `${formatDecimal(station.avgDemand)} ${movementUnits.perDay} · ver detalle de la estación`,
       href: appRoutes.stationDetail(station.stationId),
       badge: 'Top',
     })),
     ...payload.leastUsedStations.slice(0, 4).map((station, index) => ({
       title: `Menor uso ${index + 1}. ${station.stationName}`,
-      detail: `${formatDecimal(station.avgDemand)} puntos de movimiento estimado al día · conviene seguir su evolución`,
+      detail: `${formatDecimal(station.avgDemand)} ${movementUnits.perDay} · conviene seguir su evolución`,
       href: appRoutes.stationDetail(station.stationId),
       badge: 'Seguimiento',
     })),
@@ -805,7 +806,7 @@ async function buildMonthlyReportsContent(
     return {
       title: formatMonthLabel(month),
       detail: row
-        ? `${formatInteger(Number(row.demandScore))} puntos de movimiento estimado · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`
+        ? `${formatInteger(Number(row.demandScore))} ${movementUnits.total} · ocupación ${formatPercent(Number(row.avgOccupancy))} · ${formatInteger(Number(row.activeStations))} estaciones`
         : 'Informe mensual publicado para consultar ese mes en detalle.',
       href: appRoutes.reportMonth(month),
       badge: month,

@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import { formatDateLabel, formatInteger } from '@/lib/format';
 import { getServiceCauseLabel } from '@/lib/service-calendar';
 import type { MonthlyReport } from '@/lib/monthly-report';
@@ -44,7 +45,7 @@ export function ReportAnomalies({ report }: ReportAnomaliesProps) {
                   {formatDateLabel(anomaly.day)}
                 </p>
                 <p className="mt-0.5 text-[11px] text-[var(--muted)]">
-                  {formatInteger(anomaly.demandScore)} pts frente a {formatInteger(anomaly.baseline)} habituales
+                  {formatInteger(anomaly.demandScore)} {movementUnits.perDay} frente a {formatInteger(anomaly.baseline)} habituales
                   {anomaly.cause ? ` · ${getServiceCauseLabel(anomaly.cause.kind)}: ${anomaly.cause.label}` : ' · sin causa identificada'}
                 </p>
               </div>

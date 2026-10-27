@@ -1,3 +1,5 @@
+import { MovementHint } from '@/app/_components/MovementHint';
+import { movementUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router'
 import { lazy, Suspense, useEffect } from 'react'
 import { DataStateNotice } from '@/app/_components/DataStateNotice'
@@ -254,8 +256,9 @@ function InformesMonthPage() {
 
           <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
             <article className="ui-section-card">
-              <p className="stat-label">Movimiento estimado</p>
+              <p className="stat-label">Movimiento estimado <MovementHint /></p>
               <p className="stat-value">{formatInteger(report.headline.demandScore)}</p>
+              <p className="text-xs text-[var(--muted)]">{movementUnits.total}</p>
               <p className="text-xs text-[var(--muted)]">
                 {report.headline.demandDeltaRatio !== null
                   ? `${formatRatioDelta(report.headline.demandDeltaRatio)} vs mes anterior`

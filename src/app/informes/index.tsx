@@ -1,3 +1,4 @@
+import { movementUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
@@ -207,7 +208,7 @@ function ReportsIndexPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
                   <p className="text-[11px] text-[var(--muted)]">
                     {row
-                      ? `${formatInteger(row.demandScore)} puntos de movimiento estimado · ocupación ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
+                      ? `${formatInteger(row.demandScore)} ${movementUnits.total} · ocupación ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
                       : 'Informe disponible para consultar ese mes en detalle.'}
                   </p>
                   {month === latestMonth && latestPeriodCoverage ? (

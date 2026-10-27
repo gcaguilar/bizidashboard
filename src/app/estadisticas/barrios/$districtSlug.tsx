@@ -1,3 +1,5 @@
+import { MovementHint } from '@/app/_components/MovementHint';
+import { movementUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -134,7 +136,7 @@ function DistrictPage() {
         <article className="ui-section-card"><p className="stat-label">Estaciones</p><p className="stat-value">{district.stationCount}</p></article>
         <article className="ui-section-card"><p className="stat-label">Bicis disponibles</p><p className="stat-value">{district.bikesAvailable}</p></article>
         <article className="ui-section-card"><p className="stat-label">Huecos libres</p><p className="stat-value">{district.anchorsFree}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Movimiento medio</p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Movimiento medio <MovementHint /></p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p><p className="text-xs text-[var(--muted)]">{movementUnits.perDay}</p></article>
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
