@@ -45,6 +45,19 @@ function getHomeFaq(locale: Locale) {
   ];
 }
 
+/** JSON-LD FAQPage de la home: mismo idioma que el texto visible (`getHomeFaq`). */
+export function buildHomeFaqPage(locale: Locale) {
+  return {
+    '@type': 'FAQPage',
+    inLanguage: locale,
+    mainEntity: getHomeFaq(locale).map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  };
+}
+
 /** Título y descripción SEO: en español siguen viniendo de `site.ts`. */
 function getHomeSeoCopy(locale: Locale) {
   return locale === 'es'
@@ -145,14 +158,7 @@ function Home() {
                   url: getSiteUrl(),
                 },
               },
-              {
-                '@type': 'FAQPage',
-                mainEntity: HOME_FAQ.map((item) => ({
-                  '@type': 'Question',
-                  name: item.question,
-                  acceptedAnswer: { '@type': 'Answer', text: item.answer },
-                })),
-              },
+              buildHomeFaqPage(locale),
             ],
           }),
         }}
