@@ -1,4 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
+import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n/locales'
+import type { Locale } from '@/lib/i18n/locales'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import type { StationSeoSummary } from '@/lib/seo-stations'
 import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis'
@@ -45,7 +48,10 @@ function toHomeDiagnosisSummary(row: StationSeoSummary): HomeDiagnosisSummary {
   }
 }
 
-export const getHomePageData = createServerFn({ method: 'GET' }).handler(async () => {
+const HomePageInputSchema = z.object({ locale: z.enum(LOCALES) })
+
+/** Builds the home payload; `locale` only affects the generated network sentences. */
+export async function loadHomePageData(locale: Locale = DEFAULT_LOCALE) {
   const nowIso = new Date().toISOString()
   const [stationRows, status, dataset, alerts] = await Promise.all([
     getStationSeoRows(),
@@ -87,7 +93,7 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
     lastUpdatedAt: status.quality.freshness.lastUpdated ?? dataset.lastUpdated.lastSampleAt,
     pipelineHealthy: status.pipeline.healthStatus === 'healthy',
     baseline,
-  })
+  }, locale)
 
   const criticalDistrictsByName = new Map<string, CriticalDistrictCount>()
   for (const row of stationRows) {
@@ -136,4 +142,8 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
     topCriticalDistricts,
     districts,
   }
-})
+}
+
+export const getHomePageData = createServerFn({ method: 'GET' })
+  .validator(HomePageInputSchema)
+  .handler(async ({ data }: { data: { locale: Locale } }) => loadHomePageData(data.locale))

@@ -1,5 +1,7 @@
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger, formatPercent } from '@/lib/format';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 
 export const NETWORK_HEALTH_THRESHOLDS = {
   /** Proporción máxima de estaciones sin disponibilidad para estado verde. */
@@ -24,12 +26,9 @@ export type NetworkHealth = {
   totalStations: number;
 };
 
-const HEALTH_LABELS: Record<NetworkHealthLevel, string> = {
-  green: 'Red en estado óptimo',
-  yellow: 'Afectaciones moderadas',
-  red: 'Incidencia generalizada',
-  unknown: 'Sin datos ahora mismo',
-};
+function getHealthLabel(level: NetworkHealthLevel, locale: Locale): string {
+  return translate(locale, `network.health.label.${level}`);
+}
 
 /**
  * Una estación "sin disponibilidad" no sirve ahora mismo: no se puede coger una
@@ -80,15 +79,17 @@ export function buildNetworkHealth(input: {
   pipelineHealthy: boolean;
   lastUpdatedAt: string | null;
   nowIso?: string;
+  locale?: Locale;
 }): NetworkHealth {
+  const locale = input.locale ?? DEFAULT_LOCALE;
   const totalStations = input.stations.length;
   const criticalStationsCount = input.stations.filter(hasNoAvailability).length;
 
   if (totalStations === 0) {
     return {
       level: 'unknown',
-      label: HEALTH_LABELS.unknown,
-      description: 'Todavía no hay estaciones con datos para evaluar la red.',
+      label: getHealthLabel('unknown', locale),
+      description: translate(locale, 'network.health.unknown.description'),
       unavailableShare: 0,
       criticalStationsCount: 0,
       totalStations: 0,
@@ -101,10 +102,12 @@ export function buildNetworkHealth(input: {
   const reasons: string[] = [];
 
   if (isPipelineDown) {
-    reasons.push('la recogida de datos no está funcionando');
+    reasons.push(translate(locale, 'network.health.reason.pipeline'));
   }
   if (isStale) {
-    reasons.push(`la última actualización fue hace más de ${NETWORK_HEALTH_THRESHOLDS.staleDataMinutes} minutos`);
+    reasons.push(
+      translate(locale, 'network.health.reason.stale', { minutes: NETWORK_HEALTH_THRESHOLDS.staleDataMinutes }),
+    );
   }
 
   let level: NetworkHealthLevel;
@@ -116,12 +119,21 @@ export function buildNetworkHealth(input: {
     level = 'green';
   }
 
-  const unavailableSummary = `${formatInteger(criticalStationsCount)} de ${formatInteger(totalStations)} estaciones sin bicis o sin huecos libres (${formatPercent(unavailableShare)})`;
-  const description = reasons.length > 0 ? `${unavailableSummary}; ${reasons.join(' y ')}` : unavailableSummary;
+  const unavailableSummary = translate(locale, 'network.health.summary', {
+    critical: formatInteger(criticalStationsCount, locale),
+    total: formatInteger(totalStations, locale),
+    percent: formatPercent(unavailableShare),
+  });
+  const description = reasons.length > 0
+    ? translate(locale, 'network.health.withReasons', {
+        summary: unavailableSummary,
+        reasons: reasons.join(translate(locale, 'network.health.reasons.join')),
+      })
+    : unavailableSummary;
 
   return {
     level,
-    label: HEALTH_LABELS[level],
+    label: getHealthLabel(level, locale),
     description,
     unavailableShare,
     criticalStationsCount,

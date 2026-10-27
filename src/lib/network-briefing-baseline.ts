@@ -3,7 +3,7 @@ import { CacheTTL } from '@/lib/cache/config';
 import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import type { NetworkBriefingBaseline } from '@/lib/network-briefing';
+import { SAME_SLOT_BASELINE_LABEL, type NetworkBriefingBaseline } from '@/lib/network-briefing';
 
 const BASELINE_WEEKS = 6;
 const HOUR_MS = 60 * 60 * 1000;
@@ -52,7 +52,7 @@ export function selectComparableHourlyBaseline(
     baseline: {
       criticalStationsCount: Number(candidate.criticalStationsCount),
       activeAlertsCount: null,
-      label: 'la misma franja de la semana anterior',
+      label: SAME_SLOT_BASELINE_LABEL,
     },
     bucketStart: new Date(candidate.bucketStart),
   };

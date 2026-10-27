@@ -1,5 +1,7 @@
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatFreshnessLabel } from '@/lib/freshness';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { createTranslator, translate } from '@/lib/i18n/messages';
 import { buildNetworkHealth, hasNoAvailability } from '@/lib/network-health';
 import type { NetworkHealth, NetworkHealthLevel } from '@/lib/network-health';
 
@@ -36,52 +38,81 @@ const BRIEFING_STATE_BY_HEALTH_LEVEL: Record<NetworkHealthLevel, NetworkBriefing
   unknown: 'insufficient',
 };
 
-function pluralize(count: number, singular: string, plural: string): string {
-  return count === 1 ? singular : plural;
+/** Spanish label stored (and cached) by the baseline lookup; translated when rendered. */
+export const SAME_SLOT_BASELINE_LABEL = 'la misma franja de la semana anterior';
+
+type PluralKey = 'network.unit.day' | 'network.briefing.current' | 'network.briefing.comparison.more' | 'network.briefing.comparison.less' | 'network.briefing.alerts.compared' | 'network.briefing.alerts.uncompared';
+
+function pluralKey<K extends PluralKey>(base: K, count: number): `${K}.one` | `${K}.other` {
+  return count === 1 ? `${base}.one` : `${base}.other`;
 }
 
-export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefing {
+function localizeBaselineLabel(label: string, locale: Locale): string {
+  return label === SAME_SLOT_BASELINE_LABEL ? translate(locale, 'network.baseline.sameSlot') : label;
+}
+
+export function buildNetworkBriefing(input: NetworkBriefingInput, locale: Locale = DEFAULT_LOCALE): NetworkBriefing {
+  const t = createTranslator(locale);
   const health = buildNetworkHealth({
     stations: input.stations,
     pipelineHealthy: input.pipelineHealthy,
     lastUpdatedAt: input.lastUpdatedAt,
+    locale,
   });
   const criticalStations = input.stations.filter(hasNoAvailability);
   const focusStation = criticalStations[0] ?? null;
   const hasEnoughEvidence = input.stations.length > 0 && Boolean(input.lastUpdatedAt) && input.coverageDays > 0;
 
   if (!hasEnoughEvidence) {
+    const coverageDays = Math.max(0, input.coverageDays);
     return {
       state: 'insufficient',
       health,
-      current: 'Ahora mismo no hay datos suficientes para resumir la red.',
-      comparison: 'Todavía no se puede comparar con otro momento.',
-      focus: 'No se puede destacar ninguna estación con los datos disponibles.',
-      alerts: 'No se puede resumir el estado de las alertas con los datos disponibles.',
-      dataQuality: `Cobertura disponible: ${Math.max(0, input.coverageDays)} ${pluralize(Math.max(0, input.coverageDays), 'día', 'días')}.`,
-      warning: 'Faltan datos para ofrecer un resumen fiable.',
+      current: t('network.briefing.insufficient.current'),
+      comparison: t('network.briefing.insufficient.comparison'),
+      focus: t('network.briefing.insufficient.focus'),
+      alerts: t('network.briefing.insufficient.alerts'),
+      dataQuality: t('network.briefing.insufficient.coverage', {
+        days: coverageDays,
+        unit: t(pluralKey('network.unit.day', coverageDays)),
+      }),
+      warning: t('network.briefing.insufficient.warning'),
     };
   }
 
   const criticalCount = health.criticalStationsCount;
   const current = criticalCount > 0
-    ? `Ahora mismo, ${criticalCount} ${pluralize(criticalCount, 'estación no tiene', 'estaciones no tienen')} bicis o huecos libres.`
-    : 'Ahora mismo todas las estaciones tienen bicis y huecos libres.';
+    ? t(pluralKey('network.briefing.current', criticalCount), { count: criticalCount })
+    : t('network.briefing.current.none');
   const criticalDifference = input.baseline
     ? criticalCount - input.baseline.criticalStationsCount
     : null;
+  const baselineLabel = input.baseline ? localizeBaselineLabel(input.baseline.label, locale) : '';
   const comparison = input.baseline && criticalDifference !== null
     ? criticalDifference === 0
-      ? `Hay el mismo número que en ${input.baseline.label}.`
-      : `Hay ${Math.abs(criticalDifference)} ${pluralize(Math.abs(criticalDifference), 'estación', 'estaciones')} ${criticalDifference > 0 ? 'más' : 'menos'} que en ${input.baseline.label}.`
-    : 'Aún no hay otro momento comparable para saber si la situación ha cambiado.';
+      ? t('network.briefing.comparison.same', { label: baselineLabel })
+      : t(
+          pluralKey(
+            criticalDifference > 0 ? 'network.briefing.comparison.more' : 'network.briefing.comparison.less',
+            Math.abs(criticalDifference),
+          ),
+          { count: Math.abs(criticalDifference), label: baselineLabel },
+        )
+    : t('network.briefing.comparison.none');
   const focus = focusStation
-    ? `La estación que más conviene revisar ahora es ${focusStation.name}.`
-    : 'No hay ninguna estación que requiera atención especial ahora.';
+    ? t('network.briefing.focus.some', { name: focusStation.name })
+    : t('network.briefing.focus.none');
   const alerts = input.baseline?.activeAlertsCount != null
-    ? `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Se puede comparar con ${input.baseline.label}.`
-    : `Hay ${input.activeAlertsCount} ${pluralize(input.activeAlertsCount, 'alerta activa', 'alertas activas')}. Aún no se puede comparar su evolución.`;
-  const freshness = input.lastUpdatedAt ? formatFreshnessLabel(input.lastUpdatedAt) : 'sin fecha';
+    ? t(pluralKey('network.briefing.alerts.compared', input.activeAlertsCount), {
+        count: input.activeAlertsCount,
+        label: baselineLabel,
+      })
+    : t(pluralKey('network.briefing.alerts.uncompared', input.activeAlertsCount), {
+        count: input.activeAlertsCount,
+      });
+  const freshness = input.lastUpdatedAt
+    ? formatFreshnessLabel(input.lastUpdatedAt, locale)
+    : t('network.briefing.freshness.noDate');
 
   return {
     state: BRIEFING_STATE_BY_HEALTH_LEVEL[health.level],
@@ -90,7 +121,12 @@ export function buildNetworkBriefing(input: NetworkBriefingInput): NetworkBriefi
     comparison,
     focus,
     alerts,
-    dataQuality: `Datos ${input.pipelineHealthy ? 'actualizándose con normalidad' : 'con una incidencia en la actualización'}; última actualización ${freshness}; cobertura de ${input.coverageDays} ${pluralize(input.coverageDays, 'día', 'días')}.`,
+    dataQuality: t('network.briefing.dataQuality', {
+      pipeline: t(input.pipelineHealthy ? 'network.briefing.pipeline.ok' : 'network.briefing.pipeline.incident'),
+      freshness,
+      days: input.coverageDays,
+      unit: t(pluralKey('network.unit.day', input.coverageDays)),
+    }),
     warning: null,
   };
 }

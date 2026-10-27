@@ -100,7 +100,7 @@ export const Route = createFileRoute('/')({
       ],
     };
   },
-  loader: () => getHomePageData(),
+  loader: ({ context }: { context: { locale: Locale } }) => getHomePageData({ data: { locale: context.locale } }),
   component: Home,
 });
 
