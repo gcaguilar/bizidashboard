@@ -1,4 +1,5 @@
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { homeMessages } from './home';
 import { navMessages } from './nav';
 import { productMessages } from './product';
 
@@ -7,6 +8,7 @@ import { productMessages } from './product';
  * spreading it below (keep one line per area so parallel edits do not clash).
  */
 const spanish = {
+  ...homeMessages.es,
   ...navMessages.es,
   ...productMessages.es,
 };
@@ -14,6 +16,7 @@ const spanish = {
 export type MessageKey = keyof typeof spanish;
 
 const english: Partial<Record<MessageKey, string>> = {
+  ...homeMessages.en,
   ...navMessages.en,
   ...productMessages.en,
 };
