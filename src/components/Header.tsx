@@ -5,7 +5,10 @@ import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { HeaderSearch } from '@/components/HeaderSearch';
 import { HeaderSession } from '@/components/HeaderSession';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
+import { translateNavLabel } from '@/lib/i18n/nav-labels';
+import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
 import { PUBLIC_MAIN_NAV_ITEMS, PUBLIC_MORE_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '@/lib/public-navigation';
 import { useDismissOnOutsideClick } from '@/lib/use-dismiss-on-outside-click';
@@ -22,6 +25,7 @@ function buildNavEvent(source: string, ctaId: string) {
 }
 
 export default function Header() {
+  const { locale, t } = useT();
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -39,7 +43,7 @@ export default function Header() {
         </TrackedLink>
 
         <nav
-          aria-label="Navegación principal"
+          aria-label={t('nav.mainAriaLabel')}
           className="hidden min-w-0 flex-1 items-center gap-x-3 text-sm md:flex"
         >
           {PUBLIC_MAIN_NAV_ITEMS.map((link) => (
@@ -49,7 +53,7 @@ export default function Header() {
               ctaEvent={buildNavEvent('header_main', link.ctaId)}
               className="text-[var(--muted)] transition hover:text-[var(--foreground)]"
             >
-              {link.label}
+              {translateNavLabel(locale, link)}
             </TrackedLink>
           ))}
 
@@ -63,7 +67,7 @@ export default function Header() {
               aria-haspopup="menu"
               className="min-h-0 px-2 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
             >
-              Más
+              {t('nav.more')}
             </Button>
             {moreOpen && (
               <div
@@ -77,7 +81,7 @@ export default function Header() {
                     ctaEvent={buildNavEvent('header_more', link.ctaId)}
                     className="rounded-lg px-3 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
                   >
-                    {link.label}
+                    {translateNavLabel(locale, link)}
                   </TrackedLink>
                 ))}
               </div>
@@ -93,11 +97,12 @@ export default function Header() {
             className="min-h-0 px-2 py-1 text-base font-bold text-[var(--muted)] hover:text-[var(--foreground)] md:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-panel"
-            aria-label={mobileOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
             onClick={() => setMobileOpen((value) => !value)}
           >
             <span aria-hidden="true">{mobileOpen ? '✕' : '☰'}</span>
           </Button>
+          <LanguageSwitcher />
           <HeaderSearch />
           <ThemeToggleButton />
           <HeaderSession />
@@ -111,7 +116,7 @@ export default function Header() {
           className="border-t border-[var(--border)] bg-[var(--card)] md:hidden"
         >
           <nav
-            aria-label="Navegación principal"
+            aria-label={t('nav.mainAriaLabel')}
             className="mx-auto grid max-w-[1280px] grid-cols-2 gap-1 px-3 py-3 text-sm"
           >
             {PUBLIC_NAV_ITEMS.map((link) => (
@@ -122,7 +127,7 @@ export default function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="rounded-lg px-3 py-2 text-[var(--muted)] transition hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
               >
-                {link.label}
+                {translateNavLabel(locale, link)}
               </TrackedLink>
             ))}
           </nav>

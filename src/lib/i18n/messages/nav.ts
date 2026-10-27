@@ -41,11 +41,6 @@ export const navMessages = defineArea({
     'footer.madeWith': 'Hecho con ❤️ por',
     'footer.reportIssue': 'Reportar un problema',
     'footer.tagline': 'DatosBizi - Panel de movilidad para sistemas de bicicletas públicas.',
-    'lang.label': 'Idioma',
-    'lang.es': 'Español',
-    'lang.en': 'English',
-    'lang.switchToEs': 'Ver esta página en español',
-    'lang.switchToEn': 'View this page in English',
   },
   en: {
     'nav.item.network': 'Network performance',
@@ -82,10 +77,5 @@ export const navMessages = defineArea({
     'footer.madeWith': 'Made with ❤️ by',
     'footer.reportIssue': 'Report an issue',
     'footer.tagline': 'DatosBizi - Mobility dashboard for public bike-sharing systems.',
-    'lang.label': 'Language',
-    'lang.es': 'Español',
-    'lang.en': 'English',
-    'lang.switchToEs': 'Ver esta página en español',
-    'lang.switchToEn': 'View this page in English',
   },
 });

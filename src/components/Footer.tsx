@@ -5,11 +5,14 @@ import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
 import { FOOTER_LEGAL_ITEMS, FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
 import { formatDateLabel } from '@/lib/format'
+import { translateNavLabel } from '@/lib/i18n/nav-labels'
+import { useT } from '@/lib/i18n/use-locale'
 import type { FooterData } from '@/server-functions/footer'
 
 const GITHUB_REPO = 'https://github.com/gcaguilar/bizidashboard'
 
 export default function Footer({ footerData }: { footerData: FooterData | undefined }) {
+  const { locale, t } = useT()
   const [lastUpdatedIso, setLastUpdatedIso] = useState<string | null>(null)
   const version = footerData?.version ?? null
 
@@ -43,7 +46,7 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
             <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
               {FOOTER_NAV_GROUPS[0].map(link => (
                 <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
-                  {link.label}
+                  {translateNavLabel(locale, link)}
                 </TrackedLink>
               ))}
             </nav>
@@ -51,31 +54,31 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
               <nav key={index} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
                 {group.map(link => (
                   <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
-                    {link.label}
+                    {translateNavLabel(locale, link)}
                   </TrackedLink>
                 ))}
               </nav>
             ))}
-            <nav aria-label="Información y legal" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-[var(--border)] pt-2 text-xs text-[var(--muted)]">
+            <nav aria-label={t('nav.legalAriaLabel')} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-[var(--border)] pt-2 text-xs text-[var(--muted)]">
               {FOOTER_LEGAL_ITEMS.map(link => (
                 <TrackedLink key={link.href} href={link.href} ctaEvent={{ source: 'footer', ctaId: link.ctaId, destination: link.ctaId, sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition">
-                  {link.label}
+                  {translateNavLabel(locale, link)}
                 </TrackedLink>
               ))}
             </nav>
           </div>
 
           <div className="text-xs text-[var(--muted)] text-center space-y-1">
-            {lastUpdated && <p>Última muestra de datos Bizi: {lastUpdated}</p>}
+            {lastUpdated && <p>{t('footer.lastSample', { date: lastUpdated })}</p>}
             <p>
-              Datos abiertos vía{' '}
+              {t('footer.openDataVia')}{' '}
               <TrackedLink href={appRoutes.developers()} ctaEvent={{ source: 'footer', ctaId: 'api_public', destination: 'api', sourceRole: 'utility', destinationRole: 'hub', transitionKind: 'within_public' }} className="hover:text-[var(--foreground)] transition underline underline-offset-2">
-                API pública
+                {t('footer.publicApi')}
               </TrackedLink>
             </p>
             {version && (
               <p className="text-[10px] text-[var(--muted)]">
-                Build{' '}
+                {t('footer.build')}{' '}
                 <a
                   href={`${GITHUB_REPO}/commit/${version.gitSha}`}
                   target="_blank"
@@ -88,7 +91,7 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
               </p>
             )}
             <p>
-              Hecho con ❤️ por{' '}
+              {t('footer.madeWith')}{' '}
               <a
                 href="https://www.linkedin.com/in/guillermocastella/"
                 target="_blank"
@@ -115,12 +118,12 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
               rel="noopener noreferrer"
               className="hover:text-[var(--foreground)] transition"
             >
-              Reportar un problema
+              {t('footer.reportIssue')}
             </a>
           </div>
 
           <p className="text-xs text-[var(--muted)]">
-            DatosBizi - Panel de movilidad para sistemas de bicicletas públicas.
+            {t('footer.tagline')}
           </p>
         </div>
       </div>
