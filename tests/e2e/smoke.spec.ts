@@ -3,9 +3,9 @@ import { expect, test } from '@playwright/test';
 test('home page loads hero text, bike count chip, and station cards', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByText('Bizi Zaragoza ahora mismo')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Entiende cómo está Bizi Zaragoza/ })).toBeVisible();
 
-  await expect(page.getByText('bicis disponibles')).toBeVisible();
+  await expect(page.getByText('Bicis disponibles', { exact: true }).first()).toBeVisible();
 
   const stationCards = page.locator('.ui-surface-block-interactive');
   await expect(stationCards.first()).toBeVisible({ timeout: 15_000 });
@@ -55,7 +55,7 @@ test('informes page loads last report link and archive', async ({ page }) => {
   await expect(page.getByText('Archivo mensual')).toBeVisible();
   await expect(page.getByText('Informes mensuales de Bizi Zaragoza')).toBeVisible();
 
-  const lastReportLink = page.getByRole('link', { name: /ultimo informe/i });
+  const lastReportLink = page.getByRole('link', { name: /[úu]ltimo informe/i });
   await expect(lastReportLink).toBeVisible({ timeout: 10_000 });
 
   const archiveCards = page.locator('.ui-metric-card, .ui-section-card').filter({ hasText: /informe/i });
