@@ -2,6 +2,7 @@ import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
 import { homeMessages } from './home';
 import { navMessages } from './nav';
 import { productMessages } from './product';
+import { stationMessages } from './station';
 
 /**
  * Central dictionary. Add a new area by creating `messages/<area>.ts` and
@@ -11,6 +12,7 @@ const spanish = {
   ...homeMessages.es,
   ...navMessages.es,
   ...productMessages.es,
+  ...stationMessages.es,
 };
 
 export type MessageKey = keyof typeof spanish;
@@ -19,6 +21,7 @@ const english: Partial<Record<MessageKey, string>> = {
   ...homeMessages.en,
   ...navMessages.en,
   ...productMessages.en,
+  ...stationMessages.en,
 };
 
 const CATALOGS: Record<Locale, Partial<Record<MessageKey, string>>> = {
