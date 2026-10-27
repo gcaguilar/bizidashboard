@@ -38,7 +38,10 @@ export function LanguageSwitcher() {
   return (
     <a
       href={href}
+      rel="alternate"
       lang={target}
+      // El hash solo existe en el cliente: no debe provocar aviso de hidratacion.
+      suppressHydrationWarning
       hrefLang={target}
       title={LABELS[target].title}
       aria-label={LABELS[target].title}

@@ -18,6 +18,8 @@ import {
   SITEMAP_URLSET_OPEN,
 } from '@/lib/i18n/sitemap';
 import { buildSeoHead } from '@/lib/seo-head';
+import { buildLlmsTxt } from '@/app/llms[.]txt';
+import { buildRobotsTxt } from '@/lib/robots-txt';
 import { getSiteUrl } from '@/lib/site';
 
 type Head = {
@@ -152,5 +154,21 @@ describe('localizeStructuredData', () => {
     expect(faq).toEqual({ '@type': 'FAQPage', mainEntity: [] });
     // the input is never mutated
     expect((graph['@graph'][1] as Record<string, unknown>).url).toBe(`${site}/metodologia`);
+  });
+});
+
+describe('robots.txt and llms.txt', () => {
+  it('robots.txt allows /en for every agent and keeps pointing to the sitemap', () => {
+    const robots = buildRobotsTxt();
+    expect(robots).not.toMatch(/Disallow:\s*\/en/);
+    expect(robots).toContain('Disallow: /api/');
+    expect(robots.match(/Allow: \//g)?.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('llms.txt lists the English entry points and keeps the Spanish ones', () => {
+    const llms = buildLlmsTxt();
+    expect(llms).toContain(`${getSiteUrl()}/en `);
+    expect(llms).toContain(`${getSiteUrl()}/en/metodologia`);
+    expect(llms).toContain(`${getSiteUrl()}/metodologia - Metodología y límites de los datos`);
   });
 });

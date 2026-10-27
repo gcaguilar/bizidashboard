@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl } from '@/lib/site'
+import { localizePathname } from '@/lib/i18n/locales'
 
 export function buildLlmsTxt(): string {
   const siteUrl = getSiteUrl()
@@ -29,6 +30,11 @@ export function buildLlmsTxt(): string {
     `- ${siteUrl}${appRoutes.biciradar()} - BiciRadar, app de consulta en 5 ciudades`,
     `- ${siteUrl}${appRoutes.about()} - Quién hace DatosBizi`,
     `- ${siteUrl}${appRoutes.prensa()} - Datos clave, citación y contacto de prensa`,
+    '',
+    '## English version',
+    `- ${siteUrl}${localizePathname(appRoutes.home(), 'en')} - Live status of the network (English)`,
+    `- ${siteUrl}${localizePathname(appRoutes.methodology(), 'en')} - Methodology and data limits (English)`,
+    `- ${siteUrl}/en/estadisticas/estaciones/{id} - Station sheets (English); other pages are Spanish only`,
     '',
     '## Índices y distribución',
     `- ${siteUrl}/sitemap.xml`,

@@ -68,6 +68,27 @@ describe('language switcher', () => {
     expect(renderToStaticMarkup(<LanguageSwitcher />)).toContain('href="/metodologia"');
   });
 
+  it('is a real alternate link with lang and hreflang, preserving query and hash', () => {
+    locationMock.mockReturnValue({
+      pathname: '/estadisticas/estaciones/12',
+      publicHref: '/estadisticas/estaciones/12?tab=hoy#prediccion',
+    });
+    const html = renderToStaticMarkup(<LanguageSwitcher />);
+    expect(html).toContain('href="/en/estadisticas/estaciones/12?tab=hoy#prediccion"');
+    expect(html).toContain('rel="alternate"');
+    expect(html).toContain('lang="en"');
+    expect(html.toLowerCase()).toContain('hreflang="en"');
+    expect(html.startsWith('<a ')).toBe(true);
+
+    locationMock.mockReturnValue({
+      pathname: '/estadisticas/estaciones/12',
+      publicHref: '/en/estadisticas/estaciones/12?tab=hoy#prediccion',
+    });
+    const back = renderToStaticMarkup(<LanguageSwitcher />);
+    expect(back).toContain('href="/estadisticas/estaciones/12?tab=hoy#prediccion"');
+    expect(back).toContain('lang="es"');
+  });
+
   it('renders nothing on routes without an English version', () => {
     locationMock.mockReturnValue({ pathname: '/comparar', publicHref: '/comparar' });
     expect(renderToStaticMarkup(<LanguageSwitcher />)).toBe('');
