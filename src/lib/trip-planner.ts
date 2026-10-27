@@ -1,13 +1,10 @@
 /**
  * Planificador origen -> destino: lógica pura (sin red ni DOM).
- *
- * NOTA: `distanceMeters` y la búsqueda de la estación más cercana duplican a
- * propósito `findNearestStationWithBikes` de
- * `src/app/_components/home/NearbyBikesCta.tsx` (otro cambio la generaliza en
- * paralelo). Cuando aterrice, unificar ambos en un único módulo de cercanía y
- * que este archivo lo importe.
  */
+import { distanceMeters } from '@/lib/nearest-station';
 import type { PredictionHorizonMinutes } from '@/lib/predictions';
+
+export { distanceMeters };
 
 export type LatLon = { lat: number; lon: number };
 
@@ -40,25 +37,11 @@ export type TripPlan<T extends PlannerStation = PlannerStation> = {
   dropoffArrivalMinutes: number | null;
 };
 
-const EARTH_RADIUS_METERS = 6_371_000;
 /** Las calles no van en línea recta: se infla la distancia un 25 %. */
 export const WALK_DETOUR_FACTOR = 1.25;
 export const WALK_SPEED_METERS_PER_MINUTE = 80; // ~4,8 km/h
 export const RIDE_SPEED_METERS_PER_MINUTE = 230; // ~14 km/h urbano
 export const RIDE_DETOUR_FACTOR = 1.3;
-
-function toRadians(value: number): number {
-  return (value * Math.PI) / 180;
-}
-
-export function distanceMeters(a: LatLon, b: LatLon): number {
-  const dLat = toRadians(b.lat - a.lat);
-  const dLon = toRadians(b.lon - a.lon);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(a.lat)) * Math.cos(toRadians(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * EARTH_RADIUS_METERS * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 
 export function estimateWalkMinutes(straightMeters: number): number {
   return Math.max(1, Math.round((straightMeters * WALK_DETOUR_FACTOR) / WALK_SPEED_METERS_PER_MINUTE));
