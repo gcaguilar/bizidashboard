@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
-import type { StationSeoSummary } from '@/lib/seo-stations';
+import type { StationDirectoryRow } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
 import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
@@ -40,7 +40,7 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'nombre', label: 'Nombre' },
 ];
 
-function stationBadge(s: StationSeoSummary): { label: string; variant: 'danger' | 'warning' | 'success' } {
+function stationBadge(s: StationDirectoryRow): { label: string; variant: 'danger' | 'warning' | 'success' } {
   // El icono sale de la escala ciudadana compartida; el texto concreto (vacía/llena) se mantiene.
   const { icon } = getCitizenStatus(s.station);
   if (s.station.bikesAvailable === 0) return { label: `${icon} Vacía`, variant: 'danger' };
@@ -50,7 +50,7 @@ function stationBadge(s: StationSeoSummary): { label: string; variant: 'danger' 
 }
 
 type StationsDirectoryProps = {
-  stationRows: StationSeoSummary[];
+  stationRows: StationDirectoryRow[];
 };
 
 export function StationsDirectory({ stationRows }: StationsDirectoryProps) {

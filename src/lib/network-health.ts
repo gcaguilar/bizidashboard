@@ -35,7 +35,9 @@ const HEALTH_LABELS: Record<NetworkHealthLevel, string> = {
  * Una estación "sin disponibilidad" no sirve ahora mismo: no se puede coger una
  * bici (no quedan) o no se puede dejar (no hay huecos libres).
  */
-export function hasNoAvailability(station: StationSnapshot): boolean {
+export function hasNoAvailability(
+  station: Pick<StationSnapshot, 'bikesAvailable' | 'anchorsFree'>
+): boolean {
   return station.bikesAvailable <= 0 || station.anchorsFree <= 0;
 }
 

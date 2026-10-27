@@ -36,7 +36,7 @@ export function StationStatusBadge({
   station,
   className,
 }: {
-  station: StationSnapshot;
+  station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>;
   className?: string;
 }) {
   return <StationStatusLabel status={getCitizenStatus(station)} className={className} />;

@@ -140,7 +140,9 @@ export function getCitizenStatusByLevel(level: CitizenStatusLevel): CitizenStatu
   return CITIZEN_MAP_LEGEND.find((entry) => entry.level === level) ?? CITIZEN_MAP_LEGEND[0];
 }
 
-export function getCitizenStatus(station: StationSnapshot): CitizenStatus {
+export function getCitizenStatus(
+  station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>
+): CitizenStatus {
   if (station.capacity <= 0) {
     return CITIZEN_NO_DATA;
   }

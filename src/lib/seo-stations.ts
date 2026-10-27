@@ -41,12 +41,65 @@ export type StationSeoSummary = {
   indexability: SeoIndexabilityDecision;
 };
 
+/** Subconjunto de la estación que pintan las listas (alternativas, directorio). */
+type StationListSnapshot = Pick<
+  StationSnapshot,
+  'id' | 'name' | 'bikesAvailable' | 'anchorsFree' | 'capacity'
+>;
+
+/** Lo que la ficha pinta de su propia estación; el resto del ranking no viaja al HTML. */
+export type StationPageSummary = Pick<
+  StationSeoSummary,
+  'districtSlug' | 'currentOccupancy' | 'cityAverageOccupancy'
+> & { station: StationListSnapshot };
+
+/** Alternativa cercana en la ficha: solo nombre y disponibilidad actual. */
+export type RelatedStationSummary = {
+  station: Pick<StationSnapshot, 'id' | 'name' | 'bikesAvailable' | 'anchorsFree'>;
+};
+
+/** Fila del directorio de estaciones: lo justo para filtrar, ordenar y pintar tarjetas. */
+export type StationDirectoryRow = Pick<StationSeoSummary, 'currentOccupancy'> & {
+  station: StationListSnapshot;
+  turnover: Pick<RankingRow, 'turnoverScore' | 'emptyHours' | 'fullHours'> | null;
+};
+
+export function toStationPageSummary(row: StationSeoSummary): StationPageSummary {
+  const { id, name, bikesAvailable, anchorsFree, capacity } = row.station;
+  return {
+    station: { id, name, bikesAvailable, anchorsFree, capacity },
+    districtSlug: row.districtSlug,
+    currentOccupancy: row.currentOccupancy,
+    cityAverageOccupancy: row.cityAverageOccupancy,
+  };
+}
+
+export function toRelatedStationSummary(row: StationSeoSummary): RelatedStationSummary {
+  const { id, name, bikesAvailable, anchorsFree } = row.station;
+  return { station: { id, name, bikesAvailable, anchorsFree } };
+}
+
+export function toStationDirectoryRow(row: StationSeoSummary): StationDirectoryRow {
+  const { id, name, bikesAvailable, anchorsFree, capacity } = row.station;
+  return {
+    station: { id, name, bikesAvailable, anchorsFree, capacity },
+    currentOccupancy: row.currentOccupancy,
+    turnover: row.turnover
+      ? {
+          turnoverScore: row.turnover.turnoverScore,
+          emptyHours: row.turnover.emptyHours,
+          fullHours: row.turnover.fullHours,
+        }
+      : null,
+  };
+}
+
 export type StationSeoPageData = {
-  summary: StationSeoSummary;
+  summary: StationPageSummary;
   patterns: StationPatternRow[];
   heatmap: HeatmapCell[];
   predictions: StationPredictionsResponse;
-  relatedStations: StationSeoSummary[];
+  relatedStations: RelatedStationSummary[];
   highOccupancySlots: StationPatternRow[];
   lowOccupancySlots: StationPatternRow[];
 };
@@ -274,10 +327,11 @@ export const getStationSeoPageData = cache(
           row.districtSlug === summary.districtSlug &&
           row.indexability.indexable
       )
-      .slice(0, 4);
+      .slice(0, 4)
+      .map(toRelatedStationSummary);
 
     return {
-      summary,
+      summary: toStationPageSummary(summary),
       patterns,
       heatmap,
       predictions: predictions ?? getEmptyStationPredictions(stationId),
