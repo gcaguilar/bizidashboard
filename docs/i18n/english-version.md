@@ -97,9 +97,12 @@ sheet body and meta, methodology page static copy.
 - Home child sections: `HomeStatusHero`, `HomeLiveSection`, `HomeDiagnosis`,
   `HomeMapSection`, `HomeFavoriteStations`, `NearbyBikesCta`,
   `HomeExploreSection` (+ `getExploreHubSections`).
-- Station sheet children: `StationStatusBadge`, `StationPredictionCard`
-  (`station-prediction-copy.ts`, `station-prediction-view.ts`),
-  `StationFavoriteButton`, `WhatsAppShareLink`, `SiteBreadcrumbs` chrome.
+- Station sheet: translated children are `StationStatusBadge` (via an optional
+  `locale` on `getCitizenStatus`), `StationPredictionCard`, `StationDistrictComparison`,
+  `StationBestTime`, `StationFavoriteButton`, `ShareButton`, `WhatsAppShareLink`,
+  `DataStateNotice` (optional `locale` prop) and the `HeaderSearch` chrome. Still
+  Spanish: the breadcrumb `aria-label` chrome and the server-provided search
+  results (titles/groups) and district names.
 - Methodology loader content (FAQ items, breadcrumbs, structured data) and
   `system-status.ts` labels.
 - All other routes: dashboard, reports, compare, stats landings, SEO landings,
