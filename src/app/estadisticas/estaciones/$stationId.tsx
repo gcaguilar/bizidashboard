@@ -5,12 +5,12 @@ import { createStationBreadcrumb } from '@/lib/breadcrumbs'
 import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatDayType, formatHourRange, formatPercent } from '@/lib/format'
-import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health'
 import { appRoutes } from '@/lib/routes'
 import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
+import { StationPredictionCard } from '@/app/estadisticas/estaciones/_components/StationPredictionCard'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
@@ -19,11 +19,6 @@ function describeOccupancyDelta(delta: number): string {
   const difference = Math.abs(delta)
   if (difference < 0.05) return 'muy cerca de la media de la ciudad'
   return delta > 0 ? 'por encima de la media de Zaragoza' : 'por debajo de la media de Zaragoza'
-}
-
-function formatPredictionLabel(value: number | null, capacity: number): string {
-  if (value === null || !Number.isFinite(value) || capacity <= 0) return 'Sin predicción suficiente'
-  return `${Math.round(value)} bicis (${formatPercent(value / capacity)})`
 }
 
 export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
@@ -115,10 +110,7 @@ function StationPage() {
   const siteUrl = getSiteUrl()
   const occupancyDelta = summary.currentOccupancy - summary.cityAverageOccupancy
   const next30Point = data.predictions.predictions.find(p => p.horizonMinutes === 30)
-  const next60Point = data.predictions.predictions.find(p => p.horizonMinutes === 60)
   const next30 = next30Point?.predictedBikesAvailable ?? null
-  const next60 = next60Point?.predictedBikesAvailable ?? null
-  const next30Anchors = next30Point?.predictedAnchorsFree ?? null
   const actionableMessage = station.bikesAvailable <= 0
     ? `${station.name} está vacía ahora. No encontrarás bicis disponibles.`
     : station.anchorsFree <= 0
@@ -126,13 +118,6 @@ function StationPage() {
       : (next30 !== null && next30 >= station.capacity * 0.5)
         ? `${station.name} tiene ${station.bikesAvailable} bicis y ${station.anchorsFree} huecos libres. Buena opción ahora.`
         : `${station.name} tiene ${station.bikesAvailable} bicis y ${station.anchorsFree} huecos libres.`
-  const predictionAdvice = (() => {
-    if (next30 === null || station.capacity <= 0) return null
-    const occupancy = next30 / station.capacity
-    if (next30Anchors !== null && 1 - next30Anchors / station.capacity > OCCUPANCY_THRESHOLDS.nearlyFull) return 'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.'
-    if (occupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty) return 'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.'
-    return 'Se espera que siga disponible la próxima hora.'
-  })()
   const faqItems = [
     {
       question: '¿Cuándo suele ser más fácil encontrar bici?',
@@ -224,18 +209,7 @@ function StationPage() {
             <p>Su ocupación actual está {describeOccupancyDelta(occupancyDelta)}. Esta ficha te da una lectura rápida; abre el mapa si quieres ver alertas, rutas y más detalle.</p>
           </div>
         </article>
-        <article className="ui-section-card">
-          <h2 className="text-xl font-black text-[var(--foreground)]">Qué podría pasar después</h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div><dt className="stat-label">30 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next30, station.capacity)}</dd></div>
-            <div><dt className="stat-label">60 min</dt><dd className="font-semibold text-[var(--foreground)]">{formatPredictionLabel(next60, station.capacity)}</dd></div>
-          </dl>
-          {predictionAdvice ? (
-            <p className={`mt-2 text-xs ${predictionAdvice === 'Se espera que siga disponible la próxima hora.' ? 'text-[var(--success)]' : 'text-[var(--warning)]'}`}>
-              {predictionAdvice}
-            </p>
-          ) : null}
-        </article>
+        <StationPredictionCard predictions={data.predictions} capacity={station.capacity} />
       </section>
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
