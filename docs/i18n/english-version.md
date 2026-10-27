@@ -94,9 +94,24 @@ sheet body and meta, methodology page static copy.
 
 ## Not translated yet (falls back to Spanish)
 
-- Home child sections: `HomeStatusHero`, `HomeLiveSection`, `HomeDiagnosis`,
-  `HomeMapSection`, `HomeFavoriteStations`, `NearbyBikesCta`,
-  `HomeExploreSection` (+ `getExploreHubSections`).
+- Home child sections: translated (see `messages/home.ts`).
+  `HomeStatusHero`, `HomeLiveSection`, `HomeDiagnosis`, `HomeFavoriteStations`
+  and the station-sheet `StationDistrictComparison` also pass their locale to
+  the number/time helpers.
+- Network summary: `buildNetworkBriefing` and `buildNetworkHealth` take an
+  optional `locale` (default `es`, byte-identical output) and read
+  `messages/network.ts` (plurals as `.one` / `.other` keys). Only the `/`
+  loader passes `context.locale` (`getHomePageData({ data: { locale } })`);
+  dashboard and other consumers still build Spanish. The comparison baseline
+  label is stored in Spanish (and cached by hour, not by language) and is
+  translated when the sentence is built (`SAME_SLOT_BASELINE_LABEL`), so the
+  cache key needs no locale. District names and station names stay as data.
+- `lib/format.ts` (`formatInteger`, `formatDecimal`, `formatHourMinute`,
+  `formatRelativeMinutes`, `formatAlertType`, `formatDayType`) and
+  `formatFreshnessLabel` accept an optional `locale` (`es-ES` / `en-US`). Callers
+  that do not pass it, i.e. every route other than the home and the station
+  sheet, still render Spanish. `formatPercent`, `formatDateLabel` and
+  `formatDateTimeLabel` are unchanged.
 - Station sheet: translated children are `StationStatusBadge` (via an optional
   `locale` on `getCitizenStatus`), `StationPredictionCard`, `StationDistrictComparison`,
   `StationBestTime`, `StationFavoriteButton`, `ShareButton`, `WhatsAppShareLink`,
@@ -107,7 +122,7 @@ sheet body and meta, methodology page static copy.
   `system-status.ts` labels.
 - All other routes: dashboard, reports, compare, stats landings, SEO landings,
   legal pages, FAQ, API docs, MCP, `llms.txt`, feed, error/not-found pages,
-  search, number/date formatting helpers in `lib/format.ts`.
+  search.
 - `product-copy.ts` has English entries; consumers still pass no locale and
   render Spanish until each area adopts `useT()`.
 
