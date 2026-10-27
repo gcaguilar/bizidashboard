@@ -224,6 +224,18 @@ describe('sitemap contract', () => {
     expect(pathnames).toContain('/informes/2026-02');
     expect(pathnames).toContain('/estadisticas/barrios/centro');
     expect(pathnames).toContain('/estadisticas/barrios/delicias');
+    // English twins exist only for translated routes; Spanish entries stay as they were.
+    expect(pathnames).toContain('/en');
+    expect(pathnames).toContain('/en/metodologia');
+    expect(pathnames).toContain('/en/estadisticas/estaciones/101');
+    expect(pathnames).toContain('/');
+    expect(pathnames).toContain('/metodologia');
+    expect(pathnames.filter((pathname) => pathname.startsWith('/en')).sort()).toEqual([
+      '/en',
+      '/en/estadisticas/estaciones/101',
+      '/en/estadisticas/estaciones/102',
+      '/en/metodologia',
+    ]);
     expect(pathnames).not.toContain('/inicio');
     expect(pathnames).not.toContain('/zaragoza/dashboard');
     expect(pathnames).not.toContain('/api/docs');

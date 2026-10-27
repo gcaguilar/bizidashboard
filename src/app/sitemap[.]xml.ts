@@ -6,6 +6,7 @@ import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes'
 import { getDistrictSeoRows } from '@/lib/seo-districts'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import { getRobotsBaseUrl } from '@/lib/site'
+import { isTranslatedPath, localizePathname } from '@/lib/i18n/locales'
 
 type SitemapEntry = {
   href: string
@@ -48,13 +49,29 @@ function dedupeEntries(entries: SitemapEntry[]): SitemapEntry[] {
   return uniqueEntries
 }
 
+/** Añade la URL `/en/...` de cada ruta con versión inglesa; las españolas no cambian. */
+function withEnglishAlternates<T extends { href: string }>(entries: T[]): T[] {
+  return [
+    ...entries,
+    ...entries
+      .filter((entry) => isTranslatedPath(entry.href))
+      .map((entry) => ({ ...entry, href: localizePathname(entry.href, 'en') })),
+  ]
+}
+
 function buildStaticSitemapXml(): string {
   const siteUrl = getRobotsBaseUrl()
-  const urls = INDEXABLE_PUBLIC_ROUTE_REGISTRY
+  const urls = withEnglishAlternates(
+    INDEXABLE_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
+      href: entry.href,
+      changeFrequency: entry.sitemap.changeFrequency,
+      priority: entry.sitemap.priority,
+    })),
+  )
     .map((entry) => `  <url>
     <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
-    <changefreq>${entry.sitemap.changeFrequency}</changefreq>
-    <priority>${entry.sitemap.priority}</priority>
+    <changefreq>${entry.changeFrequency}</changefreq>
+    <priority>${entry.priority}</priority>
   </url>`)
     .join('\n')
 
@@ -94,7 +111,7 @@ async function buildSitemapXml(): Promise<string> {
     )
   ).sort((left, right) => right.localeCompare(left, 'es'))
 
-  const entries = dedupeEntries([
+  const entries = dedupeEntries(withEnglishAlternates([
     ...INDEXABLE_PUBLIC_ROUTE_REGISTRY.map((entry) => ({
       href: entry.href,
       changeFrequency: entry.sitemap.changeFrequency,
@@ -121,7 +138,7 @@ async function buildSitemapXml(): Promise<string> {
         changeFrequency: 'hourly',
         priority: 0.66,
       })),
-  ])
+  ]))
 
   const urls = entries
     .map((entry) => `  <url>
