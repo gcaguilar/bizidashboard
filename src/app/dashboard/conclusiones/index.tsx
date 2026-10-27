@@ -44,8 +44,8 @@ function getDemandCardDetail(payload: MobilityConclusionsPayload): string {
     : null;
 
   return payload.selectedMonth
-    ? `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en ${monthLabel} (índice de actividad, no viajes exactos).`
-    : `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} puntos en 7 días (índice de actividad, no viajes exactos).`;
+    ? `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} ${activityIndexUnits.total} en ${monthLabel} (índice de actividad, no viajes exactos).`
+    : `Demanda estimada: ${formatInteger(payload.metrics.demandLast7Days)} ${activityIndexUnits.total} en 7 días (índice de actividad, no viajes exactos).`;
 }
 
 function getOccupancyCardLabel(selectedMonth: string | null): string {

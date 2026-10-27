@@ -339,7 +339,7 @@ async function buildHourlyUsageContent(
       {
         label: 'Franja más activa',
         value: busiestHour ? formatHourRange(busiestHour.hour) : 'Sin datos',
-        detail: 'Franja con más movimiento estimado de bicis.',
+        detail: 'Franja con más actividad de bicis.',
       },
       {
         label: 'Ocupación media',
@@ -368,7 +368,7 @@ async function buildStationRankingContent(
       title: `Uso ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
       detail: `${formatDecimal(row.turnoverScore)} ${activityIndexUnits.total} · ${row.emptyHours + row.fullHours} h sin bicis o huecos`,
       href: appRoutes.stationDetail(row.stationId),
-      badge: 'Movimiento estimado',
+      badge: 'Índice de actividad',
     })),
     ...availabilityResponse.rankings.slice(0, 4).map((row, index) => ({
       title: `Riesgo ${index + 1}. ${stationMap.get(row.stationId)?.name ?? row.stationId}`,
@@ -421,7 +421,7 @@ async function buildStationRankingContent(
   return {
     generatedAt: turnoverResponse.generatedAt,
     summary:
-      'Compara las estaciones con más movimiento estimado y las que pasan más tiempo sin bicis o huecos libres.',
+      'Compara las estaciones con mayor índice de actividad y las que pasan más tiempo sin bicis o huecos libres.',
     stats: [
       {
         label: 'Estaciones con datos',
@@ -431,7 +431,7 @@ async function buildStationRankingContent(
       {
         label: 'Más movimiento',
         value: `${formatDecimal(Number(turnoverResponse.rankings[0]?.turnoverScore ?? 0))} ${activityIndexUnits.total}`,
-        detail: 'Movimiento estimado de la estación que encabeza el ranking.',
+        detail: 'Índice de actividad de la estación que encabeza el ranking.',
       },
       {
         label: 'Mayor tiempo con problemas',
@@ -510,12 +510,12 @@ async function buildDailyTripsContent(
   return {
     generatedAt: nowIso,
     summary:
-      'Sigue cómo cambia el movimiento estimado de la red día a día. Es un índice para comparar, no el número oficial de viajes.',
+      'Sigue cómo cambia el índice de actividad de la red día a día. Es un índice para comparar, no el número oficial de viajes.',
     stats: [
       {
         label: 'Días con datos',
         value: formatInteger(nonEmptyRows.length),
-        detail: 'Días recientes con movimiento estimado en la serie.',
+        detail: 'Días recientes con índice de actividad en la serie.',
       },
       {
         label: 'Último día',
@@ -525,10 +525,10 @@ async function buildDailyTripsContent(
       {
         label: 'Movimiento reciente',
         value: latestRow ? `${formatInteger(Number(latestRow.demandScore))} ${activityIndexUnits.total}` : 'Sin datos',
-        detail: 'Índice de movimiento estimado del último día disponible.',
+        detail: 'Índice de actividad del último día disponible.',
       },
     ],
-    sectionTitle: 'Últimos días con movimiento estimado',
+    sectionTitle: 'Últimos días con índice de actividad',
     sectionItems: items,
   };
 }
