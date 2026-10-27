@@ -11,6 +11,7 @@ import type { LayerProps, MapLayerMouseEvent, MapRef } from 'react-map-gl/maplib
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
+import { MapStationList } from './MapStationList';
 import { StationStatusLabel } from '@/components/ui/station-status';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -214,6 +215,7 @@ export function MapEngine({
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [hasTileError, setHasTileError] = useState(false);
   const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+  const [viewCenter, setViewCenter] = useState<Coordinates | null>(null);
 
   const favoriteStationSet = useMemo(() => new Set(favoriteStationIds), [favoriteStationIds]);
 
@@ -326,11 +328,17 @@ export function MapEngine({
   const commitMapViewState = () => {
     const map = mapRef.current?.getMap();
 
-    if (!map || !onViewStateCommit) {
+    if (!map) {
       return;
     }
 
     const center = map.getCenter();
+    setViewCenter({ latitude: center.lat, longitude: center.lng });
+
+    if (!onViewStateCommit) {
+      return;
+    }
+
     onViewStateCommit({
       latitude: center.lat,
       longitude: center.lng,
@@ -391,6 +399,11 @@ export function MapEngine({
       return;
     }
 
+    setDismissedPopupId(null);
+    onSelectStation?.(stationId);
+  };
+
+  const handleListSelect = (stationId: string) => {
     setDismissedPopupId(null);
     onSelectStation?.(stationId);
   };
@@ -546,6 +559,19 @@ export function MapEngine({
           </Popup>
         ) : null}
       </Map>
+
+      <MapStationList
+        stations={stations}
+        selectedStationId={selectedStationId}
+        referencePoint={
+          userLocation ??
+          viewCenter ?? {
+            latitude: initialViewState?.latitude ?? DEFAULT_VIEW_STATE.latitude,
+            longitude: initialViewState?.longitude ?? DEFAULT_VIEW_STATE.longitude,
+          }
+        }
+        onSelect={handleListSelect}
+      />
     </>
   );
 }
