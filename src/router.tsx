@@ -14,6 +14,8 @@ import { PublicPageLoading } from './app/_components/PublicPageLoading'
 
 export function getRouter() {
   const context = getContext()
+  // El locale de los enlaces se lee del router (sin estado propio); ver locale-rewrite.ts.
+  let routerRef: { latestLocation?: { publicHref?: string } } | undefined
 
   const router = createTanStackRouter({
     routeTree,
@@ -31,8 +33,10 @@ export function getRouter() {
     // reescriba con comillas JSON (`%22254%22`). Ver `stringifyRouterSearch`.
     stringifySearch: stringifyRouterSearch,
     // Sirve `/en/...` desde el mismo arbol de rutas (ver docs/i18n/english-version.md).
-    rewrite: createLocaleRewrite(),
+    rewrite: createLocaleRewrite(() => routerRef?.latestLocation?.publicHref),
   })
+
+  routerRef = router
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })
 

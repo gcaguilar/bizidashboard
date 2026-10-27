@@ -4,6 +4,7 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  redirect,
   useLocation,
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
@@ -20,6 +21,7 @@ import { getGoogleSiteVerificationToken, getSiteUrl, INTER_FONT_PATH, SEO_SITE_N
 import { getFooterData } from '@/server-functions/footer'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
 import { getLocaleFromPathname, HTML_LANG } from '@/lib/i18n/locales'
+import { normalizeEnglishPublicHref } from '@/lib/i18n/locale-redirect'
 import { useLocale } from '@/lib/i18n/use-locale'
 
 interface MyRouterContext {
@@ -37,9 +39,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // resolve once and never revalidate on navigation.
   staleTime: Infinity,
   // Idioma desde la URL publica (`/en/...`); lo consumen los `head` de las rutas traducidas.
-  beforeLoad: ({ location }) => ({
-    locale: getLocaleFromPathname(location.publicHref),
-  }),
+  beforeLoad: ({ location }) => {
+    // `/en/` y `/en/metodologia/` -> forma canonica sin barra final (solo ingles).
+    const canonicalEnglishHref = normalizeEnglishPublicHref(location.publicHref)
+    if (canonicalEnglishHref) {
+      throw redirect({ href: canonicalEnglishHref, replace: true, statusCode: 308 })
+    }
+    return { locale: getLocaleFromPathname(location.publicHref) }
+  },
   loader: () => getFooterData(),
   head: () => {
     const googleVerification = getGoogleSiteVerificationToken()

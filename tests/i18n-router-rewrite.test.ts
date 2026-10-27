@@ -18,11 +18,14 @@ function buildRouter(initialEntry: string) {
     createRoute({ getParentRoute: () => rootRoute, path: '/comparar' }),
   ]);
 
-  return createRouter({
+  let routerRef: { latestLocation?: { publicHref?: string } } | undefined;
+  const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
-    rewrite: createLocaleRewrite(),
+    rewrite: createLocaleRewrite(() => routerRef?.latestLocation?.publicHref),
   });
+  routerRef = router;
+  return router;
 }
 
 describe('router with the locale rewrite', () => {

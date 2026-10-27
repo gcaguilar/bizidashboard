@@ -51,14 +51,20 @@ describe('locale rewrite', () => {
   });
 
   it('adds /en on output only while the current page is English', () => {
-    const rewrite = createLocaleRewrite();
-    rewrite.input({ url: new URL('https://x.test/metodologia') });
+    let current = '/metodologia';
+    const rewrite = createLocaleRewrite(() => current);
     expect(rewrite.output({ url: new URL('https://x.test/metodologia') }).pathname).toBe('/metodologia');
 
-    rewrite.input({ url: new URL('https://x.test/en') });
+    current = '/en?x=1';
     expect(rewrite.output({ url: new URL('https://x.test/metodologia') }).pathname).toBe('/en/metodologia');
     expect(rewrite.output({ url: new URL('https://x.test/') }).pathname).toBe('/en');
     expect(rewrite.output({ url: new URL('https://x.test/comparar') }).pathname).toBe('/comparar');
+  });
+
+  it('keeps no state between calls (input never changes what output does)', () => {
+    const rewrite = createLocaleRewrite(() => '/metodologia');
+    rewrite.input({ url: new URL('https://x.test/en/metodologia') });
+    expect(rewrite.output({ url: new URL('https://x.test/') }).pathname).toBe('/');
   });
 });
 
