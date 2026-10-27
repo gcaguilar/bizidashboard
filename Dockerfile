@@ -71,6 +71,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # TanStack Start output (repo currently builds into dist/)
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/public /app/public
+# Fuentes Inter (OFL) para renderizar las tarjetas og:image a PNG con resvg
+COPY --from=builder /app/assets/og-fonts /app/assets/og-fonts
 # Prisma generated client (custom output in schema.prisma)
 COPY --from=builder /app/src/generated /app/src/generated
 COPY --from=builder /app/src/lib/security/csp.mjs /app/src/lib/security/csp.mjs
