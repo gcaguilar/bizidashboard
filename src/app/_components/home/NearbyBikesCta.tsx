@@ -2,32 +2,34 @@
 
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n/use-locale';
+import type { MessageKey } from '@/lib/i18n/messages';
 import { findNearestStation, type NearestCandidateStation, type NearestCriterion } from '@/lib/nearest-station';
 import { fetchStations } from '@/lib/fetch-stations';
 import { appRoutes } from '@/lib/routes';
 
 type NearbyState = 'idle' | 'locating' | 'denied' | 'unsupported' | 'empty' | 'error';
 
-const COMMON_MESSAGES = {
-  denied: 'No hemos podido acceder a tu ubicación. Busca tu estación más abajo o ábrela en BiciRadar.',
-  unsupported: 'Tu navegador no permite geolocalización. Busca tu estación más abajo o ábrela en BiciRadar.',
-  error: 'No hemos podido cargar las estaciones. Inténtalo de nuevo en unos segundos.',
+const COMMON_MESSAGES: Record<'denied' | 'unsupported' | 'error', MessageKey> = {
+  denied: 'home.nearby.denied',
+  unsupported: 'home.nearby.unsupported',
+  error: 'home.nearby.error',
 };
 
 const MODE_COPY: Record<
   NearestCriterion,
-  { label: string; icon: string; empty: string; primary: boolean }
+  { label: MessageKey; icon: string; empty: MessageKey; primary: boolean }
 > = {
   bikes: {
-    label: 'Bicis cerca de ti',
+    label: 'home.nearby.bikes.label',
     icon: '📍',
-    empty: 'Ahora mismo no hay ninguna estación con bicis disponibles.',
+    empty: 'home.nearby.bikes.empty',
     primary: true,
   },
   anchors: {
-    label: '¿Dónde dejo la bici?',
+    label: 'home.nearby.anchors.label',
     icon: '🅿️',
-    empty: 'Ahora mismo no hay ninguna estación con huecos libres.',
+    empty: 'home.nearby.anchors.empty',
     primary: false,
   },
 };
@@ -37,6 +39,7 @@ function fetchCandidateStations(): Promise<NearestCandidateStation[]> {
 }
 
 export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) {
+  const { t } = useT();
   const copy = MODE_COPY[mode];
   const navigate = useNavigate();
   const [state, setState] = useState<NearbyState>('idle');
@@ -72,7 +75,13 @@ export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) 
     );
   };
 
-  const message = state === 'idle' || state === 'locating' ? null : (state === 'empty' ? copy.empty : COMMON_MESSAGES[state]);
+  const messageKey =
+    state === 'idle' || state === 'locating'
+      ? null
+      : state === 'empty'
+        ? copy.empty
+        : COMMON_MESSAGES[state];
+  const message = messageKey ? t(messageKey) : null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -87,7 +96,7 @@ export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) 
         }
       >
         <span aria-hidden="true">{copy.icon}</span>
-        {state === 'locating' ? 'Buscando tu ubicación…' : copy.label}
+        {state === 'locating' ? t('home.nearby.locating') : t(copy.label)}
       </button>
       {message ? (
         <p role="status" className="text-xs text-[var(--muted)]">

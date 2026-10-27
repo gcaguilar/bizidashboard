@@ -6,6 +6,11 @@ import { buildNetworkHealth } from '@/lib/network-health';
 import { formatInteger } from '@/lib/format';
 import type { CriticalDistrictCount } from '@/server-functions/home';
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return { ...actual, useLocation: () => ({ pathname: '/', publicHref: '/' }) };
+});
+
 vi.mock('@/app/_components/TrackedLink', () => ({
   TrackedLink: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));

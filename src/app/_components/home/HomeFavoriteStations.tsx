@@ -7,6 +7,7 @@ import type { StationSnapshot } from '@/lib/api-types';
 import { formatHourMinute } from '@/lib/format';
 import { buildStationCurrentLabel } from '@/lib/home-diagnosis';
 import { StationStatusLabel } from '@/components/ui/station-status';
+import { useT } from '@/lib/i18n/use-locale';
 import { getCitizenStatus, getCitizenStatusDetail } from '@/lib/map-colors';
 import { appRoutes } from '@/lib/routes';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
@@ -31,6 +32,7 @@ export function HomeFavoriteStations({
   refreshedAt = null,
   className,
 }: HomeFavoriteStationsProps) {
+  const { locale, t } = useT();
   const { favoriteStationIds } = useFavoriteStations();
 
   const favoriteStations = useMemo(() => {
@@ -46,12 +48,12 @@ export function HomeFavoriteStations({
   return (
     <section className={className} aria-labelledby="home-favorites-title">
       <h2 id="home-favorites-title" className="text-xl font-black text-[var(--foreground)]">
-        Mis estaciones
+        {t('home.favorites.title')}
       </h2>
 
       {showSkeleton ? (
         <div aria-busy="true">
-          <p className="mt-1 text-xs text-[var(--muted)]">Actualizando tus estaciones…</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{t('home.favorites.updating')}</p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {favoriteStationIds.slice(0, 6).map((id) => (
               <li key={id} className="ui-surface-block min-h-[5.5rem] animate-pulse" aria-hidden="true" />
@@ -60,19 +62,18 @@ export function HomeFavoriteStations({
         </div>
       ) : favoriteStations.length === 0 ? (
         <p className="mt-2 text-sm text-[var(--muted)]">
-          Marca una estación con la estrella ☆ y la verás aquí con su estado actual. Se guarda solo
-          en este navegador, sin cuenta ni avisos.
+          {t('home.favorites.empty')}
         </p>
       ) : (
         <>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Guardadas solo en este navegador.{' '}
+            {t('home.favorites.saved')}{' '}
             {refreshedAt ? (
               <>
-                Actualizado a las <time dateTime={refreshedAt}>{formatHourMinute(refreshedAt)}</time>.
+                {t('home.favorites.updatedAt')}<time dateTime={refreshedAt}>{formatHourMinute(refreshedAt)}</time>.
               </>
             ) : (
-              'Estado en la última muestra.'
+              t('home.favorites.lastSample')
             )}
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -89,11 +90,11 @@ export function HomeFavoriteStations({
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">{station.name}</p>
                   <StationStatusLabel
-                    status={{ ...getCitizenStatus(station), label: getCitizenStatusDetail(station) }}
+                    status={{ ...getCitizenStatus(station, locale), label: getCitizenStatusDetail(station, locale) }}
                     className="mt-1"
                   />
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    {buildStationCurrentLabel(station)}
+                    {buildStationCurrentLabel(station, locale)}
                   </p>
                 </TrackedLink>
                 <StationFavoriteButton

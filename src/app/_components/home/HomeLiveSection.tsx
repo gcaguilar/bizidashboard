@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger } from '@/lib/format';
 import { fetchStationsSnapshot } from '@/lib/fetch-stations';
+import type { MessageKey } from '@/lib/i18n/messages';
+import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import {
@@ -22,10 +24,10 @@ import {
   trackUmamiEvent,
 } from '@/lib/umami';
 
-const QUICK_FILTERS: { key: HomeDiagnosisFilter; label: string }[] = [
-  { key: 'all', label: 'Todas' },
-  { key: 'bikes', label: '🚲 Con bicis libres' },
-  { key: 'anchors', label: '🅿️ Con huecos libres' },
+const QUICK_FILTERS: { key: HomeDiagnosisFilter; labelKey: MessageKey }[] = [
+  { key: 'all', labelKey: 'home.live.filter.all' },
+  { key: 'bikes', labelKey: 'home.live.filter.bikes' },
+  { key: 'anchors', labelKey: 'home.live.filter.anchors' },
 ];
 
 export type HomeLiveSectionProps = {
@@ -64,6 +66,7 @@ export function HomeLiveSection({
   mostUsedStations,
   className,
 }: HomeLiveSectionProps) {
+  const { t } = useT();
   const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const [filter, setFilter] = useState<HomeDiagnosisFilter>('all');
@@ -161,13 +164,12 @@ export function HomeLiveSection({
   return (
     <div className={`flex flex-col gap-4 ${className ?? ''}`.trim()}>
       <div>
-        <p className="stat-label">En vivo, ahora mismo</p>
+        <p className="stat-label">{t('home.live.kicker')}</p>
         <h2 className="mt-1 text-xl font-black text-[var(--foreground)]">
-          Busca y filtra la red
+          {t('home.live.title')}
         </h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Busca tu estación o barrio y filtra por lo que necesitas ahora: una bici libre o un
-          hueco para devolverla.
+          {t('home.live.subtitle')}
         </p>
       </div>
 
@@ -181,8 +183,8 @@ export function HomeLiveSection({
       <PublicSearchForm
         stations={searchStations}
         districts={districts}
-        placeholder="Buscar tu estación, calle o barrio…"
-        label="Buscar estación o barrio"
+        placeholder={t('home.live.search.placeholder')}
+        label={t('home.live.search.label')}
         eventSource="home_search"
       />
 
@@ -201,13 +203,16 @@ export function HomeLiveSection({
                 : ''
             }
           >
-            {quickFilter.label}
+            {t(quickFilter.labelKey)}
           </Button>
         ))}
         <span className="ui-chip">
           {stations.length === 0 && stationsTotal != null
-            ? `${formatInteger(stationsTotal)} estaciones`
-            : `${formatInteger(filteredStations.length)} de ${formatInteger(stations.length)} estaciones`}
+            ? t('home.live.count.total', { total: formatInteger(stationsTotal) })
+            : t('home.live.count.filtered', {
+                shown: formatInteger(filteredStations.length),
+                total: formatInteger(stations.length),
+              })}
         </span>
         <TrackedLink
           href={appRoutes.biciradar()}
@@ -218,7 +223,7 @@ export function HomeLiveSection({
           })}
           className="ui-chip"
         >
-          📍 Mis estaciones cercanas
+          {t('home.live.nearby')}
         </TrackedLink>
       </div>
 

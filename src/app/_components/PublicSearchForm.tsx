@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { fetchStations } from '@/lib/fetch-stations';
+import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
@@ -50,14 +51,15 @@ type PublicSearchFormProps = {
 
 export function PublicSearchForm({
   className,
-  placeholder = 'Busca una estación por nombre o ID',
+  placeholder,
   defaultQuery = '',
-  buttonLabel = 'Buscar',
-  label = 'Buscar estación',
+  buttonLabel,
+  label,
   eventSource = 'public_search',
   stations,
   districts,
 }: PublicSearchFormProps) {
+  const { t } = useT();
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -173,7 +175,7 @@ export function PublicSearchForm({
       className={`flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3 ${className ?? ''}`.trim()}
     >
       <label htmlFor="public-search" className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">
-        {label}
+        {label ?? t('home.search.label')}
       </label>
       <div className="relative flex flex-wrap gap-2">
         <div className="relative min-w-0 flex-1">
@@ -183,7 +185,7 @@ export function PublicSearchForm({
             name="q"
             type="search"
             value={query}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t('home.search.placeholder')}
             autoComplete="off"
             onChange={(e) => {
               setQuery(e.target.value);
@@ -223,20 +225,20 @@ export function PublicSearchForm({
                     <>
                       <span className="truncate">
                         {favoriteIds.includes(suggestion.station.id) && (
-                          <span className="mr-1 text-[var(--warning)]" aria-label="Favorita">★</span>
+                          <span className="mr-1 text-[var(--warning)]" aria-label={t('home.search.favorite')}>★</span>
                         )}
                         {suggestion.station.name}{' '}
                         <span className="text-[11px] text-[var(--muted)]">(#{suggestion.station.id})</span>
                       </span>
                       <span className="ml-2 shrink-0 text-xs text-[var(--muted)]">
-                        {suggestion.station.bikesAvailable} <span className="text-[10px]">bicis</span>
+                        {suggestion.station.bikesAvailable} <span className="text-[10px]">{t('home.search.bikes')}</span>
                       </span>
                     </>
                   ) : (
                     <>
                       <span className="truncate">{suggestion.district.name}</span>
                       <span className="ml-2 shrink-0 text-[10px] uppercase text-[var(--muted)] border rounded px-1">
-                        Barrio
+                        {t('home.search.district')}
                       </span>
                     </>
                   )}
@@ -246,7 +248,7 @@ export function PublicSearchForm({
           )}
         </div>
         <Button type="submit" variant="default" className="min-h-11 shrink-0 whitespace-nowrap px-5">
-          {buttonLabel}
+          {buttonLabel ?? t('home.search.button')}
         </Button>
       </div>
     </form>

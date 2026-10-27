@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return { ...actual, useLocation: () => ({ pathname: '/', publicHref: '/' }) };
+});
+
 vi.mock('@/app/_components/TrackedLink', () => ({
   TrackedLink: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));

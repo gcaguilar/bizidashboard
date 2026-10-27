@@ -382,8 +382,12 @@ describe('public UX regressions', () => {
     expect(source).toContain('<HomeStatusHero');
     expect(source).toContain('<HomeLiveSection');
     expect(mapSection).toContain('biciradar_handoff_clicked');
-    expect(mapSection).toContain('Bicis cerca de ti');
-    expect(diagnosis).toContain('no es el número oficial de viajes');
+    expect(mapSection).toContain("t('home.map.cta')");
+    expect(MESSAGE_CATALOGS.es['home.map.cta']).toContain('Bicis cerca de ti');
+    expect(diagnosis).toContain("t('home.diagnosis.disclaimer')");
+    expect(MESSAGE_CATALOGS.es['home.diagnosis.disclaimer']).toContain(
+      'no es el número oficial de viajes',
+    );
     expect(source).not.toContain('Usar mi ubicación');
     expect(liveSection).not.toContain('Usar mi ubicación');
     expect(mapSection).not.toContain('Usar mi ubicación');
@@ -391,8 +395,10 @@ describe('public UX regressions', () => {
 
   it('public search describes station search accurately', () => {
     const source = readSource('src/app/_components/PublicSearchForm.tsx');
-    expect(source).toContain('Buscar estación');
-    expect(source).toContain('Busca una estación por nombre o ID');
+    expect(source).toContain("t('home.search.label')");
+    expect(source).toContain("t('home.search.placeholder')");
+    expect(MESSAGE_CATALOGS.es['home.search.label']).toBe('Buscar estación');
+    expect(MESSAGE_CATALOGS.es['home.search.placeholder']).toBe('Busca una estación por nombre o ID');
     expect(source).not.toContain('Buscador global');
     expect(source).not.toContain('barrios, informes o endpoints API');
   });

@@ -6,25 +6,22 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger, formatPercent } from '@/lib/format';
+import type { MessageKey } from '@/lib/i18n/messages';
 import {
   buildStationCurrentLabel,
   buildStationIssueLabel,
   type HomeDiagnosisSummary,
 } from '@/lib/home-diagnosis';
-import { activityIndexUnits } from '@/lib/product-copy';
+import { useT } from '@/lib/i18n/use-locale';
+import { getActivityIndexUnits } from '@/lib/product-copy';
 import { appRoutes } from '@/lib/routes';
 
 export type HomeDiagnosisFilter = 'all' | 'bikes' | 'anchors';
 export type HomeDiagnosisTab = 'review' | 'movement';
 
-const MOVEMENT_LABEL = 'Zona de mucho movimiento';
-const EMPTY_FILTER_MESSAGE = 'Ninguna estación encaja con este filtro.';
-const MOVEMENT_DISCLAIMER =
-  'El índice de actividad ayuda a comparar estaciones; no es el número oficial de viajes.';
-
-const DIAGNOSIS_TABS: { key: HomeDiagnosisTab; label: string }[] = [
-  { key: 'review', label: 'Conviene revisar' },
-  { key: 'movement', label: 'Más movimiento' },
+const DIAGNOSIS_TABS: { key: HomeDiagnosisTab; labelKey: MessageKey }[] = [
+  { key: 'review', labelKey: 'home.diagnosis.tab.review' },
+  { key: 'movement', labelKey: 'home.diagnosis.tab.movement' },
 ];
 
 export type HomeDiagnosisProps = {
@@ -55,13 +52,15 @@ function DiagnosisStationList({
   tab: HomeDiagnosisTab;
   filter: HomeDiagnosisFilter;
 }) {
+  const { locale, t } = useT();
+  const activityIndexUnits = getActivityIndexUnits(locale);
   const visibleStations = stations.filter((summary) =>
     stationMatchesFilter(summary.station, filter),
   );
 
   if (visibleStations.length === 0) {
     return (
-      <p className="py-6 text-center text-sm text-[var(--muted)]">{EMPTY_FILTER_MESSAGE}</p>
+      <p className="py-6 text-center text-sm text-[var(--muted)]">{t('home.diagnosis.empty')}</p>
     );
   }
 
@@ -70,9 +69,9 @@ function DiagnosisStationList({
       {visibleStations.map((summary, index) => {
         const issueLabel =
           tab === 'review'
-            ? buildStationIssueLabel(summary.availability)
+            ? buildStationIssueLabel(summary.availability, locale)
             : index === 0
-              ? MOVEMENT_LABEL
+              ? t('home.diagnosis.movementLabel')
               : null;
 
         return (
@@ -108,7 +107,7 @@ function DiagnosisStationList({
             ) : null}
 
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
-              <span>{buildStationCurrentLabel(summary.station)}</span>
+              <span>{buildStationCurrentLabel(summary.station, locale)}</span>
               {tab === 'movement' ? (
                 <span className="inline-flex items-center gap-1">
                   {formatInteger(Number(summary.turnover?.turnoverScore ?? 0))}{' '}
@@ -116,7 +115,7 @@ function DiagnosisStationList({
                   <ActivityIndexHint />
                 </span>
               ) : (
-                <span>ocupación {formatPercent(summary.currentOccupancy)}</span>
+                <span>{t('home.diagnosis.occupancy', { value: formatPercent(summary.currentOccupancy) })}</span>
               )}
             </div>
           </TrackedLink>
@@ -140,6 +139,7 @@ export function HomeDiagnosis({
   filter,
   className,
 }: HomeDiagnosisProps) {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState<HomeDiagnosisTab>('review');
 
   const handleTablistKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -153,7 +153,7 @@ export function HomeDiagnosis({
     <div className={className}>
       <div
         role="tablist"
-        aria-label="Diagnóstico de estaciones"
+        aria-label={t('home.diagnosis.tablist')}
         onKeyDown={handleTablistKeyDown}
         className="flex flex-wrap gap-2"
       >
@@ -176,7 +176,7 @@ export function HomeDiagnosis({
                   : 'border-b-2 border-transparent px-2 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:text-[var(--foreground)]'
               }
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           );
         })}
@@ -199,7 +199,7 @@ export function HomeDiagnosis({
         hidden={activeTab !== 'movement'}
         className="pt-3"
       >
-        <p className="pb-2 text-xs text-[var(--muted)]">{MOVEMENT_DISCLAIMER}</p>
+        <p className="pb-2 text-xs text-[var(--muted)]">{t('home.diagnosis.disclaimer')}</p>
         <DiagnosisStationList stations={mostUsedStations} tab="movement" filter={filter} />
       </div>
     </div>

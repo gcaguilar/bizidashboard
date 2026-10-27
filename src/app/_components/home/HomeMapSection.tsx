@@ -3,7 +3,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationSnapshot } from '@/lib/api-types';
-import { CITIZEN_MAP_LEGEND } from '@/lib/map-colors';
+import { getCitizenMapLegend } from '@/lib/map-colors';
+import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
 import { buildObservatoryEvent } from '@/lib/umami';
 
@@ -28,13 +29,15 @@ export type HomeMapSectionProps = {
 const HOME_MAP_HEIGHT_CLASS = 'h-[420px]';
 
 function MapLoadingSkeleton() {
+  const { t } = useT();
+
   return (
     <div
       role="status"
       aria-busy="true"
       className={`flex ${HOME_MAP_HEIGHT_CLASS} items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]`}
     >
-      El mapa se carga al llegar aquí…
+      {t('home.map.loading')}
     </div>
   );
 }
@@ -48,6 +51,7 @@ export function HomeMapSection({
   onToggleFavorite,
   className,
 }: HomeMapSectionProps) {
+  const { locale, t } = useT();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [isMapVisible, setIsMapVisible] = useState(false);
 
@@ -88,7 +92,7 @@ export function HomeMapSection({
   return (
     <div className={className}>
       <div className="flex flex-wrap gap-2">
-        {CITIZEN_MAP_LEGEND.map((item) => (
+        {getCitizenMapLegend(locale).map((item) => (
           <span key={item.color} className="ui-legend-item">
             <span
               className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[11px] font-black leading-none text-white"
@@ -108,7 +112,7 @@ export function HomeMapSection({
           <MapLoadingSkeleton />
         ) : stations.length === 0 ? (
           <div className={`flex ${HOME_MAP_HEIGHT_CLASS} items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]`}>
-            No hay estaciones con este filtro.
+            {t('home.map.empty')}
           </div>
         ) : isMapVisible ? (
           <div className={`relative ${HOME_MAP_HEIGHT_CLASS} overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]`}>
@@ -136,7 +140,7 @@ export function HomeMapSection({
           })}
           className="ui-primary-button shadow-lg absolute bottom-4 right-4 z-20"
         >
-          📍 Bicis cerca de ti
+          {t('home.map.cta')}
         </TrackedLink>
       </div>
     </div>

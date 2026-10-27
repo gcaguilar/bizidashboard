@@ -3,6 +3,8 @@ import { MetricCard, MetricGrid } from '@/components/ui/metric-card';
 import { formatHourMinute, formatInteger } from '@/lib/format';
 import type { NetworkBriefing as NetworkBriefingModel } from '@/lib/network-briefing';
 import type { NetworkHealth, NetworkHealthLevel } from '@/lib/network-health';
+import { useT } from '@/lib/i18n/use-locale';
+import type { Translator } from '@/lib/i18n/messages';
 import { appRoutes } from '@/lib/routes';
 import { buildObservatoryEvent } from '@/lib/umami';
 import type { CriticalDistrictCount } from '@/server-functions/home';
@@ -27,25 +29,25 @@ type HomeStatusHeroProps = {
 };
 
 /** Une 2-3 nombres de barrio como lo haría una persona: "Centro, Delicias y Actur". */
-function joinDistrictNames(names: string[]): string {
+function joinDistrictNames(names: string[], t: Translator): string {
   if (names.length <= 1) {
     return names[0] ?? '';
   }
 
-  return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(', ')}${t('home.status.districts.and')}${names[names.length - 1]}`;
 }
 
-function buildCriticalStationsDetail(criticalStationsCount: number): string {
-  return criticalStationsCount === 0 ? 'ninguna ahora mismo' : 'conviene revisarlas';
+function buildCriticalStationsDetail(criticalStationsCount: number, t: Translator): string {
+  return criticalStationsCount === 0 ? t('home.status.critical.none') : t('home.status.critical.some');
 }
 
-function buildDistrictSentence(topCriticalDistricts: CriticalDistrictCount[]): string {
+function buildDistrictSentence(topCriticalDistricts: CriticalDistrictCount[], t: Translator): string {
   const names = topCriticalDistricts.map((district) => district.name);
   if (names.length === 0) {
-    return 'Repartidas por toda la ciudad.';
+    return t('home.status.districts.none');
   }
 
-  return `Se concentra sobre todo en ${joinDistrictNames(names)}.`;
+  return t('home.status.districts.some', { names: joinDistrictNames(names, t) });
 }
 
 export function HomeStatusHero({
@@ -59,6 +61,7 @@ export function HomeStatusHero({
   generatedAt,
   className = '',
 }: HomeStatusHeroProps) {
+  const { t } = useT();
   const levelColor = HEALTH_LEVEL_COLORS[health.level];
 
   return (
@@ -76,43 +79,43 @@ export function HomeStatusHero({
           {health.label}
         </span>
         <span className="ui-chip" suppressHydrationWarning>
-          Actualizado {formatHourMinute(generatedAt)}
+          {t('home.status.updated', { time: formatHourMinute(generatedAt) })}
         </span>
       </div>
 
       <MetricGrid columns={4}>
         <MetricCard
-          label="Bicis disponibles"
+          label={t('home.status.bikes.label')}
           value={formatInteger(bikesAvailable)}
-          detail="en toda la red"
+          detail={t('home.status.bikes.detail')}
         />
         <MetricCard
-          label="Huecos libres"
+          label={t('home.status.anchors.label')}
           value={formatInteger(anchorsFreeTotal)}
-          detail="anclajes para aparcar"
+          detail={t('home.status.anchors.detail')}
         />
         <MetricCard
-          label="Estaciones operativas"
+          label={t('home.status.stations.label')}
           value={formatInteger(activeStationsCount)}
-          detail="de la red Bizi"
+          detail={t('home.status.stations.detail')}
         />
         <MetricCard
-          label="Sin bici o sin hueco"
+          label={t('home.status.critical.label')}
           value={formatInteger(criticalStationsCount)}
-          detail={buildCriticalStationsDetail(criticalStationsCount)}
+          detail={buildCriticalStationsDetail(criticalStationsCount, t)}
         />
       </MetricGrid>
 
       <div aria-live="polite">
         <h2 id="home-status-reading-title" className="stat-label">
-          La lectura de hoy
+          {t('home.status.reading')}
         </h2>
         <p className="mt-1 text-base font-semibold text-[var(--foreground)]">
           {briefing.current}
         </p>
         {criticalStationsCount > 0 ? (
           <p className="mt-1 text-sm text-[var(--muted)]">
-            {buildDistrictSentence(topCriticalDistricts)}
+            {buildDistrictSentence(topCriticalDistricts, t)}
           </p>
         ) : null}
         <p className="mt-1 text-xs text-[var(--muted)]">{health.description}</p>
@@ -120,10 +123,10 @@ export function HomeStatusHero({
 
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         <TrackedLink href={appRoutes.dashboardAlerts()} className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]">
-          Ver alertas
+          {t('home.status.link.alerts')}
         </TrackedLink>
         <TrackedLink href={appRoutes.compare()} className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]">
-          Ver comparativa
+          {t('home.status.link.compare')}
         </TrackedLink>
         <TrackedLink
           href={appRoutes.methodology()}
@@ -134,7 +137,7 @@ export function HomeStatusHero({
           })}
           className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]"
         >
-          Cómo se interpreta
+          {t('home.status.link.methodology')}
         </TrackedLink>
       </div>
     </section>

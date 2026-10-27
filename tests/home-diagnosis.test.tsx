@@ -4,6 +4,11 @@ import { HomeDiagnosis } from '@/app/_components/home/HomeDiagnosis';
 import { buildStationCurrentLabel, buildStationIssueLabel } from '@/lib/home-diagnosis';
 import type { StationSeoSummary } from '@/lib/seo-stations';
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return { ...actual, useLocation: () => ({ pathname: '/', publicHref: '/' }) };
+});
+
 vi.mock('@/app/_components/TrackedLink', () => ({
   TrackedLink: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>

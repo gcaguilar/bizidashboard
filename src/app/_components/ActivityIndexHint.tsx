@@ -1,10 +1,13 @@
 'use client';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { activityIndexUnits } from '@/lib/product-copy';
+import { useLocale } from '@/lib/i18n/use-locale';
+import { getActivityIndexUnits } from '@/lib/product-copy';
 
 /** Icono "i" con la explicación única del índice de actividad (ver `activityIndexUnits`). */
 export function ActivityIndexHint({ className }: { className?: string }) {
+  const activityIndexUnits = getActivityIndexUnits(useLocale());
+
   return (
     <Tooltip>
       <TooltipTrigger
