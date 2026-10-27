@@ -10,7 +10,9 @@ export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
 export const MCP_SCOPES = ['read:dashboard', 'read:exports'] as const;
 export const MCP_CALLBACK_URLS = [
   'https://claude.ai/api/mcp/auth_callback',
+  'https://chatgpt.com/connector_platform_oauth_redirect',
 ] as const;
+export const CHATGPT_PLUGINS_URL = 'https://chatgpt.com/plugins';
 export const CLAUDE_CODE_COMMAND = `claude mcp add --transport http bizidashboard ${MCP_SERVER_URL}`;
 export const CLAUDE_CONNECTOR_URL = `https://claude.ai/customize/connectors?connectorName=BiziDashboard&connectorUrl=${encodeURIComponent(MCP_SERVER_URL)}&modal=add-custom-connector`;
 
@@ -83,6 +85,13 @@ const INSTALL_STEPS = {
     'Pega la dirección de arriba y pulsa Continuar.',
     'Pulsa Conectar, inicia sesión con tu cuenta de DatosBizi y acepta el permiso.',
   ],
+  chatgpt: [
+    'Abre chatgpt.com/plugins y pulsa para añadir un servidor MCP personalizado.',
+    `Escribe un nombre (por ejemplo, BiziDashboard) y, en Conexión, deja «URL del servidor» y pega ${MCP_SERVER_URL}.`,
+    'En Autenticación deja OAuth.',
+    'Marca «Lo entiendo y quiero continuar» y pulsa «Crear como complemento».',
+    'Inicia sesión con tu cuenta de DatosBizi y acepta el permiso.',
+  ],
   claudeCode: [
     'Pega este comando en tu terminal.',
     'Abre Claude Code, escribe /mcp, elige bizidashboard y pulsa Autenticar.',
@@ -117,6 +126,15 @@ export function McpInstallGuide() {
     }
 
     setNotice({ kind: 'error', text: fallbackMessage });
+  }
+
+  function handleChatgptConnect() {
+    trackInstallAction('mcp_connect_chatgpt', 'chatgpt');
+    void copyValue(
+      MCP_SERVER_URL,
+      'URL copiada. ChatGPT se abre en otra pestaña.',
+      'No se pudo copiar automáticamente. Selecciona y copia la URL del campo.'
+    );
   }
 
   function handleClaudeConnect() {
@@ -169,7 +187,7 @@ export function McpInstallGuide() {
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Elige tu asistente</p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <article className="ui-section-card" aria-labelledby="claude-title">
             <p className="stat-label">Conector</p>
             <h3 id="claude-title" className="text-xl font-black text-[var(--foreground)]">Claude</h3>
@@ -194,6 +212,30 @@ export function McpInstallGuide() {
                 onClick={handleClaudeConnect}
               >
                 Conectar con Claude
+              </a>
+            </Button>
+          </article>
+
+          <article className="ui-section-card" aria-labelledby="chatgpt-title">
+            <p className="stat-label">Conector</p>
+            <h3 id="chatgpt-title" className="text-xl font-black text-[var(--foreground)]">ChatGPT</h3>
+            <p className="text-sm leading-6 text-[var(--muted)]">
+              Crea un MCP personalizado en ChatGPT y consulta el estado de Bizi desde tus conversaciones.
+            </p>
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--muted)]">
+              {INSTALL_STEPS.chatgpt.map((step) => <li key={step}>{step}</li>)}
+            </ol>
+            <p className="text-xs leading-5 text-[var(--muted)]">
+              Si ya habías creado el conector antes, bórralo y créalo de nuevo para que ChatGPT use el callback actual.
+            </p>
+            <Button asChild className="mt-1 w-full">
+              <a
+                href={CHATGPT_PLUGINS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleChatgptConnect}
+              >
+                Crear MCP en ChatGPT
               </a>
             </Button>
           </article>
