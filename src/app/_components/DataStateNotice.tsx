@@ -5,6 +5,8 @@ import {
   getDataStateMeta,
   type DataState,
 } from '@/lib/data-state';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 
 type DataStateNoticeProps = {
   state: DataState;
@@ -15,6 +17,8 @@ type DataStateNoticeProps = {
   actionLabel?: string;
   className?: string;
   compact?: boolean;
+  /** Idioma del texto por defecto; el español si se omite. */
+  locale?: Locale;
 };
 
 function joinClasses(...values: Array<string | null | undefined | false>): string {
@@ -30,8 +34,9 @@ export function DataStateNotice({
   actionLabel,
   className,
   compact = false,
+  locale = DEFAULT_LOCALE,
 }: DataStateNoticeProps) {
-  const meta = getDataStateMeta(state, { subject });
+  const meta = getDataStateMeta(state, { subject, locale });
 
   return (
     <Card
@@ -68,7 +73,7 @@ export function DataStateNotice({
           <TrackedLink href={href}
             className="ui-inline-action"
           >
-            {actionLabel ?? 'Ver detalle'}
+            {actionLabel ?? translate(locale, 'dataState.viewDetail')}
           </TrackedLink>
         ) : null}
       </div>

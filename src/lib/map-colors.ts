@@ -1,4 +1,6 @@
 import type { StationSnapshot } from '@/lib/api-types';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 import { hasNoAvailability } from '@/lib/network-health';
 
 export type MapColorScale = 'analytical' | 'citizen';
@@ -136,26 +138,52 @@ const CITIZEN_NO_DATA: CitizenStatus = {
   description: 'estación sin capacidad declarada',
 };
 
-export function getCitizenStatusByLevel(level: CitizenStatusLevel): CitizenStatus {
-  return CITIZEN_MAP_LEGEND.find((entry) => entry.level === level) ?? CITIZEN_MAP_LEGEND[0];
+/**
+ * Etiqueta y descripción de un estado ciudadano en `locale`. En español (por
+ * defecto) devuelve la entrada tal cual, así los textos españoles siguen
+ * saliendo de `CITIZEN_MAP_LEGEND`; el resto de idiomas vienen del diccionario.
+ */
+function localizeCitizenStatus(
+  status: CitizenStatus,
+  id: CitizenStatusLevel | 'noData',
+  locale: Locale
+): CitizenStatus {
+  if (locale === DEFAULT_LOCALE) {
+    return status;
+  }
+
+  return {
+    ...status,
+    label: translate(locale, `status.citizen.${id}.label`),
+    description: translate(locale, `status.citizen.${id}.description`),
+  };
+}
+
+export function getCitizenStatusByLevel(
+  level: CitizenStatusLevel,
+  locale: Locale = DEFAULT_LOCALE
+): CitizenStatus {
+  const status = CITIZEN_MAP_LEGEND.find((entry) => entry.level === level) ?? CITIZEN_MAP_LEGEND[0];
+  return localizeCitizenStatus(status, status.level, locale);
 }
 
 export function getCitizenStatus(
-  station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>
+  station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>,
+  locale: Locale = DEFAULT_LOCALE
 ): CitizenStatus {
   if (station.capacity <= 0) {
-    return CITIZEN_NO_DATA;
+    return localizeCitizenStatus(CITIZEN_NO_DATA, 'noData', locale);
   }
 
   if (hasNoAvailability(station)) {
-    return getCitizenStatusByLevel('depleted');
+    return getCitizenStatusByLevel('depleted', locale);
   }
 
   if (station.bikesAvailable < 3 || station.anchorsFree < 3) {
-    return getCitizenStatusByLevel('low');
+    return getCitizenStatusByLevel('low', locale);
   }
 
-  return getCitizenStatusByLevel('balanced');
+  return getCitizenStatusByLevel('balanced', locale);
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { StationSnapshot } from '@/lib/api-types';
+import type { Locale } from '@/lib/i18n/locales';
 import { getCitizenStatus, type CitizenStatus } from '@/lib/map-colors';
 import { cn } from '@/lib/utils';
 
@@ -35,9 +36,12 @@ export function StationStatusLabel({ status, className }: StationStatusLabelProp
 export function StationStatusBadge({
   station,
   className,
+  locale,
 }: {
   station: Pick<StationSnapshot, 'capacity' | 'bikesAvailable' | 'anchorsFree'>;
   className?: string;
+  /** Idioma de la etiqueta; el español si se omite. */
+  locale?: Locale;
 }) {
-  return <StationStatusLabel status={getCitizenStatus(station)} className={className} />;
+  return <StationStatusLabel status={getCitizenStatus(station, locale)} className={className} />;
 }

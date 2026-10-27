@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 import type {
   CoverageSummary,
   PipelineStatusSummary,
@@ -38,6 +40,7 @@ type DataStateMeta = {
 };
 
 type DataStateCopyOptions = {
+  locale?: Locale;
   subject?: string;
   loadingDescription?: string;
   emptyDescription?: string;
@@ -279,16 +282,17 @@ export function getDataStateMeta(
   state: DataState,
   options: DataStateCopyOptions = {}
 ): DataStateMeta {
-  const subject = options.subject ?? 'los datos';
+  const locale = options.locale ?? DEFAULT_LOCALE;
+  const subject = options.subject ?? translate(locale, 'dataState.defaultSubject');
 
   switch (state) {
     case 'loading':
       return {
         state,
-        label: 'Cargando',
-        title: 'Estamos cargando los datos',
+        label: translate(locale, 'dataState.loading.label'),
+        title: translate(locale, 'dataState.loading.title'),
         description:
-          options.loadingDescription ?? `Estamos preparando ${subject}.`,
+          options.loadingDescription ?? translate(locale, 'dataState.loading.description', { subject }),
         toneClasses:
           'border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[var(--foreground)]',
         badgeClasses:
@@ -297,11 +301,11 @@ export function getDataStateMeta(
     case 'empty':
       return {
         state,
-        label: 'Sin datos',
-        title: 'No hay datos para mostrar',
+        label: translate(locale, 'dataState.empty.label'),
+        title: translate(locale, 'dataState.empty.title'),
         description:
           options.emptyDescription ??
-          `No hay datos disponibles para ${subject} ahora mismo.`,
+          translate(locale, 'dataState.empty.description', { subject }),
         toneClasses:
           'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
         badgeClasses:
@@ -310,11 +314,11 @@ export function getDataStateMeta(
     case 'no_coverage':
       return {
         state,
-        label: 'Sin cobertura',
-        title: 'Aún no hay cobertura suficiente',
+        label: translate(locale, 'dataState.no_coverage.label'),
+        title: translate(locale, 'dataState.no_coverage.title'),
         description:
           options.noCoverageDescription ??
-          `Todavía no hay histórico suficiente para mostrar ${subject} con confianza.`,
+          translate(locale, 'dataState.no_coverage.description', { subject }),
         toneClasses:
           'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]',
         badgeClasses:
@@ -323,11 +327,11 @@ export function getDataStateMeta(
     case 'partial':
       return {
         state,
-        label: 'Datos parciales',
-        title: 'La cobertura es parcial',
+        label: translate(locale, 'dataState.partial.label'),
+        title: translate(locale, 'dataState.partial.title'),
         description:
           options.partialDescription ??
-          `Hay datos para ${subject}, pero la ventana disponible todavía no esta completa.`,
+          translate(locale, 'dataState.partial.description', { subject }),
         toneClasses:
           'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:
@@ -336,11 +340,11 @@ export function getDataStateMeta(
     case 'stale':
       return {
         state,
-        label: 'Datos antiguos',
-        title: 'Los datos no estan frescos',
+        label: translate(locale, 'dataState.stale.label'),
+        title: translate(locale, 'dataState.stale.title'),
         description:
           options.staleDescription ??
-          `Los datos disponibles para ${subject} pueden estar desactualizados. Revisa la hora de la última muestra antes de usarlos.`,
+          translate(locale, 'dataState.stale.description', { subject }),
         toneClasses:
           'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--foreground)]',
         badgeClasses:
@@ -349,11 +353,11 @@ export function getDataStateMeta(
     case 'error':
       return {
         state,
-        label: 'Error',
-        title: 'No hemos podido cargar los datos',
+        label: translate(locale, 'dataState.error.label'),
+        title: translate(locale, 'dataState.error.title'),
         description:
           options.errorDescription ??
-          `No se han podido cargar ${subject} ahora mismo. Intentalo de nuevo o revisa el estado del sistema.`,
+          translate(locale, 'dataState.error.description', { subject }),
         toneClasses:
           'border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--foreground)]',
         badgeClasses:
@@ -363,10 +367,10 @@ export function getDataStateMeta(
     default:
       return {
         state: 'ok',
-        label: 'Listo',
-        title: 'Datos listos para consultar',
+        label: translate(locale, 'dataState.ok.label'),
+        title: translate(locale, 'dataState.ok.title'),
         description:
-          options.okDescription ?? `${subject} estan disponibles y son consistentes.`,
+          options.okDescription ?? translate(locale, 'dataState.ok.description', { subject }),
         toneClasses:
           'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--foreground)]',
         badgeClasses:
