@@ -7,7 +7,7 @@ import { ShareButton } from '@/app/_components/ShareButton'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
-import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
+import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/components/StationFavoriteButton'
@@ -56,6 +56,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
     const stationPath = appRoutes.stationDetail(id)
     const stationUrl = localizedUrl(stationPath, locale)
     const stationName = loaderData?.summary?.station?.name ?? id
+    const stationOgImage = `${getSiteUrl()}${appRoutes.api.ogStation(id)}`
     const title = translate(locale, 'station.seo.title', { name: stationName })
     const description = translate(locale, 'station.seo.description', { name: stationName })
     return {
@@ -70,14 +71,14 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:site_name', content: 'DatosBizi' },
         ...buildOgLocaleMeta(stationPath, locale),
         { property: 'og:url', content: stationUrl },
-        { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { property: 'og:image', content: stationOgImage },
         { property: 'og:image:type', content: 'image/png' },
         { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
         { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
         { property: 'og:image:alt', content: title },
         { name: 'robots', content: loaderData ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { name: 'twitter:image', content: stationOgImage },
         { name: 'twitter:image:alt', content: title },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
