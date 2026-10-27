@@ -18,6 +18,7 @@ import {
 } from '@/lib/system-status';
 import { getMethodologyPageData } from '@/server-functions/metodologia';
 import { toJsonLdScript } from '@/lib/structured-data';
+import type { Locale } from '@/lib/i18n/locales';
 import { translate } from '@/lib/i18n/messages';
 import { useT } from '@/lib/i18n/use-locale';
 import { localizeStructuredData } from '@/lib/i18n/seo';
@@ -30,7 +31,11 @@ export const Route = createFileRoute('/metodologia')({
       path: appRoutes.methodology(),
       locale: match.context.locale,
     }),
-  loader: () => getMethodologyPageData(),
+  // `context.locale` comes from the root `beforeLoad`. The parameter is typed
+  // by hand: contextual typing of `context` here makes `useLoaderData()`
+  // collapse to `undefined` (circular route-context inference).
+  loader: ({ context }: { context: { locale: Locale } }) =>
+    getMethodologyPageData({ data: { locale: context.locale } }),
   component: MethodologyPage,
 });
 
@@ -67,7 +72,7 @@ function MethodologyPage() {
             <span className="ui-chip">{t('methodology.chip.days', { count: historyMeta.coverage.totalDays })}</span>
             <span className="ui-chip">{t('methodology.chip.stations', { count: historyMeta.coverage.totalStations })}</span>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getHealthToneClasses(status.pipeline.healthStatus)}`}>
-              {getHealthLabel(status.pipeline.healthStatus)}
+              {getHealthLabel(status.pipeline.healthStatus, locale)}
             </span>
           </div>
         </div>
@@ -119,22 +124,22 @@ function MethodologyPage() {
         <article className="ui-section-card">
           <p className="stat-label">{t('methodology.coverage.label')}</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
-            {getCoverageLabel(dataset)}
+            {getCoverageLabel(dataset, locale)}
           </p>
           <p className="text-xs text-[var(--muted)]">{t('methodology.coverage.note')}</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">{t('methodology.cadence.label')}</p>
-          <p className="stat-value">{getObservedCadenceLabel(status)}</p>
+          <p className="stat-value">{getObservedCadenceLabel(status, locale)}</p>
           <p className="text-xs text-[var(--muted)]">{t('methodology.cadence.note')}</p>
         </article>
         <article className="ui-section-card">
           <p className="stat-label">{t('methodology.versions.label')}</p>
           <p className="text-sm font-semibold leading-snug text-[var(--foreground)]">
-            {getDatasetVersionLabel(dataset)} · API v{getApiVersionLabel()}
+            {getDatasetVersionLabel(dataset, locale)} · API v{getApiVersionLabel()}
           </p>
           <p className="text-xs text-[var(--muted)]">
-            {latestMonth ? t('methodology.versions.latestReport', { month: formatMonthLabel(latestMonth) }) : t('methodology.versions.noReport')}
+            {latestMonth ? t('methodology.versions.latestReport', { month: formatMonthLabel(latestMonth, locale) }) : t('methodology.versions.noReport')}
           </p>
         </article>
       </section>

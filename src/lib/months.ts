@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
 export type MonthOption = {
   key: string;
   label: string;
@@ -31,13 +32,13 @@ export function getMonthBounds(monthKey: string): { start: string; endExclusive:
   };
 }
 
-export function formatMonthLabel(monthKey: string): string {
+export function formatMonthLabel(monthKey: string, locale: Locale = DEFAULT_LOCALE): string {
   if (!isValidMonthKey(monthKey)) {
     return monthKey;
   }
 
   const { start } = getMonthBounds(monthKey);
-  return new Date(start).toLocaleDateString('es-ES', {
+  return new Date(start).toLocaleDateString(locale === 'en' ? 'en-GB' : 'es-ES', {
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',

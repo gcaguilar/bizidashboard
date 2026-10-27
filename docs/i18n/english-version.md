@@ -57,8 +57,13 @@ central dictionary; whatever is not translated falls back to Spanish.
   (legacy aliases are resolved in the same hop), `/EN`, `/En/x`, `/en//x` ->
   canonical spelling, `/en/` and `/en/x/` -> no trailing slash. Spanish URL
   handling is unchanged.
-- Dynamic strings coming from loaders (FAQ of the methodology loader, district
-  names, station names) are data and stay as delivered.
+- Dynamic strings coming from loaders (district names, station names) are data
+  and stay as delivered. The methodology loader takes the locale
+  (`getMethodologyPageData({ data: { locale } })`) and builds its FAQ,
+  breadcrumbs and JSON-LD in that language; the visible FAQ and the `FAQPage`
+  node come from the same items and carry `inLanguage`. The route types the
+  loader's `context` parameter by hand because contextual typing of `context`
+  there collapses `useLoaderData()` to `undefined`.
 
 ## Language selector
 
@@ -118,8 +123,11 @@ sheet body and meta, methodology page static copy.
   `DataStateNotice` (optional `locale` prop) and the `HeaderSearch` chrome. Still
   Spanish: the breadcrumb `aria-label` chrome and the server-provided search
   results (titles/groups) and district names.
-- Methodology loader content (FAQ items, breadcrumbs, structured data) and
-  `system-status.ts` labels.
+- Methodology page: translated end to end (FAQ items by `id` in
+  `messages/methodology.ts`, breadcrumb, JSON-LD text, `system-status.ts` labels
+  and `formatMonthLabel` through an optional `locale`). Still Spanish there: the
+  breadcrumb `aria-label` chrome and `PublicSearchForm`. `/estado` and the
+  other consumers of `system-status.ts` still call it without a locale.
 - All other routes: dashboard, reports, compare, stats landings, SEO landings,
   legal pages, FAQ, API docs, MCP, `llms.txt`, feed, error/not-found pages,
   search.

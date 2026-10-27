@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 import { openApiDocument } from '@/lib/openapi-document';
 import { appRoutes } from '@/lib/routes';
 import { TIMEZONE } from '@/lib/timezone';
@@ -33,25 +35,35 @@ function toDate(value: string | null | undefined): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-export function formatStatusDateTime(value: string | null | undefined): string {
+const INTL_LOCALE: Record<Locale, string> = { es: 'es-ES', en: 'en-GB' };
+
+export function formatStatusDateTime(
+  value: string | null | undefined,
+  locale: Locale = DEFAULT_LOCALE
+): string {
   const parsed = toDate(value);
-  return parsed ? parsed.toLocaleString('es-ES', { timeZone: TIMEZONE }) : 'Sin datos';
+  return parsed
+    ? parsed.toLocaleString(INTL_LOCALE[locale], { timeZone: TIMEZONE })
+    : translate(locale, 'methodology.status.noData');
 }
 
 export function formatStatusNumber(value: number): string {
   return new Intl.NumberFormat('es-ES').format(value);
 }
 
-export function getHealthLabel(status: StatusResponse['pipeline']['healthStatus']): string {
+export function getHealthLabel(
+  status: StatusResponse['pipeline']['healthStatus'],
+  locale: Locale = DEFAULT_LOCALE
+): string {
   switch (status) {
     case 'healthy':
-      return 'Saludable';
+      return translate(locale, 'methodology.status.healthy');
     case 'degraded':
-      return 'Degradado';
+      return translate(locale, 'methodology.status.degraded');
     case 'down':
-      return 'Caido';
+      return translate(locale, 'methodology.status.down');
     default:
-      return 'Desconocido';
+      return translate(locale, 'methodology.status.unknown');
   }
 }
 
@@ -70,13 +82,16 @@ export function getHealthToneClasses(
   }
 }
 
-export function getObservedCadenceLabel(status: StatusResponse): string {
+export function getObservedCadenceLabel(
+  status: StatusResponse,
+  locale: Locale = DEFAULT_LOCALE
+): string {
   if (status.pipeline.pollsLast24Hours <= 0) {
-    return 'Sin datos recientes';
+    return translate(locale, 'methodology.status.noRecentData');
   }
 
   const minutes = Math.max(1, Math.round((24 * 60) / status.pipeline.pollsLast24Hours));
-  return `~${minutes} min por sondeo`;
+  return translate(locale, 'methodology.status.cadence', { minutes });
 }
 
 export function getPipelineLagMinutes(status: StatusResponse): number | null {
@@ -103,14 +118,24 @@ export function getPipelineLagLabel(status: StatusResponse): string {
   return `${lagMinutes} min`;
 }
 
-export function getCoverageLabel(dataset: SharedDatasetSnapshot): string {
-  const firstRecordedAt = formatStatusDateTime(dataset.coverage.firstRecordedAt);
-  const lastRecordedAt = formatStatusDateTime(dataset.coverage.lastRecordedAt);
+export function getCoverageLabel(
+  dataset: SharedDatasetSnapshot,
+  locale: Locale = DEFAULT_LOCALE
+): string {
+  const firstRecordedAt = formatStatusDateTime(dataset.coverage.firstRecordedAt, locale);
+  const lastRecordedAt = formatStatusDateTime(dataset.coverage.lastRecordedAt, locale);
 
-  return `${dataset.coverage.totalDays} días · ${firstRecordedAt} -> ${lastRecordedAt}`;
+  return translate(locale, 'methodology.status.coverage', {
+    days: dataset.coverage.totalDays,
+    from: firstRecordedAt,
+    to: lastRecordedAt,
+  });
 }
 
-export function getDatasetVersionLabel(dataset: SharedDatasetSnapshot): string {
+export function getDatasetVersionLabel(
+  dataset: SharedDatasetSnapshot,
+  locale: Locale = DEFAULT_LOCALE
+): string {
   const versionSeed =
     dataset.lastUpdated.lastSampleAt ??
     dataset.coverage.lastRecordedAt ??
@@ -119,7 +144,7 @@ export function getDatasetVersionLabel(dataset: SharedDatasetSnapshot): string {
   const parsed = toDate(versionSeed);
 
   if (!parsed) {
-    return 'Sin versión derivada';
+    return translate(locale, 'methodology.status.noDerivedVersion');
   }
 
   const datePart = parsed.toISOString().slice(0, 10).replace(/-/g, '');

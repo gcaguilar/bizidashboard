@@ -1,9 +1,10 @@
 import { defineArea } from './define';
 
 /**
- * Methodology page (`src/app/metodologia.tsx`) static copy. Loader-provided
- * content (FAQ items, breadcrumbs, status labels from `system-status.ts`) is
- * not translated yet.
+ * Methodology page (`src/app/metodologia.tsx`) copy: static text, loader
+ * content (FAQ items indexed by `methodology.faq.<id>.*`, breadcrumb, JSON-LD
+ * text) and the `system-status.ts` labels shown on the page. The Spanish FAQ
+ * entries must stay identical to `FAQ_ITEMS` (tests enforce it).
  */
 export const methodologyMessages = defineArea({
   es: {
@@ -50,6 +51,35 @@ export const methodologyMessages = defineArea({
       'Las predicciones combinan patrones anteriores y el estado reciente para avisar de posibles problemas a corto plazo. Comprueba siempre el estado real antes de desplazarte.',
     'methodology.faq.eyebrow': 'FAQs visibles',
     'methodology.faq.title': 'Preguntas que más cambian la interpretación',
+    'methodology.breadcrumb.self': 'Metodología',
+    'methodology.ld.article.headline': 'Metodología y calidad de datos de Bizi {city}',
+    'methodology.ld.article.description':
+      'Guía pública para interpretar la fuente, la cobertura, la frecuencia y las métricas de las páginas públicas de DatosBizi.',
+    'methodology.ld.dataset.name': 'Dataset Bizi {city}',
+    'methodology.ld.dataset.description':
+      'Cobertura histórica, snapshot actual y criterios de interpretación del dataset usado por estaciones, barrios, informes y API.',
+    'methodology.ld.dataset.csv': 'Historico CSV',
+    'methodology.status.healthy': 'Saludable',
+    'methodology.status.degraded': 'Degradado',
+    'methodology.status.down': 'Caido',
+    'methodology.status.unknown': 'Desconocido',
+    'methodology.status.noData': 'Sin datos',
+    'methodology.status.noRecentData': 'Sin datos recientes',
+    'methodology.status.cadence': '~{minutes} min por sondeo',
+    'methodology.status.coverage': '{days} días · {from} -> {to}',
+    'methodology.status.noDerivedVersion': 'Sin versión derivada',
+    'methodology.faq.fuente-datos.question': '¿De dónde salen los datos de estaciones?',
+    'methodology.faq.fuente-datos.answer':
+      'La fuente principal es el feed GBFS oficial de Bizi Zaragoza: https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json. A partir de ese discovery se consultan station_information y station_status de forma periódica, y luego se validan y agregan para analítica.',
+    'methodology.faq.actualizacion.question': '¿Con qué frecuencia se actualiza el dashboard?',
+    'methodology.faq.actualizacion.answer':
+      'Los datos se refrescan de forma periódica y la API usa caché corta para no saturar consultas. Por eso puede haber unos minutos de diferencia entre una vista y otra.',
+    'methodology.faq.demanda-no-viajes-reales.question': '¿La demanda significa número real de viajes?',
+    'methodology.faq.demanda-no-viajes-reales.answer':
+      'No exactamente. Es un índice para medir la actividad del sistema. Va muy bien para comparar días y zonas, pero no debe leerse como contador oficial de viajes cerrados.',
+    'methodology.faq.prediccion-que-es.question': '¿Qué son exactamente las predicciones del dashboard?',
+    'methodology.faq.prediccion-que-es.answer':
+      'Son valores estimados de disponibilidad futura (por ejemplo +30 y +60 min). Se calculan con patrones del pasado y la situación actual. Sirven para anticipar, no para confirmar lo que va a pasar al 100%.',
   },
   en: {
     'methodology.seo.title': 'Methodology and data quality of Bizi Zaragoza',
@@ -95,5 +125,34 @@ export const methodologyMessages = defineArea({
       'Predictions combine past patterns and the recent state to warn about possible problems in the short term. Always check the real state before you set out.',
     'methodology.faq.eyebrow': 'Visible FAQs',
     'methodology.faq.title': 'Questions that change the interpretation the most',
+    'methodology.breadcrumb.self': 'Methodology',
+    'methodology.ld.article.headline': 'Methodology and data quality of Bizi {city}',
+    'methodology.ld.article.description':
+      'Public guide to interpreting the source, coverage, frequency and metrics of the public DatosBizi pages.',
+    'methodology.ld.dataset.name': 'Bizi {city} dataset',
+    'methodology.ld.dataset.description':
+      'Historical coverage, current snapshot and interpretation criteria of the dataset used by stations, districts, reports and the API.',
+    'methodology.ld.dataset.csv': 'History CSV',
+    'methodology.status.healthy': 'Healthy',
+    'methodology.status.degraded': 'Degraded',
+    'methodology.status.down': 'Down',
+    'methodology.status.unknown': 'Unknown',
+    'methodology.status.noData': 'No data',
+    'methodology.status.noRecentData': 'No recent data',
+    'methodology.status.cadence': '~{minutes} min per poll',
+    'methodology.status.coverage': '{days} days · {from} -> {to}',
+    'methodology.status.noDerivedVersion': 'No derived version',
+    'methodology.faq.fuente-datos.question': 'Where does the station data come from?',
+    'methodology.faq.fuente-datos.answer':
+      'The main source is the official GBFS feed of Bizi Zaragoza: https://zaragoza.publicbikesystem.net/customer/gbfs/v2/gbfs.json. From that discovery file, station_information and station_status are queried periodically, then validated and aggregated for analytics.',
+    'methodology.faq.actualizacion.question': 'How often is the dashboard updated?',
+    'methodology.faq.actualizacion.answer':
+      'Data is refreshed periodically and the API uses a short cache to avoid overloading queries. That is why there can be a few minutes of difference between one view and another.',
+    'methodology.faq.demanda-no-viajes-reales.question': 'Does demand mean the real number of trips?',
+    'methodology.faq.demanda-no-viajes-reales.answer':
+      'Not exactly. It is an index that measures system activity (the activity index). It works well for comparing days and areas, but it should not be read as an official count of completed trips.',
+    'methodology.faq.prediccion-que-es.question': 'What exactly are the dashboard predictions?',
+    'methodology.faq.prediccion-que-es.answer':
+      'They are estimated values of future availability (for example +30 and +60 min). They are calculated from past patterns and the current situation. They help anticipate, not confirm with 100% certainty what will happen.',
   },
 });
