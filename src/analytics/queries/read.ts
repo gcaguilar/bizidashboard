@@ -395,6 +395,18 @@ export async function getStationWithLatestStatus(
   return row ? toStationWithLatestStatus(row) : null;
 }
 
+export async function getStationStatusHistory(
+  stationId: string,
+  since: Date,
+  until: Date
+): Promise<Array<{ recordedAt: Date; bikesAvailable: number }>> {
+  return prisma.stationStatus.findMany({
+    where: { stationId, recordedAt: { gte: since, lte: until } },
+    select: { recordedAt: true, bikesAvailable: true },
+    orderBy: { recordedAt: 'asc' },
+  });
+}
+
 export async function getStationPatterns(stationId: string, monthKey?: string): Promise<StationPatternRow[]> {
   if (monthKey && isValidMonthKey(monthKey)) {
     const hourlyStats = await getHourlyStatsForMonth(stationId, monthKey);

@@ -1,8 +1,20 @@
 import { DayType } from '@/analytics/types';
-import { getStationPatterns, getStationWithLatestStatus } from '@/analytics/queries/read';
+import {
+  getStationPatterns,
+  getStationStatusHistory,
+  getStationWithLatestStatus,
+} from '@/analytics/queries/read';
 import { withCache } from '@/lib/cache/cache';
 import { clamp } from '@/lib/format';
 import { getLocalBucket } from '@/analytics/time-buckets';
+import {
+  isBacktestReliable,
+  runStationBacktest,
+  type HorizonBacktest,
+  type StationBacktestResult,
+} from '@/lib/prediction-backtest';
+import { getServiceCause } from '@/lib/service-calendar';
+import { TIMEZONE } from '@/lib/timezone';
 
 export type PredictionHorizonMinutes = 30 | 60;
 
@@ -11,6 +23,13 @@ export type StationPredictionPoint = {
   predictedBikesAvailable: number | null;
   predictedAnchorsFree: number | null;
   confidence: number | null;
+  /**
+   * Semiancho del rango (bicis) calibrado con el backtest. Ausente si no hay
+   * muestra suficiente; la vista cae entonces a la heurística por confianza.
+   */
+  rangeHalfWidth?: number;
+  /** Acierto medido en el histórico; solo presente con muestra suficiente. */
+  backtest?: Pick<HorizonBacktest, 'sampleCount' | 'mae' | 'hitRateWithin1' | 'hitRateWithinRange'>;
 };
 
 export type StationPredictionsResponse = {
@@ -29,12 +48,14 @@ type StationPredictionPatternRow = {
   sampleCount: number;
 };
 
-type StationPredictionContext = {
+export type StationPredictionContext = {
   stationId: string;
   capacity: number;
   bikesAvailable: number;
   anchorsFree: number;
   patterns: StationPredictionPatternRow[];
+  /** Snapshots recientes (hasta `now`) para estimar la tendencia; opcional. */
+  recentSamples?: Array<{ recordedAt: Date; bikesAvailable: number }>;
 };
 
 const MODEL_VERSION = 'historical-baseline-v1';
@@ -50,6 +71,57 @@ function normalizeDayType(value: DayType | string): DayType | null {
   }
 
   return null;
+}
+
+const dateKeyFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/**
+ * Tipo de día efectivo: un festivo del calendario de servicio se comporta como
+ * fin de semana. Solo `holiday`; eventos/huelgas no tienen patrón propio.
+ */
+function effectiveBucket(date: Date): { dayType: DayType; hour: number } {
+  const bucket = getLocalBucket(date);
+  if (
+    bucket.dayType === DayType.WEEKDAY &&
+    getServiceCause(dateKeyFormatter.format(date))?.kind === 'holiday'
+  ) {
+    return { dayType: DayType.WEEKEND, hour: bucket.hour };
+  }
+  return { dayType: bucket.dayType, hour: bucket.hour };
+}
+
+const TREND_WINDOW_MINUTES = 20;
+const TREND_MIN_SPAN_MINUTES = 8;
+const TREND_MIN_SAMPLES = 3;
+const TREND_WEIGHT: Record<PredictionHorizonMinutes, number> = { 30: 0.3, 60: 0.15 };
+
+/** Pendiente (bicis/min) de los últimos minutos; null si no hay datos suficientes. */
+export function estimateRecentTrend(
+  samples: StationPredictionContext['recentSamples'],
+  now: Date
+): number | null {
+  if (!samples) return null;
+  const from = now.getTime() - TREND_WINDOW_MINUTES * 60_000;
+  const recent = samples
+    .filter((s) => s.recordedAt.getTime() >= from && s.recordedAt.getTime() <= now.getTime())
+    .sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime());
+  if (recent.length < TREND_MIN_SAMPLES) return null;
+  const spanMin =
+    (recent[recent.length - 1].recordedAt.getTime() - recent[0].recordedAt.getTime()) / 60_000;
+  if (spanMin < TREND_MIN_SPAN_MINUTES) return null;
+  const t0 = recent[0].recordedAt.getTime();
+  const xs = recent.map((s) => (s.recordedAt.getTime() - t0) / 60_000);
+  const ys = recent.map((s) => s.bikesAvailable);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
+  if (den === 0) return null;
+  return xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den;
 }
 
 function roundPrediction(value: number): number {
@@ -97,9 +169,9 @@ function predictPoint(
   horizonMinutes: PredictionHorizonMinutes,
   now: Date
 ): StationPredictionPoint {
-  const currentBucket = getLocalBucket(now);
+  const currentBucket = effectiveBucket(now);
   const futureDate = new Date(now.getTime() + horizonMinutes * 60_000);
-  const futureBucket = getLocalBucket(futureDate);
+  const futureBucket = effectiveBucket(futureDate);
   const currentPattern = resolvePattern(context.patterns, currentBucket.dayType, currentBucket.hour);
   const futurePattern = resolvePattern(context.patterns, futureBucket.dayType, futureBucket.hour);
 
@@ -129,7 +201,13 @@ function predictPoint(
   const futurePatternRatio = clamp(futurePattern.occupancyAvg, 0, 1);
   const expectedDelta = futurePatternRatio - currentPatternRatio;
   const recencyWeight = horizonMinutes === 30 ? 0.7 : 0.48;
-  const predictedRatio = clamp(currentRatio * recencyWeight + (currentRatio + expectedDelta) * (1 - recencyWeight), 0, 1);
+  const baseRatio = currentRatio * recencyWeight + (currentRatio + expectedDelta) * (1 - recencyWeight);
+  const slope = estimateRecentTrend(context.recentSamples, now);
+  const trendRatio =
+    slope === null
+      ? 0
+      : clamp((slope * horizonMinutes * TREND_WEIGHT[horizonMinutes]) / capacity, -0.25, 0.25);
+  const predictedRatio = clamp(baseRatio + trendRatio, 0, 1);
   const predictedBikes = roundPrediction(clamp(predictedRatio * capacity, 0, capacity));
   const predictedAnchors = roundPrediction(clamp(capacity - predictedBikes, 0, capacity));
 
@@ -138,6 +216,35 @@ function predictPoint(
     predictedBikesAvailable: predictedBikes,
     predictedAnchorsFree: predictedAnchors,
     confidence: computeConfidence(currentPattern, futurePattern),
+  };
+}
+
+/**
+ * Sustituye la confianza por muestras y añade rango/acierto medidos cuando el
+ * backtest de ese horizonte tiene muestra suficiente. Sin ella, no cambia nada.
+ */
+export function applyBacktestCalibration(
+  response: StationPredictionsResponse,
+  backtest: StationBacktestResult | null | undefined
+): StationPredictionsResponse {
+  if (!backtest) return response;
+  return {
+    ...response,
+    predictions: response.predictions.map((point) => {
+      const bt = backtest.horizons.find((h) => h.horizonMinutes === point.horizonMinutes);
+      if (!bt || !isBacktestReliable(bt) || point.predictedBikesAvailable === null) return point;
+      return {
+        ...point,
+        confidence: Number(clamp(bt.hitRateWithinTolerance, 0.2, 0.95).toFixed(2)),
+        rangeHalfWidth: bt.rangeHalfWidth,
+        backtest: {
+          sampleCount: bt.sampleCount,
+          mae: bt.mae,
+          hitRateWithin1: bt.hitRateWithin1,
+          hitRateWithinRange: bt.hitRateWithinRange,
+        },
+      };
+    }),
   };
 }
 
@@ -162,6 +269,30 @@ export function estimateStationPredictions(
  * conservador respecto a la propia precisión del modelo.
  */
 const PREDICTIONS_CACHE_TTL_SECONDS = 60;
+/** El backtest recorre días de histórico: se recalcula como mucho cada hora. */
+const BACKTEST_CACHE_TTL_SECONDS = 3600;
+const BACKTEST_WINDOW_DAYS = 14;
+
+async function getStationBacktest(
+  stationId: string,
+  capacity: number,
+  patterns: StationPredictionPatternRow[],
+  now: Date
+): Promise<StationBacktestResult | null> {
+  try {
+    const since = new Date(now.getTime() - BACKTEST_WINDOW_DAYS * 24 * 3_600_000);
+    const snapshots = await getStationStatusHistory(stationId, since, now);
+    return runStationBacktest({
+      stationId,
+      capacity,
+      snapshots,
+      patterns,
+      predict: estimateStationPredictions,
+    });
+  } catch {
+    return null;
+  }
+}
 
 export async function getStationPredictions(
   stationId: string,
@@ -179,16 +310,40 @@ export async function getStationPredictions(
   const compute = async (): Promise<StationPredictionsResponse> => {
     const patterns = await getStationPatterns(stationId);
 
-    return estimateStationPredictions(
+    const at = now ?? new Date();
+    let recentSamples: StationPredictionContext['recentSamples'];
+    try {
+      recentSamples = await getStationStatusHistory(
+        stationId,
+        new Date(at.getTime() - TREND_WINDOW_MINUTES * 60_000),
+        at
+      );
+    } catch {
+      recentSamples = undefined;
+    }
+
+    const raw = estimateStationPredictions(
       {
         stationId,
         capacity: station.capacity,
         bikesAvailable: station.bikesAvailable,
         anchorsFree: station.anchorsFree,
         patterns,
+        recentSamples,
       },
-      now ?? new Date()
+      at
     );
+
+    if (raw.modelVersion === null) return raw;
+
+    const backtest = now
+      ? await getStationBacktest(stationId, station.capacity, patterns, at)
+      : await withCache(
+          `predictions:backtest:stationId=${stationId}`,
+          BACKTEST_CACHE_TTL_SECONDS,
+          () => getStationBacktest(stationId, station.capacity, patterns, at)
+        );
+    return applyBacktestCalibration(raw, backtest);
   };
 
   // Un `now` explícito (tests, backfills) salta la caché: el resultado debe
