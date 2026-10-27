@@ -17,6 +17,11 @@ function station(id: string, lat: number, bikes = 5): StationSnapshot {
   } as unknown as StationSnapshot;
 }
 
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+  return { ...actual, useLocation: () => ({ pathname: '/', publicHref: '/' }) };
+});
+
 afterEach(cleanup);
 
 describe('MapStationList', () => {

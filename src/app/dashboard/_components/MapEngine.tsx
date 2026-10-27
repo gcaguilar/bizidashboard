@@ -12,6 +12,8 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
 import { MapStationList } from './MapStationList';
+import { useT } from '@/lib/i18n/use-locale';
+import type { Translator } from '@/lib/i18n/messages';
 import { StationStatusLabel } from '@/components/ui/station-status';
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -23,7 +25,7 @@ import {
   getCitizenMarkerColor,
   getCitizenMarkerGlyph,
   getCitizenMarkerSeverity,
-  getCitizenStatus,
+  getLocalizedCitizenStatus,
   type MapColorScale,
 } from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
@@ -178,16 +180,16 @@ const OPERATIONS_HEAT_LAYER: LayerProps = {
   },
 };
 
-function getTrendLabel(trend: StationTrend | undefined): string {
+function getTrendLabel(trend: StationTrend | undefined, t: Translator): string {
   if (trend === 'up') {
-    return '↑ Suben bicis';
+    return t('home.map.trend.up');
   }
 
   if (trend === 'down') {
-    return '↓ Bajan bicis';
+    return t('home.map.trend.down');
   }
 
-  return '→ Sin cambios';
+  return t('home.map.trend.flat');
 }
 
 const EMPTY_FRICTION: Record<string, number> = {};
@@ -209,6 +211,7 @@ export function MapEngine({
   userLocation,
   onViewStateCommit,
 }: MapEngineProps) {
+  const { locale, t } = useT();
   const mapRef = useRef<MapRef | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [dismissedPopupId, setDismissedPopupId] = useState<string | null>(null);
@@ -313,7 +316,7 @@ export function MapEngine({
       .getCanvas()
       .setAttribute(
         'aria-label',
-        'Mapa de estaciones. Con el mapa enfocado usa las flechas para moverte y más o menos para acercar o alejar. La lista de estaciones tiene las mismas estaciones en texto.'
+        t('home.map.canvasLabel')
       );
   };
 
@@ -413,7 +416,7 @@ export function MapEngine({
   if (stations.length === 0) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[var(--muted)]">
-        No hay estaciones para los filtros actuales. Desactiva “solo con bicis” o “solo con huecos” para ampliar resultados.
+        {t('home.map.noStations')}
       </div>
     );
   }
@@ -425,7 +428,7 @@ export function MapEngine({
           onClick={handleZoomIn}
           variant="icon-button"
           size="default"
-          aria-label="Acercar"
+          aria-label={t('home.map.zoomIn')}
         >
           +
         </Button>
@@ -433,7 +436,7 @@ export function MapEngine({
           onClick={handleZoomOut}
           variant="icon-button"
           size="default"
-          aria-label="Alejar"
+          aria-label={t('home.map.zoomOut')}
         >
           -
         </Button>
@@ -445,10 +448,10 @@ export function MapEngine({
           className="absolute inset-x-4 top-16 z-20 mx-auto max-w-sm rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-center text-xs text-[var(--foreground)] shadow-md"
         >
           {isMapReady
-            ? 'No se pudo cargar el mapa base. Las estaciones siguen siendo válidas. '
-            : 'El mapa tarda en cargar o no está disponible. '}
+            ? t('home.map.tileError')
+            : t('home.map.tileSlow')}
           <a className="font-semibold underline" href={appRoutes.statsEstaciones()}>
-            Ver la lista de estaciones
+            {t('home.map.stationListLink')}
           </a>
         </div>
       ) : null}
@@ -498,7 +501,7 @@ export function MapEngine({
 
         {userLocation ? (
           <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
-            <div className="relative flex h-4 w-4 items-center justify-center" aria-label="Tu ubicación aproximada">
+            <div className="relative flex h-4 w-4 items-center justify-center" aria-label={t('home.map.userLocation')}>
               <span className="absolute inline-flex h-7 w-7 animate-ping rounded-full bg-[var(--primary)]/35" />
               <span className="relative inline-flex h-3 w-3 rounded-full border border-white bg-[var(--primary)]" />
             </div>
@@ -531,28 +534,34 @@ export function MapEngine({
                       : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)]'
                   }`}
                 >
-                  {favoriteStationSet.has(popupStation.id) ? '★ Favorita' : '☆ Favorita'}
+                  {favoriteStationSet.has(popupStation.id)
+                    ? t('home.map.popup.favoriteOn')
+                    : t('home.map.popup.favoriteOff')}
                 </Button>
               </div>
 
-              <StationStatusLabel status={getCitizenStatus(popupStation)} className="mb-2" />
+              <StationStatusLabel status={getLocalizedCitizenStatus(popupStation, locale)} className="mb-2" />
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <p className="rounded bg-[var(--secondary)] px-2 py-1">
-                  🚲 Bicis: <span className="font-semibold">{popupStation.bikesAvailable}</span>
+                  {t('home.map.popup.bikes')} <span className="font-semibold">{popupStation.bikesAvailable}</span>
                 </p>
                 <p className="rounded bg-[var(--secondary)] px-2 py-1">
-                  ✕ Huecos: <span className="font-semibold">{popupStation.anchorsFree}</span>
+                  {t('home.map.popup.anchors')} <span className="font-semibold">{popupStation.anchorsFree}</span>
                 </p>
               </div>
 
               <p className="mt-2 text-xs text-[var(--muted)]">
-                Tendencia: {getTrendLabel(trendByStationId?.[popupStation.id])}
+                {t('home.map.popup.trend', {
+                  value: getTrendLabel(trendByStationId?.[popupStation.id], t),
+                })}
               </p>
 
               {nearestStationId === popupStation.id ? (
                 <p className="map-popup-accent mt-1 text-xs font-semibold">
-                  📍 A {formatDistanceMeters(nearestDistanceMeters)} de ti
+                  {t('home.map.popup.nearest', {
+                    distance: formatDistanceMeters(nearestDistanceMeters),
+                  })}
                 </p>
               ) : null}
             </div>

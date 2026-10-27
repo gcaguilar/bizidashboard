@@ -4,7 +4,8 @@ import { useMemo, useRef, type KeyboardEvent } from 'react';
 import { StationStatusLabel } from '@/components/ui/station-status';
 import type { StationSnapshot } from '@/lib/api-types';
 import { haversineDistanceMeters, type Coordinates } from '@/lib/geo';
-import { getCitizenStatus } from '@/lib/map-colors';
+import { useT } from '@/lib/i18n/use-locale';
+import { getLocalizedCitizenStatus } from '@/lib/map-colors';
 
 export const MAP_STATION_LIST_LIMIT = 20;
 
@@ -63,6 +64,7 @@ export function MapStationList({
   onSelect,
   limit = MAP_STATION_LIST_LIMIT,
 }: MapStationListProps) {
+  const { locale, t } = useT();
   const listRef = useRef<HTMLUListElement | null>(null);
   const items = useMemo(
     () => pickNearbyStations(stations, referencePoint, selectedStationId, limit),
@@ -97,11 +99,11 @@ export function MapStationList({
   return (
     <details className="absolute bottom-6 left-4 z-20 max-w-[min(20rem,calc(100%-2rem))] rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-md">
       <summary className="cursor-pointer px-3 py-2 text-xs font-semibold">
-        Ver estaciones del mapa
+        {t('home.map.list.summary')}
       </summary>
       <ul
         ref={listRef}
-        aria-label="Estaciones del mapa"
+        aria-label={t('home.map.list.label')}
         onKeyDown={handleKeyDown}
         className="max-h-64 overflow-y-auto border-t border-[var(--border)] p-1"
       >
@@ -118,7 +120,7 @@ export function MapStationList({
                 }`}
               >
                 <span className="font-bold">{station.name}</span>
-                <StationStatusLabel status={getCitizenStatus(station)} />
+                <StationStatusLabel status={getLocalizedCitizenStatus(station, locale)} />
               </button>
             </li>
           );

@@ -31,8 +31,8 @@ export function StationFavoriteButton({
   source = 'station_detail',
   className,
 }: StationFavoriteButtonProps) {
-  const pathname = useLocation().pathname
   const { t } = useT()
+  const pathname = useLocation().pathname
   const routeKey = resolveRouteKeyFromPathname(pathname)
   const { favoriteStationIds, toggleFavoriteStation } = useFavoriteStations()
   const isFavorite = favoriteStationIds.includes(stationId)
