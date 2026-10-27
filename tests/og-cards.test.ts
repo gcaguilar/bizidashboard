@@ -37,7 +37,7 @@ describe('og cards', () => {
   })
 
   it('exposes the endpoints in appRoutes', () => {
-    expect(appRoutes.api.ogStation('a b')).toBe('/api/og/station?stationId=a%20b')
+    expect(appRoutes.api.ogStation('a b')).toBe('/api/og/station?stationId=a+b')
     expect(appRoutes.api.ogNetwork()).toBe('/api/og/network')
   })
 })
