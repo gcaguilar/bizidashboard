@@ -1,29 +1,37 @@
 import type { StationSnapshot } from '@/lib/api-types';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 
 /**
  * Product vocabulary shared by the public observatory.
  *
  * Keeping these definitions together prevents a healthy ingestion pipeline from
  * being mistaken for a balanced, readily available bike network.
+ *
+ * Los textos viven en el diccionario central (`src/lib/i18n/messages/product.ts`);
+ * `productTerms` y `activityIndexUnits` siguen siendo las constantes en español y
+ * `getProductTerms(locale)` / `getActivityIndexUnits(locale)` sirven otros idiomas.
  */
-export const productTerms = {
-  dataStatus: {
-    label: 'Estado de los datos',
-    definition: 'Frescura: cuándo se actualizaron los datos, qué cobertura tienen y si hubo errores al recibirlos.',
-  },
-  networkBalance: {
-    label: 'Equilibrio de la red',
-    definition: 'Disponibilidad de bicis y huecos: estaciones vacías o llenas y los problemas que eso puede causar.',
-  },
-  operationalSignal: {
-    label: 'Señal operativa',
-    definition: 'Una señal que merece revisión; no es una instrucción para mover bicis.',
-  },
-  estimate: {
-    label: 'Estimación',
-    definition: 'Una cifra calculada para comparar; no es el número exacto de viajes reales.',
-  },
-} as const;
+export function getProductTerms(locale: Locale = DEFAULT_LOCALE) {
+  return {
+    dataStatus: {
+      label: translate(locale, 'product.dataStatus.label'),
+      definition: translate(locale, 'product.dataStatus.definition'),
+    },
+    networkBalance: {
+      label: translate(locale, 'product.networkBalance.label'),
+      definition: translate(locale, 'product.networkBalance.definition'),
+    },
+    operationalSignal: {
+      label: translate(locale, 'product.operationalSignal.label'),
+      definition: translate(locale, 'product.operationalSignal.definition'),
+    },
+    estimate: {
+      label: translate(locale, 'product.estimate.label'),
+      definition: translate(locale, 'product.estimate.definition'),
+    },
+  };
+}
 
 /**
  * Unidad del "índice de actividad". Se calcula sumando, por estación y
@@ -32,15 +40,20 @@ export const productTerms = {
  * contarse dos veces (bicis y huecos) y los vaivenes dentro de una franja no se
  * ven. Todo texto que muestre la cifra debe usar estas unidades.
  */
-export const activityIndexUnits = {
-  label: 'Índice de actividad',
-  total: 'puntos de actividad',
-  perDay: 'puntos de actividad/día',
-  perMonth: 'puntos de actividad/mes',
-  tooltipLabel: 'Qué es el índice de actividad',
-  tooltip:
-    'Índice para comparar actividad entre estaciones, zonas o periodos: suma las variaciones de bicis y huecos de cada estación entre el mínimo y el máximo de cada franja. No es un recuento de viajes ni de movimientos reales, y no equivale al número oficial de trayectos.',
-} as const;
+export function getActivityIndexUnits(locale: Locale = DEFAULT_LOCALE) {
+  return {
+    label: translate(locale, 'product.activity.label'),
+    total: translate(locale, 'product.activity.total'),
+    perDay: translate(locale, 'product.activity.perDay'),
+    perMonth: translate(locale, 'product.activity.perMonth'),
+    tooltipLabel: translate(locale, 'product.activity.tooltipLabel'),
+    tooltip: translate(locale, 'product.activity.tooltip'),
+  };
+}
+
+export const productTerms = getProductTerms('es');
+
+export const activityIndexUnits = getActivityIndexUnits('es');
 
 export type NetworkBalanceSummary = {
   criticalStationsCount: number;
@@ -49,13 +62,16 @@ export type NetworkBalanceSummary = {
   explanation: string;
 };
 
-export function getNetworkBalanceSummary(stations: StationSnapshot[]): NetworkBalanceSummary {
+export function getNetworkBalanceSummary(
+  stations: StationSnapshot[],
+  locale: Locale = DEFAULT_LOCALE
+): NetworkBalanceSummary {
   if (stations.length === 0) {
     return {
       criticalStationsCount: 0,
       state: 'unknown',
-      label: 'sin evidencia suficiente',
-      explanation: 'No hay una muestra de estaciones suficiente para valorar la disponibilidad de la red.',
+      label: translate(locale, 'product.balance.unknown.label'),
+      explanation: translate(locale, 'product.balance.unknown.explanation'),
     };
   }
 
@@ -67,15 +83,17 @@ export function getNetworkBalanceSummary(stations: StationSnapshot[]): NetworkBa
     return {
       criticalStationsCount,
       state: 'tense',
-      label: 'tensionado',
-      explanation: `${criticalStationsCount} estaciones están vacías o llenas en la última muestra.`,
+      label: translate(locale, 'product.balance.tense.label'),
+      explanation: translate(locale, 'product.balance.tense.explanation', {
+        count: criticalStationsCount,
+      }),
     };
   }
 
   return {
     criticalStationsCount,
     state: 'balanced',
-    label: 'sin estaciones críticas en la muestra',
-    explanation: 'La última muestra no incluye estaciones vacías ni llenas.',
+    label: translate(locale, 'product.balance.balanced.label'),
+    explanation: translate(locale, 'product.balance.balanced.explanation'),
   };
 }

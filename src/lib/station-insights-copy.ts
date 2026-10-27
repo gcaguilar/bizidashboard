@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 
 /**
  * Copy compartido de los bloques "Frente a tu barrio" y "Mejor hora para ir"
@@ -15,7 +15,7 @@ export const STATION_DISTRICT_COMPARISON_COPY = {
     occupancy: 'Ocupación ahora',
     emptyShare: 'Tiempo sin bicis',
     fullShare: 'Tiempo sin huecos',
-    movement: `Movimiento (${movementUnits.total})`,
+    movement: `Índice de actividad (${activityIndexUnits.total})`,
   },
   verdicts: {
     above: 'Por encima',
