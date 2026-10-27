@@ -17,6 +17,9 @@ export const STATION_PREDICTION_COPY = {
   lowConfidenceTitle: 'Estimación poco fiable',
   lowConfidenceDescription:
     'Hay pocas observaciones históricas de esta franja; tómalo solo como orientación.',
+  accuracyUnmeasuredTitle: 'Precisión aún no medida',
+  accuracyUnmeasuredDescription:
+    'Todavía no hay histórico suficiente para comprobar cuánto acierta esta predicción en esta estación.',
   adviceFillsSoon: 'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.',
   adviceEmptiesSoon: 'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.',
   adviceStable: 'Se espera que siga disponible la próxima hora.',
@@ -38,4 +41,9 @@ export function formatPredictionSentence(input: {
   const range = input.low === input.high ? '' : ` (entre ${input.low} y ${input.high})`;
   const noun = input.bikes === 1 ? 'bici' : 'bicis';
   return `A las ${input.timeLabel} habrá probablemente ${input.bikes} ${noun}${range}, ${PREDICTION_CONFIDENCE_LABELS[input.confidence]}.`;
+}
+
+/** Acierto medido en el histórico (backtest); `percent` ya redondeado a entero. */
+export function formatPredictionAccuracy(input: { horizonMinutes: number; percent: number }): string {
+  return `A ${input.horizonMinutes} min acierta ±1 bici el ${input.percent} % de las veces (medido en su histórico reciente).`;
 }

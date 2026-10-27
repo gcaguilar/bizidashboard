@@ -30,11 +30,24 @@ export function StationPredictionCard({ predictions, capacity }: StationPredicti
             {view.rows.map((row) => (
               <li key={row.horizonMinutes} className="font-semibold text-[var(--foreground)]">
                 {row.sentence}
+                {row.accuracy ? (
+                  <span className="mt-1 block text-xs font-normal text-[var(--muted)]">{row.accuracy.text}</span>
+                ) : null}
               </li>
             ))}
           </ul>
           {view.advice ? <p className="mt-3 text-xs text-[var(--muted)]">{view.advice}</p> : null}
           <p className="mt-2 text-xs text-[var(--muted)]">{STATION_PREDICTION_COPY.disclaimer}</p>
+          {view.accuracy === 'unmeasured' ? (
+            <DataStateNotice
+              className="mt-3"
+              compact
+              state="partial"
+              subject={STATION_PREDICTION_COPY.subject}
+              title={STATION_PREDICTION_COPY.accuracyUnmeasuredTitle}
+              description={STATION_PREDICTION_COPY.accuracyUnmeasuredDescription}
+            />
+          ) : null}
           {view.state === 'partial' ? (
             <DataStateNotice
               className="mt-3"

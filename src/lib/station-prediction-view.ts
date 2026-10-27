@@ -4,9 +4,11 @@ import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
 import type { StationPredictionsResponse } from '@/lib/predictions';
 import {
   STATION_PREDICTION_COPY,
+  formatPredictionAccuracy,
   formatPredictionSentence,
   type PredictionConfidenceLevel,
 } from '@/lib/station-prediction-copy';
+import { isBacktestReliable } from '@/lib/prediction-backtest';
 import { TIMEZONE } from '@/lib/timezone';
 
 export type StationPredictionRow = {
@@ -17,6 +19,8 @@ export type StationPredictionRow = {
   high: number;
   confidence: PredictionConfidenceLevel;
   sentence: string;
+  /** Acierto medido (+-1 bici) o null si no hay muestra suficiente. */
+  accuracy: { percent: number; text: string } | null;
 };
 
 export type StationPredictionView = {
@@ -24,6 +28,8 @@ export type StationPredictionView = {
   state: Extract<DataState, 'ok' | 'partial' | 'empty'>;
   rows: StationPredictionRow[];
   advice: string | null;
+  /** `measured` si alguna fila trae acierto medido; si no, la tarjeta degrada. */
+  accuracy: 'measured' | 'unmeasured';
 };
 
 const timeFormatter = new Intl.DateTimeFormat('es-ES', {
@@ -65,7 +71,12 @@ export function buildStationPredictionView(input: {
 }): StationPredictionView {
   const { predictions, capacity } = input;
   const base = input.now ?? new Date(predictions?.generatedAt ?? Date.now());
-  const empty: StationPredictionView = { state: 'empty', rows: [], advice: null };
+  const empty: StationPredictionView = {
+    state: 'empty',
+    rows: [],
+    advice: null,
+    accuracy: 'unmeasured',
+  };
 
   if (!predictions || !Number.isFinite(capacity) || capacity <= 0 || Number.isNaN(base.getTime())) {
     return empty;
@@ -81,7 +92,17 @@ export function buildStationPredictionView(input: {
       continue;
     }
     const bikes = clamp(Math.round(point.predictedBikesAvailable), 0, capacity);
-    const { low, high } = predictionRange(bikes, capacity, point.confidence, point.horizonMinutes);
+    // Rango calibrado con backtest si existe; si no, heurística por confianza.
+    const measuredHalfWidth =
+      point.rangeHalfWidth !== undefined && Number.isFinite(point.rangeHalfWidth)
+        ? Math.max(1, Math.round(point.rangeHalfWidth))
+        : null;
+    const { low, high } =
+      measuredHalfWidth === null
+        ? predictionRange(bikes, capacity, point.confidence, point.horizonMinutes)
+        : { low: clamp(bikes - measuredHalfWidth, 0, capacity), high: clamp(bikes + measuredHalfWidth, 0, capacity) };
+    const measured = point.backtest && isBacktestReliable(point.backtest) ? point.backtest : null;
+    const percent = measured ? Math.round(clamp(measured.hitRateWithin1, 0, 1) * 100) : null;
     const confidence = confidenceLevel(point.confidence);
     const timeLabel = timeFormatter.format(new Date(base.getTime() + point.horizonMinutes * 60_000));
     rows.push({
@@ -92,6 +113,10 @@ export function buildStationPredictionView(input: {
       high,
       confidence,
       sentence: formatPredictionSentence({ timeLabel, bikes, low, high, confidence }),
+      accuracy:
+        percent === null
+          ? null
+          : { percent, text: formatPredictionAccuracy({ horizonMinutes: point.horizonMinutes, percent }) },
     });
   }
 
@@ -109,5 +134,6 @@ export function buildStationPredictionView(input: {
     state: rows.some((row) => row.confidence === 'baja') ? 'partial' : 'ok',
     rows,
     advice,
+    accuracy: rows.some((row) => row.accuracy) ? 'measured' : 'unmeasured',
   };
 }
