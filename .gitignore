@@ -80,6 +80,8 @@ docs/*
 !docs/product/
 !docs/product/datosbizi-observatorio.md
 !docs/product/datosbizi-observatorio-validacion.md
+!docs/i18n/
+!docs/i18n/english-version.md
 PLAN.md
 untitled.pen
 dist/
