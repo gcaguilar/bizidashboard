@@ -136,7 +136,10 @@ function Home() {
         </div>
 
         <div className="mt-4 flex flex-col gap-3">
-          <NearbyBikesCta />
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
+            <NearbyBikesCta />
+            <NearbyBikesCta mode="anchors" />
+          </div>
           <p className="text-sm text-[var(--muted)]">
             <TrackedLink
               href={appRoutes.dashboard()}
