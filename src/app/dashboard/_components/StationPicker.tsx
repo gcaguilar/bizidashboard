@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -24,7 +25,6 @@ type StationPickerProps = {
   selectedStationId: string;
   onSelectStation: (stationId: string) => void;
   favoriteStationIds: string[];
-  onToggleFavorite: (stationId: string) => void;
   trendByStationId?: Record<string, StationTrend>;
   nearestStationId?: string | null;
 };
@@ -170,7 +170,6 @@ export function StationPicker({
   selectedStationId,
   onSelectStation,
   favoriteStationIds,
-  onToggleFavorite,
   trendByStationId,
   nearestStationId,
 }: StationPickerProps) {
@@ -368,19 +367,11 @@ export function StationPicker({
                 ? '↓ bajan bicis'
                 : '→ sin cambios'}
           </span>
-          <Button
-            onClick={() => onToggleFavorite(selectedStation.id)}
-            aria-pressed={favoriteStationSet.has(selectedStation.id)}
-            variant="chip"
-            size="sm"
-            className={`rounded-full border px-2 py-1 text-[11px] font-bold ${
-              favoriteStationSet.has(selectedStation.id)
-                ? 'border-[var(--warning)] bg-[var(--warning)]/20 text-[var(--warning)]'
-                : 'border-[var(--border)] text-[var(--foreground)]'
-            }`}
-          >
-            {favoriteStationSet.has(selectedStation.id) ? '★ Quitar favorita' : '☆ Marcar favorita'}
-          </Button>
+          <StationFavoriteButton
+            stationId={selectedStation.id}
+            stationName={selectedStation.name}
+            source="dashboard_station_picker"
+          />
         </div>
       ) : null}
 

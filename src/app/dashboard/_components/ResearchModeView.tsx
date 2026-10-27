@@ -94,7 +94,6 @@ export function ResearchModeView({ currentMonth, ...props }: ResearchModeViewPro
           selectedStationId={props.selectedStationId}
           onSelectStation={props.onSelectStation}
           favoriteStationIds={props.favoriteStationIds}
-          onToggleFavorite={props.onToggleFavorite}
           trendByStationId={props.trendByStationId}
           nearestStationId={props.nearestStationId}
         />
