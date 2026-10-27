@@ -236,6 +236,33 @@ describe('sitemap contract', () => {
       '/en/estadisticas/estaciones/102',
       '/en/metodologia',
     ]);
+    // hreflang annotations: declared namespace, reciprocal sets, absolute URLs, none on Spanish-only routes.
+    expect(xml).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+    const blocks = xml.split('<url>').slice(1);
+    const alternatesByLoc = new Map<string, Array<{ hreflang: string; href: string }>>();
+    for (const block of blocks) {
+      const loc = /<loc>([^<]+)<\/loc>/.exec(block)![1];
+      const links = [...block.matchAll(/<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"\/>/g)].map(
+        (match) => ({ hreflang: match[1], href: match[2] }),
+      );
+      alternatesByLoc.set(loc, links);
+    }
+    const sets = [...alternatesByLoc.entries()].filter(([, links]) => links.length > 0);
+    expect(sets.map(([loc]) => new URL(loc).pathname).sort()).toEqual(
+      pathnames.filter((pathname) => pathname === '/' || pathname === '/metodologia' || pathname.startsWith('/en') || pathname.startsWith('/estadisticas/estaciones/')).sort(),
+    );
+    for (const [loc, links] of sets) {
+      expect(links.map((link) => link.hreflang)).toEqual(['es', 'en', 'x-default']);
+      expect(links.every((link) => link.href.startsWith(`${SITE_URL}/`) || link.href === SITE_URL)).toBe(true);
+      // every URL of the set lists the whole set, itself included
+      expect(links.map((link) => link.href)).toContain(loc === `${SITE_URL}/` ? `${SITE_URL}/` : loc);
+      const spanish = links.find((link) => link.hreflang === 'es')!.href;
+      const english = links.find((link) => link.hreflang === 'en')!.href;
+      expect(links.find((link) => link.hreflang === 'x-default')!.href).toBe(spanish);
+      expect([spanish, english]).toContain(loc);
+    }
+    expect(alternatesByLoc.get(`${SITE_URL}/comparar`) ?? []).toEqual([]);
+
     expect(pathnames).not.toContain('/inicio');
     expect(pathnames).not.toContain('/zaragoza/dashboard');
     expect(pathnames).not.toContain('/api/docs');

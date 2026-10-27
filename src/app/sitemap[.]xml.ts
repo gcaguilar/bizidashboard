@@ -6,22 +6,13 @@ import { appRoutes, INDEXABLE_PUBLIC_ROUTE_REGISTRY } from '@/lib/routes'
 import { getDistrictSeoRows } from '@/lib/seo-districts'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import { getRobotsBaseUrl } from '@/lib/site'
-import { isTranslatedPath, localizePathname } from '@/lib/i18n/locales'
+import { renderSitemapUrlEntry, SITEMAP_URLSET_OPEN, withEnglishAlternates } from '@/lib/i18n/sitemap'
 
 type SitemapEntry = {
   href: string
   lastModified?: string
   changeFrequency: string
   priority: number
-}
-
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
 }
 
 /** Un informe cerrado se sella al terminar el mes; el mes en curso usa "ahora". */
@@ -49,16 +40,6 @@ function dedupeEntries(entries: SitemapEntry[]): SitemapEntry[] {
   return uniqueEntries
 }
 
-/** Añade la URL `/en/...` de cada ruta con versión inglesa; las españolas no cambian. */
-function withEnglishAlternates<T extends { href: string }>(entries: T[]): T[] {
-  return [
-    ...entries,
-    ...entries
-      .filter((entry) => isTranslatedPath(entry.href))
-      .map((entry) => ({ ...entry, href: localizePathname(entry.href, 'en') })),
-  ]
-}
-
 function buildStaticSitemapXml(): string {
   const siteUrl = getRobotsBaseUrl()
   const urls = withEnglishAlternates(
@@ -68,15 +49,11 @@ function buildStaticSitemapXml(): string {
       priority: entry.sitemap.priority,
     })),
   )
-    .map((entry) => `  <url>
-    <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
-    <changefreq>${entry.changeFrequency}</changefreq>
-    <priority>${entry.priority}</priority>
-  </url>`)
+    .map((entry) => renderSitemapUrlEntry(entry, siteUrl))
     .join('\n')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${SITEMAP_URLSET_OPEN}
 ${urls}
 </urlset>
 `
@@ -141,15 +118,11 @@ async function buildSitemapXml(): Promise<string> {
   ]))
 
   const urls = entries
-    .map((entry) => `  <url>
-    <loc>${escapeXml(`${siteUrl}${entry.href}`)}</loc>
-    ${entry.lastModified ? `<lastmod>${entry.lastModified}</lastmod>\n    ` : ''}<changefreq>${entry.changeFrequency}</changefreq>
-    <priority>${entry.priority}</priority>
-  </url>`)
+    .map((entry) => renderSitemapUrlEntry(entry, siteUrl))
     .join('\n')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${SITEMAP_URLSET_OPEN}
 ${urls}
 </urlset>
 `
