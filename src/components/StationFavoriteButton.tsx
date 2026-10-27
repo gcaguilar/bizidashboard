@@ -1,6 +1,7 @@
 'use client'
 import { useLocation } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n/use-locale'
 import { useFavoriteStations } from '@/lib/use-favorite-stations'
 import { cn } from '@/lib/utils'
 import {
@@ -31,6 +32,7 @@ export function StationFavoriteButton({
   className,
 }: StationFavoriteButtonProps) {
   const pathname = useLocation().pathname
+  const { t } = useT()
   const routeKey = resolveRouteKeyFromPathname(pathname)
   const { favoriteStationIds, toggleFavoriteStation } = useFavoriteStations()
   const isFavorite = favoriteStationIds.includes(stationId)
@@ -49,7 +51,7 @@ export function StationFavoriteButton({
   }
 
   if (variant === 'icon') {
-    const actionLabel = isFavorite ? 'Quitar de mis estaciones' : 'Guardar en mis estaciones'
+    const actionLabel = isFavorite ? t('favorite.remove') : t('favorite.add')
 
     return (
       <Button
@@ -76,7 +78,7 @@ export function StationFavoriteButton({
       aria-pressed={isFavorite}
       className={cn('text-xs', isFavorite && ACTIVE_CLASSES, className)}
     >
-      {isFavorite ? '★ Favorita' : '☆ Marcar favorita'}
+      {isFavorite ? t('favorite.labeledOn') : t('favorite.labeledOff')}
     </Button>
   )
 }

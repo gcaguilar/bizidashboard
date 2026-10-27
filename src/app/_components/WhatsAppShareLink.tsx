@@ -1,10 +1,13 @@
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor'
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
+import { translate } from '@/lib/i18n/messages'
 
 type WhatsAppShareLinkProps = {
   url: string
   text: string
   source: string
   className?: string
+  locale?: Locale
 }
 
 /**
@@ -16,6 +19,7 @@ export function WhatsAppShareLink({
   text,
   source,
   className = 'ui-inline-action',
+  locale = DEFAULT_LOCALE,
 }: WhatsAppShareLinkProps) {
   const href = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`
 
@@ -35,7 +39,7 @@ export function WhatsAppShareLink({
       }}
       className={className}
     >
-      Compartir por WhatsApp
+      {translate(locale, 'share.whatsapp')}
     </TrackedAnchor>
   )
 }
