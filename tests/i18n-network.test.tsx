@@ -25,10 +25,9 @@ vi.mock('@/services/shared-data', () => ({
   buildFallbackStatus: vi.fn(),
 }));
 // The server fn needs the Start runtime; run its handler body directly.
-vi.mock('@/server-functions/home', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/server-functions/home')>();
+vi.mock('@/server-functions/home', async () => {
+  const actual = await import('@/server-functions/home.server');
   return {
-    ...actual,
     getHomePageData: ({ data }: { data: { locale: 'es' | 'en' } }) => actual.loadHomePageData(data.locale),
   };
 });
@@ -52,7 +51,7 @@ import { buildNetworkBriefing, SAME_SLOT_BASELINE_LABEL } from '@/lib/network-br
 import { fetchComparableNetworkBaseline } from '@/lib/network-briefing-baseline';
 import { buildNetworkHealth } from '@/lib/network-health';
 import { getStationSeoRows } from '@/lib/seo-stations';
-import { loadHomePageData } from '@/server-functions/home';
+import { loadHomePageData } from '@/server-functions/home.server';
 
 const NOW = new Date('2026-04-01T12:00:00.000Z');
 const LAST_UPDATED_AT = '2026-04-01T11:59:00.000Z';
