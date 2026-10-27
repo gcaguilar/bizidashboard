@@ -19,6 +19,8 @@ import { appRoutes } from '@/lib/routes'
 import { getGoogleSiteVerificationToken, getSiteUrl, INTER_FONT_PATH, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
+import { getLocaleFromPathname, HTML_LANG } from '@/lib/i18n/locales'
+import { useLocale } from '@/lib/i18n/use-locale'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -34,6 +36,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // version/umami are static per server process (env vars, build metadata);
   // resolve once and never revalidate on navigation.
   staleTime: Infinity,
+  // Idioma desde la URL publica (`/en/...`); lo consumen los `head` de las rutas traducidas.
+  beforeLoad: ({ location }) => ({
+    locale: getLocaleFromPathname(location.publicHref),
+  }),
   loader: () => getFooterData(),
   head: () => {
     const googleVerification = getGoogleSiteVerificationToken()
@@ -87,6 +93,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
   const umamiConfig = footerData.umami
   const location = useLocation()
+  const locale = useLocale()
   const siteUrl = getSiteUrl()
   const structuredData = {
     '@context': 'https://schema.org',
@@ -134,7 +141,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         name: SEO_SITE_NAME,
         alternateName: ['BiziDashboard', 'BiciRadar'],
         url: siteUrl,
-        inLanguage: 'es-ES',
+        inLanguage: locale === 'en' ? 'en' : 'es-ES',
         publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
@@ -146,7 +153,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang={HTML_LANG[locale]} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>

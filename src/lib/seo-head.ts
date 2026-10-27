@@ -5,6 +5,8 @@ import {
   getSiteUrl,
   SEO_SITE_NAME,
 } from '@/lib/site';
+import { DEFAULT_LOCALE, OG_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { buildLocaleAlternates, localizedUrl } from '@/lib/i18n/seo';
 
 type MetaEntry = Record<string, string>;
 
@@ -23,6 +25,8 @@ export type SeoHeadOptions = {
   extraMeta?: MetaEntry[];
   /** Ruta de la imagen para compartir; por defecto usa la imagen social del sitio. */
   socialImagePath?: string;
+  /** Idioma de la página (por defecto español). Ver docs/i18n/english-version.md. */
+  locale?: Locale;
 };
 
 export const DEFAULT_ROBOTS =
@@ -41,12 +45,13 @@ export function buildSeoHead({
   robots = DEFAULT_ROBOTS,
   extraMeta = [],
   socialImagePath = DEFAULT_SOCIAL_IMAGE_PATH,
+  locale = DEFAULT_LOCALE,
 }: SeoHeadOptions): {
   meta: MetaEntry[];
-  links: Array<{ rel: string; href: string }>;
+  links: Array<{ rel: string; href: string; hreflang?: string }>;
   title: string;
 } {
-  const url = path ? `${getSiteUrl()}${path}` : null;
+  const url = path ? localizedUrl(path, locale) : null;
   const socialImageUrl = `${getSiteUrl()}${socialImagePath}`;
   const resolvedSocialTitle = socialTitle ?? title;
   const resolvedSocialDescription = socialDescription ?? description;
@@ -61,7 +66,7 @@ export function buildSeoHead({
       { property: 'og:description', content: resolvedSocialDescription },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: SEO_SITE_NAME },
-      { property: 'og:locale', content: 'es_ES' },
+      { property: 'og:locale', content: OG_LOCALE[locale] },
       { property: 'og:image', content: socialImageUrl },
       { property: 'og:image:type', content: 'image/png' },
       { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
@@ -76,7 +81,7 @@ export function buildSeoHead({
       { name: 'twitter:description', content: resolvedSocialDescription },
       ...extraMeta,
     ],
-    links: url ? [{ rel: 'canonical', href: url }] : [],
+    links: url && path ? [{ rel: 'canonical', href: url }, ...buildLocaleAlternates(path)] : [],
     title,
   };
 }

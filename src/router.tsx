@@ -2,6 +2,7 @@ import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import * as Sentry from '@sentry/tanstackstart-react'
 import { routeTree } from './routeTree.gen'
 import { stringifyRouterSearch } from './lib/router-search'
+import { createLocaleRewrite } from './lib/i18n/locale-rewrite'
 
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 import {
@@ -29,6 +30,8 @@ export function getRouter() {
     // Emite los params como texto plano: evita que `?stationId=254` se
     // reescriba con comillas JSON (`%22254%22`). Ver `stringifyRouterSearch`.
     stringifySearch: stringifyRouterSearch,
+    // Sirve `/en/...` desde el mismo arbol de rutas (ver docs/i18n/english-version.md).
+    rewrite: createLocaleRewrite(),
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient })
