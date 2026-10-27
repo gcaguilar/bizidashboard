@@ -74,7 +74,6 @@ function Home() {
   const {
     mostUsedStations,
     problemStations,
-    stationRows,
     bikesAvailable,
     activeStationsCount,
     generatedAt,
@@ -166,7 +165,7 @@ function Home() {
       <NetworkBriefingViewTracker />
 
       <HomeLiveSection
-        stations={stationRows.map((row) => row.station)}
+        stationsTotal={activeStationsCount}
         districts={districts}
         problemStations={problemStations}
         mostUsedStations={mostUsedStations}

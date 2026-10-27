@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStationSeoRows } from '@/lib/seo-stations'
 import type { StationSeoSummary } from '@/lib/seo-stations'
+import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis'
 import { buildNetworkBriefing } from '@/lib/network-briefing'
 import { hasNoAvailability } from '@/lib/network-health'
 import type { NetworkHealth } from '@/lib/network-health'
@@ -13,9 +14,8 @@ export type CriticalDistrictCount = { name: string; slug: string | null; critica
 export type DistrictOption = { name: string; slug: string };
 
 export type HomePageData = {
-  mostUsedStations: StationSeoSummary[]
-  problemStations: StationSeoSummary[]
-  stationRows: StationSeoSummary[]
+  mostUsedStations: HomeDiagnosisSummary[]
+  problemStations: HomeDiagnosisSummary[]
   bikesAvailable: number
   activeStationsCount: number
   generatedAt: string
@@ -25,6 +25,24 @@ export type HomePageData = {
   health: NetworkHealth
   topCriticalDistricts: CriticalDistrictCount[]
   districts: DistrictOption[]
+}
+
+// Solo viaja al HTML lo que la portada pinta: el resto del ranking (horas punta,
+// indexabilidad, etc.) no se usa en cliente. La red completa se pide a /api/stations.
+function toHomeDiagnosisSummary(row: StationSeoSummary): HomeDiagnosisSummary {
+  return {
+    station: row.station,
+    districtName: row.districtName,
+    currentOccupancy: row.currentOccupancy,
+    turnover: row.turnover ? { turnoverScore: row.turnover.turnoverScore } : null,
+    availability: row.availability
+      ? {
+          emptyHours: row.availability.emptyHours,
+          fullHours: row.availability.fullHours,
+          totalHours: row.availability.totalHours,
+        }
+      : null,
+  }
 }
 
 export const getHomePageData = createServerFn({ method: 'GET' }).handler(async () => {
@@ -44,6 +62,7 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
     .filter(s => s.turnover?.turnoverScore != null && Number(s.turnover.turnoverScore) > 0)
     .sort((a, b) => Number(b.turnover!.turnoverScore) - Number(a.turnover!.turnoverScore))
     .slice(0, 5)
+    .map(toHomeDiagnosisSummary)
 
   const problem = [...stationRows]
     .filter(s => s.availability != null)
@@ -53,6 +72,7 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
       return bHours - aHours
     })
     .slice(0, 5)
+    .map(toHomeDiagnosisSummary)
 
   // Todos los indicadores de red se calculan sobre el mismo conjunto (todas las
   // estaciones con datos), igual que el semáforo: así las cifras cuadran entre sí.
@@ -106,7 +126,6 @@ export const getHomePageData = createServerFn({ method: 'GET' }).handler(async (
   return {
     mostUsedStations: mostUsed,
     problemStations: problem,
-    stationRows,
     bikesAvailable,
     activeStationsCount: stationRows.length,
     generatedAt: new Date().toISOString(),

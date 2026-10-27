@@ -4,9 +4,12 @@ import { useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger, formatPercent } from '@/lib/format';
-import { buildStationCurrentLabel, buildStationIssueLabel } from '@/lib/home-diagnosis';
+import {
+  buildStationCurrentLabel,
+  buildStationIssueLabel,
+  type HomeDiagnosisSummary,
+} from '@/lib/home-diagnosis';
 import { appRoutes } from '@/lib/routes';
-import type { StationSeoSummary } from '@/lib/seo-stations';
 
 export type HomeDiagnosisFilter = 'all' | 'bikes' | 'anchors';
 export type HomeDiagnosisTab = 'review' | 'movement';
@@ -22,8 +25,8 @@ const DIAGNOSIS_TABS: { key: HomeDiagnosisTab; label: string }[] = [
 ];
 
 export type HomeDiagnosisProps = {
-  problemStations: StationSeoSummary[];
-  mostUsedStations: StationSeoSummary[];
+  problemStations: HomeDiagnosisSummary[];
+  mostUsedStations: HomeDiagnosisSummary[];
   filter: HomeDiagnosisFilter;
   className?: string;
 };
@@ -45,7 +48,7 @@ function DiagnosisStationList({
   tab,
   filter,
 }: {
-  stations: StationSeoSummary[];
+  stations: HomeDiagnosisSummary[];
   tab: HomeDiagnosisTab;
   filter: HomeDiagnosisFilter;
 }) {

@@ -1,4 +1,15 @@
 import { ANALYTICS_WINDOWS } from '@/analytics/types';
+import type { RankingRow } from '@/lib/api-types';
+import type { StationSeoSummary } from '@/lib/seo-stations';
+
+/** Subconjunto de `StationSeoSummary` que pinta el diagnóstico de la portada. */
+export type HomeDiagnosisSummary = Pick<
+  StationSeoSummary,
+  'station' | 'districtName' | 'currentOccupancy'
+> & {
+  turnover: Pick<RankingRow, 'turnoverScore'> | null;
+  availability: Pick<RankingRow, 'emptyHours' | 'fullHours' | 'totalHours'> | null;
+};
 
 /** Disponibilidad histórica tal y como llega del ranking (números o strings). */
 export type AvailabilityLike = {

@@ -1,17 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { PublicSearchForm, type StationSuggestion } from '@/app/_components/PublicSearchForm';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
 import { HomeDiagnosis, type HomeDiagnosisFilter } from '@/app/_components/home/HomeDiagnosis';
 import { HomeMapSection } from '@/app/_components/home/HomeMapSection';
+import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis';
 import { Button } from '@/components/ui/button';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
-import type { StationSeoSummary } from '@/lib/seo-stations';
 import type { DistrictOption } from '@/server-functions/home';
 import {
   buildFilterChangeEvent,
@@ -27,10 +27,13 @@ const QUICK_FILTERS: { key: HomeDiagnosisFilter; label: string }[] = [
 ];
 
 export type HomeLiveSectionProps = {
-  stations: StationSnapshot[];
+  /** Red completa ya resuelta. Si falta, se pide a /api/stations tras hidratar. */
+  stations?: StationSnapshot[];
+  /** Total de estaciones del loader: pinta el contador antes de que llegue la red. */
+  stationsTotal?: number;
   districts: DistrictOption[];
-  problemStations: StationSeoSummary[];
-  mostUsedStations: StationSeoSummary[];
+  problemStations: HomeDiagnosisSummary[];
+  mostUsedStations: HomeDiagnosisSummary[];
   className?: string;
 };
 
@@ -46,8 +49,11 @@ function applyFilter(station: StationSnapshot, filter: HomeDiagnosisFilter): boo
   return true;
 }
 
+const NO_STATIONS: StationSnapshot[] = [];
+
 export function HomeLiveSection({
-  stations,
+  stations: stationsProp,
+  stationsTotal,
   districts,
   problemStations,
   mostUsedStations,
@@ -58,6 +64,30 @@ export function HomeLiveSection({
   const [filter, setFilter] = useState<HomeDiagnosisFilter>('all');
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const { favoriteStationIds, toggleFavoriteStation } = useFavoriteStations();
+  const [fetchedStations, setFetchedStations] = useState<StationSnapshot[] | null>(null);
+  const stations = stationsProp ?? fetchedStations ?? NO_STATIONS;
+  const isLoadingStations = stationsProp == null && fetchedStations == null;
+
+  // El HTML inicial solo lleva el resumen y los top 5; el mapa y el buscador
+  // reciben la red completa de /api/stations una vez hidratada la página.
+  useEffect(() => {
+    if (stationsProp) {
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(appRoutes.api.stations(), { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data?.stations)) setFetchedStations(data.stations);
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [stationsProp]);
 
   const filteredStations = useMemo(
     () => stations.filter((station) => applyFilter(station, filter)),
@@ -128,7 +158,9 @@ export function HomeLiveSection({
           </Button>
         ))}
         <span className="ui-chip">
-          {formatInteger(filteredStations.length)} de {formatInteger(stations.length)} estaciones
+          {stations.length === 0 && stationsTotal != null
+            ? `${formatInteger(stationsTotal)} estaciones`
+            : `${formatInteger(filteredStations.length)} de ${formatInteger(stations.length)} estaciones`}
         </span>
         <TrackedLink
           href={appRoutes.biciradar()}
@@ -145,6 +177,7 @@ export function HomeLiveSection({
 
       <HomeMapSection
         stations={filteredStations}
+        isLoading={isLoadingStations}
         selectedStationId={selectedStationId}
         onSelectStation={setSelectedStationId}
         favoriteStationIds={favoriteStationIds}

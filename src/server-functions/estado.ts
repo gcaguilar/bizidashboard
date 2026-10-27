@@ -29,7 +29,8 @@ export const getSystemStatusPageData = createServerFn({ method: 'GET' }).handler
 
   return {
     status,
-    stations,
+    // Solo la marca de tiempo viaja al cliente; la red completa no se pinta aquí.
+    stationsGeneratedAt: stations.generatedAt,
     dataset,
     availableMonths,
     months,

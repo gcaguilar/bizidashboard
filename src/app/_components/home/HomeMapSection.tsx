@@ -15,6 +15,8 @@ const MapEngineLazy = lazy(() =>
 
 export type HomeMapSectionProps = {
   stations: StationSnapshot[];
+  /** La red aún se está pidiendo: muestra el esqueleto en vez del estado vacío. */
+  isLoading?: boolean;
   selectedStationId?: string | null;
   onSelectStation?: (id: string) => void;
   favoriteStationIds?: string[];
@@ -35,6 +37,7 @@ function MapLoadingSkeleton() {
 
 export function HomeMapSection({
   stations,
+  isLoading = false,
   selectedStationId,
   onSelectStation,
   favoriteStationIds,
@@ -95,7 +98,9 @@ export function HomeMapSection({
       </div>
 
       <div ref={mapContainerRef} className="relative mt-3">
-        {stations.length === 0 ? (
+        {isLoading ? (
+          <MapLoadingSkeleton />
+        ) : stations.length === 0 ? (
           <div className="flex h-[420px] items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] px-6 text-center text-sm text-[var(--muted)]">
             No hay estaciones con este filtro.
           </div>

@@ -39,7 +39,7 @@ export const Route = createFileRoute('/estado')({
 });
 
 function SystemStatusPage() {
-  const { status, stations, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount, networkBalance } = Route.useLoaderData();
+  const { status, stationsGeneratedAt, dataset, availableMonths, latestMonth, incidents, capabilities, activeIncidentCount, activeStationsCount, networkBalance } = Route.useLoaderData();
   const cityName = getCityName();
   const breadcrumbs = createRootBreadcrumbs({
     label: 'Estado',
@@ -202,7 +202,7 @@ function SystemStatusPage() {
 
       <StatusBanner
         status={status}
-        stationsGeneratedAt={stations.generatedAt}
+        stationsGeneratedAt={stationsGeneratedAt}
         coverage={dataset.coverage}
         lastSampleAt={dataset.lastUpdated.lastSampleAt}
       />
