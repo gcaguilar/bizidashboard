@@ -84,6 +84,7 @@ export const appRoutes = {
   queAppBiciPublica: () => '/que-app-usar-bici-publica',
   comoFuncionaBizi: () => '/como-funciona-bizi-zaragoza',
   biciradar: () => '/biciradar',
+  planner: () => '/planificar',
   utilityLanding: () => '/estadisticas/mapa',
   insightsLanding: () => '/estadisticas',
   compare: (params?: {
@@ -340,6 +341,15 @@ export const INDEXABLE_PUBLIC_ROUTE_REGISTRY: StaticRouteEntry[] = [
     sitemap: {
       changeFrequency: 'weekly',
       priority: 0.76,
+    },
+  },
+  {
+    id: 'planner',
+    href: appRoutes.planner(),
+    label: 'Planificar trayecto',
+    sitemap: {
+      changeFrequency: 'weekly',
+      priority: 0.7,
     },
   },
   {

@@ -39,6 +39,7 @@ import { Route as ManifestDotjsonRouteImport } from './app/manifest[.]json'
 import { Route as MapaEstacionesBiziZaragozaRouteImport } from './app/mapa-estaciones-bizi-zaragoza'
 import { Route as McpRouteImport } from './app/mcp'
 import { Route as MetodologiaRouteImport } from './app/metodologia'
+import { Route as PlanificarRouteImport } from './app/planificar'
 import { Route as PreguntasFrecuentesRouteImport } from './app/preguntas-frecuentes'
 import { Route as PrensaRouteImport } from './app/prensa'
 import { Route as PrivacidadRouteImport } from './app/privacidad'
@@ -270,6 +271,11 @@ const McpRoute = McpRouteImport.update({
 const MetodologiaRoute = MetodologiaRouteImport.update({
   id: '/metodologia',
   path: '/metodologia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanificarRoute = PlanificarRouteImport.update({
+  id: '/planificar',
+  path: '/planificar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreguntasFrecuentesRoute = PreguntasFrecuentesRouteImport.update({
@@ -699,6 +705,7 @@ export interface FileRoutesByFullPath {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/planificar': typeof PlanificarRoute
   '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
   '/prensa': typeof PrensaRoute
   '/privacidad': typeof PrivacidadRoute
@@ -804,6 +811,7 @@ export interface FileRoutesByTo {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/planificar': typeof PlanificarRoute
   '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
   '/prensa': typeof PrensaRoute
   '/privacidad': typeof PrivacidadRoute
@@ -911,6 +919,7 @@ export interface FileRoutesById {
   '/mapa-estaciones-bizi-zaragoza': typeof MapaEstacionesBiziZaragozaRoute
   '/mcp': typeof McpRoute
   '/metodologia': typeof MetodologiaRoute
+  '/planificar': typeof PlanificarRoute
   '/preguntas-frecuentes': typeof PreguntasFrecuentesRoute
   '/prensa': typeof PrensaRoute
   '/privacidad': typeof PrivacidadRoute
@@ -1021,6 +1030,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/planificar'
     | '/preguntas-frecuentes'
     | '/prensa'
     | '/privacidad'
@@ -1126,6 +1136,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/planificar'
     | '/preguntas-frecuentes'
     | '/prensa'
     | '/privacidad'
@@ -1232,6 +1243,7 @@ export interface FileRouteTypes {
     | '/mapa-estaciones-bizi-zaragoza'
     | '/mcp'
     | '/metodologia'
+    | '/planificar'
     | '/preguntas-frecuentes'
     | '/prensa'
     | '/privacidad'
@@ -1341,6 +1353,7 @@ export interface RootRouteChildren {
   MapaEstacionesBiziZaragozaRoute: typeof MapaEstacionesBiziZaragozaRoute
   McpRoute: typeof McpRoute
   MetodologiaRoute: typeof MetodologiaRoute
+  PlanificarRoute: typeof PlanificarRoute
   PreguntasFrecuentesRoute: typeof PreguntasFrecuentesRoute
   PrensaRoute: typeof PrensaRoute
   PrivacidadRoute: typeof PrivacidadRoute
@@ -1603,6 +1616,13 @@ declare module '@tanstack/react-router' {
       path: '/metodologia'
       fullPath: '/metodologia'
       preLoaderRoute: typeof MetodologiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planificar': {
+      id: '/planificar'
+      path: '/planificar'
+      fullPath: '/planificar'
+      preLoaderRoute: typeof PlanificarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preguntas-frecuentes': {
@@ -2278,6 +2298,7 @@ const rootRouteChildren: RootRouteChildren = {
   MapaEstacionesBiziZaragozaRoute: MapaEstacionesBiziZaragozaRoute,
   McpRoute: McpRoute,
   MetodologiaRoute: MetodologiaRoute,
+  PlanificarRoute: PlanificarRoute,
   PreguntasFrecuentesRoute: PreguntasFrecuentesRoute,
   PrensaRoute: PrensaRoute,
   PrivacidadRoute: PrivacidadRoute,

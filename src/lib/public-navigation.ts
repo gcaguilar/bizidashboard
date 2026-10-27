@@ -45,6 +45,7 @@ export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
 ];
 
 export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'planner', label: 'Planificar trayecto', href: appRoutes.planner(), ctaId: 'planner' },
   { id: 'data', label: 'Datos y API', href: appRoutes.developers(), ctaId: 'data_api' },
   { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
   { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
@@ -109,7 +110,7 @@ const ALL_HEADER_NAV_ITEMS = [...PUBLIC_MAIN_NAV_ITEMS, ...PUBLIC_MORE_NAV_ITEMS
 const ALL_NAV_ITEMS = [...ALL_HEADER_NAV_ITEMS, ...PUBLIC_FOOTER_ONLY_NAV_ITEMS];
 
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
-  pickNavItems(ALL_NAV_ITEMS, ['network', 'analysis', 'redistribucion', 'compare', 'biciradar']),
+  pickNavItems(ALL_NAV_ITEMS, ['network', 'analysis', 'redistribucion', 'compare', 'biciradar', 'planner']),
   PUBLIC_STATS_NAV_ITEMS,
   pickNavItems(ALL_NAV_ITEMS, ['data', 'methodology', 'about', 'mcp']),
 ];
