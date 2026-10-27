@@ -7,7 +7,7 @@ import { HomeStatusHero } from '@/app/_components/HomeStatusHero';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { buildLocaleAlternates, localizedUrl, ogLocale } from '@/lib/i18n/seo';
+import { buildLocaleAlternates, buildOgLocaleMeta, localizedUrl } from '@/lib/i18n/seo';
 import { translate } from '@/lib/i18n/messages';
 import { useT } from '@/lib/i18n/use-locale';
 import type { Locale } from '@/lib/i18n/locales';
@@ -78,7 +78,7 @@ export const Route = createFileRoute('/')({
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: SEO_SITE_NAME },
-        { property: 'og:locale', content: ogLocale(locale) },
+        ...buildOgLocaleMeta('/', locale),
         { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
         { property: 'og:image:type', content: 'image/png' },
         { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },

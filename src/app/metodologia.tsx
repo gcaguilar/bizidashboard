@@ -20,6 +20,7 @@ import { getMethodologyPageData } from '@/server-functions/metodologia';
 import { toJsonLdScript } from '@/lib/structured-data';
 import { translate } from '@/lib/i18n/messages';
 import { useT } from '@/lib/i18n/use-locale';
+import { localizeStructuredData } from '@/lib/i18n/seo';
 
 export const Route = createFileRoute('/metodologia')({
   head: ({ match }) =>
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/metodologia')({
 function MethodologyPage() {
   const { historyMeta, dataset, status, latestMonth, breadcrumbs, faqItems, structuredData } = Route.useLoaderData();
   const cityName = getCityName();
-  const { t } = useT();
+  const { locale, t } = useT();
 
   return (
     <PageShell>
@@ -45,7 +46,7 @@ function MethodologyPage() {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: toJsonLdScript(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: toJsonLdScript(localizeStructuredData(structuredData, locale)) }}
       />
 
       <header className="ui-page-hero">

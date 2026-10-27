@@ -18,7 +18,7 @@ import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components
 import { toJsonLdScript } from '@/lib/structured-data';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
 import { DayType } from '@/analytics/types';
-import { buildLocaleAlternates, localizedUrl, ogLocale } from '@/lib/i18n/seo';
+import { buildLocaleAlternates, buildOgLocaleMeta, localizedUrl, localizeStructuredData } from '@/lib/i18n/seo';
 import { translate, type Translator } from '@/lib/i18n/messages';
 import { useT } from '@/lib/i18n/use-locale';
 
@@ -68,7 +68,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'DatosBizi' },
-        { property: 'og:locale', content: ogLocale(locale) },
+        ...buildOgLocaleMeta(stationPath, locale),
         { property: 'og:url', content: stationUrl },
         { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
         { property: 'og:image:type', content: 'image/png' },
@@ -181,10 +181,15 @@ function StationPage() {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: toJsonLdScript({
-            ...structuredData,
-            '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
-          }),
+          __html: toJsonLdScript(
+            localizeStructuredData(
+              {
+                ...structuredData,
+                '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
+              },
+              locale,
+            ),
+          ),
         }}
       />
       <div className="mx-auto mb-4 w-full max-w-[1280px]">

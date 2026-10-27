@@ -6,7 +6,7 @@ import {
   SEO_SITE_NAME,
 } from '@/lib/site';
 import { DEFAULT_LOCALE, OG_LOCALE, type Locale } from '@/lib/i18n/locales';
-import { buildLocaleAlternates, localizedUrl } from '@/lib/i18n/seo';
+import { buildLocaleAlternates, buildOgLocaleMeta, localizedUrl } from '@/lib/i18n/seo';
 
 type MetaEntry = Record<string, string>;
 
@@ -66,7 +66,7 @@ export function buildSeoHead({
       { property: 'og:description', content: resolvedSocialDescription },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: SEO_SITE_NAME },
-      { property: 'og:locale', content: OG_LOCALE[locale] },
+      ...(path ? buildOgLocaleMeta(path, locale) : [{ property: 'og:locale', content: OG_LOCALE[locale] }]),
       { property: 'og:image', content: socialImageUrl },
       { property: 'og:image:type', content: 'image/png' },
       { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
