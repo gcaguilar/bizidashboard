@@ -58,28 +58,3 @@ export function buildStationCurrentLabel(station: {
 }): string {
   return `Ahora: ${station.bikesAvailable} bicis · ${station.anchorsFree} huecos`;
 }
-
-/** Estado ciudadano de una estación ahora mismo: coger o dejar bici. */
-export function buildStationStatusLabel(station: {
-  capacity: number;
-  bikesAvailable: number;
-  anchorsFree: number;
-}): string {
-  if (station.capacity <= 0) {
-    return 'Sin datos fiables';
-  }
-
-  if (station.bikesAvailable <= 0) {
-    return 'Sin bicis';
-  }
-
-  if (station.anchorsFree <= 0) {
-    return 'Sin huecos';
-  }
-
-  if (station.bikesAvailable < 3 || station.anchorsFree < 3) {
-    return 'Pocas unidades';
-  }
-
-  return 'Con bicis y huecos';
-}

@@ -5,8 +5,9 @@ import { TrackedLink } from '@/app/_components/TrackedLink';
 import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatHourMinute } from '@/lib/format';
-import { buildStationCurrentLabel, buildStationStatusLabel } from '@/lib/home-diagnosis';
-import { getCitizenMarkerColor } from '@/lib/map-colors';
+import { buildStationCurrentLabel } from '@/lib/home-diagnosis';
+import { StationStatusLabel } from '@/components/ui/station-status';
+import { getCitizenStatus, getCitizenStatusDetail } from '@/lib/map-colors';
 import { appRoutes } from '@/lib/routes';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
 
@@ -87,12 +88,10 @@ export function HomeFavoriteStations({
                   className="ui-surface-block ui-surface-block-interactive block min-h-[5.5rem] pr-14"
                 >
                   <p className="text-sm font-semibold text-[var(--foreground)]">{station.name}</p>
-                  <p
-                    className="mt-1 text-xs font-semibold"
-                    style={{ color: getCitizenMarkerColor(station) }}
-                  >
-                    {buildStationStatusLabel(station)}
-                  </p>
+                  <StationStatusLabel
+                    status={{ ...getCitizenStatus(station), label: getCitizenStatusDetail(station) }}
+                    className="mt-1"
+                  />
                   <p className="mt-1 text-xs text-[var(--muted)]">
                     {buildStationCurrentLabel(station)}
                   </p>

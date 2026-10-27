@@ -1,6 +1,5 @@
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildStationStatusLabel } from '@/lib/home-diagnosis';
 import {
   FAVORITES_STORAGE_KEY,
   parseFavoriteIds,
@@ -85,18 +84,6 @@ describe('useFavoriteStations en SSR', () => {
     }
 
     expect(renderToString(<Probe />)).toContain('>0<');
-  });
-});
-
-describe('buildStationStatusLabel', () => {
-  const base = { capacity: 20, bikesAvailable: 10, anchorsFree: 10 };
-
-  it('usa el vocabulario ciudadano', () => {
-    expect(buildStationStatusLabel({ ...base, bikesAvailable: 0 })).toBe('Sin bicis');
-    expect(buildStationStatusLabel({ ...base, anchorsFree: 0 })).toBe('Sin huecos');
-    expect(buildStationStatusLabel({ ...base, bikesAvailable: 2 })).toBe('Pocas unidades');
-    expect(buildStationStatusLabel(base)).toBe('Con bicis y huecos');
-    expect(buildStationStatusLabel({ ...base, capacity: 0 })).toBe('Sin datos fiables');
   });
 });
 

@@ -207,3 +207,26 @@ export function getAnalyticalLegendEntry(station: StationSnapshot): MapLegendEnt
   const color = getAnalyticalMarkerColor(station);
   return ANALYTICAL_MAP_LEGEND.find((entry) => entry.color === color) ?? ANALYTICAL_MAP_LEGEND[5];
 }
+
+/**
+ * Etiqueta fina del estado ciudadano: distingue "Sin bicis" de "Sin huecos"
+ * dentro de los tres niveles de `CITIZEN_MAP_LEGEND`. Mismos umbrales que
+ * `getCitizenStatus`; úsala cuando la UI necesite saber qué falta.
+ */
+export function getCitizenStatusDetail(station: StationSnapshot): string {
+  const status = getCitizenStatus(station);
+
+  if (station.capacity <= 0) {
+    return status.label;
+  }
+
+  if (status.level === 'depleted') {
+    return station.bikesAvailable <= 0 ? 'Sin bicis' : 'Sin huecos';
+  }
+
+  if (status.level === 'low') {
+    return station.bikesAvailable < 3 ? 'Pocas bicis' : 'Pocos huecos';
+  }
+
+  return status.label;
+}

@@ -7,6 +7,7 @@ import {
   getAnalyticalMarkerSeverity,
   getCitizenMarkerColor,
   getCitizenMarkerSeverity,
+  getCitizenStatusDetail,
 } from '@/lib/map-colors';
 
 function buildStation(overrides: Partial<StationSnapshot> = {}): StationSnapshot {
@@ -120,5 +121,16 @@ describe('ANALYTICAL_MAP_LEGEND', () => {
     ]) {
       expect(legendColors.has(getAnalyticalMarkerColor(station))).toBe(true);
     }
+  });
+});
+
+describe('getCitizenStatusDetail', () => {
+  it('keeps the fine vocabulary inside the three citizen levels', () => {
+    expect(getCitizenStatusDetail(buildStation({ bikesAvailable: 0 }))).toBe('Sin bicis');
+    expect(getCitizenStatusDetail(buildStation({ anchorsFree: 0 }))).toBe('Sin huecos');
+    expect(getCitizenStatusDetail(buildStation({ bikesAvailable: 2 }))).toBe('Pocas bicis');
+    expect(getCitizenStatusDetail(buildStation({ anchorsFree: 2 }))).toBe('Pocos huecos');
+    expect(getCitizenStatusDetail(buildStation())).toBe('Equilibrio');
+    expect(getCitizenStatusDetail(buildStation({ capacity: 0 }))).toBe('Sin datos');
   });
 });
