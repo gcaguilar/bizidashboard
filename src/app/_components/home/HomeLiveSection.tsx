@@ -66,7 +66,7 @@ export function HomeLiveSection({
   mostUsedStations,
   className,
 }: HomeLiveSectionProps) {
-  const { t } = useT();
+  const { locale, t } = useT();
   const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const [filter, setFilter] = useState<HomeDiagnosisFilter>('all');
@@ -208,10 +208,10 @@ export function HomeLiveSection({
         ))}
         <span className="ui-chip">
           {stations.length === 0 && stationsTotal != null
-            ? t('home.live.count.total', { total: formatInteger(stationsTotal) })
+            ? t('home.live.count.total', { total: formatInteger(stationsTotal, locale) })
             : t('home.live.count.filtered', {
-                shown: formatInteger(filteredStations.length),
-                total: formatInteger(stations.length),
+                shown: formatInteger(filteredStations.length, locale),
+                total: formatInteger(stations.length, locale),
               })}
         </span>
         <TrackedLink

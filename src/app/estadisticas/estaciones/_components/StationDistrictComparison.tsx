@@ -5,6 +5,7 @@ import {
   type ComparisonMetricKey,
   type StationComparisonMetrics,
 } from '@/lib/station-district-comparison';
+import type { Locale } from '@/lib/i18n/locales';
 import { useT } from '@/lib/i18n/use-locale';
 import { getStationDistrictComparisonCopy } from '@/lib/station-insights-copy';
 
@@ -14,8 +15,8 @@ type StationDistrictComparisonProps = {
   peerMetrics: StationComparisonMetrics[];
 };
 
-function formatMetric(key: ComparisonMetricKey, value: number): string {
-  return key === 'movement' ? formatInteger(value) : formatPercent(value);
+function formatMetric(key: ComparisonMetricKey, value: number, locale: Locale): string {
+  return key === 'movement' ? formatInteger(value, locale) : formatPercent(value);
 }
 
 export function StationDistrictComparison({
@@ -52,8 +53,8 @@ export function StationDistrictComparison({
               <li key={row.key} className="ui-surface-block">
                 <p className="text-sm font-semibold text-[var(--foreground)]">{COPY.metrics[row.key]}</p>
                 <p className="mt-1 text-sm text-[var(--muted)]">
-                  {COPY.thisStation} <strong>{formatMetric(row.key, row.stationValue)}</strong> · {COPY.district}{' '}
-                  <strong>{formatMetric(row.key, row.districtValue)}</strong>
+                  {COPY.thisStation} <strong>{formatMetric(row.key, row.stationValue, locale)}</strong> · {COPY.district}{' '}
+                  <strong>{formatMetric(row.key, row.districtValue, locale)}</strong>
                 </p>
                 <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
                   {COPY.verdicts[row.verdict]}

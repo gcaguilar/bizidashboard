@@ -61,7 +61,7 @@ export function HomeStatusHero({
   generatedAt,
   className = '',
 }: HomeStatusHeroProps) {
-  const { t } = useT();
+  const { locale, t } = useT();
   const levelColor = HEALTH_LEVEL_COLORS[health.level];
 
   return (
@@ -79,29 +79,29 @@ export function HomeStatusHero({
           {health.label}
         </span>
         <span className="ui-chip" suppressHydrationWarning>
-          {t('home.status.updated', { time: formatHourMinute(generatedAt) })}
+          {t('home.status.updated', { time: formatHourMinute(generatedAt, undefined, locale) })}
         </span>
       </div>
 
       <MetricGrid columns={4}>
         <MetricCard
           label={t('home.status.bikes.label')}
-          value={formatInteger(bikesAvailable)}
+          value={formatInteger(bikesAvailable, locale)}
           detail={t('home.status.bikes.detail')}
         />
         <MetricCard
           label={t('home.status.anchors.label')}
-          value={formatInteger(anchorsFreeTotal)}
+          value={formatInteger(anchorsFreeTotal, locale)}
           detail={t('home.status.anchors.detail')}
         />
         <MetricCard
           label={t('home.status.stations.label')}
-          value={formatInteger(activeStationsCount)}
+          value={formatInteger(activeStationsCount, locale)}
           detail={t('home.status.stations.detail')}
         />
         <MetricCard
           label={t('home.status.critical.label')}
-          value={formatInteger(criticalStationsCount)}
+          value={formatInteger(criticalStationsCount, locale)}
           detail={buildCriticalStationsDetail(criticalStationsCount, t)}
         />
       </MetricGrid>

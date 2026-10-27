@@ -70,7 +70,7 @@ export function HomeFavoriteStations({
             {t('home.favorites.saved')}{' '}
             {refreshedAt ? (
               <>
-                {t('home.favorites.updatedAt')}<time dateTime={refreshedAt}>{formatHourMinute(refreshedAt)}</time>.
+                {t('home.favorites.updatedAt')}<time dateTime={refreshedAt}>{formatHourMinute(refreshedAt, undefined, locale)}</time>.
               </>
             ) : (
               t('home.favorites.lastSample')

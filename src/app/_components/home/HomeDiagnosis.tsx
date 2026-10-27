@@ -110,7 +110,7 @@ function DiagnosisStationList({
               <span>{buildStationCurrentLabel(summary.station, locale)}</span>
               {tab === 'movement' ? (
                 <span className="inline-flex items-center gap-1">
-                  {formatInteger(Number(summary.turnover?.turnoverScore ?? 0))}{' '}
+                  {formatInteger(Number(summary.turnover?.turnoverScore ?? 0), locale)}{' '}
                   {activityIndexUnits.total}
                   <ActivityIndexHint />
                 </span>
