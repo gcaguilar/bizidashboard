@@ -124,6 +124,52 @@ When a city container starts, it automatically executes `SET search_path TO "cit
 
 ---
 
+## Agente social diario (Instagram)
+
+`social-zaragoza` is an optional service built from the same `jobs.Dockerfile`
+image, running its own process (`scripts/start-social.mjs`). It publishes
+deterministic Spanish content through Buffer with no LLM and no approval step:
+two stories per day (08:30 and 18:30 Europe/Madrid), a district carousel on
+Mondays (09:00) and the monthly report carousel on day 1 (10:00).
+
+- **Enable**: production must set `SOCIAL_ENABLED=1`. The compose default is
+  `${SOCIAL_ENABLED:-false}`, so a plain `docker compose up` does not start the
+  agent without Buffer credentials. `SOCIAL_DRY_RUN=1` builds the post and
+  records it as `skipped` (`dry_run`) without uploading or publishing.
+- **Environment**: `SOCIAL_ENABLED`, `SOCIAL_CITY`, `SOCIAL_TIMEZONE`,
+  `SOCIAL_STATE_DB`, `SOCIAL_DRY_RUN`, `SOCIAL_CATCHUP_MINUTES`,
+  `BUFFER_API_KEY`, `BUFFER_CHANNEL_ID`, `TMPFILES_EXPIRE_SECONDS` (see
+  `.env.example`). `SOCIAL_CITY` must match `CITY` and `SOCIAL_TIMEZONE` must be
+  `Europe/Madrid`; the service refuses to start otherwise, because the Prisma
+  schema and the analytics windows depend on them.
+- **Channel discovery**: `bun run social:discover` prints the Buffer
+  organizations and channels without publishing.
+- **Preview**: `bun run social:preview --slot morning|afternoon|weekly|monthly
+  [--date YYYY-MM-DD] [--out DIR]`. Images default to `.tmp/social`; the command
+  reads analytics but never uploads or publishes.
+- **State**: SQLite in the `social-state` volume
+  (`/app/data/social.sqlite`), single replica only. Analytics comes from
+  Postgres read-only; the agent never writes to Postgres.
+- **Scheduling and catch-up**: all four cron jobs use `runOnInit: false`; on
+  startup a missed slot is recovered only within `SOCIAL_CATCHUP_MINUTES`
+  (120 by default) after its time.
+- **Monitors**: `social-morning`, `social-afternoon`, `social-weekly` and
+  `social-monthly` in Sentry. The alert rules are an operational step, not
+  created by code.
+- **Failure policy**: stale data, an unready monthly report, a failed
+  upload/preflight or a Buffer error skip or error the slot and report to
+  Sentry. Nothing stale or fallback is published.
+- **tmpfiles caveat**: images are public tmpfiles.org URLs with a 2-hour
+  lifetime (`expire=7200`). The upload API returns the file page, not the JPEG;
+  the adapter downloads that page and extracts the real tokenized
+  `/dl/{token}/{id}/{name}` link before preflighting it. Availability and terms
+  are third-party dependencies; if the page has no direct link or the URL does
+  not return JPEG bytes, the slot is skipped.
+- **Before enabling**: run the manual contract test (one story and one 5-slide
+  carousel) against the real channel.
+
+---
+
 ## Adding New Lyft/GBFS Systems
 
 Adding a new compatible city is easy:
