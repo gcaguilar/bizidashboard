@@ -29,6 +29,9 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 # Compile the jobs entrypoint once during image build so pm2 runs JS, not TS.
 RUN bun build src/jobs/standalone.ts --target=bun --outfile=/app/dist/jobs/standalone.js --packages=external
 
+# Entrypoint del agente social (mismo imagen, segundo servicio/CMD).
+RUN bun build src/jobs/social-standalone.ts --target=bun --outfile=/app/dist/jobs/social-standalone.js --packages=external
+
 # ── runner: minimal production image with pm2 ────────────────────────
 FROM oven/bun:1.4.4-slim AS runner
 WORKDIR /app
@@ -48,6 +51,9 @@ COPY --from=builder /app/prisma.config.ts /app/prisma.config.ts
 # necesita el fichero para asignar barrios.
 COPY --from=builder /app/public /app/public
 
+# Fuentes Inter del render social (stories y carruseles).
+COPY --from=builder /app/assets/og-fonts /app/assets/og-fonts
+
 # Production node_modules
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
@@ -57,6 +63,7 @@ COPY --from=builder /app/dist/jobs /app/dist/jobs
 COPY --from=builder /app/ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
 COPY --from=builder /app/ops/start-jobs.mjs /app/ops/start-jobs.mjs
+COPY --from=builder /app/scripts/start-social.mjs /app/scripts/start-social.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Prisma client resolution

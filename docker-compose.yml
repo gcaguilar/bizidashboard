@@ -240,6 +240,47 @@ services:
       bizi-barcelona:
         condition: service_healthy
 
+  social-zaragoza:
+    build:
+      context: .
+      dockerfile: jobs.Dockerfile
+    # Mismo imagen que los jobs, pero su propio proceso: solo los cuatro slots
+    # sociales. No se activa ENABLE_INTERNAL_JOBS.
+    command: ["bun", "scripts/start-social.mjs"]
+    environment:
+      - CITY=zaragoza
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # Apagado por defecto: sin claves de Buffer, un `docker compose up`
+      # arrancaria en bucle. Produccion debe definir SOCIAL_ENABLED=1.
+      - SOCIAL_ENABLED=${SOCIAL_ENABLED:-false}
+      - SOCIAL_CITY=zaragoza
+      - SOCIAL_TIMEZONE=Europe/Madrid
+      - SOCIAL_STATE_DB=/app/data/social.sqlite
+      - BUFFER_API_KEY=${BUFFER_API_KEY:-}
+      - BUFFER_CHANNEL_ID=${BUFFER_CHANNEL_ID:-}
+      - TMPFILES_EXPIRE_SECONDS=7200
+      - PORT=3000
+      - NODE_ENV=${NODE_ENV:-production}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-0.2}
+    volumes:
+      - social-state:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    # El estado vive en el SQLite del volumen: una sola replica.
+    deploy:
+      replicas: 1
+
   collect-zaragoza:
     image: alpine:3.21
     depends_on:
@@ -294,3 +335,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  social-state:
