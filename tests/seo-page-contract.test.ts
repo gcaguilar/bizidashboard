@@ -63,8 +63,8 @@ describe('seo navigation contract', () => {
       'utf8'
     );
 
-    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs)');
-    expect(source).toContain("'@graph': [buildBreadcrumbStructuredData(breadcrumbs)");
+    expect(source).toContain('buildBreadcrumbStructuredData(breadcrumbs, locale)');
+    expect(source).toContain("'@graph': [buildBreadcrumbStructuredData(breadcrumbs, locale)");
   });
 
   it('includes breadcrumb structured data on district detail pages', () => {

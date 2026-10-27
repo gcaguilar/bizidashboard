@@ -3,7 +3,9 @@ import {
   BREADCRUMB_REPORTS_LABEL,
   findPublicNavItem,
 } from '@/lib/public-navigation';
-import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { localizedUrl } from '@/lib/i18n/seo';
+import { appRoutes } from '@/lib/routes';
 
 export type BreadcrumbItem = {
   label: string;
@@ -25,14 +27,21 @@ export function createRootBreadcrumbs(...items: BreadcrumbItem[]): BreadcrumbIte
   return [homeBreadcrumb(), ...items];
 }
 
-export function buildBreadcrumbStructuredData(items: BreadcrumbItem[]) {
+/**
+ * JSON-LD BreadcrumbList. Con `locale` las URLs de las páginas traducidas
+ * apuntan a su versión en ese idioma (`localizedUrl`); el resto sigue en español.
+ */
+export function buildBreadcrumbStructuredData(
+  items: BreadcrumbItem[],
+  locale: Locale = DEFAULT_LOCALE
+) {
   return {
     '@type': 'BreadcrumbList',
     itemListElement: items.filter((item) => item.href !== null).map((item, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      item: toAbsoluteRouteUrl(item.href!),
+      item: localizedUrl(item.href!, locale),
     })),
   };
 }

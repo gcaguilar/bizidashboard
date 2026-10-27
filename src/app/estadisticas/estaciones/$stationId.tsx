@@ -131,7 +131,6 @@ function StationPage() {
 
   const { summary, relatedStations } = data
   const station = summary.station
-  const siteUrl = getSiteUrl()
   const occupancyDelta = summary.currentOccupancy - summary.cityAverageOccupancy
   const next30Point = data.predictions.predictions.find(p => p.horizonMinutes === 30)
   const next30 = next30Point?.predictedBikesAvailable ?? null
@@ -186,7 +185,7 @@ function StationPage() {
             localizeStructuredData(
               {
                 ...structuredData,
-                '@graph': [buildBreadcrumbStructuredData(breadcrumbs), ...structuredData['@graph']],
+                '@graph': [buildBreadcrumbStructuredData(breadcrumbs, locale), ...structuredData['@graph']],
               },
               locale,
             ),
@@ -210,9 +209,10 @@ function StationPage() {
           {summary.districtSlug ? <TrackedLink className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)} ctaEvent={{ source: 'station_detail', ctaId: 'view_district', destination: summary.districtSlug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>{t('station.hero.viewDistrict')}</TrackedLink> : null}
           <ShareButton
             title={station.name}
-            url={`${siteUrl}${appRoutes.stationDetail(station.id)}`}
+            url={localizedUrl(appRoutes.stationDetail(station.id), locale)}
             text={t('station.share.text', { name: station.name })}
             source="station_detail"
+            locale={locale}
           />
         </div>
       </header>
@@ -222,7 +222,7 @@ function StationPage() {
         <article className="ui-section-card"><p className="stat-label">{t('station.stat.capacity')}</p><p className="stat-value">{station.capacity}</p></article>
         <article className="ui-section-card"><p className="stat-label">{t('station.stat.occupancy')}</p><p className="stat-value">{formatPercent(summary.currentOccupancy)}</p></article>
       </section>
-      <StationStatusBadge station={station} className="mt-4" />
+      <StationStatusBadge station={station} className="mt-4" locale={locale} />
       {station.bikesAvailable <= 0 ? (
         <p className="mt-4 text-sm text-[var(--danger)]">
           {t('station.alert.empty')}
