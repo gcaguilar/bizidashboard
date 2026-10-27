@@ -80,6 +80,8 @@ import { Route as ApiHealthReadyRouteImport } from './app/api/health/ready'
 import { Route as ApiHeatmapIndexRouteImport } from './app/api/heatmap/index'
 import { Route as ApiHistoryIndexRouteImport } from './app/api/history/index'
 import { Route as ApiMobilityIndexRouteImport } from './app/api/mobility/index'
+import { Route as ApiOgNetworkRouteImport } from './app/api/og/network'
+import { Route as ApiOgStationRouteImport } from './app/api/og/station'
 import { Route as ApiPatternsIndexRouteImport } from './app/api/patterns/index'
 import { Route as ApiPredictionsIndexRouteImport } from './app/api/predictions/index'
 import { Route as ApiRankingsIndexRouteImport } from './app/api/rankings/index'
@@ -481,6 +483,16 @@ const ApiMobilityIndexRoute = ApiMobilityIndexRouteImport.update({
   path: '/api/mobility/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOgNetworkRoute = ApiOgNetworkRouteImport.update({
+  id: '/api/og/network',
+  path: '/api/og/network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOgStationRoute = ApiOgStationRouteImport.update({
+  id: '/api/og/station',
+  path: '/api/og/station',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPatternsIndexRoute = ApiPatternsIndexRouteImport.update({
   id: '/api/patterns/',
   path: '/api/patterns/',
@@ -737,6 +749,8 @@ export interface FileRoutesByFullPath {
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/og/network': typeof ApiOgNetworkRoute
+  '/api/og/station': typeof ApiOgStationRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
   '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
@@ -841,6 +855,8 @@ export interface FileRoutesByTo {
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/og/network': typeof ApiOgNetworkRoute
+  '/api/og/station': typeof ApiOgStationRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
   '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
@@ -951,6 +967,8 @@ export interface FileRoutesById {
   '/api/alerts/history': typeof ApiAlertsHistoryRouteRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
+  '/api/og/network': typeof ApiOgNetworkRoute
+  '/api/og/station': typeof ApiOgStationRoute
   '/dashboard/estaciones/$stationId': typeof DashboardEstacionesStationIdRoute
   '/dashboard/views/$mode': typeof DashboardViewsModeRoute
   '/estadisticas/barrios/$districtSlug': typeof EstadisticasBarriosDistrictSlugRoute
@@ -1062,6 +1080,8 @@ export interface FileRouteTypes {
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/og/network'
+    | '/api/og/station'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
     | '/estadisticas/barrios/$districtSlug'
@@ -1166,6 +1186,8 @@ export interface FileRouteTypes {
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/og/network'
+    | '/api/og/station'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
     | '/estadisticas/barrios/$districtSlug'
@@ -1275,6 +1297,8 @@ export interface FileRouteTypes {
     | '/api/alerts/history'
     | '/api/health/live'
     | '/api/health/ready'
+    | '/api/og/network'
+    | '/api/og/station'
     | '/dashboard/estaciones/$stationId'
     | '/dashboard/views/$mode'
     | '/estadisticas/barrios/$districtSlug'
@@ -1375,6 +1399,8 @@ export interface RootRouteChildren {
   ApiAlertsHistoryRouteRoute: typeof ApiAlertsHistoryRouteRoute
   ApiHealthLiveRoute: typeof ApiHealthLiveRoute
   ApiHealthReadyRoute: typeof ApiHealthReadyRoute
+  ApiOgNetworkRoute: typeof ApiOgNetworkRoute
+  ApiOgStationRoute: typeof ApiOgStationRoute
   ApiAlertsIndexRoute: typeof ApiAlertsIndexRoute
   ApiAppVersionsIndexRoute: typeof ApiAppVersionsIndexRoute
   ApiCollectIndexRoute: typeof ApiCollectIndexRoute
@@ -1905,6 +1931,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMobilityIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/og/network': {
+      id: '/api/og/network'
+      path: '/api/og/network'
+      fullPath: '/api/og/network'
+      preLoaderRoute: typeof ApiOgNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/og/station': {
+      id: '/api/og/station'
+      path: '/api/og/station'
+      fullPath: '/api/og/station'
+      preLoaderRoute: typeof ApiOgStationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/patterns/': {
       id: '/api/patterns/'
       path: '/api/patterns'
@@ -2320,6 +2360,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAlertsHistoryRouteRoute: ApiAlertsHistoryRouteRoute,
   ApiHealthLiveRoute: ApiHealthLiveRoute,
   ApiHealthReadyRoute: ApiHealthReadyRoute,
+  ApiOgNetworkRoute: ApiOgNetworkRoute,
+  ApiOgStationRoute: ApiOgStationRoute,
   ApiAlertsIndexRoute: ApiAlertsIndexRoute,
   ApiAppVersionsIndexRoute: ApiAppVersionsIndexRoute,
   ApiCollectIndexRoute: ApiCollectIndexRoute,

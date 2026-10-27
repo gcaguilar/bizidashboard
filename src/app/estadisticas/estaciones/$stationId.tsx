@@ -3,11 +3,11 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { createStationBreadcrumb } from '@/lib/breadcrumbs'
-import { WhatsAppShareLink } from '@/app/_components/WhatsAppShareLink'
+import { ShareButton } from '@/app/_components/ShareButton'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatDayType, formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
-import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
+import { getSiteUrl } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/components/StationFavoriteButton'
@@ -40,6 +40,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
     const stationPath = appRoutes.stationDetail(id)
     const stationName = loaderData?.summary?.station?.name ?? id
     const title = `${stationName} | Estación Bizi Zaragoza | DatosBizi`
+    const ogImage = `${getSiteUrl()}${appRoutes.api.ogStation(id)}`
     const description = `Consulta bicis, huecos, ocupación y patrones de uso de ${stationName}, estación Bizi de Zaragoza.`
     return {
       meta: [
@@ -53,14 +54,14 @@ export const Route = createFileRoute('/estadisticas/estaciones/$stationId')({
         { property: 'og:site_name', content: 'DatosBizi' },
         { property: 'og:locale', content: 'es_ES' },
         { property: 'og:url', content: `${getSiteUrl()}${stationPath}` },
-        { property: 'og:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
-        { property: 'og:image:type', content: 'image/png' },
-        { property: 'og:image:width', content: String(DEFAULT_SOCIAL_IMAGE_WIDTH) },
-        { property: 'og:image:height', content: String(DEFAULT_SOCIAL_IMAGE_HEIGHT) },
+        { property: 'og:image', content: ogImage },
+        { property: 'og:image:type', content: 'image/svg+xml' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
         { property: 'og:image:alt', content: title },
         { name: 'robots', content: loaderData ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' : 'noindex, follow' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:image', content: `${getSiteUrl()}${DEFAULT_SOCIAL_IMAGE_PATH}` },
+        { name: 'twitter:image', content: ogImage },
         { name: 'twitter:image:alt', content: title },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
@@ -178,7 +179,8 @@ function StationPage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <TrackedLink className="ui-inline-action" href={appRoutes.dashboardStation(station.id)} ctaEvent={{ source: 'station_detail', ctaId: 'open_dashboard', destination: 'dashboard_station', entityType: 'station', sourceRole: 'hub', destinationRole: 'dashboard', transitionKind: 'to_dashboard' }}>Ver en mapa avanzado</TrackedLink>
           {summary.districtSlug ? <TrackedLink className="ui-inline-action" href={appRoutes.districtDetail(summary.districtSlug)} ctaEvent={{ source: 'station_detail', ctaId: 'view_district', destination: summary.districtSlug, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver barrio</TrackedLink> : null}
-          <WhatsAppShareLink
+          <ShareButton
+            title={station.name}
             url={`${siteUrl}${appRoutes.stationDetail(station.id)}`}
             text={`Disponibilidad de ${station.name} en Bizi Zaragoza`}
             source="station_detail"
