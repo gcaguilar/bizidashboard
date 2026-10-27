@@ -55,9 +55,11 @@ export function HomeExploreSection() {
       </p>
       <div className="mt-3 grid gap-4 md:grid-cols-3">
         {exploreCards.map((card) => (
-          <div key={card.title} className="ui-surface-block p-5">
-            <span aria-hidden="true" className="text-2xl leading-none">{card.icon}</span>
-            <h3 className="mt-2 text-base font-bold text-[var(--foreground)]">{card.title}</h3>
+          <div key={card.title} className="border-t border-[var(--border)] pt-3">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">
+              <span aria-hidden="true" className="mr-1.5">{card.icon}</span>
+              {card.title}
+            </h3>
             <p className="mt-1 text-sm text-[var(--muted)]">{card.description}</p>
             <ul className="mt-4 space-y-2">
               {card.links.map((link) => (

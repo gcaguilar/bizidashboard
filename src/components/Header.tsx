@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ThemeToggleButton } from '@/app/dashboard/_components/ThemeToggleButton';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { HeaderSearch } from '@/components/HeaderSearch';
 import { HeaderSession } from '@/components/HeaderSession';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
@@ -97,6 +98,7 @@ export default function Header() {
           >
             <span aria-hidden="true">{mobileOpen ? '✕' : '☰'}</span>
           </Button>
+          <HeaderSearch />
           <ThemeToggleButton />
           <HeaderSession />
         </div>

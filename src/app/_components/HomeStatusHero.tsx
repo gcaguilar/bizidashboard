@@ -118,11 +118,11 @@ export function HomeStatusHero({
         <p className="mt-1 text-xs text-[var(--muted)]">{health.description}</p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <TrackedLink href={appRoutes.dashboardAlerts()} className="ui-inline-action">
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <TrackedLink href={appRoutes.dashboardAlerts()} className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]">
           Ver alertas
         </TrackedLink>
-        <TrackedLink href={appRoutes.compare()} className="ui-inline-action">
+        <TrackedLink href={appRoutes.compare()} className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]">
           Ver comparativa
         </TrackedLink>
         <TrackedLink
@@ -132,7 +132,7 @@ export function HomeStatusHero({
             routeKey: 'home_briefing',
             source: 'home_status_hero',
           })}
-          className="ui-inline-action"
+          className="text-sm text-[var(--muted)] underline underline-offset-2 hover:text-[var(--foreground)]"
         >
           Cómo se interpreta
         </TrackedLink>

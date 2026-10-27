@@ -48,7 +48,7 @@ test('public redirects resolve to canonical pages', async ({ page }) => {
 
   const publicNavigation = page.getByRole('navigation', { name: 'Navegación principal' });
   await publicNavigation.getByRole('button', { name: 'Más' }).click();
-  await publicNavigation.getByRole('link', { name: 'API', exact: true }).click();
+  await publicNavigation.getByRole('link', { name: 'Datos y API', exact: true }).click();
   await expect.poll(() => getPathname(page.url())).toBe('/developers');
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('Developers');
 

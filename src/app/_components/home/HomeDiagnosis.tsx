@@ -82,7 +82,7 @@ function DiagnosisStationList({
               entityType: 'station',
               module: summary.station.id,
             }}
-            className="ui-surface-block ui-surface-block-interactive pr-14"
+            className="block rounded-lg border border-[var(--border)] px-3 py-2 pr-14 transition-colors hover:bg-[var(--secondary)]"
           >
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <p className="text-sm font-semibold text-[var(--foreground)]">
@@ -169,8 +169,8 @@ export function HomeDiagnosis({
               onClick={() => setActiveTab(tab.key)}
               className={
                 isActive
-                  ? 'rounded-lg border border-[var(--primary)] bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-[var(--primary-foreground)] shadow-sm transition'
-                  : 'rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:border-[var(--primary)]/40 hover:text-[var(--foreground)]'
+                  ? 'border-b-2 border-[var(--foreground)] px-2 py-1.5 text-xs font-semibold text-[var(--foreground)] transition'
+                  : 'border-b-2 border-transparent px-2 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:text-[var(--foreground)]'
               }
             >
               {tab.label}

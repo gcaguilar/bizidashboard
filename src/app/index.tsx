@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { PageShell } from '@/components/layout/page-shell';
 import { HomeExploreSection } from '@/app/_components/HomeExploreSection';
 import { HomeLiveSection } from '@/app/_components/home/HomeLiveSection';
+import { NearbyBikesCta } from '@/app/_components/home/NearbyBikesCta';
 import { HomeStatusHero } from '@/app/_components/HomeStatusHero';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -84,6 +85,7 @@ function Home() {
     topCriticalDistricts,
     districts,
   } = Route.useLoaderData();
+  const nearbyStations = stationRows.map(({ station }) => station);
 
   return (
     <PageShell>
@@ -134,21 +136,25 @@ function Home() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <TrackedLink
-            href={appRoutes.dashboard()}
-            ctaEvent={{ source: 'home_hero', ctaId: 'open_network_summary', destination: 'dashboard', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
-            className="ui-primary-button w-full sm:w-auto"
-          >
-            Ver estado de la red
-          </TrackedLink>
-          <TrackedLink
-            href={appRoutes.reports()}
-            ctaEvent={{ source: 'home_hero', ctaId: 'open_reports', destination: 'reports', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
-            className="ui-inline-action w-full sm:w-auto"
-          >
-            Ver informes mensuales
-          </TrackedLink>
+        <div className="mt-4 flex flex-col gap-3">
+          <NearbyBikesCta stations={nearbyStations} />
+          <p className="text-sm text-[var(--muted)]">
+            <TrackedLink
+              href={appRoutes.dashboard()}
+              ctaEvent={{ source: 'home_hero', ctaId: 'open_network_summary', destination: 'dashboard', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+              className="underline underline-offset-2 hover:text-[var(--foreground)]"
+            >
+              Ver estado de la red
+            </TrackedLink>
+            {' · '}
+            <TrackedLink
+              href={appRoutes.reports()}
+              ctaEvent={{ source: 'home_hero', ctaId: 'open_reports', destination: 'reports', sourceRole: 'home', destinationRole: 'hub', transitionKind: 'within_public' }}
+              className="underline underline-offset-2 hover:text-[var(--foreground)]"
+            >
+              Ver informes mensuales
+            </TrackedLink>
+          </p>
         </div>
       </header>
 

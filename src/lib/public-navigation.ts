@@ -37,20 +37,25 @@ export type PublicNavItem = {
   ctaId: string;
 };
 
+/** Cabecera: solo los tres destinos principales; lo demás va en "Más" y en el pie. */
 export const PUBLIC_MAIN_NAV_ITEMS: PublicNavItem[] = [
-  { id: 'summary', label: 'Resumen', href: appRoutes.home(), ctaId: 'summary' },
   { id: 'network', label: 'Rendimiento de red', href: appRoutes.dashboard(), ctaId: 'network' },
   { id: 'analysis', label: 'Análisis e informes', href: appRoutes.reports(), ctaId: 'analysis_reports' },
-  { id: 'data', label: 'Datos y API', href: appRoutes.developers(), ctaId: 'data_api' },
   { id: 'biciradar', label: 'BiciRadar', href: appRoutes.biciradar(), ctaId: 'biciradar' },
 ];
 
 export const PUBLIC_MORE_NAV_ITEMS: PublicNavItem[] = [
-  { id: 'redistribucion', label: 'Redistribución', href: appRoutes.dashboardRedistribucion(), ctaId: 'redistribucion' },
-  { id: 'compare', label: 'Comparar', href: appRoutes.compare(), ctaId: 'compare' },
+  { id: 'data', label: 'Datos y API', href: appRoutes.developers(), ctaId: 'data_api' },
   { id: 'methodology', label: 'Metodología', href: appRoutes.methodology(), ctaId: 'methodology' },
   { id: 'about', label: 'Sobre', href: appRoutes.about(), ctaId: 'about' },
   { id: 'mcp', label: 'Conector MCP', href: appRoutes.mcp(), ctaId: 'mcp' },
+];
+
+/** Destinos secundarios: no van en la cabecera, solo en el pie y en el buscador. */
+export const PUBLIC_FOOTER_ONLY_NAV_ITEMS: PublicNavItem[] = [
+  { id: 'summary', label: 'Resumen', href: appRoutes.home(), ctaId: 'summary' },
+  { id: 'redistribucion', label: 'Redistribución', href: appRoutes.dashboardRedistribucion(), ctaId: 'redistribucion' },
+  { id: 'compare', label: 'Comparar', href: appRoutes.compare(), ctaId: 'compare' },
 ];
 
 /**
@@ -86,11 +91,12 @@ function pickNavItems(items: PublicNavItem[], ids: string[]): PublicNavItem[] {
 }
 
 const ALL_HEADER_NAV_ITEMS = [...PUBLIC_MAIN_NAV_ITEMS, ...PUBLIC_MORE_NAV_ITEMS];
+const ALL_NAV_ITEMS = [...ALL_HEADER_NAV_ITEMS, ...PUBLIC_FOOTER_ONLY_NAV_ITEMS];
 
 export const FOOTER_NAV_GROUPS: PublicNavItem[][] = [
-  pickNavItems(ALL_HEADER_NAV_ITEMS, ['network', 'analysis', 'redistribucion', 'compare', 'biciradar']),
+  pickNavItems(ALL_NAV_ITEMS, ['network', 'analysis', 'redistribucion', 'compare', 'biciradar']),
   PUBLIC_STATS_NAV_ITEMS,
-  pickNavItems(ALL_HEADER_NAV_ITEMS, ['data', 'methodology', 'about', 'mcp']),
+  pickNavItems(ALL_NAV_ITEMS, ['data', 'methodology', 'about', 'mcp']),
 ];
 
 /** Navegación de la cabecera (escritorio y móvil). */
@@ -99,6 +105,7 @@ export const PUBLIC_NAV_ITEMS: PublicNavItem[] = ALL_HEADER_NAV_ITEMS;
 /** Páginas que el buscador debe poder devolver aunque no estén en la cabecera. */
 export const PUBLIC_SEARCHABLE_PAGE_ITEMS: PublicNavItem[] = [
   ...PUBLIC_NAV_ITEMS,
+  ...PUBLIC_FOOTER_ONLY_NAV_ITEMS,
   ...PUBLIC_STATS_NAV_ITEMS,
   { id: 'explore', label: 'Explorar análisis', href: appRoutes.exploreHub(), ctaId: 'explore' },
 ];
