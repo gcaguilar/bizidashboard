@@ -80,6 +80,21 @@ export const FOOTER_LEGAL_ITEMS: PublicNavItem[] = [
   { id: 'aviso-legal', label: 'Aviso legal', href: appRoutes.avisoLegal(), ctaId: 'aviso_legal' },
 ];
 
+/** Etiquetas de migas que no coinciden con un destino de la cabecera ("Resumen", "Análisis e informes"). */
+export const BREADCRUMB_HOME_LABEL = 'Inicio';
+export const BREADCRUMB_REPORTS_LABEL = 'Informes';
+
+/** Etiqueta y ruta de un destino de navegación pública, para reutilizarlas en migas. */
+export function findPublicNavItem(id: string): PublicNavItem {
+  const item = [...PUBLIC_STATS_NAV_ITEMS, ...PUBLIC_MAIN_NAV_ITEMS, ...PUBLIC_MORE_NAV_ITEMS, ...PUBLIC_FOOTER_ONLY_NAV_ITEMS].find(
+    (candidate) => candidate.id === id
+  );
+  if (!item) {
+    throw new Error(`Unknown public navigation item: ${id}`);
+  }
+  return item;
+}
+
 function pickNavItems(items: PublicNavItem[], ids: string[]): PublicNavItem[] {
   return ids.map((id) => {
     const item = items.find((candidate) => candidate.id === id);

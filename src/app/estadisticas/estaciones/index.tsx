@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { appRoutes } from '@/lib/routes'
 import { buildSeoHead } from '@/lib/seo-head'
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs'
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs, navBreadcrumb } from '@/lib/breadcrumbs'
 import { toAbsoluteRouteUrl } from '@/lib/routes'
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/estadisticas/estaciones/')({
 function EstadisticasEstacionesPage() {
   const stationRows = Route.useLoaderData();
   const canonicalPath = '/estadisticas/estaciones';
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Estaciones', href: canonicalPath });
+  const breadcrumbs = createRootBreadcrumbs(navBreadcrumb('stats-estaciones'));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [

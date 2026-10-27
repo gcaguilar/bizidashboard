@@ -1,3 +1,8 @@
+import {
+  BREADCRUMB_HOME_LABEL,
+  BREADCRUMB_REPORTS_LABEL,
+  findPublicNavItem,
+} from '@/lib/public-navigation';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 
 export type BreadcrumbItem = {
@@ -5,14 +10,19 @@ export type BreadcrumbItem = {
   href: string | null;
 };
 
+/** Miga hacia un destino de la navegación pública: etiqueta y ruta salen de ahí. */
+export function navBreadcrumb(navItemId: string): BreadcrumbItem {
+  const { label, href } = findPublicNavItem(navItemId);
+  return { label, href };
+}
+
+const homeBreadcrumb = (): BreadcrumbItem => ({
+  label: BREADCRUMB_HOME_LABEL,
+  href: appRoutes.home(),
+});
+
 export function createRootBreadcrumbs(...items: BreadcrumbItem[]): BreadcrumbItem[] {
-  return [
-    {
-      label: 'Inicio',
-      href: appRoutes.home(),
-    },
-    ...items,
-  ];
+  return [homeBreadcrumb(), ...items];
 }
 
 export function buildBreadcrumbStructuredData(items: BreadcrumbItem[]) {
@@ -31,33 +41,30 @@ export function createStationBreadcrumb(
   stationName: string,
   href: string = appRoutes.statsEstaciones()
 ): BreadcrumbItem[] {
-  return [
-    { label: 'Inicio', href: appRoutes.home() },
-    { label: 'Estadísticas', href: appRoutes.statsHub() },
-    { label: 'Estaciones', href: appRoutes.statsEstaciones() },
-    { label: stationName, href },
-  ]
+  return createRootBreadcrumbs(
+    navBreadcrumb('stats'),
+    navBreadcrumb('stats-estaciones'),
+    { label: stationName, href }
+  );
 }
 
 export function createDistrictBreadcrumb(
   districtName: string,
   href: string = appRoutes.statsBarrios()
 ): BreadcrumbItem[] {
-  return [
-    { label: 'Inicio', href: appRoutes.home() },
-    { label: 'Estadísticas', href: appRoutes.statsHub() },
-    { label: 'Barrios', href: appRoutes.statsBarrios() },
-    { label: districtName, href },
-  ]
+  return createRootBreadcrumbs(
+    navBreadcrumb('stats'),
+    navBreadcrumb('barrios'),
+    { label: districtName, href }
+  );
 }
 
 export function createReportBreadcrumb(
   monthLabel: string,
   href: string = appRoutes.reports()
 ): BreadcrumbItem[] {
-  return [
-    { label: 'Inicio', href: appRoutes.home() },
-    { label: 'Informes', href: appRoutes.reports() },
-    { label: monthLabel, href },
-  ]
+  return createRootBreadcrumbs(
+    { label: BREADCRUMB_REPORTS_LABEL, href: appRoutes.reports() },
+    { label: monthLabel, href }
+  );
 }

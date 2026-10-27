@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs';
+import { buildBreadcrumbStructuredData, createRootBreadcrumbs, navBreadcrumb } from '@/lib/breadcrumbs';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { toJsonLdScript } from '@/lib/structured-data';
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/estadisticas/')({
 
 function EstadisticasHubPage() {
   const canonicalPath = appRoutes.statsHub();
-  const breadcrumbs = createRootBreadcrumbs({ label: 'Estadísticas', href: canonicalPath });
+  const breadcrumbs = createRootBreadcrumbs(navBreadcrumb('stats'));
   const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
