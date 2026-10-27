@@ -135,7 +135,10 @@ Mondays (09:00) and the monthly report carousel on day 1 (10:00).
 - **Enable**: production must set `SOCIAL_ENABLED=1`. The compose default is
   `${SOCIAL_ENABLED:-false}`, so a plain `docker compose up` does not start the
   agent without Buffer credentials. `SOCIAL_DRY_RUN=1` builds the post and
-  records it as `skipped` (`dry_run`) without uploading or publishing.
+  records it as `skipped` (`dry_run`) without uploading or publishing. If the
+  social service is deployed standalone from the same jobs image, set
+  `SOCIAL_ONLY=1` so the image runs `scripts/start-social.mjs` instead of the
+  jobs entrypoint; the compose service already sets it.
 - **Environment**: `SOCIAL_ENABLED`, `SOCIAL_CITY`, `SOCIAL_TIMEZONE`,
   `SOCIAL_STATE_DB`, `SOCIAL_DRY_RUN`, `SOCIAL_CATCHUP_MINUTES`,
   `BUFFER_API_KEY`, `BUFFER_CHANNEL_ID`, `TMPFILES_EXPIRE_SECONDS` (see
