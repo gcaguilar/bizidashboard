@@ -77,7 +77,7 @@ export function buildReportExportSections(report: MonthlyReport): ReportExportSe
       [
         ['Mes', formatMonthLabel(report.monthKey)],
         ['Resumen', report.summary],
-        ['Movimiento estimado', headline.demandScore],
+        ['Índice de actividad', headline.demandScore],
         ['Ocupación media', headline.avgOccupancy],
         ['Estaciones activas', headline.activeStations],
         ['Muestras', headline.sampleCount],

@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -68,8 +68,8 @@ function getWeekPatternSummary(payload: MobilityConclusionsPayload): string {
   }
 
   return weekdayWeekendProfile.dominantPeriod === 'weekday'
-    ? `Entre semana la red concentra más actividad media por día que en fin de semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${movementUnits.perDay}).`
-    : `En fin de semana la red concentra más actividad media por día que entre semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${movementUnits.perDay}).`;
+    ? `Entre semana la red concentra más actividad media por día que en fin de semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}).`
+    : `En fin de semana la red concentra más actividad media por día que entre semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} vs ${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}).`;
 }
 
 export const Route = createFileRoute('/dashboard/conclusiones/')({
@@ -226,14 +226,14 @@ function DashboardConclusionsPage() {
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Entre semana</p>
-              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} {movementUnits.perDay}</p>
+              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} {activityIndexUnits.perDay}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 Ocupación media {formatPercent(payload.weekdayWeekendProfile.weekday.avgOccupancy)} · {payload.weekdayWeekendProfile.weekday.daysCount} días
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Fin de semana</p>
-              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} {movementUnits.perDay}</p>
+              <p className="mt-2 text-xl font-black text-[var(--foreground)]">{payload.weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} {activityIndexUnits.perDay}</p>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 Ocupación media {formatPercent(payload.weekdayWeekendProfile.weekend.avgOccupancy)} · {payload.weekdayWeekendProfile.weekend.daysCount} días
               </p>
@@ -264,7 +264,7 @@ function DashboardConclusionsPage() {
                     <p className="text-sm font-semibold text-[var(--foreground)]">{formatHourRange(slot.hour)}</p>
                     <p className="text-[11px] text-[var(--muted)]">Franja con mayor actividad agregada</p>
                   </div>
-                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(slot.demandScore)} {movementUnits.total}</p>
+                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(slot.demandScore)} {activityIndexUnits.total}</p>
                 </div>
               ))}
             </div>
@@ -290,7 +290,7 @@ function DashboardConclusionsPage() {
                     <p className="text-sm font-semibold text-[var(--foreground)]">{district.district}</p>
                     <p className="text-[11px] text-[var(--muted)]">Mayor intensidad agregada de uso reciente</p>
                   </div>
-                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(district.demandScore)} {movementUnits.total}</p>
+                  <p className="text-xs font-bold text-[var(--foreground)]">{formatInteger(district.demandScore)} {activityIndexUnits.total}</p>
                 </div>
               ))}
             </div>
@@ -327,7 +327,7 @@ function DashboardConclusionsPage() {
                         <p className="text-[11px] text-[var(--muted)]">ID {station.stationId}</p>
                       </div>
                     </div>
-                    <p className="text-xs font-bold text-[var(--foreground)]">{station.avgDemand.toFixed(1)} {movementUnits.perDay}</p>
+                    <p className="text-xs font-bold text-[var(--foreground)]">{station.avgDemand.toFixed(1)} {activityIndexUnits.perDay}</p>
                   </TrackedLink>
                 </Button>
               ))}
@@ -361,7 +361,7 @@ function DashboardConclusionsPage() {
                         <p className="text-[11px] text-[var(--muted)]">ID {station.stationId}</p>
                       </div>
                     </div>
-                    <p className="text-xs font-bold text-[var(--foreground)]">{station.avgDemand.toFixed(1)} {movementUnits.perDay}</p>
+                    <p className="text-xs font-bold text-[var(--foreground)]">{station.avgDemand.toFixed(1)} {activityIndexUnits.perDay}</p>
                   </TrackedLink>
                 </Button>
               ))}

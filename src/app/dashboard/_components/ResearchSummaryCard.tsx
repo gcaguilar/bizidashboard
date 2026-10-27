@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { MetricCard } from '@/components/ui/metric-card';
@@ -97,7 +97,7 @@ export function ResearchSummaryCard({
           value={<span className="text-lg font-bold text-[var(--foreground)]">{topDemandDay?.day ?? 'Sin datos'}</span>}
           detail={
             topDemandDay
-              ? `${formatDecimal(topDemandDay.demandScore)} ${movementUnits.perDay}`
+              ? `${formatDecimal(topDemandDay.demandScore)} ${activityIndexUnits.perDay}`
               : 'Todavía no hay histórico suficiente.'
           }
         />

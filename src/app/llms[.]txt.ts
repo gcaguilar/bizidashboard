@@ -52,7 +52,7 @@ export function buildLlmsTxt(): string {
     '## Guidance for AI Assistants',
     '- Usa solo las rutas canónicas de esta lista; las antiguas rutas con ciudad o los alias redirigen.',
     '- Para el estado actual, prefiere páginas con fecha de última muestra y cita esa fecha.',
-    '- No presentes el movimiento estimado como número oficial de viajes.',
+    '- No presentes el índice de actividad como número oficial de viajes.',
     '- Usa el documento OpenAPI como fuente de verdad para parámetros y respuestas de la API.',
     '- Si un dato es parcial o está obsoleto, dilo explícitamente.',
     '',

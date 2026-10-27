@@ -51,7 +51,7 @@ function MonthlyTrendChart({ monthly }: { monthly: MonthlyReportTrends['monthly'
           <XAxis dataKey="label" tick={{ fontSize: 11 }} minTickGap={8} />
           <YAxis tick={{ fontSize: 11 }} width={46} tickFormatter={(value) => formatInteger(Number(value))} />
           <Tooltip
-            formatter={(value) => [formatInteger(Number(value)), 'Movimiento estimado']}
+            formatter={(value) => [formatInteger(Number(value)), 'Índice de actividad']}
             labelFormatter={(_label, payload) =>
               (payload?.[0]?.payload as { fullLabel?: string } | undefined)?.fullLabel ?? ''
             }
@@ -227,7 +227,7 @@ export function ReportCharts({ report }: ReportChartsProps) {
       <article className="ui-section-card xl:col-span-2">
         <h2 className="text-xl font-black text-[var(--foreground)]">Evolución mes a mes</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Movimiento estimado en los últimos meses. Ayuda a reconocer estacionalidad (curso escolar, verano, fiestas) y a comparar el mes con su entorno.
+          Índice de actividad en los últimos meses. Ayuda a reconocer estacionalidad (curso escolar, verano, fiestas) y a comparar el mes con su entorno.
         </p>
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
           {hasMonthly ? (

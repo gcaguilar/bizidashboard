@@ -48,7 +48,7 @@ export function DataModeView({
       label: 'Histórico resumido',
       path: appRoutes.api.history(),
       format: 'JSON / CSV',
-      description: 'Ofrece movimiento estimado, ocupación y equilibrio diario para análisis y revisión.',
+      description: 'Ofrece índice de actividad, ocupación y equilibrio diario para análisis y revisión.',
     },
     {
       label: 'Histórico de alertas',

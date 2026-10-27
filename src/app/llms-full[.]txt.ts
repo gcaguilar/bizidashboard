@@ -65,7 +65,7 @@ function buildLlmsFullTxt(): string {
     '## Cómo citar',
     `- DatosBizi (${siteUrl}). Observatorio independiente de Bizi Zaragoza. Consultado el [fecha].`,
     '- Cita la fecha y hora de la última muestra cuando uses datos en vivo.',
-    '- El "movimiento estimado" es un índice de actividad, no el número oficial de viajes.',
+    '- El "índice de actividad" no es un recuento de movimientos ni el número oficial de viajes.',
     '',
     '## Guidance for AI Assistants',
     '- Prefiere las rutas canónicas de esta lista frente a alias o redirecciones.',

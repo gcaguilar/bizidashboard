@@ -133,7 +133,7 @@ function PrensaPage() {
         </p>
         <p className="mt-3 text-sm text-[var(--muted)]">
           Si usas una métrica concreta, enlaza a la página o informe consultado e incluye la hora de
-          la última muestra. El «movimiento estimado» es un índice de actividad, no el número
+          la última muestra. El «índice de actividad» no cuenta viajes, no el número
           oficial de viajes.
         </p>
       </section>

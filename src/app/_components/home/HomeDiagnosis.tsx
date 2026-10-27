@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MovementHint } from '@/app/_components/MovementHint';
+import { ActivityIndexHint } from '@/app/_components/ActivityIndexHint';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import type { StationSnapshot } from '@/lib/api-types';
@@ -11,7 +11,7 @@ import {
   buildStationIssueLabel,
   type HomeDiagnosisSummary,
 } from '@/lib/home-diagnosis';
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { appRoutes } from '@/lib/routes';
 
 export type HomeDiagnosisFilter = 'all' | 'bikes' | 'anchors';
@@ -20,7 +20,7 @@ export type HomeDiagnosisTab = 'review' | 'movement';
 const MOVEMENT_LABEL = 'Zona de mucho movimiento';
 const EMPTY_FILTER_MESSAGE = 'Ninguna estación encaja con este filtro.';
 const MOVEMENT_DISCLAIMER =
-  'El movimiento estimado ayuda a comparar estaciones; no es el número oficial de viajes.';
+  'El índice de actividad ayuda a comparar estaciones; no es el número oficial de viajes.';
 
 const DIAGNOSIS_TABS: { key: HomeDiagnosisTab; label: string }[] = [
   { key: 'review', label: 'Conviene revisar' },
@@ -112,8 +112,8 @@ function DiagnosisStationList({
               {tab === 'movement' ? (
                 <span className="inline-flex items-center gap-1">
                   {formatInteger(Number(summary.turnover?.turnoverScore ?? 0))}{' '}
-                  {movementUnits.total}
-                  <MovementHint />
+                  {activityIndexUnits.total}
+                  <ActivityIndexHint />
                 </span>
               ) : (
                 <span>ocupación {formatPercent(summary.currentOccupancy)}</span>

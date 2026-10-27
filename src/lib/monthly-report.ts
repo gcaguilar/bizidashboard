@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { deleteCachedJson, getCachedJson, withCache, withStaleCache } from '@/lib/cache/cache';
 import { buildStationDistrictMap, type DistrictCollection } from '@/lib/districts';
 import { formatDateLabel, formatPercent, formatRatioMagnitude, roundTo } from '@/lib/format';
@@ -73,7 +73,7 @@ function computeTrend(ratio: number | null): MonthlyReportComparison['trend'] {
 }
 
 function buildDefaultSummary(headline: MonthlyReportHeadline, monthKey: string): string {
-  return `En ${formatMonthName(monthKey)} estimamos ${Math.round(headline.demandScore)} ${movementUnits.total}, con una ocupación media del ${Math.round(
+  return `En ${formatMonthName(monthKey)} estimamos ${Math.round(headline.demandScore)} ${activityIndexUnits.total}, con una ocupación media del ${Math.round(
     headline.avgOccupancy * 100
   )}% y ${Math.round(headline.activeStations)} estaciones activas.`;
 }
@@ -128,7 +128,7 @@ function computeSeasonality(
   const direction = ratio >= 0 ? 'por encima' : 'por debajo';
   const label =
     previousYearsAvg !== null
-      ? `En ${formatMonthName(monthKey)} de años anteriores el movimiento medio fue ${Math.round(
+      ? `En ${formatMonthName(monthKey)} de años anteriores el índice de actividad medio fue ${Math.round(
           previousYearsAvg
         )} puntos; este mes está un ${formatRatioMagnitude(ratio)} ${direction}.`
       : `Este mes está un ${formatRatioMagnitude(ratio)} ${direction} de la media de la serie.`;

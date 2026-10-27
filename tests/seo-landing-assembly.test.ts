@@ -181,8 +181,8 @@ describe('SEO landing content assembly', () => {
 
     expect(calls).toEqual(['stations', 'rankings:turnover:12']);
     expect(data.content.sectionItems[0]?.title).toBe('1. Dos');
-    expect(data.content.sectionItems[0]?.detail).toContain('42 movimientos');
-    expect(data.content.stats[1]?.value).toBe('42 movimientos aprox.');
+    expect(data.content.sectionItems[0]?.detail).toContain('42 puntos de actividad');
+    expect(data.content.stats[1]?.value).toBe('42 puntos de actividad');
   });
 
   it('falls back to the stations snapshot when the rankings fixture is empty', async () => {

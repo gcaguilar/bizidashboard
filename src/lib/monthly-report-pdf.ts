@@ -75,7 +75,7 @@ const HEADER_LABELS: Record<string, string> = {
   dia: 'Día',
   hora: 'Hora',
   muestras: 'Muestras',
-  movimiento_estimado: 'Movimiento estimado',
+  movimiento_estimado: 'Índice de actividad',
   ocupacion_media: 'Ocupación media',
   estaciones_activas: 'Estaciones activas',
   bicis_disponibles_media: 'Bicis disponibles (media)',
@@ -216,7 +216,7 @@ export function buildMonthlyReportPdf(report: MonthlyReport): ArrayBuffer {
     margin: { left: PAGE_MARGIN, right: PAGE_MARGIN },
     head: [['Métrica', 'Valor']],
     body: [
-      ['Movimiento estimado', toCell(headline.demandScore)],
+      ['Índice de actividad', toCell(headline.demandScore)],
       [
         'Variación frente al mes anterior',
         headline.demandDeltaRatio === null

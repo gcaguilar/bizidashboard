@@ -137,7 +137,7 @@ function ComoFuncionaPage() {
           <div>
             <h3 className="text-sm font-black text-[var(--foreground)]">Estimaciones</h3>
             <ul className="mt-2 space-y-2 text-sm text-[var(--muted)]">
-              <li>· Movimiento estimado: índice de actividad, no viajes oficiales.</li>
+              <li>· Índice de actividad: sirve para comparar, no viajes oficiales.</li>
               <li>· Predicciones a +30/+60 minutos: orientativas, no garantías.</li>
               <li>· Redistribución sugerida: recomendación analítica, no orden operativa.</li>
             </ul>

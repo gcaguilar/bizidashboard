@@ -64,12 +64,12 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: '¿Los datos de viajes son oficiales?',
     answer:
-      'No. El «movimiento estimado» es un índice de actividad que sirve para comparar estaciones, barrios y meses. No equivale al número oficial de viajes cerrados ni a un contador de trayectos individuales.',
+      'No. El «índice de actividad» sirve para comparar estaciones, barrios y meses. No equivale al número oficial de viajes cerrados ni a un contador de trayectos individuales.',
     href: appRoutes.methodology(),
     linkLabel: 'Cómo se calcula',
   },
   {
-    question: '¿Qué es el movimiento estimado?',
+    question: '¿Qué es el índice de actividad?',
     answer:
       'Es una puntuación relativa que resume cuánta actividad detectamos en una estación o zona. Cuanto mayor es, más movimiento. Sirve para comparar, no para afirmar cuántos viajes se hicieron.',
     href: appRoutes.statsViajes(),

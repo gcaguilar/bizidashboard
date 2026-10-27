@@ -25,7 +25,7 @@ describe('monthly report export', () => {
     const summary = getReportExportSection(report, 'resumen');
 
     expect(summary.headers).toEqual(['metrica', 'valor']);
-    expect(summary.rows).toContainEqual(['Movimiento estimado', 5200]);
+    expect(summary.rows).toContainEqual(['Índice de actividad', 5200]);
     expect(summary.rows).toContainEqual(['Días cubiertos', 30]);
     expect(summary.rows).toContainEqual(['Hora punta', 9]);
   });

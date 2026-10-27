@@ -1,5 +1,5 @@
-import { MovementHint } from '@/app/_components/MovementHint';
-import { movementUnits } from '@/lib/product-copy';
+import { ActivityIndexHint } from '@/app/_components/ActivityIndexHint';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
@@ -136,14 +136,14 @@ function DistrictPage() {
         <article className="ui-section-card"><p className="stat-label">Estaciones</p><p className="stat-value">{district.stationCount}</p></article>
         <article className="ui-section-card"><p className="stat-label">Bicis disponibles</p><p className="stat-value">{district.bikesAvailable}</p></article>
         <article className="ui-section-card"><p className="stat-label">Huecos libres</p><p className="stat-value">{district.anchorsFree}</p></article>
-        <article className="ui-section-card"><p className="stat-label">Movimiento medio <MovementHint /></p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p><p className="text-xs text-[var(--muted)]">{movementUnits.perDay}</p></article>
+        <article className="ui-section-card"><p className="stat-label">Índice de actividad medio <ActivityIndexHint /></p><p className="stat-value">{formatDecimal(district.avgTurnover)}</p><p className="text-xs text-[var(--muted)]">{activityIndexUnits.perDay}</p></article>
       </section>
       <section className="grid gap-4 lg:grid-cols-3">
         <article className="ui-section-card lg:col-span-2">
           <h2 className="text-xl font-black text-[var(--foreground)]">Resumen del barrio</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--muted)]">
             <p>{district.name} reúne {district.stationCount} estaciones Bizi con {district.bikesAvailable} bicis y {district.anchorsFree} huecos libres en este momento.</p>
-            <p>Su movimiento medio es {formatDecimal(district.avgTurnover)}, frente a {formatDecimal(cityAverageTurnover)} en los barrios con datos. El riesgo medio de quedarte sin bicis o huecos es {formatDecimal(district.avgAvailabilityRisk)}, frente a {formatDecimal(cityAverageAvailabilityRisk)} en la ciudad.</p>
+            <p>Su índice de actividad medio es {formatDecimal(district.avgTurnover)}, frente a {formatDecimal(cityAverageTurnover)} en los barrios con datos. El riesgo medio de quedarte sin bicis o huecos es {formatDecimal(district.avgAvailabilityRisk)}, frente a {formatDecimal(cityAverageAvailabilityRisk)} en la ciudad.</p>
           </div>
         </article>
         <article className="ui-section-card">

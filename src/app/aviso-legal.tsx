@@ -79,7 +79,7 @@ function AvisoLegalPage() {
         <h2 className="text-xl font-black text-[var(--foreground)]">Exactitud y disponibilidad</h2>
         <p>
           Los datos se actualizan cada pocos minutos, pero pueden contener retrasos, huecos o errores
-          de la fuente. Las predicciones y el movimiento estimado son aproximaciones, no garantías.
+          de la fuente. Las predicciones y el índice de actividad son aproximaciones, no garantías.
           No uses esta web como única fuente para decisiones críticas de desplazamiento, operación o
           seguridad.
         </p>

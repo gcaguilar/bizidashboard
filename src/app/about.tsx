@@ -129,7 +129,7 @@ function About() {
           {getSiteUrl()}
         </p>
         <p className="mt-3 text-sm text-[var(--muted)]">
-          Indica que el movimiento estimado no equivale al número oficial de viajes. En la página de{' '}
+          Indica que el índice de actividad no equivale al número oficial de viajes. En la página de{' '}
           <TrackedLink href={appRoutes.prensa()} className="text-[var(--primary)] underline underline-offset-2">prensa</TrackedLink>{' '}
           tienes las cifras clave y el contacto.
         </p>

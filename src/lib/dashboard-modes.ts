@@ -37,11 +37,11 @@ export const DASHBOARD_MODE_META: Record<
   research: {
     label: 'Análisis',
     shortLabel: 'Análisis',
-    description: 'Patrones y movimiento estimado',
+    description: 'Patrones y índice de actividad',
     introEyebrow: 'Modo análisis',
     introTitle: 'Entender patrones y comportamiento',
     introDescription:
-      'Para descubrir tendencias, estabilidad y movimiento estimado entre zonas con el contexto necesario.',
+      'Para descubrir tendencias, estabilidad y índice de actividad entre zonas con el contexto necesario.',
     introTone: 'from-[var(--primary)]/14 via-transparent to-transparent border-[var(--primary)]/25',
   },
   data: {

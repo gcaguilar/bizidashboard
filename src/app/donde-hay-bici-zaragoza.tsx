@@ -105,7 +105,7 @@ function DondeHayBiciPage() {
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
             <h3 className="text-sm font-black text-[var(--foreground)]">2. Directorio</h3>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Ordena por bicis, huecos o movimiento estimado. Útil si quieres comparar varias
+              Ordena por bicis, huecos o índice de actividad. Útil si quieres comparar varias
               estaciones antes de salir.
             </p>
           </div>

@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import type { MonthlyReport } from '@/lib/monthly-report';
 
 type ReportConclusionsProps = {
@@ -10,9 +10,9 @@ export function ReportConclusions({ report }: ReportConclusionsProps) {
 
   const weekPattern =
     weekdayWeekendProfile.dominantPeriod === 'weekday'
-      ? `Entre semana hay más actividad media por día (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${movementUnits.perDay}) que en fin de semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${movementUnits.perDay}).`
+      ? `Entre semana hay más actividad media por día (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}) que en fin de semana (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}).`
       : weekdayWeekendProfile.dominantPeriod === 'weekend'
-        ? `En fin de semana hay más actividad media por día (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${movementUnits.perDay}) que entre semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${movementUnits.perDay}).`
+        ? `En fin de semana hay más actividad media por día (${weekdayWeekendProfile.weekend.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}) que entre semana (${weekdayWeekendProfile.weekday.avgDemand.toFixed(1)} ${activityIndexUnits.perDay}).`
         : null;
 
   // Primero las conclusiones concretas del mes (franja, barrio, día atípico),

@@ -52,7 +52,7 @@ describe('public UX regressions', () => {
   it('monthly report page renders real metrics when a month has data', () => {
     const source = readSource('src/app/informes.$month.tsx');
     expect(source).toContain('monthRow ?');
-    expect(source).toContain('Movimiento estimado');
+    expect(source).toContain('Índice de actividad');
     expect(source).toContain('Ver la serie mensual');
   });
 

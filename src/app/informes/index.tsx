@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { createFileRoute } from '@tanstack/react-router';
 import { buildSeoHead } from '@/lib/seo-head'
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
@@ -89,7 +89,7 @@ function ReportsIndexPage() {
               Informes mensuales de Bizi Zaragoza
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)] md:text-base">
-              Consulta cómo cambió la red cada mes: movimiento estimado, ocupación, estaciones activas y acceso al análisis de cada periodo.
+              Consulta cómo cambió la red cada mes: índice de actividad, ocupación, estaciones activas y acceso al análisis de cada periodo.
             </p>
           </div>
         </div>
@@ -208,7 +208,7 @@ function ReportsIndexPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)]">Informe {formatMonthLabel(month)}</p>
                   <p className="text-[11px] text-[var(--muted)]">
                     {row
-                      ? `${formatInteger(row.demandScore)} ${movementUnits.total} · ocupación ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
+                      ? `${formatInteger(row.demandScore)} ${activityIndexUnits.total} · ocupación ${formatPercent(row.avgOccupancy)} · ${row.activeStations} estaciones`
                       : 'Informe disponible para consultar ese mes en detalle.'}
                   </p>
                   {month === latestMonth && latestPeriodCoverage ? (

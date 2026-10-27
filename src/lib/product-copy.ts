@@ -26,17 +26,20 @@ export const productTerms = {
 } as const;
 
 /**
- * Unidad del "movimiento estimado". Es una estimación a partir de los cambios
- * netos de bicis por estación, nunca viajes observados. Todo texto que muestre
- * la cifra debe usar estas unidades para no mezclar vocabularios.
+ * Unidad del "índice de actividad". Se calcula sumando, por estación y
+ * franja, la variación de bicis y de huecos entre el mínimo y el máximo
+ * observados. No cuenta viajes ni movimientos reales: una misma variación puede
+ * contarse dos veces (bicis y huecos) y los vaivenes dentro de una franja no se
+ * ven. Todo texto que muestre la cifra debe usar estas unidades.
  */
-export const movementUnits = {
-  total: 'movimientos aprox.',
-  perDay: 'movimientos/día aprox.',
-  perMonth: 'movimientos/mes aprox.',
-  tooltipLabel: 'Qué es un movimiento aproximado',
+export const activityIndexUnits = {
+  label: 'Índice de actividad',
+  total: 'puntos de actividad',
+  perDay: 'puntos de actividad/día',
+  perMonth: 'puntos de actividad/mes',
+  tooltipLabel: 'Qué es el índice de actividad',
   tooltip:
-    'Estimación a partir de los cambios netos de bicis en cada estación entre muestras. No son viajes observados ni el número oficial de trayectos; sirve para comparar actividad.',
+    'Índice para comparar actividad entre estaciones, zonas o periodos: suma las variaciones de bicis y huecos de cada estación entre el mínimo y el máximo de cada franja. No es un recuento de viajes ni de movimientos reales, y no equivale al número oficial de trayectos.',
 } as const;
 
 export type NetworkBalanceSummary = {

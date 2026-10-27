@@ -1,4 +1,4 @@
-import { movementUnits } from '@/lib/product-copy';
+import { activityIndexUnits } from '@/lib/product-copy';
 import { formatInteger, formatPercent } from '@/lib/format';
 import type { DistrictMonthSummary, MonthlyReport } from '@/lib/monthly-report';
 
@@ -59,11 +59,11 @@ export function ReportDistricts({ report }: ReportDistrictsProps) {
     <section className="grid gap-4 xl:grid-cols-3">
       <article className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Barrios más dinámicos</h2>
-        <p className="mt-1 text-sm text-[var(--muted)]">Dónde se concentró más movimiento estimado este mes.</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">Dónde se concentró más índice de actividad este mes.</p>
         <DistrictList
           districts={mostActive}
           metric={(district) => district.demandScore}
-          metricLabel={(district) => `${formatInteger(district.demandScore)} ${movementUnits.total}`}
+          metricLabel={(district) => `${formatInteger(district.demandScore)} ${activityIndexUnits.total}`}
           tone="primary"
         />
       </article>
@@ -74,7 +74,7 @@ export function ReportDistricts({ report }: ReportDistrictsProps) {
         <DistrictList
           districts={leastActive}
           metric={(district) => district.demandScore}
-          metricLabel={(district) => `${formatInteger(district.demandScore)} ${movementUnits.total}`}
+          metricLabel={(district) => `${formatInteger(district.demandScore)} ${activityIndexUnits.total}`}
           tone="muted"
         />
       </article>

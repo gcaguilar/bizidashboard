@@ -172,7 +172,7 @@ function MethodologyPage() {
           <p className="stat-label">Actividad y movilidad</p>
           <h2 className="mt-2 text-lg font-black text-[var(--foreground)]">Medidas para comparar</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            El movimiento estimado es un índice para comparar actividad entre estaciones o zonas. No equivale al número oficial de viajes.
+            El índice de actividad sirve para comparar actividad entre estaciones o zonas. No equivale al número oficial de viajes.
           </p>
         </article>
         <article className="ui-section-card">

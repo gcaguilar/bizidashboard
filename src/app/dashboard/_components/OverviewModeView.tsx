@@ -176,7 +176,7 @@ export function OverviewModeView({
         <article className="ui-section-card">
           <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--foreground)]">Análisis</h3>
           <p className="text-sm text-[var(--muted)]">
-            Descubre qué zonas muestran más movimiento estimado y cómo cambian los patrones entre barrios.
+            Descubre qué zonas muestran más índice de actividad y cómo cambian los patrones entre barrios.
           </p>
           <Button asChild variant="cta" size="sm" className="mt-auto">
             <TrackedLink href={appRoutes.dashboardFlow()}>Ver análisis de flujos</TrackedLink>
