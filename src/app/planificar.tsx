@@ -9,6 +9,7 @@ import { StationStatusLabel } from '@/components/ui/station-status';
 import { createRootBreadcrumbs } from '@/lib/breadcrumbs';
 import { getCitizenStatus } from '@/lib/map-colors';
 import type { StationPredictionsResponse } from '@/lib/predictions';
+import { fetchStations } from '@/lib/fetch-stations';
 import { appRoutes } from '@/lib/routes';
 import { buildSeoHead } from '@/lib/seo-head';
 import {
@@ -173,10 +174,7 @@ function PlannerPage() {
         setError(`No hemos encontrado ${!origin ? 'el origen' : 'el destino'}. Prueba con una calle y número o un lugar conocido.`);
         return;
       }
-      const res = await fetch(appRoutes.api.stations());
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const stations: StationSnapshot[] = Array.isArray(data?.stations) ? data.stations : [];
+      const stations = await fetchStations();
       const plan = planTrip(stations, origin, destination);
 
       const predictions: PredictionMap = {};

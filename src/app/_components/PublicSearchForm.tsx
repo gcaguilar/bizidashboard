@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { fetchStations } from '@/lib/fetch-stations';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
@@ -104,13 +105,9 @@ export function PublicSearchForm({
     }
 
     const controller = new AbortController();
-    fetch(appRoutes.api.stations(), { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.stations) setFetchedStations(data.stations);
+    fetchStations({ signal: controller.signal })
+      .then((fetched) => {
+        if (fetched.length > 0) setFetchedStations(fetched);
       })
       .catch(() => {})
     return () => controller.abort();

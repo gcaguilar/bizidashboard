@@ -3,6 +3,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { findNearestStation, type NearestCandidateStation, type NearestCriterion } from '@/lib/nearest-station';
+import { fetchStations } from '@/lib/fetch-stations';
 import { appRoutes } from '@/lib/routes';
 
 type NearbyState = 'idle' | 'locating' | 'denied' | 'unsupported' | 'empty' | 'error';
@@ -31,11 +32,8 @@ const MODE_COPY: Record<
   },
 };
 
-async function fetchCandidateStations(): Promise<NearestCandidateStation[]> {
-  const res = await fetch(appRoutes.api.stations());
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return Array.isArray(data?.stations) ? data.stations : [];
+function fetchCandidateStations(): Promise<NearestCandidateStation[]> {
+  return fetchStations();
 }
 
 export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) {

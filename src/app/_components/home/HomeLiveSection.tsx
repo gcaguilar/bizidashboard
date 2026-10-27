@@ -12,6 +12,7 @@ import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis';
 import { Button } from '@/components/ui/button';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger } from '@/lib/format';
+import { fetchStationsSnapshot } from '@/lib/fetch-stations';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import {
@@ -88,18 +89,11 @@ export function HomeLiveSection({
       controller?.abort();
       const current = new AbortController();
       controller = current;
-      fetch(appRoutes.api.stations(), { signal: current.signal })
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((data) => {
-          if (!Array.isArray(data?.stations)) return;
-          setFetchedStations(data.stations);
-          setRefreshedAt(
-            typeof data.generatedAt === 'string' ? data.generatedAt : new Date().toISOString(),
-          );
-          pruneStoredFavorites((data.stations as StationSnapshot[]).map((s) => s.id));
+      fetchStationsSnapshot({ signal: current.signal })
+        .then(({ stations: fetched, generatedAt }) => {
+          setFetchedStations(fetched);
+          setRefreshedAt(generatedAt ?? new Date().toISOString());
+          pruneStoredFavorites(fetched.map((s) => s.id));
         })
         .catch(() => {});
     };
