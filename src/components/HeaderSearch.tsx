@@ -11,6 +11,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
 import { searchHeaderContent, type HeaderSearchResult } from '@/server-functions/global-search';
 
@@ -25,6 +26,7 @@ const ALL_RESULTS_VALUE = '__all_results__';
  */
 export function HeaderSearch() {
   const navigate = useNavigate();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [fetched, setFetched] = useState<{ query: string; results: HeaderSearchResult[] }>({
@@ -109,11 +111,11 @@ export function HeaderSearch() {
       }}
     >
       <PopoverTrigger
-        aria-label="Buscar en DatosBizi"
+        aria-label={t('search.open')}
         className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-[var(--muted)] outline-none transition hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40"
       >
         <span aria-hidden="true">🔍</span>
-        <span className="hidden lg:inline">Buscar</span>
+        <span className="hidden lg:inline">{t('search.trigger')}</span>
       </PopoverTrigger>
       <PopoverContent className="w-[min(100vw-1.5rem,26rem)]">
         <Command
@@ -124,15 +126,15 @@ export function HeaderSearch() {
           onInputValueChange={(next) => setQuery(next)}
           itemToStringLabel={(next) => resultsByHref.get(String(next))?.title ?? String(next)}
         >
-          <CommandInput placeholder="Estación, barrio, informe o página…" autoFocus />
+          <CommandInput placeholder={t('search.placeholder')} autoFocus />
           <CommandList className="mt-2 max-h-80">
             {!active ? (
               <p className="px-3 py-3 text-sm text-[var(--muted)]">
-                Escribe al menos {MIN_QUERY_LENGTH} letras para buscar.
+                {t('search.minChars', { count: MIN_QUERY_LENGTH })}
               </p>
             ) : null}
             {loading ? (
-              <p className="px-3 py-3 text-sm text-[var(--muted)]">Buscando…</p>
+              <p className="px-3 py-3 text-sm text-[var(--muted)]">{t('search.loading')}</p>
             ) : null}
             {groups.map(([groupId, group]) => (
               <CommandGroup key={groupId}>
@@ -147,12 +149,12 @@ export function HeaderSearch() {
               </CommandGroup>
             ))}
             {active && !loading && results.length === 0 ? (
-              <CommandEmpty>Sin coincidencias.</CommandEmpty>
+              <CommandEmpty>{t('search.empty')}</CommandEmpty>
             ) : null}
             {active ? (
               <CommandGroup>
                 <CommandItem value={ALL_RESULTS_VALUE}>
-                  <span className="text-[var(--primary)]">Ver todos los resultados</span>
+                  <span className="text-[var(--primary)]">{t('search.viewAll')}</span>
                 </CommandItem>
               </CommandGroup>
             ) : null}
