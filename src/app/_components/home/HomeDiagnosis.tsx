@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { TrackedLink } from '@/app/_components/TrackedLink';
+import { StationFavoriteButton } from '@/components/StationFavoriteButton';
 import type { StationSnapshot } from '@/lib/api-types';
 import { formatInteger, formatPercent } from '@/lib/format';
 import {
@@ -73,15 +74,15 @@ function DiagnosisStationList({
               : null;
 
         return (
+          <div key={summary.station.id} className="relative">
           <TrackedLink
-            key={summary.station.id}
             href={appRoutes.stationDetail(summary.station.id)}
             entitySelectEvent={{
               source: tab === 'review' ? 'home_problem' : 'home_most_used',
               entityType: 'station',
               module: summary.station.id,
             }}
-            className="ui-surface-block ui-surface-block-interactive"
+            className="ui-surface-block ui-surface-block-interactive pr-14"
           >
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <p className="text-sm font-semibold text-[var(--foreground)]">
@@ -116,6 +117,14 @@ function DiagnosisStationList({
               )}
             </div>
           </TrackedLink>
+          <StationFavoriteButton
+            stationId={summary.station.id}
+            stationName={summary.station.name}
+            variant="icon"
+            source={tab === 'review' ? 'home_problem' : 'home_most_used'}
+            className="absolute right-3 top-3"
+          />
+          </div>
         );
       })}
     </div>

@@ -10,6 +10,10 @@ vi.mock('@/app/_components/TrackedLink', () => ({
   ),
 }));
 
+vi.mock('@/components/StationFavoriteButton', () => ({
+  StationFavoriteButton: () => <button type="button">star</button>,
+}));
+
 function availabilityRow(
   emptyHours: number | string,
   fullHours: number | string,

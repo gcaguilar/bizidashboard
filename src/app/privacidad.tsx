@@ -81,7 +81,7 @@ function PrivacidadPage() {
           </li>
           <li>
             <strong className="text-[var(--foreground)]">Preferencias locales.</strong> El tema claro
-            u oscuro y las estaciones favoritas se guardan en el almacenamiento local de tu
+            u oscuro y tus estaciones favoritas ("Mis estaciones", sin cuenta ni avisos) se guardan en el almacenamiento local de tu
             navegador; no se envían al servidor.
           </li>
         </ul>

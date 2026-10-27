@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
-import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
+import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import {
   buildSearchSubmitEvent,
   resolveRouteKeyFromPathname,

@@ -6,7 +6,8 @@ import type { StationSeoSummary } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
 import { formatPercent, formatInteger } from '@/lib/format';
 import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
-import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
+import { StationFavoriteButton } from '@/components/StationFavoriteButton';
+import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -185,17 +186,24 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredAndSorted.map((s) => {
             const badge = stationBadge(s);
-            const isFav = favoriteIds.includes(s.station.id);
 
             return (
               <div key={s.station.id} className="ui-surface-block ui-surface-block-interactive space-y-3 p-4">
-                <a
-                  href={appRoutes.stationDetail(s.station.id)}
-                  className="text-sm font-semibold leading-tight text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
-                >
-                  {isFav && <span className="text-[var(--warning)]" aria-label="Favorita">★ </span>}
-                  {s.station.name}
-                </a>
+                <div className="flex items-start justify-between gap-2">
+                  <a
+                    href={appRoutes.stationDetail(s.station.id)}
+                    className="text-sm font-semibold leading-tight text-[var(--foreground)] no-underline hover:text-[var(--primary)]"
+                  >
+                    {s.station.name}
+                  </a>
+                  <StationFavoriteButton
+                    stationId={s.station.id}
+                    stationName={s.station.name}
+                    variant="icon"
+                    source="stations_directory"
+                    className="shrink-0"
+                  />
+                </div>
 
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
                   <span>{formatInteger(s.station.bikesAvailable)} bicis</span>

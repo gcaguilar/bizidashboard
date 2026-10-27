@@ -2,7 +2,7 @@
 
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
+import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { CompareEntitySelect } from '@/app/comparar/_components/CompareEntitySelect';
 import { CompareMetricColumns } from '@/app/comparar/_components/CompareMetricColumns';

@@ -49,7 +49,7 @@ import {
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 import { EMPTY_MOBILITY_PREVIEW, mobilityQueryOptions } from './mobility-api';
 import { REFRESH_AFTER_LAST_DATA_MS, useDashboardLiveData } from './useDashboardLiveData';
-import { useFavoriteStations } from './useFavoriteStations';
+import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import { useGeolocationWatch } from './useGeolocationWatch';
 import { useStationTrends } from './useStationTrends';
 

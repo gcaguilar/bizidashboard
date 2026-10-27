@@ -9,7 +9,7 @@ import { appRoutes } from '@/lib/routes'
 import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
-import { StationFavoriteButton } from '@/app/estadisticas/estaciones/_components/StationFavoriteButton'
+import { StationFavoriteButton } from '@/components/StationFavoriteButton'
 import { StationPredictionCard } from '@/app/estadisticas/estaciones/_components/StationPredictionCard'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';

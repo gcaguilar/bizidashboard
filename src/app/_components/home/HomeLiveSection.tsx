@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { PublicSearchForm, type StationSuggestion } from '@/app/_components/PublicSearchForm';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { useFavoriteStations } from '@/app/dashboard/_components/useFavoriteStations';
+import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import { HomeDiagnosis, type HomeDiagnosisFilter } from '@/app/_components/home/HomeDiagnosis';
+import { HomeFavoriteStations } from '@/app/_components/home/HomeFavoriteStations';
 import { HomeMapSection } from '@/app/_components/home/HomeMapSection';
 import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis';
 import { Button } from '@/components/ui/button';
@@ -130,6 +131,8 @@ export function HomeLiveSection({
           hueco para devolverla.
         </p>
       </div>
+
+      <HomeFavoriteStations stations={stations} className="ui-section-card" />
 
       <PublicSearchForm
         stations={searchStations}
