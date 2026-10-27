@@ -2,8 +2,9 @@ import type { DataState } from '@/lib/data-state';
 import { clamp } from '@/lib/format';
 import { OCCUPANCY_THRESHOLDS } from '@/lib/network-health';
 import type { StationPredictionsResponse } from '@/lib/predictions';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
 import {
-  STATION_PREDICTION_COPY,
+  getStationPredictionCopy,
   formatPredictionAccuracy,
   formatPredictionSentence,
   type PredictionConfidenceLevel,
@@ -68,8 +69,11 @@ export function buildStationPredictionView(input: {
   predictions: StationPredictionsResponse | null | undefined;
   capacity: number;
   now?: Date;
+  locale?: Locale;
 }): StationPredictionView {
   const { predictions, capacity } = input;
+  const locale = input.locale ?? DEFAULT_LOCALE;
+  const copy = getStationPredictionCopy(locale);
   const base = input.now ?? new Date(predictions?.generatedAt ?? Date.now());
   const empty: StationPredictionView = {
     state: 'empty',
@@ -112,11 +116,11 @@ export function buildStationPredictionView(input: {
       low,
       high,
       confidence,
-      sentence: formatPredictionSentence({ timeLabel, bikes, low, high, confidence }),
+      sentence: formatPredictionSentence({ timeLabel, bikes, low, high, confidence }, locale),
       accuracy:
         percent === null
           ? null
-          : { percent, text: formatPredictionAccuracy({ horizonMinutes: point.horizonMinutes, percent }) },
+          : { percent, text: formatPredictionAccuracy({ horizonMinutes: point.horizonMinutes, percent }, locale) },
     });
   }
 
@@ -125,10 +129,10 @@ export function buildStationPredictionView(input: {
   const occupancy = rows[0].bikes / capacity;
   const advice =
     occupancy > OCCUPANCY_THRESHOLDS.nearlyFull
-      ? STATION_PREDICTION_COPY.adviceFillsSoon
+      ? copy.adviceFillsSoon
       : occupancy < OCCUPANCY_THRESHOLDS.nearlyEmpty
-        ? STATION_PREDICTION_COPY.adviceEmptiesSoon
-        : STATION_PREDICTION_COPY.adviceStable;
+        ? copy.adviceEmptiesSoon
+        : copy.adviceStable;
 
   return {
     state: rows.some((row) => row.confidence === 'baja') ? 'partial' : 'ok',

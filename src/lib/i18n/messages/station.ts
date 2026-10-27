@@ -2,8 +2,9 @@ import { defineArea } from './define';
 
 /**
  * Station sheet page body and head (`src/app/estadisticas/estaciones/$stationId.tsx`).
- * Children with their own copy (status badge, prediction card, favorite button,
- * share link) are not translated yet and keep Spanish.
+ * Also holds the copy of the sheet children: prediction card, district
+ * comparison, best time, citizen status labels, favorite/share buttons and the
+ * generic data-state notice.
  */
 export const stationMessages = defineArea({
   es: {
@@ -73,6 +74,108 @@ export const stationMessages = defineArea({
     'station.related.title': 'Alternativas cercanas',
     'station.related.intro': 'Si esta estación no te sirve, estas son opciones cercanas:',
     'station.related.availability': '{bikes} bicis · {anchors} huecos',
+    'station.prediction.heading': 'Qué podría pasar después',
+    'station.prediction.badge': 'Estimación',
+    'station.prediction.subject': 'la predicción de esta estación',
+    'station.prediction.disclaimer':
+      'Estimación basada en el comportamiento histórico de esta estación a esa hora. No es un dato observado ni una garantía.',
+    'station.prediction.insufficientTitle': 'Aún no hay histórico suficiente para estimar',
+    'station.prediction.insufficientDescription':
+      'Esta estación no tiene todavía suficientes observaciones para esa franja horaria, así que no mostramos una cifra.',
+    'station.prediction.lowConfidenceTitle': 'Estimación poco fiable',
+    'station.prediction.lowConfidenceDescription':
+      'Hay pocas observaciones históricas de esta franja; tómalo solo como orientación.',
+    'station.prediction.accuracyUnmeasuredTitle': 'Precisión aún no medida',
+    'station.prediction.accuracyUnmeasuredDescription':
+      'Todavía no hay histórico suficiente para comprobar cuánto acierta esta predicción en esta estación.',
+    'station.prediction.adviceFillsSoon':
+      'Puede llenarse pronto. Busca una alternativa si necesitas dejar bici.',
+    'station.prediction.adviceEmptiesSoon':
+      'Puede quedarse vacía pronto. Busca una alternativa si necesitas coger bici.',
+    'station.prediction.adviceStable': 'Se espera que siga disponible la próxima hora.',
+    'station.prediction.confidence.baja': 'confianza baja',
+    'station.prediction.confidence.media': 'confianza media',
+    'station.prediction.confidence.alta': 'confianza alta',
+    'station.prediction.noun.one': 'bici',
+    'station.prediction.noun.other': 'bicis',
+    'station.prediction.range': ' (entre {low} y {high})',
+    'station.prediction.sentence':
+      'A las {time} habrá probablemente {bikes} {noun}{range}, {confidence}.',
+    'station.prediction.accuracy':
+      'A {minutes} min acierta ±1 bici el {percent} % de las veces (medido en su histórico reciente).',
+    'station.insights.district.heading': 'Frente a tu barrio',
+    'station.insights.district.subject': 'la comparación con el barrio',
+    'station.insights.district.emptyTitle': 'Sin comparación con el barrio',
+    'station.insights.district.emptyDescription':
+      'No hay estaciones suficientes con histórico en este barrio para comparar. Lo mostraremos cuando haya datos.',
+    'station.insights.district.note':
+      'Medias de las demás estaciones del barrio sobre la ventana de histórico disponible. Es una comparación orientativa.',
+    'station.insights.district.metric.occupancy': 'Ocupación ahora',
+    'station.insights.district.metric.emptyShare': 'Tiempo sin bicis',
+    'station.insights.district.metric.fullShare': 'Tiempo sin huecos',
+    'station.insights.district.metric.movement': 'Índice de actividad ({units})',
+    'station.insights.district.verdict.above': 'Por encima',
+    'station.insights.district.verdict.similar': 'Similar',
+    'station.insights.district.verdict.below': 'Por debajo',
+    'station.insights.district.peers.one': 'Media de {count} estación de {district}',
+    'station.insights.district.peers.other': 'Media de {count} estaciones de {district}',
+    'station.insights.district.thisStation': 'Esta estación:',
+    'station.insights.district.district': 'Barrio:',
+    'station.insights.bestTime.heading': 'Mejor hora para ir',
+    'station.insights.bestTime.subject': 'las mejores horas para ir',
+    'station.insights.bestTime.emptyTitle': 'Aún no hay horas recomendables',
+    'station.insights.bestTime.emptyDescription':
+      'El histórico por hora de esta estación todavía no es suficiente para sugerir franjas. Lo mostraremos cuando haya más datos.',
+    'station.insights.bestTime.note':
+      'Estimación a partir de medias históricas por hora; el día concreto puede ser distinto. Comprueba el estado actual antes de salir.',
+    'station.insights.bestTime.noBikes': 'Suele estar sin bicis',
+    'station.insights.bestTime.noAnchors': 'Suele estar sin huecos',
+    'station.insights.bestTime.better': 'Suele haber bicis y huecos',
+    'station.insights.bestTime.noIssues': 'Sin franjas problemáticas en el histórico',
+    'station.insights.bestTime.noBetter': 'Sin franjas claramente mejores en el histórico',
+    'status.citizen.balanced.label': 'Equilibrio',
+    'status.citizen.balanced.description': '3 o más bicis y 3 o más huecos',
+    'status.citizen.low.label': 'Poca disponibilidad',
+    'status.citizen.low.description': 'menos de 3 bicis o menos de 3 huecos',
+    'status.citizen.depleted.label': 'Agotada',
+    'status.citizen.depleted.description': 'sin bicis o sin huecos',
+    'status.citizen.noData.label': 'Sin datos',
+    'status.citizen.noData.description': 'estación sin capacidad declarada',
+    'favorite.add': 'Guardar en mis estaciones',
+    'favorite.remove': 'Quitar de mis estaciones',
+    'favorite.labeledOn': '★ Favorita',
+    'favorite.labeledOff': '☆ Marcar favorita',
+    'share.button': 'Compartir',
+    'share.whatsapp': 'Compartir por WhatsApp',
+    'share.copyLink': 'Copiar enlace',
+    'share.copied': 'Enlace copiado',
+    'dataState.defaultSubject': 'los datos',
+    'dataState.viewDetail': 'Ver detalle',
+    'dataState.loading.label': 'Cargando',
+    'dataState.loading.title': 'Estamos cargando los datos',
+    'dataState.loading.description': 'Estamos preparando {subject}.',
+    'dataState.empty.label': 'Sin datos',
+    'dataState.empty.title': 'No hay datos para mostrar',
+    'dataState.empty.description': 'No hay datos disponibles para {subject} ahora mismo.',
+    'dataState.no_coverage.label': 'Sin cobertura',
+    'dataState.no_coverage.title': 'Aún no hay cobertura suficiente',
+    'dataState.no_coverage.description':
+      'Todavía no hay histórico suficiente para mostrar {subject} con confianza.',
+    'dataState.partial.label': 'Datos parciales',
+    'dataState.partial.title': 'La cobertura es parcial',
+    'dataState.partial.description':
+      'Hay datos para {subject}, pero la ventana disponible todavía no esta completa.',
+    'dataState.stale.label': 'Datos antiguos',
+    'dataState.stale.title': 'Los datos no estan frescos',
+    'dataState.stale.description':
+      'Los datos disponibles para {subject} pueden estar desactualizados. Revisa la hora de la última muestra antes de usarlos.',
+    'dataState.error.label': 'Error',
+    'dataState.error.title': 'No hemos podido cargar los datos',
+    'dataState.error.description':
+      'No se han podido cargar {subject} ahora mismo. Intentalo de nuevo o revisa el estado del sistema.',
+    'dataState.ok.label': 'Listo',
+    'dataState.ok.title': 'Datos listos para consultar',
+    'dataState.ok.description': '{subject} estan disponibles y son consistentes.',
   },
   en: {
     'station.seo.title': '{name} | Bizi Zaragoza station | DatosBizi',
@@ -139,5 +242,107 @@ export const stationMessages = defineArea({
     'station.related.title': 'Nearby alternatives',
     'station.related.intro': 'If this station does not work for you, here are some nearby options:',
     'station.related.availability': '{bikes} bikes · {anchors} docks',
+    'station.prediction.heading': 'What could happen next',
+    'station.prediction.badge': 'Estimate',
+    'station.prediction.subject': 'the prediction for this station',
+    'station.prediction.disclaimer':
+      "Estimate based on this station's historical behaviour at that time of day. It is not observed data nor a guarantee.",
+    'station.prediction.insufficientTitle': 'Not enough history yet to estimate',
+    'station.prediction.insufficientDescription':
+      'This station does not have enough observations for that time slot yet, so we do not show a figure.',
+    'station.prediction.lowConfidenceTitle': 'Low-reliability estimate',
+    'station.prediction.lowConfidenceDescription':
+      'There are few historical observations for this time slot; take it as guidance only.',
+    'station.prediction.accuracyUnmeasuredTitle': 'Accuracy not measured yet',
+    'station.prediction.accuracyUnmeasuredDescription':
+      'There is not enough history yet to check how accurate this prediction is for this station.',
+    'station.prediction.adviceFillsSoon':
+      'It may fill up soon. Look for an alternative if you need to return a bike.',
+    'station.prediction.adviceEmptiesSoon':
+      'It may run out of bikes soon. Look for an alternative if you need to pick one up.',
+    'station.prediction.adviceStable': 'It is expected to stay available over the next hour.',
+    'station.prediction.confidence.baja': 'low confidence',
+    'station.prediction.confidence.media': 'medium confidence',
+    'station.prediction.confidence.alta': 'high confidence',
+    'station.prediction.noun.one': 'bike',
+    'station.prediction.noun.other': 'bikes',
+    'station.prediction.range': ' (between {low} and {high})',
+    'station.prediction.sentence':
+      'At {time} there will probably be {bikes} {noun}{range}, {confidence}.',
+    'station.prediction.accuracy':
+      'At {minutes} min it is within ±1 bike {percent}% of the time (measured on its recent history).',
+    'station.insights.district.heading': 'Compared with your district',
+    'station.insights.district.subject': 'the comparison with the district',
+    'station.insights.district.emptyTitle': 'No district comparison',
+    'station.insights.district.emptyDescription':
+      'There are not enough stations with history in this district to compare. We will show it once there is data.',
+    'station.insights.district.note':
+      'Averages of the other stations in the district over the available history window. It is an indicative comparison.',
+    'station.insights.district.metric.occupancy': 'Occupancy now',
+    'station.insights.district.metric.emptyShare': 'Time without bikes',
+    'station.insights.district.metric.fullShare': 'Time without free docks',
+    'station.insights.district.metric.movement': 'Activity index ({units})',
+    'station.insights.district.verdict.above': 'Above',
+    'station.insights.district.verdict.similar': 'Similar',
+    'station.insights.district.verdict.below': 'Below',
+    'station.insights.district.peers.one': 'Average of {count} station in {district}',
+    'station.insights.district.peers.other': 'Average of {count} stations in {district}',
+    'station.insights.district.thisStation': 'This station:',
+    'station.insights.district.district': 'District:',
+    'station.insights.bestTime.heading': 'Best time to go',
+    'station.insights.bestTime.subject': 'the best times to go',
+    'station.insights.bestTime.emptyTitle': 'No recommended times yet',
+    'station.insights.bestTime.emptyDescription':
+      "This station's hourly history is not yet enough to suggest time windows. We will show them once there is more data.",
+    'station.insights.bestTime.note':
+      'Estimate based on historical hourly averages; the actual day may differ. Check the current status before you leave.',
+    'station.insights.bestTime.noBikes': 'Usually without bikes',
+    'station.insights.bestTime.noAnchors': 'Usually without free docks',
+    'station.insights.bestTime.better': 'Usually has bikes and free docks',
+    'station.insights.bestTime.noIssues': 'No problematic windows in the history',
+    'station.insights.bestTime.noBetter': 'No clearly better windows in the history',
+    'status.citizen.balanced.label': 'Balanced',
+    'status.citizen.balanced.description': '3 or more bikes and 3 or more free docks',
+    'status.citizen.low.label': 'Low availability',
+    'status.citizen.low.description': 'fewer than 3 bikes or fewer than 3 free docks',
+    'status.citizen.depleted.label': 'Depleted',
+    'status.citizen.depleted.description': 'no bikes or no free docks',
+    'status.citizen.noData.label': 'No data',
+    'status.citizen.noData.description': 'station without declared capacity',
+    'favorite.add': 'Save to my stations',
+    'favorite.remove': 'Remove from my stations',
+    'favorite.labeledOn': '★ Favourite',
+    'favorite.labeledOff': '☆ Mark as favourite',
+    'share.button': 'Share',
+    'share.whatsapp': 'Share on WhatsApp',
+    'share.copyLink': 'Copy link',
+    'share.copied': 'Link copied',
+    'dataState.defaultSubject': 'the data',
+    'dataState.viewDetail': 'View details',
+    'dataState.loading.label': 'Loading',
+    'dataState.loading.title': 'We are loading the data',
+    'dataState.loading.description': 'We are preparing {subject}.',
+    'dataState.empty.label': 'No data',
+    'dataState.empty.title': 'There is no data to show',
+    'dataState.empty.description': 'There is no data available for {subject} right now.',
+    'dataState.no_coverage.label': 'No coverage',
+    'dataState.no_coverage.title': 'There is not enough coverage yet',
+    'dataState.no_coverage.description':
+      'There is not enough history yet to show {subject} with confidence.',
+    'dataState.partial.label': 'Partial data',
+    'dataState.partial.title': 'Coverage is partial',
+    'dataState.partial.description':
+      'There is data for {subject}, but the available window is not complete yet.',
+    'dataState.stale.label': 'Outdated data',
+    'dataState.stale.title': 'The data is not fresh',
+    'dataState.stale.description':
+      'The data available for {subject} may be out of date. Check the time of the latest sample before using it.',
+    'dataState.error.label': 'Error',
+    'dataState.error.title': 'We could not load the data',
+    'dataState.error.description':
+      'Could not load {subject} right now. Try again or check the system status.',
+    'dataState.ok.label': 'Ready',
+    'dataState.ok.title': 'Data ready to explore',
+    'dataState.ok.description': '{subject} is available and consistent.',
   },
 });

@@ -1,6 +1,7 @@
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import type { StationPredictionsResponse } from '@/lib/predictions';
-import { STATION_PREDICTION_COPY } from '@/lib/station-prediction-copy';
+import { useT } from '@/lib/i18n/use-locale';
+import { getStationPredictionCopy } from '@/lib/station-prediction-copy';
 import { buildStationPredictionView } from '@/lib/station-prediction-view';
 
 type StationPredictionCardProps = {
@@ -9,23 +10,26 @@ type StationPredictionCardProps = {
 };
 
 export function StationPredictionCard({ predictions, capacity }: StationPredictionCardProps) {
-  const view = buildStationPredictionView({ predictions, capacity });
+  const { locale } = useT();
+  const copy = getStationPredictionCopy(locale);
+  const view = buildStationPredictionView({ predictions, capacity, locale });
 
   return (
     <article className="ui-section-card" data-testid="station-prediction">
-      <h2 className="text-xl font-black text-[var(--foreground)]">{STATION_PREDICTION_COPY.heading}</h2>
+      <h2 className="text-xl font-black text-[var(--foreground)]">{copy.heading}</h2>
       {view.state === 'empty' ? (
         <DataStateNotice
           className="mt-4"
           compact
+          locale={locale}
           state="empty"
-          subject={STATION_PREDICTION_COPY.subject}
-          title={STATION_PREDICTION_COPY.insufficientTitle}
-          description={STATION_PREDICTION_COPY.insufficientDescription}
+          subject={copy.subject}
+          title={copy.insufficientTitle}
+          description={copy.insufficientDescription}
         />
       ) : (
         <>
-          <p className="stat-label mt-2">{STATION_PREDICTION_COPY.badge}</p>
+          <p className="stat-label mt-2">{copy.badge}</p>
           <ul className="mt-3 space-y-3 text-sm">
             {view.rows.map((row) => (
               <li key={row.horizonMinutes} className="font-semibold text-[var(--foreground)]">
@@ -37,25 +41,27 @@ export function StationPredictionCard({ predictions, capacity }: StationPredicti
             ))}
           </ul>
           {view.advice ? <p className="mt-3 text-xs text-[var(--muted)]">{view.advice}</p> : null}
-          <p className="mt-2 text-xs text-[var(--muted)]">{STATION_PREDICTION_COPY.disclaimer}</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">{copy.disclaimer}</p>
           {view.accuracy === 'unmeasured' ? (
             <DataStateNotice
               className="mt-3"
               compact
+              locale={locale}
               state="partial"
-              subject={STATION_PREDICTION_COPY.subject}
-              title={STATION_PREDICTION_COPY.accuracyUnmeasuredTitle}
-              description={STATION_PREDICTION_COPY.accuracyUnmeasuredDescription}
+              subject={copy.subject}
+              title={copy.accuracyUnmeasuredTitle}
+              description={copy.accuracyUnmeasuredDescription}
             />
           ) : null}
           {view.state === 'partial' ? (
             <DataStateNotice
               className="mt-3"
               compact
+              locale={locale}
               state="partial"
-              subject={STATION_PREDICTION_COPY.subject}
-              title={STATION_PREDICTION_COPY.lowConfidenceTitle}
-              description={STATION_PREDICTION_COPY.lowConfidenceDescription}
+              subject={copy.subject}
+              title={copy.lowConfidenceTitle}
+              description={copy.lowConfidenceDescription}
             />
           ) : null}
         </>

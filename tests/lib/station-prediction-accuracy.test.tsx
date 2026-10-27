@@ -1,5 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// The card reads the locale from the router; render it as the Spanish page.
+vi.mock('@/lib/i18n/use-locale', async () => {
+  const { createTranslator } = await import('@/lib/i18n/messages');
+  return { useLocale: () => 'es', useT: () => ({ locale: 'es', t: createTranslator('es') }) };
+});
+
 import { StationPredictionCard } from '@/app/estadisticas/estaciones/_components/StationPredictionCard';
 import type { StationPredictionsResponse } from '@/lib/predictions';
 import { buildStationPredictionView } from '@/lib/station-prediction-view';
