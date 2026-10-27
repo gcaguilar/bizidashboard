@@ -10,43 +10,19 @@ export type SocialImageKind =
 
 type BuildSocialImagePathOptions = {
   kind: SocialImageKind;
-  title: string;
-  subtitle?: string;
-  eyebrow?: string;
-  badges?: string[];
+  /** Requerido para `kind: 'station'`; el resto de tipos usan la tarjeta de la red. */
+  stationId?: string;
 };
 
-function normalizeImageText(value: string | undefined, fallback: string): string {
-  const normalized = (value ?? fallback).trim().replace(/\s+/gu, ' ');
-  return normalized.length > 0 ? normalized.slice(0, 90) : fallback;
-}
-
-export function buildSocialImagePath({
-  kind,
-  title,
-  subtitle,
-  eyebrow,
-  badges,
-}: BuildSocialImagePathOptions): string {
-  const params = new URLSearchParams({
-    kind,
-    title: normalizeImageText(title, 'DatosBizi'),
-  });
-
-  const normalizedSubtitle = normalizeImageText(subtitle, '');
-  const normalizedEyebrow = normalizeImageText(eyebrow, '');
-
-  if (normalizedSubtitle.length > 0) {
-    params.set('subtitle', normalizedSubtitle);
+/**
+ * Ruta de la imagen social (Open Graph) de una página. Las fichas de estación
+ * usan `/api/og/station`; cualquier otra página comparte la tarjeta de red
+ * `/api/og/network`, que refleja el estado actual de las estaciones.
+ */
+export function buildSocialImagePath({ kind, stationId }: BuildSocialImagePathOptions): string {
+  if (kind === 'station' && stationId) {
+    return appRoutes.api.ogStation(stationId);
   }
 
-  if (normalizedEyebrow.length > 0) {
-    params.set('eyebrow', normalizedEyebrow);
-  }
-
-  for (const badge of (badges ?? []).map((item) => normalizeImageText(item, '')).filter(Boolean).slice(0, 4)) {
-    params.append('badge', badge);
-  }
-
-  return `${appRoutes.api.socialImage()}?${params.toString()}`;
+  return appRoutes.api.ogNetwork();
 }

@@ -142,7 +142,6 @@ export const appRoutes = {
   api: {
     docs: () => '/api/docs',
     openApi: () => '/api/openapi.json',
-    socialImage: () => '/api/social-image',
     ogStation: (stationId: string) => buildQuery('/api/og/station', { stationId }),
     ogNetwork: () => '/api/og/network',
     stations: (params?: { format?: 'csv' | null }) =>

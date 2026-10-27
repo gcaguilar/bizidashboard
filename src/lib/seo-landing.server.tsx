@@ -1051,7 +1051,7 @@ export async function getSeoLandingPageData(slug: SeoPageSlug, sources?: SeoLand
 }
 
 export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<PageMetadata> {
-  const { config, content, path, indexabilityInput } = await getSeoLandingPageData(slug);
+  const { config, path, indexabilityInput } = await getSeoLandingPageData(slug);
 
   return buildPageMetadata({
     title: config.metadataTitle,
@@ -1059,13 +1059,7 @@ export async function generateSeoLandingMetadata(slug: SeoPageSlug): Promise<Pag
     path,
     canonicalPath: config.canonicalPath,
     keywords: config.keywords,
-    socialImagePath: buildSocialImagePath({
-      kind: 'landing',
-      title: config.title,
-      subtitle: content.summary,
-      eyebrow: config.heroKicker,
-      badges: [config.cadenceLabel, 'Landing SEO'],
-    }),
+    socialImagePath: buildSocialImagePath({ kind: 'landing' }),
     indexability: indexabilityInput,
   });
 }
