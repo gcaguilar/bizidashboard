@@ -12,6 +12,7 @@ import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/components/StationFavoriteButton'
 import { StationPredictionCard } from '@/app/estadisticas/estaciones/_components/StationPredictionCard'
+import { StationBestTime } from '@/app/estadisticas/estaciones/_components/StationBestTime'
 import { StationDistrictComparison } from '@/app/estadisticas/estaciones/_components/StationDistrictComparison'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';
@@ -221,6 +222,7 @@ function StationPage() {
         districtName={summary.districtName}
         peerMetrics={data.districtPeerMetrics}
       />
+      <StationBestTime patterns={data.patterns} peakHours={summary.peakHours} />
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele ser más fácil usarla</h2>

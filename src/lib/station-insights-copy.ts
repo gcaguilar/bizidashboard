@@ -25,3 +25,17 @@ export const STATION_DISTRICT_COMPARISON_COPY = {
   peersLabel: (districtName: string, peerCount: number) =>
     `Media de ${peerCount} ${peerCount === 1 ? 'estación' : 'estaciones'} de ${districtName}`,
 } as const;
+
+export const STATION_BEST_TIME_COPY = {
+  heading: 'Mejor hora para ir',
+  subject: 'las mejores horas para ir',
+  emptyTitle: 'Aún no hay horas recomendables',
+  emptyDescription:
+    'El histórico por hora de esta estación todavía no es suficiente para sugerir franjas. Lo mostraremos cuando haya más datos.',
+  note: 'Estimación a partir de medias históricas por hora; el día concreto puede ser distinto. Comprueba el estado actual antes de salir.',
+  noBikesLabel: 'Suele estar sin bicis',
+  noAnchorsLabel: 'Suele estar sin huecos',
+  betterLabel: 'Suele haber bicis y huecos',
+  noIssues: 'Sin franjas problemáticas en el histórico',
+  noBetter: 'Sin franjas claramente mejores en el histórico',
+} as const;
