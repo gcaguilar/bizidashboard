@@ -60,6 +60,7 @@
     "@tanstack/router-plugin": "^1.168.47",
     "html2pdf.js": "^0.14.0",
     "jose": "^6.2.13",
+    "jpeg-js": "^0.4.4",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
     "maplibre-gl": "^6.15.0",
