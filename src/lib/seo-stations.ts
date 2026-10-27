@@ -106,8 +106,13 @@ export type StationSeoPageData = {
   relatedStations: RelatedStationSummary[];
   highOccupancySlots: StationPatternRow[];
   lowOccupancySlots: StationPatternRow[];
-  /** Métricas de las demás estaciones del mismo barrio (para "Frente a tu barrio"). */
+  /** Barrio de la estación, o null si no tiene. */
+  districtName: string | null;
+  /** Métricas de la propia estación y de las demás del barrio (para "Frente a tu barrio"). */
+  stationMetrics: StationComparisonMetrics;
   districtPeerMetrics: StationComparisonMetrics[];
+  /** Horas punta de llenado de la estación (para "Mejor hora para ir"). */
+  peakHours: PeakFullHourSlot[];
 };
 
 function buildSummaryComparisonMetrics(row: StationSeoSummary): StationComparisonMetrics {
@@ -353,7 +358,10 @@ export const getStationSeoPageData = cache(
 
     return {
       summary: toStationPageSummary(summary),
+      districtName: summary.districtName,
+      stationMetrics: buildSummaryComparisonMetrics(summary),
       districtPeerMetrics,
+      peakHours: summary.peakHours,
       patterns,
       heatmap,
       predictions: predictions ?? getEmptyStationPredictions(stationId),

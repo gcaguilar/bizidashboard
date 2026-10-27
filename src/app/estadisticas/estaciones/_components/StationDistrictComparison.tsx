@@ -1,18 +1,14 @@
 import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { formatInteger, formatPercent } from '@/lib/format';
 import {
-  buildStationComparisonMetrics,
   buildStationDistrictComparison,
   type ComparisonMetricKey,
   type StationComparisonMetrics,
 } from '@/lib/station-district-comparison';
 import { STATION_DISTRICT_COMPARISON_COPY as COPY } from '@/lib/station-insights-copy';
-import type { RankingRow, StationSnapshot } from '@/lib/api-types';
 
 type StationDistrictComparisonProps = {
-  station: StationSnapshot;
-  turnover: RankingRow | null;
-  availability: RankingRow | null;
+  stationMetrics: StationComparisonMetrics;
   districtName: string | null;
   peerMetrics: StationComparisonMetrics[];
 };
@@ -22,17 +18,12 @@ function formatMetric(key: ComparisonMetricKey, value: number): string {
 }
 
 export function StationDistrictComparison({
-  station,
-  turnover,
-  availability,
+  stationMetrics,
   districtName,
   peerMetrics,
 }: StationDistrictComparisonProps) {
   const comparison = districtName
-    ? buildStationDistrictComparison(
-        buildStationComparisonMetrics({ station, turnover, availability }),
-        peerMetrics
-      )
+    ? buildStationDistrictComparison(stationMetrics, peerMetrics)
     : null;
 
   return (

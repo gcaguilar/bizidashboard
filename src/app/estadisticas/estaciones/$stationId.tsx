@@ -7,7 +7,7 @@ import { ShareButton } from '@/app/_components/ShareButton'
 import { buildBreadcrumbStructuredData } from '@/lib/breadcrumbs'
 import { formatHourRange, formatPercent } from '@/lib/format'
 import { appRoutes } from '@/lib/routes'
-import { getSiteUrl } from '@/lib/site'
+import { getSiteUrl, DEFAULT_SOCIAL_IMAGE_HEIGHT, DEFAULT_SOCIAL_IMAGE_PATH, DEFAULT_SOCIAL_IMAGE_WIDTH } from '@/lib/site'
 import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/components/StationFavoriteButton'
@@ -241,13 +241,11 @@ function StationPage() {
         <StationPredictionCard predictions={data.predictions} capacity={station.capacity} />
       </section>
       <StationDistrictComparison
-        station={station}
-        turnover={summary.turnover}
-        availability={summary.availability}
-        districtName={summary.districtName}
+        stationMetrics={data.stationMetrics}
+        districtName={data.districtName}
         peerMetrics={data.districtPeerMetrics}
       />
-      <StationBestTime patterns={data.patterns} peakHours={summary.peakHours} />
+      <StationBestTime patterns={data.patterns} peakHours={data.peakHours} />
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">{t('station.slots.title')}</h2>
