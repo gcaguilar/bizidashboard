@@ -5,7 +5,7 @@ import { StationStatusLabel } from '@/components/ui/station-status';
 import type { StationSnapshot } from '@/lib/api-types';
 import { haversineDistanceMeters, type Coordinates } from '@/lib/geo';
 import { useT } from '@/lib/i18n/use-locale';
-import { getLocalizedCitizenStatus } from '@/lib/map-colors';
+import { getCitizenStatus } from '@/lib/map-colors';
 
 export const MAP_STATION_LIST_LIMIT = 20;
 
@@ -120,7 +120,7 @@ export function MapStationList({
                 }`}
               >
                 <span className="font-bold">{station.name}</span>
-                <StationStatusLabel status={getLocalizedCitizenStatus(station, locale)} />
+                <StationStatusLabel status={getCitizenStatus(station, locale)} />
               </button>
             </li>
           );

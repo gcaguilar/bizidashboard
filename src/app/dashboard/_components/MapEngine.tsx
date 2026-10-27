@@ -25,7 +25,7 @@ import {
   getCitizenMarkerColor,
   getCitizenMarkerGlyph,
   getCitizenMarkerSeverity,
-  getLocalizedCitizenStatus,
+  getCitizenStatus,
   type MapColorScale,
 } from '@/lib/map-colors';
 import { buildStationFeatureCollection } from '@/lib/map-features';
@@ -540,7 +540,7 @@ export function MapEngine({
                 </Button>
               </div>
 
-              <StationStatusLabel status={getLocalizedCitizenStatus(popupStation, locale)} className="mb-2" />
+              <StationStatusLabel status={getCitizenStatus(popupStation, locale)} className="mb-2" />
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <p className="rounded bg-[var(--secondary)] px-2 py-1">

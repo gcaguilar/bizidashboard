@@ -23,7 +23,6 @@ import type { StationSnapshot } from '@/lib/api-types';
 import {
   buildStationCurrentLabel,
   buildStationIssueLabel,
-  buildStationStatusLabel,
 } from '@/lib/home-diagnosis';
 import { createLocaleRewrite } from '@/lib/i18n/locale-rewrite';
 import { getLocaleFromPathname, type Locale } from '@/lib/i18n/locales';
@@ -32,7 +31,7 @@ import {
   CITIZEN_MAP_LEGEND,
   getCitizenMapLegend,
   getCitizenStatus,
-  getLocalizedCitizenStatus,
+  getCitizenStatusDetail,
 } from '@/lib/map-colors';
 import { getActivityIndexUnits } from '@/lib/product-copy';
 import { getExploreHubSections } from '@/lib/public-navigation';
@@ -49,11 +48,14 @@ async function renderAt(path: string, node: ReactNode): Promise<string> {
     createRoute({ getParentRoute: () => rootRoute, path: '/estadisticas/estaciones/$stationId' }),
     createRoute({ getParentRoute: () => rootRoute, path: '/dashboard' }),
   ]);
+  let routerRef: { latestLocation?: { publicHref?: string } } | undefined;
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: [path] }),
-    rewrite: createLocaleRewrite(),
+    // Mirrors `src/router.tsx`: the rewrite reads the locale from the router itself.
+    rewrite: createLocaleRewrite(() => routerRef?.latestLocation?.publicHref),
   });
+  routerRef = router;
   await router.load();
   return renderToString(<RouterProvider router={router} />);
 }
@@ -87,11 +89,11 @@ describe('home sections keep their Spanish copy', () => {
     );
     expect(buildStationCurrentLabel({ bikesAvailable: 7, anchorsFree: 3 })).toBe('Ahora: 7 bicis · 3 huecos');
     const base = { capacity: 20, bikesAvailable: 5, anchorsFree: 5 };
-    expect(buildStationStatusLabel({ ...base, capacity: 0 })).toBe('Sin datos fiables');
-    expect(buildStationStatusLabel({ ...base, bikesAvailable: 0 })).toBe('Sin bicis');
-    expect(buildStationStatusLabel({ ...base, anchorsFree: 0 })).toBe('Sin huecos');
-    expect(buildStationStatusLabel({ ...base, anchorsFree: 2 })).toBe('Pocas unidades');
-    expect(buildStationStatusLabel(base)).toBe('Con bicis y huecos');
+    expect(getCitizenStatusDetail({ ...base, capacity: 0 })).toBe('Sin datos');
+    expect(getCitizenStatusDetail({ ...base, bikesAvailable: 0 })).toBe('Sin bicis');
+    expect(getCitizenStatusDetail({ ...base, anchorsFree: 0 })).toBe('Sin huecos');
+    expect(getCitizenStatusDetail({ ...base, anchorsFree: 2 })).toBe('Pocos huecos');
+    expect(getCitizenStatusDetail(base)).toBe('Equilibrio');
   });
 
   it('citizen legend and statuses are untouched in Spanish', () => {
@@ -102,7 +104,7 @@ describe('home sections keep their Spanish copy', () => {
     ]);
     expect(getCitizenMapLegend('es')).toBe(CITIZEN_MAP_LEGEND);
     expect(getCitizenMapLegend()).toBe(CITIZEN_MAP_LEGEND);
-    expect(getLocalizedCitizenStatus(stationA, 'es')).toEqual(getCitizenStatus(stationA));
+    expect(getCitizenStatus(stationA, 'es')).toEqual(getCitizenStatus(stationA));
     expect(getCitizenStatus({ capacity: 0, bikesAvailable: 0, anchorsFree: 0 }).label).toBe('Sin datos');
   });
 
@@ -147,7 +149,7 @@ describe('home sections in English', () => {
       'No bikes 60% of the time (last 14 days)',
     );
     expect(buildStationCurrentLabel({ bikesAvailable: 7, anchorsFree: 3 }, 'en')).toBe('Now: 7 bikes · 3 docks');
-    expect(buildStationStatusLabel({ capacity: 20, bikesAvailable: 0, anchorsFree: 5 }, 'en')).toBe('No bikes');
+    expect(getCitizenStatusDetail({ capacity: 20, bikesAvailable: 0, anchorsFree: 5 }, 'en')).toBe('No bikes');
 
     const legend = getCitizenMapLegend('en');
     expect(legend.map((entry) => entry.label)).toEqual(['Balanced', 'Low availability', 'Depleted']);
@@ -156,7 +158,7 @@ describe('home sections in English', () => {
       expect(entry.icon).toBe(CITIZEN_MAP_LEGEND[index].icon);
       expect(entry.level).toBe(CITIZEN_MAP_LEGEND[index].level);
     });
-    expect(getLocalizedCitizenStatus({ capacity: 0, bikesAvailable: 0, anchorsFree: 0 }, 'en').label).toBe('No data');
+    expect(getCitizenStatus({ capacity: 0, bikesAvailable: 0, anchorsFree: 0 }, 'en').label).toBe('No data');
   });
 
   it('translates the explore hub and keeps ids and hrefs', () => {
