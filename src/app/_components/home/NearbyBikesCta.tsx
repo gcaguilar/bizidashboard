@@ -11,7 +11,7 @@ export type NearbyCandidateStation = {
   bikesAvailable: number;
 };
 
-type NearbyState = 'idle' | 'locating' | 'denied' | 'unsupported' | 'empty';
+type NearbyState = 'idle' | 'locating' | 'denied' | 'unsupported' | 'empty' | 'error';
 
 const EARTH_RADIUS_METERS = 6_371_000;
 
@@ -52,9 +52,17 @@ const FALLBACK_MESSAGES: Record<Exclude<NearbyState, 'idle' | 'locating'>, strin
   denied: 'No hemos podido acceder a tu ubicación. Busca tu estación más abajo o ábrela en BiciRadar.',
   unsupported: 'Tu navegador no permite geolocalización. Busca tu estación más abajo o ábrela en BiciRadar.',
   empty: 'Ahora mismo no hay ninguna estación con bicis disponibles.',
+  error: 'No hemos podido cargar las estaciones. Inténtalo de nuevo en unos segundos.',
 };
 
-export function NearbyBikesCta({ stations }: { stations: NearbyCandidateStation[] }) {
+async function fetchCandidateStations(): Promise<NearbyCandidateStation[]> {
+  const res = await fetch(appRoutes.api.stations());
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data?.stations) ? data.stations : [];
+}
+
+export function NearbyBikesCta() {
   const navigate = useNavigate();
   const [state, setState] = useState<NearbyState>('idle');
 
@@ -67,16 +75,21 @@ export function NearbyBikesCta({ stations }: { stations: NearbyCandidateStation[
     setState('locating');
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const nearest = findNearestStationWithBikes(stations, {
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
-        if (!nearest) {
-          setState('empty');
-          return;
-        }
-        setState('idle');
-        void navigate({ to: appRoutes.stationDetail(nearest.id) });
+        // La red completa no viaja en el HTML inicial: se pide solo al pulsar.
+        fetchCandidateStations()
+          .then((stations) => {
+            const nearest = findNearestStationWithBikes(stations, {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+            });
+            if (!nearest) {
+              setState('empty');
+              return;
+            }
+            setState('idle');
+            void navigate({ to: appRoutes.stationDetail(nearest.id) });
+          })
+          .catch(() => setState('error'));
       },
       () => setState('denied'),
       { timeout: 8000, maximumAge: 60_000 },

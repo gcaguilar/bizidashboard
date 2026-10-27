@@ -85,7 +85,6 @@ function Home() {
     topCriticalDistricts,
     districts,
   } = Route.useLoaderData();
-  const nearbyStations = stationRows.map(({ station }) => station);
 
   return (
     <PageShell>
@@ -137,7 +136,7 @@ function Home() {
         </div>
 
         <div className="mt-4 flex flex-col gap-3">
-          <NearbyBikesCta stations={nearbyStations} />
+          <NearbyBikesCta />
           <p className="text-sm text-[var(--muted)]">
             <TrackedLink
               href={appRoutes.dashboard()}
