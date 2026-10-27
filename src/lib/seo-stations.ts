@@ -27,6 +27,10 @@ import {
 } from '@/lib/seo-policy';
 import { slugifyDistrictName } from '@/lib/seo-districts';
 import { buildFallbackStations } from '@/lib/shared-data-fallbacks';
+import {
+  buildStationComparisonMetrics,
+  type StationComparisonMetrics,
+} from '@/lib/station-district-comparison';
 
 export type StationSeoSummary = {
   station: StationSnapshot;
@@ -102,7 +106,17 @@ export type StationSeoPageData = {
   relatedStations: RelatedStationSummary[];
   highOccupancySlots: StationPatternRow[];
   lowOccupancySlots: StationPatternRow[];
+  /** Métricas de las demás estaciones del mismo barrio (para "Frente a tu barrio"). */
+  districtPeerMetrics: StationComparisonMetrics[];
 };
+
+function buildSummaryComparisonMetrics(row: StationSeoSummary): StationComparisonMetrics {
+  return buildStationComparisonMetrics({
+    station: row.station,
+    turnover: row.turnover,
+    availability: row.availability,
+  });
+}
 
 function toOccupancy(station: StationSnapshot): number {
   if (!Number.isFinite(station.capacity) || station.capacity <= 0) {
@@ -330,8 +344,16 @@ export const getStationSeoPageData = cache(
       .slice(0, 4)
       .map(toRelatedStationSummary);
 
+    const districtPeerMetrics =
+      summary.districtSlug === null
+        ? []
+        : rows
+            .filter((row) => row.station.id !== stationId && row.districtSlug === summary.districtSlug)
+            .map(buildSummaryComparisonMetrics);
+
     return {
       summary: toStationPageSummary(summary),
+      districtPeerMetrics,
       patterns,
       heatmap,
       predictions: predictions ?? getEmptyStationPredictions(stationId),

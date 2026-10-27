@@ -12,6 +12,7 @@ import { getPublicStationPageData } from '@/server-functions/seo-details'
 import { PageShell } from '@/components/layout/page-shell'
 import { StationFavoriteButton } from '@/components/StationFavoriteButton'
 import { StationPredictionCard } from '@/app/estadisticas/estaciones/_components/StationPredictionCard'
+import { StationDistrictComparison } from '@/app/estadisticas/estaciones/_components/StationDistrictComparison'
 import { StationDetailSkeleton } from '@/app/estadisticas/estaciones/_components/StationDetailSkeleton'
 import { toJsonLdScript } from '@/lib/structured-data';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
@@ -213,6 +214,13 @@ function StationPage() {
         </article>
         <StationPredictionCard predictions={data.predictions} capacity={station.capacity} />
       </section>
+      <StationDistrictComparison
+        station={station}
+        turnover={summary.turnover}
+        availability={summary.availability}
+        districtName={summary.districtName}
+        peerMetrics={data.districtPeerMetrics}
+      />
       {(data.highOccupancySlots.length > 0 || data.lowOccupancySlots.length > 0) ? (
         <section className="ui-section-card">
           <h2 className="text-xl font-black text-[var(--foreground)]">Cuándo suele ser más fácil usarla</h2>
