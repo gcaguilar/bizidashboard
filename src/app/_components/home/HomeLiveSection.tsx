@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { PublicSearchForm, type StationSuggestion } from '@/app/_components/PublicSearchForm';
 import { TrackedLink } from '@/app/_components/TrackedLink';
-import { useFavoriteStations } from '@/lib/use-favorite-stations';
+import { pruneStoredFavorites, useFavoriteStations } from '@/lib/use-favorite-stations';
 import { HomeDiagnosis, type HomeDiagnosisFilter } from '@/app/_components/home/HomeDiagnosis';
 import { HomeFavoriteStations } from '@/app/_components/home/HomeFavoriteStations';
 import { HomeMapSection } from '@/app/_components/home/HomeMapSection';
@@ -52,6 +52,9 @@ function applyFilter(station: StationSnapshot, filter: HomeDiagnosisFilter): boo
 
 const NO_STATIONS: StationSnapshot[] = [];
 
+/** ~2 min: dentro del límite de 40 req/min de /api/stations incluso con varias pestañas. */
+const HOME_STATIONS_REFRESH_MS = 120_000;
+
 export function HomeLiveSection({
   stations: stationsProp,
   stationsTotal,
@@ -66,6 +69,7 @@ export function HomeLiveSection({
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const { favoriteStationIds, toggleFavoriteStation } = useFavoriteStations();
   const [fetchedStations, setFetchedStations] = useState<StationSnapshot[] | null>(null);
+  const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
   const stations = stationsProp ?? fetchedStations ?? NO_STATIONS;
   const isLoadingStations = stationsProp == null && fetchedStations == null;
 
@@ -76,18 +80,59 @@ export function HomeLiveSection({
       return;
     }
 
-    const controller = new AbortController();
-    fetch(appRoutes.api.stations(), { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data?.stations)) setFetchedStations(data.stations);
-      })
-      .catch(() => {});
+    let controller: AbortController | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let stopped = false;
 
-    return () => controller.abort();
+    const load = () => {
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      fetch(appRoutes.api.stations(), { signal: current.signal })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (!Array.isArray(data?.stations)) return;
+          setFetchedStations(data.stations);
+          setRefreshedAt(
+            typeof data.generatedAt === 'string' ? data.generatedAt : new Date().toISOString(),
+          );
+          pruneStoredFavorites((data.stations as StationSnapshot[]).map((s) => s.id));
+        })
+        .catch(() => {});
+    };
+
+    // Al volver a la pestaña se refresca de inmediato si pasó el intervalo.
+    let lastLoadAt = Date.now();
+    const loadTracked = () => {
+      lastLoadAt = Date.now();
+      load();
+    };
+    const onVisible = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        Date.now() - lastLoadAt >= HOME_STATIONS_REFRESH_MS
+      ) {
+        loadTracked();
+      }
+    };
+
+    loadTracked();
+    timer = setTimeout(function tick() {
+      if (stopped) return;
+      if (document.visibilityState === 'visible') loadTracked();
+      timer = setTimeout(tick, HOME_STATIONS_REFRESH_MS);
+    }, HOME_STATIONS_REFRESH_MS);
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      controller?.abort();
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [stationsProp]);
 
   const filteredStations = useMemo(
@@ -132,7 +177,12 @@ export function HomeLiveSection({
         </p>
       </div>
 
-      <HomeFavoriteStations stations={stations} className="ui-section-card" />
+      <HomeFavoriteStations
+        stations={stations}
+        isLoading={isLoadingStations}
+        refreshedAt={refreshedAt}
+        className="ui-section-card"
+      />
 
       <PublicSearchForm
         stations={searchStations}

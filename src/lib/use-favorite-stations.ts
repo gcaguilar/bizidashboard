@@ -35,6 +35,29 @@ export function toggleStoredFavorite(stationId: string): void {
   writeStorageText(FAVORITES_STORAGE_KEY, JSON.stringify(toggleFavoriteId(current, stationId)));
 }
 
+/** Favoritos que siguen existiendo en la red (función pura, conserva el orden). */
+export function pruneFavoriteIds(current: string[], networkIds: Iterable<string>): string[] {
+  const known = new Set(networkIds);
+
+  // Una red vacía suele ser un fallo de carga, no que hayan desaparecido todas.
+  if (known.size === 0) {
+    return current;
+  }
+
+  const next = current.filter((id) => known.has(id));
+  return next.length === current.length ? current : next;
+}
+
+/** Elimina en silencio de localStorage los favoritos que ya no existen en la red. */
+export function pruneStoredFavorites(networkIds: Iterable<string>): void {
+  const current = parseFavoriteIds(readStorageText(FAVORITES_STORAGE_KEY));
+  const next = pruneFavoriteIds(current, networkIds);
+
+  if (next !== current) {
+    writeStorageText(FAVORITES_STORAGE_KEY, JSON.stringify(next));
+  }
+}
+
 /**
  * Favoritos de estaciones guardados solo en el navegador (sin cuenta ni
  * servidor). En SSR e hidratación devuelve siempre la lista vacía, así que no

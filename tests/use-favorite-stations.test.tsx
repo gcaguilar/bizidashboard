@@ -4,6 +4,8 @@ import { buildStationStatusLabel } from '@/lib/home-diagnosis';
 import {
   FAVORITES_STORAGE_KEY,
   parseFavoriteIds,
+  pruneFavoriteIds,
+  pruneStoredFavorites,
   toggleFavoriteId,
   toggleStoredFavorite,
   useFavoriteStations,
@@ -95,5 +97,36 @@ describe('buildStationStatusLabel', () => {
     expect(buildStationStatusLabel({ ...base, bikesAvailable: 2 })).toBe('Pocas unidades');
     expect(buildStationStatusLabel(base)).toBe('Con bicis y huecos');
     expect(buildStationStatusLabel({ ...base, capacity: 0 })).toBe('Sin datos fiables');
+  });
+});
+
+describe('pruneFavoriteIds', () => {
+  it('quita ids que ya no existen y conserva el orden', () => {
+    expect(pruneFavoriteIds(['3', '1', '9'], ['1', '2', '3'])).toEqual(['3', '1']);
+  });
+
+  it('devuelve la misma referencia si no cambia nada', () => {
+    const current = ['1', '2'];
+    expect(pruneFavoriteIds(current, ['1', '2', '3'])).toBe(current);
+  });
+
+  it('no borra nada si la red llega vacía', () => {
+    const current = ['1'];
+    expect(pruneFavoriteIds(current, [])).toBe(current);
+  });
+});
+
+describe('pruneStoredFavorites', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('persiste solo cuando hay ids obsoletos', () => {
+    const { store, dispatchEvent } = installFakeWindow({
+      [FAVORITES_STORAGE_KEY]: JSON.stringify(['1', '9']),
+    });
+    pruneStoredFavorites(['1', '2']);
+    expect(JSON.parse(store.get(FAVORITES_STORAGE_KEY) as string)).toEqual(['1']);
+    const calls = dispatchEvent.mock.calls.length;
+    pruneStoredFavorites(['1', '2']);
+    expect(dispatchEvent.mock.calls.length).toBe(calls);
   });
 });
