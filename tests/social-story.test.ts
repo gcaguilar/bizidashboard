@@ -537,6 +537,101 @@ describe('afternoon "where to leave the bike" branch', () => {
   });
 });
 
+describe('opposite side of each daily story', () => {
+  const full = (id: string, name: string) => ({ ...station(id, name, 20, 0), anchorsFree: 0 });
+
+  it('adds where to leave the bike to the morning story, right after the alternative', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('empty', [station('s1', 'Plaza España', 0)]),
+      alternative: {
+        fromStationId: 's1',
+        name: 'Independencia',
+        kind: 'bikes',
+        distanceMeters: 280,
+        available: 8,
+      },
+      fullStations: selection('full', [full('s2', 'Universidad'), { ...full('s3', 'Gran Vía') }]),
+      network,
+    });
+
+    expect(story?.facts[1]?.label).toBe('Dónde coger bici cerca');
+    expect(story?.facts[2]).toEqual({
+      label: 'Estaciones que suelen llenarse',
+      value: 'Universidad (sin huecos) · Gran Vía (sin huecos)',
+    });
+    // El titular sigue yendo por el lado principal.
+    expect(story?.headline).toBe('1 estación que suele vaciarse, sin bicis');
+  });
+
+  it('counts free docks when the morning arrival stations are only close to full', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('none', [station('s1', 'Plaza España', 7)]),
+      fullStations: selection('low', [{ ...station('s2', 'Universidad', 18), anchorsFree: 2 }]),
+      network,
+    });
+
+    expect(story?.facts).toContainEqual({
+      label: 'Estaciones que suelen llenarse',
+      value: 'Universidad (2 huecos)',
+    });
+  });
+
+  it('omits the opposite fact when nothing is full', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('none', [station('s1', 'Plaza España', 7)]),
+      fullStations: selection('none', []),
+      network,
+    });
+
+    expect(story?.facts.some((fact) => fact.label === 'Estaciones que suelen llenarse')).toBe(false);
+  });
+
+  it('adds where to pick up a bike to the afternoon story', () => {
+    const base = { dateKey: '2026-10-27', network, topDistricts: districts } as const;
+    const emptyStations = selection('empty', [station('s9', 'Delicias', 0), station('s8', 'Centro', 0)]);
+    const expected = {
+      label: 'Estaciones que suelen vaciarse',
+      value: 'Delicias (sin bicis) · Centro (sin bicis)',
+    };
+
+    const whereToLeave = buildAfternoonStory({
+      ...base,
+      fullStations: selection('full', [full('s1', 'Plaza España')]),
+      emptyStations,
+    });
+    const pulse = buildAfternoonStory({ ...base, emptyStations });
+
+    expect(whereToLeave.headline).toBe('1 estación que suele llenarse, sin huecos');
+    expect(whereToLeave.facts).toContainEqual(expected);
+    expect(pulse.headline).toBe('Más uso de la Bizi en Centro');
+    expect(pulse.facts).toContainEqual(expected);
+  });
+
+  it('keeps alerts and critical episodes about a single station', () => {
+    const story = buildAfternoonStory({
+      dateKey: '2026-10-27',
+      network,
+      topDistricts: districts,
+      emptyStations: selection('empty', [station('s9', 'Delicias', 0)]),
+      alerts: [
+        {
+          stationId: 's1',
+          stationName: 'Plaza España',
+          alertType: 'LOW_BIKES',
+          severity: 2,
+          metricValue: 1,
+          windowHours: 3,
+        },
+      ],
+    });
+
+    expect(story.facts.some((fact) => fact.label === 'Estaciones que suelen vaciarse')).toBe(false);
+  });
+});
+
 describe('weekly carousel', () => {
   it('builds five slides with cover, activity, growth, friction and CTA', () => {
     const carousel = buildWeeklyCarousel({ week, districts, network });

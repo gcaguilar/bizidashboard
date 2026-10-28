@@ -1,8 +1,8 @@
 /**
  * Slot de manana (08:30 Europe/Madrid).
  *
- * Datos: snapshot fresco, perfil historico de dias laborables 07:00-08:59 y
- * contexto de red. La story solo habla de disponibilidad de bicis, asi que no
+ * Datos: snapshot fresco, perfil historico de dias laborables 07:00-08:59 (las
+ * dos caras: estaciones que se vacian y que se llenan) y contexto de red. La story solo habla de disponibilidad de bicis, asi que no
  * depende del rollup horario de actividad. Si el snapshot esta vacio o tiene
  * mas de 10 minutos, devuelve `null` para que el wrapper lo registre como
  * `skipped` y no se publique informacion vieja.
@@ -21,6 +21,7 @@ import {
   findNearbyAlternative,
   getSlotDateKey,
   modelContradictsDrop,
+  selectEveningStations,
   selectMorningStations,
 } from '@/lib/social/data';
 import { buildMorningStory } from '@/lib/social/story';
@@ -31,7 +32,7 @@ import type {
 } from '@/lib/social/types';
 
 import {
-  aggregateMorningProfiles,
+  aggregateStationProfiles,
   getLatestRecordedAt,
   isStationSnapshotFresh,
   mapNetworkHealth,
@@ -92,9 +93,17 @@ export async function runMorningSlot(
     getWeekdayMorningProfiles(),
     getRecentBikeSamples(new Date(now.getTime() - DROP_LOOKBACK_MS)),
   ]);
-  const profiles = aggregateMorningProfiles(profileRows);
+  const profiles = aggregateStationProfiles(profileRows);
 
   const selection = selectMorningStations({
+    stations,
+    profiles,
+    limit: 3,
+    cohortSize: 40,
+  });
+
+  // Lado contrario: estaciones que a esta hora suelen llenarse y estan sin huecos.
+  const fullStations = selectEveningStations({
     stations,
     profiles,
     limit: 3,
@@ -140,6 +149,7 @@ export async function runMorningSlot(
     profiles,
     alternative,
     dropping,
+    fullStations,
     network,
     cause: mapServiceCause(getServiceCause(dateKey)),
     dataWindow,

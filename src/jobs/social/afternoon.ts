@@ -5,6 +5,7 @@
  * bici" (estaciones que suelen llenarse y estan sin huecos), pico horario con
  * causa y, si no hay nada, pulso de vuelta por distritos. La story solo se
  * salta cuando el snapshot no es fresco; si hay datos, siempre hay publicacion.
+ * Salvo en alertas y rachas, anade como dato las estaciones que suelen vaciarse.
  */
 
 import { getCriticalEpisodes } from '@/analytics/queries/rebalancing';
@@ -24,6 +25,7 @@ import {
   findNearbyAlternative,
   getSlotDateKey,
   selectEveningStations,
+  selectMorningStations,
   topDistrictsByActivity,
 } from '@/lib/social/data';
 import { buildAfternoonStory } from '@/lib/social/story';
@@ -31,7 +33,7 @@ import type { SocialNearbyAlternative, SocialStory } from '@/lib/social/types';
 
 import { loadStationDistrictMap } from './districts';
 import {
-  aggregateEveningProfiles,
+  aggregateStationProfiles,
   filterCurrentEpisodes,
   getLatestBucketContext,
   getLatestMobilityBucketStart,
@@ -124,8 +126,16 @@ export async function runAfternoonSlot(
 
   const cause = mapServiceCause(getServiceCause(dateKey));
 
-  const eveningProfiles = aggregateEveningProfiles(eveningRows);
+  const eveningProfiles = aggregateStationProfiles(eveningRows);
   const fullStations = selectEveningStations({
+    stations,
+    profiles: eveningProfiles,
+    limit: 3,
+    cohortSize: 40,
+  });
+
+  // Lado contrario: estaciones que a esta hora suelen vaciarse y estan sin bicis.
+  const emptyStations = selectMorningStations({
     stations,
     profiles: eveningProfiles,
     limit: 3,
@@ -153,6 +163,7 @@ export async function runAfternoonSlot(
     fullStations,
     eveningProfiles,
     alternative,
+    emptyStations,
     topDistricts: topDistrictsByActivity(districtStats, 3),
     cause,
     dataWindow,

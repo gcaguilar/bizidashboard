@@ -138,6 +138,8 @@ export type SocialMorningStoryInput = {
   alternative?: SocialNearbyAlternative | null;
   /** Estaciones que pierden bicis deprisa (hecho observado, no prediccion). */
   dropping?: readonly SocialDroppingStation[];
+  /** Lado contrario: estaciones que suelen llenarse y estan sin huecos o casi ("donde dejar la bici"). */
+  fullStations?: SocialStationSelection<SocialStationCandidate> | null;
   network: SocialNetworkContext;
   cause?: SocialCause | null;
   /** Hora real de la foto de datos; por defecto, 08:30. */
@@ -152,6 +154,57 @@ const MIN_HABITUAL_SHARE = 0.1;
 function anchorsLabel(count: number): string {
   const safe = Number.isFinite(count) ? Math.max(0, Math.round(count)) : 0;
   return `${formatInteger(safe)} ${pluralize(safe, 'hueco', 'huecos')}`;
+}
+
+/**
+ * Las estaciones habituales sin bicis (o con pocas), como dato de una story cuyo
+ * titular va por el otro lado. `null` si no hay ninguna que destacar.
+ */
+function usualEmptyFact(
+  selection: SocialStationSelection<SocialStationCandidate> | null | undefined
+): SocialStoryFact | null {
+  if (!selection || selection.stations.length === 0) {
+    return null;
+  }
+
+  if (selection.mode !== 'empty' && selection.mode !== 'low') {
+    return null;
+  }
+
+  return {
+    label: 'Estaciones que suelen vaciarse',
+    value: selection.stations
+      .slice(0, 3)
+      .map((station) => {
+        const detail = selection.mode === 'empty' ? 'sin bicis' : bikesLabel(station.bikesAvailable);
+        return `${normalize(station.name)} (${detail})`;
+      })
+      .join(' · '),
+  };
+}
+
+/** Espejo de `usualEmptyFact`: las habituales sin huecos (o con pocos). */
+function usualFullFact(
+  selection: SocialStationSelection<SocialStationCandidate> | null | undefined
+): SocialStoryFact | null {
+  if (!selection || selection.stations.length === 0) {
+    return null;
+  }
+
+  if (selection.mode !== 'full' && selection.mode !== 'low') {
+    return null;
+  }
+
+  return {
+    label: 'Estaciones que suelen llenarse',
+    value: selection.stations
+      .slice(0, 3)
+      .map((station) => {
+        const detail = selection.mode === 'full' ? 'sin huecos' : anchorsLabel(station.anchorsFree);
+        return `${normalize(station.name)} (${detail})`;
+      })
+      .join(' · '),
+  };
 }
 
 function alternativeFact(
@@ -288,7 +341,9 @@ function morningHeadline(selection: SocialStationSelection<SocialStationCandidat
  * suelen vaciarse. Titular segun el modo de seleccion (sin bicis, pocas bicis
  * o ninguna), una alternativa cercana con bicis, el aviso de dia especial si
  * lo hay, las estaciones que bajan deprisa, cuanto suele pasar y contexto de red (lo ultimo: el render solo
- * pinta 4 hechos, asi que en un dia especial la red es lo que se cae). Sin distritos ni barras:
+ * pinta 4 hechos, asi que en un dia especial la red es lo que se cae). Si hay
+ * estaciones habituales sin huecos, van justo despues de la alternativa para que
+ * quien llega al trabajo sepa donde dejar la bici. Sin distritos ni barras:
  * a esa hora nadie busca un ranking. Devuelve `null` si no hay ni estaciones
  * ni red.
  */
@@ -305,6 +360,7 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
   const facts = compactFacts([
     morningStationFact(input.selection),
     alternativeFact(input.selection, input.alternative),
+    usualFullFact(input.fullStations),
     todayFact(input.cause),
     droppingFact(input.dropping),
     habitualFact(input.selection, input.profiles),
@@ -389,6 +445,8 @@ export type SocialAfternoonStoryInput = {
   eveningProfiles?: readonly SocialEveningStationProfile[];
   /** Estacion cercana con huecos para quien encuentra la suya llena. */
   alternative?: SocialNearbyAlternative | null;
+  /** Lado contrario: estaciones que suelen vaciarse y estan sin bicis o casi ("donde coger bici"). */
+  emptyStations?: SocialStationSelection<SocialStationCandidate> | null;
   topDistricts?: readonly SocialDistrictStats[];
   cause?: SocialCause | null;
   /** Ventana real de datos; por defecto, 17:00–18:30. */
@@ -531,6 +589,13 @@ function eveningHabitualFact(
   return null;
 }
 
+function fullHeadline(selection: SocialStationSelection<SocialStationCandidate>): string {
+  const count = selection.stations.length;
+  const usual = `${pluralize(count, 'estación que suele', 'estaciones que suelen')} llenarse`;
+
+  return `${formatInteger(count)} ${usual}, ${selection.mode === 'full' ? 'sin huecos' : 'con pocos huecos'}`;
+}
+
 /**
  * "Donde dejar la bici": espejo de la story de la manana. Un solo mensaje, con
  * una estacion cercana con huecos como salida.
@@ -538,12 +603,11 @@ function eveningHabitualFact(
 function fullStationsStory(
   selection: SocialStationSelection<SocialStationCandidate>,
   alternative: SocialNearbyAlternative | null | undefined,
+  emptyStations: SocialStationSelection<SocialStationCandidate> | null | undefined,
   profiles: readonly SocialEveningStationProfile[] | undefined,
   network: SocialNetworkContext,
   cause: SocialCause | null | undefined
 ): { headline: string; facts: SocialStoryFact[]; accent: string } {
-  const count = selection.stations.length;
-  const usual = `${pluralize(count, 'estación que suele', 'estaciones que suelen')} llenarse`;
   const isFull = selection.mode === 'full';
   const names = selection.stations.slice(0, 3).map((station) => {
     const name = normalize(station.name);
@@ -551,13 +615,14 @@ function fullStationsStory(
   });
 
   return {
-    headline: `${formatInteger(count)} ${usual}, ${isFull ? 'sin huecos' : 'con pocos huecos'}`,
+    headline: fullHeadline(selection),
     facts: compactFacts([
       {
         label: isFull ? 'Estaciones sin huecos' : 'Estaciones con pocos huecos',
         value: names.join(' · '),
       },
       alternativeFact(selection, alternative),
+      usualEmptyFact(emptyStations),
       todayFact(cause),
       eveningHabitualFact(selection, profiles),
       networkFact(network),
@@ -609,6 +674,9 @@ function returnPulseStory(
  * 3. Donde dejar la bici: estaciones que suelen llenarse y estan sin huecos.
  * 4. Anomalia horaria al alza, solo si hay causa curada ("posible pico").
  * 5. Pulso de vuelta: distritos con mas uso estimado.
+ *
+ * Salvo en las alertas y rachas, que hablan de una sola estacion, las
+ * estaciones habituales sin bicis se anaden como dato ("donde coger bici").
  */
 export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialStory {
   const framing = getDayFraming(input.dateKey);
@@ -636,6 +704,7 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
         ? fullStationsStory(
             fullStations,
             input.alternative,
+            input.emptyStations,
             input.eveningProfiles,
             input.network,
             cause
@@ -645,7 +714,11 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
         : returnPulseStory(districts, input.network, framing.isWeekend, cause);
 
   const bars = districtBars(districts, 3);
-  const facts = branch.facts;
+  // El lado contrario ya va dentro de "donde dejar la bici"; en el resto de
+  // ramas "genericas" se anade al final. Las alertas y rachas hablan de una
+  // sola estacion y no lo llevan.
+  const emptyFact = !alert && !episode && !fullStations ? usualEmptyFact(input.emptyStations) : null;
+  const facts = emptyFact ? [...branch.facts, emptyFact] : branch.facts;
 
   return {
     slot: 'afternoon',
