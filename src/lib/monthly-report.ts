@@ -192,7 +192,7 @@ function buildPracticalConclusions(input: {
 
   if (hardestDistrict) {
     conclusions.push(
-      `El barrio con más tensión es ${hardestDistrict.district}: ${formatPercent(
+      `El barrio con más horas sin bicis o sin huecos es ${hardestDistrict.district}: ${formatPercent(
         hardestDistrict.frictionRate
       )} de las horas observadas tuvo estaciones vacías o sin huecos.`
     );

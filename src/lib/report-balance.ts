@@ -27,7 +27,7 @@ export function buildReportBalance(input: {
     return {
       tone: 'up',
       headline: `El uso creció un ${formatRatioMagnitude(ratio)} frente a ${referenceLabel}.`,
-      detail: 'Hubo más índice de actividad que el mes anterior.',
+      detail: 'Se movieron más bicis y huecos en las estaciones que el mes anterior.',
     };
   }
 
@@ -35,7 +35,7 @@ export function buildReportBalance(input: {
     return {
       tone: 'down',
       headline: `El uso cayó un ${formatRatioMagnitude(ratio)} frente a ${referenceLabel}.`,
-      detail: 'Hubo menos índice de actividad que el mes anterior.',
+      detail: 'Se movieron menos bicis y huecos en las estaciones que el mes anterior.',
     };
   }
 

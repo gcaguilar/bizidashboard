@@ -40,7 +40,7 @@ El informe mensual se compone en el servidor (`src/lib/monthly-report.ts`) y se 
 - Zonas y barrios: rankings de barrios más dinámicos, menos usados y con más horas de fricción (estaciones vacías o sin huecos).
 - Problemas recurrentes: estaciones que más fallan, dónde cuesta más encontrar bici o hueco por la mañana (07:00–10:00) y rachas continuas más largas sin servicio.
 - Eficacia de la redistribución: la base de datos no registra los movimientos de los operarios, así que se mide por su efecto. Se señalan las estaciones con rotación por encima de la mediana que siguen acumulando horas sin servicio.
-- Conclusiones concretas del mes: la franja día-hora de mayor ocupación, el barrio con más tensión y el día más atípico, redactadas en lenguaje natural.
+- Conclusiones concretas del mes: la franja día-hora de mayor ocupación, el barrio con más horas sin bicis o sin huecos y el día más atípico, redactadas en lenguaje natural.
 - Picos anómalos: detección estadística robusta por día de la semana (`src/lib/service-anomalies.ts`). Un día se marca si su z-score robusto alcanza o supera `2.5` o, cuando la dispersión es cero, si se desvía al menos un `35 %`. Un día marcado no implica una causa confirmada.
 - Calendario curado: `src/lib/service-calendar.ts` adjunta festivos nacionales, Semana Santa, la ventana de Fiestas del Pilar y una lista editable de eventos (huelgas, obras, meteo adversa). Esa lista (`CURATED_SERVICE_EVENTS`) la mantiene el equipo cuando se confirma un evento.
 

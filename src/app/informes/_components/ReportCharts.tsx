@@ -262,7 +262,7 @@ export function ReportCharts({ report }: ReportChartsProps) {
       <article className="ui-section-card">
         <h2 className="text-xl font-black text-[var(--foreground)]">Mapa de calor de la red</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Ocupación media por día de la semana y hora. Cuanto más clara es la celda, mayor ocupación media (más tensión de la red).
+          Ocupación media por día de la semana y hora. Cuanto más clara es la celda, mayor ocupación media (más estaciones llenas y menos huecos libres).
         </p>
         <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--secondary)] p-3">
           {hasHeatmap ? (
