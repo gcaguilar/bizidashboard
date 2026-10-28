@@ -7,7 +7,6 @@
  * de semanas/meses y se puede probar el cambio de hora sin mocks.
  */
 
-import { getCitizenStatus } from '@/lib/map-colors';
 import { distanceMeters } from '@/lib/nearest-station';
 import { median } from '@/lib/stats';
 import { isValidMonthKey, previousMonthKey } from '@/lib/months';
@@ -15,7 +14,9 @@ import { TIMEZONE } from '@/lib/timezone';
 import type {
   SocialDistrictDemandRow,
   SocialDistrictFrictionRow,
+  SocialBikeSample,
   SocialDistrictStats,
+  SocialDroppingStation,
   SocialEveningStationProfile,
   SocialMorningStationProfile,
   SocialNearbyAlternative,
@@ -673,7 +674,7 @@ function buildCohort<T extends SocialStationCandidate>(
   stations: readonly T[],
   profiles: ReadonlyArray<{ stationId: string; share: number }>,
   cohortSize: number
-): { cohort: T[]; shareOf: (station: T) => number } {
+): { cohort: T[]; shareOf: (station: T) => number; hasProfiles: boolean } {
   const stationById = new Map(stations.map((station) => [station.id, station]));
   const profileById = new Map<string, { stationId: string; share: number }>();
   for (const profile of profiles) {
@@ -686,6 +687,7 @@ function buildCohort<T extends SocialStationCandidate>(
     return {
       cohort: [...stations].sort((left, right) => compareText(left.id, right.id)),
       shareOf: () => 0,
+      hasProfiles: false,
     };
   }
 
@@ -704,6 +706,7 @@ function buildCohort<T extends SocialStationCandidate>(
       .map((profile) => stationById.get(profile.stationId))
       .filter((station): station is T => station !== undefined),
     shareOf: (station) => shareByStation.get(station.id) ?? 0,
+    hasProfiles: true,
   };
 }
 
@@ -726,7 +729,7 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
 }): SocialStationSelection<T> {
   const limit = Math.max(1, Math.trunc(input.limit ?? 3));
   const cohortSize = Math.max(limit, Math.trunc(input.cohortSize ?? 40));
-  const { cohort, shareOf: emptyShare } = buildCohort(
+  const { cohort, shareOf: emptyShare, hasProfiles } = buildCohort(
     input.stations,
     (input.profiles ?? []).map((profile) => ({
       stationId: profile.stationId,
@@ -748,12 +751,17 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
     return { mode: 'empty', stations: emptyStations.slice(0, limit) };
   }
 
+  // Pocas bicis = quedan 1 o 2. (`getCitizenStatus` tambien marca "low" una
+  // estacion llena con pocos huecos, que en la manana no es un problema.)
   const lowStations = cohort
-    .filter((station) => getCitizenStatus(station).level === 'low')
+    .filter(
+      (station) =>
+        station.capacity > 0 && station.bikesAvailable > 0 && station.bikesAvailable < 3
+    )
     .sort(
       (left, right) =>
         left.bikesAvailable - right.bikesAvailable ||
-        left.anchorsFree - right.anchorsFree ||
+        emptyShare(right) - emptyShare(left) ||
         compareText(left.id, right.id)
     );
 
@@ -761,7 +769,12 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
     return { mode: 'low', stations: lowStations.slice(0, limit) };
   }
 
-  return { mode: 'none', stations: [] };
+  // Buenas noticias concretas: las habituales, con las bicis que tienen ahora.
+  // Sin perfil historico no hay "habituales", asi que no se inventa la lista.
+  return {
+    mode: 'none',
+    stations: hasProfiles ? cohort.slice(0, limit) : [],
+  };
 }
 
 /**
@@ -869,4 +882,105 @@ export function findNearbyAlternative<
     distanceMeters: Math.max(10, Math.round(best.meters / 10) * 10),
     available: availableOf(best.station),
   };
+}
+
+const DROP_WINDOW_MINUTES = 30;
+const DROP_MIN_SPAN_MINUTES = 20;
+const DROP_MIN_BIKES_LOST = 3;
+const DROP_MAX_BIKES_LEFT = 8;
+const DROP_MAX_MINUTES_TO_EMPTY = 30;
+
+/**
+ * Estaciones que estan perdiendo bicis deprisa, medido sobre lecturas reales de
+ * la ultima media hora. Es un hecho observado ("de 9 a 3 bicis en 28 min"), no
+ * una prediccion: la story dura 24 h y una promesa de futuro caducaria en
+ * minutos. Una estacion cuenta si perdio al menos 3 bicis, le quedan 8 o menos
+ * y, al ritmo observado, se quedaria sin ellas en 30 min o menos. Las que ya
+ * estan vacias no entran: tienen su propio hecho.
+ */
+export function findDroppingStations<T extends SocialStationCandidate>(input: {
+  stations: readonly T[];
+  samples: readonly SocialBikeSample[];
+  now: Date;
+  limit?: number;
+}): SocialDroppingStation[] {
+  const nowMs = input.now.getTime();
+  const limit = Math.max(1, Math.trunc(input.limit ?? 3));
+  const samplesByStation = new Map<string, Array<{ ms: number; bikes: number }>>();
+
+  for (const sample of input.samples) {
+    const ms = Date.parse(sample.recordedAt);
+    if (
+      !Number.isFinite(ms) ||
+      ms > nowMs ||
+      ms < nowMs - DROP_WINDOW_MINUTES * 60_000 ||
+      !Number.isFinite(sample.bikesAvailable)
+    ) {
+      continue;
+    }
+
+    const list = samplesByStation.get(sample.stationId) ?? [];
+    list.push({ ms, bikes: sample.bikesAvailable });
+    samplesByStation.set(sample.stationId, list);
+  }
+
+  const dropping: Array<SocialDroppingStation & { minutesToEmpty: number }> = [];
+
+  for (const station of input.stations) {
+    const bikesNow = station.bikesAvailable;
+    const samples = samplesByStation.get(station.id);
+    if (!samples || samples.length < 3 || !(bikesNow >= 1) || bikesNow > DROP_MAX_BIKES_LEFT) {
+      continue;
+    }
+
+    const first = samples.reduce((earliest, entry) => (entry.ms < earliest.ms ? entry : earliest));
+    const span = (nowMs - first.ms) / 60_000;
+    const lost = first.bikes - bikesNow;
+    if (span < DROP_MIN_SPAN_MINUTES || lost < DROP_MIN_BIKES_LOST) {
+      continue;
+    }
+
+    const minutesToEmpty = bikesNow / (lost / span);
+    if (minutesToEmpty > DROP_MAX_MINUTES_TO_EMPTY) {
+      continue;
+    }
+
+    dropping.push({
+      stationId: station.id,
+      name: station.name,
+      bikesBefore: first.bikes,
+      bikesNow,
+      minutes: Math.round(span),
+      minutesToEmpty,
+    });
+  }
+
+  return dropping
+    .sort(
+      (left, right) =>
+        left.minutesToEmpty - right.minutesToEmpty ||
+        right.bikesBefore - right.bikesNow - (left.bikesBefore - left.bikesNow) ||
+        compareText(left.stationId, right.stationId)
+    )
+    .slice(0, limit)
+    .map(({ minutesToEmpty: _ignored, ...entry }) => entry);
+}
+
+/**
+ * El modelo historico solo puede frenar una alerta: si su backtest es fiable y
+ * espera que la estacion mantenga (o recupere) sus bicis a 30 min, la bajada
+ * observada se descarta como ruido. Sin modelo fiable, manda lo observado.
+ */
+export function modelContradictsDrop(
+  point: { predictedBikesAvailable: number | null } | null | undefined,
+  reliable: boolean,
+  bikesNow: number
+): boolean {
+  return (
+    reliable &&
+    point !== null &&
+    point !== undefined &&
+    point.predictedBikesAvailable !== null &&
+    point.predictedBikesAvailable >= bikesNow
+  );
 }

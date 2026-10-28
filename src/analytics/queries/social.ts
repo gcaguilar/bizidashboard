@@ -88,6 +88,32 @@ export async function getWeekdayMorningProfiles(
   }));
 }
 
+export type RecentBikeSampleRow = {
+  stationId: string;
+  /** Instante de la lectura, en ISO UTC. */
+  recordedAt: string;
+  bikesAvailable: number;
+};
+
+/**
+ * Lecturas de bicis de todas las estaciones desde `since`, para medir el ritmo
+ * de bajada de la ultima media hora. Una sola consulta por el indice
+ * `(stationId, recordedAt)`; la logica de ritmo vive en `src/lib/social/data.ts`.
+ */
+export async function getRecentBikeSamples(since: Date): Promise<RecentBikeSampleRow[]> {
+  const rows = await prisma.stationStatus.findMany({
+    where: { recordedAt: { gte: since } },
+    select: { stationId: true, recordedAt: true, bikesAvailable: true },
+    orderBy: [{ stationId: 'asc' }, { recordedAt: 'asc' }],
+  });
+
+  return rows.map((row) => ({
+    stationId: row.stationId,
+    recordedAt: row.recordedAt.toISOString(),
+    bikesAvailable: row.bikesAvailable,
+  }));
+}
+
 export type WeekdayEveningProfileRow = {
   stationId: string;
   /** Dia ISO: 1 = lunes ... 5 = viernes. */

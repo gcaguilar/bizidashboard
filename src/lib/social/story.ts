@@ -46,6 +46,7 @@ import type {
   SocialCarouselSlide,
   SocialCause,
   SocialDistrictStats,
+  SocialDroppingStation,
   SocialEveningStationProfile,
   SocialMorningStationProfile,
   SocialNearbyAlternative,
@@ -135,6 +136,8 @@ export type SocialMorningStoryInput = {
   profiles?: readonly SocialMorningStationProfile[];
   /** Estacion cercana con bicis para quien encuentra la suya vacia. */
   alternative?: SocialNearbyAlternative | null;
+  /** Estaciones que pierden bicis deprisa (hecho observado, no prediccion). */
+  dropping?: readonly SocialDroppingStation[];
   network: SocialNetworkContext;
   cause?: SocialCause | null;
   /** Hora real de la foto de datos; por defecto, 08:30. */
@@ -205,7 +208,36 @@ function habitualFact(
   return null;
 }
 
+function droppingFact(dropping: readonly SocialDroppingStation[] | undefined): SocialStoryFact | null {
+  const items = (dropping ?? []).slice(0, 3);
+  if (items.length === 0) {
+    return null;
+  }
+
+  // Siempre en pasado y con la ventana real: la story se lee horas despues.
+  return {
+    label: 'Bajando rápido',
+    value: items
+      .map(
+        (entry) =>
+          `${normalize(entry.name)}: de ${formatInteger(entry.bikesBefore)} a ${bikesLabel(entry.bikesNow)} en ${formatInteger(entry.minutes)} min`
+      )
+      .join(' · '),
+  };
+}
+
 function morningStationFact(selection: SocialStationSelection<SocialStationCandidate>): SocialStoryFact {
+  // Buenas noticias concretas: las habituales, con las bicis que tienen ahora.
+  if (selection.mode === 'none' && selection.stations.length > 0) {
+    return {
+      label: 'Estaciones que suelen vaciarse',
+      value: selection.stations
+        .slice(0, 3)
+        .map((station) => `${normalize(station.name)} (${bikesLabel(station.bikesAvailable)})`)
+        .join(' · '),
+    };
+  }
+
   if (selection.stations.length === 0) {
     return {
       label: 'Estaciones que suelen vaciarse',
@@ -255,7 +287,7 @@ function morningHeadline(selection: SocialStationSelection<SocialStationCandidat
  * Story de las 08:30. Un solo mensaje: hay bicis o no en las estaciones que
  * suelen vaciarse. Titular segun el modo de seleccion (sin bicis, pocas bicis
  * o ninguna), una alternativa cercana con bicis, el aviso de dia especial si
- * lo hay, cuanto suele pasar y contexto de red (lo ultimo: el render solo
+ * lo hay, las estaciones que bajan deprisa, cuanto suele pasar y contexto de red (lo ultimo: el render solo
  * pinta 4 hechos, asi que en un dia especial la red es lo que se cae). Sin distritos ni barras:
  * a esa hora nadie busca un ranking. Devuelve `null` si no hay ni estaciones
  * ni red.
@@ -274,6 +306,7 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
     morningStationFact(input.selection),
     alternativeFact(input.selection, input.alternative),
     todayFact(input.cause),
+    droppingFact(input.dropping),
     habitualFact(input.selection, input.profiles),
     networkFact(network),
   ]);

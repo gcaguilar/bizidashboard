@@ -270,6 +270,23 @@ export type SocialNearbyAlternative = {
   available: number;
 };
 
+/** Lectura reciente de bicis de una estacion (para medir el ritmo de bajada). */
+export type SocialBikeSample = {
+  stationId: string;
+  recordedAt: string;
+  bikesAvailable: number;
+};
+
+/** Estacion que pierde bicis deprisa: dato observado, no una prediccion. */
+export type SocialDroppingStation = {
+  stationId: string;
+  name: string;
+  bikesBefore: number;
+  bikesNow: number;
+  /** Minutos reales entre la primera lectura de la ventana y la actual. */
+  minutes: number;
+};
+
 export type SocialMorningStationProfile = {
   stationId: string;
   /** Proporcion de horas agregadas con `bikesMax <= 0`. */

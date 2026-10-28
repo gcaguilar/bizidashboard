@@ -175,6 +175,43 @@ describe('morning story', () => {
     expect(story?.facts[1]?.label).toBe('Dónde coger bici cerca');
   });
 
+  it('lists the usual stations with their bikes when nothing is wrong', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('none', [
+        station('s1', 'Plaza España', 7),
+        station('s2', 'Independencia', 5),
+      ]),
+      network,
+    });
+
+    expect(story?.headline).toBe('Hay bicis en las estaciones que suelen vaciarse');
+    expect(story?.facts[0]).toEqual({
+      label: 'Estaciones que suelen vaciarse',
+      value: 'Plaza España (7 bicis) · Independencia (5 bicis)',
+    });
+    expect(story?.accent).toBe('#0f766e');
+  });
+
+  it('adds stations that are dropping fast as an observed fact with its window', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('none', [station('s1', 'Plaza España', 7)]),
+      dropping: [
+        { stationId: 's3', name: 'Gran Vía', bikesBefore: 9, bikesNow: 3, minutes: 28 },
+        { stationId: 's4', name: 'Universidad', bikesBefore: 6, bikesNow: 1, minutes: 30 },
+      ],
+      network,
+    });
+
+    expect(story?.facts).toContainEqual({
+      label: 'Bajando rápido',
+      value: 'Gran Vía: de 9 a 3 bicis en 28 min · Universidad: de 6 a 1 bici en 30 min',
+    });
+    // Es un hecho pasado, nunca una promesa de futuro.
+    expect(JSON.stringify(story?.facts)).not.toMatch(/se vaciar|se quedar/iu);
+  });
+
   it('announces a special day right after the availability facts', () => {
     const story = buildMorningStory({
       dateKey: '2026-10-12',

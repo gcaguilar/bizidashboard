@@ -5,6 +5,7 @@ import {
   aggregateDistrictStats,
   evaluateHourlyActivityAnomaly,
   evaluateRobustAnomaly,
+  findDroppingStations,
   findNearbyAlternative,
   getCompletedWeeksRange,
   getIsoWeekday,
@@ -16,6 +17,7 @@ import {
   getSlotDueAt,
   getWeekRange,
   isSocialSlotDue,
+  modelContradictsDrop,
   selectEveningStations,
   selectMorningStations,
   startOfWeek,
@@ -368,6 +370,110 @@ describe('morning station selection', () => {
     });
 
     expect(selection).toEqual({ mode: 'none', stations: [] });
+  });
+
+  it('shows the usual stations with their bikes when everything is fine', () => {
+    const selection = selectMorningStations({
+      stations: [station('a', 5, 10), station('b', 6, 6), station('e', 9, 3), station('z', 12, 8)],
+      profiles,
+      limit: 2,
+      cohortSize: 3,
+    });
+
+    expect(selection.mode).toBe('none');
+    // Las mas habituales primero (e 0.9, a 0.5), con sus bicis actuales.
+    expect(selection.stations.map((entry) => [entry.id, entry.bikesAvailable])).toEqual([
+      ['e', 9],
+      ['a', 5],
+    ]);
+  });
+
+  it('does not treat a nearly full station as low on bikes', () => {
+    const selection = selectMorningStations({
+      stations: [station('a', 18, 1), station('b', 17, 2), station('e', 20, 0.5)],
+      profiles,
+      limit: 3,
+    });
+
+    expect(selection.mode).toBe('none');
+    expect(selection.stations.every((entry) => entry.bikesAvailable >= 3)).toBe(true);
+  });
+});
+
+describe('stations dropping fast', () => {
+  const now = new Date('2026-10-27T07:30:00.000Z');
+  const at = (minutesAgo: number) => new Date(now.getTime() - minutesAgo * 60_000).toISOString();
+  const series = (stationId: string, bikes: number[]) =>
+    bikes.map((value, index) => ({
+      stationId,
+      recordedAt: at(30 - index * 10),
+      bikesAvailable: value,
+    }));
+
+  it('reports observed drops that would empty the station within half an hour', () => {
+    const dropping = findDroppingStations({
+      stations: [station('a', 3, 17), station('b', 9, 11), station('c', 0, 20)],
+      samples: [
+        ...series('a', [9, 7, 5, 3]),
+        ...series('b', [10, 10, 9, 9]),
+        ...series('c', [6, 4, 2, 0]),
+      ],
+      now,
+    });
+
+    expect(dropping).toEqual([
+      { stationId: 'a', name: 'A', bikesBefore: 9, bikesNow: 3, minutes: 30 },
+    ]);
+  });
+
+  it('needs enough readings, enough span and a real drop', () => {
+    const base = { stations: [station('a', 2, 18)], now };
+
+    expect(findDroppingStations({ ...base, samples: series('a', [6, 2]).slice(0, 2) })).toEqual([]);
+    expect(
+      findDroppingStations({
+        ...base,
+        samples: [
+          { stationId: 'a', recordedAt: at(10), bikesAvailable: 6 },
+          { stationId: 'a', recordedAt: at(5), bikesAvailable: 4 },
+          { stationId: 'a', recordedAt: at(0), bikesAvailable: 2 },
+        ],
+      })
+    ).toEqual([]);
+    expect(findDroppingStations({ ...base, samples: series('a', [4, 3, 3, 2]) })).toEqual([]);
+  });
+
+  it('ignores stations with many bikes left or too slow to empty soon', () => {
+    const dropping = findDroppingStations({
+      stations: [station('a', 15, 5), station('b', 8, 12)],
+      samples: [...series('a', [25, 21, 18, 15]), ...series('b', [12, 11, 10, 8])],
+      now,
+    });
+
+    expect(dropping).toEqual([]);
+  });
+
+  it('orders by how soon they would empty and respects the limit', () => {
+    const dropping = findDroppingStations({
+      stations: [station('a', 4, 16), station('b', 2, 18), station('c', 3, 17)],
+      samples: [
+        ...series('a', [10, 8, 6, 4]),
+        ...series('b', [8, 6, 4, 2]),
+        ...series('c', [9, 7, 5, 3]),
+      ],
+      now,
+      limit: 2,
+    });
+
+    expect(dropping.map((entry) => entry.stationId)).toEqual(['b', 'c']);
+  });
+
+  it('only lets a reliable model veto a drop', () => {
+    expect(modelContradictsDrop({ predictedBikesAvailable: 6 }, true, 3)).toBe(true);
+    expect(modelContradictsDrop({ predictedBikesAvailable: 1 }, true, 3)).toBe(false);
+    expect(modelContradictsDrop({ predictedBikesAvailable: 6 }, false, 3)).toBe(false);
+    expect(modelContradictsDrop({ predictedBikesAvailable: null }, true, 3)).toBe(false);
+    expect(modelContradictsDrop(undefined, true, 3)).toBe(false);
   });
 });
 

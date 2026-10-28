@@ -8,15 +8,27 @@
  * `skipped` y no se publique informacion vieja.
  */
 
-import { getWeekdayMorningProfiles } from '@/analytics/queries/social';
+import { getRecentBikeSamples, getWeekdayMorningProfiles } from '@/analytics/queries/social';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { formatHourMinute } from '@/lib/format';
 import { logger } from '@/lib/logger';
 import { buildNetworkHealth } from '@/lib/network-health';
 import { getServiceCause } from '@/lib/service-calendar';
-import { findNearbyAlternative, getSlotDateKey, selectMorningStations } from '@/lib/social/data';
+import { isBacktestReliable } from '@/lib/prediction-backtest';
+import { getStationPredictions } from '@/lib/predictions';
+import {
+  findDroppingStations,
+  findNearbyAlternative,
+  getSlotDateKey,
+  modelContradictsDrop,
+  selectMorningStations,
+} from '@/lib/social/data';
 import { buildMorningStory } from '@/lib/social/story';
-import type { SocialNearbyAlternative, SocialStory } from '@/lib/social/types';
+import type {
+  SocialDroppingStation,
+  SocialNearbyAlternative,
+  SocialStory,
+} from '@/lib/social/types';
 
 import {
   aggregateMorningProfiles,
@@ -26,6 +38,38 @@ import {
   mapServiceCause,
 } from './mappers';
 import type { SocialSlotDataDeps } from './shared';
+
+const DROP_LOOKBACK_MS = 35 * 60_000;
+
+/**
+ * Descarta las bajadas que el modelo historico (con backtest fiable) no
+ * comparte. Es un filtro opcional: si el modelo falla o no es fiable, manda lo
+ * observado. Se pasa `now` para no depender de la cache compartida.
+ */
+async function confirmWithModel(
+  candidates: readonly SocialDroppingStation[],
+  now: Date
+): Promise<SocialDroppingStation[]> {
+  const confirmed: SocialDroppingStation[] = [];
+
+  for (const candidate of candidates) {
+    try {
+      const response = await getStationPredictions(candidate.stationId, now);
+      const point = response?.predictions.find((entry) => entry.horizonMinutes === 30);
+      if (modelContradictsDrop(point, isBacktestReliable(point?.backtest), candidate.bikesNow)) {
+        continue;
+      }
+    } catch (error) {
+      logger.warn('social.morning_model_unavailable', {
+        stationId: candidate.stationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    confirmed.push(candidate);
+  }
+
+  return confirmed;
+}
 
 export async function runMorningSlot(
   deps: SocialSlotDataDeps
@@ -44,7 +88,11 @@ export async function runMorningSlot(
     return null;
   }
 
-  const profiles = aggregateMorningProfiles(await getWeekdayMorningProfiles());
+  const [profileRows, bikeSamples] = await Promise.all([
+    getWeekdayMorningProfiles(),
+    getRecentBikeSamples(new Date(now.getTime() - DROP_LOOKBACK_MS)),
+  ]);
+  const profiles = aggregateMorningProfiles(profileRows);
 
   const selection = selectMorningStations({
     stations,
@@ -62,6 +110,13 @@ export async function runMorningSlot(
       break;
     }
   }
+
+  // Bajando deprisa: lecturas reales de la ultima media hora, filtradas por el
+  // modelo solo si este es fiable y no las comparte.
+  const dropping = await confirmWithModel(
+    findDroppingStations({ stations, samples: bikeSamples, now, limit: 3 }),
+    now
+  );
 
   // La story muestra la hora real de la foto de datos, no la hora del cron.
   const latestRecordedAt = getLatestRecordedAt(stations);
@@ -84,6 +139,7 @@ export async function runMorningSlot(
     selection,
     profiles,
     alternative,
+    dropping,
     network,
     cause: mapServiceCause(getServiceCause(dateKey)),
     dataWindow,
