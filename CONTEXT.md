@@ -140,15 +140,16 @@ These names describe modules that own behaviour behind a small interface.
   page once, stores the result and returns it. The seal job warms the newest
   closed months; older months fill in on their first download.
 - **Social daily agent module** (`src/lib/social/*`, `src/jobs/social/*`) — the
-  deterministic four-slot publisher for Instagram through Buffer: morning and
-  afternoon stories, a Monday carousel and a first-of-month carousel. The
+  deterministic five-slot publisher for Instagram through Buffer: morning,
+  midday and afternoon stories, a Monday carousel and a first-of-month carousel. The
   `src/lib/social/*` files own the pure domain (config, aggregation, Spanish
   copy, render, media/Buffer ports, state contract); `src/jobs/social/*` are the
   adapters that read analytics and assemble each slot, with `shared.ts` owning
   the claim → render → upload → publish → mark lifecycle. State is a local
   SQLite file behind `StateStore` (never Postgres writes), images go to
   tmpfiles and posts to Buffer. The single entry seam is `runSocialSlot(...)`;
-  the four Sentry cron monitors are `social-morning`, `social-afternoon`,
+  the five Sentry cron monitors are `social-morning`, `social-midday`,
+  `social-afternoon`,
   `social-weekly` and `social-monthly`. Failures skip and report, never publish
   stale data, and a stale `publishing` row is never reclaimed automatically.
 

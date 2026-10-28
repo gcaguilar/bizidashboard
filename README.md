@@ -129,8 +129,8 @@ When a city container starts, it automatically executes `SET search_path TO "cit
 `social-zaragoza` is an optional service built from its own `social.Dockerfile`,
 which runs a single command (`bun scripts/start-social.mjs`). It publishes
 deterministic Spanish content through Buffer with no LLM and no approval step:
-two stories per day (08:30 and 18:30 Europe/Madrid), a district carousel on
-Mondays (09:00) and the monthly report carousel on day 1 (10:00).
+three stories per day (08:30, 13:00 and 18:30 Europe/Madrid), a district
+carousel on Mondays (09:00) and the monthly report carousel on day 1 (10:00).
 
 - **Enable**: production must set `SOCIAL_ENABLED=1`. The compose default is
   `${SOCIAL_ENABLED:-false}`, so a plain `docker compose up` does not start the
@@ -147,17 +147,17 @@ Mondays (09:00) and the monthly report carousel on day 1 (10:00).
   schema and the analytics windows depend on them.
 - **Channel discovery**: `bun run social:discover` prints the Buffer
   organizations and channels without publishing.
-- **Preview**: `bun run social:preview --slot morning|afternoon|weekly|monthly
+- **Preview**: `bun run social:preview --slot morning|midday|afternoon|weekly|monthly
   [--date YYYY-MM-DD] [--out DIR]`. Images default to `.tmp/social`; the command
   reads analytics but never uploads or publishes.
 - **State**: SQLite in the `social-state` volume
   (`/app/data/social.sqlite`), single replica only. Analytics comes from
   Postgres read-only; the agent never writes to Postgres.
-- **Scheduling and catch-up**: all four cron jobs use `runOnInit: false`; on
+- **Scheduling and catch-up**: all five cron jobs use `runOnInit: false`; on
   startup a missed slot is recovered only within `SOCIAL_CATCHUP_MINUTES`
   (120 by default) after its time.
-- **Monitors**: `social-morning`, `social-afternoon`, `social-weekly` and
-  `social-monthly` in Sentry. The alert rules are an operational step, not
+- **Monitors**: `social-morning`, `social-midday`, `social-afternoon`,
+  `social-weekly` and `social-monthly` in Sentry. The alert rules are an operational step, not
   created by code.
 - **Failure policy**: stale data, an unready monthly report, a failed
   upload/preflight or a Buffer error skip or error the slot and report to

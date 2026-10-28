@@ -31,6 +31,7 @@ import {
   SOCIAL_AFTERNOON_WINDOW,
   SOCIAL_FEED_CTA,
   SOCIAL_FEED_FOOTER,
+  SOCIAL_MIDDAY_WINDOW,
   SOCIAL_MORNING_WINDOW,
   SOCIAL_STORY_FOOTER,
 } from '@/lib/social/copy';
@@ -749,6 +750,120 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
         ? bars
         : undefined,
     barsLabel: BARS_LABEL,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mediodía                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export type SocialMiddayStoryInput = {
+  dateKey: string;
+  /** Estaciones que suelen vaciarse (donde coger bici). */
+  emptyStations: SocialStationSelection<SocialStationCandidate>;
+  /** Estaciones que suelen llenarse (donde dejar la bici). */
+  fullStations: SocialStationSelection<SocialStationCandidate>;
+  /** Estacion cercana con bicis para quien encuentra la suya vacia. */
+  bikesAlternative?: SocialNearbyAlternative | null;
+  /** Estacion cercana con huecos para quien encuentra la suya llena. */
+  anchorsAlternative?: SocialNearbyAlternative | null;
+  network: SocialNetworkContext;
+  cause?: SocialCause | null;
+  /** Hora real de la foto de datos; por defecto, 13:00. */
+  dataWindow?: string;
+};
+
+function hasEmptyProblem(selection: SocialStationSelection<SocialStationCandidate>): boolean {
+  return selection.stations.length > 0 && (selection.mode === 'empty' || selection.mode === 'low');
+}
+
+function hasFullProblem(selection: SocialStationSelection<SocialStationCandidate>): boolean {
+  return selection.stations.length > 0 && (selection.mode === 'full' || selection.mode === 'low');
+}
+
+function middayHeadline(
+  empty: SocialStationSelection<SocialStationCandidate>,
+  full: SocialStationSelection<SocialStationCandidate>
+): string {
+  const emptyProblem = hasEmptyProblem(empty);
+  const fullProblem = hasFullProblem(full);
+
+  if (emptyProblem && fullProblem) {
+    const emptyCount = empty.stations.length;
+    const fullCount = full.stations.length;
+    const emptyState = empty.mode === 'empty' ? 'sin bicis' : 'con pocas bicis';
+    const fullState = full.mode === 'full' ? 'sin huecos' : 'con pocos huecos';
+
+    return `${formatInteger(emptyCount)} ${pluralize(emptyCount, 'estación habitual', 'estaciones habituales')} ${emptyState} y ${formatInteger(fullCount)} ${fullState}`;
+  }
+
+  if (emptyProblem) {
+    return morningHeadline(empty);
+  }
+
+  if (fullProblem) {
+    return fullHeadline(full);
+  }
+
+  return 'Hay bicis y huecos en las estaciones habituales';
+}
+
+/**
+ * Story de las 13:00. Un solo mensaje con las dos caras de la hora: donde
+ * coger bici (estaciones que suelen vaciarse) y donde dejarla (las que suelen
+ * llenarse), cada una con su alternativa cercana. Titular segun cuales tengan
+ * problema ahora. Devuelve `null` si no hay ni estaciones ni red.
+ */
+export function buildMiddayStory(input: SocialMiddayStoryInput): SocialStory | null {
+  const network = input.network;
+  const emptyProblem = hasEmptyProblem(input.emptyStations);
+  const fullProblem = hasFullProblem(input.fullStations);
+
+  if (!emptyProblem && !fullProblem && network.totalStations <= 0) {
+    return null;
+  }
+
+  const framing = getDayFraming(input.dateKey);
+  const dataWindow = input.dataWindow ?? SOCIAL_MIDDAY_WINDOW;
+  const facts = compactFacts([
+    usualEmptyFact(input.emptyStations),
+    emptyProblem ? alternativeFact(input.emptyStations, input.bikesAlternative) : null,
+    usualFullFact(input.fullStations),
+    fullProblem ? alternativeFact(input.fullStations, input.anchorsAlternative) : null,
+    todayFact(input.cause),
+    networkFact(network),
+  ]);
+
+  const headline = middayHeadline(input.emptyStations, input.fullStations);
+  const hard =
+    (emptyProblem && input.emptyStations.mode === 'empty') ||
+    (fullProblem && input.fullStations.mode === 'full');
+  const accent = hard ? ACCENT_RED : emptyProblem || fullProblem ? ACCENT_AMBER : ACCENT_TEAL;
+
+  return {
+    slot: 'midday',
+    family: 'daily-story',
+    dateKey: input.dateKey,
+    headline,
+    facts,
+    footer: SOCIAL_STORY_FOOTER,
+    caption: buildStoryText({
+      slot: 'midday',
+      dateKey: input.dateKey,
+      headline,
+      dataWindow,
+    }),
+    altText: buildSocialAltText({
+      kind: 'story',
+      slot: 'midday',
+      dateKey: input.dateKey,
+      headline,
+      facts,
+      dataWindow,
+      cause: input.cause,
+    }),
+    kicker: `${framing.middayKicker} · ${dataWindow}`,
+    accent,
   };
 }
 

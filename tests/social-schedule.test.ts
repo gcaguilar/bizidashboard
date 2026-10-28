@@ -21,6 +21,7 @@ describe('social slot keys', () => {
   it('uses the local day for daily slots', () => {
     const lateUtc = new Date('2026-10-27T23:30:00.000Z');
     expect(getSlotDateKey('morning', lateUtc, TZ)).toBe('2026-10-28');
+    expect(getSlotDateKey('midday', lateUtc, TZ)).toBe('2026-10-28');
     expect(getSlotDateKey('afternoon', lateUtc, TZ)).toBe('2026-10-28');
   });
 
@@ -46,10 +47,13 @@ describe('social slot keys', () => {
 });
 
 describe('social catch-up window', () => {
-  it('schedules the four slots at their documented local times', () => {
+  it('schedules the slots at their documented local times', () => {
     const tuesday = new Date('2026-10-27T12:00:00.000Z');
     expect(getSlotDueAt('morning', tuesday, TZ).toISOString()).toBe(
       '2026-10-27T07:30:00.000Z'
+    );
+    expect(getSlotDueAt('midday', tuesday, TZ).toISOString()).toBe(
+      '2026-10-27T12:00:00.000Z'
     );
     expect(getSlotDueAt('afternoon', tuesday, TZ).toISOString()).toBe(
       '2026-10-27T17:30:00.000Z'

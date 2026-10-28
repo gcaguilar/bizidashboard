@@ -6,7 +6,7 @@
  * copy, render y publicacion.
  */
 
-export type SocialSlot = 'morning' | 'afternoon' | 'weekly' | 'monthly';
+export type SocialSlot = 'morning' | 'midday' | 'afternoon' | 'weekly' | 'monthly';
 
 /**
  * Familia editorial del post. `slot` decide cuando se publica; `family` agrupa
@@ -16,6 +16,7 @@ export type SocialFamily = 'daily-story' | 'weekly-carousel' | 'monthly-carousel
 
 export const SOCIAL_SLOTS: readonly SocialSlot[] = [
   'morning',
+  'midday',
   'afternoon',
   'weekly',
   'monthly',
@@ -23,6 +24,7 @@ export const SOCIAL_SLOTS: readonly SocialSlot[] = [
 
 export const SOCIAL_SLOT_FAMILY: Record<SocialSlot, SocialFamily> = {
   morning: 'daily-story',
+  midday: 'daily-story',
   afternoon: 'daily-story',
   weekly: 'weekly-carousel',
   monthly: 'monthly-carousel',

@@ -1,7 +1,7 @@
 /**
  * Proceso standalone del agente social.
  *
- * Registra los cuatro cron jobs (manana, tarde, semanal, mensual) en su propio
+ * Registra los cinco cron jobs (manana, mediodia, tarde, semanal, mensual) en su propio
  * contenedor/proceso. Deliberadamente no arranca la recoleccion GBFS ni la
  * agregacion de analitica: esas viven en `src/jobs/standalone.ts`.
  *
@@ -39,6 +39,7 @@ import {
 
 import { defineCronJob, type CronJob } from '@/jobs/cron-job';
 import { runAfternoonSlot } from './social/afternoon';
+import { runMiddaySlot } from './social/midday';
 import { runMonthlySlot } from './social/monthly';
 import { runMorningSlot } from './social/morning';
 import { shouldRunCatchup, runSocialSlot, toSocialErrorMessage } from './social/shared';
@@ -66,6 +67,8 @@ function createSlotBuild(
     switch (slot) {
       case 'morning':
         return runMorningSlot({ now, config });
+      case 'midday':
+        return runMiddaySlot({ now, config });
       case 'afternoon':
         return runAfternoonSlot({ now, config });
       case 'weekly':

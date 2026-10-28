@@ -25,7 +25,7 @@ import { renderSocialContent } from '@/lib/social/render';
 import { SOCIAL_SLOTS, type SocialSlot } from '@/lib/social/types';
 
 const USAGE =
-  'Uso: bun scripts/social-preview.ts --slot morning|afternoon|weekly|monthly [--date YYYY-MM-DD] [--out DIR] (por defecto .tmp/social)';
+  'Uso: bun scripts/social-preview.ts --slot morning|midday|afternoon|weekly|monthly [--date YYYY-MM-DD] [--out DIR] (por defecto .tmp/social)';
 
 type PreviewOptions = {
   slot: SocialSlot;
@@ -103,6 +103,8 @@ async function buildPreview(
   switch (slot) {
     case 'morning':
       return (await import('@/jobs/social/morning')).runMorningSlot(deps);
+    case 'midday':
+      return (await import('@/jobs/social/midday')).runMiddaySlot(deps);
     case 'afternoon':
       return (await import('@/jobs/social/afternoon')).runAfternoonSlot(deps);
     case 'weekly':

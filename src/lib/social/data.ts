@@ -38,6 +38,7 @@ export const SOCIAL_SLOT_SCHEDULE: Record<
   { hour: number; minute: number; cron: string }
 > = {
   morning: { hour: 8, minute: 30, cron: '30 8 * * *' },
+  midday: { hour: 13, minute: 0, cron: '0 13 * * *' },
   afternoon: { hour: 18, minute: 30, cron: '30 18 * * *' },
   weekly: { hour: 9, minute: 0, cron: '0 9 * * 1' },
   monthly: { hour: 10, minute: 0, cron: '0 10 1 * *' },

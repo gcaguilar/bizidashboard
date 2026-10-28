@@ -46,6 +46,7 @@ export const SOCIAL_STORY_TEXT_MAX_LENGTH = 280;
 
 /** Hora de la foto de datos de la story de la mañana (la ventana real se pasa en el input). */
 export const SOCIAL_MORNING_WINDOW = '08:30';
+export const SOCIAL_MIDDAY_WINDOW = '13:00';
 export const SOCIAL_AFTERNOON_WINDOW = '17:00–18:30';
 
 const SPANISH_LOCALE = 'es-ES';
@@ -138,6 +139,7 @@ export function isWeekendDateKey(dateKey: string): boolean {
 export type SocialDayFraming = {
   isWeekend: boolean;
   morningKicker: string;
+  middayKicker: string;
   afternoonKicker: string;
   /** Etiqueta corta para captions y alt text. */
   label: 'Fin de semana' | 'Entre semana';
@@ -154,6 +156,7 @@ export function getDayFraming(dateKey: string): SocialDayFraming {
   return {
     isWeekend: weekend,
     morningKicker: weekend ? 'Bizi este fin de semana' : 'Bizi esta mañana',
+    middayKicker: weekend ? 'Bizi este fin de semana · mediodía' : 'Bizi a mediodía',
     afternoonKicker: weekend ? 'Bizi este fin de semana · tarde' : 'Bizi esta tarde',
     label: weekend ? 'Fin de semana' : 'Entre semana',
   };
@@ -214,8 +217,14 @@ export function buildFeedCaption(input: FeedCaptionInput): string {
   return [safeBody, safeTail].filter(Boolean).join('\n\n').slice(0, SOCIAL_CAPTION_MAX_LENGTH);
 }
 
+const STORY_SLOT_LABEL: Record<StoryTextInput['slot'], string> = {
+  morning: 'Story de la mañana',
+  midday: 'Story del mediodía',
+  afternoon: 'Story de la tarde',
+};
+
 export type StoryTextInput = {
-  slot: Extract<SocialSlot, 'morning' | 'afternoon'>;
+  slot: Extract<SocialSlot, 'morning' | 'midday' | 'afternoon'>;
   dateKey: string;
   headline: string;
   dataWindow: string;
@@ -227,7 +236,7 @@ export type StoryTextInput = {
  * imagen.
  */
 export function buildStoryText(input: StoryTextInput): string {
-  const slotLabel = input.slot === 'morning' ? 'Story de la mañana' : 'Story de la tarde';
+  const slotLabel = STORY_SLOT_LABEL[input.slot];
   const text = [
     slotLabel,
     formatSocialDateLabel(input.dateKey),

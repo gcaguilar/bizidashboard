@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildAfternoonStory,
+  buildMiddayStory,
   buildMonthlyCarousel,
   buildMorningStory,
   buildWeeklyCarousel,
@@ -629,6 +630,103 @@ describe('opposite side of each daily story', () => {
     });
 
     expect(story.facts.some((fact) => fact.label === 'Estaciones que suelen vaciarse')).toBe(false);
+  });
+});
+
+describe('midday story', () => {
+  const base = { dateKey: '2026-10-27', network } as const;
+  const empty = (id: string, name: string) => station(id, name, 0);
+  const full = (id: string, name: string) => ({ ...station(id, name, 20, 0), anchorsFree: 0 });
+
+  it('puts both sides in one story when both have problems', () => {
+    const story = buildMiddayStory({
+      ...base,
+      emptyStations: selection('empty', [empty('s1', 'Plaza España'), empty('s2', 'Delicias')]),
+      fullStations: selection('full', [full('s3', 'Universidad')]),
+      bikesAlternative: {
+        fromStationId: 's1',
+        name: 'Independencia',
+        kind: 'bikes',
+        distanceMeters: 280,
+        available: 8,
+      },
+      anchorsAlternative: {
+        fromStationId: 's3',
+        name: 'Gran Vía',
+        kind: 'anchors',
+        distanceMeters: 190,
+        available: 12,
+      },
+    });
+
+    expect(story?.slot).toBe('midday');
+    expect(story?.family).toBe('daily-story');
+    expect(story?.headline).toBe('2 estaciones habituales sin bicis y 1 sin huecos');
+    expect(story?.kicker).toBe('Bizi a mediodía · 13:00');
+    expect(story?.facts.map((fact) => fact.label)).toEqual([
+      'Estaciones que suelen vaciarse',
+      'Dónde coger bici cerca',
+      'Estaciones que suelen llenarse',
+      'Dónde dejar la bici cerca',
+      'En toda la red',
+    ]);
+    expect(story?.accent).toBe('#b91c1c');
+  });
+
+  it('falls back to the side that has a problem', () => {
+    const onlyEmpty = buildMiddayStory({
+      ...base,
+      emptyStations: selection('low', [{ ...station('s1', 'Plaza España', 2) }]),
+      fullStations: selection('none', []),
+    });
+    const onlyFull = buildMiddayStory({
+      ...base,
+      emptyStations: selection('none', []),
+      fullStations: selection('low', [{ ...station('s2', 'Universidad', 18), anchorsFree: 2 }]),
+    });
+
+    expect(onlyEmpty?.headline).toBe('1 estación que suele vaciarse, con pocas bicis');
+    expect(onlyEmpty?.facts[0]).toEqual({
+      label: 'Estaciones que suelen vaciarse',
+      value: 'Plaza España (2 bicis)',
+    });
+    expect(onlyEmpty?.accent).toBe('#b45309');
+    expect(onlyFull?.headline).toBe('1 estación que suele llenarse, con pocos huecos');
+    expect(onlyFull?.facts[0]).toEqual({
+      label: 'Estaciones que suelen llenarse',
+      value: 'Universidad (2 huecos)',
+    });
+  });
+
+  it('says all is well when neither side has a problem', () => {
+    const story = buildMiddayStory({
+      ...base,
+      emptyStations: selection('none', [station('s1', 'Plaza España', 7)]),
+      fullStations: selection('none', []),
+    });
+
+    expect(story?.headline).toBe('Hay bicis y huecos en las estaciones habituales');
+    expect(story?.accent).toBe('#0f766e');
+  });
+
+  it('uses the weekend framing and returns null without stations or network', () => {
+    const weekend = buildMiddayStory({
+      ...base,
+      dateKey: '2026-10-31',
+      emptyStations: selection('none', []),
+      fullStations: selection('none', []),
+    });
+
+    expect(weekend?.kicker).toBe('Bizi este fin de semana · mediodía · 13:00');
+    expect(weekend?.kicker).not.toMatch(COMMUTE_TERM);
+    expect(
+      buildMiddayStory({
+        dateKey: '2026-10-27',
+        emptyStations: selection('none', []),
+        fullStations: selection('none', []),
+        network: { ...network, totalStations: 0 },
+      })
+    ).toBeNull();
   });
 });
 
