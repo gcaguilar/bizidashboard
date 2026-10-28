@@ -29,9 +29,6 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 # Compile the jobs entrypoint once during image build so pm2 runs JS, not TS.
 RUN bun build src/jobs/standalone.ts --target=bun --outfile=/app/dist/jobs/standalone.js --packages=external
 
-# Entrypoint del agente social (mismo imagen, segundo servicio/CMD).
-RUN bun build src/jobs/social-standalone.ts --target=bun --outfile=/app/dist/jobs/social-standalone.js --packages=external
-
 # ── runner: minimal production image with pm2 ────────────────────────
 FROM oven/bun:1.4.4-slim AS runner
 WORKDIR /app
@@ -64,7 +61,6 @@ COPY --from=builder /app/ops/docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
 COPY --from=builder /app/ops/start-jobs.mjs /app/ops/start-jobs.mjs
 COPY --from=builder /app/ops/validate-env.mjs /app/ops/validate-env.mjs
-COPY --from=builder /app/scripts/start-social.mjs /app/scripts/start-social.mjs
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Prisma client resolution
@@ -75,5 +71,7 @@ RUN mkdir -p /app/node_modules/.prisma/client && \
 EXPOSE 3000
 
 # Docker/Coolify manages lifecycle; the process runs compiled JavaScript directly.
+# El agente social tiene su propia imagen (`social.Dockerfile`) con un CMD unico:
+# en esta imagen ya no hay selector de entrypoint que pueda arrancar otro proceso.
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["sh", "-c", "if [ \"${SOCIAL_ONLY:-0}\" = \"1\" ]; then echo social.image.compiled_entrypoint && exec bun scripts/start-social.mjs; else echo jobs.image.compiled_entrypoint && exec bun ops/start-jobs.mjs; fi"]
+CMD ["sh", "-c", "echo jobs.image.compiled_entrypoint && exec bun ops/start-jobs.mjs"]

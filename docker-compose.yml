@@ -243,17 +243,14 @@ services:
   social-zaragoza:
     build:
       context: .
-      dockerfile: jobs.Dockerfile
-    # Mismo imagen que los jobs, pero su propio proceso: solo los cuatro slots
-    # sociales. No se activa ENABLE_INTERNAL_JOBS.
-    # La imagen es la misma que la de jobs; SOCIAL_ONLY selecciona el entrypoint
-    # social dentro del CMD del Dockerfile. Asi Coolify no depende de que
-    # respete un `command` distinto al desplegar el recurso.
+      dockerfile: social.Dockerfile
+    # Imagen propia del agente social: un unico CMD (`bun scripts/start-social.mjs`)
+    # sin selector de entorno, sin entrypoint de migraciones y sin REDIS_URL.
+    # El estado vive en el SQLite del volumen `social-state`.
     environment:
-      - SOCIAL_ONLY=1
       - CITY=zaragoza
       - DATABASE_URL=${DATABASE_URL:-postgresql://bizi:bizi_password@postgres:5432/bizidashboard}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # Sin REDIS_URL: el agente social solo lee Postgres y escribe su SQLite.
       # Apagado por defecto: sin claves de Buffer, un `docker compose up`
       # arrancaria en bucle. Produccion debe definir SOCIAL_ENABLED=1.
       - SOCIAL_ENABLED=${SOCIAL_ENABLED:-false}
@@ -272,7 +269,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      # La imagen no ejecuta migraciones: espera a que el contenedor web las
+      # aplique (igual que los jobs) antes de leer analitica.
+      bizi-zaragoza:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
