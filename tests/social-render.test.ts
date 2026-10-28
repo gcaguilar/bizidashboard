@@ -11,7 +11,6 @@ import {
   SOCIAL_CAROUSEL_WIDTH,
   SOCIAL_STORY_HEIGHT,
   SOCIAL_STORY_WIDTH,
-  wrapSvgText,
 } from '@/lib/social/render';
 import type {
   SocialCarousel,
@@ -113,8 +112,8 @@ describe('social render', () => {
       accent: '#fff" onload="alert(1)',
     });
 
-    expect(svg).toContain('Plaza &lt;España&gt; &amp;');
-    expect(svg).toContain('Co &quot;centro&quot;');
+    expect(svg).toContain('Plaza &lt;España&gt;');
+    expect(svg).toContain('&amp; Co &quot;centro&quot;');
     expect(svg).toContain('&lt;B&gt;ESTACIÓN&lt;/B&gt;');
     expect(svg).toContain('&lt;script&gt;alert(1)&lt;/script&gt; &amp; más');
     expect(svg).not.toContain('<España>');
@@ -131,22 +130,62 @@ describe('social render', () => {
       5
     );
 
-    expect(svg).toContain('Delicias &lt;Centro&gt; &amp;');
-    expect(svg).toContain('más');
+    expect(svg).toContain('Delicias');
+    expect(svg).toContain('&lt;Centro&gt; &amp; más');
     expect(svg).toContain('3/5');
     expect(svg).toContain('datosbizi.com');
   });
 
-  it('wraps and truncates deterministically without overflowing', () => {
-    const lines = wrapSvgText(
-      'Una estación con un nombre larguísimo que no cabe en dos líneas de la tarjeta',
-      22,
-      2
+  it('never truncates long text: it wraps onto more lines instead', () => {
+    const value =
+      'Desde Plaza de los Sitios: Paseo de la Independencia - Plaza de Aragón, a unos 280 m (8 bicis)';
+    const svg = buildStorySvg({
+      ...story,
+      headline: 'Avenida de Navarra - Hospital Miguel Servet sin bicis',
+      kicker: 'Bizi este fin de semana · tarde · 17:00–18:30',
+      facts: [{ label: 'Dónde coger bici cerca', value }],
+    });
+
+    expect(svg).not.toContain('…');
+    // Todas las palabras del valor siguen en el SVG, repartidas en lineas.
+    for (const word of value.split(' ')) {
+      expect(svg).toContain(word.replace('&', '&amp;'));
+    }
+    expect(svg.match(/<text /g)!.length).toBeGreaterThan(8);
+  });
+
+  it('keeps every text inside the canvas and above the footer line', () => {
+    const svg = buildCarouselSlideSvg(
+      slide(0, {
+        kicker: 'Semana del 28 de diciembre de 2026 al 3 de enero de 2027',
+        headline: 'Avenida de Navarra - Hospital Miguel Servet: más horas sin bicis o huecos',
+        facts: Array.from({ length: 4 }, (_, index) => ({
+          label: `Estación con más horas sin bicis o sin huecos ${index}`,
+          value:
+            'Avenida de Navarra - Hospital Miguel Servet · Gran Vía - Fernando el Católico · 30%',
+        })),
+        bars: [],
+      })
     );
 
-    expect(lines).toHaveLength(2);
-    expect(lines[0]!.length).toBeLessThanOrEqual(22);
-    expect(lines[1]!.length).toBeLessThanOrEqual(22);
-    expect(lines[1]!.endsWith('…')).toBe(true);
+    const baselines = Array.from(svg.matchAll(/<text [^>]*y="(\d+)"/g)).map((m) => Number(m[1]));
+    const footerLine = Number(/<rect x="84" y="(\d+)" width="912" height="2"/.exec(svg)![1]);
+    const body = baselines.filter((y) => y < footerLine);
+
+    expect(Math.max(...body)).toBeLessThan(footerLine);
+    expect(svg).not.toContain('…');
+  });
+
+  it('keeps the latest months when a series has more bars than rows', () => {
+    const svg = buildCarouselSlideSvg(
+      slide(0, {
+        bars: ['a', 'b', 'c', 'd', 'e', 'f'].map((label, index) => ({
+          label,
+          value: 10 + index,
+        })),
+      })
+    );
+
+    expect(svg.match(/rx="8"/g)!.length).toBe(10);
   });
 });
