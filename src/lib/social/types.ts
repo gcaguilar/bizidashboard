@@ -305,6 +305,13 @@ export type SocialEveningStationProfile = {
   sampleCount?: number;
 };
 
+/**
+ * Perfil de una franja con las dos caras: cuanto suele estar sin bicis y sin
+ * huecos. Es asignable a los perfiles de manana y de tarde, que solo leen una.
+ */
+export type SocialStationProfile = SocialMorningStationProfile &
+  SocialEveningStationProfile;
+
 export type SocialStationSelection<T extends SocialStationCandidate> = {
   mode: SocialStationSelectionMode;
   stations: T[];

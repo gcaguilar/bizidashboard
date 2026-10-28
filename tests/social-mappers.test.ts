@@ -15,6 +15,7 @@ import type { RobustAnomaly } from '@/lib/social/data';
 import {
   aggregateEveningProfiles,
   aggregateMorningProfiles,
+  aggregateStationProfiles,
   filterCurrentEpisodes,
   getLatestBucketContext,
   getLatestMobilityBucketStart,
@@ -48,6 +49,21 @@ function mobilityRow(
     ...overrides,
   };
 }
+
+describe('aggregateStationProfiles', () => {
+  it('weights both shares by sampleCount and keeps them side by side', () => {
+    expect(
+      aggregateStationProfiles([
+        { stationId: 'A', isoWeekday: 1, hour: 12, emptyShare: 1, fullShare: 0, sampleCount: 10 },
+        { stationId: 'A', isoWeekday: 2, hour: 13, emptyShare: 0, fullShare: 0.5, sampleCount: 30 },
+        { stationId: 'B', isoWeekday: 1, hour: 12, emptyShare: 0, fullShare: 1, sampleCount: 4 },
+      ])
+    ).toEqual([
+      { stationId: 'A', emptyShare: 0.25, fullShare: 0.375, sampleCount: 40 },
+      { stationId: 'B', emptyShare: 0, fullShare: 1, sampleCount: 4 },
+    ]);
+  });
+});
 
 describe('aggregateMorningProfiles', () => {
   it('weights emptyShare by sampleCount and sums samples per station', () => {

@@ -39,6 +39,63 @@ function toIsoString(value: unknown): string {
   return String(value);
 }
 
+export type WeekdayStationProfileRow = {
+  stationId: string;
+  /** Dia ISO: 1 = lunes ... 5 = viernes. */
+  isoWeekday: number;
+  hour: number;
+  /** Proporcion de horas agregadas con `bikesMax <= 0`. */
+  emptyShare: number;
+  /** Proporcion de horas agregadas con `anchorsMax <= 0`. */
+  fullShare: number;
+  sampleCount: number;
+};
+
+/**
+ * Perfil por estacion para los dias laborables entre `fromHour` y `toHour`
+ * (ambas incluidas, hora local). Devuelve las dos caras (sin bicis y sin
+ * huecos) para que cada story pueda mirar su lado principal y el contrario.
+ */
+async function getWeekdayStationProfiles(
+  fromHour: number,
+  toHour: number,
+  weeks: number
+): Promise<WeekdayStationProfileRow[]> {
+  const safeWeeks = Math.max(1, Math.min(26, Math.floor(weeks)));
+
+  const rows = await prisma.$queryRaw<Array<{
+    stationId: unknown;
+    isoWeekday: unknown;
+    hour: unknown;
+    emptyShare: unknown;
+    fullShare: unknown;
+    sampleCount: unknown;
+  }>>`
+    SELECT
+      "stationId",
+      ${localIsoDow()} AS "isoWeekday",
+      ${localHour()} AS hour,
+      AVG(CASE WHEN "bikesMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "emptyShare",
+      AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare",
+      SUM("sampleCount")::int AS "sampleCount"
+    FROM "HourlyStationStat"
+    WHERE "bucketStart" >= (NOW() AT TIME ZONE 'UTC') - INTERVAL '1 day' * ${safeWeeks * 7}
+      AND ${localIsoDow()} <= 5
+      AND ${localHour()} BETWEEN ${fromHour} AND ${toHour}
+    GROUP BY 1, 2, 3
+    ORDER BY 1, 2, 3;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    isoWeekday: toSerializableNumber(row.isoWeekday),
+    hour: toSerializableNumber(row.hour),
+    emptyShare: toSerializableNumber(row.emptyShare),
+    fullShare: toSerializableNumber(row.fullShare),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
+}
+
 export type WeekdayMorningProfileRow = {
   stationId: string;
   /** Dia ISO: 1 = lunes ... 5 = viernes. */
@@ -49,43 +106,35 @@ export type WeekdayMorningProfileRow = {
   sampleCount: number;
 };
 
+export type WeekdayEveningProfileRow = {
+  stationId: string;
+  /** Dia ISO: 1 = lunes ... 5 = viernes. */
+  isoWeekday: number;
+  hour: number;
+  /** Proporcion de horas agregadas con `anchorsMax <= 0`. */
+  fullShare: number;
+  sampleCount: number;
+};
+
 /**
  * Perfil de manana por estacion para los dias laborables (07:00-08:59). Es la
- * cohorte de "estaciones clave" que usa la story de las 08:30.
+ * cohorte de "estaciones clave" que usa la story de las 08:30; `fullShare`
+ * alimenta el dato de "donde dejar la bici".
  */
-export async function getWeekdayMorningProfiles(
+export function getWeekdayMorningProfiles(
   weeks = DEFAULT_MORNING_PROFILE_WEEKS
-): Promise<WeekdayMorningProfileRow[]> {
-  const safeWeeks = Math.max(1, Math.min(26, Math.floor(weeks)));
+): Promise<WeekdayStationProfileRow[]> {
+  return getWeekdayStationProfiles(7, 8, weeks);
+}
 
-  const rows = await prisma.$queryRaw<Array<{
-    stationId: unknown;
-    isoWeekday: unknown;
-    hour: unknown;
-    emptyShare: unknown;
-    sampleCount: unknown;
-  }>>`
-    SELECT
-      "stationId",
-      ${localIsoDow()} AS "isoWeekday",
-      ${localHour()} AS hour,
-      AVG(CASE WHEN "bikesMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "emptyShare",
-      SUM("sampleCount")::int AS "sampleCount"
-    FROM "HourlyStationStat"
-    WHERE "bucketStart" >= (NOW() AT TIME ZONE 'UTC') - INTERVAL '1 day' * ${safeWeeks * 7}
-      AND ${localIsoDow()} <= 5
-      AND ${localHour()} BETWEEN 7 AND 8
-    GROUP BY 1, 2, 3
-    ORDER BY 1, 2, 3;
-  `;
-
-  return rows.map((row) => ({
-    stationId: String(row.stationId),
-    isoWeekday: toSerializableNumber(row.isoWeekday),
-    hour: toSerializableNumber(row.hour),
-    emptyShare: toSerializableNumber(row.emptyShare),
-    sampleCount: toSerializableNumber(row.sampleCount),
-  }));
+/**
+ * Perfil de mediodia por estacion para los dias laborables (12:00-13:59), para
+ * la story de las 13:00, que mira las dos caras a la vez.
+ */
+export function getWeekdayMiddayProfiles(
+  weeks = DEFAULT_MORNING_PROFILE_WEEKS
+): Promise<WeekdayStationProfileRow[]> {
+  return getWeekdayStationProfiles(12, 13, weeks);
 }
 
 export type RecentBikeSampleRow = {
@@ -114,54 +163,15 @@ export async function getRecentBikeSamples(since: Date): Promise<RecentBikeSampl
   }));
 }
 
-export type WeekdayEveningProfileRow = {
-  stationId: string;
-  /** Dia ISO: 1 = lunes ... 5 = viernes. */
-  isoWeekday: number;
-  hour: number;
-  /** Proporcion de horas agregadas con `anchorsMax <= 0`. */
-  fullShare: number;
-  sampleCount: number;
-};
-
 /**
  * Perfil de tarde por estacion para los dias laborables (17:00-18:59). Es la
  * cohorte de estaciones que suelen quedarse sin huecos en la story de las 18:30
- * ("donde dejar la bici"), espejo de `getWeekdayMorningProfiles`.
+ * ("donde dejar la bici"); `emptyShare` alimenta el dato de "donde coger bici".
  */
-export async function getWeekdayEveningProfiles(
+export function getWeekdayEveningProfiles(
   weeks = DEFAULT_MORNING_PROFILE_WEEKS
-): Promise<WeekdayEveningProfileRow[]> {
-  const safeWeeks = Math.max(1, Math.min(26, Math.floor(weeks)));
-
-  const rows = await prisma.$queryRaw<Array<{
-    stationId: unknown;
-    isoWeekday: unknown;
-    hour: unknown;
-    fullShare: unknown;
-    sampleCount: unknown;
-  }>>`
-    SELECT
-      "stationId",
-      ${localIsoDow()} AS "isoWeekday",
-      ${localHour()} AS hour,
-      AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare",
-      SUM("sampleCount")::int AS "sampleCount"
-    FROM "HourlyStationStat"
-    WHERE "bucketStart" >= (NOW() AT TIME ZONE 'UTC') - INTERVAL '1 day' * ${safeWeeks * 7}
-      AND ${localIsoDow()} <= 5
-      AND ${localHour()} BETWEEN 17 AND 18
-    GROUP BY 1, 2, 3
-    ORDER BY 1, 2, 3;
-  `;
-
-  return rows.map((row) => ({
-    stationId: String(row.stationId),
-    isoWeekday: toSerializableNumber(row.isoWeekday),
-    hour: toSerializableNumber(row.hour),
-    fullShare: toSerializableNumber(row.fullShare),
-    sampleCount: toSerializableNumber(row.sampleCount),
-  }));
+): Promise<WeekdayStationProfileRow[]> {
+  return getWeekdayStationProfiles(17, 18, weeks);
 }
 
 export type LatestHourMobilityRow = {

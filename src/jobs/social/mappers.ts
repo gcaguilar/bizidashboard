@@ -16,6 +16,7 @@ import type {
   LatestHourMobilityRow,
   WeekdayEveningProfileRow,
   WeekdayMorningProfileRow,
+  WeekdayStationProfileRow,
   WeeklyStationFrictionRow,
 } from '@/analytics/queries/social';
 import type { NetworkHealth } from '@/lib/network-health';
@@ -40,6 +41,7 @@ import type {
   SocialMorningStationProfile,
   SocialNetworkContext,
   SocialStationCandidate,
+  SocialStationProfile,
 } from '@/lib/social/types';
 
 /** La story diaria exige un snapshot de hace 10 minutos o menos. */
@@ -164,6 +166,38 @@ export function aggregateEveningProfiles(
       sampleCount: row.sampleCount,
     }))
   ).map(({ stationId, share, sampleCount }) => ({ stationId, fullShare: share, sampleCount }));
+}
+
+/**
+ * Un perfil por estacion con las dos caras (`emptyShare` y `fullShare`), para
+ * las stories que miran su lado principal y el contrario con la misma franja.
+ */
+export function aggregateStationProfiles(
+  rows: readonly WeekdayStationProfileRow[]
+): SocialStationProfile[] {
+  const empty = aggregateShares(
+    rows.map((row) => ({
+      stationId: row.stationId,
+      share: row.emptyShare,
+      sampleCount: row.sampleCount,
+    }))
+  );
+  const fullByStation = new Map(
+    aggregateShares(
+      rows.map((row) => ({
+        stationId: row.stationId,
+        share: row.fullShare,
+        sampleCount: row.sampleCount,
+      }))
+    ).map((entry) => [entry.stationId, entry.share])
+  );
+
+  return empty.map(({ stationId, share, sampleCount }) => ({
+    stationId,
+    emptyShare: share,
+    fullShare: fullByStation.get(stationId) ?? 0,
+    sampleCount,
+  }));
 }
 
 /** Instante mas reciente del snapshot; `null` si ninguna fila es valida. */
