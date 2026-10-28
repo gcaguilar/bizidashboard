@@ -932,8 +932,10 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
   const publicUrl = `datosbizi.com${monthPath.startsWith('/') ? monthPath : `/${monthPath}`}`;
   const coverHeadline = `La Bizi en ${monthLabel}`;
 
+  // La lamina pinta 5 barras: las 5 ultimas, para que el mes del informe (el
+  // ultimo) nunca quede fuera.
   const trendBars: SocialBar[] = (report.trends?.monthly ?? [])
-    .slice(-6)
+    .slice(-5)
     .map((entry) => ({
       label: formatMonthName(entry.monthKey),
       value: entry.demandScore,

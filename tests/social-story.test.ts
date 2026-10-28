@@ -712,6 +712,9 @@ describe('monthly carousel', () => {
       { label: 'Frente a agosto de 2026', value: '+12%' },
       { label: 'Frente a septiembre de otros años', value: '+20%' },
     ]);
+    // Las 5 barras son los 5 ultimos meses: el del informe nunca queda fuera.
+    expect(carousel?.slides[0]?.bars).toHaveLength(5);
+    expect(carousel?.slides[0]?.bars?.at(-1)?.label).toBe('septiembre');
     expect(carousel?.slides[2]?.headline).toBe('Más uso que el mes anterior');
     expect(carousel?.slides[3]?.headline).toBe('Centro es el distrito con más uso');
     expect(carousel?.slides[4]?.facts[0]?.value).toBe(
