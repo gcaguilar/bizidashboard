@@ -44,6 +44,16 @@ describe('seo navigation contract', () => {
     }
   });
 
+  it('keeps the internal dashboard station detail out of the index and 404s unknown ids', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/app/dashboard/estaciones/$stationId.tsx'),
+      'utf8'
+    );
+
+    expect(source).toContain("robots: 'noindex, nofollow'");
+    expect(source).toContain('throw notFound()');
+  });
+
   it('connects data-driven landing indexability to their robots metadata', () => {
     for (const file of [
       'src/app/estadisticas/viajes.tsx',

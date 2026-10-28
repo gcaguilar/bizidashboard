@@ -1,6 +1,6 @@
 import { ActivityIndexHint } from '@/app/_components/ActivityIndexHint';
 import { activityIndexUnits } from '@/lib/product-copy';
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { buildBreadcrumbStructuredData, createDistrictBreadcrumb } from '@/lib/breadcrumbs'
@@ -13,7 +13,12 @@ import { PageShell } from '@/components/layout/page-shell'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
 
 export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
-  loader: ({ params }) => getPublicDistrictPageData({ data: params.districtSlug }),
+  loader: async ({ params }) => {
+    const data = await getPublicDistrictPageData({ data: params.districtSlug })
+    // Un barrio desconocido no debe responder 200: 404 real para crawlers.
+    if (!data.district) throw notFound()
+    return data
+  },
   head: ({ params, loaderData }) => {
     const slug = params.districtSlug ?? ''
     const districtPath = appRoutes.districtDetail(slug)
@@ -50,8 +55,28 @@ export const Route = createFileRoute('/estadisticas/barrios/$districtSlug')({
     }
   },
   errorComponent: DistrictErrorPage,
+  notFoundComponent: DistrictNotFoundPage,
   component: DistrictPage,
 })
+
+function DistrictNotFoundPage() {
+  const { districtSlug } = Route.useParams()
+  return <DistrictEmptyState slug={districtSlug} />
+}
+
+function DistrictEmptyState({ slug }: { slug: string }) {
+  const label = slug.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
+  return (
+    <PageShell>
+      <section className="ui-page-hero">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
+        <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
+        <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar este barrio con confianza.</p>
+        <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsBarrios()} ctaEvent={{ source: 'district_empty', ctaId: 'back_to_districts', destination: 'stats_barrios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver comparativa de barrios</TrackedLink>
+      </section>
+    </PageShell>
+  )
+}
 
 function DistrictErrorPage({ error }: { error: unknown }) {
   return (
@@ -75,17 +100,7 @@ function DistrictPage() {
   const { districtSlug } = Route.useParams()
 
   if (!district) {
-    const label = districtSlug.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
-    return (
-      <PageShell>
-        <section className="ui-page-hero">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Ficha de barrio</p>
-          <h1 className="mt-2 text-3xl font-black text-[var(--foreground)]">Bizi en {label}</h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">Aún no hay datos suficientes para mostrar este barrio con confianza.</p>
-          <TrackedLink className="ui-inline-action mt-4" href={appRoutes.statsBarrios()} ctaEvent={{ source: 'district_empty', ctaId: 'back_to_districts', destination: 'stats_barrios', sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }}>Ver comparativa de barrios</TrackedLink>
-        </section>
-      </PageShell>
-    )
+    return <DistrictEmptyState slug={districtSlug} />
   }
 
   const siblings = districts.filter((row) => row.slug !== district.slug).slice(0, 4)

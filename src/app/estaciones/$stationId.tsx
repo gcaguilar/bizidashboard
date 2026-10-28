@@ -6,6 +6,7 @@ export const Route = createFileRoute('/estaciones/$stationId')({
       to: '/estadisticas/estaciones/$stationId',
       params: { stationId: params.stationId },
       replace: true,
+      statusCode: 308,
     });
   },
 });
