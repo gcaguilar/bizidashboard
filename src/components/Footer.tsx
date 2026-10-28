@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes } from '@/lib/routes'
+import { INSTAGRAM_URL } from '@/lib/social-profiles'
 import { FOOTER_LEGAL_ITEMS, FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
 import { formatDateLabel } from '@/lib/format'
 import { translateNavLabel } from '@/lib/i18n/nav-labels'
@@ -111,6 +112,14 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
               className="hover:text-[var(--foreground)] transition"
             >
               GitHub
+            </a>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--foreground)] transition"
+            >
+              Instagram
             </a>
             <a
               href={`${GITHUB_REPO}/issues`}

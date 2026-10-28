@@ -17,6 +17,7 @@ import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
 
 import { appRoutes } from '@/lib/routes'
+import { INSTAGRAM_URL } from '@/lib/social-profiles'
 import { getGoogleSiteVerificationToken, getSiteUrl, INTER_FONT_PATH, SEO_SITE_NAME } from '@/lib/site'
 import { getFooterData } from '@/server-functions/footer'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
@@ -140,6 +141,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         sameAs: [
           'https://github.com/gcaguilar/bizidashboard',
           'https://www.linkedin.com/in/guillermocastella/',
+          INSTAGRAM_URL,
         ],
       },
       {
