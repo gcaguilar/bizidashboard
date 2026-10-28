@@ -142,7 +142,7 @@ export type SocialStory = {
   accent?: string;
   /** Barras simples que acompasan los hechos cuando hay datos. */
   bars?: readonly SocialBar[];
-  /** Titulo de la grafica de barras, p. ej. "Movimiento por zonas". */
+  /** Titulo de la grafica de barras, p. ej. "Uso estimado por distrito". */
   barsLabel?: string;
 };
 
@@ -256,6 +256,20 @@ export type SocialStationCandidate = {
   anchorsFree: number;
 };
 
+/**
+ * Estacion cercana para sugerir a quien encuentra la suya vacia (`bikes`: con
+ * bicis para coger) o llena (`anchors`: con huecos para dejar la bici).
+ */
+export type SocialNearbyAlternative = {
+  fromStationId: string;
+  name: string;
+  kind: 'bikes' | 'anchors';
+  /** Distancia en linea recta, redondeada a 10 m. */
+  distanceMeters: number;
+  /** Bicis (`bikes`) o huecos libres (`anchors`) disponibles ahora. */
+  available: number;
+};
+
 export type SocialMorningStationProfile = {
   stationId: string;
   /** Proporcion de horas agregadas con `bikesMax <= 0`. */
@@ -263,7 +277,16 @@ export type SocialMorningStationProfile = {
   sampleCount?: number;
 };
 
-export type SocialStationSelectionMode = 'empty' | 'low' | 'none';
+/** `empty`: sin bicis (manana). `full`: sin huecos (tarde). `low`: quedan pocas. */
+export type SocialStationSelectionMode = 'empty' | 'full' | 'low' | 'none';
+
+/** Perfil de tarde (17-19 h, dias laborables): cuanto suele estar sin huecos. */
+export type SocialEveningStationProfile = {
+  stationId: string;
+  /** Proporcion de horas agregadas con `anchorsMax <= 0`. */
+  fullShare: number;
+  sampleCount?: number;
+};
 
 export type SocialStationSelection<T extends SocialStationCandidate> = {
   mode: SocialStationSelectionMode;

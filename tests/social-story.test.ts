@@ -6,6 +6,7 @@ import {
   buildMorningStory,
   buildWeeklyCarousel,
 } from '@/lib/social/story';
+import { SOCIAL_FEED_DISCLAIMER } from '@/lib/social/copy';
 import type {
   SocialDistrictStats,
   SocialNetworkContext,
@@ -96,44 +97,47 @@ describe('morning story', () => {
         station('s1', 'Plaza España', 0),
         station('s2', 'Independencia', 0),
       ]),
-      topDistricts: districts,
       network,
     });
 
     expect(story).not.toBeNull();
-    expect(story?.headline).toBe('2 estaciones clave agotadas');
-    expect(story?.kicker).toBe('Mañana en bici · 07:00–08:30');
+    expect(story?.headline).toBe('2 estaciones que suelen vaciarse, sin bicis');
+    expect(story?.kicker).toBe('Bizi esta mañana · 08:30');
     expect(story?.facts.map((fact) => fact.label)).toEqual(
-      expect.arrayContaining(['Estaciones clave agotadas', 'Movimiento por zonas', 'Red'])
+      expect.arrayContaining(['Estaciones sin bicis', 'En toda la red'])
     );
-    expect(story?.facts[0]?.value).toContain('Plaza España (0 bicis)');
+    expect(story?.facts.map((fact) => fact.label)).not.toContain('Distritos con más uso');
+    expect(story?.bars).toBeUndefined();
+    expect(story?.facts.find((fact) => fact.label === 'En toda la red')?.value).toBe(
+      '12 de 276 estaciones sin bicis o sin huecos'
+    );
+    expect(story?.facts[0]?.value).toBe('Plaza España · Independencia');
     expect(story?.accent).toBe('#b91c1c');
     expect(story?.caption).toContain('Story de la mañana');
-    expect(story?.altText).toContain('2 estaciones clave agotadas');
+    expect(story?.altText).toContain('2 estaciones que suelen vaciarse, sin bicis');
   });
 
   it('uses the real data window when a catch-up publishes later', () => {
     const story = buildMorningStory({
       dateKey: '2026-10-27',
       selection: selection('empty', [station('s1', 'Plaza España', 0)]),
-      topDistricts: districts,
       network,
-      dataWindow: '08:00–09:30',
+      dataWindow: '08:29',
     });
 
-    expect(story?.kicker).toBe('Mañana en bici · 08:00–09:30');
-    expect(story?.caption).toContain('08:00–09:30');
+    expect(story?.kicker).toBe('Bizi esta mañana · 08:29');
+    expect(story?.caption).toContain('08:29');
+    expect(story?.altText).toContain('Datos de las 08:29.');
   });
 
   it('uses low availability mode when nothing is empty', () => {
     const story = buildMorningStory({
       dateKey: '2026-10-27',
       selection: selection('low', [station('s2', 'Independencia', 2)]),
-      topDistricts: districts,
       network,
     });
 
-    expect(story?.headline).toBe('1 estación clave con poca disponibilidad');
+    expect(story?.headline).toBe('1 estación que suele vaciarse, con pocas bicis');
     expect(story?.facts[0]?.value).toContain('2 bicis');
     expect(story?.accent).toBe('#b45309');
   });
@@ -142,21 +146,111 @@ describe('morning story', () => {
     const story = buildMorningStory({
       dateKey: '2026-10-31',
       selection: selection('none', []),
-      topDistricts: districts,
       network,
     });
 
-    expect(story?.headline).toBe('Sin agotadas entre las estaciones clave');
-    expect(story?.kicker).toBe('Fin de semana en bici · 07:00–08:30');
+    expect(story?.headline).toBe('Hay bicis en las estaciones que suelen vaciarse');
+    expect(story?.kicker).toBe('Bizi este fin de semana · 08:30');
     expect(story?.kicker).not.toMatch(COMMUTE_TERM);
   });
 
-  it('returns null when there is no station, district or network material', () => {
+  it('suggests a nearby station with bikes when one is provided', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('empty', [station('s1', 'Plaza España', 0)]),
+      alternative: {
+        fromStationId: 's1',
+        name: 'Independencia',
+        kind: 'bikes',
+        distanceMeters: 280,
+        available: 8,
+      },
+      network,
+    });
+
+    expect(story?.facts).toContainEqual({
+      label: 'Dónde coger bici cerca',
+      value: 'Desde Plaza España: Independencia, a unos 280 m (8 bicis)',
+    });
+    expect(story?.facts[1]?.label).toBe('Dónde coger bici cerca');
+  });
+
+  it('announces a special day right after the availability facts', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-12',
+      selection: selection('empty', [station('s1', 'Plaza España', 0)]),
+      cause: { label: 'Fiestas del Pilar', kind: 'event' },
+      profiles: [{ stationId: 's1', emptyShare: 0.6, sampleCount: 40 }],
+      network,
+    });
+
+    expect(story?.facts).toContainEqual({ label: 'Hoy', value: 'Fiestas del Pilar' });
+    // El render pinta 4 hechos: en un dia especial la red es lo que se cae.
+    expect(story?.facts.slice(0, 4).map((fact) => fact.label)).toEqual([
+      'Estaciones sin bicis',
+      'Hoy',
+      'Lo habitual, de lunes a viernes de 7 a 9 h',
+      'En toda la red',
+    ]);
+    expect(story?.facts.map((fact) => fact.label)).not.toContain('Contexto');
+  });
+
+  it('ignores an alternative that does not match a featured station', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('empty', [station('s1', 'Plaza España', 0)]),
+      alternative: {
+        fromStationId: 'other',
+        name: 'X',
+        kind: 'bikes',
+        distanceMeters: 100,
+        available: 5,
+      },
+      network,
+    });
+
+    expect(story?.facts.map((fact) => fact.label)).not.toContain('Dónde coger bici cerca');
+  });
+
+  it('says how often the featured station is usually empty, only with enough samples', () => {
+    const base = {
+      dateKey: '2026-10-27',
+      selection: selection('empty', [
+        station('s1', 'Plaza España', 0),
+        station('s2', 'Independencia', 0),
+      ]),
+      network,
+    } as const;
+
+    const withProfile = buildMorningStory({
+      ...base,
+      profiles: [{ stationId: 's1', emptyShare: 0.6, sampleCount: 40 }],
+    });
+    expect(withProfile?.facts).toContainEqual({
+      label: 'Lo habitual, de lunes a viernes de 7 a 9 h',
+      value: 'Plaza España: sin bicis el 60% del tiempo',
+    });
+
+    const fewSamples = buildMorningStory({
+      ...base,
+      profiles: [{ stationId: 's1', emptyShare: 0.6, sampleCount: 3 }],
+    });
+    const rare = buildMorningStory({
+      ...base,
+      profiles: [{ stationId: 's1', emptyShare: 0.02, sampleCount: 40 }],
+    });
+    for (const story of [fewSamples, rare, buildMorningStory(base)]) {
+      expect(story?.facts.map((fact) => fact.label)).not.toContain(
+        'Lo habitual, de lunes a viernes de 7 a 9 h'
+      );
+    }
+  });
+
+  it('returns null when there is no station or network material', () => {
     expect(
       buildMorningStory({
         dateKey: '2026-10-27',
         selection: selection('none', []),
-        topDistricts: [],
         network: { ...network, criticalStationsCount: 0, totalStations: 0 },
       })
     ).toBeNull();
@@ -197,7 +291,7 @@ describe('afternoon story priority', () => {
     });
 
     expect(story.headline).toBe('Plaza España: pocas bicis');
-    expect(story.facts[0]).toEqual({ label: 'Media en 3 h', value: '1 bici' });
+    expect(story.facts[0]).toEqual({ label: 'Media de las últimas 3 h', value: '1 bici' });
     expect(story.headline).not.toContain('posible pico');
   });
 
@@ -224,7 +318,7 @@ describe('afternoon story priority', () => {
       'Independencia: hasta 240 min sin bicis en 24 h'
     );
     expect(story.facts[0]).toEqual({
-      label: 'Racha máxima (24 h)',
+      label: 'Peor racha en 24 h',
       value: '240 min',
     });
   });
@@ -232,6 +326,7 @@ describe('afternoon story priority', () => {
   it('labels an hourly anomaly as a possible peak, never a confirmed cause', () => {
     const story = buildAfternoonStory({
       ...input,
+      cause: { label: 'Fiestas del Pilar', kind: 'event' },
       anomaly: {
         hour: 18,
         value: 5000,
@@ -242,12 +337,13 @@ describe('afternoon story priority', () => {
       },
     });
 
-    expect(story.headline).toBe('Posible pico de movimiento a las 18:00');
+    expect(story.headline).toBe('Posible pico de uso a las 18:00');
     expect(story.headline.toLowerCase()).toContain('posible pico');
-    expect(story.facts.map((fact) => fact.label)).toEqual(
-      expect.arrayContaining(['Índice de actividad', 'Referencia', 'Desviación'])
-    );
-    expect(story.facts.map((fact) => fact.value).join(' ')).not.toContain('Fiestas del Pilar');
+    expect(story.facts[0]).toEqual({
+      label: 'Uso frente a lo habitual a esa hora',
+      value: '+66%',
+    });
+    expect(story.facts).toContainEqual({ label: 'Contexto', value: 'Fiestas del Pilar' });
   });
 
   it('mentions a curated cause only when the caller provides it', () => {
@@ -275,9 +371,12 @@ describe('afternoon story priority', () => {
       },
     });
 
+    // Sin causa, un pico suelto no se cuenta: cae al resumen por distritos.
+    expect(withoutCause.headline).toBe('Más uso de la Bizi en Centro');
     expect(withoutCause.facts.map((fact) => fact.value).join(' ')).not.toContain(
       'Fiestas del Pilar'
     );
+    expect(withCause.headline).toBe('Posible pico de uso a las 18:00');
     expect(withCause.facts).toContainEqual({
       label: 'Contexto',
       value: 'Fiestas del Pilar',
@@ -297,12 +396,11 @@ describe('afternoon story priority', () => {
       },
     });
 
-    expect(story.headline).toBe('Más movimiento estimado en Centro');
-    expect(story.kicker).toBe('Cómo va la tarde · 17:00–18:30');
-    expect(story.facts[0]).toEqual({
-      label: 'Centro',
-      value: '1200 puntos de actividad',
-    });
+    expect(story.headline).toBe('Más uso de la Bizi en Centro');
+    expect(story.kicker).toBe('Bizi esta tarde · 17:00–18:30');
+    expect(story.facts[0]).toEqual({ label: 'Más uso', value: 'Centro' });
+    expect(story.facts[1]).toEqual({ label: 'Segundo', value: 'Delicias' });
+    expect(story.bars?.[0]).toEqual({ label: 'Centro', value: 150 });
     expect(story.bars?.[0]?.label).toBe('Centro');
   });
 
@@ -312,9 +410,93 @@ describe('afternoon story priority', () => {
       network: { ...network, totalStations: 0, criticalStationsCount: 0 },
     });
 
-    expect(story.kicker).toBe('Cómo va el fin de semana · 17:00–18:30');
+    expect(story.kicker).toBe('Bizi este fin de semana · tarde · 17:00–18:30');
     expect(story.kicker).not.toMatch(COMMUTE_TERM);
     expect(story.facts.length).toBeGreaterThan(0);
+  });
+});
+
+describe('afternoon "where to leave the bike" branch', () => {
+  const base = { dateKey: '2026-10-27', network, topDistricts: districts } as const;
+  const full = (id: string, name: string) => ({ ...station(id, name, 20, 0), anchorsFree: 0 });
+
+  it('mirrors the morning story for stations that usually fill up', () => {
+    const story = buildAfternoonStory({
+      ...base,
+      fullStations: selection('full', [full('s1', 'Plaza España'), full('s2', 'Independencia')]),
+      eveningProfiles: [{ stationId: 's1', fullShare: 0.4, sampleCount: 40 }],
+      alternative: {
+        fromStationId: 's1',
+        name: 'Gran Vía',
+        kind: 'anchors',
+        distanceMeters: 190,
+        available: 12,
+      },
+    });
+
+    expect(story.headline).toBe('2 estaciones que suelen llenarse, sin huecos');
+    expect(story.kicker).toBe('Bizi esta tarde · 17:00–18:30');
+    expect(story.facts).toEqual(
+      expect.arrayContaining([
+        { label: 'Estaciones sin huecos', value: 'Plaza España · Independencia' },
+        {
+          label: 'Dónde dejar la bici cerca',
+          value: 'Desde Plaza España: Gran Vía, a unos 190 m (12 huecos)',
+        },
+        {
+          label: 'Lo habitual, de lunes a viernes de 17 a 19 h',
+          value: 'Plaza España: sin huecos el 40% del tiempo',
+        },
+      ])
+    );
+    expect(story.accent).toBe('#b91c1c');
+    expect(story.bars).toBeUndefined();
+  });
+
+  it('uses amber and counts free anchors when stations are only close to full', () => {
+    const story = buildAfternoonStory({
+      ...base,
+      fullStations: selection('low', [{ ...station('s1', 'Plaza España', 18), anchorsFree: 2 }]),
+    });
+
+    expect(story.headline).toBe('1 estación que suele llenarse, con pocos huecos');
+    expect(story.facts[0]).toEqual({
+      label: 'Estaciones con pocos huecos',
+      value: 'Plaza España (2 huecos)',
+    });
+    expect(story.accent).toBe('#b45309');
+  });
+
+  it('keeps alerts and critical episodes ahead of it', () => {
+    const fullStations = selection('full', [full('s1', 'Plaza España')]);
+    const withAlert = buildAfternoonStory({
+      ...base,
+      fullStations,
+      alerts: [
+        {
+          stationId: 's9',
+          stationName: 'Universidad',
+          alertType: 'LOW_BIKES',
+          severity: 2,
+          metricValue: 1,
+          windowHours: 3,
+        },
+      ],
+    });
+    const withEpisode = buildAfternoonStory({
+      ...base,
+      fullStations,
+      episodes: [{ stationId: 's9', stationName: 'Universidad', kind: 'empty', maxMinutes: 240 }],
+    });
+
+    expect(withAlert.headline).toBe('Universidad: pocas bicis');
+    expect(withEpisode.headline).toBe('Universidad: hasta 240 min sin bicis en 24 h');
+  });
+
+  it('falls through to the district pulse when no station is full', () => {
+    const story = buildAfternoonStory({ ...base, fullStations: selection('none', []) });
+
+    expect(story.headline).toBe('Más uso de la Bizi en Centro');
   });
 });
 
@@ -324,19 +506,23 @@ describe('weekly carousel', () => {
 
     expect(carousel).not.toBeNull();
     expect(carousel?.slides).toHaveLength(5);
-    expect(carousel?.headline).toBe(
-      'Zaragoza en bici · semana del 19 al 25 de octubre'
+    expect(carousel?.headline).toBe('Centro: donde más se usa la Bizi');
+    expect(carousel?.slides[0]?.headline).toBe('Centro: donde más se usa la Bizi');
+    expect(carousel?.slides[0]?.facts[0]).toEqual({
+      label: 'Cómo se mide',
+      value: 'Uso medio de cada estación del distrito',
+    });
+    expect(carousel?.slides[0]?.kicker).toBe('Semana del 19 al 25 de octubre');
+    expect(carousel?.caption).toContain(
+      'Centro: donde más se usa la Bizi · semana del 19 al 25 de octubre'
     );
-    expect(carousel?.slides[0]?.headline).toContain('semana del 19 al 25 de octubre');
     expect(carousel?.slides[1]?.facts[0]).toEqual({
       label: '1. Centro',
-      value: '1200 puntos de actividad',
+      value: '150 puntos por estación',
     });
-    expect(carousel?.slides[2]?.headline).toBe('Centro sube un 20%');
-    expect(carousel?.slides[3]?.headline).toBe('Delicias concentra la tensión');
-    expect(carousel?.slides[4]?.facts[0]?.value).toBe(
-      'semana del 19 al 25 de octubre'
-    );
+    expect(carousel?.slides[2]?.headline).toBe('El uso en Centro sube un 20%');
+    expect(carousel?.slides[3]?.headline).toBe('Delicias: más horas sin bicis o huecos');
+    expect(carousel?.slides[4]?.facts[0]?.label).toBe('Qué son los puntos de actividad');
     expect(carousel?.slides[4]?.facts[1]?.value).toContain('datosbizi.com');
   });
 
@@ -346,11 +532,41 @@ describe('weekly carousel', () => {
     expect(carousel?.caption.length).toBeLessThanOrEqual(2200);
     expect(carousel?.caption).toContain('#BiziZaragoza');
     expect(carousel?.caption).toContain('#DatosAbiertos');
-    expect(carousel?.caption).toContain('Datos abiertos GBFS. Estimación, no viajes reales.');
+    expect(carousel?.caption).toContain(SOCIAL_FEED_DISCLAIMER);
+    // Una foto de la red de un lunes no resume la semana.
+    expect(carousel?.caption).not.toContain('12 de 276');
     expect(carousel?.altText).toContain('Carrusel');
     expect(carousel?.slides.every((slide) => slide.footer.includes('datosbizi.com'))).toBe(
       true
     );
+  });
+
+  it('ranks districts by use per station, not by raw total', () => {
+    const big: SocialDistrictStats = {
+      ...districts[0]!,
+      district: 'Grande',
+      stationCount: 40,
+      activityIndex: 2000,
+      previousActivityIndex: 2000,
+      growthRatio: 0,
+    };
+    const carousel = buildWeeklyCarousel({ week, districts: [big, ...districts], network });
+
+    // Grande suma mas (2000) pero 50 por estacion; Centro tiene 150.
+    expect(carousel?.slides[0]?.headline).toBe('Centro: donde más se usa la Bizi');
+  });
+
+  it('ignores growth computed over a tiny base', () => {
+    const tiny: SocialDistrictStats = {
+      ...districts[1]!,
+      district: 'Pequeno',
+      activityIndex: 40,
+      previousActivityIndex: 5,
+      growthRatio: 7,
+    };
+    const carousel = buildWeeklyCarousel({ week, districts: [tiny, ...districts], network });
+
+    expect(carousel?.slides[2]?.headline).toBe('El uso en Centro sube un 20%');
   });
 
   it('returns null without districts', () => {
@@ -483,26 +699,29 @@ describe('monthly carousel', () => {
 
     expect(carousel).not.toBeNull();
     expect(carousel?.slides).toHaveLength(5);
-    expect(carousel?.headline).toBe('Zaragoza en bici · septiembre de 2026');
-    expect(carousel?.slides[1]?.facts).toEqual(
-      expect.arrayContaining([
-        { label: 'Índice de actividad', value: '12.345 puntos de actividad/mes' },
-        { label: 'Ocupación media', value: '54%' },
-        { label: 'Estaciones activas', value: '276' },
-        { label: 'Días con datos', value: '30 de 30' },
-      ])
-    );
-    expect(carousel?.slides[2]?.headline).toBe(
-      'La actividad mejora frente al mes anterior'
-    );
-    expect(carousel?.slides[3]?.headline).toBe('Centro lidera la actividad');
+    expect(carousel?.headline).toBe('La Bizi en septiembre de 2026');
+    expect(carousel?.slides[1]?.facts).toEqual([
+      { label: 'Uso estimado', value: '12.345 puntos de actividad/mes' },
+      { label: 'Hora con más uso', value: '18:00–19:00' },
+      {
+        label: 'Entre semana y fin de semana',
+        value: 'Entre semana se usa un 67% más por día',
+      },
+    ]);
+    expect(carousel?.slides[2]?.facts).toEqual([
+      { label: 'Frente a agosto de 2026', value: '+12%' },
+      { label: 'Frente a septiembre de otros años', value: '+20%' },
+    ]);
+    expect(carousel?.slides[2]?.headline).toBe('Más uso que el mes anterior');
+    expect(carousel?.slides[3]?.headline).toBe('Centro es el distrito con más uso');
     expect(carousel?.slides[4]?.facts[0]?.value).toBe(
       'datosbizi.com/informes/2026-09'
     );
     expect(carousel?.caption).toContain('#BiziZaragoza');
-    expect(carousel?.caption).toContain(
-      'Datos abiertos GBFS. Estimación, no viajes reales.'
-    );
+    expect(carousel?.caption).toContain('La Bizi en septiembre de 2026: más uso que el mes anterior');
+    expect(carousel?.caption).toContain('La red gana actividad');
+    expect(carousel?.caption).not.toContain('Septiembre cierra con más movimiento estimado');
+    expect(carousel?.caption).toContain(SOCIAL_FEED_DISCLAIMER);
     expect(carousel?.caption.length).toBeLessThanOrEqual(2200);
   });
 

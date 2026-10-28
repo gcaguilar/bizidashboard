@@ -5,6 +5,7 @@ import {
   aggregateDistrictStats,
   evaluateHourlyActivityAnomaly,
   evaluateRobustAnomaly,
+  findNearbyAlternative,
   getCompletedWeeksRange,
   getIsoWeekday,
   getMonthKey,
@@ -15,6 +16,7 @@ import {
   getSlotDueAt,
   getWeekRange,
   isSocialSlotDue,
+  selectEveningStations,
   selectMorningStations,
   startOfWeek,
   toDateKey,
@@ -363,6 +365,110 @@ describe('morning station selection', () => {
       stations: [station('a', 5, 10), station('b', 6, 6)],
       profiles: [],
       limit: 3,
+    });
+
+    expect(selection).toEqual({ mode: 'none', stations: [] });
+  });
+});
+
+describe('nearby alternative', () => {
+  const at = (id: string, name: string, bikesAvailable: number, dLat: number) => ({
+    id,
+    name,
+    capacity: 20,
+    bikesAvailable,
+    anchorsFree: 20 - bikesAvailable,
+    lat: 41.65 + dLat,
+    lon: -0.88,
+  });
+  const origin = at('o', 'Plaza España', 0, 0);
+
+  it('suggests the nearest station with enough bikes, rounded to 10 m', () => {
+    const alternative = findNearbyAlternative(origin, [
+      origin,
+      at('far', 'Lejos', 12, 0.005),
+      at('near', 'Independencia', 8, 0.0025),
+      at('few', 'Casi vacía', 2, 0.001),
+    ]);
+
+    expect(alternative).toEqual({
+      fromStationId: 'o',
+      name: 'Independencia',
+      kind: 'bikes',
+      distanceMeters: 280,
+      available: 8,
+    });
+  });
+
+  it('looks for free anchors when the station is full', () => {
+    const full = { ...origin, bikesAvailable: 20, anchorsFree: 0 };
+    const alternative = findNearbyAlternative(
+      full,
+      [
+        full,
+        { ...at('bikes', 'Solo bicis', 19, 0.001), anchorsFree: 1 },
+        { ...at('free', 'Con huecos', 5, 0.0025), anchorsFree: 15 },
+      ],
+      { kind: 'anchors' }
+    );
+
+    expect(alternative).toEqual({
+      fromStationId: 'o',
+      name: 'Con huecos',
+      kind: 'anchors',
+      distanceMeters: 280,
+      available: 15,
+    });
+  });
+
+  it('suggests nothing when every candidate is too far or has too few bikes', () => {
+    expect(
+      findNearbyAlternative(origin, [
+        origin,
+        at('far', 'Lejos', 12, 0.01),
+        at('few', 'Casi vacía', 2, 0.001),
+      ])
+    ).toBeNull();
+  });
+});
+
+describe('evening station selection', () => {
+  const profiles = [
+    { stationId: 'e', fullShare: 0.9 },
+    { stationId: 'a', fullShare: 0.5 },
+    { stationId: 'b', fullShare: 0.4 },
+    { stationId: 'c', fullShare: 0.3 },
+    { stationId: 'd', fullShare: 0.2 },
+  ];
+
+  it('selects stations without free anchors inside the usual-to-fill cohort', () => {
+    const stations = [
+      station('a', 10, 0),
+      station('b', 4, 4),
+      station('c', 10, 2),
+      station('d', 10, 0),
+      station('e', 10, 0),
+    ];
+
+    const selection = selectEveningStations({ stations, profiles, limit: 2, cohortSize: 4 });
+
+    // d queda fuera de la cohorte de 4 (la menos habitual); e va antes que a.
+    expect(selection.mode).toBe('full');
+    expect(selection.stations.map((entry) => entry.id)).toEqual(['e', 'a']);
+  });
+
+  it('falls back to stations with only one or two free anchors', () => {
+    const stations = [station('a', 10, 5), station('b', 10, 2), station('c', 10, 1), station('e', 10, 8)];
+    const selection = selectEveningStations({ stations, profiles, limit: 2, cohortSize: 4 });
+
+    expect(selection.mode).toBe('low');
+    expect(selection.stations.map((entry) => entry.id)).toEqual(['c', 'b']);
+  });
+
+  it('returns none when the usual stations still have anchors', () => {
+    const selection = selectEveningStations({
+      stations: [station('a', 5, 10), station('e', 5, 10)],
+      profiles,
     });
 
     expect(selection).toEqual({ mode: 'none', stations: [] });

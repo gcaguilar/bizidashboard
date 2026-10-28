@@ -251,7 +251,7 @@ export function buildStorySvg(story: SocialStory): string {
   const barsHeight = bars.length > 0 ? 46 + bars.length * 58 : 0;
   if (bars.length > 0 && cursor + barsHeight < 1680) {
     parts.push(
-      textElement(truncateText(story.barsLabel ?? 'Movimiento estimado', 44).toUpperCase(), {
+      textElement(truncateText(story.barsLabel ?? 'Uso estimado', 44).toUpperCase(), {
         x: 84,
         y: cursor + 22,
         size: 22,
@@ -400,7 +400,7 @@ export function buildCarouselSlideSvg(
   const barsHeight = bars.length > 0 ? 42 + bars.length * 46 : 0;
   if (bars.length > 0 && cursor + barsHeight < 1170) {
     parts.push(
-      textElement(truncateText(slide.barsLabel ?? 'Movimiento estimado', 44).toUpperCase(), {
+      textElement(truncateText(slide.barsLabel ?? 'Uso estimado', 44).toUpperCase(), {
         x: 84,
         y: cursor + 20,
         size: 20,

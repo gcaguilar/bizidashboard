@@ -1,8 +1,9 @@
 /**
  * Slot de tarde (18:30 Europe/Madrid).
  *
- * Prioridad editorial: alerta activa de 3 h, racha critica, pico horario
- * inusual y, si no hay nada, pulso de vuelta por distritos. La story solo se
+ * Prioridad editorial: alerta activa de 3 h, racha critica, "donde dejar la
+ * bici" (estaciones que suelen llenarse y estan sin huecos), pico horario con
+ * causa y, si no hay nada, pulso de vuelta por distritos. La story solo se
  * salta cuando el snapshot no es fresco; si hay datos, siempre hay publicacion.
  */
 
@@ -11,6 +12,7 @@ import { getActiveAlerts, getStationsWithLatestStatus } from '@/analytics/querie
 import {
   getHourlyNetworkActivityBaseline,
   getLatestCompletedHourMobility,
+  getWeekdayEveningProfiles,
 } from '@/analytics/queries/social';
 import { formatHourMinute } from '@/lib/format';
 import { logger } from '@/lib/logger';
@@ -19,14 +21,17 @@ import { getServiceCause } from '@/lib/service-calendar';
 import {
   aggregateDistrictStats,
   evaluateHourlyActivityAnomaly,
+  findNearbyAlternative,
   getSlotDateKey,
+  selectEveningStations,
   topDistrictsByActivity,
 } from '@/lib/social/data';
 import { buildAfternoonStory } from '@/lib/social/story';
-import type { SocialStory } from '@/lib/social/types';
+import type { SocialNearbyAlternative, SocialStory } from '@/lib/social/types';
 
 import { loadStationDistrictMap } from './districts';
 import {
+  aggregateEveningProfiles,
   filterCurrentEpisodes,
   getLatestBucketContext,
   getLatestMobilityBucketStart,
@@ -61,11 +66,12 @@ export async function runAfternoonSlot(
     return null;
   }
 
-  const [alerts, episodes, baselineRows, mobility] = await Promise.all([
+  const [alerts, episodes, baselineRows, mobility, eveningRows] = await Promise.all([
     getActiveAlerts(200),
     getCriticalEpisodes(1),
     getHourlyNetworkActivityBaseline(12, now),
     getLatestCompletedHourMobility(),
+    getWeekdayEveningProfiles(),
   ]);
 
   if (!isLatestMobilityFresh(mobility, now)) {
@@ -118,6 +124,23 @@ export async function runAfternoonSlot(
 
   const cause = mapServiceCause(getServiceCause(dateKey));
 
+  const eveningProfiles = aggregateEveningProfiles(eveningRows);
+  const fullStations = selectEveningStations({
+    stations,
+    profiles: eveningProfiles,
+    limit: 3,
+    cohortSize: 40,
+  });
+
+  // Primera estacion destacada con un hueco a pie; si ninguna, no se sugiere nada.
+  let alternative: SocialNearbyAlternative | null = null;
+  for (const station of fullStations.stations) {
+    alternative = findNearbyAlternative(station, stations, { kind: 'anchors' });
+    if (alternative) {
+      break;
+    }
+  }
+
   return buildAfternoonStory({
     dateKey,
     network,
@@ -127,6 +150,9 @@ export async function runAfternoonSlot(
       stations
     ),
     anomaly,
+    fullStations,
+    eveningProfiles,
+    alternative,
     topDistricts: topDistrictsByActivity(districtStats, 3),
     cause,
     dataWindow,

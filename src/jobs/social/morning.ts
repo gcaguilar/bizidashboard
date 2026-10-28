@@ -1,38 +1,27 @@
 /**
  * Slot de manana (08:30 Europe/Madrid).
  *
- * Datos: snapshot fresco, perfil de dias laborables 07:00-08:59, movimiento de
- * la ultima hora completa y contexto de red. Si el snapshot esta vacio o tiene
+ * Datos: snapshot fresco, perfil historico de dias laborables 07:00-08:59 y
+ * contexto de red. La story solo habla de disponibilidad de bicis, asi que no
+ * depende del rollup horario de actividad. Si el snapshot esta vacio o tiene
  * mas de 10 minutos, devuelve `null` para que el wrapper lo registre como
  * `skipped` y no se publique informacion vieja.
  */
 
-import {
-  getLatestCompletedHourMobility,
-  getWeekdayMorningProfiles,
-} from '@/analytics/queries/social';
+import { getWeekdayMorningProfiles } from '@/analytics/queries/social';
 import { getStationsWithLatestStatus } from '@/analytics/queries/read';
 import { formatHourMinute } from '@/lib/format';
 import { logger } from '@/lib/logger';
 import { buildNetworkHealth } from '@/lib/network-health';
 import { getServiceCause } from '@/lib/service-calendar';
-import {
-  aggregateDistrictStats,
-  getSlotDateKey,
-  selectMorningStations,
-  topDistrictsByActivity,
-} from '@/lib/social/data';
+import { findNearbyAlternative, getSlotDateKey, selectMorningStations } from '@/lib/social/data';
 import { buildMorningStory } from '@/lib/social/story';
-import type { SocialStory } from '@/lib/social/types';
+import type { SocialNearbyAlternative, SocialStory } from '@/lib/social/types';
 
-import { loadStationDistrictMap } from './districts';
 import {
   aggregateMorningProfiles,
-  getLatestMobilityBucketStart,
   getLatestRecordedAt,
-  isLatestMobilityFresh,
   isStationSnapshotFresh,
-  mapLatestHourDemandRows,
   mapNetworkHealth,
   mapServiceCause,
 } from './mappers';
@@ -55,43 +44,36 @@ export async function runMorningSlot(
     return null;
   }
 
-  const [profileRows, mobility] = await Promise.all([
-    getWeekdayMorningProfiles(),
-    getLatestCompletedHourMobility(),
-  ]);
-
-  if (!isLatestMobilityFresh(mobility, now)) {
-    logger.info('social.morning_data_unavailable', {
-      dateKey,
-      reason: 'mobility_stale',
-      rows: mobility.length,
-    });
-    return null;
-  }
+  const profiles = aggregateMorningProfiles(await getWeekdayMorningProfiles());
 
   const selection = selectMorningStations({
     stations,
-    profiles: aggregateMorningProfiles(profileRows),
+    profiles,
     limit: 3,
     cohortSize: 40,
   });
 
-  const bucketStart = getLatestMobilityBucketStart(mobility);
-  const dataWindow = bucketStart
-    ? `${formatHourMinute(bucketStart, config.timezone)}–${formatHourMinute(now, config.timezone)}`
-    : undefined;
+  // Primera estacion destacada con una alternativa a pie; si ninguna la tiene,
+  // la story no sugiere nada.
+  let alternative: SocialNearbyAlternative | null = null;
+  for (const station of selection.stations) {
+    alternative = findNearbyAlternative(station, stations);
+    if (alternative) {
+      break;
+    }
+  }
 
-  const districtByStation = await loadStationDistrictMap(stations);
-  const districtStats = aggregateDistrictStats({
-    current: mapLatestHourDemandRows(mobility, districtByStation),
-    districtByStation,
-  });
+  // La story muestra la hora real de la foto de datos, no la hora del cron.
+  const latestRecordedAt = getLatestRecordedAt(stations);
+  const dataWindow = latestRecordedAt
+    ? formatHourMinute(latestRecordedAt, config.timezone)
+    : undefined;
 
   const network = mapNetworkHealth(
     buildNetworkHealth({
       stations,
       pipelineHealthy: fresh,
-      lastUpdatedAt: getLatestRecordedAt(stations),
+      lastUpdatedAt: latestRecordedAt,
       nowIso: now.toISOString(),
       locale: 'es',
     })
@@ -100,7 +82,8 @@ export async function runMorningSlot(
   return buildMorningStory({
     dateKey,
     selection,
-    topDistricts: topDistrictsByActivity(districtStats, 2),
+    profiles,
+    alternative,
     network,
     cause: mapServiceCause(getServiceCause(dateKey)),
     dataWindow,

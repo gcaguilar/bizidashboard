@@ -88,6 +88,56 @@ export async function getWeekdayMorningProfiles(
   }));
 }
 
+export type WeekdayEveningProfileRow = {
+  stationId: string;
+  /** Dia ISO: 1 = lunes ... 5 = viernes. */
+  isoWeekday: number;
+  hour: number;
+  /** Proporcion de horas agregadas con `anchorsMax <= 0`. */
+  fullShare: number;
+  sampleCount: number;
+};
+
+/**
+ * Perfil de tarde por estacion para los dias laborables (17:00-18:59). Es la
+ * cohorte de estaciones que suelen quedarse sin huecos en la story de las 18:30
+ * ("donde dejar la bici"), espejo de `getWeekdayMorningProfiles`.
+ */
+export async function getWeekdayEveningProfiles(
+  weeks = DEFAULT_MORNING_PROFILE_WEEKS
+): Promise<WeekdayEveningProfileRow[]> {
+  const safeWeeks = Math.max(1, Math.min(26, Math.floor(weeks)));
+
+  const rows = await prisma.$queryRaw<Array<{
+    stationId: unknown;
+    isoWeekday: unknown;
+    hour: unknown;
+    fullShare: unknown;
+    sampleCount: unknown;
+  }>>`
+    SELECT
+      "stationId",
+      ${localIsoDow()} AS "isoWeekday",
+      ${localHour()} AS hour,
+      AVG(CASE WHEN "anchorsMax" <= 0 THEN 1.0 ELSE 0.0 END) AS "fullShare",
+      SUM("sampleCount")::int AS "sampleCount"
+    FROM "HourlyStationStat"
+    WHERE "bucketStart" >= (NOW() AT TIME ZONE 'UTC') - INTERVAL '1 day' * ${safeWeeks * 7}
+      AND ${localIsoDow()} <= 5
+      AND ${localHour()} BETWEEN 17 AND 18
+    GROUP BY 1, 2, 3
+    ORDER BY 1, 2, 3;
+  `;
+
+  return rows.map((row) => ({
+    stationId: String(row.stationId),
+    isoWeekday: toSerializableNumber(row.isoWeekday),
+    hour: toSerializableNumber(row.hour),
+    fullShare: toSerializableNumber(row.fullShare),
+    sampleCount: toSerializableNumber(row.sampleCount),
+  }));
+}
+
 export type LatestHourMobilityRow = {
   stationId: string;
   /** Inicio del bucket horario local, en ISO UTC. */

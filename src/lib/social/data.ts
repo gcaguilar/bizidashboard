@@ -8,6 +8,7 @@
  */
 
 import { getCitizenStatus } from '@/lib/map-colors';
+import { distanceMeters } from '@/lib/nearest-station';
 import { median } from '@/lib/stats';
 import { isValidMonthKey, previousMonthKey } from '@/lib/months';
 import { TIMEZONE } from '@/lib/timezone';
@@ -15,7 +16,9 @@ import type {
   SocialDistrictDemandRow,
   SocialDistrictFrictionRow,
   SocialDistrictStats,
+  SocialEveningStationProfile,
   SocialMorningStationProfile,
+  SocialNearbyAlternative,
   SocialPeriodRange,
   SocialSlot,
   SocialStationCandidate,
@@ -433,7 +436,16 @@ export function aggregateDistrictStats(input: {
     );
 }
 
-/** Top N por indice de actividad; empate resuelto por nombre de distrito. */
+/**
+ * Uso medio por estacion. Comparar distritos por la suma bruta premia a los que
+ * tienen mas estaciones; por estacion el ranking es justo entre barrios de
+ * distinto tamano.
+ */
+export function activityPerStation(entry: SocialDistrictStats): number {
+  return entry.stationCount > 0 ? entry.activityIndex / entry.stationCount : entry.activityIndex;
+}
+
+/** Top N por uso medio por estacion; empate resuelto por nombre de distrito. */
 export function topDistrictsByActivity(
   stats: readonly SocialDistrictStats[],
   limit = 3
@@ -446,13 +458,19 @@ export function topDistrictsByActivity(
   return [...stats]
     .sort(
       (left, right) =>
-        right.activityIndex - left.activityIndex ||
+        activityPerStation(right) - activityPerStation(left) ||
         compareText(left.district, right.district)
     )
     .slice(0, safeLimit);
 }
 
-/** Distritos con referencia previa, de mayor a menor crecimiento. */
+/** Un distrito necesita al menos este porcentaje de la mediana previa para comparar. */
+const GROWTH_MIN_BASE_SHARE = 0.25;
+
+/**
+ * Distritos con referencia previa, de mayor a menor crecimiento. Se descartan
+ * los que partian de una base minuscula: "sube un 80%" sobre casi nada es ruido.
+ */
 export function topDistrictsByGrowth(
   stats: readonly SocialDistrictStats[],
   limit = 1
@@ -462,8 +480,20 @@ export function topDistrictsByGrowth(
     return [];
   }
 
+  const previous = stats
+    .map((entry) => entry.previousActivityIndex)
+    .filter((value) => value > 0)
+    .sort((left, right) => left - right);
+  const median =
+    previous.length === 0
+      ? 0
+      : previous.length % 2 === 1
+        ? previous[(previous.length - 1) / 2]!
+        : (previous[previous.length / 2 - 1]! + previous[previous.length / 2]!) / 2;
+  const minBase = median * GROWTH_MIN_BASE_SHARE;
+
   return stats
-    .filter((entry) => entry.growthRatio !== null)
+    .filter((entry) => entry.growthRatio !== null && entry.previousActivityIndex >= minBase)
     .sort(
       (left, right) =>
         (right.growthRatio ?? 0) - (left.growthRatio ?? 0) ||
@@ -635,9 +665,52 @@ export function evaluateHourlyActivityAnomaly(
 }
 
 /**
+ * Cohorte de estaciones "habituales" para una franja: las `cohortSize` con
+ * mayor proporcion historica de horas agotadas. Sin perfiles se usa la red
+ * completa para no dejar la story vacia por falta de historico.
+ */
+function buildCohort<T extends SocialStationCandidate>(
+  stations: readonly T[],
+  profiles: ReadonlyArray<{ stationId: string; share: number }>,
+  cohortSize: number
+): { cohort: T[]; shareOf: (station: T) => number } {
+  const stationById = new Map(stations.map((station) => [station.id, station]));
+  const profileById = new Map<string, { stationId: string; share: number }>();
+  for (const profile of profiles) {
+    if (stationById.has(profile.stationId)) {
+      profileById.set(profile.stationId, profile);
+    }
+  }
+
+  if (profileById.size === 0) {
+    return {
+      cohort: [...stations].sort((left, right) => compareText(left.id, right.id)),
+      shareOf: () => 0,
+    };
+  }
+
+  const ranked = Array.from(profileById.values()).sort(
+    (left, right) =>
+      finiteNumber(right.share) - finiteNumber(left.share) ||
+      compareText(left.stationId, right.stationId)
+  );
+  const shareByStation = new Map(
+    ranked.map((profile) => [profile.stationId, finiteNumber(profile.share)])
+  );
+
+  return {
+    cohort: ranked
+      .slice(0, cohortSize)
+      .map((profile) => stationById.get(profile.stationId))
+      .filter((station): station is T => station !== undefined),
+    shareOf: (station) => shareByStation.get(station.id) ?? 0,
+  };
+}
+
+/**
  * Selecciona las estaciones de la story de manana:
  *
- * 1. Cohorte de estaciones clave por `emptyShare` historico (top `cohortSize`).
+ * 1. Cohorte de estaciones habituales por `emptyShare` historico (top `cohortSize`).
  * 2. Dentro de la cohorte, las `limit` con `bikesAvailable <= 0`.
  * 3. Si no hay ninguna agotada, las `limit` con estado ciudadano `low`
  *    (poca disponibilidad).
@@ -653,37 +726,14 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
 }): SocialStationSelection<T> {
   const limit = Math.max(1, Math.trunc(input.limit ?? 3));
   const cohortSize = Math.max(limit, Math.trunc(input.cohortSize ?? 40));
-  const stationById = new Map(input.stations.map((station) => [station.id, station]));
-
-  const profileById = new Map<string, SocialMorningStationProfile>();
-  for (const profile of input.profiles ?? []) {
-    if (stationById.has(profile.stationId)) {
-      profileById.set(profile.stationId, profile);
-    }
-  }
-
-  let cohort: T[];
-  let emptyShareByStation = new Map<string, number>();
-
-  if (profileById.size > 0) {
-    const ranked = Array.from(profileById.values()).sort(
-      (left, right) =>
-        finiteNumber(right.emptyShare) - finiteNumber(left.emptyShare) ||
-        compareText(left.stationId, right.stationId)
-    );
-    cohort = ranked
-      .slice(0, cohortSize)
-      .map((profile) => stationById.get(profile.stationId))
-      .filter((station): station is T => station !== undefined);
-    emptyShareByStation = new Map(
-      ranked.map((profile) => [profile.stationId, finiteNumber(profile.emptyShare)])
-    );
-  } else {
-    cohort = [...input.stations].sort((left, right) => compareText(left.id, right.id));
-  }
-
-  const emptyShare = (station: T): number =>
-    emptyShareByStation.get(station.id) ?? 0;
+  const { cohort, shareOf: emptyShare } = buildCohort(
+    input.stations,
+    (input.profiles ?? []).map((profile) => ({
+      stationId: profile.stationId,
+      share: profile.emptyShare,
+    })),
+    cohortSize
+  );
 
   const emptyStations = cohort
     .filter((station) => station.bikesAvailable <= 0)
@@ -712,4 +762,111 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
   }
 
   return { mode: 'none', stations: [] };
+}
+
+/**
+ * Espejo de la manana para la story de la tarde ("donde dejar la bici"):
+ *
+ * 1. Cohorte de estaciones que suelen quedarse sin huecos (`fullShare`).
+ * 2. Dentro de la cohorte, las `limit` con `anchorsFree <= 0`.
+ * 3. Si no hay ninguna llena, las `limit` con 1 o 2 huecos libres.
+ */
+export function selectEveningStations<T extends SocialStationCandidate>(input: {
+  stations: readonly T[];
+  profiles?: readonly SocialEveningStationProfile[];
+  limit?: number;
+  cohortSize?: number;
+}): SocialStationSelection<T> {
+  const limit = Math.max(1, Math.trunc(input.limit ?? 3));
+  const cohortSize = Math.max(limit, Math.trunc(input.cohortSize ?? 40));
+  const { cohort, shareOf: fullShare } = buildCohort(
+    input.stations,
+    (input.profiles ?? []).map((profile) => ({
+      stationId: profile.stationId,
+      share: profile.fullShare,
+    })),
+    cohortSize
+  );
+
+  const fullStations = cohort
+    .filter((station) => station.capacity > 0 && station.anchorsFree <= 0)
+    .sort(
+      (left, right) =>
+        fullShare(right) - fullShare(left) || compareText(left.id, right.id)
+    );
+
+  if (fullStations.length > 0) {
+    return { mode: 'full', stations: fullStations.slice(0, limit) };
+  }
+
+  const lowStations = cohort
+    .filter((station) => station.capacity > 0 && station.anchorsFree > 0 && station.anchorsFree < 3)
+    .sort(
+      (left, right) =>
+        left.anchorsFree - right.anchorsFree ||
+        fullShare(right) - fullShare(left) ||
+        compareText(left.id, right.id)
+    );
+
+  if (lowStations.length > 0) {
+    return { mode: 'low', stations: lowStations.slice(0, limit) };
+  }
+
+  return { mode: 'none', stations: [] };
+}
+
+/** Distancia maxima para que una estacion sea una alternativa util a pie. */
+const ALTERNATIVE_MAX_METERS = 600;
+/** Bicis o huecos minimos: con 1 o 2 es probable que ya no queden al leer la story. */
+const ALTERNATIVE_MIN_AVAILABLE = 3;
+
+/**
+ * Estacion mas cercana con bicis (`bikes`) o huecos (`anchors`) suficientes para
+ * sugerir en lugar de `origin`.
+ * Distancia en linea recta (se muestra como "a unos X m"). Devuelve `null` si
+ * no hay ninguna dentro de la distancia util: mejor no sugerir nada que mandar
+ * a alguien a un kilometro.
+ */
+export function findNearbyAlternative<
+  T extends SocialStationCandidate & { lat: number; lon: number },
+>(
+  origin: T,
+  stations: readonly T[],
+  options: { kind?: 'bikes' | 'anchors'; minAvailable?: number; maxMeters?: number } = {}
+): SocialNearbyAlternative | null {
+  const kind = options.kind ?? 'bikes';
+  const minAvailable = options.minAvailable ?? ALTERNATIVE_MIN_AVAILABLE;
+  const availableOf = (station: T): number =>
+    kind === 'bikes' ? station.bikesAvailable : station.anchorsFree;
+  const maxMeters = options.maxMeters ?? ALTERNATIVE_MAX_METERS;
+  let best: { station: T; meters: number } | null = null;
+
+  for (const station of stations) {
+    if (station.id === origin.id || !(availableOf(station) >= minAvailable)) {
+      continue;
+    }
+
+    const meters = distanceMeters(origin, station);
+    if (
+      Number.isFinite(meters) &&
+      meters <= maxMeters &&
+      (!best ||
+        meters < best.meters ||
+        (meters === best.meters && compareText(station.id, best.station.id) < 0))
+    ) {
+      best = { station, meters };
+    }
+  }
+
+  if (!best) {
+    return null;
+  }
+
+  return {
+    fromStationId: origin.id,
+    name: best.station.name,
+    kind,
+    distanceMeters: Math.max(10, Math.round(best.meters / 10) * 10),
+    available: availableOf(best.station),
+  };
 }

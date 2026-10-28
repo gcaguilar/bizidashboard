@@ -16,6 +16,7 @@ import {
 } from '@/lib/social/copy';
 
 const TRAVEL_TERM = /viaj/iu;
+const JARGON_TERM = /tensi[óo]n|estaciones? clave|GBFS/iu;
 const COMMUTE_TERM = /hora punta|entrada al trabajo|salida del trabajo|desplazamiento|commute/iu;
 
 function withoutDisclaimer(value: string): string {
@@ -27,15 +28,16 @@ describe('social copy guardrails', () => {
     const caption = buildFeedCaption({
       hook: 'Zaragoza en bici · semana del 19 al 25 de octubre',
       facts: [
-        { label: 'Distrito con más movimiento', value: 'Centro' },
-        { label: 'Tensión', value: formatFrictionFact(4, 2, 20) },
+        { label: 'Distrito con más uso', value: 'Centro' },
+        { label: 'Horas sin bicis o sin huecos', value: formatFrictionFact(4, 2, 20) },
       ],
-      context: 'La red cerró la semana con poca disponibilidad en dos distritos.',
+      context: 'La red cerró la semana con pocas bicis en dos distritos.',
       cta: 'Explora tu barrio en datosbizi.com',
     });
 
-    expect(caption).toContain('movimiento');
-    expect(caption).toContain('tensión');
+    expect(caption).toContain('más uso');
+    expect(caption).toContain('sin bicis o sin huecos');
+    expect(caption).not.toMatch(JARGON_TERM);
     expect(withoutDisclaimer(caption)).not.toMatch(TRAVEL_TERM);
     expect(caption).toContain(SOCIAL_FEED_DISCLAIMER);
     expect(SOCIAL_FEED_DISCLAIMER).toContain('no viajes reales');
@@ -80,12 +82,12 @@ describe('social copy guardrails', () => {
     const weekend = getDayFraming('2026-10-31');
 
     expect(weekday.isWeekend).toBe(false);
-    expect(weekday.morningKicker).toBe('Mañana en bici');
-    expect(weekday.afternoonKicker).toBe('Cómo va la tarde');
+    expect(weekday.morningKicker).toBe('Bizi esta mañana');
+    expect(weekday.afternoonKicker).toBe('Bizi esta tarde');
 
     expect(weekend.isWeekend).toBe(true);
-    expect(weekend.morningKicker).toBe('Fin de semana en bici');
-    expect(weekend.afternoonKicker).toBe('Cómo va el fin de semana');
+    expect(weekend.morningKicker).toBe('Bizi este fin de semana');
+    expect(weekend.afternoonKicker).toBe('Bizi este fin de semana · tarde');
 
     for (const framing of [weekday, weekend]) {
       expect(framing.morningKicker).not.toMatch(COMMUTE_TERM);
@@ -97,7 +99,7 @@ describe('social copy guardrails', () => {
     const text = buildStoryText({
       slot: 'morning',
       dateKey: '2026-10-27',
-      headline: '3 estaciones clave agotadas',
+      headline: '3 estaciones que suelen vaciarse, sin bicis',
       dataWindow: '07:00–08:30',
     });
 
@@ -113,16 +115,16 @@ describe('social copy guardrails', () => {
       kind: 'story',
       slot: 'morning',
       dateKey: '2026-10-27',
-      headline: '3 estaciones clave agotadas',
+      headline: '3 estaciones que suelen vaciarse, sin bicis',
       facts: [
-        { label: 'Estaciones clave', value: 'Plaza España (0 bicis)' },
-        { label: 'Red', value: 'Afectaciones moderadas' },
+        { label: 'Estaciones sin bicis', value: 'Plaza España (0 bicis)' },
+        { label: 'En toda la red', value: '12 de 276 estaciones sin bicis o sin huecos' },
       ],
       dataWindow: '07:00–08:30',
       cause: { label: 'Fiestas del Pilar' },
     });
 
-    expect(alt).toContain('3 estaciones clave agotadas');
+    expect(alt).toContain('3 estaciones que suelen vaciarse, sin bicis');
     expect(alt).toContain('Plaza España');
     expect(alt).toContain('Fiestas del Pilar');
     expect(alt).toContain('estimación');
@@ -141,6 +143,6 @@ describe('social copy guardrails', () => {
     expect(formatSocialWeekLabel('2026-12-28', '2027-01-03')).toBe(
       'semana del 28 de diciembre de 2026 al 3 de enero de 2027'
     );
-    expect(SOCIAL_STORY_FOOTER).toBe('datosbizi.com · datos abiertos GBFS');
+    expect(SOCIAL_STORY_FOOTER).toBe('datosbizi.com · datos abiertos de Bizi Zaragoza');
   });
 });

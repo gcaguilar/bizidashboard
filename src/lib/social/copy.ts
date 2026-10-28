@@ -1,9 +1,11 @@
 /**
  * Textos y presentacion del agente social.
  *
- * Vocabulario cerrado del producto: "indice de actividad", "movimiento
- * estimado", "tension", "poca disponibilidad" y "agotada". Nunca se habla de
- * "viajes": la unica excepcion es el aviso legal que exige el propio producto.
+ * Redes sociales = publico general, sin jerga del dashboard. Cada pieza cuenta
+ * una sola cosa en lenguaje llano: "sin bicis", "sin huecos", "pocas bicis" y
+ * "uso" (estimado). No se usan "tension", "estaciones clave" ni "GBFS". Nunca
+ * se habla de "viajes": la unica excepcion es el aviso legal. Los "puntos de
+ * actividad" solo aparecen donde se explican (ultima lamina del semanal).
  *
  * Este modulo es puro (sin React, rutas ni red). Solo compone cadenas a partir
  * de hechos ya calculados; los numeros pasan siempre por `format.ts`.
@@ -29,10 +31,11 @@ export const SOCIAL_HASHTAGS = [
 export const SOCIAL_HASHTAGS_TEXT = SOCIAL_HASHTAGS.join(' ');
 
 /** Aviso legal obligatorio en el feed. */
-export const SOCIAL_FEED_DISCLAIMER = 'Datos abiertos GBFS. Estimación, no viajes reales.';
+export const SOCIAL_FEED_DISCLAIMER =
+  'Datos abiertos de Bizi Zaragoza. Estimación a partir de las bicis disponibles en cada estación, no viajes reales.';
 
 /** Pie comun de stories y laminas. */
-export const SOCIAL_STORY_FOOTER = 'datosbizi.com · datos abiertos GBFS';
+export const SOCIAL_STORY_FOOTER = 'datosbizi.com · datos abiertos de Bizi Zaragoza';
 export const SOCIAL_FEED_FOOTER = SOCIAL_STORY_FOOTER;
 
 export const SOCIAL_FEED_CTA = 'Explora tu barrio en datosbizi.com';
@@ -41,7 +44,8 @@ export const SOCIAL_CAPTION_MAX_LENGTH = 2200;
 export const SOCIAL_ALT_TEXT_MAX_LENGTH = 1000;
 export const SOCIAL_STORY_TEXT_MAX_LENGTH = 280;
 
-export const SOCIAL_MORNING_WINDOW = '07:00–08:30';
+/** Hora de la foto de datos de la story de la mañana (la ventana real se pasa en el input). */
+export const SOCIAL_MORNING_WINDOW = '08:30';
 export const SOCIAL_AFTERNOON_WINDOW = '17:00–18:30';
 
 const SPANISH_LOCALE = 'es-ES';
@@ -140,17 +144,17 @@ export type SocialDayFraming = {
 };
 
 /**
- * Encuadre diario. El fin de semana conserva los dos slots pero evita el
- * lenguaje de ida al trabajo: "Fin de semana en bici" y "Cómo va el fin de
- * semana". Los festivos solo se nombran si el llamante aporta una causa curada.
+ * Encuadre diario. El kicker dice de que va la pieza ("Bizi esta mañana"). El
+ * fin de semana conserva los dos slots pero evita el lenguaje de ida al
+ * trabajo. Los festivos solo se nombran si el llamante aporta una causa curada.
  */
 export function getDayFraming(dateKey: string): SocialDayFraming {
   const weekend = isWeekendDateKey(dateKey);
 
   return {
     isWeekend: weekend,
-    morningKicker: weekend ? 'Fin de semana en bici' : 'Mañana en bici',
-    afternoonKicker: weekend ? 'Cómo va el fin de semana' : 'Cómo va la tarde',
+    morningKicker: weekend ? 'Bizi este fin de semana' : 'Bizi esta mañana',
+    afternoonKicker: weekend ? 'Bizi este fin de semana · tarde' : 'Bizi esta tarde',
     label: weekend ? 'Fin de semana' : 'Entre semana',
   };
 }
@@ -271,14 +275,16 @@ export function buildSocialAltText(input: SocialAltTextInput): string {
   }
 
   if (input.dataWindow) {
-    parts.push(`Datos de ${input.dataWindow}.`);
+    // Una hora suelta ("08:30") se lee "de las 08:30"; un rango ("17:00–18:30") no.
+    const prefix = /^\d{1,2}:\d{2}$/u.test(input.dataWindow) ? 'las ' : '';
+    parts.push(`Datos de ${prefix}${input.dataWindow}.`);
   }
 
   if (input.cause?.label) {
     parts.push(`Contexto: ${normalizeText(input.cause.label)}.`);
   }
 
-  parts.push('Datos abiertos GBFS, estimación de movimiento.');
+  parts.push('Datos abiertos de Bizi Zaragoza, estimación de uso.');
 
   return clampText(parts.join(' '), SOCIAL_ALT_TEXT_MAX_LENGTH);
 }
@@ -300,12 +306,12 @@ export function pluralize(count: number, singular: string, plural: string): stri
   return count === 1 ? singular : plural;
 }
 
-/** Horas de friccion con su tasa, siempre en el vocabulario del proyecto. */
+/** Horas sin bicis o sin huecos con su tasa, en lenguaje llano. */
 export function formatFrictionFact(emptyHours: number, fullHours: number, totalHours: number): string {
   const frictionHours = Math.max(0, emptyHours) + Math.max(0, fullHours);
   const rate = totalHours > 0 ? frictionHours / totalHours : 0;
 
-  return `${formatInteger(frictionHours)} h con tensión · ${formatPercent(rate)} de las horas`;
+  return `${formatInteger(frictionHours)} h sin bicis o sin huecos · ${formatPercent(rate)} de las horas`;
 }
 
 /** Variacion porcentual con signo y sin inventar decimales. */

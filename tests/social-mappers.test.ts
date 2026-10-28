@@ -13,6 +13,7 @@ import type { ServiceCause } from '@/lib/service-calendar';
 import type { RobustAnomaly } from '@/lib/social/data';
 
 import {
+  aggregateEveningProfiles,
   aggregateMorningProfiles,
   filterCurrentEpisodes,
   getLatestBucketContext,
@@ -72,6 +73,17 @@ describe('aggregateMorningProfiles', () => {
     expect(profile?.stationId).toBe('A');
     expect(profile?.emptyShare).toBeCloseTo(0.5);
     expect(profile?.sampleCount).toBe(0);
+  });
+});
+
+describe('aggregateEveningProfiles', () => {
+  it('weights fullShare by sampleCount per station', () => {
+    expect(
+      aggregateEveningProfiles([
+        { stationId: 'A', isoWeekday: 1, hour: 17, fullShare: 1, sampleCount: 10 },
+        { stationId: 'A', isoWeekday: 2, hour: 18, fullShare: 0, sampleCount: 30 },
+      ])
+    ).toEqual([{ stationId: 'A', fullShare: 0.25, sampleCount: 40 }]);
   });
 });
 

@@ -35,6 +35,7 @@ import {
   SOCIAL_STORY_FOOTER,
 } from '@/lib/social/copy';
 import {
+  activityPerStation,
   topDistrictsByActivity,
   topDistrictsByFriction,
   topDistrictsByGrowth,
@@ -45,6 +46,9 @@ import type {
   SocialCarouselSlide,
   SocialCause,
   SocialDistrictStats,
+  SocialEveningStationProfile,
+  SocialMorningStationProfile,
+  SocialNearbyAlternative,
   SocialNetworkContext,
   SocialStationCandidate,
   SocialStationSelection,
@@ -60,8 +64,14 @@ const ACCENT_RED = '#b91c1c';
 const ACCENT_BLUE = '#1d4ed8';
 const ACCENT_SLATE = '#64748b';
 
+const BARS_LABEL = 'Puntos de actividad por estación';
+
 function normalize(value: string): string {
   return value.trim().replace(/\s+/gu, ' ');
+}
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function compareText(left: string, right: string): number {
@@ -83,28 +93,18 @@ function networkFact(network: SocialNetworkContext): SocialStoryFact | null {
   }
 
   const critical = Math.max(0, network.criticalStationsCount);
-  const label = normalize(network.label) || 'Red sin valorar';
 
   return {
-    label: 'Red',
-    value: `${label} · ${formatInteger(critical)} de ${formatInteger(network.totalStations)} sin bicis o huecos`,
+    label: 'En toda la red',
+    value:
+      critical === 0
+        ? 'Ninguna estación sin bicis ni sin huecos'
+        : `${formatInteger(critical)} de ${formatInteger(network.totalStations)} estaciones sin bicis o sin huecos`,
   };
 }
 
 function causeFact(cause?: SocialCause | null): SocialStoryFact | null {
   return cause?.label ? { label: 'Contexto', value: normalize(cause.label) } : null;
-}
-
-function districtFact(districts: readonly SocialDistrictStats[]): SocialStoryFact | null {
-  const top = topDistrictsByActivity(districts, 2);
-  if (top.length === 0) {
-    return null;
-  }
-
-  return {
-    label: 'Movimiento por zonas',
-    value: top.map((entry) => normalize(entry.district)).join(' · '),
-  };
 }
 
 function districtBars(
@@ -115,7 +115,7 @@ function districtBars(
   return topDistrictsByActivity(districts, limit)
     .map((entry) => ({
       label: normalize(entry.district),
-      value: preferred ? preferred(entry) : entry.activityIndex,
+      value: preferred ? preferred(entry) : Math.round(activityPerStation(entry)),
     }))
     .filter((bar) => Number.isFinite(bar.value) && bar.value > 0);
 }
@@ -131,36 +131,104 @@ function compactFacts(facts: Array<SocialStoryFact | null>): SocialStoryFact[] {
 export type SocialMorningStoryInput = {
   dateKey: string;
   selection: SocialStationSelection<SocialStationCandidate>;
-  topDistricts?: readonly SocialDistrictStats[];
+  /** Perfil historico (entre semana, 7–9 h) para decir con que frecuencia se vacian. */
+  profiles?: readonly SocialMorningStationProfile[];
+  /** Estacion cercana con bicis para quien encuentra la suya vacia. */
+  alternative?: SocialNearbyAlternative | null;
   network: SocialNetworkContext;
   cause?: SocialCause | null;
-  /** Ventana real de datos; por defecto, 07:00–08:30. */
+  /** Hora real de la foto de datos; por defecto, 08:30. */
   dataWindow?: string;
 };
+
+/** Muestras (horas) minimas para afirmar una frecuencia historica. */
+const MIN_PROFILE_SAMPLES = 20;
+/** Por debajo de este porcentaje no merece la pena decir "suele vaciarse". */
+const MIN_HABITUAL_SHARE = 0.1;
+
+function anchorsLabel(count: number): string {
+  const safe = Number.isFinite(count) ? Math.max(0, Math.round(count)) : 0;
+  return `${formatInteger(safe)} ${pluralize(safe, 'hueco', 'huecos')}`;
+}
+
+function alternativeFact(
+  selection: SocialStationSelection<SocialStationCandidate>,
+  alternative: SocialNearbyAlternative | null | undefined
+): SocialStoryFact | null {
+  if (!alternative) {
+    return null;
+  }
+
+  const origin = selection.stations.find((station) => station.id === alternative.fromStationId);
+  if (!origin) {
+    return null;
+  }
+
+  const isBikes = alternative.kind === 'bikes';
+  const available = isBikes
+    ? bikesLabel(alternative.available)
+    : anchorsLabel(alternative.available);
+
+  return {
+    label: isBikes ? 'Dónde coger bici cerca' : 'Dónde dejar la bici cerca',
+    value: `Desde ${normalize(origin.name)}: ${normalize(alternative.name)}, a unos ${formatInteger(alternative.distanceMeters)} m (${available})`,
+  };
+}
+
+/** Aviso de día especial: "Hoy: Fiestas del Pilar". Solo con causa curada. */
+function todayFact(cause?: SocialCause | null): SocialStoryFact | null {
+  return cause?.label ? { label: 'Hoy', value: normalize(cause.label) } : null;
+}
+
+function habitualFact(
+  selection: SocialStationSelection<SocialStationCandidate>,
+  profiles: readonly SocialMorningStationProfile[] | undefined
+): SocialStoryFact | null {
+  const profileById = new Map((profiles ?? []).map((profile) => [profile.stationId, profile]));
+
+  for (const station of selection.stations) {
+    const profile = profileById.get(station.id);
+    if (
+      !profile ||
+      !(profile.emptyShare >= MIN_HABITUAL_SHARE) ||
+      (profile.sampleCount !== undefined && profile.sampleCount < MIN_PROFILE_SAMPLES)
+    ) {
+      continue;
+    }
+
+    return {
+      label: 'Lo habitual, de lunes a viernes de 7 a 9 h',
+      value: `${normalize(station.name)}: sin bicis el ${formatPercent(profile.emptyShare)} del tiempo`,
+    };
+  }
+
+  return null;
+}
 
 function morningStationFact(selection: SocialStationSelection<SocialStationCandidate>): SocialStoryFact {
   if (selection.stations.length === 0) {
     return {
-      label: 'Estaciones clave',
+      label: 'Estaciones que suelen vaciarse',
       value:
-        selection.mode === 'none'
-          ? 'Sin agotadas ni poca disponibilidad'
-          : 'Sin estaciones para destacar',
+        selection.mode === 'none' ? 'Todas con bicis' : 'Sin estaciones para destacar',
     };
   }
 
+  // Sin bicis, "(0 bicis)" repite el titular: solo se cuentan cuando hay alguna.
   const stations = selection.stations.slice(0, 3).map((station) => {
     const name = normalize(station.name);
-    return `${name} (${bikesLabel(station.bikesAvailable)})`;
+    return selection.mode === 'empty'
+      ? name
+      : `${name} (${bikesLabel(station.bikesAvailable)})`;
   });
 
   return {
     label:
       selection.mode === 'empty'
-        ? 'Estaciones clave agotadas'
+        ? 'Estaciones sin bicis'
         : selection.mode === 'low'
-          ? 'Estaciones clave con poca disponibilidad'
-          : 'Estaciones clave',
+          ? 'Estaciones con pocas bicis'
+          : 'Estaciones que suelen vaciarse',
     value: stations.join(' · '),
   };
 }
@@ -168,29 +236,35 @@ function morningStationFact(selection: SocialStationSelection<SocialStationCandi
 function morningHeadline(selection: SocialStationSelection<SocialStationCandidate>): string {
   const count = selection.stations.length;
 
+  // "Que suelen vaciarse" es la cohorte historica del agente: sin ese matiz el
+  // titular pareceria un recuento de toda la red.
+  const usual = `${pluralize(count, 'estación que suele', 'estaciones que suelen')} vaciarse`;
+
   if (selection.mode === 'empty' && count > 0) {
-    return `${formatInteger(count)} ${pluralize(count, 'estación clave', 'estaciones clave')} ${pluralize(count, 'agotada', 'agotadas')}`;
+    return `${formatInteger(count)} ${usual}, sin bicis`;
   }
 
   if (selection.mode === 'low' && count > 0) {
-    return `${formatInteger(count)} ${pluralize(count, 'estación clave', 'estaciones clave')} con poca disponibilidad`;
+    return `${formatInteger(count)} ${usual}, con pocas bicis`;
   }
 
-  return 'Sin agotadas entre las estaciones clave';
+  return 'Hay bicis en las estaciones que suelen vaciarse';
 }
 
 /**
- * Story de las 08:30. Titular segun el modo de seleccion (agotadas, poca
- * disponibilidad o ninguna), hechos de estaciones clave, zonas con mas
- * movimiento estimado y contexto de red. Devuelve `null` si no hay ni
- * estaciones, ni distritos, ni red.
+ * Story de las 08:30. Un solo mensaje: hay bicis o no en las estaciones que
+ * suelen vaciarse. Titular segun el modo de seleccion (sin bicis, pocas bicis
+ * o ninguna), una alternativa cercana con bicis, el aviso de dia especial si
+ * lo hay, cuanto suele pasar y contexto de red (lo ultimo: el render solo
+ * pinta 4 hechos, asi que en un dia especial la red es lo que se cae). Sin distritos ni barras:
+ * a esa hora nadie busca un ranking. Devuelve `null` si no hay ni estaciones
+ * ni red.
  */
 export function buildMorningStory(input: SocialMorningStoryInput): SocialStory | null {
   const stations = input.selection.stations ?? [];
-  const districts = input.topDistricts ?? [];
   const network = input.network;
 
-  if (stations.length === 0 && districts.length === 0 && network.totalStations <= 0) {
+  if (stations.length === 0 && network.totalStations <= 0) {
     return null;
   }
 
@@ -198,9 +272,10 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
   const dataWindow = input.dataWindow ?? SOCIAL_MORNING_WINDOW;
   const facts = compactFacts([
     morningStationFact(input.selection),
-    districtFact(districts),
+    alternativeFact(input.selection, input.alternative),
+    todayFact(input.cause),
+    habitualFact(input.selection, input.profiles),
     networkFact(network),
-    causeFact(input.cause),
   ]);
 
   const headline = morningHeadline(input.selection);
@@ -210,7 +285,6 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
       : input.selection.mode === 'low'
         ? ACCENT_AMBER
         : ACCENT_TEAL;
-  const bars = districtBars(districts, 3);
 
   return {
     slot: 'morning',
@@ -236,8 +310,6 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
     }),
     kicker: `${framing.morningKicker} · ${dataWindow}`,
     accent,
-    bars,
-    barsLabel: bars.length > 0 ? 'Movimiento estimado por distrito' : undefined,
   };
 }
 
@@ -278,6 +350,12 @@ export type SocialAfternoonStoryInput = {
   alerts?: readonly SocialAfternoonAlert[];
   episodes?: readonly SocialAfternoonEpisode[];
   anomaly?: SocialAfternoonAnomaly | null;
+  /** Estaciones que suelen llenarse y ahora estan sin huecos o casi ("donde dejar la bici"). */
+  fullStations?: SocialStationSelection<SocialStationCandidate> | null;
+  /** Perfil historico (entre semana, 17–19 h) para decir con que frecuencia se llenan. */
+  eveningProfiles?: readonly SocialEveningStationProfile[];
+  /** Estacion cercana con huecos para quien encuentra la suya llena. */
+  alternative?: SocialNearbyAlternative | null;
   topDistricts?: readonly SocialDistrictStats[];
   cause?: SocialCause | null;
   /** Ventana real de datos; por defecto, 17:00–18:30. */
@@ -345,10 +423,9 @@ function alertStory(
   const headline = `${normalize(alert.stationName)}: ${issue.toLowerCase()}`;
   const facts = compactFacts([
     {
-      label: 'Media en 3 h',
+      label: 'Media de las últimas 3 h',
       value: metricLabel,
     },
-    { label: 'Tipo', value: issue },
     networkFact(network),
     causeFact(cause),
   ]);
@@ -374,8 +451,7 @@ function episodeStory(
     ? `${normalize(episode.stationName)}: hasta ${minutes} min sin bicis en 24 h`
     : `${normalize(episode.stationName)}: hasta ${minutes} min sin huecos en 24 h`;
   const facts = compactFacts([
-    { label: 'Racha máxima (24 h)', value: `${minutes} min` },
-    { label: 'Tipo', value: isBikes ? 'Sin bicis' : 'Sin huecos' },
+    { label: 'Peor racha en 24 h', value: `${minutes} min` },
     networkFact(network),
     causeFact(cause),
   ]);
@@ -385,20 +461,76 @@ function episodeStory(
 
 function anomalyStory(
   anomaly: SocialAfternoonAnomaly,
-  network: SocialNetworkContext,
   cause: SocialCause | null | undefined
 ): { headline: string; facts: SocialStoryFact[]; accent: string } {
   const hour = String(Math.max(0, Math.min(23, Math.trunc(anomaly.hour)))).padStart(2, '0');
-  const headline = `Posible pico de movimiento a las ${hour}:00`;
+  const headline = `Posible pico de uso a las ${hour}:00`;
   const facts = compactFacts([
-    { label: 'Índice de actividad', value: formatInteger(anomaly.value) },
-    { label: 'Referencia', value: formatInteger(anomaly.baseline) },
-    { label: 'Desviación', value: formatRatioDelta(anomaly.deviationRatio) },
+    { label: 'Uso frente a lo habitual a esa hora', value: formatRatioDelta(anomaly.deviationRatio) },
     causeFact(cause),
-    networkFact(network),
   ]);
 
   return { headline, facts, accent: ACCENT_AMBER };
+}
+
+function eveningHabitualFact(
+  selection: SocialStationSelection<SocialStationCandidate>,
+  profiles: readonly SocialEveningStationProfile[] | undefined
+): SocialStoryFact | null {
+  const profileById = new Map((profiles ?? []).map((profile) => [profile.stationId, profile]));
+
+  for (const station of selection.stations) {
+    const profile = profileById.get(station.id);
+    if (
+      !profile ||
+      !(profile.fullShare >= MIN_HABITUAL_SHARE) ||
+      (profile.sampleCount !== undefined && profile.sampleCount < MIN_PROFILE_SAMPLES)
+    ) {
+      continue;
+    }
+
+    return {
+      label: 'Lo habitual, de lunes a viernes de 17 a 19 h',
+      value: `${normalize(station.name)}: sin huecos el ${formatPercent(profile.fullShare)} del tiempo`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * "Donde dejar la bici": espejo de la story de la manana. Un solo mensaje, con
+ * una estacion cercana con huecos como salida.
+ */
+function fullStationsStory(
+  selection: SocialStationSelection<SocialStationCandidate>,
+  alternative: SocialNearbyAlternative | null | undefined,
+  profiles: readonly SocialEveningStationProfile[] | undefined,
+  network: SocialNetworkContext,
+  cause: SocialCause | null | undefined
+): { headline: string; facts: SocialStoryFact[]; accent: string } {
+  const count = selection.stations.length;
+  const usual = `${pluralize(count, 'estación que suele', 'estaciones que suelen')} llenarse`;
+  const isFull = selection.mode === 'full';
+  const names = selection.stations.slice(0, 3).map((station) => {
+    const name = normalize(station.name);
+    return isFull ? name : `${name} (${anchorsLabel(station.anchorsFree)})`;
+  });
+
+  return {
+    headline: `${formatInteger(count)} ${usual}, ${isFull ? 'sin huecos' : 'con pocos huecos'}`,
+    facts: compactFacts([
+      {
+        label: isFull ? 'Estaciones sin huecos' : 'Estaciones con pocos huecos',
+        value: names.join(' · '),
+      },
+      alternativeFact(selection, alternative),
+      todayFact(cause),
+      eveningHabitualFact(selection, profiles),
+      networkFact(network),
+    ]),
+    accent: isFull ? ACCENT_RED : ACCENT_AMBER,
+  };
 }
 
 function returnPulseStory(
@@ -412,24 +544,24 @@ function returnPulseStory(
   if (top.length === 0) {
     const facts = compactFacts([networkFact(network), causeFact(cause)]);
     return {
-      headline: weekend ? 'Cómo va el fin de semana en bici' : 'Así se mueve la red esta tarde',
+      headline: weekend ? 'Cómo va la Bizi este fin de semana' : 'Cómo va la Bizi esta tarde',
       facts:
         facts.length > 0
           ? facts
-          : [{ label: 'Datos', value: 'Sin datos suficientes para estimar movimiento' }],
+          : [{ label: 'Datos', value: 'Sin datos suficientes para estimar el uso' }],
       accent: ACCENT_SLATE,
     };
   }
 
   const headline = weekend
-    ? `El fin de semana se mueve en ${normalize(top[0]!.district)}`
-    : `Más movimiento estimado en ${normalize(top[0]!.district)}`;
+    ? `Fin de semana: más uso en ${normalize(top[0]!.district)}`
+    : `Más uso de la Bizi en ${normalize(top[0]!.district)}`;
+  const rankLabels = ['Más uso', 'Segundo', 'Tercero'];
   const facts = compactFacts([
-    ...top.map<SocialStoryFact>((entry) => ({
-      label: normalize(entry.district),
-      value: `${formatInteger(entry.activityIndex)} puntos de actividad`,
+    ...top.map<SocialStoryFact>((entry, index) => ({
+      label: rankLabels[index] ?? `${index + 1}.º`,
+      value: normalize(entry.district),
     })),
-    networkFact(network),
     causeFact(cause),
   ]).slice(0, 3);
 
@@ -441,8 +573,9 @@ function returnPulseStory(
  *
  * 1. Alerta activa de 3 h, la mas severa.
  * 2. Racha critica de 180 min o mas.
- * 3. Anomalia horaria al alza ("posible pico", nunca causa confirmada).
- * 4. Pulso de vuelta: distritos con mas movimiento estimado.
+ * 3. Donde dejar la bici: estaciones que suelen llenarse y estan sin huecos.
+ * 4. Anomalia horaria al alza, solo si hay causa curada ("posible pico").
+ * 5. Pulso de vuelta: distritos con mas uso estimado.
  */
 export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialStory {
   const framing = getDayFraming(input.dateKey);
@@ -451,8 +584,14 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
   const districts = input.topDistricts ?? [];
   const alert = pickMostSevereAlert(input.alerts);
   const episode = alert ? null : pickCriticalEpisode(input.episodes);
+  const fullStations =
+    !alert && !episode && input.fullStations && input.fullStations.stations.length > 0
+      ? input.fullStations
+      : null;
+  // Un pico sin causa conocida no dice nada al lector ("+66%" ¿de qué?): solo
+  // se cuenta cuando el llamante aporta una causa curada (fiestas, evento...).
   const anomaly =
-    !alert && !episode && input.anomaly?.isAnomaly && input.anomaly.direction === 'up'
+    !alert && !episode && !fullStations && cause && input.anomaly?.isAnomaly && input.anomaly.direction === 'up'
       ? input.anomaly
       : null;
 
@@ -460,8 +599,16 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
     ? alertStory(alert, input.network, cause)
     : episode
       ? episodeStory(episode, input.network, cause)
-      : anomaly
-        ? anomalyStory(anomaly, input.network, cause)
+      : fullStations
+        ? fullStationsStory(
+            fullStations,
+            input.alternative,
+            input.eveningProfiles,
+            input.network,
+            cause
+          )
+        : anomaly
+        ? anomalyStory(anomaly, cause)
         : returnPulseStory(districts, input.network, framing.isWeekend, cause);
 
   const bars = districtBars(districts, 3);
@@ -491,8 +638,11 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
     }),
     kicker: `${framing.afternoonKicker} · ${dataWindow}`,
     accent: branch.accent,
-    bars: bars.length > 0 && (Boolean(anomaly) || (!alert && !episode)) ? bars : undefined,
-    barsLabel: 'Movimiento estimado por distrito',
+    bars:
+      bars.length > 0 && (Boolean(anomaly) || (!alert && !episode && !fullStations))
+        ? bars
+        : undefined,
+    barsLabel: BARS_LABEL,
   };
 }
 
@@ -503,7 +653,8 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
 export type SocialWeeklyCarouselInput = {
   week: SocialWeekRange;
   districts: readonly SocialDistrictStats[];
-  network: SocialNetworkContext;
+  /** Ya no se pinta: una foto de red de un lunes no resume la semana. */
+  network?: SocialNetworkContext;
   cause?: SocialCause | null;
 };
 
@@ -537,18 +688,21 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
   const top = topDistrictsByActivity(input.districts, 3);
   const growth = topDistrictsByGrowth(input.districts, 1)[0] ?? null;
   const friction = topDistrictsByFriction(input.districts, 1)[0] ?? null;
-  const coverHeadline = `Zaragoza en bici · ${weekLabel}`;
+  // Titular con conclusion; la semana va en el kicker y en el gancho del caption.
+  const coverHeadline = top[0]
+    ? `${normalize(top[0].district)}: donde más se usa la Bizi`
+    : 'La Bizi esta semana';
   const bars = districtBars(input.districts, 5);
-  const network = networkFact(input.network);
 
-  const coverFacts = compactFacts([
-    network,
-    { label: 'Distritos con datos', value: formatInteger(input.districts.length) },
-  ]).slice(0, 3);
+  // La portada explica el criterio: sin esto, un ranking por estación se leería
+  // como un ranking por tamaño del distrito.
+  const coverFacts: SocialStoryFact[] = [
+    { label: 'Cómo se mide', value: 'Uso medio de cada estación del distrito' },
+  ];
 
   const topFacts: SocialStoryFact[] = top.map((entry, index) => ({
     label: `${index + 1}. ${normalize(entry.district)}`,
-    value: `${formatInteger(entry.activityIndex)} puntos de actividad`,
+    value: `${formatInteger(activityPerStation(entry))} puntos por estación`,
   }));
 
   const growthFacts: SocialStoryFact[] = growth
@@ -571,45 +725,38 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
   const frictionFacts: SocialStoryFact[] = friction
     ? [
         {
-          label: 'Tasa de tensión',
-          value: formatPercent(friction.frictionRate),
+          label: 'Horas sin bicis o sin huecos',
+          value: `${formatInteger(friction.emptyHours + friction.fullHours)} de ${formatInteger(friction.totalHours)} h · ${formatPercent(friction.frictionRate)}`,
         },
         {
-          label: 'Horas con tensión',
-          value: `${formatInteger(friction.emptyHours + friction.fullHours)} de ${formatInteger(friction.totalHours)} h`,
-        },
-        {
-          label: 'Estaciones',
+          label: 'Estaciones del distrito',
           value: formatInteger(friction.stationCount),
         },
       ]
-    : [{ label: 'Tensión', value: 'Sin horas críticas registradas' }];
+    : [{ label: 'Disponibilidad', value: 'Sin horas con estaciones vacías o llenas' }];
 
   const growthHeadline = growth
     ? (growth.growthRatio ?? 0) >= 0
-      ? `${normalize(growth.district)} sube un ${formatGrowthMagnitude(growth.growthRatio ?? 0)}`
-      : `${normalize(growth.district)} baja un ${formatGrowthMagnitude(growth.growthRatio ?? 0)}`
+      ? `El uso en ${normalize(growth.district)} sube un ${formatGrowthMagnitude(growth.growthRatio ?? 0)}`
+      : `El uso en ${normalize(growth.district)} baja un ${formatGrowthMagnitude(growth.growthRatio ?? 0)}`
     : 'Sin comparación con la semana anterior';
 
   const slides: SocialCarouselSlide[] = [
     slide(
-      'La semana en bici',
+      capitalize(weekLabel),
       coverHeadline,
       coverFacts,
       ACCENT_TEAL,
-      { bars, barsLabel: 'Movimiento estimado por distrito' }
+      { bars, barsLabel: BARS_LABEL }
     ),
     slide(
-      'Actividad por distrito',
-      top.length > 0 ? 'Los distritos con más movimiento' : 'Sin distritos con actividad',
+      'Uso por distrito',
+      top.length > 0 ? 'Dónde más se usó la Bizi' : 'Sin distritos con actividad',
       topFacts.length > 0 ? topFacts : [{ label: 'Distritos', value: 'Sin actividad registrada' }],
       ACCENT_BLUE,
       {
-        bars: top.map((entry) => ({
-          label: normalize(entry.district),
-          value: entry.activityIndex,
-        })),
-        barsLabel: 'Índice de actividad',
+        bars: districtBars(input.districts, 3),
+        barsLabel: BARS_LABEL,
       }
     ),
     slide('Cambio semanal', growthHeadline, growthFacts, ACCENT_TEAL, {
@@ -619,12 +766,12 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
             { label: 'Semana anterior', value: growth.previousActivityIndex },
           ]
         : undefined,
-      barsLabel: 'Índice de actividad',
+      barsLabel: 'Puntos de actividad',
     }),
     slide(
-      'Tensión en la red',
+      'Sin bicis o sin huecos',
       friction
-        ? `${normalize(friction.district)} concentra la tensión`
+        ? `${normalize(friction.district)}: más horas sin bicis o huecos`
         : 'Sin horas críticas registradas',
       frictionFacts,
       ACCENT_AMBER
@@ -633,9 +780,11 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
       'Explora los datos',
       'Explora tu barrio en datosbizi.com',
       [
-        { label: 'Semana', value: weekLabel },
+        {
+          label: 'Qué son los puntos de actividad',
+          value: 'Miden cuánto cambian las bicis y los huecos en cada estación',
+        },
         { label: 'Web', value: 'datosbizi.com' },
-        { label: 'Qué encontrarás', value: 'Índice de actividad, movimiento estimado y tensión por distrito' },
       ],
       ACCENT_TEAL
     ),
@@ -644,19 +793,19 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
   const captionFacts = compactFacts([
     top[0]
       ? {
-          label: 'Distrito con más movimiento',
+          label: 'Distrito con más uso',
           value: normalize(top[0].district),
         }
       : null,
     growth
       ? {
-          label: 'Mayor cambio',
+          label: 'Mayor cambio de uso',
           value: `${normalize(growth.district)} · ${formatGrowthFact(growth.growthRatio)}`,
         }
       : null,
     friction
       ? {
-          label: 'Más tensión',
+          label: 'Más horas sin bicis o sin huecos',
           value: `${normalize(friction.district)} · ${formatPercent(friction.frictionRate)}`,
         }
       : null,
@@ -670,9 +819,9 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
     facts: coverFacts,
     footer: SOCIAL_FEED_FOOTER,
     caption: buildFeedCaption({
-      hook: `Zaragoza en bici · ${weekLabel}`,
+      hook: `${coverHeadline} · ${weekLabel}`,
       facts: captionFacts,
-      context: input.network.label ? `Red: ${normalize(input.network.label)}.` : null,
+      context: 'Comparamos el uso medio de cada estación para que los distritos grandes no ganen solo por tener más.',
       cta: SOCIAL_FEED_CTA,
     }),
     altText: buildSocialAltText({
@@ -697,21 +846,57 @@ export type SocialMonthlyCarouselInput = {
   reportPath?: string;
 };
 
-const TREND_LABEL: Record<ReportTrend, string> = {
-  mejora: 'Mejora',
-  empeora: 'Empeora',
-  estable: 'Estable',
-  'sin-datos': 'Sin comparación',
-};
+function monthlyPeakHourFact(hour: number | null | undefined): SocialStoryFact | null {
+  if (hour === null || hour === undefined || !Number.isFinite(hour)) {
+    return null;
+  }
+
+  const start = Math.max(0, Math.min(23, Math.trunc(hour)));
+  return {
+    label: 'Hora con más uso',
+    value: `${String(start).padStart(2, '0')}:00–${String((start + 1) % 24).padStart(2, '0')}:00`,
+  };
+}
+
+/** "Entre semana se usa un 67% más por día": solo con dias de ambos tipos. */
+function weekdayWeekendFact(
+  profile: MonthlyReport['weekdayWeekendProfile'] | undefined
+): SocialStoryFact | null {
+  const weekday = profile?.weekday;
+  const weekend = profile?.weekend;
+  if (
+    !weekday ||
+    !weekend ||
+    weekday.daysCount <= 0 ||
+    weekend.daysCount <= 0 ||
+    weekday.avgDemand <= 0 ||
+    weekend.avgDemand <= 0
+  ) {
+    return null;
+  }
+
+  const ratio = weekday.avgDemand / weekend.avgDemand - 1;
+  if (Math.round(Math.abs(ratio) * 100) === 0) {
+    return { label: 'Entre semana y fin de semana', value: 'Se usa igual cada día' };
+  }
+
+  return {
+    label: 'Entre semana y fin de semana',
+    value:
+      ratio > 0
+        ? `Entre semana se usa un ${formatGrowthMagnitude(ratio)} más por día`
+        : `En fin de semana se usa un ${formatGrowthMagnitude(weekend.avgDemand / weekday.avgDemand - 1)} más por día`,
+  };
+}
 
 function trendHeadline(trend: ReportTrend): string {
   switch (trend) {
     case 'mejora':
-      return 'La actividad mejora frente al mes anterior';
+      return 'Más uso que el mes anterior';
     case 'empeora':
-      return 'La actividad baja frente al mes anterior';
+      return 'Menos uso que el mes anterior';
     case 'estable':
-      return 'La actividad se mantiene';
+      return 'Uso estable frente al mes anterior';
     default:
       return 'Sin comparación mensual';
   }
@@ -745,7 +930,7 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
   const worstFriction = report.problemSpots?.worstFriction?.[0] ?? null;
   const monthPath = input.reportPath ?? `/informes/${report.monthKey}`;
   const publicUrl = `datosbizi.com${monthPath.startsWith('/') ? monthPath : `/${monthPath}`}`;
-  const coverHeadline = `Zaragoza en bici · ${monthLabel}`;
+  const coverHeadline = `La Bizi en ${monthLabel}`;
 
   const trendBars: SocialBar[] = (report.trends?.monthly ?? [])
     .slice(-6)
@@ -755,52 +940,54 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
     }))
     .filter((bar) => Number.isFinite(bar.value) && bar.value > 0);
 
-  const keyFacts: SocialStoryFact[] = [
+  const peakHour = monthlyPeakHourFact(headline.peakHour);
+  const weekendGap = weekdayWeekendFact(report.weekdayWeekendProfile);
+
+  // Solo cifras que el lector entiende sin glosario: cuanto se uso, cuando y
+  // cuando mas. Ocupacion media, estaciones activas y dias con datos se quedan
+  // en el informe completo.
+  const keyFacts: SocialStoryFact[] = compactFacts([
     {
-      label: 'Índice de actividad',
+      label: 'Uso estimado',
       value: `${formatInteger(headline.demandScore)} ${activityIndexUnits.perMonth}`,
     },
-    { label: 'Ocupación media', value: formatPercent(headline.avgOccupancy) },
-    { label: 'Estaciones activas', value: formatInteger(headline.activeStations) },
-    {
-      label: 'Días con datos',
-      value: `${formatInteger(coveredDays)} de ${formatInteger(expectedDays)}`,
-    },
-  ];
+    peakHour,
+    weekendGap,
+  ]);
+
+  const seasonalRatio =
+    report.seasonality?.ratioVsPreviousYears ?? report.seasonality?.ratioVsSeries ?? null;
+  const seasonalLabel =
+    report.seasonality?.ratioVsPreviousYears != null
+      ? `Frente a ${formatMonthName(report.monthKey)} de otros años`
+      : 'Frente a la media histórica';
 
   const trendFacts: SocialStoryFact[] = compactFacts([
-    {
-      label: 'Comparación',
-      value: report.comparison?.isComparable
-        ? `${TREND_LABEL[report.comparison.trend]} · ${formatGrowthFact(report.comparison.normalizedDemandRatio)}`
-        : report.comparison?.reason || 'Sin comparación mensual',
-    },
-    {
-      label: 'Estacionalidad',
-      value: report.seasonality?.label || 'Sin serie histórica suficiente',
-    },
-    {
-      label: 'Periodo',
-      value: report.comparison?.periodLabel || monthLabel,
-    },
+    report.comparison?.isComparable
+      ? {
+          label: `Frente a ${report.comparison.periodLabel || 'el mes anterior'}`,
+          value: formatGrowthFact(report.comparison.normalizedDemandRatio),
+        }
+      : { label: 'Comparación', value: report.comparison?.reason || 'Sin comparación mensual' },
+    seasonalRatio !== null ? { label: seasonalLabel, value: formatGrowthFact(seasonalRatio) } : null,
   ]);
 
   const districtFacts: SocialStoryFact[] = compactFacts([
     mostActive
       ? {
-          label: 'Distrito más activo',
+          label: 'Distrito con más uso',
           value: `${normalize(mostActive.district)} · ${formatInteger(mostActive.demandScore)} puntos`,
         }
       : null,
     topStation
       ? {
-          label: 'Estación con más actividad',
-          value: `${normalize(topStation.stationName)} · ${formatDecimal(topStation.avgDemand)} puntos/día`,
+          label: 'Estación más usada',
+          value: `${normalize(topStation.stationName)} · ${formatDecimal(topStation.avgDemand)} ${activityIndexUnits.perDay}`,
         }
       : null,
     worstFriction
       ? {
-          label: 'Más tensión',
+          label: 'Más horas sin bicis o sin huecos',
           value: `${normalize(worstFriction.stationName)} · ${formatPercent(worstFriction.frictionRate)}`,
         }
       : null,
@@ -812,15 +999,11 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
       coverHeadline,
       compactFacts([
         { label: 'Balance', value: normalize(report.balance.headline) },
-        {
-          label: 'Cobertura',
-          value: `${formatInteger(coveredDays)} de ${formatInteger(expectedDays)} días`,
-        },
       ]),
       ACCENT_BLUE,
-      { bars: trendBars, barsLabel: 'Actividad mensual' }
+      { bars: trendBars, barsLabel: 'Puntos de actividad al mes' }
     ),
-    slide('Las cifras del mes', 'La actividad en cifras', keyFacts, ACCENT_TEAL),
+    slide('Las cifras del mes', 'El mes en cifras', keyFacts, ACCENT_TEAL),
     slide(
       'Tendencia',
       trendHeadline(report.comparison?.trend ?? 'sin-datos'),
@@ -830,11 +1013,11 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
         : report.comparison?.trend === 'empeora'
           ? ACCENT_AMBER
           : ACCENT_BLUE,
-      { bars: trendBars, barsLabel: 'Actividad mensual' }
+      { bars: trendBars, barsLabel: 'Puntos de actividad al mes' }
     ),
     slide(
-      'Distritos y récords',
-      mostActive ? `${normalize(mostActive.district)} lidera la actividad` : 'Récords del mes',
+      'Distritos y estaciones',
+      mostActive ? `${normalize(mostActive.district)} es el distrito con más uso` : 'Récords del mes',
       districtFacts.length > 0
         ? districtFacts
         : [{ label: 'Distritos', value: 'Sin distritos destacados este mes' }],
@@ -851,17 +1034,7 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
     ),
   ];
 
-  const captionFacts: SocialStoryFact[] = [
-    {
-      label: 'Índice de actividad',
-      value: `${formatInteger(headline.demandScore)} ${activityIndexUnits.perMonth}`,
-    },
-    { label: 'Ocupación media', value: formatPercent(headline.avgOccupancy) },
-    {
-      label: 'Estaciones activas',
-      value: `${formatInteger(headline.activeStations)} · ${formatInteger(coveredDays)} de ${formatInteger(expectedDays)} días`,
-    },
-  ];
+  const captionFacts: SocialStoryFact[] = compactFacts([keyFacts[0] ?? null, peakHour, weekendGap]);
 
   return {
     slot: 'monthly',
@@ -871,11 +1044,13 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
     facts: slides[0]!.facts,
     footer: SOCIAL_FEED_FOOTER,
     caption: buildFeedCaption({
-      hook: `Zaragoza en bici · ${monthLabel}`,
+      hook: report.comparison?.isComparable
+        ? `${coverHeadline}: ${trendHeadline(report.comparison.trend).toLowerCase()}`
+        : coverHeadline,
       facts: captionFacts,
-      context: [normalize(report.balance.headline), normalize(report.balance.detail)]
-        .filter(Boolean)
-        .join(' '),
+      // Solo el titular del balance: ya lleva la cifra ("El uso creció un 12%…") y
+      // el detalle repite "índice de actividad", jerga que no queremos en el feed.
+      context: normalize(report.balance.headline),
       cta: `Lee el informe completo en ${publicUrl}`,
     }),
     altText: buildSocialAltText({

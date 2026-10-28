@@ -14,6 +14,7 @@ import type { CriticalEpisodeRow } from '@/analytics/queries/rebalancing';
 import type {
   HourlyNetworkActivityBaselineRow,
   LatestHourMobilityRow,
+  WeekdayEveningProfileRow,
   WeekdayMorningProfileRow,
   WeeklyStationFrictionRow,
 } from '@/analytics/queries/social';
@@ -35,6 +36,7 @@ import type {
   SocialCause,
   SocialDistrictDemandRow,
   SocialDistrictFrictionRow,
+  SocialEveningStationProfile,
   SocialMorningStationProfile,
   SocialNetworkContext,
   SocialStationCandidate,
@@ -90,14 +92,11 @@ function resolveStationName(
   return name ? name : stationId;
 }
 
-/**
- * Un perfil por estacion a partir de las filas de dia laborable ponderando
- * `emptyShare` por `sampleCount`. Sin muestras cae a la media simple para no
- * inventar un cero.
- */
-export function aggregateMorningProfiles(
-  rows: readonly WeekdayMorningProfileRow[]
-): SocialMorningStationProfile[] {
+type ShareRow = { stationId: string; share: number; sampleCount: number };
+
+function aggregateShares(
+  rows: readonly ShareRow[]
+): Array<{ stationId: string; share: number; sampleCount: number }> {
   const accumulators = new Map<
     string,
     { weighted: number; weight: number; shares: number; entries: number }
@@ -110,7 +109,7 @@ export function aggregateMorningProfiles(
     }
 
     const weight = nonNegative(row.sampleCount);
-    const share = clampShare(row.emptyShare);
+    const share = clampShare(row.share);
     const accumulator = accumulators.get(stationId) ?? {
       weighted: 0,
       weight: 0,
@@ -127,7 +126,7 @@ export function aggregateMorningProfiles(
 
   return Array.from(accumulators, ([stationId, accumulator]) => ({
     stationId,
-    emptyShare:
+    share:
       accumulator.weight > 0
         ? accumulator.weighted / accumulator.weight
         : accumulator.entries > 0
@@ -135,6 +134,36 @@ export function aggregateMorningProfiles(
           : 0,
     sampleCount: accumulator.weight,
   })).sort((left, right) => compareText(left.stationId, right.stationId));
+}
+
+/**
+ * Un perfil por estacion a partir de las filas de dia laborable ponderando
+ * `emptyShare` por `sampleCount`. Sin muestras cae a la media simple para no
+ * inventar un cero.
+ */
+export function aggregateMorningProfiles(
+  rows: readonly WeekdayMorningProfileRow[]
+): SocialMorningStationProfile[] {
+  return aggregateShares(
+    rows.map((row) => ({
+      stationId: row.stationId,
+      share: row.emptyShare,
+      sampleCount: row.sampleCount,
+    }))
+  ).map(({ stationId, share, sampleCount }) => ({ stationId, emptyShare: share, sampleCount }));
+}
+
+/** Igual que `aggregateMorningProfiles`, con la proporcion de horas sin huecos. */
+export function aggregateEveningProfiles(
+  rows: readonly WeekdayEveningProfileRow[]
+): SocialEveningStationProfile[] {
+  return aggregateShares(
+    rows.map((row) => ({
+      stationId: row.stationId,
+      share: row.fullShare,
+      sampleCount: row.sampleCount,
+    }))
+  ).map(({ stationId, share, sampleCount }) => ({ stationId, fullShare: share, sampleCount }));
 }
 
 /** Instante mas reciente del snapshot; `null` si ninguna fila es valida. */
