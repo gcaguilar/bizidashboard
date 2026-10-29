@@ -15,7 +15,7 @@
 import type { SocialConfig } from '@/lib/social/config';
 import { logger } from '@/lib/logger';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
-import { isSocialSlotDue } from '@/lib/social/data';
+import { normalizeDistrictName, isSocialSlotDue } from '@/lib/social/data';
 import type { BufferClient } from '@/lib/social/buffer';
 import type { MediaHost } from '@/lib/social/media';
 import type { StateStore } from '@/lib/social/state';
@@ -23,6 +23,8 @@ import {
   SOCIAL_TERMINAL_STATUSES,
   type SocialCarousel,
   type SocialClaimOutcome,
+  type SocialContentMetadata,
+  type SocialFamily,
   type SocialPostRecord,
   type SocialSlot,
   type SocialStory,
@@ -30,7 +32,17 @@ import {
 
 const MAX_ERROR_LENGTH = 500;
 const STORY_ASSET_COUNT = 1;
-const CAROUSEL_ASSET_COUNT = 5;
+
+/** Cuantas piezas recientes mira la rotacion de estaciones (~7 dias a 6 slots). */
+export const SOCIAL_RECENT_CONTENT_LIMIT = 42;
+
+/** Cuantos semanales se recuerdan para no repetir barrio del dia. */
+const SOCIAL_SPOTLIGHT_HISTORY_LIMIT = 6;
+
+export type SocialRecentContentQuery = {
+  limit?: number;
+  family?: SocialFamily;
+};
 
 export type SocialSlotContent = SocialStory | SocialCarousel;
 
@@ -38,7 +50,72 @@ export type SocialSlotDataDeps = {
   now: Date;
   /** Solo se necesita la zona horaria para calcular claves y ventanas. */
   config: Pick<SocialConfig, 'timezone'>;
+  /**
+   * Metadata de las ultimas piezas publicadas. Opcional: el preview local no
+   * abre SQLite y entonces la rotacion simplemente no tiene historial.
+   */
+  recentContent?: (
+    query?: SocialRecentContentQuery
+  ) => Promise<readonly SocialContentMetadata[]>;
 };
+
+/**
+ * IDs de estacion que aparecieron en las ultimas piezas, sin duplicados y
+ * limitados a `SOCIAL_RECENT_CONTENT_LIMIT` piezas. Es la senal de recencia que
+ * consumen los selectores; nunca sustituye a la gravedad actual.
+ */
+export async function getRecentStationIds(
+  deps: Pick<SocialSlotDataDeps, 'recentContent'>
+): Promise<string[]> {
+  if (!deps.recentContent) {
+    return [];
+  }
+
+  const recent = await deps.recentContent({ limit: SOCIAL_RECENT_CONTENT_LIMIT });
+  const ids = new Set<string>();
+  for (const metadata of recent) {
+    for (const stationId of metadata.stationIds ?? []) {
+      if (stationId.trim()) {
+        ids.add(stationId);
+      }
+    }
+  }
+
+  return Array.from(ids);
+}
+
+/**
+ * Barrios destacados en las ultimas piezas, sin duplicados y de mas reciente a
+ * mas antiguo. Solo mira `spotlightDistrict`: los distritos que aparecen en un
+ * ranking no cuentan como barrio del dia.
+ */
+export async function getRecentSpotlightDistricts(
+  deps: Pick<SocialSlotDataDeps, 'recentContent'>
+): Promise<string[]> {
+  if (!deps.recentContent) {
+    return [];
+  }
+
+  const recent = await deps.recentContent({
+    limit: SOCIAL_SPOTLIGHT_HISTORY_LIMIT,
+    family: 'weekly-carousel',
+  });
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const metadata of recent) {
+    const name = metadata.spotlightDistrict?.trim();
+    if (!name) {
+      continue;
+    }
+    const key = normalizeDistrictName(name);
+    if (!seen.has(key)) {
+      seen.add(key);
+      names.push(name);
+    }
+  }
+
+  return names;
+}
 
 export type RunSocialSlotInput = {
   slot: SocialSlot;
@@ -50,7 +127,7 @@ export type RunSocialSlotInput = {
   buffer: BufferClient;
   /** Construye el contenido del slot; `null` significa datos insuficientes. */
   build: () => Promise<SocialSlotContent | null>;
-  /** Render inyectado: story -> 1 JPEG; carrusel -> 5 JPEG. */
+  /** Render inyectado: story -> 1 JPEG; carrusel -> 1 JPEG por lamina. */
   render: (content: SocialSlotContent) => readonly Uint8Array[];
 };
 
@@ -98,7 +175,8 @@ export function shouldRunCatchup(input: {
 }
 
 function expectedAssetCount(content: SocialSlotContent): number {
-  return isCarousel(content) ? CAROUSEL_ASSET_COUNT : STORY_ASSET_COUNT;
+  // Un carrusel puede crecer (barrio del dia); el contrato es una imagen por lamina.
+  return isCarousel(content) ? content.slides.length : STORY_ASSET_COUNT;
 }
 
 function assertRenderedImages(
@@ -258,7 +336,10 @@ export async function runSocialSlot(input: RunSocialSlotInput): Promise<void> {
       channelId: input.config.bufferChannelId ?? undefined,
     });
 
-    await input.state.markSent(id, { bufferPostId: result.id });
+    await input.state.markSent(id, {
+      bufferPostId: result.id,
+      metadata: content.metadata,
+    });
     logger.info('social.slot_sent', {
       slot,
       dateKey,

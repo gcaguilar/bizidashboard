@@ -30,7 +30,7 @@ import {
   mapNetworkHealth,
   mapServiceCause,
 } from './mappers';
-import type { SocialSlotDataDeps } from './shared';
+import { getRecentStationIds, type SocialSlotDataDeps } from './shared';
 
 export async function runMiddaySlot(
   deps: SocialSlotDataDeps
@@ -49,19 +49,25 @@ export async function runMiddaySlot(
     return null;
   }
 
-  const profiles = aggregateStationProfiles(await getWeekdayMiddayProfiles());
+  const [profileRows, recentStationIds] = await Promise.all([
+    getWeekdayMiddayProfiles(),
+    getRecentStationIds(deps),
+  ]);
+  const profiles = aggregateStationProfiles(profileRows);
 
   const emptyStations = selectMorningStations({
     stations,
     profiles,
     limit: 3,
     cohortSize: 40,
+    recentStationIds,
   });
   const fullStations = selectEveningStations({
     stations,
     profiles,
     limit: 3,
     cohortSize: 40,
+    recentStationIds,
   });
 
   // Primera estacion destacada de cada cara con una alternativa a pie.

@@ -6,18 +6,29 @@
  * copy, render y publicacion.
  */
 
-export type SocialSlot = 'morning' | 'midday' | 'afternoon' | 'weekly' | 'monthly';
+export type SocialSlot =
+  | 'morning'
+  | 'midday'
+  | 'afternoon'
+  | 'feature'
+  | 'weekly'
+  | 'monthly';
 
 /**
  * Familia editorial del post. `slot` decide cuando se publica; `family` agrupa
  * el formato/contenido para la anti-repeticion y para auditar el estado.
  */
-export type SocialFamily = 'daily-story' | 'weekly-carousel' | 'monthly-carousel';
+export type SocialFamily =
+  | 'daily-story'
+  | 'feature-story'
+  | 'weekly-carousel'
+  | 'monthly-carousel';
 
 export const SOCIAL_SLOTS: readonly SocialSlot[] = [
   'morning',
   'midday',
   'afternoon',
+  'feature',
   'weekly',
   'monthly',
 ];
@@ -26,9 +37,21 @@ export const SOCIAL_SLOT_FAMILY: Record<SocialSlot, SocialFamily> = {
   morning: 'daily-story',
   midday: 'daily-story',
   afternoon: 'daily-story',
+  feature: 'feature-story',
   weekly: 'weekly-carousel',
   monthly: 'monthly-carousel',
 };
+
+/** Temas de la pieza semanal de variedad; rotan por semana ISO. */
+export const SOCIAL_FEATURE_THEMES = [
+  'station',
+  'explainer',
+  'record',
+  'myth',
+  'network',
+] as const;
+
+export type SocialFeatureTheme = (typeof SOCIAL_FEATURE_THEMES)[number];
 
 export type SocialStatus =
   | 'claimed'
@@ -60,6 +83,19 @@ export type SocialAsset = {
   directUrl: string;
 };
 
+/**
+ * Metadata estructurada de una pieza. No es texto editorial: sirve para
+ * recordar que estaciones/barrios salieron y poder rotar en publicaciones
+ * futuras. Todos los campos son opcionales para no inventar datos.
+ */
+export type SocialContentMetadata = {
+  theme?: string;
+  stationIds?: string[];
+  districtNames?: string[];
+  /** Barrio destacado de la pieza, cuando aplica (carrusel semanal). */
+  spotlightDistrict?: string;
+};
+
 export type SocialPostRecord = {
   id: number;
   dateKey: string;
@@ -71,6 +107,8 @@ export type SocialPostRecord = {
   assetUrls: SocialAsset[];
   bufferPostId: string | null;
   error: string | null;
+  /** Metadata de la pieza publicada; ausente en filas antiguas o sin datos. */
+  metadata?: SocialContentMetadata;
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
@@ -84,6 +122,7 @@ export type SocialPostPatch = {
   bufferPostId?: string | null;
   error?: string | null;
   publishedAt?: string | null;
+  metadata?: SocialContentMetadata;
 };
 
 export type SocialSlotMeta = {
@@ -91,6 +130,7 @@ export type SocialSlotMeta = {
   family?: SocialFamily;
   caption?: string | null;
   altText?: string | null;
+  metadata?: SocialContentMetadata;
 };
 
 export type SocialClaimOutcome =
@@ -146,6 +186,8 @@ export type SocialStory = {
   bars?: readonly SocialBar[];
   /** Titulo de la grafica de barras, p. ej. "Uso estimado por distrito". */
   barsLabel?: string;
+  /** Estaciones/barrios que aparecen en la pieza, para rotar el contenido. */
+  metadata?: SocialContentMetadata;
 };
 
 /** Una lamina del carrusel de Instagram (1080x1350). */
@@ -170,6 +212,8 @@ export type SocialCarousel = {
   caption: string;
   altText: string;
   slides: readonly SocialCarouselSlide[];
+  /** Estaciones/barrios que aparecen en la pieza, para rotar el contenido. */
+  metadata?: SocialContentMetadata;
 };
 
 /** Contexto de red ya calculado por `buildNetworkHealth`/`getNetworkBalanceSummary`. */

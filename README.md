@@ -129,8 +129,14 @@ When a city container starts, it automatically executes `SET search_path TO "cit
 `social-zaragoza` is an optional service built from its own `social.Dockerfile`,
 which runs a single command (`bun scripts/start-social.mjs`). It publishes
 deterministic Spanish content through Buffer with no LLM and no approval step:
-three stories per day (08:30, 13:00 and 18:30 Europe/Madrid), a district
-carousel on Mondays (09:00) and the monthly report carousel on day 1 (10:00).
+three stories per day (08:30, 13:00 and 18:30 Europe/Madrid), a weekly
+variety story on Wednesdays (09:00), a district carousel on Mondays (09:00) and
+the monthly report carousel on day 1 (10:00). The weekly carousel adds a
+rotating "Barrio del día" slide: a deterministic editorial focus that avoids the
+districts featured in the previous six weeks, so territorial content is not
+always the same top ranking. The Wednesday story rotates one of five themes per
+ISO week (station of the day, how the activity index works, monthly record,
+myth vs data, network figures) and is skipped when its theme lacks data.
 
 - **Enable**: production must set `SOCIAL_ENABLED=1`. The compose default is
   `${SOCIAL_ENABLED:-false}`, so a plain `docker compose up` does not start the
@@ -147,18 +153,25 @@ carousel on Mondays (09:00) and the monthly report carousel on day 1 (10:00).
   schema and the analytics windows depend on them.
 - **Channel discovery**: `bun run social:discover` prints the Buffer
   organizations and channels without publishing.
-- **Preview**: `bun run social:preview --slot morning|midday|afternoon|weekly|monthly
+- **Attribution**: feed CTAs append
+  `utm_source=instagram&utm_medium=social&utm_campaign=<slot>` (plus
+  `utm_content=<theme>` when the piece has one), so web analytics can separate
+  Instagram traffic from direct visits.
+- **Status and audit**: `bun run social:status [--days 30] [--limit 200]` reads
+  the local SQLite and prints sent/skipped/error counts, repeated stations and
+  the districts shown. It never calls Buffer or Instagram.
+- **Preview**: `bun run social:preview --slot morning|midday|afternoon|feature|weekly|monthly
   [--date YYYY-MM-DD] [--out DIR]`. Images default to `.tmp/social`; the command
   reads analytics but never uploads or publishes.
 - **State**: SQLite in the `social-state` volume
   (`/app/data/social.sqlite`), single replica only. Analytics comes from
   Postgres read-only; the agent never writes to Postgres.
-- **Scheduling and catch-up**: all five cron jobs use `runOnInit: false`; on
+- **Scheduling and catch-up**: all six cron jobs use `runOnInit: false`; on
   startup a missed slot is recovered only within `SOCIAL_CATCHUP_MINUTES`
   (120 by default) after its time.
 - **Monitors**: `social-morning`, `social-midday`, `social-afternoon`,
-  `social-weekly` and `social-monthly` in Sentry. The alert rules are an operational step, not
-  created by code.
+  `social-feature`, `social-weekly` and `social-monthly` in Sentry. The alert
+  rules are an operational step, not created by code.
 - **Failure policy**: stale data, an unready monthly report, a failed
   upload/preflight or a Buffer error skip or error the slot and report to
   Sentry. Nothing stale or fallback is published.
@@ -168,7 +181,7 @@ carousel on Mondays (09:00) and the monthly report carousel on day 1 (10:00).
   `/dl/{token}/{id}/{name}` link before preflighting it. Availability and terms
   are third-party dependencies; if the page has no direct link or the URL does
   not return JPEG bytes, the slot is skipped.
-- **Before enabling**: run the manual contract test (one story and one 5-slide
+- **Before enabling**: run the manual contract test (one story and one weekly
   carousel) against the real channel.
 
 ---

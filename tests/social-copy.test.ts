@@ -4,6 +4,8 @@ import {
   buildFeedCaption,
   buildHashtags,
   buildSocialAltText,
+  buildSocialCta,
+  buildSocialTrackingUrl,
   buildStoryText,
   formatFrictionFact,
   formatSocialWeekLabel,
@@ -144,5 +146,35 @@ describe('social copy guardrails', () => {
       'semana del 28 de diciembre de 2026 al 3 de enero de 2027'
     );
     expect(SOCIAL_STORY_FOOTER).toBe('datosbizi.com · datos abiertos de Bizi Zaragoza');
+  });
+});
+
+describe('social attribution', () => {
+  it('adds UTM parameters to the home link', () => {
+    const url = buildSocialTrackingUrl({ slot: 'weekly' });
+
+    expect(url).toBe(
+      'datosbizi.com/?utm_source=instagram&utm_medium=social&utm_campaign=weekly'
+    );
+  });
+
+  it('keeps the path and adds the theme as utm_content', () => {
+    const url = buildSocialTrackingUrl({
+      slot: 'feature',
+      theme: 'station',
+      path: '/informes/2026-09',
+    });
+
+    expect(url).toBe(
+      'datosbizi.com/informes/2026-09?utm_source=instagram&utm_medium=social&utm_campaign=feature&utm_content=station'
+    );
+  });
+
+  it('builds a readable CTA with the tracked link', () => {
+    expect(
+      buildSocialCta({ slot: 'monthly', path: '/informes/2026-09', label: 'Lee el informe completo en' })
+    ).toBe(
+      'Lee el informe completo en datosbizi.com/informes/2026-09?utm_source=instagram&utm_medium=social&utm_campaign=monthly'
+    );
   });
 });

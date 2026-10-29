@@ -49,7 +49,7 @@ import {
   mapServiceCause,
   sumLatestHourActivity,
 } from './mappers';
-import type { SocialSlotDataDeps } from './shared';
+import { getRecentStationIds, type SocialSlotDataDeps } from './shared';
 
 export async function runAfternoonSlot(
   deps: SocialSlotDataDeps
@@ -68,13 +68,15 @@ export async function runAfternoonSlot(
     return null;
   }
 
-  const [alerts, episodes, baselineRows, mobility, eveningRows] = await Promise.all([
-    getActiveAlerts(200),
-    getCriticalEpisodes(1),
-    getHourlyNetworkActivityBaseline(12, now),
-    getLatestCompletedHourMobility(),
-    getWeekdayEveningProfiles(),
-  ]);
+  const [alerts, episodes, baselineRows, mobility, eveningRows, recentStationIds] =
+    await Promise.all([
+      getActiveAlerts(200),
+      getCriticalEpisodes(1),
+      getHourlyNetworkActivityBaseline(12, now),
+      getLatestCompletedHourMobility(),
+      getWeekdayEveningProfiles(),
+      getRecentStationIds(deps),
+    ]);
 
   if (!isLatestMobilityFresh(mobility, now)) {
     logger.info('social.afternoon_data_unavailable', {
@@ -132,6 +134,7 @@ export async function runAfternoonSlot(
     profiles: eveningProfiles,
     limit: 3,
     cohortSize: 40,
+    recentStationIds,
   });
 
   // Lado contrario: estaciones que a esta hora suelen vaciarse y estan sin bicis.
@@ -140,6 +143,7 @@ export async function runAfternoonSlot(
     profiles: eveningProfiles,
     limit: 3,
     cohortSize: 40,
+    recentStationIds,
   });
 
   // Primera estacion destacada con un hueco a pie; si ninguna, no se sugiere nada.

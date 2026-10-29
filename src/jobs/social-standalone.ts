@@ -39,10 +39,17 @@ import {
 
 import { defineCronJob, type CronJob } from '@/jobs/cron-job';
 import { runAfternoonSlot } from './social/afternoon';
+import { runFeatureSlot } from './social/feature';
 import { runMiddaySlot } from './social/midday';
 import { runMonthlySlot } from './social/monthly';
 import { runMorningSlot } from './social/morning';
-import { shouldRunCatchup, runSocialSlot, toSocialErrorMessage } from './social/shared';
+import {
+  SOCIAL_RECENT_CONTENT_LIMIT,
+  shouldRunCatchup,
+  runSocialSlot,
+  toSocialErrorMessage,
+  type SocialSlotDataDeps,
+} from './social/shared';
 import { runWeeklySlot } from './social/weekly';
 
 type SocialRuntime = {
@@ -60,21 +67,22 @@ let shuttingDown = false;
 
 function createSlotBuild(
   slot: SocialSlot,
-  now: Date,
-  config: SocialConfig
+  deps: SocialSlotDataDeps
 ): SocialSlotBuild {
   return async () => {
     switch (slot) {
       case 'morning':
-        return runMorningSlot({ now, config });
+        return runMorningSlot(deps);
       case 'midday':
-        return runMiddaySlot({ now, config });
+        return runMiddaySlot(deps);
       case 'afternoon':
-        return runAfternoonSlot({ now, config });
+        return runAfternoonSlot(deps);
+      case 'feature':
+        return runFeatureSlot(deps);
       case 'weekly':
-        return runWeeklySlot({ now, config });
+        return runWeeklySlot(deps);
       case 'monthly':
-        return runMonthlySlot({ now, config });
+        return runMonthlySlot(deps);
       default:
         return null;
     }
@@ -89,6 +97,15 @@ async function executeSlot(slot: SocialSlot, now: Date, config: SocialConfig): P
   }
 
   const dateKey = getSlotDateKey(slot, now, config.timezone);
+  const deps: SocialSlotDataDeps = {
+    now,
+    config,
+    recentContent: (query) =>
+      active.state.getRecentContent(
+        query?.limit ?? SOCIAL_RECENT_CONTENT_LIMIT,
+        query?.family
+      ),
+  };
 
   await runSocialSlot({
     slot,
@@ -98,7 +115,7 @@ async function executeSlot(slot: SocialSlot, now: Date, config: SocialConfig): P
     state: active.state,
     media: active.media,
     buffer: active.buffer,
-    build: createSlotBuild(slot, now, config),
+    build: createSlotBuild(slot, deps),
     render: renderSocialContent,
   });
 }

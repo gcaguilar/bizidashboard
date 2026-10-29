@@ -144,6 +144,14 @@ class RecordingState implements StateStore {
     return this.inner.getRecentFamilies(limit);
   }
 
+  getRecentContent(limit: number) {
+    return this.inner.getRecentContent(limit);
+  }
+
+  listRecentPosts(limit: number) {
+    return this.inner.listRecentPosts(limit);
+  }
+
   close(): Promise<void> {
     return this.inner.close();
   }
@@ -208,8 +216,8 @@ function createRender(
   return {
     render: (content) => {
       events.push('render');
-      return content.slot === 'weekly' || content.slot === 'monthly'
-        ? images.slice(0, 5)
+      return 'slides' in content
+        ? images.slice(0, content.slides.length)
         : images.slice(0, 1);
     },
   };
@@ -270,6 +278,44 @@ describe('runSocialSlot', () => {
       altText: story.altText,
     });
     expect(record?.assetUrls).toHaveLength(1);
+  });
+
+  it('persists the content metadata when the post is sent', async () => {
+    const events: string[] = [];
+    const store = new RecordingState(
+      new MemoryStateStore({ now: () => NOW }),
+      events
+    );
+    const { media } = createMedia(events);
+    const { buffer } = createBuffer(events);
+    const story = makeStory({
+      metadata: {
+        stationIds: ['s1', 's2'],
+        districtNames: ['Centro'],
+      },
+    });
+
+    await runSocialSlot({
+      slot: 'morning',
+      dateKey: STORY_DATE_KEY,
+      now: NOW,
+      config: makeConfig(),
+      state: store,
+      media,
+      buffer,
+      build: async () => story,
+      render: createRender(events).render,
+    });
+
+    const record = await store.getBySlot(STORY_DATE_KEY, 'morning');
+    expect(record?.status).toBe('sent');
+    expect(record?.metadata).toEqual({
+      stationIds: ['s1', 's2'],
+      districtNames: ['Centro'],
+    });
+    expect(await store.getRecentContent(1)).toEqual([
+      { stationIds: ['s1', 's2'], districtNames: ['Centro'] },
+    ]);
   });
 
   it('does not build or publish when the slot is already claimed', async () => {
@@ -573,6 +619,48 @@ describe('runSocialSlot', () => {
     const record = await store.getBySlot(WEEK_DATE_KEY, 'weekly');
     expect(record?.status).toBe('sent');
     expect(record?.assetUrls).toHaveLength(5);
+  });
+
+  it('renders one image per slide when the carousel grows', async () => {
+    const events: string[] = [];
+    const store = new RecordingState(
+      new MemoryStateStore({ now: () => NOW }),
+      events
+    );
+    const { media, calls: mediaCalls } = createMedia(events);
+    const { buffer, posts } = createBuffer(events);
+    const base = makeCarousel();
+    const carousel: SocialCarousel = {
+      ...base,
+      slides: [
+        ...base.slides,
+        {
+          kicker: 'Barrio del día',
+          headline: 'Este lunes miramos a Universidad',
+          facts: [],
+          footer: 'datosbizi.com · datos abiertos GBFS',
+          accent: '#1d4ed8',
+        },
+      ],
+    };
+
+    await runSocialSlot({
+      slot: 'weekly',
+      dateKey: WEEK_DATE_KEY,
+      now: NOW,
+      config: makeConfig(),
+      state: store,
+      media,
+      buffer,
+      build: async () => carousel,
+      render: createRender(events, [JPEG, JPEG, JPEG, JPEG, JPEG, JPEG]).render,
+    });
+
+    expect(mediaCalls[0]?.images).toHaveLength(6);
+    expect(posts[0]?.assets).toHaveLength(6);
+
+    const record = await store.getBySlot(WEEK_DATE_KEY, 'weekly');
+    expect(record?.assetUrls).toHaveLength(6);
   });
 
   it('rejects a carousel with the wrong number of rendered images', async () => {

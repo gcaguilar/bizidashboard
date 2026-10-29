@@ -19,6 +19,7 @@ import {
   addDaysToDateKey,
   aggregateDistrictStats,
   getPreviousWeekRange,
+  pickSpotlightDistrict,
 } from '@/lib/social/data';
 import { buildWeeklyCarousel } from '@/lib/social/story';
 import type { SocialCarousel } from '@/lib/social/types';
@@ -32,7 +33,10 @@ import {
   mapServiceCause,
   mapWeeklyFrictionRows,
 } from './mappers';
-import type { SocialSlotDataDeps } from './shared';
+import {
+  getRecentSpotlightDistricts,
+  type SocialSlotDataDeps,
+} from './shared';
 
 /** 21 dias cubren la semana analizada, la anterior y margen de huso horario. */
 const WEEKLY_DEMAND_DAYS = 21;
@@ -121,9 +125,17 @@ export async function runWeeklySlot(
     })
   );
 
+  const recentDistrictNames = await getRecentSpotlightDistricts(deps);
+  const spotlightDistrict = pickSpotlightDistrict(
+    districts,
+    recentDistrictNames,
+    week.weekStart
+  );
+
   return buildWeeklyCarousel({
     week,
     districts,
+    spotlightDistrict,
     network,
     cause: mapServiceCause(getServiceCause(week.weekStart)),
   });

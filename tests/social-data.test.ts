@@ -8,6 +8,7 @@ import {
   findDroppingStations,
   findNearbyAlternative,
   getCompletedWeeksRange,
+  getFeatureTheme,
   getIsoWeekday,
   getMonthKey,
   getMonthRange,
@@ -18,6 +19,8 @@ import {
   getWeekRange,
   isSocialSlotDue,
   modelContradictsDrop,
+  normalizeDistrictName,
+  pickSpotlightDistrict,
   selectEveningStations,
   selectMorningStations,
   startOfWeek,
@@ -30,7 +33,44 @@ import {
 import type {
   SocialDistrictDemandRow,
   SocialDistrictFrictionRow,
+  SocialDistrictStats,
 } from '@/lib/social/types';
+
+function districtStats(
+  name: string,
+  overrides: Partial<SocialDistrictStats> = {}
+): SocialDistrictStats {
+  return {
+    district: name,
+    stationCount: 1,
+    activityIndex: 100,
+    previousActivityIndex: 90,
+    growthRatio: 0.1,
+    emptyHours: 0,
+    fullHours: 0,
+    totalHours: 10,
+    frictionRate: 0,
+    ...overrides,
+  };
+}
+
+const SPOTLIGHT_DISTRICTS: SocialDistrictStats[] = [
+  'Actur',
+  'Almozara',
+  'Arrabal',
+  'Casco Histórico',
+  'Centro',
+  'Delicias',
+  'La Almozara',
+  'Las Fuentes',
+  'Miralbueno',
+  'Oliver',
+  'Rosales',
+  'San José',
+  'Santa Isabel',
+  'Torrero',
+  'Universidad',
+].map((name) => districtStats(name));
 
 describe('social date helpers', () => {
   it('uses Europe/Madrid for the date key', () => {
@@ -388,6 +428,42 @@ describe('morning station selection', () => {
     ]);
   });
 
+  it('lets a recent station lose a tie but never hides a critical one', () => {
+    const tied = selectMorningStations({
+      stations: [station('a', 0, 10), station('e', 0, 10)],
+      profiles,
+      limit: 1,
+      cohortSize: 4,
+      recentStationIds: ['e'],
+    });
+    expect(tied.mode).toBe('empty');
+    expect(tied.stations.map((entry) => entry.id)).toEqual(['a']);
+
+    const onlyCriticalIsRecent = selectMorningStations({
+      stations: [station('e', 0, 10), station('a', 5, 5)],
+      profiles,
+      limit: 3,
+      cohortSize: 4,
+      recentStationIds: ['e'],
+    });
+    expect(onlyCriticalIsRecent.mode).toBe('empty');
+    expect(onlyCriticalIsRecent.stations.map((entry) => entry.id)).toEqual(['e']);
+  });
+
+  it('rotates the usual cohort towards non-recent stations when all is fine', () => {
+    const stations = [station('a', 5, 10), station('e', 9, 3)];
+    const recent = selectMorningStations({
+      stations,
+      profiles,
+      limit: 1,
+      cohortSize: 3,
+      recentStationIds: ['e'],
+    });
+
+    expect(recent.mode).toBe('none');
+    expect(recent.stations.map((entry) => entry.id)).toEqual(['a']);
+  });
+
   it('does not treat a nearly full station as low on bikes', () => {
     const selection = selectMorningStations({
       stations: [station('a', 18, 1), station('b', 17, 2), station('e', 20, 0.5)],
@@ -563,6 +639,29 @@ describe('evening station selection', () => {
     expect(selection.stations.map((entry) => entry.id)).toEqual(['e', 'a']);
   });
 
+  it('uses recency as a tie-break behind gravity and rotates the usual cohort', () => {
+    const tied = selectEveningStations({
+      stations: [station('a', 10, 0), station('e', 10, 0)],
+      profiles,
+      limit: 1,
+      cohortSize: 4,
+      recentStationIds: ['e'],
+    });
+    expect(tied.mode).toBe('full');
+    expect(tied.stations.map((entry) => entry.id)).toEqual(['a']);
+
+    const rotated = selectEveningStations({
+      stations: [station('a', 5, 10), station('e', 5, 10)],
+      profiles,
+      limit: 1,
+      cohortSize: 4,
+      fallbackToCohort: true,
+      recentStationIds: ['e'],
+    });
+    expect(rotated.mode).toBe('none');
+    expect(rotated.stations.map((entry) => entry.id)).toEqual(['a']);
+  });
+
   it('falls back to stations with only one or two free anchors', () => {
     const stations = [station('a', 10, 5), station('b', 10, 2), station('c', 10, 1), station('e', 10, 8)];
     const selection = selectEveningStations({ stations, profiles, limit: 2, cohortSize: 4 });
@@ -578,5 +677,94 @@ describe('evening station selection', () => {
     });
 
     expect(selection).toEqual({ mode: 'none', stations: [] });
+  });
+
+  it('keeps the usual-fill cohort when the caller asks for both sides', () => {
+    const selection = selectEveningStations({
+      stations: [station('a', 5, 10), station('e', 5, 10)],
+      profiles,
+      limit: 2,
+      cohortSize: 2,
+      fallbackToCohort: true,
+    });
+
+    expect(selection.mode).toBe('none');
+    expect(selection.stations.map((entry) => entry.id)).toEqual(['e', 'a']);
+  });
+});
+
+describe('weekly spotlight district', () => {
+  it('does not repeat a district over six consecutive weeks', () => {
+    const picked: string[] = [];
+    let recent: string[] = [];
+    let weekStart = '2026-01-05';
+
+    for (let week = 0; week < 6; week += 1) {
+      const district = pickSpotlightDistrict(SPOTLIGHT_DISTRICTS, recent, weekStart);
+      expect(district).not.toBeNull();
+      picked.push(district!.district);
+      recent = [district!.district, ...recent];
+      weekStart = addDaysToDateKey(weekStart, 7);
+    }
+
+    expect(new Set(picked).size).toBe(6);
+  });
+
+  it('is deterministic without history and rotates with the week', () => {
+    const first = pickSpotlightDistrict(SPOTLIGHT_DISTRICTS, [], '2026-01-05');
+    const same = pickSpotlightDistrict(SPOTLIGHT_DISTRICTS, [], '2026-01-05');
+    const next = pickSpotlightDistrict(SPOTLIGHT_DISTRICTS, [], '2026-01-12');
+
+    expect(first?.district).toBe(same?.district);
+    expect(next?.district).not.toBe(first?.district);
+  });
+
+  it('skips districts without stations', () => {
+    const empty = districtStats('Sin estaciones', { stationCount: 0 });
+    const only = districtStats('Único');
+
+    expect(pickSpotlightDistrict([empty], [], '2026-01-05')).toBeNull();
+    expect(pickSpotlightDistrict([empty, only], [], '2026-01-05')?.district).toBe('Único');
+  });
+
+  it('falls back to the least recent district when all have been featured', () => {
+    const districts = ['Centro', 'Delicias', 'Universidad'].map((name) =>
+      districtStats(name)
+    );
+    // Historial de más reciente a más antiguo: Universidad salió la última.
+    const picked = pickSpotlightDistrict(
+      districts,
+      ['Universidad', 'Delicias', 'Centro'],
+      '2026-01-05'
+    );
+
+    expect(picked?.district).toBe('Centro');
+  });
+
+  it('compares district names ignoring case and accents', () => {
+    const districts = [districtStats('Centro'), districtStats('Delicias')];
+    const picked = pickSpotlightDistrict(districts, ['  CENTRO  '], '2026-01-05');
+
+    expect(picked?.district).toBe('Delicias');
+    expect(normalizeDistrictName('  Casco Histórico ')).toBe('casco historico');
+  });
+});
+
+describe('weekly feature theme rotation', () => {
+  it('rotates through five themes without repeats inside the cycle', () => {
+    const themes = ['2026-01-07', '2026-01-14', '2026-01-21', '2026-01-28', '2026-02-04'].map(
+      (dateKey) => getFeatureTheme(dateKey)
+    );
+
+    expect(new Set(themes).size).toBe(5);
+    expect(themes).toEqual(['explainer', 'record', 'myth', 'network', 'station']);
+  });
+
+  it('is deterministic and repeats only after five weeks', () => {
+    const first = getFeatureTheme('2026-01-07');
+    const sixth = getFeatureTheme('2026-02-11');
+
+    expect(getFeatureTheme('2026-01-07')).toBe(first);
+    expect(sixth).toBe(first);
   });
 });

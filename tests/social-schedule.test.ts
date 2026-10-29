@@ -23,6 +23,7 @@ describe('social slot keys', () => {
     expect(getSlotDateKey('morning', lateUtc, TZ)).toBe('2026-10-28');
     expect(getSlotDateKey('midday', lateUtc, TZ)).toBe('2026-10-28');
     expect(getSlotDateKey('afternoon', lateUtc, TZ)).toBe('2026-10-28');
+    expect(getSlotDateKey('feature', lateUtc, TZ)).toBe('2026-10-28');
   });
 
   it('uses the Monday for the weekly slot and YYYY-MM for the monthly slot', () => {
@@ -57,6 +58,11 @@ describe('social catch-up window', () => {
     );
     expect(getSlotDueAt('afternoon', tuesday, TZ).toISOString()).toBe(
       '2026-10-27T17:30:00.000Z'
+    );
+
+    const wednesday = new Date('2026-10-28T12:00:00.000Z');
+    expect(getSlotDueAt('feature', wednesday, TZ).toISOString()).toBe(
+      '2026-10-28T08:00:00.000Z'
     );
 
     const monday = new Date('2026-10-26T12:00:00.000Z');
@@ -107,10 +113,20 @@ describe('social catch-up window', () => {
     ).toBe(false);
   });
 
-  it('opens the catch-up window for all four slots', () => {
+  it('opens the catch-up window for all configured slots', () => {
     const weeklyDue = zonedTimeToUtc('2026-10-26', 9, 0, TZ);
     const monthlyDue = zonedTimeToUtc('2026-11-01', 10, 0, TZ);
     const afternoonDue = zonedTimeToUtc('2026-10-27', 18, 30, TZ);
+    const featureDue = zonedTimeToUtc('2026-10-28', 9, 0, TZ);
+
+    expect(
+      isSocialSlotDue(
+        'feature',
+        new Date(featureDue.getTime() + 30 * 60_000),
+        120,
+        TZ
+      )
+    ).toBe(true);
 
     expect(
       isSocialSlotDue(

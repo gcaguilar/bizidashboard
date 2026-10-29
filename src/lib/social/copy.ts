@@ -40,6 +40,44 @@ export const SOCIAL_FEED_FOOTER = SOCIAL_STORY_FOOTER;
 
 export const SOCIAL_FEED_CTA = 'Explora tu barrio en datosbizi.com';
 
+export type SocialTrackingInput = {
+  slot: SocialSlot;
+  /** Tema editorial, si la pieza lo tiene (p. ej. `station`). */
+  theme?: string | null;
+  /** Ruta publica; por defecto, la portada. */
+  path?: string;
+};
+
+/**
+ * Enlace con atribucion para el feed. Instagram no hace clicable el caption,
+ * pero el texto se copia y pega, y la web puede separar el trafico social del
+ * directo. `utm_content` distingue el tema semanal.
+ */
+export function buildSocialTrackingUrl(input: SocialTrackingInput): string {
+  const rawPath = input.path?.trim() || '/';
+  const path = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  const params = new URLSearchParams({
+    utm_source: 'instagram',
+    utm_medium: 'social',
+    utm_campaign: input.slot,
+  });
+
+  const theme = input.theme?.trim();
+  if (theme) {
+    params.set('utm_content', theme);
+  }
+
+  return `datosbizi.com${path}?${params.toString()}`;
+}
+
+/** CTA del feed con el enlace ya atribuido. */
+export function buildSocialCta(
+  input: SocialTrackingInput & { label?: string }
+): string {
+  const label = input.label?.trim() || 'Explora tu barrio en';
+  return `${label} ${buildSocialTrackingUrl(input)}`;
+}
+
 export const SOCIAL_CAPTION_MAX_LENGTH = 2200;
 export const SOCIAL_ALT_TEXT_MAX_LENGTH = 1000;
 export const SOCIAL_STORY_TEXT_MAX_LENGTH = 280;
@@ -48,6 +86,8 @@ export const SOCIAL_STORY_TEXT_MAX_LENGTH = 280;
 export const SOCIAL_MORNING_WINDOW = '08:30';
 export const SOCIAL_MIDDAY_WINDOW = '13:00';
 export const SOCIAL_AFTERNOON_WINDOW = '17:00–18:30';
+/** Ventana de la pieza semanal de variedad. */
+export const SOCIAL_FEATURE_WINDOW = 'última semana completa';
 
 const SPANISH_LOCALE = 'es-ES';
 
@@ -221,10 +261,11 @@ const STORY_SLOT_LABEL: Record<StoryTextInput['slot'], string> = {
   morning: 'Story de la mañana',
   midday: 'Story del mediodía',
   afternoon: 'Story de la tarde',
+  feature: 'Story de variedad',
 };
 
 export type StoryTextInput = {
-  slot: Extract<SocialSlot, 'morning' | 'midday' | 'afternoon'>;
+  slot: Extract<SocialSlot, 'morning' | 'midday' | 'afternoon' | 'feature'>;
   dateKey: string;
   headline: string;
   dataWindow: string;

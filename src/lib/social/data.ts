@@ -10,6 +10,7 @@
 import { distanceMeters } from '@/lib/nearest-station';
 import { median } from '@/lib/stats';
 import { isValidMonthKey, previousMonthKey } from '@/lib/months';
+import { SOCIAL_FEATURE_THEMES } from '@/lib/social/types';
 import { TIMEZONE } from '@/lib/timezone';
 import type {
   SocialDistrictDemandRow,
@@ -18,6 +19,7 @@ import type {
   SocialDistrictStats,
   SocialDroppingStation,
   SocialEveningStationProfile,
+  SocialFeatureTheme,
   SocialMorningStationProfile,
   SocialNearbyAlternative,
   SocialPeriodRange,
@@ -40,6 +42,7 @@ export const SOCIAL_SLOT_SCHEDULE: Record<
   morning: { hour: 8, minute: 30, cron: '30 8 * * *' },
   midday: { hour: 13, minute: 0, cron: '0 13 * * *' },
   afternoon: { hour: 18, minute: 30, cron: '30 18 * * *' },
+  feature: { hour: 9, minute: 0, cron: '0 9 * * 3' },
   weekly: { hour: 9, minute: 0, cron: '0 9 * * 1' },
   monthly: { hour: 10, minute: 0, cron: '0 10 1 * *' },
 };
@@ -466,6 +469,102 @@ export function topDistrictsByActivity(
     .slice(0, safeLimit);
 }
 
+/** Cuantos destacados recientes se evitan antes de repetir barrio. */
+export const SOCIAL_SPOTLIGHT_HISTORY = 6;
+
+/**
+ * Nombre de distrito comparable: sin tildes, sin mayusculas y con espacios
+ * colapsados. El GeoJSON y el historial pueden no coincidir byte a byte.
+ */
+export function normalizeDistrictName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/gu, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+/** Numero de semana ISO-8601 (lunes como primer dia) de una clave de fecha. */
+function isoWeekNumber(dateKey: string): number {
+  const date = parseDateKey(dateKey);
+  const weekdayFromMonday = (date.getUTCDay() + 6) % 7;
+  // El jueves define a que ano pertenece la semana ISO.
+  date.setUTCDate(date.getUTCDate() - weekdayFromMonday + 3);
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const firstWeekdayFromMonday = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstWeekdayFromMonday + 3);
+
+  return (
+    1 +
+    Math.round((date.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  );
+}
+
+/**
+ * Tema de la pieza semanal de variedad. Rota cada semana ISO sobre cinco temas,
+ * de forma determinista: la misma fecha siempre produce el mismo tema y ninguno
+ * se repite antes de cinco semanas.
+ */
+export function getFeatureTheme(dateKey: string): SocialFeatureTheme {
+  return SOCIAL_FEATURE_THEMES[(isoWeekNumber(dateKey) - 1) % SOCIAL_FEATURE_THEMES.length]!;
+}
+
+/**
+ * Barrio destacado de la semana. Es un foco editorial, no un ranking: no
+ * afirma que sea el mejor ni el peor, solo reparte el foco territorial.
+ *
+ * Reglas deterministas:
+ * - Solo distritos con estaciones.
+ * - Evita los `SOCIAL_SPOTLIGHT_HISTORY` ultimos destacados si queda alguno
+ *   libre; entre los libres rota por numero de semana ISO.
+ * - Si todos han salido, elige el menos reciente (el ultimo del historial).
+ * - Empates y orden se resuelven por nombre normalizado.
+ */
+export function pickSpotlightDistrict(
+  districts: readonly SocialDistrictStats[],
+  recentDistrictNames: readonly string[],
+  weekStart: string
+): SocialDistrictStats | null {
+  const candidates = districts
+    .filter((entry) => entry.stationCount > 0)
+    .sort((left, right) =>
+      compareText(normalizeDistrictName(left.district), normalizeDistrictName(right.district))
+    );
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  // `recentDistrictNames` llega de mas reciente a mas antiguo.
+  const recent = recentDistrictNames
+    .map(normalizeDistrictName)
+    .filter(Boolean)
+    .slice(0, SOCIAL_SPOTLIGHT_HISTORY);
+  const recentSet = new Set(recent);
+
+  const available = candidates.filter(
+    (entry) => !recentSet.has(normalizeDistrictName(entry.district))
+  );
+
+  if (available.length > 0) {
+    return available[isoWeekNumber(weekStart) % available.length]!;
+  }
+
+  // Todos han salido: el menos reciente es el que queda mas atras en el historial.
+  let leastRecent = candidates[0]!;
+  let leastRecentIndex = -1;
+  for (const entry of candidates) {
+    const index = recent.lastIndexOf(normalizeDistrictName(entry.district));
+    if (index > leastRecentIndex) {
+      leastRecent = entry;
+      leastRecentIndex = index;
+    }
+  }
+
+  return leastRecent;
+}
+
 /** Un distrito necesita al menos este porcentaje de la mediana previa para comparar. */
 const GROWTH_MIN_BASE_SHARE = 0.25;
 
@@ -712,12 +811,27 @@ function buildCohort<T extends SocialStationCandidate>(
 }
 
 /**
+ * Prioridad de rotacion: 0 = no salio recientemente, 1 = salio. Se usa siempre
+ * por detras de la gravedad (bicis/huecos) y por delante del historico, para
+ * que una estacion critica nunca se oculte solo por haber salido ayer.
+ */
+function recentPenalty(stationId: string, recentStationIds: ReadonlySet<string>): number {
+  return recentStationIds.has(stationId) ? 1 : 0;
+}
+
+/**
  * Selecciona las estaciones de la story de manana:
  *
  * 1. Cohorte de estaciones habituales por `emptyShare` historico (top `cohortSize`).
  * 2. Dentro de la cohorte, las `limit` con `bikesAvailable <= 0`.
  * 3. Si no hay ninguna agotada, las `limit` con estado ciudadano `low`
  *    (poca disponibilidad).
+ *
+ * Regla de rotacion: dentro de la misma gravedad (mismas bicis o mismos
+ * huecos), una estacion que salio en las ultimas piezas pierde el desempate
+ * frente a una que no. Nunca se descarta una estacion critica por ser reciente:
+ * la gravedad manda y la recencia solo ordena entre iguales. En modo `none`
+ * (todo va bien) se prioriza directamente a las no recientes.
  *
  * Todo orden es determinista; si no hay perfiles se usa la red completa como
  * cohorte para no dejar la story vacia por falta de historico.
@@ -727,9 +841,12 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
   profiles?: readonly SocialMorningStationProfile[];
   limit?: number;
   cohortSize?: number;
+  /** IDs que salieron en piezas recientes; solo desempata, no filtra. */
+  recentStationIds?: readonly string[];
 }): SocialStationSelection<T> {
   const limit = Math.max(1, Math.trunc(input.limit ?? 3));
   const cohortSize = Math.max(limit, Math.trunc(input.cohortSize ?? 40));
+  const recent = new Set(input.recentStationIds ?? []);
   const { cohort, shareOf: emptyShare, hasProfiles } = buildCohort(
     input.stations,
     (input.profiles ?? []).map((profile) => ({
@@ -744,6 +861,7 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
     .sort(
       (left, right) =>
         left.bikesAvailable - right.bikesAvailable ||
+        recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
         emptyShare(right) - emptyShare(left) ||
         compareText(left.id, right.id)
     );
@@ -762,6 +880,7 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
     .sort(
       (left, right) =>
         left.bikesAvailable - right.bikesAvailable ||
+        recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
         emptyShare(right) - emptyShare(left) ||
         compareText(left.id, right.id)
     );
@@ -772,9 +891,17 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
 
   // Buenas noticias concretas: las habituales, con las bicis que tienen ahora.
   // Sin perfil historico no hay "habituales", asi que no se inventa la lista.
+  // Aqui no hay gravedad: rotar es el unico criterio ademas del historico.
+  const rotatedCohort = [...cohort].sort(
+    (left, right) =>
+      recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
+      emptyShare(right) - emptyShare(left) ||
+      compareText(left.id, right.id)
+  );
+
   return {
     mode: 'none',
-    stations: hasProfiles ? cohort.slice(0, limit) : [],
+    stations: hasProfiles ? rotatedCohort.slice(0, limit) : [],
   };
 }
 
@@ -784,16 +911,27 @@ export function selectMorningStations<T extends SocialStationCandidate>(input: {
  * 1. Cohorte de estaciones que suelen quedarse sin huecos (`fullShare`).
  * 2. Dentro de la cohorte, las `limit` con `anchorsFree <= 0`.
  * 3. Si no hay ninguna llena, las `limit` con 1 o 2 huecos libres.
+ * 4. Con `fallbackToCohort`, si la cohorte no tiene ningun problema se
+ *    devuelve igualmente como `none` con sus huecos actuales. Es el espejo de
+ *    `selectMorningStations` y lo usa la story de manana para ensenar siempre
+ *    las dos caras.
+ *
+ * La recencia solo desempata entre estaciones con la misma gravedad (mismos
+ * huecos); en modo `none` se prioriza a las no recientes para rotar la lista.
  */
 export function selectEveningStations<T extends SocialStationCandidate>(input: {
   stations: readonly T[];
   profiles?: readonly SocialEveningStationProfile[];
   limit?: number;
   cohortSize?: number;
+  fallbackToCohort?: boolean;
+  /** IDs que salieron en piezas recientes; solo desempata, no filtra. */
+  recentStationIds?: readonly string[];
 }): SocialStationSelection<T> {
   const limit = Math.max(1, Math.trunc(input.limit ?? 3));
   const cohortSize = Math.max(limit, Math.trunc(input.cohortSize ?? 40));
-  const { cohort, shareOf: fullShare } = buildCohort(
+  const recent = new Set(input.recentStationIds ?? []);
+  const { cohort, shareOf: fullShare, hasProfiles } = buildCohort(
     input.stations,
     (input.profiles ?? []).map((profile) => ({
       stationId: profile.stationId,
@@ -806,7 +944,9 @@ export function selectEveningStations<T extends SocialStationCandidate>(input: {
     .filter((station) => station.capacity > 0 && station.anchorsFree <= 0)
     .sort(
       (left, right) =>
-        fullShare(right) - fullShare(left) || compareText(left.id, right.id)
+        recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
+        fullShare(right) - fullShare(left) ||
+        compareText(left.id, right.id)
     );
 
   if (fullStations.length > 0) {
@@ -818,6 +958,7 @@ export function selectEveningStations<T extends SocialStationCandidate>(input: {
     .sort(
       (left, right) =>
         left.anchorsFree - right.anchorsFree ||
+        recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
         fullShare(right) - fullShare(left) ||
         compareText(left.id, right.id)
     );
@@ -826,7 +967,20 @@ export function selectEveningStations<T extends SocialStationCandidate>(input: {
     return { mode: 'low', stations: lowStations.slice(0, limit) };
   }
 
-  return { mode: 'none', stations: [] };
+  const rotatedCohort = [...cohort].sort(
+    (left, right) =>
+      recentPenalty(left.id, recent) - recentPenalty(right.id, recent) ||
+      fullShare(right) - fullShare(left) ||
+      compareText(left.id, right.id)
+  );
+
+  // Sin problema inmediato, pero con historico: la story de manana quiere
+  // nombrar igualmente las que suelen llenarse, con los huecos que tengan ahora.
+  return {
+    mode: 'none',
+    stations:
+      input.fallbackToCohort && hasProfiles ? rotatedCohort.slice(0, limit) : [],
+  };
 }
 
 /** Distancia maxima para que una estacion sea una alternativa util a pie. */

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MemoryStateStore } from '@/lib/social/state';
 import type {
   SocialClaimOutcome,
+  SocialContentMetadata,
   SocialPostRecord,
   SocialSlot,
 } from '@/lib/social/types';
@@ -18,13 +19,14 @@ async function send(
   store: MemoryStateStore,
   dateKey: string,
   slot: SocialSlot,
-  bufferPostId: string
+  bufferPostId: string,
+  metadata?: SocialContentMetadata
 ): Promise<SocialPostRecord> {
   const record = claimedRecord(await store.claimSlot(dateKey, slot));
   await store.markRendering(record.id);
   await store.markUploading(record.id);
   await store.markPublishing(record.id);
-  return store.markSent(record.id, { bufferPostId });
+  return store.markSent(record.id, { bufferPostId, metadata });
 }
 
 describe('MemoryStateStore', () => {
@@ -257,6 +259,75 @@ describe('MemoryStateStore', () => {
     expect(await store.getRecentFamilies(0)).toEqual([]);
   });
 
+  it('round-trips content metadata and keeps it through transitions', async () => {
+    const store = new MemoryStateStore();
+    const metadata: SocialContentMetadata = {
+      theme: 'availability',
+      stationIds: ['s1', 's2'],
+      districtNames: ['Centro'],
+      spotlightDistrict: 'Centro',
+    };
+    const record = claimedRecord(await store.claimSlot('2026-10-27', 'morning'));
+
+    expect(record.metadata).toBeUndefined();
+    await store.markRendering(record.id, { metadata });
+    await store.markUploading(record.id);
+    await store.markPublishing(record.id);
+    const sent = await store.markSent(record.id, { bufferPostId: 'buffer-meta' });
+
+    expect(sent.metadata).toEqual(metadata);
+    // El store devuelve copias: mutar el resultado no altera el estado.
+    sent.metadata?.stationIds?.push('s9');
+    expect((await store.getBySlot('2026-10-27', 'morning'))?.metadata).toEqual(
+      metadata
+    );
+    expect(await store.getRecentContent(5)).toEqual([metadata]);
+  });
+
+  it('orders and limits recent content, discarding empty or invalid metadata', async () => {
+    let now = new Date('2026-10-26T07:30:00.000Z');
+    const store = new MemoryStateStore({ now: () => now });
+
+    await send(store, '2026-10-26', 'morning', 'buffer-morning', {
+      stationIds: ['s1'],
+    });
+
+    now = new Date('2026-10-26T17:30:00.000Z');
+    await send(store, '2026-10-26', 'afternoon', 'buffer-afternoon', {
+      stationIds: ['s2'],
+      districtNames: ['Delicias'],
+    });
+
+    now = new Date('2026-10-27T08:00:00.000Z');
+    await send(store, '2026-10-26', 'weekly', 'buffer-weekly', {
+      stationIds: ['s3'],
+    });
+
+    // Un post sin metadata no ocupa hueco en la rotacion.
+    now = new Date('2026-10-27T09:00:00.000Z');
+    await send(store, '2026-10-27', 'midday', 'buffer-no-metadata');
+
+    // Metadatos con forma invalida se descartan sin romper la lectura.
+    now = new Date('2026-10-27T10:00:00.000Z');
+    await send(store, '2026-10-27', 'afternoon', 'buffer-invalid', {
+      stationIds: 's4',
+    } as unknown as SocialContentMetadata);
+
+    expect(await store.getRecentContent(2)).toEqual([
+      { stationIds: ['s3'] },
+      { stationIds: ['s2'], districtNames: ['Delicias'] },
+    ]);
+    expect(await store.getRecentContent(10)).toEqual([
+      { stationIds: ['s3'] },
+      { stationIds: ['s2'], districtNames: ['Delicias'] },
+      { stationIds: ['s1'] },
+    ]);
+    expect(await store.getRecentContent(10, 'weekly-carousel')).toEqual([
+      { stationIds: ['s3'] },
+    ]);
+    expect(await store.getRecentContent(0)).toEqual([]);
+  });
+
   it('honours an explicit family and fails clearly for unknown ids', async () => {
     const store = new MemoryStateStore();
     const record = claimedRecord(
@@ -267,5 +338,31 @@ describe('MemoryStateStore', () => {
 
     expect(record.family).toBe('monthly-carousel');
     await expect(store.markRendering(999)).rejects.toThrow(/not found/);
+  });
+});
+
+describe('MemoryStateStore recent posts', () => {
+  it('lists posts of any status from newest to oldest', async () => {
+    let now = new Date('2026-10-26T07:30:00.000Z');
+    const store = new MemoryStateStore({ now: () => now });
+
+    await send(store, '2026-10-26', 'morning', 'buffer-morning');
+
+    now = new Date('2026-10-26T13:00:00.000Z');
+    const skipped = claimedRecord(await store.claimSlot('2026-10-26', 'midday'));
+    await store.markSkipped(skipped.id, { error: 'no data' });
+
+    now = new Date('2026-10-28T08:00:00.000Z');
+    await send(store, '2026-10-28', 'feature', 'buffer-feature');
+
+    const recent = await store.listRecentPosts(10);
+    expect(recent.map((record) => record.slot)).toEqual([
+      'feature',
+      'midday',
+      'morning',
+    ]);
+    expect(recent[1]?.status).toBe('skipped');
+    expect(await store.listRecentPosts(1)).toHaveLength(1);
+    expect(await store.listRecentPosts(0)).toEqual([]);
   });
 });

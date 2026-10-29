@@ -20,6 +20,7 @@ import { formatMonthLabel, formatMonthName } from '@/lib/months';
 import {
   buildFeedCaption,
   buildSocialAltText,
+  buildSocialCta,
   buildStoryText,
   formatAvailabilityIssue,
   formatGrowthFact,
@@ -29,7 +30,7 @@ import {
   getDayFraming,
   pluralize,
   SOCIAL_AFTERNOON_WINDOW,
-  SOCIAL_FEED_CTA,
+  SOCIAL_FEATURE_WINDOW,
   SOCIAL_FEED_FOOTER,
   SOCIAL_MIDDAY_WINDOW,
   SOCIAL_MORNING_WINDOW,
@@ -46,9 +47,13 @@ import type {
   SocialCarousel,
   SocialCarouselSlide,
   SocialCause,
+  SocialContentMetadata,
+  SocialDistrictDemandRow,
+  SocialDistrictFrictionRow,
   SocialDistrictStats,
   SocialDroppingStation,
   SocialEveningStationProfile,
+  SocialFeatureTheme,
   SocialMorningStationProfile,
   SocialNearbyAlternative,
   SocialNetworkContext,
@@ -126,6 +131,46 @@ function compactFacts(facts: Array<SocialStoryFact | null>): SocialStoryFact[] {
   return facts.filter((fact): fact is SocialStoryFact => fact !== null);
 }
 
+function uniqueStrings(values: readonly string[]): string[] {
+  const unique: string[] = [];
+  for (const value of values) {
+    const normalized = value.trim();
+    if (normalized && !unique.includes(normalized)) {
+      unique.push(normalized);
+    }
+  }
+  return unique;
+}
+
+/** Metadata solo con lo que la pieza ensena; nunca IDs inventados. */
+function contentMetadata(input: {
+  theme?: string;
+  stationIds?: readonly string[];
+  districtNames?: readonly string[];
+  spotlightDistrict?: string | null;
+}): SocialContentMetadata | undefined {
+  const theme = input.theme?.trim();
+  const spotlightDistrict = input.spotlightDistrict?.trim();
+  const stationIds = uniqueStrings(input.stationIds ?? []);
+  const districtNames = uniqueStrings(input.districtNames ?? []);
+
+  if (
+    !theme &&
+    !spotlightDistrict &&
+    stationIds.length === 0 &&
+    districtNames.length === 0
+  ) {
+    return undefined;
+  }
+
+  return {
+    ...(theme ? { theme } : {}),
+    ...(stationIds.length > 0 ? { stationIds } : {}),
+    ...(districtNames.length > 0 ? { districtNames } : {}),
+    ...(spotlightDistrict ? { spotlightDistrict } : {}),
+  };
+}
+
 /* -------------------------------------------------------------------------- */
 /* Mañana                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -139,7 +184,7 @@ export type SocialMorningStoryInput = {
   alternative?: SocialNearbyAlternative | null;
   /** Estaciones que pierden bicis deprisa (hecho observado, no prediccion). */
   dropping?: readonly SocialDroppingStation[];
-  /** Lado contrario: estaciones que suelen llenarse y estan sin huecos o casi ("donde dejar la bici"). */
+  /** Lado contrario: estaciones que suelen llenarse, con los huecos que tengan ahora. */
   fullStations?: SocialStationSelection<SocialStationCandidate> | null;
   network: SocialNetworkContext;
   cause?: SocialCause | null;
@@ -159,16 +204,19 @@ function anchorsLabel(count: number): string {
 
 /**
  * Las estaciones habituales sin bicis (o con pocas), como dato de una story cuyo
- * titular va por el otro lado. `null` si no hay ninguna que destacar.
+ * titular va por el otro lado. Con `includeCohort`, tambien lista la cohorte
+ * habitual cuando ahora mismo tiene bicis. `null` si no hay nada que destacar.
  */
 function usualEmptyFact(
-  selection: SocialStationSelection<SocialStationCandidate> | null | undefined
+  selection: SocialStationSelection<SocialStationCandidate> | null | undefined,
+  includeCohort = false
 ): SocialStoryFact | null {
   if (!selection || selection.stations.length === 0) {
     return null;
   }
 
-  if (selection.mode !== 'empty' && selection.mode !== 'low') {
+  const hasProblem = selection.mode === 'empty' || selection.mode === 'low';
+  if (!hasProblem && !(includeCohort && selection.mode === 'none')) {
     return null;
   }
 
@@ -177,7 +225,8 @@ function usualEmptyFact(
     value: selection.stations
       .slice(0, 3)
       .map((station) => {
-        const detail = selection.mode === 'empty' ? 'sin bicis' : bikesLabel(station.bikesAvailable);
+        const detail =
+          selection.mode === 'empty' ? 'sin bicis' : bikesLabel(station.bikesAvailable);
         return `${normalize(station.name)} (${detail})`;
       })
       .join(' · '),
@@ -192,7 +241,14 @@ function usualFullFact(
     return null;
   }
 
-  if (selection.mode !== 'full' && selection.mode !== 'low') {
+  // `none` = la cohorte habitual sin problema ahora mismo. La story de manana
+  // la pasa siempre para contar las dos caras; en el resto de slots no hay
+  // estaciones en ese modo y el hecho se omite.
+  if (
+    selection.mode !== 'full' &&
+    selection.mode !== 'low' &&
+    selection.mode !== 'none'
+  ) {
     return null;
   }
 
@@ -201,7 +257,8 @@ function usualFullFact(
     value: selection.stations
       .slice(0, 3)
       .map((station) => {
-        const detail = selection.mode === 'full' ? 'sin huecos' : anchorsLabel(station.anchorsFree);
+        const detail =
+          selection.mode === 'full' ? 'sin huecos' : anchorsLabel(station.anchorsFree);
         return `${normalize(station.name)} (${detail})`;
       })
       .join(' · '),
@@ -400,6 +457,13 @@ export function buildMorningStory(input: SocialMorningStoryInput): SocialStory |
     }),
     kicker: `${framing.morningKicker} · ${dataWindow}`,
     accent,
+    metadata: contentMetadata({
+      stationIds: [
+        ...stations.map((station) => station.id),
+        ...(input.fullStations?.stations ?? []).map((station) => station.id),
+        ...(input.dropping ?? []).map((entry) => entry.stationId),
+      ],
+    }),
   };
 }
 
@@ -446,7 +510,7 @@ export type SocialAfternoonStoryInput = {
   eveningProfiles?: readonly SocialEveningStationProfile[];
   /** Estacion cercana con huecos para quien encuentra la suya llena. */
   alternative?: SocialNearbyAlternative | null;
-  /** Lado contrario: estaciones que suelen vaciarse y estan sin bicis o casi ("donde coger bici"). */
+  /** Lado contrario: estaciones que suelen vaciarse, con las bicis que tengan ahora. */
   emptyStations?: SocialStationSelection<SocialStationCandidate> | null;
   topDistricts?: readonly SocialDistrictStats[];
   cause?: SocialCause | null;
@@ -623,7 +687,7 @@ function fullStationsStory(
         value: names.join(' · '),
       },
       alternativeFact(selection, alternative),
-      usualEmptyFact(emptyStations),
+      usualEmptyFact(emptyStations, true),
       todayFact(cause),
       eveningHabitualFact(selection, profiles),
       networkFact(network),
@@ -677,7 +741,8 @@ function returnPulseStory(
  * 5. Pulso de vuelta: distritos con mas uso estimado.
  *
  * Salvo en las alertas y rachas, que hablan de una sola estacion, las
- * estaciones habituales sin bicis se anaden como dato ("donde coger bici").
+ * estaciones habituales sin bicis se anaden como dato ("donde coger bici"),
+ * tengan bicis ahora o no.
  */
 export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialStory {
   const framing = getDayFraming(input.dateKey);
@@ -716,10 +781,40 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
 
   const bars = districtBars(districts, 3);
   // El lado contrario ya va dentro de "donde dejar la bici"; en el resto de
-  // ramas "genericas" se anade al final. Las alertas y rachas hablan de una
-  // sola estacion y no lo llevan.
-  const emptyFact = !alert && !episode && !fullStations ? usualEmptyFact(input.emptyStations) : null;
+  // ramas "genericas" se anade al final, tambien cuando ahora tiene bicis. Las
+  // alertas y rachas hablan de una sola estacion y no lo llevan.
+  const emptyFact = !alert && !episode && !fullStations ? usualEmptyFact(input.emptyStations, true) : null;
   const facts = emptyFact ? [...branch.facts, emptyFact] : branch.facts;
+
+  // Metadata de lo que realmente sale: la rama de alerta/racha habla de una
+  // sola estacion; la de "donde dejar la bici" anade el lado contrario.
+  const shownStationIds: string[] = [];
+  if (alert) {
+    shownStationIds.push(alert.stationId);
+  } else if (episode) {
+    shownStationIds.push(episode.stationId);
+  } else if (fullStations) {
+    shownStationIds.push(...fullStations.stations.map((station) => station.id));
+    if (input.emptyStations && input.emptyStations.stations.length > 0) {
+      shownStationIds.push(
+        ...input.emptyStations.stations.map((station) => station.id)
+      );
+    }
+  } else if (emptyFact && input.emptyStations) {
+    shownStationIds.push(
+      ...input.emptyStations.stations.map((station) => station.id)
+    );
+  }
+
+  const showsDistricts = Boolean(anomaly) || (!alert && !episode && !fullStations);
+  const shownDistrictNames = showsDistricts
+    ? [
+        ...bars.map((bar) => bar.label),
+        ...(!alert && !episode && !fullStations && !anomaly
+          ? topDistrictsByActivity(districts, 2).map((entry) => entry.district)
+          : []),
+      ]
+    : [];
 
   return {
     slot: 'afternoon',
@@ -750,6 +845,10 @@ export function buildAfternoonStory(input: SocialAfternoonStoryInput): SocialSto
         ? bars
         : undefined,
     barsLabel: BARS_LABEL,
+    metadata: contentMetadata({
+      stationIds: shownStationIds,
+      districtNames: shownDistrictNames,
+    }),
   };
 }
 
@@ -864,7 +963,362 @@ export function buildMiddayStory(input: SocialMiddayStoryInput): SocialStory | n
     }),
     kicker: `${framing.middayKicker} · ${dataWindow}`,
     accent,
+    metadata: contentMetadata({
+      stationIds: [
+        ...input.emptyStations.stations.map((station) => station.id),
+        ...input.fullStations.stations.map((station) => station.id),
+      ],
+    }),
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pieza semanal de variedad                                                  */
+/* -------------------------------------------------------------------------- */
+
+const FEATURE_THEME_KICKER: Record<SocialFeatureTheme, string> = {
+  station: 'Estación del día',
+  explainer: 'Cómo funciona',
+  record: 'Récord del mes',
+  myth: 'Mito vs dato',
+  network: 'La red en cifras',
+};
+
+const FEATURE_THEME_ACCENT: Record<SocialFeatureTheme, string> = {
+  station: ACCENT_BLUE,
+  explainer: ACCENT_TEAL,
+  record: ACCENT_AMBER,
+  myth: ACCENT_TEAL,
+  network: ACCENT_BLUE,
+};
+
+export type SocialFeatureStoryInput = {
+  dateKey: string;
+  theme: SocialFeatureTheme;
+  /** Snapshot actual de estaciones. */
+  stations: readonly SocialStationCandidate[];
+  /** Actividad de la última semana completa por estación. */
+  demand?: readonly SocialDistrictDemandRow[];
+  /** Horas vacia/llena de la ultima semana por estacion. */
+  friction?: readonly SocialDistrictFrictionRow[];
+  /** Estaciones que salieron en piezas recientes; solo es una preferencia. */
+  recentStationIds?: readonly string[];
+  /** Informe mensual ya construido; solo lo usan `record` y `myth`. */
+  report?: MonthlyReport | null;
+};
+
+type FeatureStationRow = {
+  station: SocialStationCandidate;
+  activityIndex: number;
+  emptyHours: number;
+  fullHours: number;
+  totalHours: number;
+  frictionRate: number;
+};
+
+function featureStory(input: {
+  dateKey: string;
+  theme: SocialFeatureTheme;
+  headline: string;
+  facts: readonly SocialStoryFact[];
+  stationIds?: readonly string[];
+  districtNames?: readonly string[];
+  bars?: readonly SocialBar[];
+  barsLabel?: string;
+}): SocialStory {
+  return {
+    slot: 'feature',
+    family: 'feature-story',
+    dateKey: input.dateKey,
+    headline: input.headline,
+    facts: input.facts,
+    footer: SOCIAL_STORY_FOOTER,
+    caption: buildStoryText({
+      slot: 'feature',
+      dateKey: input.dateKey,
+      headline: input.headline,
+      dataWindow: SOCIAL_FEATURE_WINDOW,
+    }),
+    altText: buildSocialAltText({
+      kind: 'story',
+      slot: 'feature',
+      dateKey: input.dateKey,
+      headline: input.headline,
+      facts: input.facts,
+      dataWindow: SOCIAL_FEATURE_WINDOW,
+    }),
+    kicker: `${FEATURE_THEME_KICKER[input.theme]} · ${SOCIAL_FEATURE_WINDOW}`,
+    accent: FEATURE_THEME_ACCENT[input.theme],
+    ...(input.bars && input.bars.length > 0
+      ? { bars: input.bars, barsLabel: input.barsLabel ?? BARS_LABEL }
+      : {}),
+    metadata: contentMetadata({
+      theme: input.theme,
+      stationIds: input.stationIds,
+      districtNames: input.districtNames,
+    }),
+  };
+}
+
+function featureStationRows(input: SocialFeatureStoryInput): FeatureStationRow[] {
+  const stationById = new Map(input.stations.map((station) => [station.id, station]));
+  const activityByStation = new Map(
+    (input.demand ?? []).map((row) => [row.stationId, Math.max(0, row.activityIndex)])
+  );
+
+  const rows: FeatureStationRow[] = [];
+  for (const friction of input.friction ?? []) {
+    const station = stationById.get(friction.stationId);
+    if (!station || friction.totalHours <= 0) {
+      continue;
+    }
+
+    const frictionHours = Math.max(0, friction.emptyHours) + Math.max(0, friction.fullHours);
+    rows.push({
+      station,
+      activityIndex: activityByStation.get(friction.stationId) ?? 0,
+      emptyHours: Math.max(0, friction.emptyHours),
+      fullHours: Math.max(0, friction.fullHours),
+      totalHours: friction.totalHours,
+      frictionRate: frictionHours / friction.totalHours,
+    });
+  }
+
+  return rows;
+}
+
+function featureStationBars(rows: readonly FeatureStationRow[]): SocialBar[] {
+  return [...rows]
+    .filter((entry) => entry.activityIndex > 0)
+    .sort(
+      (left, right) =>
+        right.activityIndex - left.activityIndex ||
+        compareText(left.station.name, right.station.name)
+    )
+    .slice(0, 5)
+    .map((entry) => ({ label: normalize(entry.station.name), value: entry.activityIndex }));
+}
+
+/** Estacion con mas friccion de la semana; la gravedad manda sobre la novedad. */
+function buildFeatureStationStory(
+  input: SocialFeatureStoryInput
+): SocialStory | null {
+  const rows = featureStationRows(input);
+  if (rows.length === 0) {
+    return null;
+  }
+
+  // Evita muestras de una sola hora sin descartar la estacion si toda la red
+  // tiene poca cobertura.
+  const solid = rows.filter((entry) => entry.totalHours >= 24);
+  const candidates = solid.length > 0 ? solid : rows;
+  const recent = new Set(input.recentStationIds ?? []);
+  const fresh = candidates.filter((entry) => !recent.has(entry.station.id));
+  const pool = fresh.length > 0 ? fresh : candidates;
+
+  const picked = [...pool].sort(
+    (left, right) =>
+      right.frictionRate - left.frictionRate ||
+      right.activityIndex - left.activityIndex ||
+      compareText(left.station.name, right.station.name)
+  )[0]!;
+
+  const frictionHours = picked.emptyHours + picked.fullHours;
+  const headline =
+    picked.frictionRate >= 0.2
+      ? `${normalize(picked.station.name)}: muchas horas sin bicis o sin huecos`
+      : `${normalize(picked.station.name)}: una estación con mucho uso`;
+
+  return featureStory({
+    dateKey: input.dateKey,
+    theme: 'station',
+    headline,
+    facts: [
+      {
+        label: 'Uso esta semana',
+        value: `${formatInteger(picked.activityIndex)} puntos`,
+      },
+      {
+        label: 'Horas sin bicis o sin huecos',
+        value: `${formatInteger(frictionHours)} de ${formatInteger(picked.totalHours)} h · ${formatPercent(picked.frictionRate)}`,
+      },
+      {
+        label: 'Ahora mismo',
+        value: `${formatInteger(picked.station.bikesAvailable)} bicis y ${formatInteger(picked.station.anchorsFree)} huecos`,
+      },
+    ],
+    stationIds: [picked.station.id],
+    bars: featureStationBars(rows),
+  });
+}
+
+function buildFeatureExplainerStory(
+  input: SocialFeatureStoryInput
+): SocialStory | null {
+  if (input.stations.length === 0) {
+    return null;
+  }
+
+  const frictionHours = (input.friction ?? []).reduce(
+    (total, row) => total + Math.max(0, row.emptyHours) + Math.max(0, row.fullHours),
+    0
+  );
+
+  return featureStory({
+    dateKey: input.dateKey,
+    theme: 'explainer',
+    headline: 'Los puntos de actividad, en una frase',
+    facts: [
+      {
+        label: 'Qué son',
+        value: 'Cuánto cambian las bicis y los huecos en cada estación',
+      },
+      {
+        label: 'Para qué sirven',
+        value: 'Comparar barrios de distinto tamaño sin premiar al más grande',
+      },
+      {
+        label: 'La red esta semana',
+        value: `${formatInteger(input.stations.length)} estaciones · ${formatInteger(frictionHours)} h sin bicis o sin huecos`,
+      },
+    ],
+    districtNames: [],
+  });
+}
+
+function buildFeatureRecordStory(input: SocialFeatureStoryInput): SocialStory | null {
+  const report = input.report;
+  if (!report?.hasReport || !report.coverage?.isComplete) {
+    return null;
+  }
+
+  const monthLabel = formatMonthLabel(report.monthKey);
+  const topStation = report.topStations?.[0] ?? null;
+  const mostActive = report.districts?.mostActive?.[0] ?? null;
+
+  if (!topStation && !mostActive) {
+    return null;
+  }
+
+  const trendBars: SocialBar[] = (report.trends?.monthly ?? [])
+    .slice(-5)
+    .map((entry) => ({
+      label: formatMonthName(entry.monthKey),
+      value: entry.demandScore,
+    }))
+    .filter((bar) => Number.isFinite(bar.value) && bar.value > 0);
+
+  return featureStory({
+    dateKey: input.dateKey,
+    theme: 'record',
+    headline: `Los récords de ${monthLabel}`,
+    facts: compactFacts([
+      topStation
+        ? {
+            label: 'Estación con más uso',
+            value: `${normalize(topStation.stationName)} · ${formatDecimal(topStation.avgDemand)} ${activityIndexUnits.perDay}`,
+          }
+        : null,
+      mostActive
+        ? {
+            label: 'Distrito con más uso',
+            value: `${normalize(mostActive.district)} · ${formatInteger(mostActive.demandScore)} puntos`,
+          }
+        : null,
+      monthlyPeakHourFact(report.headline?.peakHour),
+    ]),
+    stationIds: topStation ? [topStation.stationId] : [],
+    districtNames: mostActive ? [mostActive.district] : [],
+    bars: trendBars,
+    barsLabel: 'Puntos de actividad al mes',
+  });
+}
+
+function buildFeatureMythStory(input: SocialFeatureStoryInput): SocialStory | null {
+  const report = input.report;
+  if (!report?.hasReport) {
+    return null;
+  }
+
+  const weekendGap = weekdayWeekendFact(report.weekdayWeekendProfile);
+  if (!weekendGap) {
+    return null;
+  }
+
+  return featureStory({
+    dateKey: input.dateKey,
+    theme: 'myth',
+    headline: '¿La Bizi se usa igual todos los días?',
+    facts: [
+      weekendGap,
+      {
+        label: 'Uso del mes',
+        value: `${formatInteger(report.headline?.demandScore ?? 0)} ${activityIndexUnits.perMonth}`,
+      },
+      {
+        label: 'Cómo leerlo',
+        value: 'Comparamos el uso medio por día laborable y por día de fin de semana',
+      },
+    ],
+  });
+}
+
+function buildFeatureNetworkStory(input: SocialFeatureStoryInput): SocialStory | null {
+  const rows = featureStationRows(input);
+  if (input.stations.length === 0 || rows.length === 0) {
+    return null;
+  }
+
+  const activity = rows.reduce((total, entry) => total + entry.activityIndex, 0);
+  const frictionHours = rows.reduce(
+    (total, entry) => total + entry.emptyHours + entry.fullHours,
+    0
+  );
+  const totalHours = rows.reduce((total, entry) => total + entry.totalHours, 0);
+  const frictionRate = totalHours > 0 ? frictionHours / totalHours : 0;
+
+  return featureStory({
+    dateKey: input.dateKey,
+    theme: 'network',
+    headline: 'La red de Bizi esta semana',
+    facts: [
+      {
+        label: 'Estaciones en la red',
+        value: formatInteger(input.stations.length),
+      },
+      {
+        label: 'Puntos de actividad',
+        value: `${formatInteger(activity)} en la semana`,
+      },
+      {
+        label: 'Horas sin bicis o sin huecos',
+        value: `${formatInteger(frictionHours)} de ${formatInteger(totalHours)} h · ${formatPercent(frictionRate)}`,
+      },
+    ],
+    bars: featureStationBars(rows),
+  });
+}
+
+/**
+ * Pieza semanal de variedad. El tema llega ya rotado por `getFeatureTheme`;
+ * cada tema devuelve `null` si no tiene datos suficientes, y el slot se salta
+ * antes que publicar contenido de relleno.
+ */
+export function buildFeatureStory(input: SocialFeatureStoryInput): SocialStory | null {
+  switch (input.theme) {
+    case 'station':
+      return buildFeatureStationStory(input);
+    case 'explainer':
+      return buildFeatureExplainerStory(input);
+    case 'record':
+      return buildFeatureRecordStory(input);
+    case 'myth':
+      return buildFeatureMythStory(input);
+    case 'network':
+      return buildFeatureNetworkStory(input);
+    default:
+      return null;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -874,6 +1328,11 @@ export function buildMiddayStory(input: SocialMiddayStoryInput): SocialStory | n
 export type SocialWeeklyCarouselInput = {
   week: SocialWeekRange;
   districts: readonly SocialDistrictStats[];
+  /**
+   * Barrio destacado por rotacion, ya elegido por el job. Es un foco editorial,
+   * no un ranking; si falta, el carrusel mantiene sus cinco laminas.
+   */
+  spotlightDistrict?: SocialDistrictStats | null;
   /** Ya no se pinta: una foto de red de un lunes no resume la semana. */
   network?: SocialNetworkContext;
   cause?: SocialCause | null;
@@ -897,8 +1356,9 @@ function slide(
 }
 
 /**
- * Carrusel semanal de 5 laminas: portada, top distritos, crecimiento, tension y
- * CTA. Devuelve `null` sin distritos, porque no hay historia que contar.
+ * Carrusel semanal de 6 laminas: portada, top distritos, crecimiento, tension,
+ * barrio del dia y CTA. Sin barrio destacado mantiene 5 (sin la lamina extra).
+ * Devuelve `null` sin distritos, porque no hay historia que contar.
  */
 export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCarousel | null {
   if (input.districts.length === 0) {
@@ -909,11 +1369,20 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
   const top = topDistrictsByActivity(input.districts, 3);
   const growth = topDistrictsByGrowth(input.districts, 1)[0] ?? null;
   const friction = topDistrictsByFriction(input.districts, 1)[0] ?? null;
+  const spotlight = input.spotlightDistrict ?? null;
   // Titular con conclusion; la semana va en el kicker y en el gancho del caption.
   const coverHeadline = top[0]
     ? `${normalize(top[0].district)}: donde más se usa la Bizi`
     : 'La Bizi esta semana';
   const bars = districtBars(input.districts, 5);
+  // Distritos que aparecen en las laminas: top de uso (portada/barras),
+  // crecimiento y friccion.
+  const shownDistrictNames = [
+    ...topDistrictsByActivity(input.districts, 5).map((entry) => entry.district),
+    ...(growth ? [growth.district] : []),
+    ...(friction ? [friction.district] : []),
+    ...(spotlight ? [spotlight.district] : []),
+  ];
 
   // La portada explica el criterio: sin esto, un ranking por estación se leería
   // como un ranking por tamaño del distrito.
@@ -956,6 +1425,27 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
       ]
     : [{ label: 'Disponibilidad', value: 'Sin horas con estaciones vacías o llenas' }];
 
+  // Foco editorial rotativo: no dice que el barrio sea el mejor ni el peor,
+  // solo saca del top habitual a un distrito distinto cada semana.
+  const spotlightFacts: SocialStoryFact[] = spotlight
+    ? compactFacts([
+        {
+          label: 'Estaciones del barrio',
+          value: formatInteger(spotlight.stationCount),
+        },
+        {
+          label: 'Uso medio por estación',
+          value: `${formatInteger(activityPerStation(spotlight))} puntos`,
+        },
+        spotlight.totalHours > 0
+          ? {
+              label: 'Horas sin bicis o sin huecos',
+              value: `${formatInteger(spotlight.emptyHours + spotlight.fullHours)} de ${formatInteger(spotlight.totalHours)} h · ${formatPercent(spotlight.frictionRate)}`,
+            }
+          : { label: 'Disponibilidad', value: 'Sin horas críticas registradas' },
+      ])
+    : [];
+
   const growthHeadline = growth
     ? (growth.growthRatio ?? 0) >= 0
       ? `El uso en ${normalize(growth.district)} sube un ${formatGrowthMagnitude(growth.growthRatio ?? 0)}`
@@ -997,6 +1487,16 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
       frictionFacts,
       ACCENT_AMBER
     ),
+    ...(spotlight
+      ? [
+          slide(
+            'Barrio del día',
+            `Este lunes miramos a ${normalize(spotlight.district)}`,
+            spotlightFacts,
+            ACCENT_BLUE
+          ),
+        ]
+      : []),
     slide(
       'Explora los datos',
       'Explora tu barrio en datosbizi.com',
@@ -1043,7 +1543,7 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
       hook: `${coverHeadline} · ${weekLabel}`,
       facts: captionFacts,
       context: 'Comparamos el uso medio de cada estación para que los distritos grandes no ganen solo por tener más.',
-      cta: SOCIAL_FEED_CTA,
+      cta: buildSocialCta({ slot: 'weekly' }),
     }),
     altText: buildSocialAltText({
       kind: 'carousel',
@@ -1054,6 +1554,10 @@ export function buildWeeklyCarousel(input: SocialWeeklyCarouselInput): SocialCar
       cause: input.cause,
     }),
     slides,
+    metadata: contentMetadata({
+      districtNames: shownDistrictNames,
+      spotlightDistrict: spotlight?.district,
+    }),
   };
 }
 
@@ -1274,7 +1778,11 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
       // Solo el titular del balance: ya lleva la cifra ("El uso creció un 12%…") y
       // el detalle repite "índice de actividad", jerga que no queremos en el feed.
       context: normalize(report.balance.headline),
-      cta: `Lee el informe completo en ${publicUrl}`,
+      cta: buildSocialCta({
+        slot: 'monthly',
+        path: monthPath,
+        label: 'Lee el informe completo en',
+      }),
     }),
     altText: buildSocialAltText({
       kind: 'carousel',
@@ -1284,5 +1792,11 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
       slides,
     }),
     slides,
+    metadata: contentMetadata({
+      stationIds: [topStation?.stationId, worstFriction?.stationId].filter(
+        (stationId): stationId is string => typeof stationId === 'string'
+      ),
+      districtNames: mostActive ? [mostActive.district] : [],
+    }),
   };
 }

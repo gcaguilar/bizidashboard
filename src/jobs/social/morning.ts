@@ -38,7 +38,7 @@ import {
   mapNetworkHealth,
   mapServiceCause,
 } from './mappers';
-import type { SocialSlotDataDeps } from './shared';
+import { getRecentStationIds, type SocialSlotDataDeps } from './shared';
 
 const DROP_LOOKBACK_MS = 35 * 60_000;
 
@@ -89,9 +89,10 @@ export async function runMorningSlot(
     return null;
   }
 
-  const [profileRows, bikeSamples] = await Promise.all([
+  const [profileRows, bikeSamples, recentStationIds] = await Promise.all([
     getWeekdayMorningProfiles(),
     getRecentBikeSamples(new Date(now.getTime() - DROP_LOOKBACK_MS)),
+    getRecentStationIds(deps),
   ]);
   const profiles = aggregateStationProfiles(profileRows);
 
@@ -100,14 +101,18 @@ export async function runMorningSlot(
     profiles,
     limit: 3,
     cohortSize: 40,
+    recentStationIds,
   });
 
-  // Lado contrario: estaciones que a esta hora suelen llenarse y estan sin huecos.
+  // Lado contrario: estaciones que a esta hora suelen llenarse. Se muestran
+  // siempre, con los huecos actuales, para que la story cuente las dos caras.
   const fullStations = selectEveningStations({
     stations,
     profiles,
     limit: 3,
     cohortSize: 40,
+    fallbackToCohort: true,
+    recentStationIds,
   });
 
   // Primera estacion destacada con una alternativa a pie; si ninguna la tiene,

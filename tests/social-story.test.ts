@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildAfternoonStory,
+  buildFeatureStory,
   buildMiddayStory,
   buildMonthlyCarousel,
   buildMorningStory,
@@ -284,6 +285,24 @@ describe('morning story', () => {
     }
   });
 
+  it('records the stations that actually appear in the story', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('empty', [station('s1', 'Plaza España', 0)]),
+      fullStations: selection('full', [
+        { ...station('s2', 'Universidad', 20), anchorsFree: 0 },
+      ]),
+      dropping: [
+        { stationId: 's3', name: 'Gran Vía', bikesBefore: 9, bikesNow: 3, minutes: 28 },
+      ],
+      network,
+    });
+
+    expect(story?.metadata).toEqual({
+      stationIds: ['s1', 's2', 's3'],
+    });
+  });
+
   it('returns null when there is no station or network material', () => {
     expect(
       buildMorningStory({
@@ -442,6 +461,39 @@ describe('afternoon story priority', () => {
     expect(story.bars?.[0]?.label).toBe('Centro');
   });
 
+  it('records the rendered stations and districts in the metadata', () => {
+    const story = buildAfternoonStory({
+      ...input,
+      emptyStations: selection('empty', [station('s9', 'Delicias', 0)]),
+    });
+
+    expect(story.metadata?.stationIds).toEqual(['s9']);
+    expect(story.metadata?.districtNames).toEqual([
+      'Centro',
+      'Delicias',
+      'Universidad',
+    ]);
+  });
+
+  it('limits metadata to the single station on alert branches', () => {
+    const story = buildAfternoonStory({
+      ...input,
+      emptyStations: selection('empty', [station('s9', 'Delicias', 0)]),
+      alerts: [
+        {
+          stationId: 's1',
+          stationName: 'Plaza España',
+          alertType: 'LOW_BIKES',
+          severity: 2,
+          metricValue: 1,
+          windowHours: 3,
+        },
+      ],
+    });
+
+    expect(story.metadata).toEqual({ stationIds: ['s1'] });
+  });
+
   it('uses weekend framing and still returns a story with sparse data', () => {
     const story = buildAfternoonStory({
       dateKey: '2026-11-01',
@@ -579,6 +631,22 @@ describe('opposite side of each daily story', () => {
     });
   });
 
+  it('names the usual filling cohort with its current free docks when none is full', () => {
+    const story = buildMorningStory({
+      dateKey: '2026-10-27',
+      selection: selection('none', [station('s1', 'Plaza España', 7)]),
+      fullStations: selection('none', [
+        { ...station('s2', 'Universidad', 18), anchorsFree: 14 },
+      ]),
+      network,
+    });
+
+    expect(story?.facts).toContainEqual({
+      label: 'Estaciones que suelen llenarse',
+      value: 'Universidad (14 huecos)',
+    });
+  });
+
   it('omits the opposite fact when nothing is full', () => {
     const story = buildMorningStory({
       dateKey: '2026-10-27',
@@ -608,6 +676,28 @@ describe('opposite side of each daily story', () => {
     expect(whereToLeave.headline).toBe('1 estación que suele llenarse, sin huecos');
     expect(whereToLeave.facts).toContainEqual(expected);
     expect(pulse.headline).toBe('Más uso de la Bizi en Centro');
+    expect(pulse.facts).toContainEqual(expected);
+  });
+
+  it('names the usual emptying cohort with its bikes even when nothing is empty', () => {
+    const base = { dateKey: '2026-10-27', network, topDistricts: districts } as const;
+    const emptyStations = selection('none', [
+      station('s9', 'Delicias', 6),
+      station('s8', 'Centro', 4),
+    ]);
+    const expected = {
+      label: 'Estaciones que suelen vaciarse',
+      value: 'Delicias (6 bicis) · Centro (4 bicis)',
+    };
+
+    const whereToLeave = buildAfternoonStory({
+      ...base,
+      fullStations: selection('full', [full('s1', 'Plaza España')]),
+      emptyStations,
+    });
+    const pulse = buildAfternoonStory({ ...base, emptyStations });
+
+    expect(whereToLeave.facts).toContainEqual(expected);
     expect(pulse.facts).toContainEqual(expected);
   });
 
@@ -673,6 +763,16 @@ describe('midday story', () => {
     expect(story?.accent).toBe('#b91c1c');
   });
 
+  it('records both sides in the metadata', () => {
+    const story = buildMiddayStory({
+      ...base,
+      emptyStations: selection('empty', [empty('s1', 'Plaza España')]),
+      fullStations: selection('full', [full('s3', 'Universidad')]),
+    });
+
+    expect(story?.metadata).toEqual({ stationIds: ['s1', 's3'] });
+  });
+
   it('falls back to the side that has a problem', () => {
     const onlyEmpty = buildMiddayStory({
       ...base,
@@ -707,6 +807,11 @@ describe('midday story', () => {
 
     expect(story?.headline).toBe('Hay bicis y huecos en las estaciones habituales');
     expect(story?.accent).toBe('#0f766e');
+    // El fallback del lado vacio es solo de la tarde; mediodia mantiene su
+    // mensaje de "todo bien" sin listar cohortes.
+    expect(
+      story?.facts.some((fact) => fact.label === 'Estaciones que suelen vaciarse')
+    ).toBe(false);
   });
 
   it('uses the weekend framing and returns null without stations or network', () => {
@@ -731,7 +836,7 @@ describe('midday story', () => {
 });
 
 describe('weekly carousel', () => {
-  it('builds five slides with cover, activity, growth, friction and CTA', () => {
+  it('builds five slides without a spotlight district', () => {
     const carousel = buildWeeklyCarousel({ week, districts, network });
 
     expect(carousel).not.toBeNull();
@@ -756,10 +861,81 @@ describe('weekly carousel', () => {
     expect(carousel?.slides[4]?.facts[1]?.value).toContain('datosbizi.com');
   });
 
+  it('adds a sixth "Barrio del día" slide before the CTA', () => {
+    const spotlight = districts[2]!;
+    const carousel = buildWeeklyCarousel({
+      week,
+      districts,
+      spotlightDistrict: spotlight,
+      network,
+    });
+
+    expect(carousel?.slides).toHaveLength(6);
+    expect(carousel?.slides[3]?.headline).toBe('Delicias: más horas sin bicis o huecos');
+    expect(carousel?.slides[4]?.kicker).toBe('Barrio del día');
+    expect(carousel?.slides[4]?.headline).toBe('Este lunes miramos a Universidad');
+    expect(carousel?.slides[4]?.facts).toEqual([
+      { label: 'Estaciones del barrio', value: '6' },
+      { label: 'Uso medio por estación', value: '100 puntos' },
+      {
+        label: 'Horas sin bicis o sin huecos',
+        value: '3 de 30 h · 10%',
+      },
+    ]);
+    // La CTA sigue cerrando el carrusel.
+    expect(carousel?.slides[5]?.facts[0]?.label).toBe('Qué son los puntos de actividad');
+    expect(carousel?.slides[5]?.facts[1]?.value).toContain('datosbizi.com');
+  });
+
+  it('keeps the spotlight honest when the district has no critical hours', () => {
+    const spotlight: SocialDistrictStats = {
+      ...districts[2]!,
+      district: 'Actur',
+      stationCount: 4,
+      totalHours: 0,
+      emptyHours: 0,
+      fullHours: 0,
+      frictionRate: 0,
+    };
+    const carousel = buildWeeklyCarousel({
+      week,
+      districts,
+      spotlightDistrict: spotlight,
+      network,
+    });
+
+    expect(carousel?.slides[4]?.facts[2]).toEqual({
+      label: 'Disponibilidad',
+      value: 'Sin horas críticas registradas',
+    });
+  });
+
+  it('records the spotlight district in the metadata', () => {
+    const spotlight: SocialDistrictStats = {
+      ...districts[2]!,
+      district: 'Actur',
+      stationCount: 4,
+    };
+    const carousel = buildWeeklyCarousel({
+      week,
+      districts,
+      spotlightDistrict: spotlight,
+      network,
+    });
+
+    expect(carousel?.metadata).toEqual({
+      districtNames: ['Centro', 'Delicias', 'Universidad', 'Actur'],
+      spotlightDistrict: 'Actur',
+    });
+  });
+
   it('keeps the feed caption within limits with hashtags and disclaimer', () => {
     const carousel = buildWeeklyCarousel({ week, districts, network });
 
     expect(carousel?.caption.length).toBeLessThanOrEqual(2200);
+    expect(carousel?.caption).toContain(
+      'utm_source=instagram&utm_medium=social&utm_campaign=weekly'
+    );
     expect(carousel?.caption).toContain('#BiziZaragoza');
     expect(carousel?.caption).toContain('#DatosAbiertos');
     expect(carousel?.caption).toContain(SOCIAL_FEED_DISCLAIMER);
@@ -799,8 +975,142 @@ describe('weekly carousel', () => {
     expect(carousel?.slides[2]?.headline).toBe('El uso en Centro sube un 20%');
   });
 
+  it('records the districts that appear in the slides', () => {
+    const carousel = buildWeeklyCarousel({ week, districts, network });
+
+    expect(carousel?.metadata).toEqual({
+      districtNames: ['Centro', 'Delicias', 'Universidad'],
+    });
+  });
+
   it('returns null without districts', () => {
     expect(buildWeeklyCarousel({ week, districts: [], network })).toBeNull();
+  });
+});
+
+describe('weekly feature story', () => {
+  const featureStations: SocialStationCandidate[] = [
+    { id: 's1', name: 'Plaza España', capacity: 20, bikesAvailable: 0, anchorsFree: 5 },
+    { id: 's2', name: 'Universidad', capacity: 20, bikesAvailable: 10, anchorsFree: 0 },
+    { id: 's3', name: 'Delicias', capacity: 20, bikesAvailable: 8, anchorsFree: 8 },
+  ];
+  const demand = [
+    { stationId: 's1', activityIndex: 1200 },
+    { stationId: 's2', activityIndex: 900 },
+    { stationId: 's3', activityIndex: 600 },
+  ];
+  const friction = [
+    { stationId: 's1', emptyHours: 30, fullHours: 5, totalHours: 100 },
+    { stationId: 's2', emptyHours: 10, fullHours: 10, totalHours: 100 },
+    { stationId: 's3', emptyHours: 0, fullHours: 0, totalHours: 100 },
+  ];
+  const base = {
+    dateKey: '2026-10-28',
+    stations: featureStations,
+    demand,
+    friction,
+  };
+
+  it('highlights the station with the most friction and records the theme', () => {
+    const story = buildFeatureStory({ ...base, theme: 'station' });
+
+    expect(story?.slot).toBe('feature');
+    expect(story?.family).toBe('feature-story');
+    expect(story?.kicker).toBe('Estación del día · última semana completa');
+    expect(story?.headline).toBe('Plaza España: muchas horas sin bicis o sin huecos');
+    expect(story?.facts).toEqual([
+      { label: 'Uso esta semana', value: '1200 puntos' },
+      { label: 'Horas sin bicis o sin huecos', value: '35 de 100 h · 35%' },
+      { label: 'Ahora mismo', value: '0 bicis y 5 huecos' },
+    ]);
+    expect(story?.metadata).toEqual({ theme: 'station', stationIds: ['s1'] });
+    expect(story?.bars?.length).toBeGreaterThan(0);
+  });
+
+  it('prefers a fresh station when the top one appeared recently', () => {
+    const story = buildFeatureStory({
+      ...base,
+      theme: 'station',
+      recentStationIds: ['s1'],
+    });
+
+    expect(story?.metadata?.stationIds).toEqual(['s2']);
+    expect(story?.headline).toContain('Universidad');
+  });
+
+  it('explains the activity index without inventing data', () => {
+    const story = buildFeatureStory({ ...base, theme: 'explainer' });
+
+    expect(story?.kicker).toBe('Cómo funciona · última semana completa');
+    expect(story?.headline).toBe('Los puntos de actividad, en una frase');
+    expect(story?.facts[2]).toEqual({
+      label: 'La red esta semana',
+      value: '3 estaciones · 55 h sin bicis o sin huecos',
+    });
+    expect(story?.metadata).toEqual({ theme: 'explainer' });
+  });
+
+  it('builds a monthly record from the report', () => {
+    const story = buildFeatureStory({
+      ...base,
+      theme: 'record',
+      report: monthlyReport(),
+    });
+
+    expect(story?.headline).toBe('Los récords de septiembre de 2026');
+    expect(story?.facts[0]).toEqual({
+      label: 'Estación con más uso',
+      value: 'Plaza España · 88,5 puntos de actividad/día',
+    });
+    expect(story?.facts[1]).toEqual({
+      label: 'Distrito con más uso',
+      value: 'Centro · 2100 puntos',
+    });
+    expect(story?.metadata).toEqual({
+      theme: 'record',
+      stationIds: ['s1'],
+      districtNames: ['Centro'],
+    });
+  });
+
+  it('answers the weekday myth with the report profile', () => {
+    const story = buildFeatureStory({
+      ...base,
+      theme: 'myth',
+      report: monthlyReport(),
+    });
+
+    expect(story?.headline).toBe('¿La Bizi se usa igual todos los días?');
+    expect(story?.facts[0]).toEqual({
+      label: 'Entre semana y fin de semana',
+      value: 'Entre semana se usa un 67% más por día',
+    });
+    expect(story?.metadata?.theme).toBe('myth');
+  });
+
+  it('summarises the network for the week', () => {
+    const story = buildFeatureStory({ ...base, theme: 'network' });
+
+    expect(story?.headline).toBe('La red de Bizi esta semana');
+    expect(story?.facts).toEqual([
+      { label: 'Estaciones en la red', value: '3' },
+      { label: 'Puntos de actividad', value: '2700 en la semana' },
+      { label: 'Horas sin bicis o sin huecos', value: '55 de 300 h · 18%' },
+    ]);
+    expect(story?.metadata).toEqual({ theme: 'network' });
+  });
+
+  it('returns null instead of publishing empty content', () => {
+    expect(
+      buildFeatureStory({ ...base, theme: 'station', stations: [], friction: [] })
+    ).toBeNull();
+    expect(buildFeatureStory({ ...base, theme: 'station', friction: [] })).toBeNull();
+    expect(buildFeatureStory({ ...base, theme: 'explainer', stations: [] })).toBeNull();
+    expect(
+      buildFeatureStory({ ...base, theme: 'record', report: monthlyReport({ hasReport: false }) })
+    ).toBeNull();
+    expect(buildFeatureStory({ ...base, theme: 'myth', report: null })).toBeNull();
+    expect(buildFeatureStory({ ...base, theme: 'network', friction: [] })).toBeNull();
   });
 });
 
@@ -951,11 +1261,23 @@ describe('monthly carousel', () => {
       'datosbizi.com/informes/2026-09'
     );
     expect(carousel?.caption).toContain('#BiziZaragoza');
+    expect(carousel?.caption).toContain(
+      'utm_source=instagram&utm_medium=social&utm_campaign=monthly'
+    );
     expect(carousel?.caption).toContain('La Bizi en septiembre de 2026: más uso que el mes anterior');
     expect(carousel?.caption).toContain('La red gana actividad');
     expect(carousel?.caption).not.toContain('Septiembre cierra con más movimiento estimado');
     expect(carousel?.caption).toContain(SOCIAL_FEED_DISCLAIMER);
     expect(carousel?.caption.length).toBeLessThanOrEqual(2200);
+  });
+
+  it('records the top station and district shown in the report', () => {
+    const carousel = buildMonthlyCarousel({ report: monthlyReport() });
+
+    expect(carousel?.metadata).toEqual({
+      stationIds: ['s1'],
+      districtNames: ['Centro'],
+    });
   });
 
   it('uses the report path override for the CTA', () => {
