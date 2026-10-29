@@ -163,7 +163,7 @@ describe('BufferGraphQLClient createPost', () => {
       altText: 'Carrusel de cinco imágenes de Zaragoza',
     });
     expect(input.metadata).toEqual({
-      instagram: { type: 'carousel', shouldShareToFeed: true },
+      instagram: { type: 'post', shouldShareToFeed: true },
     });
     expect(input.mode).toBe('shareNow');
     expect(input.schedulingType).toBe('automatic');
@@ -273,6 +273,29 @@ describe('BufferGraphQLClient createPost', () => {
     );
 
     expect(error.message).toBe('The channel is not connected');
+  });
+
+  it('reports an InvalidInputError with its message', async () => {
+    const fetch = fakeFetch();
+    fetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: {
+          createPost: {
+            __typename: 'InvalidInputError',
+            message: "Instagram does not support the 'carousel' post type",
+          },
+        },
+      })
+    );
+
+    const error = await expectBufferError(
+      client(fetch).createPost(storyInput),
+      'mutation_error'
+    );
+
+    expect(error.message).toBe(
+      "Instagram does not support the 'carousel' post type"
+    );
   });
 
   it('reports top-level GraphQL errors', async () => {

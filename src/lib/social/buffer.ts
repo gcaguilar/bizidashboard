@@ -31,6 +31,12 @@ const CREATE_POST_MUTATION = `
       ... on MutationError {
         message
       }
+      ... on InvalidInputError {
+        message
+      }
+      ... on UnauthorizedError {
+        message
+      }
     }
   }
 `;
@@ -374,6 +380,9 @@ export class BufferGraphQLClient implements BufferClient {
 
     // El formato manda: story nunca comparte al feed y carousel siempre.
     const shouldShareToFeed = input.format === 'carousel';
+    // Instagram no tiene un tipo "carousel": un post con varias imagenes ES el
+    // carrusel. El formato interno sigue siendo `carousel` para el render.
+    const instagramType = input.format === 'story' ? 'story' : 'post';
     const variables = {
       input: {
         text,
@@ -383,7 +392,7 @@ export class BufferGraphQLClient implements BufferClient {
         assets,
         metadata: {
           instagram: {
-            type: input.format,
+            type: instagramType,
             shouldShareToFeed,
           },
         },
@@ -401,12 +410,13 @@ export class BufferGraphQLClient implements BufferClient {
     }
 
     const typename = readString(result.__typename);
+    const errorMessage = readString(result.message);
 
-    if (typename === 'MutationError' || (!typename && readString(result.message))) {
-      const message = this.redact(
-        readString(result.message) ?? 'Buffer rejected the post'
+    if (typename === 'MutationError' || errorMessage) {
+      throw new BufferApiError(
+        this.redact(errorMessage ?? 'Buffer rejected the post'),
+        { code: 'mutation_error' }
       );
-      throw new BufferApiError(message, { code: 'mutation_error' });
     }
 
     if (typename === 'PostActionSuccess' || (!typename && isRecord(result.post))) {
