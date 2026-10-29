@@ -140,6 +140,8 @@ export type MonthlyReport = {
     mostActive: DistrictMonthSummary[];
     leastActive: DistrictMonthSummary[];
     undersupplied: DistrictMonthSummary[];
+    /** Todos los barrios con datos, para rankings propios (p. ej. por estación). */
+    all: DistrictMonthSummary[];
   };
   heatmap: MonthlyNetworkHeatmapRow[];
   problemSpots: {

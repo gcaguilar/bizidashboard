@@ -1198,8 +1198,62 @@ function monthlyReport(overrides: Partial<MonthlyReport> = {}): MonthlyReport {
           frictionRate: 0.15,
         },
       ],
-      leastActive: [],
-      undersupplied: [],
+      leastActive: [
+        {
+          district: 'Santa Isabel',
+          demandScore: 500,
+          avgOccupancy: 0.4,
+          stations: 4,
+          emptyHours: 2,
+          fullHours: 1,
+          totalHours: 40,
+          frictionRate: 0.1,
+        },
+      ],
+      undersupplied: [
+        {
+          district: 'Casablanca',
+          demandScore: 1000,
+          avgOccupancy: 0.5,
+          stations: 12,
+          emptyHours: 20,
+          fullHours: 12,
+          totalHours: 100,
+          frictionRate: 0.32,
+        },
+      ],
+      all: [
+        {
+          district: 'Centro',
+          demandScore: 2100,
+          avgOccupancy: 0.6,
+          stations: 25,
+          emptyHours: 10,
+          fullHours: 5,
+          totalHours: 100,
+          frictionRate: 0.15,
+        },
+        {
+          district: 'Santa Isabel',
+          demandScore: 500,
+          avgOccupancy: 0.4,
+          stations: 4,
+          emptyHours: 2,
+          fullHours: 1,
+          totalHours: 40,
+          frictionRate: 0.1,
+        },
+        {
+          district: 'Casablanca',
+          demandScore: 1000,
+          avgOccupancy: 0.5,
+          stations: 12,
+          emptyHours: 20,
+          fullHours: 12,
+          totalHours: 100,
+          frictionRate: 0.32,
+        },
+      ],
     },
     heatmap: [],
     problemSpots: {
@@ -1234,11 +1288,11 @@ function monthlyReport(overrides: Partial<MonthlyReport> = {}): MonthlyReport {
 }
 
 describe('monthly carousel', () => {
-  it('builds five slides from the monthly report without recomputing it', () => {
+  it('builds six slides from the monthly report without recomputing it', () => {
     const carousel = buildMonthlyCarousel({ report: monthlyReport() });
 
     expect(carousel).not.toBeNull();
-    expect(carousel?.slides).toHaveLength(5);
+    expect(carousel?.slides).toHaveLength(6);
     expect(carousel?.headline).toBe('La Bizi en septiembre de 2026');
     expect(carousel?.slides[1]?.facts).toEqual([
       { label: 'Uso estimado', value: '12.345 puntos de actividad/mes' },
@@ -1256,19 +1310,84 @@ describe('monthly carousel', () => {
     expect(carousel?.slides[0]?.bars).toHaveLength(5);
     expect(carousel?.slides[0]?.bars?.at(-1)?.label).toBe('septiembre');
     expect(carousel?.slides[2]?.headline).toBe('Más uso que el mes anterior');
-    expect(carousel?.slides[3]?.headline).toBe('Centro es el distrito con más uso');
-    expect(carousel?.slides[4]?.facts[0]?.value).toBe(
+    expect(carousel?.slides[3]?.headline).toBe('Plaza España es la estación con más uso');
+    expect(carousel?.slides[3]?.facts).toEqual([
+      {
+        label: 'Estación más usada',
+        value: 'Plaza España · 88,5 puntos de actividad/día',
+      },
+      {
+        label: 'Más horas sin bicis o sin huecos',
+        value: 'Plaza España · 30%',
+      },
+    ]);
+    expect(carousel?.slides[4]?.kicker).toBe('Barrios del mes');
+    expect(carousel?.slides[4]?.headline).toBe('El uso por barrio, estación a estación');
+    expect(carousel?.slides[4]?.facts).toEqual([
+      { label: 'Barrio con más uso por estación', value: 'Santa Isabel · 125 puntos' },
+      { label: 'Barrio con menos uso por estación', value: 'Casablanca · 83 puntos' },
+      {
+        label: 'Mayor proporción de horas sin bicis o sin huecos',
+        value: 'Casablanca · 32%',
+      },
+    ]);
+    expect(carousel?.slides[4]?.bars).toEqual([
+      { label: 'Santa Isabel', value: 125 },
+      { label: 'Centro', value: 84 },
+      { label: 'Casablanca', value: 83 },
+    ]);
+    expect(carousel?.slides[5]?.facts[0]?.value).toBe(
       'datosbizi.com/informes/2026-09'
     );
     expect(carousel?.caption).toContain('#BiziZaragoza');
     expect(carousel?.caption).toContain(
       'utm_source=instagram&utm_medium=social&utm_campaign=monthly'
     );
-    expect(carousel?.caption).toContain('La Bizi en septiembre de 2026: más uso que el mes anterior');
+    expect(carousel?.caption).toContain(
+      'La Bizi en septiembre de 2026: Santa Isabel lidera el uso por estación'
+    );
     expect(carousel?.caption).toContain('La red gana actividad');
     expect(carousel?.caption).not.toContain('Septiembre cierra con más movimiento estimado');
     expect(carousel?.caption).toContain(SOCIAL_FEED_DISCLAIMER);
     expect(carousel?.caption.length).toBeLessThanOrEqual(2200);
+  });
+
+  it('uses every district, not only the three published rankings', () => {
+    const report = monthlyReport();
+    report.districts.all.push({
+      district: 'Actur',
+      demandScore: 4000,
+      avgOccupancy: 0.5,
+      stations: 25,
+      emptyHours: 0,
+      fullHours: 0,
+      totalHours: 100,
+      frictionRate: 0,
+    });
+
+    const carousel = buildMonthlyCarousel({ report });
+
+    expect(carousel?.slides[4]?.facts[0]).toEqual({
+      label: 'Barrio con más uso por estación',
+      value: 'Actur · 160 puntos',
+    });
+  });
+
+  it('never paints months after the report month in the trend bars', () => {
+    const report = monthlyReport();
+    report.trends.monthly.push({
+      monthKey: '2026-10',
+      demandScore: 999999,
+      avgOccupancy: 0.5,
+      activeStations: 276,
+      sampleCount: 1000,
+    });
+
+    const carousel = buildMonthlyCarousel({ report });
+
+    expect(carousel?.slides[0]?.bars?.at(-1)?.label).toBe('septiembre');
+    expect(carousel?.slides[0]?.bars?.some((bar) => bar.value === 999999)).toBe(false);
+    expect(carousel?.slides[2]?.bars?.some((bar) => bar.value === 999999)).toBe(false);
   });
 
   it('records the top station and district shown in the report', () => {
@@ -1276,7 +1395,7 @@ describe('monthly carousel', () => {
 
     expect(carousel?.metadata).toEqual({
       stationIds: ['s1'],
-      districtNames: ['Centro'],
+      districtNames: ['Santa Isabel', 'Centro', 'Casablanca'],
     });
   });
 
@@ -1286,7 +1405,7 @@ describe('monthly carousel', () => {
       reportPath: '/informes/septiembre',
     });
 
-    expect(carousel?.slides[4]?.facts[0]?.value).toBe(
+    expect(carousel?.slides[5]?.facts[0]?.value).toBe(
       'datosbizi.com/informes/septiembre'
     );
   });

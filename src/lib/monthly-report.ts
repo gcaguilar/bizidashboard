@@ -524,13 +524,17 @@ async function assembleMonthlyReport(
 
   const summary = conclusions?.payload.summary ?? buildDefaultSummary(headline, monthKey);
 
-  const monthlyTrends: MonthlyReportTrends['monthly'] = monthlySeries.map((row) => ({
-    monthKey: row.monthKey,
-    demandScore: row.demandScore,
-    avgOccupancy: row.avgOccupancy,
-    activeStations: row.activeStations,
-    sampleCount: row.sampleCount,
-  }));
+  // Un informe reconstruido mas tarde no debe heredar meses posteriores: las
+  // tendencias y la estacionalidad se leen solo hasta el mes del informe.
+  const monthlyTrends: MonthlyReportTrends['monthly'] = monthlySeries
+    .filter((row) => row.monthKey <= monthKey)
+    .map((row) => ({
+      monthKey: row.monthKey,
+      demandScore: row.demandScore,
+      avgOccupancy: row.avgOccupancy,
+      activeStations: row.activeStations,
+      sampleCount: row.sampleCount,
+    }));
 
   const report: MonthlyReport = {
     monthKey,
@@ -562,7 +566,14 @@ async function assembleMonthlyReport(
       })),
     },
     seasonality: computeSeasonality(monthlyTrends, monthKey),
-    districts: { mostActive, leastActive, undersupplied },
+    districts: {
+      mostActive,
+      leastActive,
+      undersupplied,
+      all: [...districtSummaries].sort(
+        (a, b) => b.demandScore - a.demandScore || a.district.localeCompare(b.district, 'es')
+      ),
+    },
     heatmap,
     problemSpots: { worstFriction, worstMorning, longestEpisodes },
     redistribution: buildRedistribution(stationMetrics, stationNameById, stationDistrictMap),

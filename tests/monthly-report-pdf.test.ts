@@ -42,7 +42,7 @@ describe('monthly report pdf', () => {
       recommendations: [],
       monthlyConclusions: [],
       anomalies: [],
-      districts: { mostActive: [], leastActive: [], undersupplied: [] },
+      districts: { mostActive: [], leastActive: [], undersupplied: [], all: [] },
       problemSpots: { worstFriction: [], worstMorning: [], longestEpisodes: [] },
       trends: { monthly: [], daily: [], hourly: [] },
     });

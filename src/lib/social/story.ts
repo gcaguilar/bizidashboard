@@ -1201,6 +1201,7 @@ function buildFeatureRecordStory(input: SocialFeatureStoryInput): SocialStory | 
   }
 
   const trendBars: SocialBar[] = (report.trends?.monthly ?? [])
+    .filter((entry) => entry.monthKey <= report.monthKey)
     .slice(-5)
     .map((entry) => ({
       label: formatMonthName(entry.monthKey),
@@ -1627,6 +1628,44 @@ function trendHeadline(trend: ReportTrend): string {
   }
 }
 
+type MonthlyDistrict = MonthlyReport['districts']['mostActive'][number];
+
+function districtUsePerStation(district: MonthlyDistrict): number {
+  return district.stations > 0 ? district.demandScore / district.stations : 0;
+}
+
+/**
+ * Ranking territorial justo entre barrios de distinto tamano. Usa `all` cuando
+ * el informe lo trae; con snapshots antiguos cae a la union de los tres
+ * rankings, que cubre hasta 12 de los 15 barrios.
+ */
+function monthlyDistrictsByStation(report: MonthlyReport): MonthlyDistrict[] {
+  const all = report.districts?.all ?? [];
+  const source =
+    all.length > 0
+      ? all
+      : [
+          ...(report.districts?.mostActive ?? []),
+          ...(report.districts?.leastActive ?? []),
+          ...(report.districts?.undersupplied ?? []),
+        ];
+
+  const unique = new Map<string, MonthlyDistrict>();
+  for (const district of source) {
+    if (!unique.has(district.district)) {
+      unique.set(district.district, district);
+    }
+  }
+
+  return Array.from(unique.values())
+    .filter((district) => district.stations > 0)
+    .sort(
+      (left, right) =>
+        districtUsePerStation(right) - districtUsePerStation(left) ||
+        left.district.localeCompare(right.district, 'es')
+    );
+}
+
 /**
  * Carrusel mensual de 5 laminas a partir del `MonthlyReport` ya construido. No
  * recalcula el informe; solo lee campos existentes. Devuelve `null` si el
@@ -1650,9 +1689,12 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
 
   const monthLabel = formatMonthLabel(report.monthKey);
   const headline = report.headline;
-  const mostActive = report.districts?.mostActive?.[0] ?? null;
+  const undersupplied = report.districts?.undersupplied?.[0] ?? null;
   const topStation = report.topStations?.[0] ?? null;
   const worstFriction = report.problemSpots?.worstFriction?.[0] ?? null;
+  const districtsByStation = monthlyDistrictsByStation(report);
+  const topDistrict = districtsByStation[0] ?? null;
+  const bottomDistrict = districtsByStation[districtsByStation.length - 1] ?? null;
   const monthPath = input.reportPath ?? `/informes/${report.monthKey}`;
   const publicUrl = `datosbizi.com${monthPath.startsWith('/') ? monthPath : `/${monthPath}`}`;
   const coverHeadline = `La Bizi en ${monthLabel}`;
@@ -1660,6 +1702,7 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
   // La lamina pinta 5 barras: las 5 ultimas, para que el mes del informe (el
   // ultimo) nunca quede fuera.
   const trendBars: SocialBar[] = (report.trends?.monthly ?? [])
+    .filter((entry) => entry.monthKey <= report.monthKey)
     .slice(-5)
     .map((entry) => ({
       label: formatMonthName(entry.monthKey),
@@ -1699,13 +1742,7 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
     seasonalRatio !== null ? { label: seasonalLabel, value: formatGrowthFact(seasonalRatio) } : null,
   ]);
 
-  const districtFacts: SocialStoryFact[] = compactFacts([
-    mostActive
-      ? {
-          label: 'Distrito con más uso',
-          value: `${normalize(mostActive.district)} · ${formatInteger(mostActive.demandScore)} puntos`,
-        }
-      : null,
+  const stationFacts: SocialStoryFact[] = compactFacts([
     topStation
       ? {
           label: 'Estación más usada',
@@ -1719,6 +1756,44 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
         }
       : null,
   ]);
+
+  // Los rankings del informe no se limitan al primer barrio: esta lamina da
+  // contexto territorial para que el post no parezca la historia de un solo
+  // distrito. Se mide por estacion para que un barrio grande no gane solo por
+  // tener mas estaciones.
+  const districtBars: SocialBar[] = districtsByStation
+    .slice(0, 5)
+    .map((district) => ({
+      label: normalize(district.district),
+      value: Math.round(districtUsePerStation(district)),
+    }))
+    .filter((bar) => Number.isFinite(bar.value) && bar.value > 0);
+
+  const barrioFacts: SocialStoryFact[] = compactFacts([
+    topDistrict
+      ? {
+          label: 'Barrio con más uso por estación',
+          value: `${normalize(topDistrict.district)} · ${formatInteger(Math.round(districtUsePerStation(topDistrict)))} puntos`,
+        }
+      : null,
+    bottomDistrict && bottomDistrict.district !== topDistrict?.district
+      ? {
+          label: 'Barrio con menos uso por estación',
+          value: `${normalize(bottomDistrict.district)} · ${formatInteger(Math.round(districtUsePerStation(bottomDistrict)))} puntos`,
+        }
+      : null,
+    undersupplied
+      ? {
+          label: 'Mayor proporción de horas sin bicis o sin huecos',
+          value: `${normalize(undersupplied.district)} · ${formatPercent(undersupplied.frictionRate)}`,
+        }
+      : null,
+  ]);
+
+  const shownDistrictNames = [
+    ...districtsByStation.slice(0, 5).map((entry) => entry.district),
+    ...(undersupplied ? [undersupplied.district] : []),
+  ];
 
   const slides: SocialCarouselSlide[] = [
     slide(
@@ -1743,13 +1818,29 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
       { bars: trendBars, barsLabel: 'Puntos de actividad al mes' }
     ),
     slide(
-      'Distritos y estaciones',
-      mostActive ? `${normalize(mostActive.district)} es el distrito con más uso` : 'Récords del mes',
-      districtFacts.length > 0
-        ? districtFacts
-        : [{ label: 'Distritos', value: 'Sin distritos destacados este mes' }],
+      'Estaciones del mes',
+      topStation
+        ? `${normalize(topStation.stationName)} es la estación con más uso`
+        : 'Estaciones del mes',
+      stationFacts.length > 0
+        ? stationFacts
+        : [{ label: 'Estaciones', value: 'Sin estaciones destacadas este mes' }],
       ACCENT_TEAL
     ),
+    ...(barrioFacts.length > 0 || districtBars.length > 0
+      ? [
+          slide(
+            'Barrios del mes',
+            'El uso por barrio, estación a estación',
+            barrioFacts,
+            ACCENT_BLUE,
+            {
+              bars: districtBars,
+              barsLabel: 'Puntos de actividad por estación',
+            }
+          ),
+        ]
+      : []),
     slide(
       'Informe completo',
       'Lee el informe completo',
@@ -1771,9 +1862,11 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
     facts: slides[0]!.facts,
     footer: SOCIAL_FEED_FOOTER,
     caption: buildFeedCaption({
-      hook: report.comparison?.isComparable
-        ? `${coverHeadline}: ${trendHeadline(report.comparison.trend).toLowerCase()}`
-        : coverHeadline,
+      hook: topDistrict
+        ? `${coverHeadline}: ${normalize(topDistrict.district)} lidera el uso por estación`
+        : report.comparison?.isComparable
+          ? `${coverHeadline}: ${trendHeadline(report.comparison.trend).toLowerCase()}`
+          : coverHeadline,
       facts: captionFacts,
       // Solo el titular del balance: ya lleva la cifra ("El uso creció un 12%…") y
       // el detalle repite "índice de actividad", jerga que no queremos en el feed.
@@ -1796,7 +1889,7 @@ export function buildMonthlyCarousel(input: SocialMonthlyCarouselInput): SocialC
       stationIds: [topStation?.stationId, worstFriction?.stationId].filter(
         (stationId): stationId is string => typeof stationId === 'string'
       ),
-      districtNames: mostActive ? [mostActive.district] : [],
+      districtNames: shownDistrictNames,
     }),
   };
 }

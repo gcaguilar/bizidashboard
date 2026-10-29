@@ -125,8 +125,45 @@ describe('buildMonthlyReport assembly', () => {
       'Alto',
       'Bajo',
     ]);
+    expect(report.districts.all.map((district) => district.district)).toEqual([
+      'Alto',
+      'Bajo',
+    ]);
     expect(report.monthlyConclusions[0]).toContain('Alto');
     expect(report.monthlyConclusions[0]).not.toContain('Bajo');
+  });
+
+  it('never mixes months after the report month into trends', async () => {
+    const sources = buildFixtureSources({
+      loadMonthlySeries: async () => [
+        {
+          monthKey: '2026-03',
+          demandScore: 100,
+          avgOccupancy: 0.5,
+          activeStations: 10,
+          sampleCount: 1000,
+        },
+        {
+          monthKey: '2026-04',
+          demandScore: 200,
+          avgOccupancy: 0.6,
+          activeStations: 10,
+          sampleCount: 1000,
+        },
+        {
+          monthKey: '2026-10',
+          demandScore: 999,
+          avgOccupancy: 0.7,
+          activeStations: 10,
+          sampleCount: 1000,
+        },
+      ],
+    });
+
+    const report = await buildMonthlyReport(MONTH, NOW, sources);
+
+    expect(report.trends.monthly.map((row) => row.monthKey)).toEqual(['2026-03']);
+    expect(report.seasonality.seriesAvgDemand).toBe(100);
   });
 
   it('hands the biggest anomaly to the conclusions first', async () => {

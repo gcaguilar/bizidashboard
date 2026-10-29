@@ -78,7 +78,7 @@ export function buildFallbackMonthlyReport(monthKey: string, nowIso: string): Mo
     weekdayWeekendProfile: EMPTY_WEEKDAY_WEEKEND,
     trends: { monthly: [], daily: [], hourly: [] },
     seasonality: EMPTY_SEASONALITY,
-    districts: { mostActive: [], leastActive: [], undersupplied: [] },
+    districts: { mostActive: [], leastActive: [], undersupplied: [], all: [] },
     heatmap: [],
     problemSpots: { worstFriction: [], worstMorning: [], longestEpisodes: [] },
     redistribution: {
