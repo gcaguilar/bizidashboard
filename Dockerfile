@@ -66,7 +66,7 @@ ENV GIT_SHA=${GIT_SHA:-dev}
 ENV BUILD_DATE=${BUILD_DATE:-}
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 passwd && rm -rf /var/lib/apt/lists/*
 
 # TanStack Start output (repo currently builds into dist/)
 COPY --from=builder /app/dist /app/dist
@@ -101,6 +101,12 @@ COPY ops/create-schema.ts /app/ops/create-schema.ts
 COPY ops/start-server.mjs /app/ops/start-server.mjs
 COPY ops/validate-env.mjs /app/ops/validate-env.mjs
 RUN chmod +x /app/docker-entrypoint.sh
+
+RUN groupadd --system --gid 1001 app \
+    && useradd --system --uid 1001 --gid app --home-dir /home/app --create-home app \
+    && chown -R app:app /app \
+    && chmod -R a+rX /ms-playwright
+USER app
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \

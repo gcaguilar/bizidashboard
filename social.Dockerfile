@@ -46,7 +46,7 @@ FROM oven/bun:1.4.4-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 passwd && rm -rf /var/lib/apt/lists/*
 
 # Prisma generated client
 COPY --from=builder /app/src/generated /app/src/generated
@@ -62,6 +62,12 @@ COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/dist/jobs/social-standalone.js /app/dist/jobs/social-standalone.js
 COPY --from=builder /app/scripts/start-social.mjs /app/scripts/start-social.mjs
+
+RUN groupadd --system --gid 1001 app \
+    && useradd --system --uid 1001 --gid app --home-dir /home/app --create-home app \
+    && mkdir -p /app/data \
+    && chown -R app:app /app
+USER app
 
 # Prisma client resolution
 RUN mkdir -p /app/node_modules/.prisma/client && \

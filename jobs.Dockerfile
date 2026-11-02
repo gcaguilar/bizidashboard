@@ -34,7 +34,7 @@ FROM oven/bun:1.4.4-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends wget openssl libpq5 passwd && rm -rf /var/lib/apt/lists/*
 
 # Prisma generated client
 COPY --from=builder /app/src/generated /app/src/generated
@@ -62,6 +62,11 @@ COPY --from=builder /app/ops/create-schema.ts /app/ops/create-schema.ts
 COPY --from=builder /app/ops/start-jobs.mjs /app/ops/start-jobs.mjs
 COPY --from=builder /app/ops/validate-env.mjs /app/ops/validate-env.mjs
 RUN chmod +x /app/docker-entrypoint.sh
+
+RUN groupadd --system --gid 1001 app \
+    && useradd --system --uid 1001 --gid app --home-dir /home/app --create-home app \
+    && chown -R app:app /app
+USER app
 
 # Prisma client resolution
 RUN mkdir -p /app/node_modules/.prisma/client && \
