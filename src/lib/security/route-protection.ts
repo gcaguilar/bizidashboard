@@ -44,7 +44,7 @@ export function withProtect<T extends RouteContext = RouteContext>(
     try {
       const response = await handler(result.ctx);
 
-      if (options.cacheControl && response instanceof Response) {
+      if (options.cacheControl && response instanceof Response && !response.headers.has('Cache-Control')) {
         response.headers.set('Cache-Control', options.cacheControl);
       }
 

@@ -96,6 +96,8 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           }
 
           const report = await buildRebalancingReport({ days, district })
+          const gated = format === 'csv' || days > 30
+          const privateHeaders = gated ? { 'Cache-Control': 'private, no-store' } : {}
 
           if (format === 'csv') {
             const diagCsv = toCsvDiagnostics(report.diagnostics)
@@ -106,6 +108,7 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
               headers: {
                 'Content-Type': 'text/csv; charset=utf-8',
                 'Content-Disposition': `attachment; filename="rebalancing-report-${days}d.csv"`,
+                ...privateHeaders,
               },
             })
           }
@@ -113,7 +116,7 @@ export const Route = createFileRoute('/api/rebalancing-report/')({
           // `compact` es lo que lee el dashboard; el valor por defecto sigue siendo el informe completo.
           return new Response(JSON.stringify(view === 'compact' ? compactRebalancingReport(report) : report), {
             status: 200,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...privateHeaders },
           })
         }
       ),

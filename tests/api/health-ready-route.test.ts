@@ -58,7 +58,8 @@ describe('GET /api/health/ready', () => {
     expect(response.status).toBe(503);
     expect(payload.status).toBe('degraded');
     expect(payload.checks[0].ok).toBe(false);
-    expect(payload.checks[0].error).toContain('connection refused');
+    expect(payload.checks[0].error).toBe('database unavailable');
+    expect(payload.checks[0].error).not.toContain('connection refused');
   });
 
   it('returns degraded when pipeline data is stale', async () => {

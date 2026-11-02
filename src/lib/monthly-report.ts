@@ -6,7 +6,7 @@ import {
   createLiveMonthlyReportSources,
   type MonthlyReportSources,
 } from '@/lib/monthly-report-sources';
-import { formatMonthName, getMonthBounds, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
+import { formatMonthName, getMonthBounds, isMonthWithinReportWindow, isReportMonthSealable, isValidMonthKey, monthDayCount, previousMonthKey } from '@/lib/months';
 import { logger } from '@/lib/logger';
 import {
   buildMonthlyTemporalComparison,
@@ -723,7 +723,11 @@ export async function buildMonthlyReport(
     return buildFallbackMonthlyReport(monthKey, nowIso);
   }
 
-  if (!isClosedReportMonth(monthKey, nowIso)) {
+  if (!isMonthWithinReportWindow(monthKey, nowIso)) {
+    return buildFallbackMonthlyReport(monthKey, nowIso);
+  }
+
+  if (!isClosedReportMonth(monthKey, nowIso) || !isReportMonthSealable(monthKey, nowIso)) {
     // El mes en curso se refresca en segundo plano: una peticion nunca espera
     // al escaneo completo si ya hay una version valida de hace menos de 6 h.
     return withStaleCache(

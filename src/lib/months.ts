@@ -21,6 +21,45 @@ export function normalizeMonthSearchParam(value: string | string[] | undefined):
   return isValidMonthKey(candidate) ? candidate : null;
 }
 
+/** The month is inside the published 36-month archive window. */
+export function isMonthWithinReportWindow(
+  monthKey: string,
+  nowIso: string = new Date().toISOString(),
+  window = REPORT_MONTHS_WINDOW
+): boolean {
+  if (!isValidMonthKey(monthKey)) return false;
+
+  const now = new Date(nowIso);
+  if (Number.isNaN(now.getTime())) return false;
+
+  const currentStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+  const earliest = Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (window - 1), 1);
+  const { start } = getMonthBounds(monthKey);
+  const startMs = Date.parse(start);
+
+  return startMs >= earliest && startMs <= currentStart;
+}
+
+/**
+ * Do not seal a closed month until the daily rollup had time to include its
+ * final day. The analytics cron runs at 02:10 UTC on the first of the month;
+ * a four-hour grace keeps early anonymous reads from freezing an incomplete
+ * report into Redis/Postgres.
+ */
+export function isReportMonthSealable(
+  monthKey: string,
+  nowIso: string = new Date().toISOString(),
+  graceHours = 4
+): boolean {
+  if (!isValidMonthKey(monthKey)) return false;
+
+  const nowMs = Date.parse(nowIso);
+  if (Number.isNaN(nowMs)) return false;
+
+  const { endExclusive } = getMonthBounds(monthKey);
+  return nowMs >= Date.parse(endExclusive) + graceHours * 3_600_000;
+}
+
 export function getMonthBounds(monthKey: string): { start: string; endExclusive: string } {
   const [year, month] = monthKey.split('-').map(Number);
   const start = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, 1));

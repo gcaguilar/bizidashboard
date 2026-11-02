@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getPipelineStatusSummary } from '@/services/shared-data'
+import { logger } from '@/lib/logger'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 
 async function checkDatabase(): Promise<{ ok: boolean; error?: string; durationMs: number }> {
@@ -9,9 +10,10 @@ async function checkDatabase(): Promise<{ ok: boolean; error?: string; durationM
     await prisma.$queryRaw`SELECT 1`
     return { ok: true, durationMs: Date.now() - start }
   } catch (err: unknown) {
+    logger.warn('health.ready.database_failed', { error: err })
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'unknown',
+      error: 'database unavailable',
       durationMs: Date.now() - start,
     }
   }
@@ -40,10 +42,11 @@ async function handler(): Promise<Response> {
     if (!(!!data && isRecent)) allOk = false
   } catch (err: unknown) {
     allOk = false
+    logger.warn('health.ready.pipeline_failed', { error: err })
     checks.push({
       name: 'pipeline',
       ok: false,
-      error: err instanceof Error ? err.message : 'unknown',
+      error: 'pipeline unavailable',
       durationMs: Date.now() - pipelineStart,
     })
   }
@@ -68,7 +71,7 @@ export const Route = createFileRoute('/api/health/ready')({
           limit: 20,
           windowMs: 30_000,
           requireApiKey: false,
-          cacheControl: 'public, max-age=15',
+          cacheControl: 'no-store',
         },
         handler,
       ),

@@ -4,6 +4,7 @@ import { csvSectionsResponse } from '@/lib/csv'
 import { logger } from '@/lib/logger'
 import { isValidMonthKey } from '@/lib/months'
 import { buildMonthlyReport, isClosedReportMonth } from '@/lib/monthly-report'
+import { isReportMonthSealable } from '@/lib/months'
 import {
   buildReportExportSections,
   getReportExportSection,
@@ -23,6 +24,8 @@ import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { withPublicApiRoute } from '@/lib/security/public-api-route'
 
 const SUCCESS_CACHE_CONTROL = 'public, max-age=300, stale-while-revalidate=600'
+const LIVE_PDF_CACHE_TTL_MS = 60_000
+const MAX_PDF_RENDER_QUEUE = 20
 
 /** Origen del PDF: la pagina renderizada o el fallback de tablas. */
 type ReportPdfSource = 'page' | 'table'
@@ -38,6 +41,7 @@ type ReportPdfResult = {
  * peticiones lo leen de la base de datos.
  */
 const inflightPdfRenders = new Map<string, Promise<ReportPdfResult>>()
+const livePdfCache = new Map<string, { result: ReportPdfResult; expiresAt: number }>()
 
 /**
  * Un solo render de navegador a la vez por proceso: evita que varias descargas
@@ -45,13 +49,21 @@ const inflightPdfRenders = new Map<string, Promise<ReportPdfResult>>()
  * peticiones sobrantes esperan en cola.
  */
 let pdfRenderQueue: Promise<unknown> = Promise.resolve()
+let pdfRenderQueueDepth = 0
 
 function enqueuePdfRender<T>(task: () => Promise<T>): Promise<T> {
+  if (pdfRenderQueueDepth >= MAX_PDF_RENDER_QUEUE) {
+    return Promise.reject(new Error('Report PDF render queue is full'));
+  }
+
+  pdfRenderQueueDepth += 1
   const run = pdfRenderQueue.then(task, task)
   pdfRenderQueue = run.then(
     () => undefined,
     () => undefined
-  )
+  ).finally(() => {
+    pdfRenderQueueDepth = Math.max(0, pdfRenderQueueDepth - 1)
+  })
   return run
 }
 
@@ -87,7 +99,7 @@ async function resolveReportPdf(month: string, report: MonthlyReport): Promise<R
     return { bytes: new Uint8Array(buildMonthlyReportPdf(report)), source: 'table' }
   }
 
-  const closed = isClosedReportMonth(month, new Date().toISOString())
+  const closed = isClosedReportMonth(month, new Date().toISOString()) && isReportMonthSealable(month)
 
   if (closed) {
     const stored = await getStoredMonthlyReportPdf(month).catch((error) => {
@@ -102,6 +114,11 @@ async function resolveReportPdf(month: string, report: MonthlyReport): Promise<R
 
     if (stored) {
       return { bytes: stored, source: 'page' }
+    }
+  } else {
+    const cached = livePdfCache.get(month)
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.result
     }
   }
 
@@ -123,6 +140,11 @@ async function resolveReportPdf(month: string, report: MonthlyReport): Promise<R
             extra: { month },
           })
           logger.warn('reports.pdf_store_failed', { month, error })
+        })
+      } else {
+        livePdfCache.set(month, {
+          result: { bytes, source: 'page' },
+          expiresAt: Date.now() + LIVE_PDF_CACHE_TTL_MS,
         })
       }
 
