@@ -143,6 +143,7 @@ export function extractTmpFilesDirectUrl(
   options: { pageBaseUrl?: string } = {}
 ): SocialAsset {
   const pageBaseUrl = options.pageBaseUrl ?? TMPFILES_PAGE_BASE_URL;
+  const expectedOrigin = new URL(pageBaseUrl).origin;
 
   let pageUrl: URL;
   try {
@@ -154,9 +155,9 @@ export function extractTmpFilesDirectUrl(
     );
   }
 
-  if (pageUrl.protocol !== 'https:' && pageUrl.protocol !== 'http:') {
+  if (pageUrl.protocol !== 'https:' || pageUrl.origin !== expectedOrigin) {
     throw new MediaHostError(
-      `tmpfiles returned a non-HTTP page URL: ${rawPageUrl}`,
+      `tmpfiles returned a page URL outside the configured provider origin: ${rawPageUrl}`,
       { code: 'upload_url' }
     );
   }
@@ -196,7 +197,7 @@ export function extractTmpFilesDirectUrl(
       continue;
     }
 
-    if (url.hostname !== pageUrl.hostname) {
+    if (url.origin !== expectedOrigin) {
       continue;
     }
 
@@ -249,6 +250,29 @@ function readUploadPageUrl(payload: unknown): string {
   }
 
   return url.trim();
+}
+
+function assertAllowedTmpFilesPageUrl(rawPageUrl: string, pageBaseUrl: string): string {
+  let url: URL;
+  let base: URL;
+  try {
+    url = new URL(rawPageUrl.trim());
+    base = new URL(pageBaseUrl);
+  } catch (cause) {
+    throw new MediaHostError(`tmpfiles returned an invalid page URL: ${rawPageUrl}`, {
+      code: 'upload_url',
+      cause,
+    });
+  }
+
+  if (url.protocol !== 'https:' || url.origin !== base.origin) {
+    throw new MediaHostError(
+      `tmpfiles returned a page URL outside the configured provider origin: ${rawPageUrl}`,
+      { code: 'upload_url' }
+    );
+  }
+
+  return url.toString();
 }
 
 function hasJpegMagic(bytes: Uint8Array): boolean {
@@ -324,11 +348,12 @@ export class TmpFilesMediaHost implements MediaHost {
    * imprescindible: el `data.url` de la API es la pagina, no el JPEG.
    */
   private async resolvePageAsset(pageUrl: string): Promise<SocialAsset> {
+    const allowedPageUrl = assertAllowedTmpFilesPageUrl(pageUrl, this.pageBaseUrl);
     let response: Response;
     try {
-      response = await this.fetchImpl(pageUrl, {
+      response = await this.fetchImpl(allowedPageUrl, {
         method: 'GET',
-        redirect: 'follow',
+        redirect: 'manual',
         headers: {
           Accept: 'text/html',
           'User-Agent': TMPFILES_USER_AGENT,
@@ -338,14 +363,21 @@ export class TmpFilesMediaHost implements MediaHost {
     } catch (cause) {
       if (isTimeoutError(cause)) {
         throw new MediaHostError(
-          `tmpfiles page timed out: ${pageUrl}`,
+          `tmpfiles page timed out: ${allowedPageUrl}`,
           { code: 'upload_page_timeout', cause }
         );
       }
 
       throw new MediaHostError(
-        `tmpfiles page request failed: ${pageUrl}`,
+        `tmpfiles page request failed: ${allowedPageUrl}`,
         { code: 'upload_page_network', cause }
+      );
+    }
+
+    if (response.status >= 300 && response.status < 400) {
+      throw new MediaHostError(
+        `tmpfiles page redirected unexpectedly: ${allowedPageUrl}`,
+        { code: 'upload_page_redirect', status: response.status }
       );
     }
 
@@ -387,11 +419,12 @@ export class TmpFilesMediaHost implements MediaHost {
   }
 
   private async preflight(asset: SocialAsset): Promise<SocialAsset> {
+    const allowedDirectUrl = assertAllowedTmpFilesPageUrl(asset.directUrl, this.pageBaseUrl);
     let response: Response;
     try {
-      response = await this.fetchImpl(asset.directUrl, {
+      response = await this.fetchImpl(allowedDirectUrl, {
         method: 'GET',
-        redirect: 'follow',
+        redirect: 'manual',
         headers: {
           Accept: 'image/jpeg',
           'User-Agent': TMPFILES_USER_AGENT,
@@ -401,14 +434,21 @@ export class TmpFilesMediaHost implements MediaHost {
     } catch (cause) {
       if (isTimeoutError(cause)) {
         throw new MediaHostError(
-          `tmpfiles preflight timed out: ${asset.directUrl}`,
+          `tmpfiles preflight timed out: ${allowedDirectUrl}`,
           { code: 'preflight_timeout', cause }
         );
       }
 
       throw new MediaHostError(
-        `tmpfiles preflight request failed: ${asset.directUrl}`,
+        `tmpfiles preflight request failed: ${allowedDirectUrl}`,
         { code: 'preflight_network', cause }
+      );
+    }
+
+    if (response.status >= 300 && response.status < 400) {
+      throw new MediaHostError(
+        `tmpfiles preflight redirected unexpectedly: ${allowedDirectUrl}`,
+        { code: 'preflight_redirect', status: response.status }
       );
     }
 
@@ -488,7 +528,7 @@ export class TmpFilesMediaHost implements MediaHost {
       );
     }
 
-    const pageUrl = readUploadPageUrl(payload);
+    const pageUrl = assertAllowedTmpFilesPageUrl(readUploadPageUrl(payload), this.pageBaseUrl);
     const asset = await this.resolvePageAsset(pageUrl);
 
     return this.preflight(asset);

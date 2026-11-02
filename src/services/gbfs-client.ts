@@ -6,6 +6,7 @@
  */
 
 import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { withRetry, HttpError } from '@/lib/retry';
 import { logger } from '@/lib/logger';
 import type {
@@ -39,18 +40,6 @@ const USER_AGENT = 'BiziDashboard/1.0';
 
 // ─── SSRF protection ────────────────────────────────────────────────────────
 
-const PRIVATE_IP_PATTERNS = [
-  /^10\./,
-  /^172\.(1[6-9]|2[0-9]|3[01])\./,
-  /^192\.168\./,
-  /^127\./,
-  /^0\./,
-  /^::1/,
-  /^fc/i,
-  /^fd/i,
-  /^169\.254\./,
-];
-
 const BLOCKED_HOSTNAMES = new Set([
   'localhost',
   '0.0.0.0',
@@ -64,23 +53,47 @@ function stripIpv6Brackets(hostname: string): string {
     : hostname;
 }
 
-function isBlockedIpLiteral(host: string): boolean {
-  const ip = stripIpv6Brackets(host);
+function isBlockedIpv4(ip: string): boolean {
+  const parts = ip.split('.').map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return true;
+  }
+  const [a, b] = parts;
 
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(ip)) {
-    return PRIVATE_IP_PATTERNS.some(re => re.test(ip));
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 0 && parts[2] === 0) ||
+    (a === 192 && b === 0 && parts[2] === 2) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && parts[2] === 100) ||
+    (a === 203 && b === 0 && parts[2] === 113) ||
+    a >= 224
+  );
+}
+
+function isBlockedIpLiteral(host: string): boolean {
+  const ip = stripIpv6Brackets(host).toLowerCase();
+
+  if (isIP(ip) === 4) {
+    return isBlockedIpv4(ip);
   }
 
-  // IPv6 literal (contiene ':' pero no es nombre DNS)
-  if (ip.includes(':')) {
-    const lower = ip.toLowerCase();
+  if (isIP(ip) === 6) {
     return (
-      lower === '::1' ||
-      lower === '::' ||
-      lower.startsWith('fc') ||
-      lower.startsWith('fd') ||
-      lower.startsWith('fe80') ||
-      lower.startsWith('::ffff:')
+      ip === '::1' ||
+      ip === '::' ||
+      /^f[cd]/.test(ip) ||
+      /^fe[89ab]/.test(ip) ||
+      ip.startsWith('ff') ||
+      ip.startsWith('64:ff9b:') ||
+      ip.startsWith('2002:') ||
+      ip.startsWith('::ffff:')
     );
   }
 

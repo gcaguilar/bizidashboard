@@ -15,6 +15,19 @@ describe('isBlockedUrl', () => {
     expect(isBlockedUrl('http://[fe80::1]/x.json')).toBe(true);
   });
 
+  it('blocks CGNAT, reserved, multicast, and IPv6 transition ranges', () => {
+    expect(isBlockedUrl('http://100.64.0.1/x.json')).toBe(true);
+    expect(isBlockedUrl('http://100.100.100.200/x.json')).toBe(true);
+    expect(isBlockedUrl('http://192.0.0.1/x.json')).toBe(true);
+    expect(isBlockedUrl('http://198.18.0.1/x.json')).toBe(true);
+    expect(isBlockedUrl('http://224.0.0.1/x.json')).toBe(true);
+    expect(isBlockedUrl('http://255.255.255.255/x.json')).toBe(true);
+    expect(isBlockedUrl('http://[ff02::1]/x.json')).toBe(true);
+    expect(isBlockedUrl('http://[fe90::1]/x.json')).toBe(true);
+    expect(isBlockedUrl('http://[64:ff9b::7f00:1]/x.json')).toBe(true);
+    expect(isBlockedUrl('http://[2002:7f00:1::]/x.json')).toBe(true);
+  });
+
   it('blocks localhost and non-http schemes', () => {
     expect(isBlockedUrl('http://localhost:3000/x.json')).toBe(true);
     expect(isBlockedUrl('file:///etc/passwd')).toBe(true);

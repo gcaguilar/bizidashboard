@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { searchLocations } from '@/lib/geo/nominatim'
+import { searchLocations, NominatimQueueFullError } from '@/lib/geo/nominatim'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
@@ -70,8 +70,11 @@ export const Route = createFileRoute('/api/geo/search/')({
           }
 
           const results = await searchLocations(parsed.data.query, parsed.data.limit ?? 10)
-          return new Response(JSON.stringify({ results }), { status: 200, headers: { 'Content-Type': 'application/json', ...headers, 'Cache-Control': 'public, max-age=3600, s-maxage=2592000' } })
+          return new Response(JSON.stringify({ results }), { status: 200, headers: { 'Content-Type': 'application/json', ...headers, 'Cache-Control': 'private, no-store' } })
         } catch (error) {
+          if (error instanceof NominatimQueueFullError) {
+            return applyMobileCors(request, new Response(JSON.stringify({ error: 'Geocoding temporarily unavailable' }), { status: 503, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }))
+          }
           captureExceptionWithContext(error, { area: 'api.geo-search', operation: 'POST /api/geo/search' })
           logger.error('api.geo_search.failed', { error })
           return applyMobileCors(

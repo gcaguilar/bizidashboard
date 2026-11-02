@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { reverseGeocode } from '@/lib/geo/nominatim'
+import { reverseGeocode, NominatimQueueFullError } from '@/lib/geo/nominatim'
 import { logger } from '@/lib/logger'
 import { captureExceptionWithContext } from '@/lib/sentry-reporting'
 import { recordSecurityEvent } from '@/lib/security/audit'
@@ -70,8 +70,11 @@ export const Route = createFileRoute('/api/geo/reverse/')({
           }
 
           const result = await reverseGeocode(parsed.data.lat, parsed.data.lon)
-          return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json', ...headers, 'Cache-Control': 'public, max-age=3600, s-maxage=2592000' } })
+          return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json', ...headers, 'Cache-Control': 'private, no-store' } })
         } catch (error) {
+          if (error instanceof NominatimQueueFullError) {
+            return applyMobileCors(request, new Response(JSON.stringify({ error: 'Geocoding temporarily unavailable' }), { status: 503, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }))
+          }
           captureExceptionWithContext(error, { area: 'api.geo-reverse', operation: 'POST /api/geo/reverse' })
           logger.error('api.geo_reverse.failed', { error })
           return applyMobileCors(

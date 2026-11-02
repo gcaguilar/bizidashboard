@@ -145,13 +145,13 @@ describe('TmpFilesMediaHost upload', () => {
     const pageCall = fetch.mock.calls[1]!;
     expect(pageCall[0]).toBe(`${PAGE_URL}?download=1`);
     expect(pageCall[1]?.method).toBe('GET');
-    expect(pageCall[1]?.redirect).toBe('follow');
+    expect(pageCall[1]?.redirect).toBe('manual');
     expect(new Headers(pageCall[1]?.headers).get('accept')).toBe('text/html');
 
     const preflightCall = fetch.mock.calls[2]!;
     expect(preflightCall[0]).toBe(DIRECT_URL);
     expect(preflightCall[1]?.method).toBe('GET');
-    expect(preflightCall[1]?.redirect).toBe('follow');
+    expect(preflightCall[1]?.redirect).toBe('manual');
     expect(new Headers(preflightCall[1]?.headers).get('accept')).toBe(
       'image/jpeg'
     );

@@ -20,7 +20,16 @@ const NOMINATIM_MIN_INTERVAL_MS = Math.max(
 
 let nextNominatimRequestAt = 0;
 let nominatimQueue: Promise<void> = Promise.resolve();
+let nominatimQueueDepth = 0;
+const MAX_NOMINATIM_QUEUE = 100;
 let hasWarnedWeakIdentity = false;
+
+export class NominatimQueueFullError extends Error {
+  constructor() {
+    super('The shared Nominatim queue is full.');
+    this.name = 'NominatimQueueFullError';
+  }
+}
 
 export type GeoSearchResult = {
   id: string;
@@ -58,6 +67,11 @@ function parseInteger(rawValue: string | undefined, fallback: number): number {
 }
 
 async function withNominatimRateLimit<T>(task: () => Promise<T>): Promise<T> {
+  if (nominatimQueueDepth >= MAX_NOMINATIM_QUEUE) {
+    throw new NominatimQueueFullError();
+  }
+
+  nominatimQueueDepth += 1;
   const queuedTask = nominatimQueue.catch(() => undefined).then(async () => {
     const waitMs = Math.max(0, nextNominatimRequestAt - Date.now());
     if (waitMs > 0) {
@@ -66,6 +80,8 @@ async function withNominatimRateLimit<T>(task: () => Promise<T>): Promise<T> {
 
     nextNominatimRequestAt = Date.now() + NOMINATIM_MIN_INTERVAL_MS;
     return task();
+  }).finally(() => {
+    nominatimQueueDepth = Math.max(0, nominatimQueueDepth - 1);
   });
 
   nominatimQueue = queuedTask.then(
@@ -255,7 +271,11 @@ export async function reverseGeocode(
   lon: number,
   locale = 'es'
 ): Promise<GeoReverseResult> {
-  const cacheKey = `geo:reverse:${lat.toFixed(4)}:${lon.toFixed(4)}:${locale}`;
+  // Normalize to the ~11 m cache cell. Returning the first caller's raw
+  // coordinates to later callers in the same cell would leak their location.
+  const cellLat = Number(lat.toFixed(4));
+  const cellLon = Number(lon.toFixed(4));
+  const cacheKey = `geo:reverse:${cellLat}:${cellLon}:${locale}`;
   
   const cached = await getCachedJson<GeoReverseResult>(cacheKey);
   if (cached) {
@@ -290,8 +310,8 @@ export async function reverseGeocode(
       address: data.display_name,
       city,
       district,
-      lat,
-      lon,
+      lat: cellLat,
+      lon: cellLon,
     };
 
     await setCachedJson(cacheKey, result, CACHE_TTL_SECONDS);
