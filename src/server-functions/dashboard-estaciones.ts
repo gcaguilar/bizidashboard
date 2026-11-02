@@ -1,8 +1,11 @@
+import { notFound } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { inputValidator } from '@/server-functions/input-validator';
 
-const StationIdSchema = z.string().trim().min(1).max(64);
+// Missing ids reach the handler so the page-data endpoint answers 404 (not a
+// 500) when a client calls it without the required parameter.
+const StationIdSchema = z.string().trim().max(64).optional();
 
 export const getStationsDirectoryPageData = createServerFn({ method: 'GET' }).handler(async () => {
   const [{ fetchStations }, { buildFallbackStations }] = await Promise.all([
@@ -19,6 +22,9 @@ export const getStationsDirectoryPageData = createServerFn({ method: 'GET' }).ha
 export const getStationDetailPageData = createServerFn({ method: 'GET' })
   .validator(inputValidator(StationIdSchema))
   .handler(async ({ data: stationId }) => {
+    if (!stationId) {
+      throw notFound();
+    }
     const [{ fetchAlerts, fetchHeatmap, fetchPatterns, fetchRankings, fetchStations }, { buildFallbackStations }] = await Promise.all([
       import('@/lib/api'),
       import('@/lib/shared-data-fallbacks'),
