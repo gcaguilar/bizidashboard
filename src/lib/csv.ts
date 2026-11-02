@@ -6,7 +6,7 @@ export type CsvRow = (string | number | boolean | null | undefined)[];
  * Excel/Sheets lo trate como texto literal.
  */
 export function neutralizeCsvFormula(text: string): string {
-  return /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return /^[=+\-@\t\r\n]/.test(text) ? `'${text}` : text;
 }
 
 export function escapeCsvCell(value: unknown): string {

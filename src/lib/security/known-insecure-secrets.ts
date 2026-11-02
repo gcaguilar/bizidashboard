@@ -6,9 +6,15 @@
  * this list, so anything a dev default could realistically match belongs
  * here rather than duplicated inline in each check.
  */
-export const KNOWN_INSECURE_SECRET_VALUES = ['dev-secret-do-not-use-in-production'];
+export const KNOWN_INSECURE_SECRET_VALUES = [
+  'dev-secret-do-not-use-in-production',
+  'test-jwt-secret-change-in-production',
+  'test-signature-secret-change-in-production',
+  'dev-jwt-secret-minimum-32-chars-long',
+  'dev-signature-secret-minimum-32',
+];
 
-export const KNOWN_INSECURE_SECRET_SUBSTRINGS = ['change-me', 'changeme', 'example', 'placeholder'];
+export const KNOWN_INSECURE_SECRET_SUBSTRINGS = ['change-me', 'changeme', 'change-in-production', 'test-jwt', 'test-signature', 'example', 'placeholder'];
 
 export function isKnownInsecureSecret(value: string): boolean {
   const normalized = value.trim().toLowerCase();

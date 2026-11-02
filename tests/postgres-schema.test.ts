@@ -16,6 +16,7 @@ describe('postgres schema helpers', () => {
     expect(() => normalizeDatabaseSchemaName('barcelona-sp')).toThrow(/Invalid CITY value/)
     expect(() => normalizeDatabaseSchemaName('bad schema')).toThrow(/Invalid CITY value/)
     expect(() => normalizeDatabaseSchemaName('"oops"')).toThrow(/Invalid CITY value/)
+    expect(() => normalizeDatabaseSchemaName('a'.repeat(64))).toThrow(/63 bytes/)
   })
 
   it('quotes valid identifiers safely', () => {

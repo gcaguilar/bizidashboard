@@ -25,6 +25,7 @@ describe('csv', () => {
       expect(escapeCsvCell('+cmd')).toBe(`"'+cmd"`);
       expect(escapeCsvCell('-foo')).toBe(`"'-foo"`);
       expect(escapeCsvCell('@bar')).toBe(`"'@bar"`);
+      expect(escapeCsvCell('\n=1+1')).toBe(`"'\n=1+1"`);
       expect(escapeCsvCell('=HYPERLINK("http://evil")')).toBe(`"'=HYPERLINK(""http://evil"")"`);
     });
 

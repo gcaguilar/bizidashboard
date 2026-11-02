@@ -1,6 +1,7 @@
 import { DEFAULT_CITY } from './constants'
 
 const PG_IDENTIFIER_PATTERN = /^[a-z][a-z0-9_]*$/
+const PG_IDENTIFIER_MAX_BYTES = 63
 
 export function normalizeDatabaseSchemaName(rawValue?: string): string {
   const schema = (rawValue || DEFAULT_CITY).trim().toLowerCase()
@@ -8,6 +9,12 @@ export function normalizeDatabaseSchemaName(rawValue?: string): string {
   if (!PG_IDENTIFIER_PATTERN.test(schema)) {
     throw new Error(
       `Invalid CITY value "${rawValue}". Expected a lowercase PostgreSQL identifier matching ${PG_IDENTIFIER_PATTERN.source}.`
+    )
+  }
+
+  if (Buffer.byteLength(schema, 'utf8') > PG_IDENTIFIER_MAX_BYTES) {
+    throw new Error(
+      `Invalid CITY value "${rawValue}". PostgreSQL identifiers are limited to ${PG_IDENTIFIER_MAX_BYTES} bytes.`
     )
   }
 
