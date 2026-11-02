@@ -5,7 +5,7 @@ import { inputValidator } from '@/server-functions/input-validator'
 
 // Missing ids reach the handler so the page-data endpoint answers 404 (not a
 // 500) when a client calls it without the required parameter.
-const IdInputSchema = z.string().trim().optional()
+const IdInputSchema = z.string().trim().max(64).optional()
 
 export const getPublicStationPageData = createServerFn({ method: 'GET' })
   .validator(inputValidator(IdInputSchema))

@@ -326,17 +326,20 @@ export const getStationSeoRowById = cache(
 
 export const getStationSeoPageData = cache(
   async (stationId: string): Promise<StationSeoPageData | null> => {
-    const [rows, patterns, heatmap, predictions] = await Promise.all([
-      getStationSeoRows(),
+    const rows = await getStationSeoRows();
+    const summary = rows.find((row) => row.station.id === stationId) ?? null;
+
+    // Resolve existence before any per-ID cache or database work. Unknown IDs
+    // must not create patterns/heatmap entries or run predictions.
+    if (!summary) {
+      return null;
+    }
+
+    const [patterns, heatmap, predictions] = await Promise.all([
       fetchPatterns(stationId).catch(() => []),
       fetchHeatmap(stationId).catch(() => []),
       getStationPredictions(stationId).catch(() => null),
     ]);
-    const summary = rows.find((row) => row.station.id === stationId) ?? null;
-
-    if (!summary) {
-      return null;
-    }
 
     const relatedStations = rows
       .filter(

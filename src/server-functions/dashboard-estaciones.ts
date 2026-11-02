@@ -32,6 +32,18 @@ export const getStationDetailPageData = createServerFn({ method: 'GET' })
     const nowIso = new Date().toISOString();
     const stations = await fetchStations().catch(() => buildFallbackStations(nowIso));
     const station = stations.stations.find((row) => row.id === stationId) ?? null;
+
+    if (!station) {
+      return {
+        station: null,
+        stations: stations.stations,
+        rankings: { turnover: [], availability: [] },
+        alerts: [],
+        patterns: [],
+        heatmap: [],
+      };
+    }
+
     const [turnover, availability, alerts, patterns, heatmap] = await Promise.all([
       fetchRankings('turnover', 20),
       fetchRankings('availability', 20),
