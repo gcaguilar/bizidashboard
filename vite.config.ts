@@ -102,6 +102,12 @@ export default defineConfig(async ({ command, mode }): Promise<import('vite').Us
         '.prisma/client': path.resolve(__dirname, 'src/generated/prisma/client.ts'),
       },
     },
+    optimizeDeps: {
+      // Native addon (`.node` binary): Vite's dependency optimizer cannot parse
+      // it and crashes dev with UNLOADABLE_DEPENDENCY. Keep it out of prebundling;
+      // SSR loads it from node_modules at runtime.
+      exclude: ['@resvg/resvg-js'],
+    },
     build: {
       sourcemap: 'hidden',
       rollupOptions: {
