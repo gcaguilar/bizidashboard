@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { LOCALES } from '@/lib/i18n/locales'
+import { DEFAULT_LOCALE, LOCALES } from '@/lib/i18n/locales'
 import type { Locale } from '@/lib/i18n/locales'
 import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis'
 import type { buildNetworkBriefing } from '@/lib/network-briefing'
@@ -24,7 +24,9 @@ export type HomePageData = {
   districts: DistrictOption[]
 }
 
-const HomePageInputSchema = z.object({ locale: z.enum(LOCALES) })
+const HomePageInputSchema = z
+  .object({ locale: z.enum(LOCALES).default(DEFAULT_LOCALE) })
+  .prefault({})
 
 export const getHomePageData = createServerFn({ method: 'GET' })
   .validator(HomePageInputSchema)

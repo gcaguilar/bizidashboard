@@ -130,7 +130,9 @@ export function buildMethodologyContent(
   return { breadcrumbs: localizedBreadcrumbs, faqItems, structuredData };
 }
 
-const MethodologyInputSchema = z.object({ locale: z.enum(LOCALES) });
+const MethodologyInputSchema = z
+  .object({ locale: z.enum(LOCALES).default(DEFAULT_LOCALE) })
+  .prefault({});
 
 export const getMethodologyPageData = createServerFn({ method: 'GET' })
   .validator(MethodologyInputSchema)

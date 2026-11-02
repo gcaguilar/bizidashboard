@@ -11,7 +11,7 @@ import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 
 const ExploreSearchParamsSchema = z.object({
   q: z.string().trim().max(200).optional(),
-});
+}).default({});
 
 export const getExploreLoaderData = createServerFn({ method: 'GET' })
   .validator(ExploreSearchParamsSchema)

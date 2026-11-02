@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { searchGlobalContent } from '@/lib/global-search';
 
 const GlobalSearchInputSchema = z.object({
-  q: z.string().trim().max(200),
-});
+  q: z.string().trim().max(200).default(''),
+}).prefault({});
 
 export type HeaderSearchResult = {
   id: string;

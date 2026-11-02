@@ -1,10 +1,14 @@
+import { notFound } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { getSeoLandingPageData } from '@/lib/seo-landing.server';
 import { withStaleCache } from '@/lib/cache/cache';
 import { isSeoPageSlug } from '@/lib/seo-pages';
 
-const SeoLandingInputSchema = z.object({ slug: z.string() });
+// A GET server function can be reached without a payload (stale clients,
+// direct requests). Default the whole input so a missing body is a 404 below
+// instead of a validator crash reported to Sentry.
+const SeoLandingInputSchema = z.object({ slug: z.string().optional() }).default({});
 
 /**
  * La landing ya no lee el informe completo (ver `loadAvailabilitySummary`),
@@ -18,12 +22,13 @@ const REDISTRIBUCION_SEO_HARD_TTL_SECONDS = 6 * 60 * 60;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
   .validator(SeoLandingInputSchema)
-  .handler(async ({ data: { slug } }: { data: { slug: string } }) => {
+  .handler(async ({ data: input }: { data: { slug?: string } }) => {
+    const slug = input.slug;
+    if (!slug) {
+      throw notFound();
+    }
     if (!isSeoPageSlug(slug)) {
       throw new Error(`Invalid SEO page slug: ${slug}`);
-    }
-    if (!slug) {
-      throw new Error('Missing slug in input');
     }
     const data =
       slug === 'redistribucion'
