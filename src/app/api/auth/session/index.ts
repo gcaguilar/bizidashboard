@@ -5,7 +5,7 @@ import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/de
 function json(body: { email: string | null; configured: boolean }): Response {
   return new Response(JSON.stringify(body), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Cookie' },
   })
 }
 

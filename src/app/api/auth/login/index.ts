@@ -2,16 +2,14 @@ import { randomBytes } from 'node:crypto'
 import { createFileRoute } from '@tanstack/react-router'
 import { setCookie } from '@tanstack/react-start/server'
 import { getApiAudience, getClientId, getDomain, isDeveloperLoginConfigured } from '@/lib/auth/auth0-web'
+import { signOAuthState } from '@/lib/auth/oauth-state'
+import { isSafeReturnTo } from '@/lib/auth/return-to'
 import { getRequestSiteUrl } from '@/lib/site'
 
 const STATE_COOKIE = 'bizi_auth0_state'
 const RETURN_TO_COOKIE = 'bizi_auth0_return_to'
 const NONCE_COOKIE = 'bizi_auth0_nonce'
 const STATE_COOKIE_MAX_AGE_SECONDS = 600
-
-function isSafeReturnTo(value: string | null): value is string {
-  return !!value && value.startsWith('/') && !value.startsWith('//')
-}
 
 export const Route = createFileRoute('/api/auth/login/')({
   server: {
@@ -35,8 +33,17 @@ export const Route = createFileRoute('/api/auth/login/')({
         const returnTo = isSafeReturnTo(requestedReturnTo) ? requestedReturnTo : '/developers'
         const state = randomBytes(24).toString('base64url')
         const nonce = randomBytes(24).toString('base64url')
+        let signedState: string
+        try {
+          signedState = signOAuthState(state)
+        } catch {
+          return new Response(JSON.stringify({ error: 'Developer login is not configured.' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
 
-        setCookie(STATE_COOKIE, state, {
+        setCookie(STATE_COOKIE, signedState, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
@@ -64,7 +71,7 @@ export const Route = createFileRoute('/api/auth/login/')({
         authorizeUrl.searchParams.set('audience', audience)
         authorizeUrl.searchParams.set('redirect_uri', `${requestSiteUrl}/api/auth/callback`)
         authorizeUrl.searchParams.set('scope', 'openid email profile read:dashboard')
-        authorizeUrl.searchParams.set('state', state)
+        authorizeUrl.searchParams.set('state', signedState)
         authorizeUrl.searchParams.set('nonce', nonce)
 
         return new Response(null, {

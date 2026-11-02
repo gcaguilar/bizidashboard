@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { globalAccountRepository } from '@/lib/accounts/global-account-repository'
 import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
 import { rejectCrossOriginRequest } from '@/lib/security/http'
 
@@ -15,6 +16,19 @@ export const Route = createFileRoute('/api/auth/access-token/')({
 
         const session = await getDeveloperSession()
         if (!session?.accessToken || !session.accessTokenExpiresAt) {
+          return Response.json({ error: 'Login required.' }, { status: 401 })
+        }
+
+        // A locally revoked account must not be able to export its still-valid
+        // Auth0 token. Re-check the active account on every credential export.
+        try {
+          const account = await globalAccountRepository.resolveActiveAccountByAuth0Subject(
+            session.auth0Subject
+          )
+          if (!account) {
+            return Response.json({ error: 'Login required.' }, { status: 401 })
+          }
+        } catch {
           return Response.json({ error: 'Login required.' }, { status: 401 })
         }
 
