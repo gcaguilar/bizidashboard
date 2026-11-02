@@ -10,7 +10,7 @@ export const Route = createFileRoute('/api/predictions/')({
           route: '/api/predictions',
           routeGroup: 'api.predictions',
           namespace: 'public-predictions',
-          limit: 30,
+          limit: 15,
           windowMs: 60_000,
           requireApiKey: false,
           cacheControl: 'public, max-age=60, stale-while-revalidate=60',

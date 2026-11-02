@@ -33,7 +33,13 @@ function stampPeerIp(request, server) {
   } catch {
     // Sin peer disponible: la app aplica el fallback de mejor esfuerzo.
   }
-  return request;
+
+  // Never let a client keep a forged peer stamp when the server cannot
+  // attest the connection. getClientIp will then use the direct peer or
+  // 'unknown' instead of trusting a caller-supplied value.
+  const headers = new Headers(request.headers);
+  headers.delete('x-server-peer-ip');
+  return new Request(request, { headers });
 }
 
 function addSecurityHeaders(response) {

@@ -11,7 +11,7 @@ export type RateLimitDecision = {
   remaining: number;
   resetAt: number;
   retryAfterSeconds: number;
-  backend: 'redis' | 'bypass' | 'unavailable';
+  backend: 'redis' | 'bypass' | 'unavailable' | 'local';
 };
 
 type ConsumeRateLimitOptions = {
@@ -66,11 +66,52 @@ export function getRateLimitHeaders(decision: RateLimitDecision): Record<string,
   };
 }
 
+type LocalBucket = { count: number; resetAt: number };
+const localBuckets = new Map<string, LocalBucket>();
+const LOCAL_BUCKET_MAX_ENTRIES = 10_000;
+
+function consumeLocalRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+  now: number
+): RateLimitDecision {
+  if (localBuckets.size >= LOCAL_BUCKET_MAX_ENTRIES) {
+    for (const [entryKey, bucket] of localBuckets) {
+      if (bucket.resetAt <= now) localBuckets.delete(entryKey);
+    }
+    if (localBuckets.size >= LOCAL_BUCKET_MAX_ENTRIES) localBuckets.clear();
+  }
+
+  const existing = localBuckets.get(key);
+  const bucket = existing && existing.resetAt > now
+    ? existing
+    : { count: 0, resetAt: now + windowMs };
+  bucket.count += 1;
+  localBuckets.set(key, bucket);
+
+  const allowed = bucket.count <= limit;
+  return {
+    allowed,
+    limit,
+    remaining: Math.max(0, limit - bucket.count),
+    resetAt: bucket.resetAt,
+    retryAfterSeconds: allowed ? 0 : Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)),
+    backend: 'local',
+  };
+}
+
 export async function consumeRateLimit(
   options: ConsumeRateLimitOptions
 ): Promise<RateLimitDecision> {
   const now = Date.now();
   const resetAt = now + options.windowMs;
+  const key = [
+    'ratelimit',
+    getCity(),
+    normalizeKeyPart(options.namespace),
+    ...options.identifierParts.map((part) => normalizeIdentifierPart(part)),
+  ].join(':');
   const client = await getRedisClient();
 
   if (!client) {
@@ -91,31 +132,18 @@ export async function consumeRateLimit(
 
     logger.warn('rate_limit.redis_unavailable', {
       namespace: options.namespace,
+      fallback: 'process-local',
     });
 
-    captureWarningWithContext('Rate limiting is failing open: Redis is unavailable', {
+    captureWarningWithContext('Redis is unavailable: using the process-local rate-limit fallback', {
       area: 'security.rate-limit',
       operation: 'consumeRateLimit',
       tags: { namespace: options.namespace },
       dedupeKey: 'rate_limit.redis_unavailable',
     });
 
-    return {
-      allowed: true,
-      limit: options.limit,
-      remaining: options.limit - 1,
-      resetAt,
-      retryAfterSeconds: 0,
-      backend: 'unavailable',
-    };
+    return consumeLocalRateLimit(key, options.limit, options.windowMs, now);
   }
-
-  const key = [
-    'ratelimit',
-    getCity(),
-    normalizeKeyPart(options.namespace),
-    ...options.identifierParts.map((part) => normalizeIdentifierPart(part)),
-  ].join(':');
 
   // INCR y PTTL en un solo viaje (MULTI): cada peticion publica pasa por aqui,
   // incluidas las servidas de cache o con 304. Solo la primera de la ventana
