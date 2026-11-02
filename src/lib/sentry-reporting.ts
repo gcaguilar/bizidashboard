@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/tanstackstart-react';
+import { isClientError } from '@/lib/http-error';
 import { getExecutionContext } from '@/lib/request-context';
 
 type CaptureContext = {
@@ -181,6 +182,11 @@ export function captureExceptionWithContext(
   error: unknown,
   context: CaptureContext
 ): string {
+  // A 4xx describes a bad request, not a failure this app should alert on.
+  if (isClientError(error)) {
+    return '';
+  }
+
   const exception = toError(error);
 
   return Sentry.withScope((scope) => {

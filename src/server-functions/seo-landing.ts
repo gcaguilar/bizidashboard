@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getSeoLandingPageData } from '@/lib/seo-landing.server';
 import { withStaleCache } from '@/lib/cache/cache';
 import { isSeoPageSlug } from '@/lib/seo-pages';
+import { inputValidator } from '@/server-functions/input-validator';
 
 // A GET server function can be reached without a payload (stale clients,
 // direct requests). Default the whole input so a missing body is a 404 below
@@ -21,7 +22,7 @@ const REDISTRIBUCION_SEO_SOFT_TTL_SECONDS = 300;
 const REDISTRIBUCION_SEO_HARD_TTL_SECONDS = 6 * 60 * 60;
 
 export const fetchSeoLandingData = createServerFn({ method: 'GET' })
-  .validator(SeoLandingInputSchema)
+  .validator(inputValidator(SeoLandingInputSchema))
   .handler(async ({ data: input }: { data: { slug?: string } }) => {
     const slug = input.slug;
     if (!slug) {

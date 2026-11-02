@@ -5,6 +5,7 @@ import type { Locale } from '@/lib/i18n/locales'
 import type { HomeDiagnosisSummary } from '@/lib/home-diagnosis'
 import type { buildNetworkBriefing } from '@/lib/network-briefing'
 import type { NetworkHealth } from '@/lib/network-health'
+import { inputValidator } from '@/server-functions/input-validator'
 import { loadHomePageData } from '@/server-functions/home.server'
 
 export type CriticalDistrictCount = { name: string; slug: string | null; criticalCount: number };
@@ -29,5 +30,5 @@ const HomePageInputSchema = z
   .prefault({})
 
 export const getHomePageData = createServerFn({ method: 'GET' })
-  .validator(HomePageInputSchema)
+  .validator(inputValidator(HomePageInputSchema))
   .handler(async ({ data }: { data: { locale: Locale } }) => loadHomePageData(data.locale))

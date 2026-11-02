@@ -7,6 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/manual-setup/
  */
 import * as Sentry from '@sentry/tanstackstart-react'
+import { isClientError } from '@/lib/http-error'
 import { parseSentrySampleRate, SENTRY_DATA_COLLECTION } from '@/lib/sentry-config'
 
 const dsn = process.env.SENTRY_DSN || process.env.VITE_SENTRY_DSN
@@ -32,7 +33,12 @@ Sentry.init({
   // are expected behavior, not server bugs.
   ignoreErrors: ['AbortError', 'The connection was closed'],
 
-  beforeSend(event) {
+  beforeSend(event, hint) {
+    // Malformed server-function payloads are client errors (400), not server
+    // failures: they carry no action for us and would drown real issues.
+    if (isClientError(hint?.originalException)) {
+      return null
+    }
     if (event.request?.cookies) {
       delete event.request.cookies
     }

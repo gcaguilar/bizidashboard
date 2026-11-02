@@ -7,11 +7,12 @@ import { isValidMonthKey } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { buildFallbackMonthlyReport } from '@/lib/shared-data-fallbacks';
+import { inputValidator } from '@/server-functions/input-validator';
 
 const MonthInputSchema = z.string().optional();
 
 export const getReportMonthPageData = createServerFn({ method: 'GET' })
-  .validator(MonthInputSchema)
+  .validator(inputValidator(MonthInputSchema))
   .handler(async ({ data: month }: { data: string | undefined }) => {
     if (!month || !isValidMonthKey(month)) {
       throw redirect({ to: appRoutes.reports() });

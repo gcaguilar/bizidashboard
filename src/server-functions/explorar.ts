@@ -8,13 +8,14 @@ import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { getCityName } from '@/lib/site';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
+import { inputValidator } from '@/server-functions/input-validator';
 
 const ExploreSearchParamsSchema = z.object({
   q: z.string().trim().max(200).optional(),
 }).default({});
 
 export const getExploreLoaderData = createServerFn({ method: 'GET' })
-  .validator(ExploreSearchParamsSchema)
+  .validator(inputValidator(ExploreSearchParamsSchema))
   .handler(async ({ data: { q } }) => {
 
   const nowIso = new Date().toISOString();

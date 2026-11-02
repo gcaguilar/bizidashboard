@@ -8,6 +8,7 @@ import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { toNumber } from '@/lib/format';
 import { fetchAvailableDataMonths } from '@/lib/api';
 import { getDailyMobilityConclusions, getMadridDateKey } from '@/lib/mobility-conclusions';
+import { inputValidator } from '@/server-functions/input-validator';
 
 function safeString(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -122,7 +123,7 @@ function buildFallbackPayload(): MobilityConclusionsPayload {
 }
 
 export const getDashboardConclusionsPageData = createServerFn({ method: 'GET' })
-  .validator(ConclusionsSearchParamsSchema)
+  .validator(inputValidator(ConclusionsSearchParamsSchema))
   .handler(async ({ data: searchParams }: { data: ConclusionsSearchParams | undefined }) => {
 
     const siteUrl = getSiteUrl();

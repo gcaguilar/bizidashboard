@@ -7,6 +7,7 @@
  * @see https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/manual-setup/
  */
 import * as Sentry from '@sentry/tanstackstart-react'
+import { isClientError } from '@/lib/http-error'
 import { parseSentrySampleRate, SENTRY_DATA_COLLECTION, SENTRY_TUNNEL_PATH } from '@/lib/sentry-config'
 
 // Inlined at build time by Vite. `vite.config.ts` aliases `SENTRY_DSN` into this
@@ -38,6 +39,14 @@ Sentry.init({
     'ResizeObserver loop completed with undelivered notifications',
   ],
   denyUrls: [/^chrome:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /extensions\//i],
+
+  beforeSend(event, hint) {
+    // 4xx responses are client errors, not actionable application failures.
+    if (isClientError(hint?.originalException)) {
+      return null
+    }
+    return event
+  },
 
   replaysOnErrorSampleRate: parseSentrySampleRate(
     import.meta.env.VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE,

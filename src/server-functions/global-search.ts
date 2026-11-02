@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { searchGlobalContent } from '@/lib/global-search';
+import { inputValidator } from '@/server-functions/input-validator';
 
 const GlobalSearchInputSchema = z.object({
   q: z.string().trim().max(200).default(''),
@@ -22,7 +23,7 @@ const MAX_RESULTS_PER_GROUP = 4;
  * `searchGlobalContent` y devuelve solo los campos que pinta el desplegable.
  */
 export const searchHeaderContent = createServerFn({ method: 'GET' })
-  .validator(GlobalSearchInputSchema)
+  .validator(inputValidator(GlobalSearchInputSchema))
   .handler(async ({ data: { q } }): Promise<HeaderSearchResult[]> => {
     if (q.length < 2) {
       return [];

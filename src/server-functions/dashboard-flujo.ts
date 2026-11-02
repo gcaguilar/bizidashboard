@@ -5,6 +5,7 @@ import { normalizeMonthSearchParam, resolveActiveMonth } from '@/lib/months';
 import { appRoutes } from '@/lib/routes';
 import { getSiteUrl, SITE_NAME } from '@/lib/site';
 import { fetchAvailableDataMonths, fetchStations } from '@/lib/api';
+import { inputValidator } from '@/server-functions/input-validator';
 
 const FlowSearchParamsSchema = z.object({
   month: z.union([z.string(), z.array(z.string())]).optional(),
@@ -13,7 +14,7 @@ const FlowSearchParamsSchema = z.object({
 type FlowSearchParams = z.infer<typeof FlowSearchParamsSchema>;
 
 export const getDashboardFlowPageData = createServerFn({ method: 'GET' })
-  .validator(FlowSearchParamsSchema)
+  .validator(inputValidator(FlowSearchParamsSchema))
   .handler(async ({ data: searchParams }: { data: FlowSearchParams | undefined }) => {
 
     const siteUrl = getSiteUrl();

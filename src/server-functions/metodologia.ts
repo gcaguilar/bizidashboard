@@ -9,6 +9,7 @@ import { appRoutes } from '@/lib/routes';
 import { getCityName, getSiteUrl, SEO_SITE_NAME } from '@/lib/site';
 import type { HistoryMetadata, SharedDatasetSnapshot } from '@/lib/api';
 import { fetchAvailableDataMonths, fetchHistoryMetadata, fetchSharedDatasetSnapshot, fetchStatus } from '@/lib/api';
+import { inputValidator } from '@/server-functions/input-validator';
 import { buildFallbackAvailableMonths } from '@/lib/shared-data-fallbacks';
 import {
   buildFallbackDatasetSnapshot,
@@ -135,7 +136,7 @@ const MethodologyInputSchema = z
   .prefault({});
 
 export const getMethodologyPageData = createServerFn({ method: 'GET' })
-  .validator(MethodologyInputSchema)
+  .validator(inputValidator(MethodologyInputSchema))
   .handler(async ({ data }) => {
     const nowIso = new Date().toISOString();
     const [historyMeta, dataset, status, monthsResponse] = await Promise.all([
