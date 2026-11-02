@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { getCity } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { updateExecutionContext } from '@/lib/request-context';
@@ -26,6 +27,35 @@ function normalizeKeyPart(value: string | number | null | undefined): string {
   }
 
   return String(value).replace(/[^a-zA-Z0-9:_-]/g, '_');
+}
+
+/**
+ * Collapse an IPv6 address to its /64 prefix so one host cannot multiply its
+ * rate-limit budget by rotating addresses inside a delegated prefix. IPv4 and
+ * non-IP identifiers are left as-is.
+ */
+function normalizeIdentifierPart(value: string | number | null | undefined): string {
+  if (typeof value === 'string') {
+    const candidate = value.trim();
+    if (isIP(candidate) === 6 && !candidate.includes('.')) {
+      const [head, tail] = candidate.split('::');
+      const headGroups = head ? head.split(':') : [];
+      const tailGroups = tail ? tail.split(':') : [];
+      const missing = 8 - headGroups.length - tailGroups.length;
+      if (missing >= 0) {
+        const groups = [
+          ...headGroups,
+          ...Array.from({ length: missing }, () => '0'),
+          ...tailGroups,
+        ]
+          .slice(0, 4)
+          .map((group) => group.padStart(4, '0'));
+        return `${groups.join(':')}::/64`;
+      }
+    }
+  }
+
+  return normalizeKeyPart(value);
 }
 
 export function getRateLimitHeaders(decision: RateLimitDecision): Record<string, string> {
@@ -84,7 +114,7 @@ export async function consumeRateLimit(
     'ratelimit',
     getCity(),
     normalizeKeyPart(options.namespace),
-    ...options.identifierParts.map((part) => normalizeKeyPart(part)),
+    ...options.identifierParts.map((part) => normalizeIdentifierPart(part)),
   ].join(':');
 
   // INCR y PTTL en un solo viaje (MULTI): cada peticion publica pasa por aqui,

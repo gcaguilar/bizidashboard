@@ -12,6 +12,7 @@ import { decryptTokenValue, encryptTokenValue } from '@/lib/auth/token-vault'
 const ACCESS_TOKEN_EXPIRY_SECONDS = 900
 const REFRESH_ROTATION_GRACE_MS = 10_000
 const REFRESH_RATE_LIMIT = { limit: 30, windowMs: 5 * 60 * 1000 }
+const MAX_REFRESH_BODY_BYTES = 64 * 1024
 
 const refreshRequestSchema = z.object({ refreshToken: z.string().trim().min(20).max(4096) })
 
@@ -28,20 +29,33 @@ export const Route = createFileRoute('/api/token/refresh/')({
           const originRejection = rejectDisallowedMobileOrigin(request)
           if (originRejection) return originRejection
 
+          const declaredLength = Number(request.headers.get('content-length') ?? '0')
+          if (Number.isFinite(declaredLength) && declaredLength > MAX_REFRESH_BODY_BYTES) {
+            return new Response(JSON.stringify({ error: 'Request body too large' }), {
+              status: 413,
+              headers: { 'Content-Type': 'application/json', ...buildMobileCorsHeaders(request) },
+            })
+          }
+
+          // Charge the per-IP budget before parsing the body so an over-limit
+          // caller cannot force a full JSON parse or a token-key write.
+          const ipDecision = await consumeRateLimit({ namespace: 'token-refresh:ip', identifierParts: [clientIp], limit: REFRESH_RATE_LIMIT.limit, windowMs: REFRESH_RATE_LIMIT.windowMs })
+          if (!ipDecision.allowed && ipDecision.backend !== 'unavailable') {
+            await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/token/refresh', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
+            return new Response(JSON.stringify({ error: 'Too many refresh attempts', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(ipDecision), 'Retry-After': String(ipDecision.retryAfterSeconds) } })
+          }
+
           const body = await request.json().catch(() => null)
           const parsed = refreshRequestSchema.safeParse(body)
           const tokenFingerprint = parsed.success ? hashToken(parsed.data.refreshToken) : 'invalid-body'
 
-          const [ipDecision, tokenDecision] = await Promise.all([
-            consumeRateLimit({ namespace: 'token-refresh:ip', identifierParts: [clientIp], limit: REFRESH_RATE_LIMIT.limit, windowMs: REFRESH_RATE_LIMIT.windowMs }),
-            consumeRateLimit({ namespace: 'token-refresh:token', identifierParts: [tokenFingerprint], limit: REFRESH_RATE_LIMIT.limit, windowMs: REFRESH_RATE_LIMIT.windowMs }),
-          ])
-          const rateLimitDecision = !ipDecision.allowed ? ipDecision : tokenDecision
-          const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision) }
+          const tokenDecision = await consumeRateLimit({ namespace: 'token-refresh:token', identifierParts: [tokenFingerprint], limit: REFRESH_RATE_LIMIT.limit, windowMs: REFRESH_RATE_LIMIT.windowMs })
+          const rateLimitDecision = !tokenDecision.allowed ? tokenDecision : ipDecision
+          const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision), 'Cache-Control': 'no-store' }
 
-          if (!rateLimitDecision.allowed) {
+          if (!tokenDecision.allowed && tokenDecision.backend !== 'unavailable') {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/token/refresh', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit' })
-            return new Response(JSON.stringify({ error: 'Too many refresh attempts', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(rateLimitDecision.retryAfterSeconds) } })
+            return new Response(JSON.stringify({ error: 'Too many refresh attempts', details: 'rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json', ...baseHeaders, 'Retry-After': String(tokenDecision.retryAfterSeconds) } })
           }
           if (!parsed.success) {
             return new Response(JSON.stringify({ error: 'Invalid request payload', details: parsed.error.issues[0]?.message ?? 'invalid payload' }), { status: 400, headers: { 'Content-Type': 'application/json', ...baseHeaders } })

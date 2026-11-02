@@ -53,6 +53,20 @@ describe('redis rate limit', () => {
     expect(decision.allowed).toBe(true);
   });
 
+  it('collapses IPv6 identifiers to a /64 bucket', async () => {
+    execMock.mockResolvedValue([1, -1]);
+
+    await consumeRateLimit({
+      ...OPTIONS,
+      identifierParts: ['2001:db8:1:2::1'],
+    });
+
+    expect(pExpireMock).toHaveBeenCalledWith(
+      'ratelimit:zaragoza:public-test:2001:0db8:0001:0002::/64',
+      60_000
+    );
+  });
+
   it('rejects past the limit with a retry-after from the remaining ttl', async () => {
     execMock.mockResolvedValue([3, 12_500]);
 

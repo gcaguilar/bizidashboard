@@ -143,6 +143,9 @@ function isClientAbort(error, request) {
 Bun.serve({
   hostname,
   port,
+  // Keep the global request body bounded. Individual JSON routes enforce a
+  // smaller pre-parse Content-Length cap; the Sentry tunnel needs more room.
+  maxRequestBodySize: 8 * 1024 * 1024,
   async fetch(request, server) {
     try {
       const stampedRequest = stampPeerIp(request, server);

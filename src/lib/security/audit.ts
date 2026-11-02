@@ -16,7 +16,36 @@ export type SecurityEventInput = {
   metadata?: Prisma.InputJsonValue | null;
 };
 
+// Bound denial-audit writes from anonymous or invalid requests. A single
+// caller can otherwise turn every rejected request into a Postgres INSERT.
+const DENIAL_AUDIT_WINDOW_MS = 60_000;
+const DENIAL_AUDIT_MAX_ENTRIES = 5_000;
+const recentDenialAudits = new Map<string, number>();
+
+function shouldPersistDenial(input: SecurityEventInput): boolean {
+  if (input.outcome !== 'denied') return true;
+
+  const key = [
+    input.eventType,
+    input.route,
+    input.reasonCode ?? '',
+    input.ip ?? '',
+    input.userAgent ?? '',
+    input.installId ?? '',
+  ].join('|');
+  const now = Date.now();
+  if (recentDenialAudits.size >= DENIAL_AUDIT_MAX_ENTRIES) {
+    recentDenialAudits.clear();
+  }
+  const until = recentDenialAudits.get(key);
+  if (until && until > now) return false;
+  recentDenialAudits.set(key, now + DENIAL_AUDIT_WINDOW_MS);
+  return true;
+}
+
 export async function recordSecurityEvent(input: SecurityEventInput): Promise<void> {
+  if (!shouldPersistDenial(input)) return;
+
   try {
     await prisma.securityEvent.create({
       data: {

@@ -1,4 +1,5 @@
 // Response removed;
+import { createHash } from 'node:crypto';
 import { recordSecurityEvent } from '@/lib/security/audit';
 import { getOpsApiKey } from '@/lib/security/config';
 import { getClientIp, isApiKeyValid, readOpsApiKey } from '@/lib/security/http';
@@ -18,6 +19,11 @@ export type OperationalAccessResult =
   | { ok: false; response: Response };
 
 const DEFAULT_OPS_RATE_LIMIT = { limit: 10, windowMs: 60_000 };
+
+/** Never put the shared ops secret itself into a Redis key name. */
+function fingerprintOpsKey(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
 
 function errorResponse(
   status: number,
@@ -42,26 +48,29 @@ export async function enforceOperationalAccess(
   }
 
   const providedKey = readOpsApiKey(options.request.headers) ?? '';
-  const [ipDecision, keyDecision] = await Promise.all([
-    consumeRateLimit({
-      namespace: `${options.namespace}:ip`,
-      identifierParts: [options.clientIp],
-      limit,
-      windowMs,
-    }),
-    consumeRateLimit({
-      namespace: `${options.namespace}:key`,
-      identifierParts: [providedKey || 'missing'],
-      limit,
-      windowMs,
-    }),
-  ]);
+  const ipDecision = await consumeRateLimit({
+    namespace: `${options.namespace}:ip`,
+    identifierParts: [options.clientIp],
+    limit,
+    windowMs,
+  });
 
-  const effectiveDecision = !ipDecision.allowed ? ipDecision : keyDecision;
+  if (!ipDecision.allowed && ipDecision.backend !== 'unavailable') {
+    const headers = getRateLimitHeaders(ipDecision);
+    return { ok: false, response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', { ...headers, 'Retry-After': String(ipDecision.retryAfterSeconds) }) };
+  }
+
+  const keyDecision = await consumeRateLimit({
+    namespace: `${options.namespace}:key`,
+    identifierParts: [fingerprintOpsKey(providedKey || 'missing')],
+    limit,
+    windowMs,
+  });
+  const effectiveDecision = !keyDecision.allowed ? keyDecision : ipDecision;
   const headers = getRateLimitHeaders(effectiveDecision);
 
-  if (!effectiveDecision.allowed && effectiveDecision.backend !== 'unavailable') {
-    return { ok: false, response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', { ...headers, 'Retry-After': String(effectiveDecision.retryAfterSeconds) }) };
+  if (!keyDecision.allowed && keyDecision.backend !== 'unavailable') {
+    return { ok: false, response: errorResponse(429, options.rateLimitError ?? 'Too many requests.', { ...headers, 'Retry-After': String(keyDecision.retryAfterSeconds) }) };
   }
 
   if (!isApiKeyValid(providedKey, expectedApiKey)) {

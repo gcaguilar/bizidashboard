@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createSentryTunnelRoute, registerSentryServerTunnelRoute } from '@sentry/tanstackstart-react'
 import { SENTRY_TUNNEL_PATH } from '@/lib/sentry-config'
+import { getClientIp } from '@/lib/security/http'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
 
 /**
  * Tunel de Sentry: el navegador envia los eventos a este mismo origen (los
@@ -19,7 +21,21 @@ if (import.meta.env.SSR) {
 export const Route = createFileRoute('/api/relay')({
   server: {
     handlers: {
-      POST: ({ request }) => createSentryTunnelRoute({}).handlers.POST({ request }),
+      POST: async ({ request }) => {
+        const decision = await consumeRateLimit({
+          namespace: 'sentry-relay:ip',
+          identifierParts: [getClientIp(request.headers)],
+          limit: 20,
+          windowMs: 60_000,
+        })
+        if (!decision.allowed && decision.backend !== 'unavailable') {
+          return new Response(JSON.stringify({ error: 'Too many telemetry events' }), {
+            status: 429,
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Retry-After': String(decision.retryAfterSeconds) },
+          })
+        }
+        return createSentryTunnelRoute({}).handlers.POST({ request })
+      },
       // Sin handler para un metodo, TanStack Start renderizaria la app por SSR.
       ANY: () => new Response(null, { status: 405, headers: { Allow: 'POST' } }),
     },
