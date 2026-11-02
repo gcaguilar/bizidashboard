@@ -61,6 +61,7 @@ type CityAccessRow = {
 
 export type GlobalAccountRepository = Readonly<{
   resolveActiveAccountByAuth0Subject(auth0Subject: string): Promise<GlobalAccount | null>
+  resolveActiveAccountByEmail(email: string): Promise<GlobalAccount | null>
   provisionVerifiedAccount(input: ProvisionVerifiedAccountInput): Promise<GlobalAccount>
   hasCityAccess(accountId: string, city: string): Promise<boolean>
   grantCityAccess(accountId: string, city: string): Promise<void>
@@ -123,6 +124,12 @@ async function findAccountByAuth0Subject(
   return rows[0] ?? null
 }
 
+function normalizeEmail(value: string): string {
+  const email = value.trim();
+  if (!email) throw new TypeError('email is required.');
+  return email;
+}
+
 /**
  * Creates a repository over the global `identity` schema. All identifiers are
  * fixed SQL literals; user-controlled values are always bound parameters.
@@ -133,6 +140,21 @@ export function createGlobalAccountRepository(
   return {
     async resolveActiveAccountByAuth0Subject(auth0Subject) {
       const row = await findAccountByAuth0Subject(executor, requireAuth0Subject(auth0Subject))
+      return row ? requireActiveAccount(row) : null
+    },
+
+    async resolveActiveAccountByEmail(email) {
+      const normalizedEmail = normalizeEmail(email)
+      const rows = await executor.query<AccountRow>(Prisma.sql`
+        SELECT
+          "id", "auth0Subject", "email", "status",
+          "createdAt", "updatedAt", "lastSeenAt", "revokedAt"
+        FROM "identity"."Account"
+        WHERE lower("email") = lower(${normalizedEmail})
+        ORDER BY "createdAt" ASC
+        LIMIT 1
+      `)
+      const row = rows[0] ?? null
       return row ? requireActiveAccount(row) : null
     },
 

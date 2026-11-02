@@ -70,12 +70,39 @@ export function resetCityAccessCache(): void {
 }
 
 async function isAccountKeyAllowedForCurrentCity(apiKeyInfo: ApiKeyInfo): Promise<boolean> {
-  if (!apiKeyInfo.accountId) return true;
+  const city = getCity();
+  const now = Date.now();
+
+  // Legacy keys have no accountId. Fail closed unless their verified owner
+  // email still resolves to an active account with current-city access.
+  if (!apiKeyInfo.accountId) {
+    const email = apiKeyInfo.ownerEmail?.trim();
+    if (!email) return false;
+
+    const cacheKey = `legacy-email:${email.toLowerCase()}:${city}`;
+    const cached = cityAccessCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.allowed;
+    }
+
+    try {
+      const account = await globalAccountRepository.resolveActiveAccountByEmail(email);
+      const allowed = account
+        ? await globalAccountRepository.hasCityAccess(account.id, city)
+        : false;
+      if (cityAccessCache.size >= CITY_ACCESS_CACHE_MAX_ENTRIES) {
+        cityAccessCache.clear();
+      }
+      cityAccessCache.set(cacheKey, { allowed, expiresAt: now + CITY_ACCESS_CACHE_TTL_MS });
+      return allowed;
+    } catch {
+      return false;
+    }
+  }
+
   // Mismo TTL que la cache de claves: una peticion con API key ya no consulta
   // la base para validar la clave ni el acceso a la ciudad.
-  const city = getCity();
   const cacheKey = `${apiKeyInfo.accountId}:${city}`;
-  const now = Date.now();
   const cached = cityAccessCache.get(cacheKey);
   if (cached && cached.expiresAt > now) {
     return cached.allowed;
