@@ -11,6 +11,7 @@ import { applyMobileCors, buildMobileCorsHeaders, getClientIp, handleMobilePrefl
 import { consumeRateLimit, getRateLimitHeaders } from '@/lib/security/rate-limit'
 
 const REGISTER_RATE_LIMIT = { limit: 10, windowMs: 5 * 60 * 1000 }
+const MAX_INSTALL_BODY_BYTES = 64 * 1024
 
 const installRegisterSchema = z.object({
   platform: z.enum(['ios', 'android']),
@@ -34,6 +35,14 @@ export const Route = createFileRoute('/api/install/register/')({
           const originRejection = rejectDisallowedMobileOrigin(request)
           if (originRejection) return originRejection
 
+          const declaredLength = Number(request.headers.get('content-length') ?? '0')
+          if (Number.isFinite(declaredLength) && declaredLength > MAX_INSTALL_BODY_BYTES) {
+            return new Response(JSON.stringify({ error: 'Request body too large' }), {
+              status: 413,
+              headers: { 'Content-Type': 'application/json', ...buildMobileCorsHeaders(request) },
+            })
+          }
+
           const body = await request.json().catch(() => null)
           const parsed = installRegisterSchema.safeParse(body)
           const publicKeyFingerprint = parsed.success ? hashPublicKey(parsed.data.publicKey) : 'invalid-body'
@@ -43,7 +52,7 @@ export const Route = createFileRoute('/api/install/register/')({
             consumeRateLimit({ namespace: 'install-register:device', identifierParts: [publicKeyFingerprint], limit: REGISTER_RATE_LIMIT.limit, windowMs: REGISTER_RATE_LIMIT.windowMs }),
           ])
           const rateLimitDecision = !ipDecision.allowed ? ipDecision : deviceDecision
-          const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision) }
+          const baseHeaders = { ...buildMobileCorsHeaders(request), ...getRateLimitHeaders(rateLimitDecision), 'Cache-Control': 'no-store' }
 
           if (!rateLimitDecision.allowed) {
             await recordSecurityEvent({ eventType: 'rate_limit_exceeded', route: '/api/install/register', requestId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'rate_limit', metadata: { publicKeyFingerprint } })
@@ -63,6 +72,12 @@ export const Route = createFileRoute('/api/install/register/')({
           // Buscar primero: en re-registro se reutiliza el installId persistido
           // para que el refresh token emitido quede ligado a un id que existe.
           const existing = await prisma.install.findUnique({ where: { publicKeyFingerprint } });
+          // Re-registration must not undo a revocation. A revoked or inactive
+          // install is treated as terminal unless an operator clears it.
+          if (existing && (existing.revokedAt || !existing.isActive)) {
+            await recordSecurityEvent({ eventType: 'auth_failed', route: '/api/install/register', requestId, installId: existing.installId, ip: clientIp, userAgent, outcome: 'denied', reasonCode: 'install_revoked' })
+            return new Response(JSON.stringify({ error: 'Installation is revoked' }), { status: 403, headers: { 'Content-Type': 'application/json', ...baseHeaders } })
+          }
           const installId = existing?.installId ?? randomUUID();
           const issuedRefreshToken = await issueRefreshToken(installId)
 

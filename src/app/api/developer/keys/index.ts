@@ -12,7 +12,7 @@ export const Route = createFileRoute('/api/developer/keys/')({
   server: {
     handlers: {
       GET: async () => {
-        const baseHeaders = { 'Content-Type': 'application/json' }
+        const baseHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Cookie' }
         const sessionResult = await requireDeveloperAccountSession(baseHeaders)
 
         if ('response' in sessionResult) {

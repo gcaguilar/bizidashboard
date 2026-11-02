@@ -39,7 +39,7 @@ export const Route = createFileRoute('/api/developer/register/')({
           limit: rateLimit.limit,
           windowMs: rateLimit.windowMs,
         })
-        const baseHeaders = { 'Content-Type': 'application/json', ...getRateLimitHeaders(rateLimitDecision) }
+        const baseHeaders = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Cookie', ...getRateLimitHeaders(rateLimitDecision) }
 
         if (!rateLimitDecision.allowed) {
           await recordSecurityEvent({
