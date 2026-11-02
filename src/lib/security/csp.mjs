@@ -136,6 +136,10 @@ export function buildContentSecurityPolicy(env = process.env) {
     `frame-src 'self' ${unique(frameOrigins).join(' ')}`,
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "manifest-src 'self'",
   ].join('; ');
 }
 
