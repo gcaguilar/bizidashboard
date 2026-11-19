@@ -47,6 +47,7 @@
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@floating-ui/react-dom": "^2.1.9",
+    "@posthog/react": "1",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@resvg/resvg-js": "^2.6.2",
@@ -66,6 +67,7 @@
     "node-cron": "^4.6.0",
     "pg": "^8.23.1",
     "playwright": "^1.65.1",
+    "posthog-node": "6",
     "prisma": "^7.10.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",

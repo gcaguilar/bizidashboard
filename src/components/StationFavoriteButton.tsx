@@ -1,5 +1,6 @@
 'use client'
 import { useLocation } from '@tanstack/react-router'
+import { usePostHog } from '@posthog/react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n/use-locale'
 import { useFavoriteStations } from '@/lib/use-favorite-stations'
@@ -31,6 +32,7 @@ export function StationFavoriteButton({
   source = 'station_detail',
   className,
 }: StationFavoriteButtonProps) {
+  const posthog = usePostHog()
   const { t } = useT()
   const pathname = useLocation().pathname
   const routeKey = resolveRouteKeyFromPathname(pathname)
@@ -38,6 +40,10 @@ export function StationFavoriteButton({
   const isFavorite = favoriteStationIds.includes(stationId)
 
   const toggleFavorite = () => {
+    posthog.capture('station_favorite_toggled', {
+      action: isFavorite ? 'removed' : 'added',
+      source,
+    })
     toggleFavoriteStation(stationId)
     trackUmamiEvent(
       buildCtaClickEvent({

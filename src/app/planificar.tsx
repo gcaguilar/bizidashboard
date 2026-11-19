@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { usePostHog } from '@posthog/react';
 import { useState } from 'react';
 import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -141,6 +142,7 @@ function StationCard({
 }
 
 function PlannerPage() {
+  const posthog = usePostHog();
   const [originText, setOriginText] = useState('');
   const [destinationText, setDestinationText] = useState('');
   const [useLocation, setUseLocation] = useState(false);
@@ -189,6 +191,12 @@ function PlannerPage() {
           : null,
       ]);
 
+      posthog.capture('trip_plan_generated', {
+        used_current_location: useLocation,
+        pickup_found: Boolean(plan.pickup),
+        dropoff_found: Boolean(plan.dropoff),
+        predictions_requested: Boolean(wantPickup || wantDropoff),
+      });
       setResult({ origin, destination, stations, plan, predictions });
     } catch (err) {
       const reason = err instanceof Error ? err.message : '';

@@ -7,7 +7,8 @@ import {
   redirect,
   useLocation,
 } from '@tanstack/react-router'
-import { lazy, Suspense } from 'react'
+import { PostHogErrorBoundary, PostHogProvider, usePostHog } from '@posthog/react'
+import { lazy, Suspense, useEffect } from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
 import { NavigationProgress } from './_components/NavigationProgress'
@@ -24,6 +25,7 @@ import { RouteErrorReporter } from '@/lib/route-error-reporting'
 import { getLocaleFromPathname, HTML_LANG } from '@/lib/i18n/locales'
 import { normalizeEnglishPublicHref } from '@/lib/i18n/locale-redirect'
 import { useLocale } from '@/lib/i18n/use-locale'
+import { useDeveloperSession } from '@/lib/use-developer-session'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -33,6 +35,17 @@ const THEME_INIT_SCRIPT = `(function(){try{var modern=window.localStorage.getIte
 
 const Devtools = import.meta.env.DEV
   ? lazy(() => import('../components/Devtools'))
+  : null
+
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST
+const missingPostHogVariable = !posthogToken
+  ? 'VITE_PUBLIC_POSTHOG_PROJECT_TOKEN'
+  : !posthogHost
+    ? 'VITE_PUBLIC_POSTHOG_HOST'
+    : null
+const posthogConfigurationMessage = missingPostHogVariable
+  ? `${missingPostHogVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingPostHogVariable} is configured`
   : null
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -96,6 +109,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   ),
   shellComponent: RootDocument,
 })
+
+function PostHogIdentity() {
+  const posthog = usePostHog()
+  const session = useDeveloperSession()
+
+  useEffect(() => {
+    if (session.status === 'authenticated') {
+      posthog.identify(session.auth0Subject, { email: session.email })
+    }
+  }, [posthog, session])
+
+  return null
+}
+
+function PostHogApp({ renderApp }: { renderApp: (onLogout: () => void) => React.ReactNode }) {
+  const posthog = usePostHog()
+
+  return (
+    <>
+      <PostHogIdentity />
+      <PostHogErrorBoundary>{renderApp(() => posthog.reset())}</PostHogErrorBoundary>
+    </>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
@@ -161,6 +198,32 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     ],
   }
 
+  const app = (onLogout?: () => void) => (
+    <>
+      {location.pathname === '/dashboard' || location.pathname === '/dashboard/' ? (
+        <h1 className="sr-only">Estado y análisis de Bizi Zaragoza: dashboard de la red</h1>
+      ) : null}
+      <NavigationProgress />
+      <Header onLogout={onLogout} />
+      {children}
+      <Footer footerData={footerData} />
+      {Devtools ? (
+        <Suspense fallback={null}>
+          <Devtools />
+        </Suspense>
+      ) : null}
+      <Scripts />
+    </>
+  )
+
+  if (posthogConfigurationMessage && import.meta.env.DEV) {
+    if (typeof window === 'undefined') {
+      console.warn(posthogConfigurationMessage)
+    } else {
+      throw new Error(posthogConfigurationMessage)
+    }
+  }
+
   return (
     <html lang={HTML_LANG[locale]} suppressHydrationWarning>
       <head>
@@ -178,19 +241,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[var(--selection-bg)]">
-        {location.pathname === '/dashboard' || location.pathname === '/dashboard/' ? (
-          <h1 className="sr-only">Estado y análisis de Bizi Zaragoza: dashboard de la red</h1>
-        ) : null}
-        <NavigationProgress />
-        <Header />
-        {children}
-        <Footer footerData={footerData} />
-        {Devtools ? (
-          <Suspense fallback={null}>
-            <Devtools />
-          </Suspense>
-        ) : null}
-        <Scripts />
+        {posthogToken && posthogHost ? (
+          <PostHogProvider
+            apiKey={posthogToken}
+            options={{
+              api_host: posthogHost,
+              capture_exceptions: true,
+              debug: import.meta.env.DEV,
+              tracing_headers: typeof window !== 'undefined' ? [window.location.hostname] : [],
+            }}
+          >
+            <PostHogApp renderApp={app} />
+          </PostHogProvider>
+        ) : (
+          app()
+        )}
       </body>
     </html>
   )
