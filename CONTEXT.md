@@ -88,6 +88,12 @@ These names describe modules that own behaviour behind a small interface.
   `formatRatioDelta` (with a caller-supplied missing-reference fallback),
   `average` and `averageOrNull`. Callers never re-implement sign, rounding or the
   coercion of raw SQL values.
+- **Product analytics module** (`src/lib/analytics/*`) — the single seam for
+  consent-gated analytics. Consent owns the decision and its persistence,
+  `client.ts` owns the lazy PostHog lifecycle and the final redaction barrier,
+  and `events.ts` owns the allowlisted event builders. Callers emit via
+  `trackEvent` and never touch the SDK or read the project token; no event can
+  leave the browser before consent is granted.
 - **Station demand SQL** (`src/analytics/queries/demand-sql.ts`) — the single
   definition of a station's demand difference (`(bikesMax - bikesMin) +
   (anchorsMax - anchorsMin)`) and its aggregates. Rankings, reports and
