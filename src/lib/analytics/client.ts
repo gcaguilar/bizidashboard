@@ -149,6 +149,7 @@ function buildPostHogConfig(runtime: PostHogRuntimeConfig): Partial<PostHogConfi
     capture_performance: false,
     disable_session_recording: true,
     disable_surveys: true,
+    logs: { captureConsoleLogs: false },
     advanced_disable_flags: true,
     person_profiles: 'never',
     opt_out_capturing_by_default: true,

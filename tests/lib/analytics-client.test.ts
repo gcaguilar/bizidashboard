@@ -75,6 +75,7 @@ describe('PostHog client', () => {
     expect(config.capture_heatmaps).toBe(false);
     expect(config.disable_session_recording).toBe(true);
     expect(config.disable_surveys).toBe(true);
+    expect(config.logs).toEqual({ captureConsoleLogs: false });
     expect(config.advanced_disable_flags).toBe(true);
     expect(config.person_profiles).toBe('never');
     expect(config.opt_out_capturing_by_default).toBe(true);
