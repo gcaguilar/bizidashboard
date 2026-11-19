@@ -115,6 +115,20 @@ describe('PostHog client', () => {
     });
   });
 
+  it('starts the lazy SDK from trackEvent when consent was granted before init', async () => {
+    writeAnalyticsConsent('granted');
+    const client = await loadClient();
+    client.configureAnalytics(runtime);
+
+    // The route trackers' effects run before the consent banner's init effect.
+    client.trackEvent({ name: 'public_page_view', payload: { route_key: 'home' } });
+
+    await vi.waitFor(() => {
+      expect(posthogMock.init).toHaveBeenCalledTimes(1);
+      expect(posthogMock.capture).toHaveBeenCalledWith('public_page_view', { route_key: 'home' });
+    });
+  });
+
   it('stops tracking and resets identity when consent is revoked', async () => {
     writeAnalyticsConsent('granted');
     const client = await loadClient();

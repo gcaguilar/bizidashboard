@@ -6,6 +6,7 @@ import {
   buildPublicPageViewEvent,
   resolveRouteKeyFromPathname,
   trackEvent,
+  useAnalyticsConsent,
 } from '@/lib/analytics';
 
 type PublicPageViewTrackerProps = {
@@ -24,10 +25,11 @@ export function PublicPageViewTracker({
   entityId,
 }: PublicPageViewTrackerProps) {
   const pathname = useLocation().pathname;
+  const consent = useAnalyticsConsent();
   const lastTrackedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!pathname) {
+    if (!pathname || consent !== 'granted') {
       return;
     }
 
@@ -64,7 +66,7 @@ export function PublicPageViewTracker({
 
     const timeoutId = window.setTimeout(track, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [entityId, pageSlug, pageType, pathname, routeKey, template]);
+  }, [consent, entityId, pageSlug, pageType, pathname, routeKey, template]);
 
   return null;
 }

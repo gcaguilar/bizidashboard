@@ -9,6 +9,7 @@ import { appRoutes } from '@/lib/routes';
 import { PageShell } from '@/components/layout/page-shell';
 import { getCompareHubLoaderData } from '@/server-functions/comparar';
 import { ObservatoryEventTracker } from '@/app/_components/ObservatoryEventTracker';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { toJsonLdScript } from '@/lib/structured-data';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
 
@@ -67,6 +68,7 @@ function ComparePage() {
 
   return (
     <PageShell>
+      <PublicPageViewTracker routeKey="compare" pageType="compare_hub" template="compare_hub" />
       <script
         type="application/ld+json"
         suppressHydrationWarning

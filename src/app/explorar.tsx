@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { getExploreLoaderData } from '@/server-functions/explorar';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
@@ -106,6 +107,7 @@ function ExplorePage() {
 
   return (
     <PageShell>
+      <PublicPageViewTracker routeKey="explore" pageType="explore_hub" template="explore_hub" />
       <SiteBreadcrumbs items={breadcrumbs} />
 
       <header className="ui-page-hero">

@@ -5,6 +5,7 @@ import { HomeLiveSection } from '@/app/_components/home/HomeLiveSection';
 import { NearbyBikesCta } from '@/app/_components/home/NearbyBikesCta';
 import { HomeStatusHero } from '@/app/_components/HomeStatusHero';
 import { NetworkBriefingViewTracker } from '@/app/dashboard/_components/NetworkBriefingViewTracker';
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
 import { buildLocaleAlternates, buildOgLocaleMeta, localizedUrl } from '@/lib/i18n/seo';
@@ -214,6 +215,7 @@ function Home() {
         generatedAt={generatedAt}
       />
       <NetworkBriefingViewTracker />
+      <PublicPageViewTracker routeKey="home" pageType="home" template="home" />
 
       <HomeLiveSection
         stationsTotal={activeStationsCount}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import { initAnalytics, revokeAnalytics } from '@/lib/analytics/client';
+import { configureAnalytics, initAnalytics, revokeAnalytics } from '@/lib/analytics/client';
 import type { PostHogRuntimeConfig } from '@/lib/analytics/config';
 import {
   readAnalyticsConsent,
@@ -22,6 +22,9 @@ type ConsentBannerProps = {
 export function ConsentBanner({ posthog }: ConsentBannerProps) {
   const { t } = useT();
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Available to `trackEvent` before any route tracker's effect runs.
+  configureAnalytics(posthog);
 
   const subscribe = useCallback(
     (onChange: () => void) => subscribeToAnalyticsConsent(() => onChange()),

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { buildSeoHead } from '@/lib/seo-head'
 import { PageShell } from '@/components/layout/page-shell'
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs'
+import { PublicPageViewTracker } from '@/app/_components/PublicPageViewTracker'
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor'
 import { TrackedLink } from '@/app/_components/TrackedLink'
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes'
@@ -78,6 +79,7 @@ function ContactoPage() {
 
   return (
     <PageShell>
+      <PublicPageViewTracker routeKey="contact" pageType="utility" template="contact" />
       <script
         type="application/ld+json"
         suppressHydrationWarning

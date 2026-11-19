@@ -93,7 +93,10 @@ These names describe modules that own behaviour behind a small interface.
   `client.ts` owns the lazy PostHog lifecycle and the final redaction barrier,
   and `events.ts` owns the allowlisted event builders. Callers emit via
   `trackEvent` and never touch the SDK or read the project token; no event can
-  leave the browser before consent is granted.
+  leave the browser before consent is granted. `trackEvent` also starts the lazy
+  SDK from the runtime config registered by the consent banner, and mount-time
+  trackers re-emit once when consent becomes `granted`, so no view is lost to
+  effect ordering.
 - **Station demand SQL** (`src/analytics/queries/demand-sql.ts`) — the single
   definition of a station's demand difference (`(bikesMax - bikesMin) +
   (anchorsMax - anchorsMin)`) and its aggregates. Rankings, reports and

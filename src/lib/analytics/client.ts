@@ -46,6 +46,16 @@ const MAX_SANITIZE_DEPTH = 5;
 
 let client: PostHog | null = null;
 let initPromise: Promise<PostHog | null> | null = null;
+let runtimeConfig: PostHogRuntimeConfig | null = null;
+
+/**
+ * Stores the config resolved by the server so `trackEvent` can start the lazy
+ * SDK on demand. Callers render this value from the root loader; assigning it
+ * during render keeps the config available before any tracker's effect runs.
+ */
+export function configureAnalytics(runtime: PostHogRuntimeConfig | null): void {
+  runtimeConfig = runtime;
+}
 
 function isUrlProperty(key: string): boolean {
   const lower = key.toLowerCase();
@@ -253,6 +263,12 @@ export function revokeAnalytics(): void {
 export function trackEvent(event: AnalyticsTrackedEvent): void {
   if (typeof window === 'undefined' || readAnalyticsConsent() !== 'granted') {
     return;
+  }
+
+  // Tracker effects can run before the consent banner's init effect. Starting
+  // the lazy SDK here (and queueing on initPromise below) keeps those events.
+  if (!client && !initPromise && runtimeConfig) {
+    void initAnalytics(runtimeConfig);
   }
 
   const payload = sanitizeAnalyticsPayload(event.payload);

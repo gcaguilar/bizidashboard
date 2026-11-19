@@ -7,6 +7,7 @@ import {
   buildDashboardPageViewEvent,
   resolveRouteKeyFromPathname,
   trackEvent,
+  useAnalyticsConsent,
 } from '@/lib/analytics';
 
 type DashboardPageViewTrackerProps = {
@@ -23,10 +24,11 @@ export function DashboardPageViewTracker({
   mode,
 }: DashboardPageViewTrackerProps) {
   const pathname = useLocation().pathname;
+  const consent = useAnalyticsConsent();
   const lastTrackedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!pathname) {
+    if (!pathname || consent !== 'granted') {
       return;
     }
 
@@ -47,7 +49,7 @@ export function DashboardPageViewTracker({
         mode,
       })
     );
-  }, [mode, pageType, pathname, routeKey, template]);
+  }, [consent, mode, pageType, pathname, routeKey, template]);
 
   return null;
 }

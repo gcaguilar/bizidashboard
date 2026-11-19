@@ -14,6 +14,15 @@ export {
 } from './consent';
 export type { AnalyticsConsent, AnalyticsConsentChoice } from './consent';
 
-export { initAnalytics, isAnalyticsClientReady, revokeAnalytics, sanitizeCaptureResult, sanitizeUrl, trackEvent } from './client';
+export {
+  configureAnalytics,
+  initAnalytics,
+  isAnalyticsClientReady,
+  revokeAnalytics,
+  sanitizeCaptureResult,
+  sanitizeUrl,
+  trackEvent,
+} from './client';
+export { useAnalyticsConsent } from './use-analytics-consent';
 
 export * from './events';
