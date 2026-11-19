@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { usePostHog } from '@posthog/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ function formatDate(value: string | null): string {
 }
 
 export function DeveloperApiRegistration() {
+  const posthog = usePostHog();
   const session = useDeveloperSession();
   const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -89,6 +91,7 @@ export function DeveloperApiRegistration() {
         return;
       }
 
+      posthog.capture('api_key_created');
       setCreatedKey(data);
       setName('');
       await loadKeys();
@@ -116,6 +119,7 @@ export function DeveloperApiRegistration() {
         return;
       }
 
+      posthog.capture('api_key_revoked');
       await loadKeys();
     } catch {
       setError('No se pudo revocar la clave. Inténtalo de nuevo.');
@@ -205,7 +209,12 @@ export function DeveloperApiRegistration() {
             </Button>
             <span className="text-xs text-[var(--muted)]">Sesión: {session.email}</span>
           </form>
-          <form method="post" action={appRoutes.api.authLogout()} className="mt-2">
+          <form
+            method="post"
+            action={appRoutes.api.authLogout()}
+            onSubmit={() => posthog.reset()}
+            className="mt-2"
+          >
             <button type="submit" className="ui-inline-action text-xs">Cerrar sesión</button>
           </form>
 

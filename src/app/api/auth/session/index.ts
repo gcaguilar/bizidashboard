@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { isDeveloperLoginConfigured } from '@/lib/auth/auth0-web'
 import { getDeveloperSession, isDeveloperSessionConfigured } from '@/lib/auth/developer-session'
 
-function json(body: { email: string | null; configured: boolean }): Response {
+function json(body: { auth0Subject: string | null; email: string | null; configured: boolean }): Response {
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Cookie' },
@@ -19,12 +19,16 @@ export const Route = createFileRoute('/api/auth/session/')({
         const configured = isDeveloperSessionConfigured() && isDeveloperLoginConfigured()
 
         if (!isDeveloperSessionConfigured()) {
-          return json({ email: null, configured })
+          return json({ auth0Subject: null, email: null, configured })
         }
 
         const session = await getDeveloperSession()
 
-        return json({ email: session?.email ?? null, configured })
+        return json({
+          auth0Subject: session?.auth0Subject ?? null,
+          email: session?.email ?? null,
+          configured,
+        })
       },
     },
   },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useNavigate } from '@tanstack/react-router';
+import { usePostHog } from '@posthog/react';
 import { useState } from 'react';
 import { useT } from '@/lib/i18n/use-locale';
 import type { MessageKey } from '@/lib/i18n/messages';
@@ -39,6 +40,7 @@ function fetchCandidateStations(): Promise<NearestCandidateStation[]> {
 }
 
 export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) {
+  const posthog = usePostHog();
   const { t } = useT();
   const copy = MODE_COPY[mode];
   const navigate = useNavigate();
@@ -66,6 +68,7 @@ export function NearbyBikesCta({ mode = 'bikes' }: { mode?: NearestCriterion }) 
               return;
             }
             setState('idle');
+            posthog.capture('nearby_station_found', { mode });
             void navigate({ to: appRoutes.stationDetail(nearest.id) });
           })
           .catch(() => setState('error'));

@@ -24,7 +24,7 @@ function buildNavEvent(source: string, ctaId: string) {
   };
 }
 
-export default function Header() {
+export default function Header({ onLogout }: { onLogout?: () => void }) {
   const { locale, t } = useT();
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -105,7 +105,7 @@ export default function Header() {
           <LanguageSwitcher />
           <HeaderSearch />
           <ThemeToggleButton />
-          <HeaderSession />
+          <HeaderSession onLogout={onLogout} />
         </div>
       </div>
 

@@ -92,12 +92,16 @@ export function resolveExternalServiceConfig(env = process.env) {
     'VITE_SENTRY_DSN',
     'NEXT_PUBLIC_SENTRY_DSN',
   ]);
+  const posthogHost = readFirst(env, [
+    'VITE_PUBLIC_POSTHOG_HOST',
+  ]);
 
   return {
     umamiScriptSrc,
     umamiWebsiteId,
     umamiHostUrl,
     sentryDsn,
+    posthogHost,
   };
 }
 
@@ -115,6 +119,17 @@ export function buildContentSecurityPolicy(env = process.env) {
   }
   if (config.sentryDsn) {
     connectOrigins.push(parseHttpUrl(config.sentryDsn, 'SENTRY_DSN').origin);
+  }
+  if (config.posthogHost) {
+    try {
+      const posthogUrl = parseHttpUrl(config.posthogHost, 'VITE_PUBLIC_POSTHOG_HOST');
+      const posthogAssetsUrl = new URL(posthogUrl);
+      posthogAssetsUrl.hostname = posthogUrl.hostname.replace('.i.', '-assets.i.');
+      connectOrigins.push(posthogUrl.origin);
+      scriptOrigins.push(posthogAssetsUrl.origin);
+    } catch {
+      // Optional analytics configuration must not prevent server startup.
+    }
   }
 
   const nominatimBaseUrl =

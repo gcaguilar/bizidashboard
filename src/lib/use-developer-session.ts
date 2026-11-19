@@ -5,9 +5,9 @@ export type DeveloperSessionState =
   | { status: 'loading' }
   | { status: 'unavailable' }
   | { status: 'anonymous' }
-  | { status: 'authenticated'; email: string };
+  | { status: 'authenticated'; auth0Subject: string; email: string };
 
-type SessionPayload = { email: string | null; configured?: boolean };
+type SessionPayload = { auth0Subject: string | null; email: string | null; configured?: boolean };
 
 /**
  * La cabecera monta el hook en todas las páginas y algunos clientes del
@@ -22,7 +22,9 @@ function fetchSession(): Promise<DeveloperSessionState> {
   pending = fetch(appRoutes.api.authSession())
     .then((response) => response.json())
     .then((data: SessionPayload): DeveloperSessionState => {
-      if (data.email) return { status: 'authenticated', email: data.email };
+      if (data.auth0Subject && data.email) {
+        return { status: 'authenticated', auth0Subject: data.auth0Subject, email: data.email };
+      }
       return data.configured === false ? { status: 'unavailable' } : { status: 'anonymous' };
     })
     .catch((): DeveloperSessionState => ({ status: 'anonymous' }));

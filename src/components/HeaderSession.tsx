@@ -15,7 +15,7 @@ const KEYS_HREF = `${appRoutes.developers()}#register-api`;
  * portal de desarrolladores, así que un visitante no descubría que podía
  * autenticarse. Aquí queda visible en todas las páginas.
  */
-export function HeaderSession() {
+export function HeaderSession({ onLogout }: { onLogout?: () => void }) {
   const session = useDeveloperSession();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -84,6 +84,7 @@ export function HeaderSession() {
           <form
             method="post"
             action={appRoutes.api.authLogout()}
+            onSubmit={onLogout}
             role="menuitem"
             className="m-0"
           >

@@ -30,6 +30,7 @@ import {
 } from '@/analytics/queries/daily-system';
 import { captureExceptionWithContext } from '@/lib/sentry-reporting';
 import { logger } from '@/lib/logger';
+import { posthogJobLog, shutdownPostHogJobLogs } from '@/lib/posthog-logs';
 import { isTruthyEnv } from '@/lib/security/config';
 
 const ANALYTICS_START_DELAY_MS = 2 * 60 * 1000;
@@ -88,7 +89,11 @@ export function initJobs(): void {
   if (jobsInitialized) {
     return;
   }
-  if (!shouldEnableInternalJobs()) {
+
+  const internalJobsEnabled = shouldEnableInternalJobs();
+  posthogJobLog('jobs.process_started', { internal_jobs_enabled: internalJobsEnabled });
+
+  if (!internalJobsEnabled) {
     logger.info('jobs.internal_disabled');
     return;
   }
@@ -110,6 +115,9 @@ export function initJobs(): void {
     startMonthlyReportSealJob();
     analyticsStartTimer = null;
     logger.info('jobs.analytics_started_after_delay');
+    posthogJobLog('jobs.analytics_started', {
+      startup_delay_ms: ANALYTICS_START_DELAY_MS,
+    });
   }, ANALYTICS_START_DELAY_MS);
 
   if (typeof analyticsStartTimer.unref === 'function') {
@@ -139,12 +147,17 @@ export function shutdownJobs(): void {
 
 initJobs();
 
-process.on('SIGTERM', () => {
+async function stopJobsProcess(): Promise<void> {
   shutdownJobs();
+  posthogJobLog('jobs.process_stopping', {});
+  await shutdownPostHogJobLogs();
   process.exit(0);
+}
+
+process.on('SIGTERM', () => {
+  void stopJobsProcess();
 });
 
 process.on('SIGINT', () => {
-  shutdownJobs();
-  process.exit(0);
+  void stopJobsProcess();
 });

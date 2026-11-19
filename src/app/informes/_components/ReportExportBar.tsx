@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePostHog } from '@posthog/react';
 import { listReportExportSections } from '@/lib/monthly-report-export';
 import { downloadReportPagePdf } from '@/lib/report-pdf-download';
 import { appRoutes } from '@/lib/routes';
@@ -37,6 +38,7 @@ function saveBlob(blob: Blob, filename: string): void {
  * con su diseno.
  */
 export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarProps) {
+  const posthog = usePostHog();
   const sections = listReportExportSections();
   const [isGenerating, setIsGenerating] = useState(false);
   const filename = `informe-${month}.pdf`;
@@ -56,6 +58,7 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
 
       if (source !== 'table') {
         saveBlob(blob, filename);
+        posthog.capture('report_pdf_downloaded', { month, export_source: 'server' });
         return;
       }
 
@@ -65,6 +68,7 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
       if (root) {
         try {
           await downloadReportPagePdf({ root, filename });
+          posthog.capture('report_pdf_downloaded', { month, export_source: 'client_fallback' });
           return;
         } catch (error) {
           console.error('La captura del informe fallo; se descarga el PDF de tablas.', error);
@@ -72,6 +76,7 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
       }
 
       saveBlob(blob, filename);
+      posthog.capture('report_pdf_downloaded', { month, export_source: 'table_fallback' });
     } catch (error) {
       console.error('No se pudo obtener el PDF; se abre la impresion.', error);
       window.print();

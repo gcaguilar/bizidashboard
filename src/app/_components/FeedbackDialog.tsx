@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { usePostHog } from '@posthog/react';
 import { useLocation } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,6 +34,7 @@ const STAGE_TITLES: Record<FeedbackStage, string> = {
 };
 
 export function FeedbackDialog({ open, onOpenChange, source, module }: FeedbackDialogProps) {
+  const posthog = usePostHog();
   const pathname = useLocation().pathname;
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
@@ -62,6 +64,7 @@ export function FeedbackDialog({ open, onOpenChange, source, module }: FeedbackD
   }
 
   function handleRating(value: FeedbackRating) {
+    posthog.capture('feedback_rated', { rating: value, source, surface });
     setRating(value);
     setStage('thanks');
     trackUmamiEvent(
