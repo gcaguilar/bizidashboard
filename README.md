@@ -15,7 +15,7 @@ The system is built on four core pillars:
 3. **Analytics Core**: Specialized SQL aggregations (Rankings, Trends, Alerts, Heatmaps, Mobility Signals) optimized for time-series bike availability data.
 4. **Visual Dashboard**: A TanStack Start interface with real-time station statuses, historical graphs, and mobility reports.
 
-The frontend/server app runs on **TanStack Start + Vite + React 19**. Production uses **Bun 1.4.4** and Docker images based on `oven/bun:1.4.4` / `oven/bun:1.4.4-slim`.
+The frontend/server app runs on **TanStack Start + Vite + React 19**. Production uses **Bun 1.4.x (latest stable)**. Dockerfiles pin `oven/bun:1.4` / `oven/bun:1.4-slim` by digest for reproducible builds, while CI floats on the latest `1.4.x`.
 
 ---
 
@@ -204,7 +204,7 @@ Adding a new compatible city is easy:
 
 - **Framework**: TanStack Start + TanStack Router + React 19
 - **Build Tool**: Vite 8 with TanStack Start/Router plugins
-- **Runtime**: Bun `1.4.4` in local tooling, CI, and Docker
+- **Runtime**: Bun `1.4.x` (latest stable) in local tooling, CI, and Docker
 - **Database**: PostgreSQL with Prisma ORM
 - **Cache**: Redis
 - **Testing**: Vitest and Playwright
@@ -322,7 +322,7 @@ bun run qa:security:smoke -- --base-url https://datosbizi.com
 
 Main CI currently runs:
 
-- dependency install with Bun `1.4.4`
+- dependency install with Bun `1.4.x` (latest stable)
 - Prisma client generation and migrations
 - QA database seed
 - lint

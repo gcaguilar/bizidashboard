@@ -87,19 +87,18 @@ export function NeighborhoodLoadCard({ stations }: NeighborhoodLoadCardProps) {
       return [] as Array<{ color: string; size: number; offset: number; district: string }>;
     }
 
-    let currentOffset = 0;
+    const sizes = slicesWithStations.map(
+      (slice) => (slice.stationCount / totalStations) * 100,
+    );
 
-    return slicesWithStations.map((slice, index) => {
-      const size = (slice.stationCount / totalStations) * 100;
-      const arc = {
-        color: getCategoricalColor(index),
-        size,
-        offset: currentOffset,
-        district: slice.district,
-      };
-      currentOffset += size;
-      return arc;
-    });
+    return sizes.map((size, index) => ({
+      color: getCategoricalColor(index),
+      size,
+      offset: sizes
+        .slice(0, index)
+        .reduce((sum, previousSize) => sum + previousSize, 0),
+      district: slicesWithStations[index].district,
+    }));
   }, [slices, totalStations]);
 
   const avgOccupancy = useMemo(() => {

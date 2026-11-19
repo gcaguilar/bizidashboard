@@ -1,20 +1,20 @@
 # syntax=docker/dockerfile:1
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.4.4 AS deps
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 
 # ── prod-deps: runtime dependencies only (no vite, vitest, typescript…) ──
-FROM oven/bun:1.4.4 AS prod-deps
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS prod-deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile --production
 
 # ── builder: generate prisma client & build TanStack Start ───────────
-FROM oven/bun:1.4.4 AS builder
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS builder
 WORKDIR /app
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
@@ -52,7 +52,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun run build
 
 # ── runner: minimal production image ─────────────────────────────────
-FROM oven/bun:1.4.4-slim AS runner
+FROM oven/bun:1.4-slim@sha256:b780593f3e10918cbdaec3d5a08d52224b9198069a65eb47812085c2ec007643 AS runner
 WORKDIR /app
 ARG GIT_SHA
 ARG BUILD_DATE

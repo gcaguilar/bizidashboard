@@ -12,21 +12,21 @@
 # `CITY`), sin depender de que la URL lleve `?schema=`.
 
 # ── deps: install all dependencies (dev + prod) ─────────────────────
-FROM oven/bun:1.4.4 AS deps
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 
 # ── prod-deps: runtime dependencies only ────────────────────────────
-FROM oven/bun:1.4.4 AS prod-deps
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS prod-deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile --production
 
 # ── builder: generate prisma client & compile the social entrypoint ──
-FROM oven/bun:1.4.4 AS builder
+FROM oven/bun:1.4@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=deps /app/node_modules ./node_modules
@@ -42,7 +42,7 @@ RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/bizidashbo
 RUN bun build src/jobs/social-standalone.ts --target=bun --outfile=/app/dist/jobs/social-standalone.js --packages=external
 
 # ── runner: minimal production image ────────────────────────────────
-FROM oven/bun:1.4.4-slim AS runner
+FROM oven/bun:1.4-slim@sha256:b780593f3e10918cbdaec3d5a08d52224b9198069a65eb47812085c2ec007643 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
