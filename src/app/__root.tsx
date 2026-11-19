@@ -10,6 +10,7 @@ import {
 import { lazy, Suspense } from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { ConsentBanner } from './_components/ConsentBanner'
 import { NavigationProgress } from './_components/NavigationProgress'
 
 import appCss from '../styles.css?url'
@@ -36,8 +37,8 @@ const Devtools = import.meta.env.DEV
   : null
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  // version/umami are static per server process (env vars, build metadata);
-  // resolve once and never revalidate on navigation.
+  // version/posthog config are static per server process (env vars, build
+  // metadata); resolve once and never revalidate on navigation.
   staleTime: Infinity,
   // Idioma desde la URL publica (`/en/...`); lo consumen los `head` de las rutas traducidas.
   beforeLoad: ({ location }) => {
@@ -99,7 +100,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const footerData = Route.useLoaderData()
-  const umamiConfig = footerData.umami
+  const posthogConfig = footerData.posthog
   const location = useLocation()
   const locale = useLocale()
   const siteUrl = getSiteUrl()
@@ -166,15 +167,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <script type="application/ld+json" suppressHydrationWarning>{JSON.stringify(structuredData)}</script>
-        {umamiConfig ? (
-          <script
-            async
-            defer
-            src={umamiConfig.scriptSrc}
-            data-website-id={umamiConfig.websiteId}
-            data-host-url={umamiConfig.hostUrl}
-          />
-        ) : null}
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[var(--selection-bg)]">
@@ -185,6 +177,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Header />
         {children}
         <Footer footerData={footerData} />
+        <ConsentBanner posthog={posthogConfig} />
         {Devtools ? (
           <Suspense fallback={null}>
             <Devtools />

@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { resolveUmamiRuntimeConfig, type UmamiRuntimeConfig } from '@/lib/umami-config'
+import { resolvePostHogRuntimeConfig, type PostHogRuntimeConfig } from '@/lib/analytics'
 
 export type FooterVersionInfo = {
   gitSha: string
@@ -9,7 +9,7 @@ export type FooterVersionInfo = {
 
 export type FooterData = {
   version: FooterVersionInfo | null
-  umami: UmamiRuntimeConfig | null
+  posthog: PostHogRuntimeConfig | null
 }
 
 let cachedGitSha: string | null = null
@@ -40,6 +40,6 @@ export const getFooterData = createServerFn({ method: 'GET' }).handler(async ():
 
   return {
     version,
-    umami: resolveUmamiRuntimeConfig(process.env),
+    posthog: resolvePostHogRuntimeConfig(process.env),
   }
 })

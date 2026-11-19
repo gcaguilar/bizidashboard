@@ -35,7 +35,7 @@ function PrivacidadPage() {
           Política de privacidad
         </h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
-          Última actualización: 20 de octubre de 2026.
+          Última actualización: 19 de noviembre de 2026.
         </p>
       </header>
 
@@ -60,9 +60,11 @@ function PrivacidadPage() {
         <h2 className="text-xl font-black text-[var(--foreground)]">Qué datos tratamos</h2>
         <ul className="space-y-2">
           <li>
-            <strong className="text-[var(--foreground)]">Navegación agregada.</strong> Usamos Umami
-            Cloud para medir visitas y eventos de uso de forma agregada y sin cookies publicitarias.
-            No creamos perfiles publicitarios ni vendemos datos.
+            <strong className="text-[var(--foreground)]">Navegación agregada.</strong> Si das tu
+            consentimiento, usamos PostHog Cloud EU para medir visitas y eventos de uso de forma
+            anónima y agregada. No identificamos a los visitantes, no creamos perfiles publicitarios
+            ni vendemos datos. No enviamos correos, nombres, teléfonos ni el contenido de búsquedas
+            o formularios, y las URL se reducen a su ruta sin parámetros.
           </li>
           <li>
             <strong className="text-[var(--foreground)]">Errores técnicos.</strong> Sentry recibe
@@ -90,7 +92,7 @@ function PrivacidadPage() {
       <section className="ui-section-card space-y-3 text-sm text-[var(--muted)]">
         <h2 className="text-xl font-black text-[var(--foreground)]">Para qué y con qué base legal</h2>
         <ul className="space-y-2">
-          <li>· Medir el uso del sitio y mejorarlo: interés legítimo en mantener un servicio público útil.</li>
+          <li>· Medir el uso del sitio y mejorarlo: consentimiento que puedes dar o retirar en cualquier momento desde «Preferencias de analítica» en el pie de página.</li>
           <li>· Corregir errores técnicos: interés legítimo en la seguridad y estabilidad del sitio.</li>
           <li>· Responder a tus mensajes: consentimiento al enviar el formulario o base contractual si eres usuario registrado.</li>
           <li>· Gestionar el acceso al área de desarrollador: ejecución de la relación de servicio.</li>
@@ -100,9 +102,10 @@ function PrivacidadPage() {
       <section className="ui-section-card space-y-3 text-sm text-[var(--muted)]">
         <h2 className="text-xl font-black text-[var(--foreground)]">Proveedores y transferencias</h2>
         <p>
-          Para funcionar, el sitio se apoya en Cloudflare (red y seguridad), Umami Cloud (analítica),
-          Sentry (errores), Auth0 (autenticación), Tally (formularios) y GitHub (código e
-          incidencias). Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico
+          Para funcionar, el sitio se apoya en Cloudflare (red y seguridad), PostHog Cloud EU
+          (analítica, alojada en Frankfurt), Sentry (errores), Auth0 (autenticación), Tally
+          (formularios) y GitHub (código e incidencias). PostHog actúa como encargado del
+          tratamiento; el resto de proveedores pueden tratar datos fuera del Espacio Económico
           Europeo con garantías contractuales adecuadas.
         </p>
         <p>
@@ -126,11 +129,22 @@ function PrivacidadPage() {
       </section>
 
       <section className="ui-section-card space-y-3 text-sm text-[var(--muted)]">
-        <h2 className="text-xl font-black text-[var(--foreground)]">Cookies</h2>
+        <h2 className="text-xl font-black text-[var(--foreground)]">Cookies y preferencias</h2>
         <p>
-          No usamos cookies publicitarias ni de seguimiento entre sitios. Umami funciona sin cookies.
+          No usamos cookies publicitarias ni de seguimiento entre sitios. La analítica de PostHog es
+          opcional: no se carga ni envía ningún evento hasta que aceptas explícitamente el uso de
+          analítica. Si la aceptas, PostHog guarda un identificador anónimo y tu decisión en el
+          almacenamiento local del navegador. Si la rechazas o la revocas, no se envían eventos de
+          uso y el sitio sigue funcionando igual.
+        </p>
+        <p>
           Auth0 puede usar cookies técnicas necesarias para mantener la sesión si decides iniciar
-          sesión. El almacenamiento local se usa solo para tus preferencias.
+          sesión en el área de desarrolladores. El resto del almacenamiento local se usa solo para
+          tus preferencias (tema, estaciones favoritas y decisión de analítica).
+        </p>
+        <p>
+          Puedes cambiar tu decisión en cualquier momento desde «Preferencias de analítica», en el
+          pie de página.
         </p>
       </section>
     </PageShell>

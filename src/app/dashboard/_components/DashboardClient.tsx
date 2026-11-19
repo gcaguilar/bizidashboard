@@ -44,8 +44,8 @@ import {
   buildDashboardModeChangeEvent,
   buildEntitySelectEvent,
   buildFilterChangeEvent,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
 import { EMPTY_MOBILITY_PREVIEW, mobilityQueryOptions } from './mobility-api';
 import { REFRESH_AFTER_LAST_DATA_MS, useDashboardLiveData } from './useDashboardLiveData';
@@ -362,7 +362,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return;
       }
 
-      trackUmamiEvent(
+      trackEvent(
         buildEntitySelectEvent({
           surface: 'dashboard',
           routeKey: dashboardRouteKey,
@@ -382,7 +382,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return;
       }
 
-      trackUmamiEvent(
+      trackEvent(
         buildDashboardModeChangeEvent({
           routeKey: dashboardRouteKey,
           mode,
@@ -400,7 +400,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return;
       }
 
-      trackUmamiEvent(
+      trackEvent(
         buildFilterChangeEvent({
           surface: 'dashboard',
           routeKey: dashboardRouteKey,
@@ -420,7 +420,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return;
       }
 
-      trackUmamiEvent(
+      trackEvent(
         buildFilterChangeEvent({
           surface: 'dashboard',
           routeKey: dashboardRouteKey,
@@ -440,7 +440,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         return;
       }
 
-      trackUmamiEvent(
+      trackEvent(
         buildFilterChangeEvent({
           surface: 'dashboard',
           routeKey: dashboardRouteKey,
@@ -580,7 +580,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               }
 
               if (nearestStationInfo.id !== selectedStationId) {
-                trackUmamiEvent(
+                trackEvent(
                   buildEntitySelectEvent({
                     surface: 'dashboard',
                     routeKey: dashboardRouteKey,

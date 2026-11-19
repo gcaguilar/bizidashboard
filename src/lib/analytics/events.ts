@@ -1,12 +1,12 @@
 import type { DashboardViewMode } from '@/lib/dashboard-modes';
 
-export type UmamiEventValue = string | number | boolean | null | undefined;
-export type UmamiSurface = 'public' | 'dashboard';
-export type UmamiEntityType = 'station' | 'district' | 'report' | 'api' | 'help';
-export type UmamiQueryLengthBucket = '0' | '1_2' | '3_5' | '6_plus';
-export type UmamiResultCountBucket = '0' | '1' | '2_5' | '6_20' | '21_plus';
-export type UmamiNavigationRole = 'home' | 'entry_seo' | 'hub' | 'detail' | 'dashboard' | 'utility';
-export type UmamiTrackedEventName =
+export type AnalyticsEventValue = string | number | boolean | null | undefined;
+export type AnalyticsSurface = 'public' | 'dashboard';
+export type AnalyticsEntityType = 'station' | 'district' | 'report' | 'api' | 'help';
+export type AnalyticsQueryLengthBucket = '0' | '1_2' | '3_5' | '6_plus';
+export type AnalyticsResultCountBucket = '0' | '1' | '2_5' | '6_20' | '21_plus';
+export type AnalyticsNavigationRole = 'home' | 'entry_seo' | 'hub' | 'detail' | 'dashboard' | 'utility';
+export type AnalyticsTrackedEventName =
   | 'public_page_view'
   | 'dashboard_page_view'
   | 'navigation_click'
@@ -25,7 +25,7 @@ export type UmamiTrackedEventName =
   | 'biciradar_handoff_clicked'
   | 'feedback_rating';
 
-export type LegacyUmamiInteractionName =
+export type LegacyAnalyticsInteractionName =
   | 'api_cta_click'
   | 'related_module_click'
   | 'report_open_click'
@@ -60,18 +60,18 @@ type AllowedPayloadKey =
   | 'transition_kind'
   | 'rating';
 
-export type UmamiEventPayload = Partial<Record<AllowedPayloadKey, UmamiEventValue>>;
+export type AnalyticsEventPayload = Partial<Record<AllowedPayloadKey, AnalyticsEventValue>>;
 
-export type UmamiTrackedEvent = {
-  name: UmamiTrackedEventName;
-  payload?: UmamiEventPayload;
+export type AnalyticsTrackedEvent = {
+  name: AnalyticsTrackedEventName;
+  payload?: AnalyticsEventPayload;
 };
 
-/** Product events contain only fixed aggregate labels from the GDPR allowlist. */
+/** Product events contain only fixed aggregate labels from the privacy allowlist. */
 export function buildObservatoryEvent(
-  name: Extract<UmamiTrackedEventName, 'observatory_brief_viewed' | 'observatory_evidence_opened' | 'comparison_validated_viewed' | 'report_opened' | 'api_docs_opened' | 'biciradar_handoff_clicked'>,
-  input: { surface: UmamiSurface; routeKey: string; source: string }
-): UmamiTrackedEvent {
+  name: Extract<AnalyticsTrackedEventName, 'observatory_brief_viewed' | 'observatory_evidence_opened' | 'comparison_validated_viewed' | 'report_opened' | 'api_docs_opened' | 'biciradar_handoff_clicked'>,
+  input: { surface: AnalyticsSurface; routeKey: string; source: string }
+): AnalyticsTrackedEvent {
   return { name, payload: { ...basePayload(input.surface, input.routeKey), source: input.source } };
 }
 
@@ -89,7 +89,7 @@ type DashboardPageViewInput = {
 };
 
 type SearchSubmitInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   source: string;
   queryLength: number;
@@ -97,35 +97,35 @@ type SearchSubmitInput = {
 };
 
 export type NavigationClickInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   source: string;
   destination: string;
   module?: string;
-  sourceRole?: UmamiNavigationRole;
-  destinationRole?: UmamiNavigationRole;
+  sourceRole?: AnalyticsNavigationRole;
+  destinationRole?: AnalyticsNavigationRole;
   transitionKind?: string;
 };
 
 export type CtaClickInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   source: string;
   ctaId: string;
   destination?: string;
   module?: string;
-  entityType?: UmamiEntityType;
+  entityType?: AnalyticsEntityType;
   monthPresent?: boolean;
   isExternal?: boolean;
-  sourceRole?: UmamiNavigationRole;
-  destinationRole?: UmamiNavigationRole;
+  sourceRole?: AnalyticsNavigationRole;
+  destinationRole?: AnalyticsNavigationRole;
   transitionKind?: string;
 };
 
 export type EntitySelectInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
-  entityType: UmamiEntityType;
+  entityType: AnalyticsEntityType;
   source: string;
   module?: string;
 };
@@ -137,7 +137,7 @@ type DashboardModeChangeInput = {
 };
 
 type FilterChangeInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   module: string;
   source?: string;
@@ -149,7 +149,7 @@ type FilterChangeInput = {
 };
 
 type PanelOpenInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   module: string;
   source?: string;
@@ -157,31 +157,18 @@ type PanelOpenInput = {
 };
 
 type ExportClickInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   source: string;
   ctaId: string;
-  entityType?: UmamiEntityType;
+  entityType?: AnalyticsEntityType;
   module?: string;
 };
 
-type LegacyUmamiInteractionInput = {
-  eventName: LegacyUmamiInteractionName;
+type LegacyAnalyticsInteractionInput = {
+  eventName: LegacyAnalyticsInteractionName;
   pathname?: string | null;
-  eventData?: Record<string, UmamiEventValue>;
-};
-
-declare global {
-  interface Window {
-    umami?: {
-      track: (eventName: string, payload?: UmamiEventPayload) => void;
-    };
-  }
-}
-
-type PendingUmamiEvent = {
-  name: UmamiTrackedEventName;
-  payload?: UmamiEventPayload;
+  eventData?: Record<string, AnalyticsEventValue>;
 };
 
 const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
@@ -209,15 +196,8 @@ const ALLOWED_PAYLOAD_KEYS: readonly AllowedPayloadKey[] = [
 ];
 
 const ALLOWED_PAYLOAD_KEY_SET = new Set<string>(ALLOWED_PAYLOAD_KEYS);
-const MAX_PENDING_UMAMI_EVENTS = 50;
-const UMAMI_FLUSH_DELAY_MS = 250;
-const UMAMI_MAX_FLUSH_ATTEMPTS = 20;
 
-let pendingUmamiEvents: PendingUmamiEvent[] = [];
-let umamiFlushTimer: ReturnType<typeof setTimeout> | null = null;
-let umamiFlushAttempts = 0;
-
-function basePayload(surface: UmamiSurface, routeKey: string): UmamiEventPayload {
+function basePayload(surface: AnalyticsSurface, routeKey: string): AnalyticsEventPayload {
   return {
     surface,
     route_key: routeKey,
@@ -225,7 +205,7 @@ function basePayload(surface: UmamiSurface, routeKey: string): UmamiEventPayload
 }
 
 function readString(
-  payload: Record<string, UmamiEventValue> | undefined,
+  payload: Record<string, AnalyticsEventValue> | undefined,
   key: string
 ): string | undefined {
   const value = payload?.[key];
@@ -233,14 +213,14 @@ function readString(
 }
 
 function readBoolean(
-  payload: Record<string, UmamiEventValue> | undefined,
+  payload: Record<string, AnalyticsEventValue> | undefined,
   key: string
 ): boolean | undefined {
   const value = payload?.[key];
   return typeof value === 'boolean' ? value : undefined;
 }
 
-function surfaceFromPathname(pathname: string | null | undefined): UmamiSurface {
+function surfaceFromPathname(pathname: string | null | undefined): AnalyticsSurface {
   return pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
 }
 
@@ -341,7 +321,7 @@ export function resolveRouteKeyFromPathname(pathname: string | null | undefined)
   return normalizeRouteKey(pathname);
 }
 
-export function getQueryLengthBucket(length: number): UmamiQueryLengthBucket {
+export function getQueryLengthBucket(length: number): AnalyticsQueryLengthBucket {
   if (length <= 0) {
     return '0';
   }
@@ -357,7 +337,7 @@ export function getQueryLengthBucket(length: number): UmamiQueryLengthBucket {
   return '6_plus';
 }
 
-export function getResultCountBucket(count: number): UmamiResultCountBucket {
+export function getResultCountBucket(count: number): AnalyticsResultCountBucket {
   if (count <= 0) {
     return '0';
   }
@@ -377,9 +357,9 @@ export function getResultCountBucket(count: number): UmamiResultCountBucket {
   return '21_plus';
 }
 
-export function sanitizeUmamiPayload(
-  payload: Record<string, UmamiEventValue> | undefined
-): UmamiEventPayload | undefined {
+export function sanitizeAnalyticsPayload(
+  payload: Record<string, AnalyticsEventValue> | undefined
+): AnalyticsEventPayload | undefined {
   if (!payload) {
     return undefined;
   }
@@ -405,7 +385,7 @@ export function buildPublicPageViewEvent({
   routeKey,
   pageType,
   template,
-}: PublicPageViewInput): UmamiTrackedEvent {
+}: PublicPageViewInput): AnalyticsTrackedEvent {
   return {
     name: 'public_page_view',
     payload: {
@@ -421,7 +401,7 @@ export function buildDashboardPageViewEvent({
   pageType,
   template,
   mode,
-}: DashboardPageViewInput): UmamiTrackedEvent {
+}: DashboardPageViewInput): AnalyticsTrackedEvent {
   return {
     name: 'dashboard_page_view',
     payload: {
@@ -439,7 +419,7 @@ export function buildSearchSubmitEvent({
   source,
   queryLength,
   resultCount,
-}: SearchSubmitInput): UmamiTrackedEvent {
+}: SearchSubmitInput): AnalyticsTrackedEvent {
   return {
     name: 'search_submit',
     payload: {
@@ -462,7 +442,7 @@ export function buildNavigationClickEvent({
   sourceRole,
   destinationRole,
   transitionKind,
-}: NavigationClickInput): UmamiTrackedEvent {
+}: NavigationClickInput): AnalyticsTrackedEvent {
   return {
     name: 'navigation_click',
     payload: {
@@ -490,7 +470,7 @@ export function buildCtaClickEvent({
   sourceRole,
   destinationRole,
   transitionKind,
-}: CtaClickInput): UmamiTrackedEvent {
+}: CtaClickInput): AnalyticsTrackedEvent {
   return {
     name: 'cta_click',
     payload: {
@@ -510,7 +490,7 @@ export function buildCtaClickEvent({
 }
 
 export type FeedbackRatingInput = {
-  surface: UmamiSurface;
+  surface: AnalyticsSurface;
   routeKey: string;
   source: string;
   rating: 'positive' | 'negative';
@@ -523,7 +503,7 @@ export function buildFeedbackRatingEvent({
   source,
   rating,
   module,
-}: FeedbackRatingInput): UmamiTrackedEvent {
+}: FeedbackRatingInput): AnalyticsTrackedEvent {
   return {
     name: 'feedback_rating',
     payload: {
@@ -539,7 +519,7 @@ export function buildDashboardModeChangeEvent({
   routeKey,
   mode,
   source,
-}: DashboardModeChangeInput): UmamiTrackedEvent {
+}: DashboardModeChangeInput): AnalyticsTrackedEvent {
   return {
     name: 'dashboard_mode_change',
     payload: {
@@ -560,7 +540,7 @@ export function buildFilterChangeEvent({
   period,
   timeWindow,
   resultCount,
-}: FilterChangeInput): UmamiTrackedEvent {
+}: FilterChangeInput): AnalyticsTrackedEvent {
   return {
     name: 'filter_change',
     payload: {
@@ -583,7 +563,7 @@ export function buildEntitySelectEvent({
   entityType,
   source,
   module,
-}: EntitySelectInput): UmamiTrackedEvent {
+}: EntitySelectInput): AnalyticsTrackedEvent {
   return {
     name: 'entity_select',
     payload: {
@@ -601,7 +581,7 @@ export function buildPanelOpenEvent({
   module,
   source,
   destination,
-}: PanelOpenInput): UmamiTrackedEvent {
+}: PanelOpenInput): AnalyticsTrackedEvent {
   return {
     name: 'panel_open',
     payload: {
@@ -620,7 +600,7 @@ export function buildExportClickEvent({
   ctaId,
   entityType,
   module,
-}: ExportClickInput): UmamiTrackedEvent {
+}: ExportClickInput): AnalyticsTrackedEvent {
   return {
     name: 'export_click',
     payload: {
@@ -637,7 +617,7 @@ export function buildLegacyInteractionEvent({
   eventName,
   pathname,
   eventData,
-}: LegacyUmamiInteractionInput): UmamiTrackedEvent {
+}: LegacyAnalyticsInteractionInput): AnalyticsTrackedEvent {
   const surface = surfaceFromPathname(pathname);
   const routeKey = resolveRouteKeyFromPathname(pathname);
   const source = readString(eventData, 'source') ?? routeKey;
@@ -732,52 +712,5 @@ export function buildLegacyInteractionEvent({
         ctaId: 'home_primary',
         destination,
       });
-  }
-}
-
-export function trackUmamiEvent(event: UmamiTrackedEvent): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  const payload = sanitizeUmamiPayload(event.payload);
-  const track = window.umami?.track;
-
-  if (typeof track === 'function') {
-    track(event.name, payload);
-    return;
-  }
-
-  pendingUmamiEvents = [
-    ...pendingUmamiEvents.slice(-(MAX_PENDING_UMAMI_EVENTS - 1)),
-    { name: event.name, payload },
-  ];
-  scheduleUmamiFlush();
-}
-
-function scheduleUmamiFlush(): void {
-  if (umamiFlushTimer || umamiFlushAttempts >= UMAMI_MAX_FLUSH_ATTEMPTS) {
-    return;
-  }
-
-  umamiFlushTimer = setTimeout(() => {
-    umamiFlushTimer = null;
-    flushPendingUmamiEvents();
-  }, UMAMI_FLUSH_DELAY_MS);
-}
-
-function flushPendingUmamiEvents(): void {
-  const track = window.umami?.track;
-  if (typeof track !== 'function') {
-    umamiFlushAttempts++;
-    scheduleUmamiFlush();
-    return;
-  }
-
-  const events = pendingUmamiEvents;
-  pendingUmamiEvents = [];
-  umamiFlushAttempts = 0;
-  for (const event of events) {
-    track(event.name, event.payload);
   }
 }

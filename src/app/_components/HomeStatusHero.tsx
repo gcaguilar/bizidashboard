@@ -6,7 +6,7 @@ import type { NetworkHealth, NetworkHealthLevel } from '@/lib/network-health';
 import { useT } from '@/lib/i18n/use-locale';
 import type { Translator } from '@/lib/i18n/messages';
 import { appRoutes } from '@/lib/routes';
-import { buildObservatoryEvent } from '@/lib/umami';
+import { buildObservatoryEvent } from '@/lib/analytics';
 import type { CriticalDistrictCount } from '@/server-functions/home';
 
 const HEALTH_LEVEL_COLORS: Record<NetworkHealthLevel, string> = {

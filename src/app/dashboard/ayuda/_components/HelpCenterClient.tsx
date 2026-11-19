@@ -21,8 +21,8 @@ import {
   buildCtaClickEvent,
   buildExportClickEvent,
   buildPanelOpenEvent,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';
@@ -268,7 +268,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 key={category}
                 onClick={() => {
                   const nextCategory = activeCategory === category ? null : category;
-                  trackUmamiEvent(
+                  trackEvent(
                     buildPanelOpenEvent({
                       surface: 'dashboard',
                       routeKey: 'dashboard_help',

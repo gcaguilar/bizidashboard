@@ -1,9 +1,8 @@
 export type SecurityEnvironment = Record<string, string | undefined>;
 
 export type ExternalServiceConfig = {
-  umamiScriptSrc: string;
-  umamiWebsiteId: string;
-  umamiHostUrl: string;
+  posthogKey: string;
+  posthogHost: string;
   sentryDsn: string;
 };
 

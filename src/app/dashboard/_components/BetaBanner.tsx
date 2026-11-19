@@ -17,7 +17,7 @@ import {
   type FeedbackBannerState,
   type FeedbackModalState,
 } from '@/lib/feedback';
-import { buildCtaClickEvent, buildPanelOpenEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
+import { buildCtaClickEvent, buildPanelOpenEvent, resolveRouteKeyFromPathname, trackEvent } from '@/lib/analytics';
 
 const BICIRADAR_URL = 'https://biciradar.es';
 const DISABLE_WELCOME_MODAL =
@@ -246,14 +246,14 @@ export function BetaBanner() {
 
   const trackBiciRadarBanner = useCallback(
     (action: BiciRadarBannerAction) => {
-      trackUmamiEvent(buildBiciRadarTrackingEvent({ routeKey, surface: 'banner', action }));
+      trackEvent(buildBiciRadarTrackingEvent({ routeKey, surface: 'banner', action }));
     },
     [routeKey]
   );
 
   const trackBiciRadarModal = useCallback(
     (action: BiciRadarModalAction) => {
-      trackUmamiEvent(buildBiciRadarTrackingEvent({ routeKey, surface: 'modal', action }));
+      trackEvent(buildBiciRadarTrackingEvent({ routeKey, surface: 'modal', action }));
     },
     [routeKey]
   );
@@ -322,7 +322,7 @@ export function BetaBanner() {
       return;
     }
 
-    trackUmamiEvent(
+    trackEvent(
       buildPanelOpenEvent({
         surface: 'dashboard',
         routeKey,

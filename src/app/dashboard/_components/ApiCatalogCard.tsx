@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { appRoutes } from '@/lib/routes';
-import { buildPanelOpenEvent } from '@/lib/umami';
+import { buildPanelOpenEvent } from '@/lib/analytics';
 
 type ApiCatalogCardProps = {
   items: Array<{

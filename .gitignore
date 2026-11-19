@@ -82,6 +82,8 @@ docs/*
 !docs/product/datosbizi-observatorio-validacion.md
 !docs/i18n/
 !docs/i18n/english-version.md
+# Guía local de la integración con PostHog (no versionar)
+docs/POSTHOG.md
 PLAN.md
 untitled.pen
 dist/

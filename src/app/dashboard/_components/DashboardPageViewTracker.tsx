@@ -6,8 +6,8 @@ import type { DashboardViewMode } from '@/lib/dashboard-modes';
 import {
   buildDashboardPageViewEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 
 type DashboardPageViewTrackerProps = {
   routeKey?: string;
@@ -39,7 +39,7 @@ export function DashboardPageViewTracker({
 
     lastTrackedKey.current = trackingKey;
 
-    trackUmamiEvent(
+    trackEvent(
       buildDashboardPageViewEvent({
         routeKey: resolvedRouteKey,
         pageType,

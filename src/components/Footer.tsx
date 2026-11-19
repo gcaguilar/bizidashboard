@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { TrackedLink } from '@/app/_components/TrackedLink'
+import { openAnalyticsPreferences } from '@/lib/analytics'
 import { appRoutes } from '@/lib/routes'
 import { INSTAGRAM_URL } from '@/lib/social-profiles'
 import { FOOTER_LEGAL_ITEMS, FOOTER_NAV_GROUPS } from '@/lib/public-navigation'
@@ -66,6 +67,11 @@ export default function Footer({ footerData }: { footerData: FooterData | undefi
                   {translateNavLabel(locale, link)}
                 </TrackedLink>
               ))}
+              {footerData?.posthog ? (
+                <button type="button" onClick={openAnalyticsPreferences} className="hover:text-[var(--foreground)] transition">
+                  {t('consent.footer.preferences')}
+                </button>
+              ) : null}
             </nav>
           </div>
 

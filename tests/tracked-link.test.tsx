@@ -6,7 +6,7 @@ const {
   buildLegacyInteractionEventMock,
   buildNavigationClickEventMock,
   resolveRouteKeyFromPathnameMock,
-  trackUmamiEventMock,
+  trackEventMock,
   usePathnameMock,
 } = vi.hoisted(() => ({
   buildCtaClickEventMock: vi.fn(),
@@ -14,7 +14,7 @@ const {
   buildLegacyInteractionEventMock: vi.fn(),
   buildNavigationClickEventMock: vi.fn(),
   resolveRouteKeyFromPathnameMock: vi.fn(),
-  trackUmamiEventMock: vi.fn(),
+  trackEventMock: vi.fn(),
   usePathnameMock: vi.fn(),
 }));
 
@@ -40,13 +40,13 @@ vi.mock('@tanstack/react-router', async () => {
   };
 });
 
-vi.mock('@/lib/umami', () => ({
+vi.mock('@/lib/analytics', () => ({
   buildCtaClickEvent: buildCtaClickEventMock,
   buildEntitySelectEvent: buildEntitySelectEventMock,
   buildLegacyInteractionEvent: buildLegacyInteractionEventMock,
   buildNavigationClickEvent: buildNavigationClickEventMock,
   resolveRouteKeyFromPathname: resolveRouteKeyFromPathnameMock,
-  trackUmamiEvent: trackUmamiEventMock,
+  trackEvent: trackEventMock,
 }));
 
 describe('TrackedLink', () => {
@@ -56,7 +56,7 @@ describe('TrackedLink', () => {
     buildLegacyInteractionEventMock.mockReset();
     buildNavigationClickEventMock.mockReset();
     resolveRouteKeyFromPathnameMock.mockReset();
-    trackUmamiEventMock.mockReset();
+    trackEventMock.mockReset();
     usePathnameMock.mockReset();
 
     usePathnameMock.mockReturnValue('/metodologia');
@@ -110,7 +110,7 @@ describe('TrackedLink', () => {
       destinationRole: 'dashboard',
       transitionKind: 'within_dashboard',
     });
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'navigation_click',
       payload: {
         surface: 'dashboard',
@@ -153,7 +153,7 @@ describe('TrackedLink', () => {
       destinationRole: 'hub',
       transitionKind: 'within_public',
     });
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'cta_click',
       payload: {
         surface: 'public',
@@ -189,7 +189,7 @@ describe('TrackedLink', () => {
       source: 'stations_table',
       entityType: 'station',
     });
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'entity_select',
       payload: {
         surface: 'public',
@@ -231,7 +231,7 @@ describe('TrackedLink', () => {
     link.props.onClick({ type: 'click' });
 
     expect(resolveRouteKeyFromPathnameMock).toHaveBeenCalledWith('/metodologia');
-    expect(trackUmamiEventMock).toHaveBeenCalledWith(trackingEvent);
+    expect(trackEventMock).toHaveBeenCalledWith(trackingEvent);
     expect(buildNavigationClickEventMock).not.toHaveBeenCalled();
     expect(buildCtaClickEventMock).not.toHaveBeenCalled();
     expect(buildEntitySelectEventMock).not.toHaveBeenCalled();
@@ -254,7 +254,7 @@ describe('TrackedLink', () => {
     expect(link.props.search).toEqual({ period: 'night' });
     link.props.onClick({ type: 'click' });
 
-    expect(trackUmamiEventMock).toHaveBeenCalled();
+    expect(trackEventMock).toHaveBeenCalled();
   });
 
   it('splits internal destinations into TanStack pathname, search, and hash parts', async () => {

@@ -6,7 +6,7 @@ import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { FeedbackDialog } from '@/app/_components/FeedbackDialog';
 import { Button } from '@/components/ui/button';
 import { getFeedbackUrl, markFeedbackModalSeenForCurrentVisit } from '@/lib/feedback';
-import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackUmamiEvent } from '@/lib/umami';
+import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackEvent } from '@/lib/analytics';
 
 type FeedbackCtaProps = {
   source: string;
@@ -60,7 +60,7 @@ export function FeedbackCta({
       return;
     }
 
-    trackUmamiEvent(
+    trackEvent(
       buildCtaClickEvent({
         surface,
         routeKey,

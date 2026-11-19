@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { buildCtaClickEvent, trackUmamiEvent } from '@/lib/umami';
+import { buildCtaClickEvent, trackEvent } from '@/lib/analytics';
 
 export const MCP_SERVER_URL = 'https://mcp.datosbizi.com/mcp';
 export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
@@ -63,7 +63,7 @@ export async function copyMcpClientId(): Promise<boolean> {
 }
 
 function trackInstallAction(ctaId: string, destination?: string) {
-  trackUmamiEvent(
+  trackEvent(
     buildCtaClickEvent({
       surface: 'public',
       routeKey: 'mcp',

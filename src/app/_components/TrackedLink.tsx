@@ -8,22 +8,22 @@ import {
   buildLegacyInteractionEvent,
   buildNavigationClickEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
+  trackEvent,
   type CtaClickInput,
   type EntitySelectInput,
-  type LegacyUmamiInteractionName,
+  type LegacyAnalyticsInteractionName,
   type NavigationClickInput,
-  type UmamiEventValue,
-  type UmamiTrackedEvent,
-} from '@/lib/umami';
+  type AnalyticsEventValue,
+  type AnalyticsTrackedEvent,
+} from '@/lib/analytics';
 
 type TrackingProps = {
-  trackingEvent?: UmamiTrackedEvent;
+  trackingEvent?: AnalyticsTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
   entitySelectEvent?: Omit<EntitySelectInput, 'surface' | 'routeKey'>;
-  eventName?: LegacyUmamiInteractionName;
-  eventData?: Record<string, UmamiEventValue>;
+  eventName?: LegacyAnalyticsInteractionName;
+  eventData?: Record<string, AnalyticsEventValue>;
 };
 
 type TrackedLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'onClick'> &
@@ -35,7 +35,7 @@ type TrackedLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | '
     onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   };
 
-/** Emite el evento de Umami que corresponda antes de delegar en el onClick del consumidor. */
+/** Emite el evento de Analytics que corresponda antes de delegar en el onClick del consumidor. */
 function useTrackedClick(
   tracking: TrackingProps,
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
@@ -49,15 +49,15 @@ function useTrackedClick(
       tracking;
 
     if (trackingEvent) {
-      trackUmamiEvent(trackingEvent);
+      trackEvent(trackingEvent);
     } else if (navigationEvent) {
-      trackUmamiEvent(buildNavigationClickEvent({ surface, routeKey, ...navigationEvent }));
+      trackEvent(buildNavigationClickEvent({ surface, routeKey, ...navigationEvent }));
     } else if (ctaEvent) {
-      trackUmamiEvent(buildCtaClickEvent({ surface, routeKey, ...ctaEvent }));
+      trackEvent(buildCtaClickEvent({ surface, routeKey, ...ctaEvent }));
     } else if (entitySelectEvent) {
-      trackUmamiEvent(buildEntitySelectEvent({ surface, routeKey, ...entitySelectEvent }));
+      trackEvent(buildEntitySelectEvent({ surface, routeKey, ...entitySelectEvent }));
     } else if (eventName) {
-      trackUmamiEvent(buildLegacyInteractionEvent({ eventName, eventData, pathname }));
+      trackEvent(buildLegacyInteractionEvent({ eventName, eventData, pathname }));
     }
 
     onClick?.(event);

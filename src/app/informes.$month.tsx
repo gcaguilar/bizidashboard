@@ -20,7 +20,7 @@ import {
   getSiteUrl,
 } from '@/lib/site'
 import { RouteErrorReporter } from '@/lib/route-error-reporting'
-import { buildObservatoryEvent } from '@/lib/umami'
+import { buildObservatoryEvent } from '@/lib/analytics'
 import { toJsonLdScript } from '@/lib/structured-data';
 import { DemandFlowCard } from '@/app/dashboard/_components/DemandFlowCard';
 import { ReportSummary } from '@/app/informes/_components/ReportSummary';

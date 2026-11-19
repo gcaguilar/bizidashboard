@@ -1,7 +1,7 @@
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
-import { buildPanelOpenEvent } from '@/lib/umami';
+import { buildPanelOpenEvent } from '@/lib/analytics';
 
 type DashboardQuickLinksProps = {
   selectedStationDetailUrl: string;

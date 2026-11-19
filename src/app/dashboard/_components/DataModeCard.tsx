@@ -1,6 +1,6 @@
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
 import { Button } from '@/components/ui/button';
-import { buildExportClickEvent } from '@/lib/umami';
+import { buildExportClickEvent } from '@/lib/analytics';
 
 type DataModeCardProps = {
   stationsCsvUrl: string;

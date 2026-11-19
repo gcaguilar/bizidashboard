@@ -9,7 +9,7 @@ import { DataStateNotice } from '@/app/_components/DataStateNotice';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { DEFAULT_TIME_ZONE, formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
-import { buildExportClickEvent, buildPanelOpenEvent } from '@/lib/umami';
+import { buildExportClickEvent, buildPanelOpenEvent } from '@/lib/analytics';
 import { ChartWrapper } from './ChartWrapper';
 import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 import { fetchJson } from '@/lib/fetch-json';

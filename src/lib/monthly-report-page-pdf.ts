@@ -42,18 +42,14 @@ export function monthlyReportPageUrl(monthKey: string): string {
   return `${reportPageOrigin()}${appRoutes.reportMonth(monthKey)}`;
 }
 
-/** Host del script de analitica, que el render no debe cargar. */
-function configuredAnalyticsHost(): string | null {
-  const src = process.env.UMAMI_SCRIPT_SRC?.trim();
-
-  if (!src) {
-    return null;
-  }
+/** Hosts de analitica, que el render del informe no debe cargar. */
+function configuredAnalyticsHosts(): string[] {
+  const host = process.env.POSTHOG_HOST?.trim() || 'https://eu.i.posthog.com';
 
   try {
-    return new URL(src).host;
+    return [new URL(host).host, 'eu-assets.i.posthog.com'];
   } catch {
-    return null;
+    return ['eu.i.posthog.com', 'eu-assets.i.posthog.com'];
   }
 }
 
@@ -77,20 +73,18 @@ export async function renderMonthlyReportPagePdf(
   });
 
   // El render no es una visita real: no debe contar en la analitica.
-  const analyticsHost = configuredAnalyticsHost();
-  if (analyticsHost) {
-    await page.route('**/*', (route) => {
-      try {
-        if (new URL(route.request().url()).host === analyticsHost) {
-          return route.abort();
-        }
-      } catch {
-        // URL no parseable: se deja pasar.
+  const analyticsHosts = configuredAnalyticsHosts();
+  await page.route('**/*', (route) => {
+    try {
+      if (analyticsHosts.includes(new URL(route.request().url()).host)) {
+        return route.abort();
       }
+    } catch {
+      // URL no parseable: se deja pasar.
+    }
 
-      return route.continue();
-    });
-  }
+    return route.continue();
+  });
 
   try {
     const response = await page.goto(monthlyReportPageUrl(monthKey), {

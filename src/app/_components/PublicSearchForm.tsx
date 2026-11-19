@@ -12,8 +12,8 @@ import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import {
   buildSearchSubmitEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 
 const MAX_SUGGESTIONS = 8;
 
@@ -155,7 +155,7 @@ export function PublicSearchForm({
   const trackSubmit = (form: HTMLFormElement) => {
     const raw = new FormData(form).get('q');
     const q = (typeof raw === 'string' ? raw : '').trim();
-    trackUmamiEvent(
+    trackEvent(
       buildSearchSubmitEvent({
         surface: 'public',
         routeKey: resolveRouteKeyFromPathname(pathname),

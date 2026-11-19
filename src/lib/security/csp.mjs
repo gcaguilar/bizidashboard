@@ -1,3 +1,7 @@
+// PostHog Cloud EU serves SDK assets from a dedicated CDN host. Allow both the
+// configured ingestion host and this asset host only when a key is configured.
+const DEFAULT_POSTHOG_ASSET_ORIGIN = 'https://eu-assets.i.posthog.com';
+
 const DEFAULT_CONNECT_URLS = [
   'https://tile.openstreetmap.org',
   // Estilo vectorial oscuro (style.json, teselas y glifos) sin clave ni
@@ -72,21 +76,8 @@ function resolveFeedbackFrameOrigin(env) {
 }
 
 export function resolveExternalServiceConfig(env = process.env) {
-  const umamiScriptSrc = readFirst(env, [
-    'UMAMI_SCRIPT_SRC',
-    'VITE_UMAMI_SCRIPT_SRC',
-    'NEXT_PUBLIC_UMAMI_SCRIPT_SRC',
-  ]);
-  const umamiWebsiteId = readFirst(env, [
-    'UMAMI_WEBSITE_ID',
-    'VITE_UMAMI_WEBSITE_ID',
-    'NEXT_PUBLIC_UMAMI_WEBSITE_ID',
-  ]);
-  const umamiHostUrl = readFirst(env, [
-    'UMAMI_HOST_URL',
-    'VITE_UMAMI_HOST_URL',
-    'NEXT_PUBLIC_UMAMI_HOST_URL',
-  ]);
+  const posthogKey = readFirst(env, ['POSTHOG_KEY']);
+  const posthogHost = readFirst(env, ['POSTHOG_HOST']) || 'https://eu.i.posthog.com';
   const sentryDsn = readFirst(env, [
     'SENTRY_DSN',
     'VITE_SENTRY_DSN',
@@ -94,9 +85,8 @@ export function resolveExternalServiceConfig(env = process.env) {
   ]);
 
   return {
-    umamiScriptSrc,
-    umamiWebsiteId,
-    umamiHostUrl,
+    posthogKey,
+    posthogHost,
     sentryDsn,
   };
 }
@@ -107,11 +97,10 @@ export function buildContentSecurityPolicy(env = process.env) {
   const connectOrigins = DEFAULT_CONNECT_URLS.map((value) => new URL(value).origin);
   const frameOrigins = DEFAULT_FRAME_URLS.map((value) => new URL(value).origin);
 
-  if (config.umamiScriptSrc) {
-    scriptOrigins.push(parseHttpUrl(config.umamiScriptSrc, 'UMAMI_SCRIPT_SRC').origin);
-  }
-  if (config.umamiHostUrl) {
-    connectOrigins.push(parseHttpUrl(config.umamiHostUrl, 'UMAMI_HOST_URL').origin);
+  if (config.posthogKey) {
+    const posthogOrigin = parseHttpUrl(config.posthogHost, 'POSTHOG_HOST').origin;
+    scriptOrigins.push(posthogOrigin, new URL(DEFAULT_POSTHOG_ASSET_ORIGIN).origin);
+    connectOrigins.push(posthogOrigin, new URL(DEFAULT_POSTHOG_ASSET_ORIGIN).origin);
   }
   if (config.sentryDsn) {
     connectOrigins.push(parseHttpUrl(config.sentryDsn, 'SENTRY_DSN').origin);

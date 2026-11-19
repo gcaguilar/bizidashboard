@@ -69,8 +69,8 @@ Refresh tokens are no longer stored in plaintext in the database. The backend pe
 
 ### Web analytics
 
-- Public web analytics uses Umami with a GDPR-minimal event contract: no free-text queries, no raw route params, no station or district IDs in custom dashboard events, and no session replay/fingerprinting.
-- Keep the deployed Umami instance in cookieless mode and avoid storing identifiable IP data. If legal or security cannot validate that setup, audit the current tracking first and do not expand event coverage.
+- Public web analytics uses PostHog Cloud EU with a privacy-minimal event contract: no free-text queries, no raw route params, no station or district IDs in custom dashboard events, no person profiles, and no session replay/heatmaps/autocapture.
+- Analytics is off until the visitor explicitly consents; the choice is persisted, revocable from the footer, and blocks the SDK entirely when denied. IP discard is a project-level setting in PostHog (EU projects default to discarding IP): verify it before production. See [`docs/POSTHOG.md`](docs/POSTHOG.md).
 
 ---
 
@@ -287,21 +287,21 @@ The browser SDK delivers through an opaque, same-origin tunnel path (`/monitorin
 `connect-src 'self'` is enough. Sentry delivery origins are still allowlisted (derived from
 `SENTRY_DSN`/`VITE_SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN`) for direct delivery.
 
-## Analytics (Umami)
+## Analytics (PostHog Cloud EU)
 
-Umami is loaded by the server at runtime only in production and only when all three variables are configured:
+PostHog is resolved by the server at runtime only in production and only when `POSTHOG_KEY` is set:
 
-- `UMAMI_SCRIPT_SRC` (default suggested: `https://cloud.umami.is/script.js`)
-- `UMAMI_WEBSITE_ID`
-- `UMAMI_HOST_URL` (cloud default: `https://api-gateway.umami.dev`)
+- `POSTHOG_KEY` — public project token; leave empty to disable analytics entirely
+- `POSTHOG_HOST` — ingestion host, defaults to `https://eu.i.posthog.com`
+- `POSTHOG_UI_HOST` — app host, defaults to `https://eu.posthog.com`
 
-The CSP derives `script-src` from the configured script URL and `connect-src` from the configured collector URL. Self-hosted Umami therefore needs no code change. `VITE_UMAMI_*` and `NEXT_PUBLIC_UMAMI_*` remain temporary runtime compatibility aliases; new deployments should use `UMAMI_*`. These values are no longer Docker build arguments.
+See [`docs/POSTHOG.md`](docs/POSTHOG.md) for the consent flow, event catalogue, privacy controls and Coolify setup. The CSP derives `script-src` and `connect-src` from the configured host when a key exists; no PostHog origin is allowed otherwise. These values are runtime environment variables, not Docker build arguments.
 
 ## CSP rollout strategy
 
 To avoid telemetry regressions while tightening CSP:
 
-- Keep Sentry and Umami domains explicitly allowlisted.
+- Keep Sentry and PostHog domains explicitly allowlisted.
 - Use `CSP_REPORT_ONLY=true` first to emit `Content-Security-Policy-Report-Only`.
 - Add exceptional script, connection, or frame origins only through `CSP_SCRIPT_SRC_ORIGINS`, `CSP_CONNECT_SRC_ORIGINS`, or `CSP_FRAME_SRC_ORIGINS`; invalid URLs stop server startup. The feedback form iframe origin (Tally by default) is allowlisted automatically in `frame-src`.
 - Review violations in staging, then enable strict enforcement in production.
@@ -310,9 +310,7 @@ After deployment, run the production security smoke test with the same expected 
 
 ```bash
 SMOKE_MOBILE_ORIGIN=capacitor://app.example \
-UMAMI_SCRIPT_SRC=https://cloud.umami.is/script.js \
-UMAMI_WEBSITE_ID=your-site-id \
-UMAMI_HOST_URL=https://api-gateway.umami.dev \
+POSTHOG_KEY=your-project-token \
 bun run qa:security:smoke -- --base-url https://datosbizi.com
 ```
 

@@ -5,8 +5,8 @@ import { useEffect, useRef } from 'react';
 import {
   buildPublicPageViewEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 
 type PublicPageViewTrackerProps = {
   routeKey?: string;
@@ -48,7 +48,7 @@ export function PublicPageViewTracker({
     lastTrackedKey.current = trackingKey;
 
     const track = () => {
-      trackUmamiEvent(
+      trackEvent(
         buildPublicPageViewEvent({
           routeKey: resolvedRouteKey,
           pageType,

@@ -4,7 +4,7 @@ import type { BadgeVariant } from '@/components/ui/badge';
 import type { NetworkBriefing as NetworkBriefingModel } from '@/lib/network-briefing';
 import type { NetworkHealthLevel } from '@/lib/network-health';
 import { appRoutes } from '@/lib/routes';
-import { buildObservatoryEvent } from '@/lib/umami';
+import { buildObservatoryEvent } from '@/lib/analytics';
 
 const HEALTH_BADGE_VARIANTS: Record<NetworkHealthLevel, BadgeVariant> = {
   green: 'success',

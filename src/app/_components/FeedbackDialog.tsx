@@ -9,8 +9,8 @@ import {
   buildCtaClickEvent,
   buildFeedbackRatingEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 
 type FeedbackDialogProps = {
   open: boolean;
@@ -47,7 +47,7 @@ export function FeedbackDialog({ open, onOpenChange, source, module }: FeedbackD
   );
 
   function trackCta(ctaId: string, destination: string, isExternal = false) {
-    trackUmamiEvent(
+    trackEvent(
       buildCtaClickEvent({
         surface,
         routeKey,
@@ -64,7 +64,7 @@ export function FeedbackDialog({ open, onOpenChange, source, module }: FeedbackD
   function handleRating(value: FeedbackRating) {
     setRating(value);
     setStage('thanks');
-    trackUmamiEvent(
+    trackEvent(
       buildFeedbackRatingEvent({
         surface,
         routeKey,

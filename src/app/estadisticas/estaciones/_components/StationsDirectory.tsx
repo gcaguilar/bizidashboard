@@ -13,10 +13,10 @@ import { getCitizenStatus } from '@/lib/map-colors';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  trackUmamiEvent,
+  trackEvent,
   buildFilterChangeEvent,
   resolveRouteKeyFromPathname,
-} from '@/lib/umami';
+} from '@/lib/analytics';
 
 type FilterKey = 'todas' | 'con-bicis' | 'con-huecos' | 'casi-vacias' | 'casi-llenas' | 'favoritas';
 
@@ -123,7 +123,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
               aria-pressed={filter === f.key}
               onClick={() => {
                 setFilter(f.key);
-                trackUmamiEvent(
+                trackEvent(
                   buildFilterChangeEvent({
                     surface: 'public',
                     routeKey,
@@ -147,7 +147,7 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
             value={sort}
             onValueChange={(value) => {
               setSort(value as SortKey);
-              trackUmamiEvent(
+              trackEvent(
                 buildFilterChangeEvent({
                   surface: 'public',
                   routeKey,

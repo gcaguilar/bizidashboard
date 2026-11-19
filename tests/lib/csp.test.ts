@@ -5,23 +5,32 @@ import {
 } from '@/lib/security/csp.mjs';
 
 describe('content security policy', () => {
-  it('derives exact Umami and Sentry origins from effective configuration', () => {
+  it('allows PostHog EU ingestion and asset origins only when a key is configured', () => {
+    const withoutKey = buildContentSecurityPolicy({});
+    expect(withoutKey).not.toContain('posthog.com');
+
     const policy = buildContentSecurityPolicy({
-      UMAMI_SCRIPT_SRC: 'https://analytics.example.com/custom/script.js',
-      UMAMI_HOST_URL: 'https://collector.example.net/analytics',
-      UMAMI_WEBSITE_ID: 'site-id',
+      POSTHOG_KEY: 'ph_project_token',
+      POSTHOG_HOST: 'https://eu.i.posthog.com',
       SENTRY_DSN: 'https://public-key@errors.example.org/123',
     });
 
-    expect(policy).toContain(
-      "script-src 'self' 'unsafe-inline' https://analytics.example.com"
-    );
-    expect(policy).not.toContain('fonts.googleapis.com');
-    expect(policy).not.toContain('fonts.gstatic.com');
-    expect(policy).toContain('https://collector.example.net');
+    expect(policy).toContain('https://eu.i.posthog.com');
+    expect(policy).toContain('https://eu-assets.i.posthog.com');
     expect(policy).toContain('https://errors.example.org');
     expect(policy).not.toContain('cloud.umami.is');
+    expect(policy).not.toContain('api-gateway.umami.dev');
     expect(policy).not.toContain('*.ingest.sentry.io');
+  });
+
+  it('derives the configured PostHog host origin and removes duplicates', () => {
+    const policy = buildContentSecurityPolicy({
+      POSTHOG_KEY: 'ph_project_token',
+      POSTHOG_HOST: 'https://ingest.example.net/custom/path',
+      CSP_CONNECT_SRC_ORIGINS: 'https://ingest.example.net',
+    });
+
+    expect(policy.match(/https:\/\/ingest\.example\.net/g)).toHaveLength(2);
   });
 
   it('supports controlled additional origins and removes duplicates', () => {
@@ -61,7 +70,10 @@ describe('content security policy', () => {
 
   it('rejects invalid configured URLs', () => {
     expect(() =>
-      buildContentSecurityPolicy({ UMAMI_SCRIPT_SRC: 'javascript:alert(1)' })
+      buildContentSecurityPolicy({
+        POSTHOG_KEY: 'ph_project_token',
+        POSTHOG_HOST: 'javascript:alert(1)',
+      })
     ).toThrow(/http or https/);
     expect(() =>
       buildContentSecurityPolicy({ CSP_CONNECT_SRC_ORIGINS: 'not-a-url' })

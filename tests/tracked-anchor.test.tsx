@@ -6,14 +6,14 @@ const {
   buildLegacyInteractionEventMock,
   buildNavigationClickEventMock,
   resolveRouteKeyFromPathnameMock,
-  trackUmamiEventMock,
+  trackEventMock,
 } = vi.hoisted(() => ({
   buildCtaClickEventMock: vi.fn(),
   buildEntitySelectEventMock: vi.fn(),
   buildLegacyInteractionEventMock: vi.fn(),
   buildNavigationClickEventMock: vi.fn(),
   resolveRouteKeyFromPathnameMock: vi.fn(),
-  trackUmamiEventMock: vi.fn(),
+  trackEventMock: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', async () => {
@@ -24,13 +24,13 @@ vi.mock('@tanstack/react-router', async () => {
   };
 });
 
-vi.mock('@/lib/umami', () => ({
+vi.mock('@/lib/analytics', () => ({
   buildCtaClickEvent: buildCtaClickEventMock,
   buildEntitySelectEvent: buildEntitySelectEventMock,
   buildLegacyInteractionEvent: buildLegacyInteractionEventMock,
   buildNavigationClickEvent: buildNavigationClickEventMock,
   resolveRouteKeyFromPathname: resolveRouteKeyFromPathnameMock,
-  trackUmamiEvent: trackUmamiEventMock,
+  trackEvent: trackEventMock,
 }));
 
 describe('TrackedAnchor', () => {
@@ -40,7 +40,7 @@ describe('TrackedAnchor', () => {
     buildLegacyInteractionEventMock.mockReset();
     buildNavigationClickEventMock.mockReset();
     resolveRouteKeyFromPathnameMock.mockReset();
-    trackUmamiEventMock.mockReset();
+    trackEventMock.mockReset();
 
     resolveRouteKeyFromPathnameMock.mockReturnValue('methodology');
     buildCtaClickEventMock.mockImplementation((payload) => ({
@@ -93,7 +93,7 @@ describe('TrackedAnchor', () => {
       destinationRole: 'utility',
       transitionKind: 'within_public',
     });
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'cta_click',
       payload: {
         surface: 'public',
@@ -145,7 +145,7 @@ describe('TrackedAnchor', () => {
     });
     expect(buildCtaClickEventMock).not.toHaveBeenCalled();
     expect(buildEntitySelectEventMock).not.toHaveBeenCalled();
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'navigation_click',
       payload: {
         surface: 'public',
@@ -178,7 +178,7 @@ describe('TrackedAnchor', () => {
       source: 'monthly_report_top_stations',
       entityType: 'station',
     });
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'entity_select',
       payload: {
         surface: 'public',

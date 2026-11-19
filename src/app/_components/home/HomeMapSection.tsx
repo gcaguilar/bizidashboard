@@ -6,7 +6,7 @@ import type { StationSnapshot } from '@/lib/api-types';
 import { getCitizenMapLegend } from '@/lib/map-colors';
 import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
-import { buildObservatoryEvent } from '@/lib/umami';
+import { buildObservatoryEvent } from '@/lib/analytics';
 
 // El motor del mapa (MapLibre) solo se descarga cuando la sección entra en el
 // viewport; el `lazy` no ejecuta el import hasta renderizar el componente.

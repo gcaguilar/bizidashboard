@@ -10,7 +10,7 @@ import type { StationSnapshot } from '@/lib/api-types';
 import { resolveDataState, shouldShowDataStateNotice, type DataState } from '@/lib/data-state';
 import { formatPercent } from '@/lib/format';
 import { appRoutes } from '@/lib/routes';
-import { buildEntitySelectEvent } from '@/lib/umami';
+import { buildEntitySelectEvent } from '@/lib/analytics';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { GitHubRepoButton } from '@/app/dashboard/_components/GitHubRepoButton';
 import { PageHeaderCard } from '@/components/layout/page-header-card';

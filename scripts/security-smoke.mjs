@@ -4,9 +4,8 @@ const baseUrl = (
   baseUrlIndex >= 0 ? args[baseUrlIndex + 1] : process.env.PLAYWRIGHT_BASE_URL
 )?.replace(/\/$/, '');
 const mobileOrigin = process.env.SMOKE_MOBILE_ORIGIN?.trim();
-const umamiScriptSrc = process.env.UMAMI_SCRIPT_SRC?.trim();
-const umamiWebsiteId = process.env.UMAMI_WEBSITE_ID?.trim();
-const umamiHostUrl = process.env.UMAMI_HOST_URL?.trim();
+const posthogKey = process.env.POSTHOG_KEY?.trim();
+const posthogHost = process.env.POSTHOG_HOST?.trim() || 'https://eu.i.posthog.com';
 
 if (!baseUrl) {
   throw new Error('Provide --base-url or PLAYWRIGHT_BASE_URL.');
@@ -14,8 +13,8 @@ if (!baseUrl) {
 if (!mobileOrigin) {
   throw new Error('SMOKE_MOBILE_ORIGIN is required.');
 }
-if (!umamiScriptSrc || !umamiWebsiteId || !umamiHostUrl) {
-  throw new Error('UMAMI_SCRIPT_SRC, UMAMI_WEBSITE_ID and UMAMI_HOST_URL are required.');
+if (!posthogKey) {
+  throw new Error('POSTHOG_KEY is required.');
 }
 
 function assert(condition, message) {
@@ -30,11 +29,16 @@ const csp =
 
 assert(homeResponse.ok, `Home returned ${homeResponse.status}.`);
 assert(csp, 'Home response is missing CSP.');
-assert(html.includes(`src="${umamiScriptSrc}"`), 'Umami script src is missing from HTML.');
-assert(html.includes(`data-website-id="${umamiWebsiteId}"`), 'Umami website id is missing from HTML.');
-assert(html.includes(`data-host-url="${umamiHostUrl}"`), 'Umami host URL is missing from HTML.');
-assert(csp.includes(new URL(umamiScriptSrc).origin), 'CSP is missing the Umami script origin.');
-assert(csp.includes(new URL(umamiHostUrl).origin), 'CSP is missing the Umami collector origin.');
+assert(!html.includes('cloud.umami.is'), 'Legacy Umami script is still present.');
+assert(html.includes('Tu privacidad importa'), 'Analytics consent banner is missing from HTML.');
+assert(
+  csp.includes(new URL(posthogHost).origin),
+  'CSP is missing the PostHog ingestion origin.'
+);
+assert(
+  csp.includes('https://eu-assets.i.posthog.com'),
+  'CSP is missing the PostHog assets origin.'
+);
 
 const preflightResponse = await fetch(`${baseUrl}/api/token/refresh`, {
   method: 'OPTIONS',
@@ -59,4 +63,4 @@ assert(
   '/api/status unexpectedly enables external CORS.'
 );
 
-console.log(JSON.stringify({ ok: true, baseUrl, mobileOrigin }, null, 2));
+console.log(JSON.stringify({ ok: true, baseUrl, mobileOrigin, posthogHost }, null, 2));

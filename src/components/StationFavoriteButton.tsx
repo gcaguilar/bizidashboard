@@ -5,10 +5,10 @@ import { useT } from '@/lib/i18n/use-locale'
 import { useFavoriteStations } from '@/lib/use-favorite-stations'
 import { cn } from '@/lib/utils'
 import {
-  trackUmamiEvent,
+  trackEvent,
   buildCtaClickEvent,
   resolveRouteKeyFromPathname,
-} from '@/lib/umami'
+} from '@/lib/analytics'
 
 type StationFavoriteButtonProps = {
   stationId: string
@@ -39,7 +39,7 @@ export function StationFavoriteButton({
 
   const toggleFavorite = () => {
     toggleFavoriteStation(stationId)
-    trackUmamiEvent(
+    trackEvent(
       buildCtaClickEvent({
         surface: 'public',
         routeKey,

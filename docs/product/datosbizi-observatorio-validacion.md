@@ -7,7 +7,7 @@
 | Resumen y rendimiento | `/`, `/dashboard` | Smoke HTTP 200; suite Vitest |
 | Comparativas e informes | `/comparar`, `/informes` y fichas mensuales | Smoke HTTP 200; pruebas de comparabilidad |
 | Estado y método | `/estado`, `/metodologia` | Smoke HTTP 200; pruebas de vocabulario |
-| Datos abiertos | `/developers` | Smoke HTTP 200; contrato Umami GDPR-minimal |
+| Datos abiertos | `/developers` | Smoke HTTP 200; contrato de analítica minimalista (sin PII) |
 | Consulta individual | `/biciradar` | Smoke HTTP 200; ruta independiente de dashboard |
 | Fichas públicas | `/estadisticas/estaciones`, `/estadisticas/barrios` | Smoke HTTP 200 |
 

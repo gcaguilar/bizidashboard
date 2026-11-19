@@ -2,7 +2,7 @@ import { ApiCatalogCard } from './ApiCatalogCard';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import { Button } from '@/components/ui/button';
 import { appRoutes } from '@/lib/routes';
-import { buildPanelOpenEvent } from '@/lib/umami';
+import { buildPanelOpenEvent } from '@/lib/analytics';
 import { DataHistoryCard } from './DataHistoryCard';
 import { DataModeCard } from './DataModeCard';
 import { MethodologyPanel } from './MethodologyPanel';

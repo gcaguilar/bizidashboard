@@ -21,15 +21,15 @@ vi.mock('@/components/ui/dialog', () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
-const { trackUmamiEventMock } = vi.hoisted(() => ({
-  trackUmamiEventMock: vi.fn(),
+const { trackEventMock } = vi.hoisted(() => ({
+  trackEventMock: vi.fn(),
 }));
 
-vi.mock('@/lib/umami', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/umami')>('@/lib/umami');
+vi.mock('@/lib/analytics', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/analytics')>('@/lib/analytics');
   return {
     ...actual,
-    trackUmamiEvent: trackUmamiEventMock,
+    trackEvent: trackEventMock,
   };
 });
 
@@ -48,7 +48,7 @@ function renderDialog(onOpenChange = vi.fn()) {
 
 describe('FeedbackDialog', () => {
   beforeEach(() => {
-    trackUmamiEventMock.mockReset();
+    trackEventMock.mockReset();
     vi.stubEnv('NEXT_PUBLIC_FEEDBACK_URL', '');
   });
 
@@ -63,7 +63,7 @@ describe('FeedbackDialog', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Me gusta' }));
 
-    expect(trackUmamiEventMock).toHaveBeenCalledWith({
+    expect(trackEventMock).toHaveBeenCalledWith({
       name: 'feedback_rating',
       payload: {
         surface: 'dashboard',
@@ -91,7 +91,7 @@ describe('FeedbackDialog', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'No me gusta' }));
 
-    expect(trackUmamiEventMock).toHaveBeenCalledWith(
+    expect(trackEventMock).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'feedback_rating',
         payload: expect.objectContaining({ rating: 'negative' }),

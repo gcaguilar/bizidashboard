@@ -742,7 +742,8 @@ table tbody tr:hover {
 
   body > header,
   body > footer,
-  .ui-print-hide {
+  .ui-print-hide,
+  [data-analytics-consent] {
     display: none !important;
   }
 

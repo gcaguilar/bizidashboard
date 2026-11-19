@@ -10,9 +10,9 @@ import {
   McpInstallGuide,
 } from '@/app/_components/McpInstallGuide';
 
-vi.mock('@/lib/umami', () => ({
+vi.mock('@/lib/analytics', () => ({
   buildCtaClickEvent: (payload: unknown) => ({ name: 'cta_click', payload }),
-  trackUmamiEvent: vi.fn(),
+  trackEvent: vi.fn(),
 }));
 
 afterEach(() => {

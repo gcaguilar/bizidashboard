@@ -20,9 +20,9 @@ vi.mock('@tanstack/react-router', async () => {
   };
 });
 
-vi.mock('@/lib/umami', () => ({
+vi.mock('@/lib/analytics', () => ({
   buildFilterChangeEvent: vi.fn((payload) => ({ name: 'filter_change', payload })),
-  trackUmamiEvent: vi.fn(),
+  trackEvent: vi.fn(),
 }));
 
 /** Resuelve el updater funcional que MonthFilter pasa a navigate. */

@@ -21,8 +21,8 @@ import {
   buildFilterChangeEvent,
   buildObservatoryEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 
 const QUICK_FILTERS: { key: HomeDiagnosisFilter; labelKey: MessageKey }[] = [
   { key: 'all', labelKey: 'home.live.filter.all' },
@@ -149,7 +149,7 @@ export function HomeLiveSection({
 
   const handleQuickFilter = (nextFilter: HomeDiagnosisFilter) => {
     setFilter(nextFilter);
-    trackUmamiEvent(
+    trackEvent(
       buildFilterChangeEvent({
         surface: 'public',
         routeKey,

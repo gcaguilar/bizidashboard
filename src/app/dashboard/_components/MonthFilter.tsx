@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
-import { buildFilterChangeEvent, trackUmamiEvent } from '@/lib/umami';
+import { buildFilterChangeEvent, trackEvent } from '@/lib/analytics';
 
 type MonthFilterProps = {
   months: string[];
@@ -40,7 +40,7 @@ function MonthFilterContent({
       return;
     }
 
-    trackUmamiEvent(
+    trackEvent(
       buildFilterChangeEvent({
         surface: 'dashboard',
         routeKey,

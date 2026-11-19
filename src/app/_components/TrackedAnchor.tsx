@@ -8,23 +8,23 @@ import {
   buildLegacyInteractionEvent,
   buildNavigationClickEvent,
   resolveRouteKeyFromPathname,
-  trackUmamiEvent,
+  trackEvent,
   type CtaClickInput,
   type EntitySelectInput,
-  type LegacyUmamiInteractionName,
+  type LegacyAnalyticsInteractionName,
   type NavigationClickInput,
-  type UmamiEventValue,
-  type UmamiTrackedEvent,
-} from '@/lib/umami';
+  type AnalyticsEventValue,
+  type AnalyticsTrackedEvent,
+} from '@/lib/analytics';
 
 type TrackedAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   children: ReactNode;
-  trackingEvent?: UmamiTrackedEvent;
+  trackingEvent?: AnalyticsTrackedEvent;
   navigationEvent?: Omit<NavigationClickInput, 'surface' | 'routeKey'>;
   ctaEvent?: Omit<CtaClickInput, 'surface' | 'routeKey'>;
   entitySelectEvent?: Omit<EntitySelectInput, 'surface' | 'routeKey'>;
-  eventName?: LegacyUmamiInteractionName;
-  eventData?: Record<string, UmamiEventValue>;
+  eventName?: LegacyAnalyticsInteractionName;
+  eventData?: Record<string, AnalyticsEventValue>;
 };
 
 export function TrackedAnchor({
@@ -46,9 +46,9 @@ export function TrackedAnchor({
     const routeKey = resolveRouteKeyFromPathname(pathname);
 
     if (trackingEvent) {
-      trackUmamiEvent(trackingEvent);
+      trackEvent(trackingEvent);
     } else if (navigationEvent) {
-      trackUmamiEvent(
+      trackEvent(
         buildNavigationClickEvent({
           surface,
           routeKey,
@@ -56,7 +56,7 @@ export function TrackedAnchor({
         })
       );
     } else if (ctaEvent) {
-      trackUmamiEvent(
+      trackEvent(
         buildCtaClickEvent({
           surface,
           routeKey,
@@ -64,7 +64,7 @@ export function TrackedAnchor({
         })
       );
     } else if (entitySelectEvent) {
-      trackUmamiEvent(
+      trackEvent(
         buildEntitySelectEvent({
           surface,
           routeKey,
@@ -72,7 +72,7 @@ export function TrackedAnchor({
         })
       );
     } else if (eventName) {
-      trackUmamiEvent(
+      trackEvent(
         buildLegacyInteractionEvent({
           eventName,
           eventData,

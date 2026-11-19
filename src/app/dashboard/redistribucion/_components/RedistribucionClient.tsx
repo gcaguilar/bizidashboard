@@ -21,8 +21,8 @@ import {
   buildExportClickEvent,
   buildFilterChangeEvent,
   buildPanelOpenEvent,
-  trackUmamiEvent,
-} from '@/lib/umami';
+  trackEvent,
+} from '@/lib/analytics';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
 import { PageShell } from '@/components/layout/page-shell';
 import {
@@ -161,7 +161,7 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
             value={selectedDistrict || ALL_DISTRICTS_VALUE}
             onValueChange={(value) => {
               const nextValue = value === ALL_DISTRICTS_VALUE ? '' : value ?? '';
-              trackUmamiEvent(
+              trackEvent(
                 buildFilterChangeEvent({
                   surface: 'dashboard',
                   routeKey: 'dashboard_redistribucion',
@@ -194,7 +194,7 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
             value={String(selectedDays)}
             onValueChange={(value) => {
               const nextValue = Number(value);
-              trackUmamiEvent(
+              trackEvent(
                 buildFilterChangeEvent({
                   surface: 'dashboard',
                   routeKey: 'dashboard_redistribucion',
@@ -261,7 +261,7 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
           }
 
           const nextTab = value as Tab;
-          trackUmamiEvent(
+          trackEvent(
             buildPanelOpenEvent({
               surface: 'dashboard',
               routeKey: 'dashboard_redistribucion',
