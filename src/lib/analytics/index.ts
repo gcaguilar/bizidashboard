@@ -22,6 +22,7 @@ export {
   sanitizeCaptureResult,
   sanitizeUrl,
   trackEvent,
+  trackPageview,
 } from './client';
 export { useAnalyticsConsent } from './use-analytics-consent';
 

@@ -267,7 +267,9 @@ export function revokeAnalytics(): void {
   clearPostHogPersistence();
 }
 
-export function trackEvent(event: AnalyticsTrackedEvent): void {
+type CapturePayload = ReturnType<typeof sanitizeAnalyticsPayload>;
+
+function captureWhenReady(name: string, payload: CapturePayload): void {
   if (typeof window === 'undefined' || readAnalyticsConsent() !== 'granted') {
     return;
   }
@@ -278,10 +280,8 @@ export function trackEvent(event: AnalyticsTrackedEvent): void {
     void initAnalytics(runtimeConfig);
   }
 
-  const payload = sanitizeAnalyticsPayload(event.payload);
-
   if (client && !client.has_opted_out_capturing()) {
-    client.capture(event.name, payload);
+    client.capture(name, payload);
     return;
   }
 
@@ -293,8 +293,21 @@ export function trackEvent(event: AnalyticsTrackedEvent): void {
         readAnalyticsConsent() === 'granted' &&
         !instance.has_opted_out_capturing()
       ) {
-        instance.capture(event.name, payload);
+        instance.capture(name, payload);
       }
     });
   }
+}
+
+export function trackEvent(event: AnalyticsTrackedEvent): void {
+  captureWhenReady(event.name, sanitizeAnalyticsPayload(event.payload));
+}
+
+/**
+ * PostHog Web Analytics only reads `$pageview`. Automatic capture is off, so
+ * the root `PageviewTracker` calls this once per route change; the SDK adds the
+ * URL/path and `before_send` trims it to origin + path.
+ */
+export function trackPageview(): void {
+  captureWhenReady('$pageview', undefined);
 }

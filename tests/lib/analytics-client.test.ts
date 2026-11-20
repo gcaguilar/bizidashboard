@@ -129,6 +129,18 @@ describe('PostHog client', () => {
     });
   });
 
+  it('emits $pageview through trackPageview only with consent', async () => {
+    const client = await loadClient();
+    await client.initAnalytics(runtime);
+    client.trackPageview();
+    expect(posthogMock.capture).not.toHaveBeenCalled();
+
+    writeAnalyticsConsent('granted');
+    await client.initAnalytics(runtime);
+    client.trackPageview();
+    expect(posthogMock.capture).toHaveBeenCalledWith('$pageview', undefined);
+  });
+
   it('stops tracking and resets identity when consent is revoked', async () => {
     writeAnalyticsConsent('granted');
     const client = await loadClient();
