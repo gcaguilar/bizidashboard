@@ -131,7 +131,14 @@ function sanitizeProperties(properties: Record<string, unknown> | undefined, dep
 /** Final redaction barrier applied by the SDK immediately before delivery. */
 export function sanitizeCaptureResult(event: CaptureResult): CaptureResult | null {
   const mutable = event as unknown as MutableCaptureResult;
+  // The SDK stores the project API key in `properties.token`. `token` is on the
+  // denylist for caller-supplied data, but dropping the SDK's own key makes
+  // PostHog reject every event, so carry it through the redaction untouched.
+  const projectToken = mutable.properties?.token;
   mutable.properties = sanitizeProperties(mutable.properties) ?? {};
+  if (typeof projectToken === 'string' && projectToken) {
+    mutable.properties.token = projectToken;
+  }
   mutable.properties.$geoip_disable = true;
 
   if (mutable.$set) {

@@ -152,6 +152,7 @@ describe('PostHog client', () => {
         $current_url: 'https://datosbizi.com/explorar?q=vecino%40correo.com&token=abc#hash',
         $referrer: 'https://example.org/buscar?query=privado',
         email: 'persona@example.com',
+        token: 'phc_project_key',
         route_key: 'explore',
         $set: { phone: '600000000', plan: 'free' },
         $set_once: { initial_url: '/informes?sub=secreto' },
@@ -165,6 +166,7 @@ describe('PostHog client', () => {
     expect(properties.$current_url).toBe('https://datosbizi.com/explorar');
     expect(properties.$referrer).toBe('https://example.org/buscar');
     expect(properties.email).toBeUndefined();
+    expect(properties.token).toBe('phc_project_key');
     expect(properties.route_key).toBe('explore');
     expect(properties.$geoip_disable).toBe(true);
     expect(properties.$set).toEqual({ plan: 'free' });
