@@ -156,7 +156,7 @@ describe('PostHog client', () => {
     expect(await client.initAnalytics(runtime)).toBeNull();
   });
 
-  it('redacts URLs, personal values and location enrichment before sending', async () => {
+  it('redacts URLs and personal values before sending', async () => {
     const client = await loadClient();
     const event = {
       event: 'public_page_view',
@@ -180,7 +180,7 @@ describe('PostHog client', () => {
     expect(properties.email).toBeUndefined();
     expect(properties.token).toBe('phc_project_key');
     expect(properties.route_key).toBe('explore');
-    expect(properties.$geoip_disable).toBe(true);
+    expect(properties.$geoip_disable).toBeUndefined();
     expect(properties.$set).toEqual({ plan: 'free' });
     expect(properties.$set_once).toEqual({ initial_url: '/informes' });
   });

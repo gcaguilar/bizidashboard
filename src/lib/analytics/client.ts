@@ -139,7 +139,6 @@ export function sanitizeCaptureResult(event: CaptureResult): CaptureResult | nul
   if (typeof projectToken === 'string' && projectToken) {
     mutable.properties.token = projectToken;
   }
-  mutable.properties.$geoip_disable = true;
 
   if (mutable.$set) {
     mutable.$set = sanitizeProperties(mutable.$set) ?? {};

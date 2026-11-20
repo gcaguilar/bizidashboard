@@ -35,7 +35,7 @@ function PrivacidadPage() {
           Política de privacidad
         </h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
-          Última actualización: 19 de noviembre de 2026.
+          Última actualización: 20 de noviembre de 2026.
         </p>
       </header>
 
@@ -64,7 +64,9 @@ function PrivacidadPage() {
             consentimiento, usamos PostHog Cloud EU para medir visitas y eventos de uso de forma
             anónima y agregada. No identificamos a los visitantes, no creamos perfiles publicitarios
             ni vendemos datos. No enviamos correos, nombres, teléfonos ni el contenido de búsquedas
-            o formularios, y las URL se reducen a su ruta sin parámetros.
+            o formularios, y las URL se reducen a su ruta sin parámetros. PostHog deduce a partir de la
+            IP una ubicación aproximada (país y ciudad) para las estadísticas de audiencia; no
+            usamos esa ubicación para identificarte.
           </li>
           <li>
             <strong className="text-[var(--foreground)]">Errores técnicos.</strong> Sentry recibe
