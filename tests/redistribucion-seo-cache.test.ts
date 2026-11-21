@@ -90,11 +90,16 @@ describe('redistribucion public landing cache contract', () => {
     expect(source).not.toContain("dashboard/redistribucion/_components");
   });
 
-  it('defers public page-view tracking until idle time', () => {
+  it('captures public page views synchronously without idle deferral', () => {
     const source = readFileSync('src/app/_components/PublicPageViewTracker.tsx', 'utf8');
 
-    expect(source).toContain('requestIdleCallback');
-    expect(source).toContain('cancelIdleCallback');
+    // An idle callback could be cancelled on fast SPA navigation, losing the
+    // view or desyncing route_key from $current_url. The tracker must emit in
+    // the effect itself and keep its dedup guard.
+    expect(source).not.toContain('requestIdleCallback');
+    expect(source).not.toContain('cancelIdleCallback');
+    expect(source).toContain('lastTrackedKey');
+    expect(source).toContain('track();');
   });
 
   it('keeps the redistribucion landing on the cheap summary source', () => {

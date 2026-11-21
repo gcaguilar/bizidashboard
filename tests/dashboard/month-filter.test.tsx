@@ -22,6 +22,7 @@ vi.mock('@tanstack/react-router', async () => {
 
 vi.mock('@/lib/analytics', () => ({
   buildFilterChangeEvent: vi.fn((payload) => ({ name: 'filter_change', payload })),
+  buildFilterClearEvent: vi.fn((payload) => ({ name: 'filter_clear', payload })),
   trackEvent: vi.fn(),
 }));
 
