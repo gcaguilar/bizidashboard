@@ -7,6 +7,7 @@ import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes'
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs'
 import { FAQ_ITEMS, FAQ_QUICK_LINKS } from '@/lib/faq-content'
 import { toJsonLdScript } from '@/lib/structured-data'
+import { resolveRouteKeyFromPathname } from '@/lib/analytics/events'
 
 export const Route = createFileRoute('/preguntas-frecuentes')({
   head: () =>
@@ -76,8 +77,8 @@ function PreguntasFrecuentesPage() {
               href={link.href}
               ctaEvent={{
                 source: 'faq_quick_links',
-                ctaId: link.label,
-                destination: link.href,
+                ctaId: resolveRouteKeyFromPathname(link.label),
+                destination: resolveRouteKeyFromPathname(link.href),
                 sourceRole: 'hub',
                 destinationRole: 'hub',
                 transitionKind: 'within_public',
@@ -101,8 +102,8 @@ function PreguntasFrecuentesPage() {
                 href={item.href}
                 ctaEvent={{
                   source: 'faq_item',
-                  ctaId: item.linkLabel ?? item.href,
-                  destination: item.href,
+                  ctaId: resolveRouteKeyFromPathname(item.linkLabel ?? item.href),
+                  destination: resolveRouteKeyFromPathname(item.href),
                   sourceRole: 'hub',
                   destinationRole: 'hub',
                   transitionKind: 'within_public',

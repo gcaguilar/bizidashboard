@@ -84,7 +84,7 @@ export function HomeFavoriteStations({
                   entitySelectEvent={{
                     source: 'home_favorites',
                     entityType: 'station',
-                    module: station.id,
+                    module: 'home_favorites',
                   }}
                   className="ui-surface-block ui-surface-block-interactive block min-h-[5.5rem] pr-14"
                 >

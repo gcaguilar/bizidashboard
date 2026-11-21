@@ -81,7 +81,7 @@ function DiagnosisStationList({
             entitySelectEvent={{
               source: tab === 'review' ? 'home_problem' : 'home_most_used',
               entityType: 'station',
-              module: summary.station.id,
+              module: 'home_diagnosis',
             }}
             className="block rounded-lg border border-[var(--border)] px-3 py-2 pr-14 transition-colors hover:bg-[var(--secondary)]"
           >

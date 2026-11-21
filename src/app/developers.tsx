@@ -368,7 +368,7 @@ print(len(res.json()["transfers"]))`}</code>
                 ctaEvent={{
                   source: 'developers_dataset',
                   ctaId: 'dataset_download',
-                  destination: item.href,
+                  destination: 'reports_api',
                   entityType: 'api',
                   sourceRole: 'utility',
                   destinationRole: 'utility',

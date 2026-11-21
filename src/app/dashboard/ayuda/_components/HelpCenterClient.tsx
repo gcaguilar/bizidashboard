@@ -371,7 +371,7 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                       surface,
                       routeKey,
                       source: 'help_faq_categories',
-                      tab: category,
+                      tab: resolveRouteKeyFromPathname(category),
                       module: 'faq',
                       action: 'select',
                     }));

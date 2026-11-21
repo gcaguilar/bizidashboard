@@ -10,6 +10,7 @@ import { formatDateLabel } from '@/lib/format';
 import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes';
 import { Card } from '@/components/ui/card';
 import { toJsonLdScript } from '@/lib/structured-data';
+import { resolveRouteKeyFromPathname } from '@/lib/analytics/events';
 
 export const Route = createFileRoute('/estadisticas/horarios')({
   loader: () => fetchSeoLandingData({ data: { slug: 'uso-bizi-por-hora' } }),
@@ -97,7 +98,7 @@ function HorariosPage() {
                 return <Card key={`${item.title}-${item.detail}`} variant="stat" className="flex-row items-center justify-between gap-3 px-4 py-3">{body}</Card>;
               }
               return (
-                <TrackedLink key={`${item.title}-${item.href}`} href={item.href} navigationEvent={{ source: 'horarios_page_items', destination: item.href, sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="group block transition hover:-translate-y-0.5">
+                <TrackedLink key={`${item.title}-${item.href}`} href={item.href} navigationEvent={{ source: 'horarios_page_items', destination: resolveRouteKeyFromPathname(item.href), sourceRole: 'hub', destinationRole: 'hub', transitionKind: 'within_public' }} className="group block transition hover:-translate-y-0.5">
                   <Card variant="stat" className="flex-row items-center justify-between gap-3 px-4 py-3 transition-colors group-hover:border-[var(--primary)]/40">{body}</Card>
                 </TrackedLink>
               );

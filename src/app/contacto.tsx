@@ -9,6 +9,7 @@ import { appRoutes, toAbsoluteRouteUrl } from '@/lib/routes'
 import { buildBreadcrumbStructuredData, createRootBreadcrumbs } from '@/lib/breadcrumbs'
 import { toJsonLdScript } from '@/lib/structured-data'
 import { DEFAULT_FEEDBACK_URL } from '@/lib/feedback'
+import { resolveRouteKeyFromPathname } from '@/lib/analytics/events'
 
 export const Route = createFileRoute('/contacto')({
   head: () =>
@@ -112,8 +113,8 @@ function ContactoPage() {
                 rel="noopener noreferrer"
                 ctaEvent={{
                   source: 'contacto',
-                  ctaId: option.label,
-                  destination: option.href,
+                  ctaId: resolveRouteKeyFromPathname(option.label),
+                  destination: resolveRouteKeyFromPathname(option.href),
                   sourceRole: 'utility',
                   destinationRole: 'utility',
                   transitionKind: 'external',
@@ -128,7 +129,7 @@ function ContactoPage() {
                 href={option.href}
                 ctaEvent={{
                   source: 'contacto',
-                  ctaId: option.label,
+                  ctaId: resolveRouteKeyFromPathname(option.label),
                   destination: 'prensa',
                   sourceRole: 'utility',
                   destinationRole: 'hub',

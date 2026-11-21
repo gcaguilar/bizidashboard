@@ -267,7 +267,7 @@ function StationPage() {
           <p className="mt-2 text-sm text-[var(--muted)]">{t('station.related.intro')}</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {relatedStations.map((related) => (
-              <TrackedLink key={related.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(related.station.id)} entitySelectEvent={{ source: 'station_alternatives', entityType: 'station', module: related.station.id }}>
+              <TrackedLink key={related.station.id} className="ui-metric-card block" href={appRoutes.stationDetail(related.station.id)} entitySelectEvent={{ source: 'station_alternatives', entityType: 'station', module: 'station_alternatives' }}>
                 <p className="font-semibold text-[var(--foreground)]">{related.station.name}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{t('station.related.availability', { bikes: related.station.bikesAvailable, anchors: related.station.anchorsFree })}</p>
               </TrackedLink>
