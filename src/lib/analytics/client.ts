@@ -23,6 +23,9 @@ const DENIED_PROPERTY_KEYS = new Set([
   'value',
   'email',
   'e-mail',
+  'name',
+  'first_name',
+  'last_name',
   'password',
   'passwd',
   'phone',
@@ -39,12 +42,26 @@ const DENIED_PROPERTY_KEYS = new Set([
   'nie',
   'dni',
   'address',
+  // SDK properties that may carry person or free-text data. Bizi never sets
+  // person properties, so these are dropped at the final barrier too.
+  '$set',
+  '$set_once',
+  '$initial_person_info',
+  '$ip',
 ]);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_SANITIZE_DEPTH = 5;
 
 let client: PostHog | null = null;
+/**
+ * The `posthog-js` default export is a singleton. Keep a reference after the
+ * first init so a revoke/grant cycle can opt back in without calling `init()`
+ * a second time on the same instance.
+ */
+let sdk: PostHog | null = null;
+let sdkInitialized = false;
+let initialPageviewCaptured = false;
 let initPromise: Promise<PostHog | null> | null = null;
 let runtimeConfig: PostHogRuntimeConfig | null = null;
 
@@ -140,12 +157,10 @@ export function sanitizeCaptureResult(event: CaptureResult): CaptureResult | nul
     mutable.properties.token = projectToken;
   }
 
-  if (mutable.$set) {
-    mutable.$set = sanitizeProperties(mutable.$set) ?? {};
-  }
-  if (mutable.$set_once) {
-    mutable.$set_once = sanitizeProperties(mutable.$set_once) ?? {};
-  }
+  // Bizi never sets person properties. Dropping $set/$set_once closes the only
+  // path by which a person profile could be enriched from an analytics event.
+  delete mutable.$set;
+  delete mutable.$set_once;
 
   return event;
 }
@@ -156,8 +171,8 @@ function buildPostHogConfig(runtime: PostHogRuntimeConfig): Partial<PostHogConfi
     ui_host: runtime.uiHost,
     defaults: '2026-08-30',
     autocapture: false,
-    capture_pageview: false,
-    capture_pageleave: false,
+    capture_pageview: 'history_change',
+    capture_pageleave: 'if_capture_pageview',
     capture_dead_clicks: false,
     rageclick: false,
     capture_exceptions: false,
@@ -229,17 +244,39 @@ export async function initAnalytics(runtime: PostHogRuntimeConfig): Promise<Post
 
   initPromise = (async () => {
     try {
-      const { default: posthog } = await import('posthog-js');
+      if (!sdk) {
+        const { default: posthog } = await import('posthog-js');
+        sdk = posthog;
+      }
 
       // Consent can be revoked while the chunk is loading.
       if (readAnalyticsConsent() !== 'granted') {
         return null;
       }
 
-      posthog.init(runtime.key, buildPostHogConfig(runtime));
-      posthog.opt_in_capturing();
-      client = posthog;
-      return posthog;
+      if (!sdkInitialized) {
+        sdk.init(runtime.key, buildPostHogConfig(runtime));
+        sdkInitialized = true;
+      } else {
+        // A previous revoke called reset(), which cleared consent and the
+        // identity. Start a fresh anonymous identity before opting back in.
+        sdk.reset(true);
+      }
+
+      // `opt_in_capturing` emits `$opt_in` by default: skip it, it is not part
+      // of Bizi's catalog. The SDK never runs before consent is granted.
+      sdk.opt_in_capturing({ captureEventName: false });
+      client = sdk;
+
+      // With `opt_out_capturing_by_default`, the SDK's initial pageview is
+      // dropped at init time. Capture it once here; later SPA route changes
+      // are handled by `capture_pageview: 'history_change'`.
+      if (!initialPageviewCaptured) {
+        client.capture('$pageview');
+        initialPageviewCaptured = true;
+      }
+
+      return client;
     } catch {
       client = null;
       return null;
@@ -259,10 +296,20 @@ export function revokeAnalytics(): void {
     } catch {
       // Best effort: the consent flag already blocks future trackEvent calls.
     }
+  } else if (sdk && sdkInitialized) {
+    // Consent was revoked during the lazy chunk load; no client was assigned
+    // yet, but the singleton may already hold an opted-in session.
+    try {
+      sdk.opt_out_capturing();
+      sdk.reset(true);
+    } catch {
+      // Ignore best-effort cleanup failures.
+    }
   }
 
   client = null;
   initPromise = null;
+  initialPageviewCaptured = false;
   clearPostHogPersistence();
 }
 
@@ -299,14 +346,6 @@ function captureWhenReady(name: string, payload: CapturePayload): void {
 }
 
 export function trackEvent(event: AnalyticsTrackedEvent): void {
-  captureWhenReady(event.name, sanitizeAnalyticsPayload(event.payload));
+  captureWhenReady(event.name, sanitizeAnalyticsPayload(event.payload, event.name));
 }
 
-/**
- * PostHog Web Analytics only reads `$pageview`. Automatic capture is off, so
- * the root `PageviewTracker` calls this once per route change; the SDK adds the
- * URL/path and `before_send` trims it to origin + path.
- */
-export function trackPageview(): void {
-  captureWhenReady('$pageview', undefined);
-}

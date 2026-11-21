@@ -12,7 +12,7 @@ import Footer from '../components/Footer'
 import Header from '../components/Header'
 import { ConsentBanner } from './_components/ConsentBanner'
 import { NavigationProgress } from './_components/NavigationProgress'
-import { PageviewTracker } from './_components/PageviewTracker'
+
 
 import appCss from '../styles.css?url'
 
@@ -179,7 +179,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <Footer footerData={footerData} />
         <ConsentBanner posthog={posthogConfig} />
-        <PageviewTracker />
         {Devtools ? (
           <Suspense fallback={null}>
             <Devtools />
