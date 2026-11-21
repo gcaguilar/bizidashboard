@@ -718,8 +718,38 @@ const ALL_ALLOWED_PAYLOAD_KEYS = Object.values(ANALYTICS_EVENT_CATALOG).flatMap(
 ) as AllowedPayloadKey[];
 
 const ALL_ALLOWED_PAYLOAD_KEY_SET = new Set<string>(ALL_ALLOWED_PAYLOAD_KEYS);
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Unanchored on purpose: an email embedded in a longer value is still PII. */
+const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/;
 const MAX_STRING_LENGTH = 160;
+/** Identifiers are short, single tokens; free text, paths and URLs never match. */
+const SAFE_TOKEN_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}_.:-]{0,63}$/u;
+const PURE_DIGITS_PATTERN = /^\d+$/;
+const LONG_DIGITS_PATTERN = /\d{8,}/;
+const SUSPICIOUS_STRING_PATTERN = /[\s?&#=%@/\\<>|`"'\p{Cc}]/u;
+const TOKEN_PREFIX_PATTERN = /^(phc|phx|sk|pk|rk|ghp|gho|github_pat|bearer)[_-]/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Closed value sets used by the builders; anything else is discarded. */
+const ENUM_PROPERTY_VALUES: Partial<Record<AllowedPayloadKey, ReadonlySet<string>>> = {
+  surface: new Set(['public', 'dashboard']),
+  mode: new Set(['overview', 'operations', 'research', 'data']),
+  entity_type: new Set(['station', 'district', 'report', 'api', 'help']),
+  query_length_bucket: new Set(['0', '1_2', '3_5', '6_plus']),
+  result_count_bucket: new Set(['0', '1', '2_5', '6_20', '21_plus']),
+  source_role: new Set(['home', 'entry_seo', 'hub', 'detail', 'dashboard', 'utility']),
+  destination_role: new Set(['home', 'entry_seo', 'hub', 'detail', 'dashboard', 'utility']),
+  export_format: new Set(['pdf', 'csv', 'json', 'png']),
+  result: new Set(['success', 'fallback', 'error', 'cancel', 'abandon', 'unavailable', 'empty']),
+  error_category: new Set(['network', 'render', 'validation', 'permission', 'unknown']),
+  channel: new Set(['web_share', 'whatsapp', 'link']),
+  rating: new Set(['positive', 'negative']),
+};
+
+/** Numeric properties are bounded so a runaway count cannot become an identifier. */
+const NUMERIC_PROPERTY_RANGES: Partial<Record<AllowedPayloadKey, readonly [number, number]>> = {
+  results_count: [0, 1_000_000],
+  step_number: [1, 1000],
+};
 
 export function getAnalyticsEventDefinition(
   name: AnalyticsTrackedEventName
@@ -740,6 +770,11 @@ function readString(
 ): string | undefined {
   const value = payload?.[key];
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+/** Guarantees a required token is present without ever inventing free text. */
+function requiredToken(value: string | undefined, fallback: string): string {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : fallback;
 }
 
 function readBoolean(
@@ -910,13 +945,42 @@ export function sanitizeAnalyticsPayload(
 
     if (typeof value === 'string') {
       const trimmed = value.trim();
-      return trimmed.length > 0 && trimmed.length <= MAX_STRING_LENGTH && !EMAIL_PATTERN.test(trimmed);
+      if (trimmed.length === 0 || trimmed.length > MAX_STRING_LENGTH) {
+        return false;
+      }
+
+      // Free text, emails, URLs, query strings, tokens and identifiers are
+      // never valid analytics values, whatever the key is.
+      if (
+        EMAIL_PATTERN.test(trimmed) ||
+        SUSPICIOUS_STRING_PATTERN.test(trimmed) ||
+        TOKEN_PREFIX_PATTERN.test(trimmed) ||
+        UUID_PATTERN.test(trimmed) ||
+        LONG_DIGITS_PATTERN.test(trimmed)
+      ) {
+        return false;
+      }
+
+      const enumValues = ENUM_PROPERTY_VALUES[key as AllowedPayloadKey];
+      if (enumValues) {
+        return enumValues.has(trimmed);
+      }
+
+      // Identifier-like keys also reject bare numeric IDs ("401", station or
+      // entity identifiers) and anything that is not a single safe token.
+      return !PURE_DIGITS_PATTERN.test(trimmed) && SAFE_TOKEN_PATTERN.test(trimmed);
     }
 
     if (typeof value === 'number') {
-      return Number.isFinite(value);
+      if (!Number.isFinite(value)) {
+        return false;
+      }
+      const range = NUMERIC_PROPERTY_RANGES[key as AllowedPayloadKey];
+      return !range || (Number.isInteger(value) && value >= range[0] && value <= range[1]);
     }
 
+    // Booleans are the only other primitive accepted in an analytics payload;
+    // arrays, objects, functions, symbols and bigints are all rejected.
     return typeof value === 'boolean';
   });
 
@@ -1590,7 +1654,7 @@ export function buildPanelOpenEvent({
   return buildEvent('panel_open', {
     ...basePayload(surface, routeKey),
     module,
-    source,
+    source: requiredToken(source, 'unknown'),
     destination,
     panel,
   });
@@ -1686,7 +1750,7 @@ export function buildExportResultEvent(
         }
       : {
           ...basePayload(surface, routeKey), source, cta_id: ctaId, module,
-          export_format: exportFormat, error_category: errorCategory ?? 'unknown', result: 'error',
+          export_format: exportFormat, error_category: requiredToken(errorCategory, 'unknown'), result: 'error',
         };
 
   return buildEvent(eventName, payload);
@@ -1741,13 +1805,21 @@ export function buildWorkflowEvent(
     section,
   }: WorkflowEventInput
 ): AnalyticsTrackedEvent {
+  const stepNameForEvent =
+    eventName === 'workflow_start'
+      ? undefined
+      : eventName === 'workflow_step_complete'
+        ? requiredToken(stepName, 'unknown')
+        : stepName;
+
   return buildEvent(eventName, {
     ...basePayload(surface, routeKey),
     source,
     workflow_name: workflowName,
-    step_name: eventName === 'workflow_start' ? undefined : stepName,
+    step_name: stepNameForEvent,
     step_number: eventName === 'workflow_step_complete' ? stepNumber : undefined,
-    result,
+    // `result` is not part of workflow_start's allowed properties.
+    result: eventName === 'workflow_start' ? undefined : result,
     section: eventName === 'workflow_start' ? section : undefined,
   });
 }
@@ -1772,17 +1844,50 @@ export function buildQualityEvent(
     result,
   }: QualityEventInput
 ): AnalyticsTrackedEvent {
-  return buildEvent(eventName, {
-    ...basePayload(surface, routeKey),
-    source,
-    feature,
-    section,
-    operation,
-    module,
-    error_category: errorCategory,
-    error_code: errorCode,
-    result,
-  });
+  const base: AnalyticsEventPayload = { ...basePayload(surface, routeKey), source };
+  let payload: AnalyticsEventPayload;
+
+  // Each quality event has a different allowlist: build only its own keys so
+  // no field can survive by relying on the final sanitizer alone.
+  switch (eventName) {
+    case 'operation_error':
+      payload = {
+        ...base,
+        feature,
+        section,
+        operation: requiredToken(operation, 'unknown'),
+        error_category: requiredToken(errorCategory, 'unknown'),
+        error_code: errorCode,
+        result,
+      };
+      break;
+    case 'form_validation_error':
+      payload = {
+        ...base,
+        feature,
+        section,
+        operation,
+        error_category: requiredToken(errorCategory, 'unknown'),
+        result,
+      };
+      break;
+    case 'data_load_error':
+      payload = { ...base, module, feature, operation, error_category: errorCategory, result };
+      break;
+    case 'empty_state_view':
+      payload = { ...base, module, feature, section };
+      break;
+    case 'feature_unavailable':
+      payload = {
+        ...base,
+        feature: requiredToken(feature, 'unknown'),
+        section,
+        result,
+      };
+      break;
+  }
+
+  return buildEvent(eventName, payload);
 }
 
 export function buildLegacyInteractionEvent({

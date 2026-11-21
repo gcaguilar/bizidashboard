@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import { configureAnalytics, initAnalytics, revokeAnalytics } from '@/lib/analytics/client';
+import { configureAnalytics } from '@/lib/analytics/client';
 import type { PostHogRuntimeConfig } from '@/lib/analytics/config';
 import {
   readAnalyticsConsent,
@@ -39,18 +39,6 @@ export function ConsentBanner({ posthog }: ConsentBannerProps) {
   useEffect(() => {
     return subscribeToAnalyticsPreferences(() => setSettingsOpen(true));
   }, []);
-
-  useEffect(() => {
-    if (!posthog) {
-      return;
-    }
-
-    if (consent === 'granted') {
-      void initAnalytics(posthog);
-    } else if (consent === 'denied') {
-      revokeAnalytics();
-    }
-  }, [consent, posthog]);
 
   useEffect(() => {
     if (!settingsOpen) {

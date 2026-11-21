@@ -1,11 +1,19 @@
 /**
  * PostHog lifecycle. The SDK is imported only after the visitor grants
  * analytics consent, and every capture is guarded again at send time.
+ *
+ * A single module-level consent listener drives the SDK on both same-tab and
+ * cross-tab consent changes. `ConsentBanner` only renders the UI; it does not
+ * own any SDK lifecycle effect.
  */
 
 import type { CaptureResult, PostHog, PostHogConfig } from 'posthog-js';
 import type { PostHogRuntimeConfig } from './config';
-import { readAnalyticsConsent } from './consent';
+import {
+  readAnalyticsConsent,
+  subscribeToAnalyticsConsent,
+  type AnalyticsConsentChoice,
+} from './consent';
 import { sanitizeAnalyticsPayload, type AnalyticsTrackedEvent } from './events';
 
 type MutableCaptureResult = {
@@ -53,6 +61,19 @@ const DENIED_PROPERTY_KEYS = new Set([
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_SANITIZE_DEPTH = 5;
 
+/**
+ * Known ID-bearing route prefixes, longest first. Only the first segment after
+ * a prefix is replaced, so Web Analytics keeps popular-page metrics while
+ * internal station/report/district identifiers never leave the browser.
+ */
+const ID_BEARING_PATH_PREFIXES: ReadonlyArray<readonly [string, string]> = [
+  ['/dashboard/estaciones/', ':id'],
+  ['/dashboard/ayuda/', ':topic'],
+  ['/estaciones/', ':id'],
+  ['/informes/', ':month'],
+  ['/barrios/', ':district'],
+];
+
 let client: PostHog | null = null;
 /**
  * The `posthog-js` default export is a singleton. Keep a reference after the
@@ -61,17 +82,72 @@ let client: PostHog | null = null;
  */
 let sdk: PostHog | null = null;
 let sdkInitialized = false;
-let initialPageviewCaptured = false;
+let sdkToken: string | null = null;
 let initPromise: Promise<PostHog | null> | null = null;
 let runtimeConfig: PostHogRuntimeConfig | null = null;
+
+// Consent → SDK lifecycle state. The listener is attached once and is shared
+// by every render; `lastHandledConsent` skips redundant identical events.
+let consentListenerActive = false;
+let lastHandledConsent: AnalyticsConsentChoice | null = null;
+/**
+ * `reset()` does not clear the SDK's sticky `_initialPageviewCaptured` guard,
+ * so a re-grant needs one explicit pageview for the current page. Cleared as
+ * soon as it is emitted.
+ */
+let needsRegrantPageview = false;
 
 /**
  * Stores the config resolved by the server so `trackEvent` can start the lazy
  * SDK on demand. Callers render this value from the root loader; assigning it
  * during render keeps the config available before any tracker's effect runs.
+ * The first call also attaches the single consent listener and reconciles the
+ * stored choice (no change event fires for consent persisted from a past load).
  */
 export function configureAnalytics(runtime: PostHogRuntimeConfig | null): void {
+  const runtimeChanged = runtime !== runtimeConfig;
   runtimeConfig = runtime;
+
+  if (typeof window === 'undefined' || !runtime) {
+    return;
+  }
+
+  if (!consentListenerActive) {
+    subscribeToAnalyticsConsent(handleConsentChange);
+    consentListenerActive = true;
+  }
+
+  if (runtimeChanged) {
+    reconcileCurrentConsent();
+  }
+}
+
+function applyConsentToSdk(consent: AnalyticsConsentChoice): void {
+  if (consent === 'granted') {
+    if (runtimeConfig) {
+      void initAnalytics(runtimeConfig);
+    }
+    return;
+  }
+  revokeAnalytics();
+}
+
+function handleConsentChange(consent: AnalyticsConsentChoice): void {
+  // Same-tab writes and cross-tab storage events can repeat the same value.
+  if (consent === lastHandledConsent) {
+    return;
+  }
+  lastHandledConsent = consent;
+  applyConsentToSdk(consent);
+}
+
+function reconcileCurrentConsent(): void {
+  const consent = readAnalyticsConsent();
+  if (consent === 'unknown') {
+    return;
+  }
+  lastHandledConsent = consent;
+  applyConsentToSdk(consent);
 }
 
 function isUrlProperty(key: string): boolean {
@@ -79,9 +155,28 @@ function isUrlProperty(key: string): boolean {
   return (
     lower.includes('url') ||
     lower.includes('href') ||
+    lower.includes('pathname') ||
     lower.endsWith('referrer') ||
     lower.startsWith('$initial_ref')
   );
+}
+
+/** Replaces the first ID segment of a known route prefix with a placeholder. */
+function normalizePathSegments(path: string): string {
+  for (const [prefix, placeholder] of ID_BEARING_PATH_PREFIXES) {
+    if (!path.startsWith(prefix)) {
+      continue;
+    }
+    const rest = path.slice(prefix.length);
+    const nextSlash = rest.indexOf('/');
+    const segment = nextSlash === -1 ? rest : rest.slice(0, nextSlash);
+    if (!segment) {
+      return path;
+    }
+    const suffix = nextSlash === -1 ? '' : rest.slice(nextSlash);
+    return `${prefix}${placeholder}${suffix}`;
+  }
+  return path;
 }
 
 /** Keeps origin + path, drops query strings, fragments and userinfo. */
@@ -89,7 +184,7 @@ export function sanitizeUrl(value: string): string {
   try {
     const url = new URL(value, 'http://datosbizi.local');
     const origin = url.origin === 'http://datosbizi.local' ? '' : url.origin;
-    return `${origin}${url.pathname}`;
+    return `${origin}${normalizePathSegments(url.pathname)}`;
   } catch {
     return '';
   }
@@ -152,6 +247,9 @@ export function sanitizeCaptureResult(event: CaptureResult): CaptureResult | nul
   // denylist for caller-supplied data, but dropping the SDK's own key makes
   // PostHog reject every event, so carry it through the redaction untouched.
   const projectToken = mutable.properties?.token;
+  // IP-based GeoIP (country/city) is intentional and documented on the privacy
+  // page. `ip` is a no-op in posthog-js 1.453, and `$ip` is denylisted above, so
+  // no raw IP is ever sent as an event property.
   mutable.properties = sanitizeProperties(mutable.properties) ?? {};
   if (typeof projectToken === 'string' && projectToken) {
     mutable.properties.token = projectToken;
@@ -171,8 +269,15 @@ function buildPostHogConfig(runtime: PostHogRuntimeConfig): Partial<PostHogConfi
     ui_host: runtime.uiHost,
     defaults: '2026-08-30',
     autocapture: false,
+    // The SDK is the single owner of `$pageview` (initial + SPA history changes).
+    // `if_capture_pageview` keeps `$pageleave` paired with it, as the plan
+    // requires, without capturing a leave when no pageview was sent.
     capture_pageview: 'history_change',
     capture_pageleave: 'if_capture_pageview',
+    // utm_*/gclid/fbclid/... and referrers are persistent identifiers we do not
+    // need; Bizi records only anonymous aggregate navigation data.
+    save_campaign_params: false,
+    save_referrer: false,
     capture_dead_clicks: false,
     rageclick: false,
     capture_exceptions: false,
@@ -225,6 +330,28 @@ function clearPostHogPersistence(): void {
   }
 }
 
+function clearSdkConsentKey(): void {
+  const token = sdkToken ?? runtimeConfig?.key;
+  if (typeof window === 'undefined' || !token) {
+    return;
+  }
+
+  // posthog-js stores consent under `__ph_opt_in_out_<token>` (localStorage by
+  // default). The generic PostHog-key sweep does not match that prefix, so
+  // clear it explicitly to make cross-tab opt-out unambiguous.
+  const key = `__ph_opt_in_out_${token}`;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Storage may be blocked; opt-out still prevents further captures.
+  }
+  try {
+    document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  } catch {
+    // Ignore cookie access failures.
+  }
+}
+
 export function isAnalyticsClientReady(): boolean {
   return client !== null;
 }
@@ -234,6 +361,9 @@ export async function initAnalytics(runtime: PostHogRuntimeConfig): Promise<Post
     return null;
   }
 
+  // Remember the token so revoke can clear the SDK's consent key even when the
+  // SDK was started lazily by trackEvent rather than by configureAnalytics.
+  sdkToken = runtime.key;
   if (client) {
     return client;
   }
@@ -263,17 +393,25 @@ export async function initAnalytics(runtime: PostHogRuntimeConfig): Promise<Post
         sdk.reset(true);
       }
 
+      // Narrow race: a revoke may land after the import check above but before
+      // opting in. Never opt in (or emit a pageview) once consent is gone.
+      if (readAnalyticsConsent() !== 'granted') {
+        return null;
+      }
+
       // `opt_in_capturing` emits `$opt_in` by default: skip it, it is not part
-      // of Bizi's catalog. The SDK never runs before consent is granted.
+      // of Bizi's catalog. With `capture_pageview: 'history_change'` the SDK is
+      // the single owner of the initial pageview and all SPA pageviews.
       sdk.opt_in_capturing({ captureEventName: false });
       client = sdk;
 
-      // With `opt_out_capturing_by_default`, the SDK's initial pageview is
-      // dropped at init time. Capture it once here; later SPA route changes
-      // are handled by `capture_pageview: 'history_change'`.
-      if (!initialPageviewCaptured) {
+      if (needsRegrantPageview) {
+        // The SDK's internal `_initialPageviewCaptured` guard is not cleared by
+        // reset(), so opt_in_capturing() cannot emit again after a revoke. Emit
+        // exactly one pageview for the current page here; every later pageview
+        // still comes from the SDK's history_autocapture extension.
         client.capture('$pageview');
-        initialPageviewCaptured = true;
+        needsRegrantPageview = false;
       }
 
       return client;
@@ -289,6 +427,7 @@ export async function initAnalytics(runtime: PostHogRuntimeConfig): Promise<Post
 }
 
 export function revokeAnalytics(): void {
+  const hadActiveSession = client !== null || sdkInitialized;
   if (client) {
     try {
       client.opt_out_capturing();
@@ -309,8 +448,17 @@ export function revokeAnalytics(): void {
 
   client = null;
   initPromise = null;
-  initialPageviewCaptured = false;
   clearPostHogPersistence();
+  clearSdkConsentKey();
+  if (hadActiveSession) {
+    needsRegrantPageview = true;
+  }
+
+  // SDK limitation: posthog-js's RequestQueue has no disable()/clear(), so
+  // opt_out_capturing() stops future captures but cannot cancel events already
+  // enqueued for delivery. Those may still flush once; app code can only make
+  // sure nothing new is queued (the consent re-checks in initAnalytics and the
+  // pending capture below) and clear our own persistence.
 }
 
 type CapturePayload = ReturnType<typeof sanitizeAnalyticsPayload>;
@@ -320,8 +468,9 @@ function captureWhenReady(name: string, payload: CapturePayload): void {
     return;
   }
 
-  // Tracker effects can run before the consent banner's init effect. Starting
-  // the lazy SDK here (and queueing on initPromise below) keeps those events.
+  // Tracker effects can run before the consent listener's init has settled.
+  // Starting the lazy SDK here (and queueing on initPromise below) keeps those
+  // events.
   if (!client && !initPromise && runtimeConfig) {
     void initAnalytics(runtimeConfig);
   }
@@ -331,7 +480,9 @@ function captureWhenReady(name: string, payload: CapturePayload): void {
     return;
   }
 
-  // Only events emitted after consent may wait for the lazy SDK chunk.
+  // Only events emitted after consent may wait for the lazy SDK chunk. Re-check
+  // consent and opt-out status when the promise settles: a revoke in flight
+  // must not let a queued capture through.
   if (initPromise) {
     void initPromise.then((instance) => {
       if (
@@ -348,4 +499,3 @@ function captureWhenReady(name: string, payload: CapturePayload): void {
 export function trackEvent(event: AnalyticsTrackedEvent): void {
   captureWhenReady(event.name, sanitizeAnalyticsPayload(event.payload, event.name));
 }
-
