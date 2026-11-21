@@ -1,7 +1,7 @@
 'use client';
 
-import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Command,
   CommandEmpty,
@@ -13,11 +13,29 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useT } from '@/lib/i18n/use-locale';
 import { appRoutes } from '@/lib/routes';
+import {
+  buildSearchClearEvent,
+  buildSearchNoResultsEvent,
+  buildSearchResultSelectEvent,
+  buildSearchResultsViewEvent,
+  resolveRouteKeyFromPathname,
+  trackEvent,
+  type AnalyticsEntityType,
+} from '@/lib/analytics';
 import { searchHeaderContent, type HeaderSearchResult } from '@/server-functions/global-search';
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 200;
 const ALL_RESULTS_VALUE = '__all_results__';
+
+/** Grupos fijos del buscador global; nunca se envía el id ni el título del resultado. */
+function entityTypeForGroup(group: string): AnalyticsEntityType | undefined {
+  if (group === 'stations') return 'station';
+  if (group === 'districts') return 'district';
+  if (group === 'reports') return 'report';
+  if (group === 'api') return 'api';
+  return undefined;
+}
 
 /**
  * Buscador global de la cabecera: estaciones, barrios, informes, páginas y API.
@@ -65,6 +83,39 @@ export function HeaderSearch() {
   );
   const loading = active && fetched.query !== trimmed;
 
+  const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? ('dashboard' as const) : ('public' as const);
+
+  const lastSearchRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!active || loading) {
+      return;
+    }
+
+    const key = `${trimmed}|${results.length > 0}`;
+    if (lastSearchRef.current === key) {
+      return;
+    }
+    lastSearchRef.current = key;
+
+    const base = { surface, routeKey, source: 'header_search', searchType: 'global' };
+    if (results.length === 0) {
+      trackEvent(buildSearchNoResultsEvent({ ...base, queryLength: trimmed.length }));
+      return;
+    }
+    trackEvent(buildSearchResultsViewEvent({ ...base, resultsCount: results.length }));
+  }, [active, loading, results.length, routeKey, surface, trimmed]);
+
+  const trackSearchClear = () => {
+    trackEvent(buildSearchClearEvent({
+      surface,
+      routeKey,
+      source: 'header_search',
+      searchType: 'global',
+    }));
+  };
+
   const resultsByHref = useMemo(
     () => new Map(results.map((result) => [result.id, result])),
     [results],
@@ -87,6 +138,14 @@ export function HeaderSearch() {
 
   const handleSelect = (value: string) => {
     if (value === ALL_RESULTS_VALUE) {
+      trackEvent(buildSearchResultSelectEvent({
+        surface,
+        routeKey,
+        source: 'header_search',
+        searchType: 'global',
+        section: 'view_all',
+        action: 'navigate',
+      }));
       void navigate({ to: appRoutes.exploreHub(), search: { q: trimmed } });
       close();
       return;
@@ -97,6 +156,15 @@ export function HeaderSearch() {
       return;
     }
 
+    trackEvent(buildSearchResultSelectEvent({
+      surface,
+      routeKey,
+      source: 'header_search',
+      searchType: 'global',
+      entityType: entityTypeForGroup(result.group),
+      section: 'global_results',
+      action: 'navigate',
+    }));
     const [path, hash] = result.href.split('#');
     void navigate({ to: path, hash: hash || undefined });
     close();
@@ -106,6 +174,9 @@ export function HeaderSearch() {
     <Popover
       open={open}
       onOpenChange={(next) => {
+        if (!next && query.length > 0) {
+          trackSearchClear();
+        }
         setOpen(next);
         if (!next) setQuery('');
       }}

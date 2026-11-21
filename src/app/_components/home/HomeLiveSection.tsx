@@ -19,6 +19,7 @@ import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import {
   buildFilterChangeEvent,
+  buildFilterClearEvent,
   buildObservatoryEvent,
   resolveRouteKeyFromPathname,
   trackEvent,
@@ -148,6 +149,18 @@ export function HomeLiveSection({
   );
 
   const handleQuickFilter = (nextFilter: HomeDiagnosisFilter) => {
+    if (nextFilter === 'all' && filter !== 'all') {
+      trackEvent(buildFilterClearEvent({
+        surface: 'public',
+        routeKey,
+        source: 'home_quick_filter',
+        module: 'home_live',
+        filterCategory: 'station_availability',
+      }));
+      setFilter(nextFilter);
+      return;
+    }
+
     setFilter(nextFilter);
     trackEvent(
       buildFilterChangeEvent({

@@ -47,9 +47,10 @@ export function PublicPageViewTracker({
       return;
     }
 
-    lastTrackedKey.current = trackingKey;
-
+    // Capture synchronously: deferred callbacks can be dropped on fast SPA
+    // navigation and desync route_key from $current_url.
     const track = () => {
+      lastTrackedKey.current = trackingKey;
       trackEvent(
         buildPublicPageViewEvent({
           routeKey: resolvedRouteKey,
@@ -58,14 +59,7 @@ export function PublicPageViewTracker({
         })
       );
     };
-
-    if (typeof window.requestIdleCallback === 'function') {
-      const idleCallbackId = window.requestIdleCallback(track, { timeout: 2000 });
-      return () => window.cancelIdleCallback(idleCallbackId);
-    }
-
-    const timeoutId = window.setTimeout(track, 0);
-    return () => window.clearTimeout(timeoutId);
+    track();
   }, [consent, entityId, pageSlug, pageType, pathname, routeKey, template]);
 
   return null;

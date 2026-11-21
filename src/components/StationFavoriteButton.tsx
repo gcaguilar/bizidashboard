@@ -6,7 +6,7 @@ import { useFavoriteStations } from '@/lib/use-favorite-stations'
 import { cn } from '@/lib/utils'
 import {
   trackEvent,
-  buildCtaClickEvent,
+  buildEntityFavoriteEvent,
   resolveRouteKeyFromPathname,
 } from '@/lib/analytics'
 
@@ -40,13 +40,15 @@ export function StationFavoriteButton({
   const toggleFavorite = () => {
     toggleFavoriteStation(stationId)
     trackEvent(
-      buildCtaClickEvent({
-        surface: 'public',
-        routeKey,
-        ctaId: isFavorite ? 'unfavorite_station' : 'favorite_station',
-        source,
-        entityType: 'station',
-      }),
+      buildEntityFavoriteEvent(
+        isFavorite ? 'entity_favorite_remove' : 'entity_favorite_add',
+        {
+          surface: pathname?.startsWith('/dashboard') ? 'dashboard' : 'public',
+          routeKey,
+          source,
+          entityType: 'station',
+        },
+      ),
     )
   }
 

@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { toMonthOptions } from '@/lib/months';
-import { buildFilterChangeEvent, trackEvent } from '@/lib/analytics';
+import { buildFilterChangeEvent, buildFilterClearEvent, trackEvent } from '@/lib/analytics';
 
 type MonthFilterProps = {
   months: string[];
@@ -40,15 +40,25 @@ function MonthFilterContent({
       return;
     }
 
-    trackEvent(
-      buildFilterChangeEvent({
+    if (nextMonth === null) {
+      trackEvent(buildFilterClearEvent({
         surface: 'dashboard',
         routeKey,
-        module: 'month_filter',
         source,
-        monthPresent: Boolean(nextMonth),
-      })
-    );
+        module: 'month_filter',
+        filterCategory: 'month',
+      }));
+    } else {
+      trackEvent(
+        buildFilterChangeEvent({
+          surface: 'dashboard',
+          routeKey,
+          module: 'month_filter',
+          source,
+          monthPresent: true,
+        })
+      );
+    }
 
     void navigate({
       replace: true,

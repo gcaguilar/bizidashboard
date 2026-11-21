@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import type { ButtonHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { FeedbackDialog } from '@/app/_components/FeedbackDialog';
 import { Button } from '@/components/ui/button';
 import { getFeedbackUrl, markFeedbackModalSeenForCurrentVisit } from '@/lib/feedback';
-import { buildCtaClickEvent, resolveRouteKeyFromPathname, trackEvent } from '@/lib/analytics';
+import {
+  buildCtaClickEvent,
+  buildQualityEvent,
+  buildWorkflowEvent,
+  resolveRouteKeyFromPathname,
+  trackEvent,
+} from '@/lib/analytics';
 
 type FeedbackCtaProps = {
   source: string;
@@ -33,8 +39,23 @@ export function FeedbackCta({
   ...buttonProps
 }: FeedbackCtaProps) {
   const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
   const feedbackUrl = getFeedbackUrl();
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!feedbackUrl) {
+      trackEvent(buildQualityEvent('feature_unavailable', {
+        surface,
+        routeKey,
+        source,
+        feature: 'feedback_dialog',
+        section: module,
+        result: 'unavailable',
+      }));
+    }
+  }, [feedbackUrl, module, routeKey, source, surface]);
 
   if (!feedbackUrl) {
     return (
@@ -49,9 +70,6 @@ export function FeedbackCta({
       </Button>
     );
   }
-
-  const routeKey = resolveRouteKeyFromPathname(pathname);
-  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
 
   const handleClick: MouseEventHandler<HTMLButtonElement> = (event) => {
     onClick?.(event);
@@ -72,6 +90,13 @@ export function FeedbackCta({
         isExternal: false,
       })
     );
+    trackEvent(buildWorkflowEvent('workflow_start', {
+      surface,
+      routeKey,
+      source,
+      workflowName: 'feedback',
+      section: module,
+    }));
     setIsOpen(true);
   };
 

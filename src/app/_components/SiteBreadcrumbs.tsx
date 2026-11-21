@@ -1,3 +1,6 @@
+'use client';
+
+import { useLocation } from '@tanstack/react-router';
 import { TrackedLink } from '@/app/_components/TrackedLink';
 import {
   Breadcrumb,
@@ -6,6 +9,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { buildBreadcrumbClickEvent, resolveRouteKeyFromPathname } from '@/lib/analytics';
 import type { BreadcrumbItem as SiteBreadcrumbItem } from '@/lib/breadcrumbs';
 
 type SiteBreadcrumbsProps = {
@@ -14,9 +18,14 @@ type SiteBreadcrumbsProps = {
 };
 
 export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
+  const pathname = useLocation().pathname;
+
   if (items.length === 0) {
     return null;
   }
+
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
 
   return (
     <div className={className}>
@@ -30,7 +39,15 @@ export function SiteBreadcrumbs({ items, className }: SiteBreadcrumbsProps) {
                 {isLast ? (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (
-                  <TrackedLink href={item.href ?? undefined}
+                  <TrackedLink
+                    href={item.href ?? undefined}
+                    trackingEvent={buildBreadcrumbClickEvent({
+                      surface,
+                      routeKey,
+                      source: 'breadcrumbs',
+                      destination: resolveRouteKeyFromPathname(item.href ?? null),
+                      section: 'contextual_navigation',
+                    })}
                     className="rounded-sm transition hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                   >
                     {item.label}

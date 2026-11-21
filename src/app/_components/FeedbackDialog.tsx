@@ -8,6 +8,8 @@ import { buildTallyEmbedUrl, getFeedbackUrl, type FeedbackRating } from '@/lib/f
 import {
   buildCtaClickEvent,
   buildFeedbackRatingEvent,
+  buildPanelCloseEvent,
+  buildWorkflowEvent,
   resolveRouteKeyFromPathname,
   trackEvent,
 } from '@/lib/analytics';
@@ -73,15 +75,51 @@ export function FeedbackDialog({ open, onOpenChange, source, module }: FeedbackD
         rating: value,
       })
     );
+    trackEvent(buildWorkflowEvent('workflow_step_complete', {
+      surface,
+      routeKey,
+      source,
+      workflowName: 'feedback',
+      stepName: 'rating',
+      stepNumber: 1,
+      result: 'success',
+    }));
   }
 
   function openDetails() {
     setStage('details');
     trackCta('feedback_details_open', 'feedback_form');
+    trackEvent(buildWorkflowEvent('workflow_step_complete', {
+      surface,
+      routeKey,
+      source,
+      workflowName: 'feedback',
+      stepName: 'details',
+      stepNumber: 2,
+      result: 'success',
+    }));
   }
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
+      if (stage !== 'thanks') {
+        trackEvent(buildWorkflowEvent('workflow_abandon', {
+          surface,
+          routeKey,
+          source,
+          workflowName: 'feedback',
+          stepName: stage,
+          result: 'abandon',
+        }));
+      }
+      trackEvent(buildPanelCloseEvent({
+        surface,
+        routeKey,
+        source,
+        module,
+        panel: 'feedback_dialog',
+        action: 'close',
+      }));
       setStage('rating');
       setRating(null);
     }

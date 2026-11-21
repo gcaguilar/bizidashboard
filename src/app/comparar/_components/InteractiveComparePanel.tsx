@@ -26,6 +26,12 @@ import type {
   InteractiveComparisonOption,
 } from '@/lib/comparison-hub';
 import { buildComparisonVerdict } from '@/lib/comparison-verdict';
+import {
+  buildCopyActionEvent,
+  buildEntityFavoriteEvent,
+  buildQualityEvent,
+  trackEvent,
+} from '@/lib/analytics';
 import { appRoutes } from '@/lib/routes';
 import { useSavedComparisons, type SavedComparison } from '@/lib/use-saved-comparisons';
 
@@ -182,6 +188,7 @@ export function InteractiveComparePanel({
   const [geoState, setGeoState] = useState<'idle' | 'locating' | 'denied' | 'unsupported'>('idle');
   const [presetNote, setPresetNote] = useState<string | null>(null);
   const lastSyncedHref = useRef<string | null>(null);
+  const emptyStateTracked = useRef(false);
 
   const { favoriteStationIds: favoriteIds, toggleFavoriteStation: toggleFavorite } = useFavoriteStations();
   const { savedComparisons, saveComparison, removeComparison } = useSavedComparisons();
@@ -480,6 +487,30 @@ export function InteractiveComparePanel({
     return () => window.clearTimeout(timeoutId);
   }, [copyState]);
 
+  // Both early returns below are genuine empty states (no dimensions at all,
+  // or no comparable options); report each only once per mount.
+  useEffect(() => {
+    if (emptyStateTracked.current) {
+      return;
+    }
+
+    const noDimensions = data.dimensions.length === 0;
+    const noComparableOptions = !activeDimension || !leftOption || !rightOption;
+
+    if (!noDimensions && !noComparableOptions) {
+      return;
+    }
+
+    emptyStateTracked.current = true;
+    trackEvent(buildQualityEvent('empty_state_view', {
+      surface: 'public',
+      routeKey: 'compare',
+      source: 'compare_panel',
+      feature: noDimensions ? 'compare_dimensions' : 'compare_options',
+      result: 'empty',
+    }));
+  }, [activeDimension, data.dimensions.length, leftOption, rightOption]);
+
   if (data.dimensions.length === 0) {
     return (
       <section className="ui-section-card">
@@ -731,7 +762,19 @@ export function InteractiveComparePanel({
                     aria-pressed={isFavorite}
                     aria-label={isFavorite ? 'Quitar de guardadas' : 'Guardar estación'}
                     title={isFavorite ? 'Quitar de guardadas' : 'Guardar en este dispositivo'}
-                    onClick={() => toggleFavorite(side.option.id)}
+                    onClick={() => {
+                      toggleFavorite(side.option.id);
+                      trackEvent(buildEntityFavoriteEvent(
+                        isFavorite ? 'entity_favorite_remove' : 'entity_favorite_add',
+                        {
+                          surface: 'public',
+                          routeKey: 'compare',
+                          entityType: 'station',
+                          source: 'compare_picks',
+                          module: 'compare_panel',
+                        },
+                      ));
+                    }}
                   >
                     <span aria-hidden>{isFavorite ? '★' : '☆'}</span>
                   </button>
@@ -790,8 +833,24 @@ export function InteractiveComparePanel({
                     : new URL(shareHref, window.location.origin).toString();
                 await navigator.clipboard.writeText(absoluteUrl);
                 setCopyState('copied');
+                trackEvent(buildCopyActionEvent({
+                  surface: 'public',
+                  routeKey: 'compare',
+                  source: 'compare_panel',
+                  module: 'compare_panel',
+                  ctaId: 'copy_compare_link',
+                  result: 'success',
+                }));
               } catch {
                 setCopyState('error');
+                trackEvent(buildCopyActionEvent({
+                  surface: 'public',
+                  routeKey: 'compare',
+                  source: 'compare_panel',
+                  module: 'compare_panel',
+                  ctaId: 'copy_compare_link',
+                  result: 'error',
+                }));
               }
             }}
             variant="default"

@@ -44,6 +44,8 @@ import {
   buildDashboardModeChangeEvent,
   buildEntitySelectEvent,
   buildFilterChangeEvent,
+  buildTabChangeEvent,
+  buildViewModeChangeEvent,
   trackEvent,
 } from '@/lib/analytics';
 import { DashboardPageViewTracker } from './DashboardPageViewTracker';
@@ -617,6 +619,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             value={viewMode}
             onValueChange={(value) => {
               if (value === 'overview' || value === 'operations' || value === 'research' || value === 'data') {
+                trackEvent(buildTabChangeEvent({
+                  surface: 'dashboard',
+                  routeKey: dashboardRouteKey,
+                  source: 'dashboard_tabs',
+                  tab: value,
+                  module: 'dashboard_home',
+                  action: 'select',
+                }));
                 handleChangeMode(value);
               }
             }}
@@ -745,7 +755,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             totalStationsCount={totalStationsCount}
             activeAlertsCount={alertsData.alerts.length}
             updatedText={updatedText}
-            onSwitchToFull={() => setDensity('full')}
+            onSwitchToFull={() => {
+              trackEvent(buildViewModeChangeEvent({
+                surface: 'dashboard',
+                routeKey: dashboardRouteKey,
+                source: 'quick_header',
+                viewMode: 'full',
+                module: 'density',
+              }));
+              setDensity('full');
+            }}
           />
 
           {shouldShowDataStateNotice(dashboardDataState) ? (

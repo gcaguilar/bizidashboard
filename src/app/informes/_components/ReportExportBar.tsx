@@ -1,6 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  buildExportClickEvent,
+  buildExportResultEvent,
+  trackEvent,
+  type AnalyticsSurface,
+} from '@/lib/analytics';
 import { listReportExportSections } from '@/lib/monthly-report-export';
 import { downloadReportPagePdf } from '@/lib/report-pdf-download';
 import { appRoutes } from '@/lib/routes';
@@ -10,6 +16,9 @@ type ReportExportBarProps = {
   month: string;
   shareUrl?: string;
   shareText?: string;
+  /** Analytics context. Defaults to the public monthly report route. */
+  surface?: AnalyticsSurface;
+  routeKey?: string;
 };
 
 /** Cabecera que indica de donde salio el PDF servido por la API. */
@@ -36,13 +45,32 @@ function saveBlob(blob: Blob, filename: string): void {
  * pagina con html2pdf.js, de modo que el lector sigue recibiendo el informe
  * con su diseno.
  */
-export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarProps) {
+export function ReportExportBar({
+  month,
+  shareUrl,
+  shareText,
+  surface = 'public',
+  routeKey = 'monthly_report',
+}: ReportExportBarProps) {
   const sections = listReportExportSections();
   const [isGenerating, setIsGenerating] = useState(false);
   const filename = `informe-${month}.pdf`;
 
+  function trackExportClick(ctaId: string, exportFormat: 'pdf' | 'csv' | 'json') {
+    trackEvent(buildExportClickEvent({
+      surface,
+      routeKey,
+      source: 'report_export',
+      ctaId,
+      module: 'report_export_bar',
+      entityType: 'report',
+      exportFormat,
+    }));
+  }
+
   const handleDownloadPdf = async () => {
     setIsGenerating(true);
+    trackExportClick('report_pdf', 'pdf');
 
     try {
       const response = await fetch(appRoutes.api.reports({ month, format: 'pdf' }));
@@ -56,6 +84,10 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
 
       if (source !== 'table') {
         saveBlob(blob, filename);
+        trackEvent(buildExportResultEvent('export_success', {
+          surface, routeKey, source: 'report_export', ctaId: 'report_pdf',
+          module: 'report_export_bar', entityType: 'report', exportFormat: 'pdf', result: 'success',
+        }));
         return;
       }
 
@@ -65,6 +97,10 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
       if (root) {
         try {
           await downloadReportPagePdf({ root, filename });
+          trackEvent(buildExportResultEvent('export_success', {
+            surface, routeKey, source: 'report_export', ctaId: 'report_pdf',
+            module: 'report_export_bar', entityType: 'report', exportFormat: 'pdf', result: 'fallback',
+          }));
           return;
         } catch (error) {
           console.error('La captura del informe fallo; se descarga el PDF de tablas.', error);
@@ -72,8 +108,16 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
       }
 
       saveBlob(blob, filename);
+      trackEvent(buildExportResultEvent('export_success', {
+        surface, routeKey, source: 'report_export', ctaId: 'report_pdf',
+        module: 'report_export_bar', entityType: 'report', exportFormat: 'pdf', result: 'fallback',
+      }));
     } catch (error) {
       console.error('No se pudo obtener el PDF; se abre la impresion.', error);
+      trackEvent(buildExportResultEvent('export_error', {
+        surface, routeKey, source: 'report_export', ctaId: 'report_pdf',
+        module: 'report_export_bar', exportFormat: 'pdf', errorCategory: 'network',
+      }));
       window.print();
     } finally {
       setIsGenerating(false);
@@ -103,11 +147,17 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
           <a
             href={appRoutes.api.reports({ month, format: 'csv' })}
             download
+            onClick={() => trackExportClick('report_csv', 'csv')}
             className="ui-inline-action"
           >
             Descargar CSV
           </a>
-          <a href={appRoutes.api.reports({ month })} download className="ui-inline-action">
+          <a
+            href={appRoutes.api.reports({ month })}
+            download
+            onClick={() => trackExportClick('report_json', 'json')}
+            className="ui-inline-action"
+          >
             Descargar JSON
           </a>
           {shareUrl ? (
@@ -115,6 +165,7 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
               url={shareUrl}
               text={shareText ?? `Informe de Bizi Zaragoza · ${month}`}
               source="report_export"
+              entityType="report"
             />
           ) : null}
         </div>
@@ -130,6 +181,7 @@ export function ReportExportBar({ month, shareUrl, shareText }: ReportExportBarP
               key={section.id}
               href={appRoutes.api.reports({ month, format: 'csv', section: section.id })}
               download
+              onClick={() => trackExportClick('report_section_csv', 'csv')}
               className="ui-chip"
             >
               {section.title}

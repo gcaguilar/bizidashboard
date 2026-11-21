@@ -17,7 +17,14 @@ import {
   type FeedbackBannerState,
   type FeedbackModalState,
 } from '@/lib/feedback';
-import { buildCtaClickEvent, buildPanelOpenEvent, resolveRouteKeyFromPathname, trackEvent } from '@/lib/analytics';
+import {
+  buildCtaClickEvent,
+  buildPanelCloseEvent,
+  buildPanelOpenEvent,
+  buildQualityEvent,
+  resolveRouteKeyFromPathname,
+  trackEvent,
+} from '@/lib/analytics';
 
 const BICIRADAR_URL = 'https://biciradar.es';
 const DISABLE_WELCOME_MODAL =
@@ -273,9 +280,16 @@ export function BetaBanner() {
         '1'
       );
     } catch {
-      // ignore storage errors
+      trackEvent(buildQualityEvent('operation_error', {
+        surface: 'dashboard',
+        routeKey,
+        source: bannerVariant === 'feedback' ? 'feedback_banner' : 'biciradar_banner',
+        operation: 'persist_banner_dismissal',
+        errorCategory: 'permission',
+        result: 'error',
+      }));
     }
-  }, [bannerVariant, trackBiciRadarBanner]);
+  }, [bannerVariant, routeKey, trackBiciRadarBanner]);
 
   const openBiciRadarFromBanner = useCallback(() => {
     trackBiciRadarBanner('open');
@@ -283,20 +297,36 @@ export function BetaBanner() {
 
   const closeWelcomeModal = useCallback((reason: BiciRadarModalAction) => {
     trackBiciRadarModal(reason);
+    trackEvent(buildPanelCloseEvent({
+      surface: 'dashboard',
+      routeKey,
+      source: 'biciradar_modal',
+      panel: 'welcome_modal',
+      action: reason,
+    }));
     setWelcomeModalOpen(false);
 
     try {
       window.localStorage.setItem(BICIRADAR_WELCOME_MODAL_DISMISSED_STORAGE_KEY, '1');
     } catch {
-      // ignore storage errors
+      trackEvent(buildQualityEvent('operation_error', {
+        surface: 'dashboard',
+        routeKey,
+        source: 'biciradar_modal',
+        operation: 'persist_modal_dismissal',
+        errorCategory: 'permission',
+        result: 'error',
+      }));
     }
-  }, [trackBiciRadarModal]);
+  }, [routeKey, trackBiciRadarModal]);
 
   const openBiciRadarFromModal = useCallback(() => {
     trackBiciRadarModal('open');
   }, [trackBiciRadarModal]);
 
   const closeFeedbackModal = useCallback(() => {
+    // `panel_close` for this dialog is emitted by FeedbackDialog itself, so a
+    // second event here would double-count the same dismissal.
     setFeedbackModalOpen(false);
 
     try {
@@ -305,9 +335,16 @@ export function BetaBanner() {
         String(visitCount)
       );
     } catch {
-      // ignore storage errors
+      trackEvent(buildQualityEvent('operation_error', {
+        surface: 'dashboard',
+        routeKey,
+        source: 'global_feedback_modal',
+        operation: 'persist_modal_dismissal',
+        errorCategory: 'permission',
+        result: 'error',
+      }));
     }
-  }, [visitCount]);
+  }, [routeKey, visitCount]);
 
   useEffect(() => {
     try {

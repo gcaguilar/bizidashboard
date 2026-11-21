@@ -1,11 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { appRoutes } from '@/lib/routes';
 import { useDeveloperSession } from '@/lib/use-developer-session';
+import {
+  buildCopyActionEvent,
+  buildQualityEvent,
+  buildWorkflowEvent,
+  resolveRouteKeyFromPathname,
+  trackEvent,
+} from '@/lib/analytics';
 
 type ApiKeySummary = {
   id: string;
@@ -30,6 +38,9 @@ function formatDate(value: string | null): string {
 
 export function DeveloperApiRegistration() {
   const session = useDeveloperSession();
+  const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
   const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,10 +82,27 @@ export function DeveloperApiRegistration() {
     };
   }, [session.status, fetchKeys]);
 
+  useEffect(() => {
+    if (session.status === 'unavailable') {
+      trackEvent(buildQualityEvent('feature_unavailable', {
+        surface,
+        routeKey,
+        source: 'developer_keys',
+        feature: 'api_key_creation',
+        section: 'authentication',
+        result: 'unavailable',
+      }));
+    }
+  }, [routeKey, session.status, surface]);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
+    // Never send the form's `name`: only the workflow step is tracked.
+    trackEvent(buildWorkflowEvent('workflow_start', {
+      surface, routeKey, source: 'developer_keys', workflowName: 'api_key_creation',
+    }));
 
     try {
       const response = await fetch(appRoutes.api.developerRegister(), {
@@ -86,14 +114,34 @@ export function DeveloperApiRegistration() {
 
       if (!response.ok) {
         setError(data.error ?? 'No se pudo crear la clave.');
+        trackEvent(buildQualityEvent(response.status === 400 ? 'form_validation_error' : 'operation_error', {
+          surface,
+          routeKey,
+          source: 'developer_keys',
+          feature: 'api_key_creation',
+          operation: 'createApiKey',
+          errorCategory: response.status === 400 ? 'validation' : 'network',
+          result: 'error',
+        }));
         return;
       }
 
       setCreatedKey(data);
       setName('');
       await loadKeys();
+      trackEvent(buildWorkflowEvent('workflow_step_complete', {
+        surface, routeKey, source: 'developer_keys', workflowName: 'api_key_creation',
+        stepName: 'key_created', stepNumber: 1, result: 'success',
+      }));
+      trackEvent(buildWorkflowEvent('workflow_complete', {
+        surface, routeKey, source: 'developer_keys', workflowName: 'api_key_creation', result: 'success',
+      }));
     } catch {
       setError('No se pudo crear la clave. Inténtalo de nuevo.');
+      trackEvent(buildQualityEvent('operation_error', {
+        surface, routeKey, source: 'developer_keys', feature: 'api_key_creation',
+        operation: 'createApiKey', errorCategory: 'network', result: 'error',
+      }));
     } finally {
       setSubmitting(false);
     }
@@ -113,12 +161,30 @@ export function DeveloperApiRegistration() {
 
       if (!response.ok) {
         setError(data.error ?? 'No se pudo revocar la clave.');
+        trackEvent(buildQualityEvent('operation_error', {
+          surface,
+          routeKey,
+          source: 'developer_keys',
+          feature: 'api_key_revocation',
+          operation: 'revokeApiKey',
+          errorCategory: response.status === 400 ? 'validation' : 'network',
+          result: 'error',
+        }));
         return;
       }
 
       await loadKeys();
     } catch {
       setError('No se pudo revocar la clave. Inténtalo de nuevo.');
+      trackEvent(buildQualityEvent('operation_error', {
+        surface,
+        routeKey,
+        source: 'developer_keys',
+        feature: 'api_key_revocation',
+        operation: 'revokeApiKey',
+        errorCategory: 'network',
+        result: 'error',
+      }));
     } finally {
       setRevokingId(null);
     }
@@ -129,8 +195,16 @@ export function DeveloperApiRegistration() {
       await navigator.clipboard.writeText(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      trackEvent(buildCopyActionEvent({
+        surface, routeKey, source: 'developer_keys', module: 'api_key',
+        ctaId: 'copy_api_key', result: 'success',
+      }));
     } catch {
       setCopied(false);
+      trackEvent(buildCopyActionEvent({
+        surface, routeKey, source: 'developer_keys', module: 'api_key',
+        ctaId: 'copy_api_key', result: 'error',
+      }));
     }
   }
 

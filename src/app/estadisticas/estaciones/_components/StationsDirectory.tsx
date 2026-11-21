@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import type { StationDirectoryRow } from '@/lib/seo-stations';
 import { appRoutes } from '@/lib/routes';
@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectIcon, SelectItem, SelectTrigger, SelectVal
 import {
   trackEvent,
   buildFilterChangeEvent,
+  buildFilterClearEvent,
+  buildQualityEvent,
+  buildSortChangeEvent,
   resolveRouteKeyFromPathname,
 } from '@/lib/analytics';
 
@@ -109,6 +112,22 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
     return result;
   }, [stationRows, filter, sort, favoriteIds]);
 
+  const emptyStateTrackedRef = useRef(false);
+  useEffect(() => {
+    if (filteredAndSorted.length > 0 || emptyStateTrackedRef.current) {
+      return;
+    }
+    emptyStateTrackedRef.current = true;
+    trackEvent(buildQualityEvent('empty_state_view', {
+      surface: 'public',
+      routeKey,
+      source: 'stations_directory',
+      module: 'stations_directory',
+      feature: 'station_filters',
+      result: 'empty',
+    }));
+  }, [filteredAndSorted.length, routeKey]);
+
   return (
     <div className="space-y-6">
       {/* Filter bar */}
@@ -123,6 +142,16 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
               aria-pressed={filter === f.key}
               onClick={() => {
                 setFilter(f.key);
+                if (f.key === 'todas' && filter !== 'todas') {
+                  trackEvent(buildFilterClearEvent({
+                    surface: 'public',
+                    routeKey,
+                    source: 'stations_directory',
+                    module: 'stations_directory',
+                    filterCategory: 'station_availability',
+                  }));
+                  return;
+                }
                 trackEvent(
                   buildFilterChangeEvent({
                     surface: 'public',
@@ -147,16 +176,14 @@ export function StationsDirectory({ stationRows }: StationsDirectoryProps) {
             value={sort}
             onValueChange={(value) => {
               setSort(value as SortKey);
-              trackEvent(
-                buildFilterChangeEvent({
-                  surface: 'public',
-                  routeKey,
-                  module: 'stations_directory',
-                  source: 'sort',
-                  destination: value as string,
-                  resultCount: filteredAndSorted.length,
-                }),
-              );
+              trackEvent(buildSortChangeEvent({
+                surface: 'public',
+                routeKey,
+                source: 'stations_directory',
+                sortKey: value as string,
+                module: 'stations_directory',
+                section: 'station_list',
+              }));
             }}
           >
             <SelectTrigger id="stations-sort" className="min-w-[15rem]">

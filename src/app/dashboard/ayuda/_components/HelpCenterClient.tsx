@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from '@tanstack/react-router';
 import { FeedbackCta } from '@/app/_components/FeedbackCta';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
 import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
@@ -20,7 +21,15 @@ import type { HistoryMetadata } from '@/services/shared-data/types';
 import {
   buildCtaClickEvent,
   buildExportClickEvent,
+  buildFilterClearEvent,
+  buildPanelCloseEvent,
   buildPanelOpenEvent,
+  buildQualityEvent,
+  buildSearchClearEvent,
+  buildSearchNoResultsEvent,
+  buildSearchResultsViewEvent,
+  buildTabChangeEvent,
+  resolveRouteKeyFromPathname,
   trackEvent,
 } from '@/lib/analytics';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
@@ -50,6 +59,9 @@ type HelpCenterClientProps = {
 };
 
 export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
+  const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string>(FAQ_ITEMS[0]?.id ?? '');
@@ -85,6 +97,57 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
 
   const faqStructuredData = HELP_CENTER_FAQ_STRUCTURED_DATA;
 
+  const lastSearchRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (normalizedQuery.length < 2) {
+      lastSearchRef.current = null;
+      return;
+    }
+
+    const key = `${normalizedQuery}:${filteredItems.length}`;
+    if (lastSearchRef.current === key) {
+      return;
+    }
+    lastSearchRef.current = key;
+
+    if (filteredItems.length === 0) {
+      trackEvent(buildSearchNoResultsEvent({
+        surface,
+        routeKey,
+        source: 'help_center_search',
+        queryLength: normalizedQuery.length,
+        searchType: 'help_center',
+        section: 'faq',
+      }));
+      return;
+    }
+
+    trackEvent(buildSearchResultsViewEvent({
+      surface,
+      routeKey,
+      source: 'help_center_search',
+      resultsCount: filteredItems.length,
+      searchType: 'help_center',
+      section: 'faq',
+    }));
+  }, [filteredItems.length, normalizedQuery, routeKey, surface]);
+
+  const emptyStateTrackedRef = useRef(false);
+  useEffect(() => {
+    if (groupedItems.length > 0 || emptyStateTrackedRef.current || normalizedQuery.length < 2) {
+      return;
+    }
+    emptyStateTrackedRef.current = true;
+    trackEvent(buildQualityEvent('empty_state_view', {
+      surface,
+      routeKey,
+      source: 'help_center_search',
+      module: 'help_center',
+      feature: 'faq',
+      result: 'empty',
+    }));
+  }, [groupedItems.length, normalizedQuery.length, routeKey, surface]);
+
   const showFilteredCount = normalizedQuery.length > 0 || activeCategory !== null;
 
   const resolvedOpenItemId =
@@ -93,6 +156,17 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
       : filteredItems.some((item) => item.id === openItemId)
         ? openItemId
         : (filteredItems[0]?.id ?? '');
+
+  const trackFaqCategoryReset = () => {
+    trackEvent(buildFilterClearEvent({
+      surface,
+      routeKey,
+      source: 'help_faq_categories',
+      module: 'faq',
+      filterCategory: 'faq_category',
+      section: 'faq',
+    }));
+  };
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
@@ -172,12 +246,34 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 {filteredItems.length} preguntas visibles
               </span>
               {activeCategory ? (
-                <Button variant="chip" size="sm" onClick={() => setActiveCategory(null)} className="rounded-full">
+                <Button
+                  variant="chip"
+                  size="sm"
+                  onClick={() => {
+                    trackFaqCategoryReset();
+                    setActiveCategory(null);
+                  }}
+                  className="rounded-full"
+                >
                   Categoria: {activeCategory} ×
                 </Button>
               ) : null}
               {normalizedQuery ? (
-                <Button variant="chip" size="sm" onClick={() => setQuery('')} className="rounded-full">
+                <Button
+                  variant="chip"
+                  size="sm"
+                  onClick={() => {
+                    trackEvent(buildSearchClearEvent({
+                      surface,
+                      routeKey,
+                      source: 'help_center_search',
+                      searchType: 'help_center',
+                      section: 'faq',
+                    }));
+                    setQuery('');
+                  }}
+                  className="rounded-full"
+                >
                   Buscar: {query} ×
                 </Button>
               ) : null}
@@ -268,14 +364,18 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 key={category}
                 onClick={() => {
                   const nextCategory = activeCategory === category ? null : category;
-                  trackEvent(
-                    buildPanelOpenEvent({
-                      surface: 'dashboard',
-                      routeKey: 'dashboard_help',
-                      module: nextCategory ? 'faq_category' : 'faq_category_reset',
-                      source: category,
-                    })
-                  );
+                  if (nextCategory === null) {
+                    trackFaqCategoryReset();
+                  } else {
+                    trackEvent(buildTabChangeEvent({
+                      surface,
+                      routeKey,
+                      source: 'help_faq_categories',
+                      tab: category,
+                      module: 'faq',
+                      action: 'select',
+                    }));
+                  }
                   setActiveCategory(nextCategory);
                 }}
                 aria-pressed={isCategoryFilterActive}
@@ -321,7 +421,28 @@ export function HelpCenterClient({ historyMeta }: HelpCenterClientProps) {
                 <Accordion
                   className="space-y-3"
                   value={resolvedOpenItemId ? [resolvedOpenItemId] : []}
-                  onValueChange={(value) => setOpenItemId(value[0] ?? '')}
+                  onValueChange={(value) => {
+                    const openedItemId = value[0] ?? '';
+                    if (openedItemId) {
+                      trackEvent(buildPanelOpenEvent({
+                        surface,
+                        routeKey,
+                        module: 'faq',
+                        source: 'faq_accordion',
+                        panel: 'faq_answer',
+                      }));
+                    } else {
+                      trackEvent(buildPanelCloseEvent({
+                        surface,
+                        routeKey,
+                        source: 'faq_accordion',
+                        module: 'faq',
+                        action: 'collapse',
+                        panel: 'faq_answer',
+                      }));
+                    }
+                    setOpenItemId(openedItemId);
+                  }}
                 >
                   {items.map((item) => (
                     <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">

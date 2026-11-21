@@ -65,6 +65,12 @@ import {
 } from '@/components/ui/table';
 import type { StationDiagnostic, StationClassification, ActionGroup, Urgency } from '@/types/rebalancing';
 import { escapeCsvCell } from '@/lib/csv';
+import {
+  buildCopyActionEvent,
+  buildExportClickEvent,
+  buildExportResultEvent,
+  trackEvent,
+} from '@/lib/analytics';
 
 type TableParams = {
   sort?: string;
@@ -656,8 +662,24 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
               try {
                 await copyToClipboard(data);
                 setCopyState('copied');
+                trackEvent(buildCopyActionEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  source: 'redistribucion_table',
+                  module: 'rebalancing_table',
+                  ctaId: 'copy_rows',
+                  result: 'success',
+                }));
               } catch {
                 setCopyState('error');
+                trackEvent(buildCopyActionEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  source: 'redistribucion_table',
+                  module: 'rebalancing_table',
+                  ctaId: 'copy_rows',
+                  result: 'error',
+                }));
               }
             }}
             variant="ghost"
@@ -669,7 +691,40 @@ export function RebalancingTable({ diagnostics, initialParams }: Props) {
         )}
         {totalRows > 0 && (
           <Button
-            onClick={() => exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion')}
+            onClick={() => {
+              trackEvent(buildExportClickEvent({
+                surface: 'dashboard',
+                routeKey: 'dashboard_redistribucion',
+                source: 'redistribucion_table',
+                ctaId: 'rebalancing_table_csv',
+                module: 'rebalancing_table',
+                entityType: 'report',
+                exportFormat: 'csv',
+              }));
+              try {
+                exportToCSV(table.getFilteredRowModel().rows.map((r) => r.original), 'estaciones-redistribucion');
+                trackEvent(buildExportResultEvent('export_success', {
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  source: 'redistribucion_table',
+                  ctaId: 'rebalancing_table_csv',
+                  module: 'rebalancing_table',
+                  entityType: 'report',
+                  exportFormat: 'csv',
+                  result: 'success',
+                }));
+              } catch {
+                trackEvent(buildExportResultEvent('export_error', {
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_redistribucion',
+                  source: 'redistribucion_table',
+                  ctaId: 'rebalancing_table_csv',
+                  module: 'rebalancing_table',
+                  exportFormat: 'csv',
+                  errorCategory: 'unknown',
+                }));
+              }
+            }}
             variant="ghost"
             size="sm"
             className="min-h-7 px-1 text-xs text-[var(--primary)] hover:underline"

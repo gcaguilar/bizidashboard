@@ -42,6 +42,13 @@ import {
   parseDashboardAlertsSearch,
   type DashboardAlertsViewState,
 } from '@/lib/dashboard-alerts-search';
+import {
+  buildCopyActionEvent,
+  buildExportClickEvent,
+  buildFilterClearEvent,
+  buildQualityEvent,
+  trackEvent,
+} from '@/lib/analytics';
 
 // Dashboard sections contract: dashboard, stations, flow, conclusions, redistribucion, help.
 
@@ -263,8 +270,34 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
           query: apiQueryString,
         },
       });
+      // Only an error category is sent: never the query, station id or dates.
+      trackEvent(buildQualityEvent('data_load_error', {
+        surface: 'dashboard',
+        routeKey: 'dashboard_alerts',
+        source: 'alerts_history',
+        module: 'alerts_history_table',
+        operation: 'loadAlertsHistory',
+        errorCategory: 'network',
+        result: 'error',
+      }));
     }
   }, [apiQueryString, historyQuery.error]);
+
+  const emptyStateTrackedRef = useRef(false);
+  useEffect(() => {
+    if (isLoading || errorMessage || rows.length > 0 || emptyStateTrackedRef.current) {
+      return;
+    }
+    emptyStateTrackedRef.current = true;
+    trackEvent(buildQualityEvent('empty_state_view', {
+      surface: 'dashboard',
+      routeKey: 'dashboard_alerts',
+      source: 'alerts_history',
+      module: 'alerts_history_table',
+      feature: 'alerts_history',
+      result: 'empty',
+    }));
+  }, [isLoading, errorMessage, rows.length]);
 
   const pageCount = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
   const hasNextPage = page + 1 < pageCount;
@@ -296,8 +329,24 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
     try {
       await navigator.clipboard.writeText(text);
       setCopyState('copied');
+      trackEvent(buildCopyActionEvent({
+        surface: 'dashboard',
+        routeKey: 'dashboard_alerts',
+        source: 'alerts_history',
+        module: 'alerts_history_table',
+        ctaId: 'copy_alerts',
+        result: 'success',
+      }));
     } catch {
       setCopyState('error');
+      trackEvent(buildCopyActionEvent({
+        surface: 'dashboard',
+        routeKey: 'dashboard_alerts',
+        source: 'alerts_history',
+        module: 'alerts_history_table',
+        ctaId: 'copy_alerts',
+        result: 'error',
+      }));
     }
   }, [rows]);
 
@@ -350,6 +399,15 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
   };
 
   const clearFilters = () => {
+    if (hasActiveFilters) {
+      trackEvent(buildFilterClearEvent({
+        surface: 'dashboard',
+        routeKey: 'dashboard_alerts',
+        source: 'alerts_history_filters',
+        module: 'alerts_history',
+        filterCategory: 'alerts_history',
+      }));
+    }
     setStationId('');
     setAlertType('all');
     setStateFilter('all');
@@ -545,6 +603,15 @@ export function AlertsHistoryClient({ stations }: AlertsHistoryClientProps) {
             {session.status === 'authenticated' ? (
               <a
                 href={downloadCsvHref}
+                onClick={() => trackEvent(buildExportClickEvent({
+                  surface: 'dashboard',
+                  routeKey: 'dashboard_alerts',
+                  source: 'alerts_history',
+                  ctaId: 'alerts_history_csv',
+                  module: 'alerts_history_table',
+                  entityType: 'api',
+                  exportFormat: 'csv',
+                }))}
                 className="ui-inline-action"
               >
                 CSV

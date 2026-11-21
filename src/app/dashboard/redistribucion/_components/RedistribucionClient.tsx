@@ -20,7 +20,8 @@ import { buildLoginHref, useDeveloperSession } from '@/lib/use-developer-session
 import {
   buildExportClickEvent,
   buildFilterChangeEvent,
-  buildPanelOpenEvent,
+  buildQualityEvent,
+  buildTabChangeEvent,
   trackEvent,
 } from '@/lib/analytics';
 import { DashboardPageViewTracker } from '@/app/dashboard/_components/DashboardPageViewTracker';
@@ -85,6 +86,15 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
           district: districtFilter,
         },
       });
+      trackEvent(buildQualityEvent('data_load_error', {
+        surface: 'dashboard',
+        routeKey: 'dashboard_redistribucion',
+        source: 'redistribucion_report',
+        module: 'redistribucion_report',
+        operation: 'loadRebalancingReport',
+        errorCategory: 'network',
+        result: 'error',
+      }));
     }
   }, [districtFilter, reportQuery.error, selectedDays]);
 
@@ -168,6 +178,7 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
                   module: 'district_filter',
                   source: 'redistribucion_filters',
                   destination: nextValue ? 'filtered' : 'all',
+                  filterCategory: 'district',
                 })
               );
               handleDistrictChange(nextValue);
@@ -262,11 +273,12 @@ export function RedistribucionClient({ districtNames, tableParams }: Props) {
 
           const nextTab = value as Tab;
           trackEvent(
-            buildPanelOpenEvent({
+            buildTabChangeEvent({
               surface: 'dashboard',
               routeKey: 'dashboard_redistribucion',
-              module: nextTab,
               source: 'redistribucion_tabs',
+              tab: nextTab,
+              module: 'redistribucion_report',
             })
           );
           setActiveTab(nextTab);

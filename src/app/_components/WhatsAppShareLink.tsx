@@ -1,18 +1,24 @@
-import { TrackedAnchor } from '@/app/_components/TrackedAnchor'
-import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales'
-import { translate } from '@/lib/i18n/messages'
+'use client';
+
+import { useLocation } from '@tanstack/react-router';
+import { TrackedAnchor } from '@/app/_components/TrackedAnchor';
+import { buildShareActionEvent, resolveRouteKeyFromPathname, type AnalyticsEntityType } from '@/lib/analytics';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n/locales';
+import { translate } from '@/lib/i18n/messages';
 
 type WhatsAppShareLinkProps = {
-  url: string
-  text: string
-  source: string
-  className?: string
-  locale?: Locale
-}
+  url: string;
+  text: string;
+  source: string;
+  className?: string;
+  locale?: Locale;
+  /** Tipo de contenido compartido; se omite cuando el llamador no lo conoce. */
+  entityType?: AnalyticsEntityType;
+};
 
 /**
  * Enlace de compartir por WhatsApp sin SDK ni cookies: solo un enlace universal.
- * En España es el canal de distribución real para contenido local.
+ * Emite `share_action` (canal whatsapp), sin texto libre ni URLs con parámetros.
  */
 export function WhatsAppShareLink({
   url,
@@ -20,26 +26,28 @@ export function WhatsAppShareLink({
   source,
   className = 'ui-inline-action',
   locale = DEFAULT_LOCALE,
+  entityType,
 }: WhatsAppShareLinkProps) {
-  const href = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`
+  const pathname = useLocation().pathname;
+  const href = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? 'dashboard' : 'public';
 
   return (
     <TrackedAnchor
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      ctaEvent={{
+      trackingEvent={buildShareActionEvent({
+        surface,
+        routeKey,
         source,
-        ctaId: 'share_whatsapp',
-        destination: 'whatsapp',
-        sourceRole: 'utility',
-        destinationRole: 'utility',
-        transitionKind: 'external',
-        isExternal: true,
-      }}
+        channel: 'whatsapp',
+        entityType,
+      })}
       className={className}
     >
       {translate(locale, 'share.whatsapp')}
     </TrackedAnchor>
-  )
+  );
 }

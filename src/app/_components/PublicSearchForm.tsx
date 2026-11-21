@@ -10,6 +10,10 @@ import { appRoutes } from '@/lib/routes';
 import type { DistrictOption } from '@/server-functions/home';
 import { useFavoriteStations } from '@/lib/use-favorite-stations';
 import {
+  buildSearchClearEvent,
+  buildSearchNoResultsEvent,
+  buildSearchResultSelectEvent,
+  buildSearchResultsViewEvent,
   buildSearchSubmitEvent,
   resolveRouteKeyFromPathname,
   trackEvent,
@@ -61,6 +65,7 @@ export function PublicSearchForm({
 }: PublicSearchFormProps) {
   const { t } = useT();
   const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -101,6 +106,43 @@ export function PublicSearchForm({
   }, [query, suggestionPool, favoriteIds, districts]);
   const showSuggestions = isFocused && suggestions.length > 0;
 
+  const lastSearchSignatureRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (query.length < 2) {
+      lastSearchSignatureRef.current = null;
+      return;
+    }
+
+    const signature = `${query}|${suggestions.length > 0}`;
+    if (lastSearchSignatureRef.current === signature) {
+      return;
+    }
+    lastSearchSignatureRef.current = signature;
+
+    const searchType = 'station_district_suggestions';
+    const section = 'suggestions';
+    const analyticsBase = {
+      surface: 'public' as const,
+      routeKey,
+      source: eventSource,
+      searchType,
+      section,
+    };
+
+    if (suggestions.length > 0) {
+      trackEvent(buildSearchResultsViewEvent({
+        ...analyticsBase,
+        resultsCount: suggestions.length,
+      }));
+      return;
+    }
+
+    trackEvent(buildSearchNoResultsEvent({
+      ...analyticsBase,
+      queryLength: query.length,
+    }));
+  }, [eventSource, query, routeKey, suggestions.length]);
+
   useEffect(() => {
     if (stations) {
       return;
@@ -121,6 +163,15 @@ export function PublicSearchForm({
 
   const selectSuggestion = useCallback(
     (suggestion: SearchSuggestion) => {
+      trackEvent(buildSearchResultSelectEvent({
+        surface: 'public',
+        routeKey,
+        source: eventSource,
+        searchType: 'station_district_suggestions',
+        entityType: suggestion.kind === 'station' ? 'station' : 'district',
+        section: 'suggestions',
+        action: 'navigate',
+      }));
       setIsFocused(false);
       setQuery('');
 
@@ -131,10 +182,30 @@ export function PublicSearchForm({
 
       void navigate({ to: appRoutes.stationDetail(suggestion.station.id) });
     },
-    [navigate],
+    [eventSource, navigate, routeKey],
   );
 
+  const trackSearchClear = () => {
+    trackEvent(buildSearchClearEvent({
+      surface: 'public',
+      routeKey,
+      source: eventSource,
+      searchType: 'station_district_suggestions',
+      section: 'suggestions',
+    }));
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (query.length > 0) {
+        trackSearchClear();
+        setQuery('');
+      }
+      setIsFocused(false);
+      setSelectedIndex(-1);
+      return;
+    }
+
     if (!showSuggestions || suggestions.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -146,9 +217,6 @@ export function PublicSearchForm({
     } else if (e.key === 'Enter' && selectedIndex >= 0 && selectedIndex < suggestions.length) {
       e.preventDefault();
       selectSuggestion(suggestions[selectedIndex]);
-    } else if (e.key === 'Escape') {
-      setIsFocused(false);
-      setSelectedIndex(-1);
     }
   };
 
@@ -158,7 +226,7 @@ export function PublicSearchForm({
     trackEvent(
       buildSearchSubmitEvent({
         surface: 'public',
-        routeKey: resolveRouteKeyFromPathname(pathname),
+        routeKey,
         source: eventSource,
         queryLength: q.length,
       }),
@@ -188,7 +256,11 @@ export function PublicSearchForm({
             placeholder={placeholder ?? t('home.search.placeholder')}
             autoComplete="off"
             onChange={(e) => {
-              setQuery(e.target.value);
+              const nextQuery = e.target.value;
+              if (query.length > 0 && nextQuery.length === 0) {
+                trackSearchClear();
+              }
+              setQuery(nextQuery);
               setSelectedIndex(-1);
             }}
             onFocus={() => setIsFocused(true)}

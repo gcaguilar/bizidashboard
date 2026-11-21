@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { buildCtaClickEvent, trackEvent } from '@/lib/analytics';
+import { buildCtaClickEvent, buildWorkflowEvent, trackEvent } from '@/lib/analytics';
 
 export const MCP_SERVER_URL = 'https://mcp.datosbizi.com/mcp';
 export const MCP_CLIENT_ID = 'K2oblTaeUOJrP7mH6z97BSj0J2qcHaFX';
@@ -116,34 +116,72 @@ const TROUBLESHOOTING = [
 
 export function McpInstallGuide() {
   const [notice, setNotice] = useState<Notice>(null);
+  const startedWorkflows = useRef<Set<string>>(new Set());
 
-  async function copyValue(value: string, successMessage: string, fallbackMessage: string) {
+  async function copyValue(value: string, successMessage: string, fallbackMessage: string): Promise<boolean> {
     const copied = await copyText(value);
 
     if (copied) {
       setNotice({ kind: 'success', text: successMessage });
-      return;
+    } else {
+      setNotice({ kind: 'error', text: fallbackMessage });
     }
 
-    setNotice({ kind: 'error', text: fallbackMessage });
+    return copied;
+  }
+
+  function startWorkflow(workflowName: string, section: string) {
+    if (startedWorkflows.current.has(workflowName)) {
+      return;
+    }
+    startedWorkflows.current.add(workflowName);
+    trackEvent(buildWorkflowEvent('workflow_start', {
+      surface: 'public',
+      routeKey: 'mcp',
+      source: 'mcp_install',
+      workflowName,
+      section,
+    }));
   }
 
   function handleChatgptConnect() {
     trackInstallAction('mcp_connect_chatgpt', 'chatgpt');
+    startWorkflow('mcp_connect_chatgpt', 'chatgpt');
     void copyValue(
       MCP_SERVER_URL,
       'URL copiada. ChatGPT se abre en otra pestaña.',
       'No se pudo copiar automáticamente. Selecciona y copia la URL del campo.'
-    );
+    ).then((copied) => {
+      trackEvent(buildWorkflowEvent('workflow_step_complete', {
+        surface: 'public',
+        routeKey: 'mcp',
+        source: 'mcp_install',
+        workflowName: 'mcp_connect_chatgpt',
+        stepName: 'copy_server_url',
+        stepNumber: 1,
+        result: copied ? 'success' : 'error',
+      }));
+    });
   }
 
   function handleClaudeConnect() {
     trackInstallAction('mcp_connect_claude', 'claude');
+    startWorkflow('mcp_connect_claude', 'claude');
     void copyValue(
       MCP_SERVER_URL,
       'URL copiada. Claude se abre en otra pestaña.',
       'No se pudo copiar automáticamente. Selecciona y copia la URL del campo.'
-    );
+    ).then((copied) => {
+      trackEvent(buildWorkflowEvent('workflow_step_complete', {
+        surface: 'public',
+        routeKey: 'mcp',
+        source: 'mcp_install',
+        workflowName: 'mcp_connect_claude',
+        stepName: 'copy_server_url',
+        stepNumber: 1,
+        result: copied ? 'success' : 'error',
+      }));
+    });
   }
 
   return (

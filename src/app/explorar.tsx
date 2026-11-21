@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useLocation } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { z } from 'zod';
 import { PageShell } from '@/components/layout/page-shell';
 import { SiteBreadcrumbs } from '@/app/_components/SiteBreadcrumbs';
@@ -9,6 +10,13 @@ import { appRoutes } from '@/lib/routes';
 import { buildSeoHead } from '@/lib/seo-head';
 import type { GlobalSearchResponse } from '@/lib/global-search';
 import { RouteErrorReporter } from '@/lib/route-error-reporting';
+import {
+  buildSearchNoResultsEvent,
+  buildSearchResultSelectEvent,
+  buildSearchResultsViewEvent,
+  resolveRouteKeyFromPathname,
+  trackEvent,
+} from '@/lib/analytics';
 
 export const Route = createFileRoute('/explorar')({
   ssr: 'data-only',
@@ -57,7 +65,33 @@ function ExploreSearchResults({
   searchQuery: string;
   searchResults: GlobalSearchResponse;
 }) {
+  const pathname = useLocation().pathname;
+  const routeKey = resolveRouteKeyFromPathname(pathname);
+  const surface = pathname?.startsWith('/dashboard') ? ('dashboard' as const) : ('public' as const);
   const hasMatches = searchResults.totalMatches > 0;
+
+  useEffect(() => {
+    const base = {
+      surface,
+      routeKey,
+      source: 'explore_search',
+      searchType: 'global',
+      section: 'explore_results',
+    };
+
+    if (hasMatches) {
+      trackEvent(buildSearchResultsViewEvent({
+        ...base,
+        resultsCount: searchResults.totalMatches,
+      }));
+      return;
+    }
+
+    trackEvent(buildSearchNoResultsEvent({
+      ...base,
+      queryLength: searchQuery.length,
+    }));
+  }, [hasMatches, routeKey, searchQuery.length, searchResults.totalMatches, surface]);
 
   return (
     <section className="ui-section-card">
@@ -79,13 +113,14 @@ function ExploreSearchResults({
                 <TrackedLink
                   key={result.id}
                   href={result.href}
-                  navigationEvent={{
+                  trackingEvent={buildSearchResultSelectEvent({
+                    surface: 'public',
+                    routeKey: 'explore',
                     source: 'explore_search',
-                    destination: result.id,
-                    sourceRole: 'hub',
-                    destinationRole: 'hub',
-                    transitionKind: 'within_public',
-                  }}
+                    searchType: 'global_search',
+                    section: 'explore_hub',
+                    action: 'open_result',
+                  })}
                   className="ui-surface-block ui-surface-block-interactive flex items-center justify-between gap-3 px-4 py-3"
                 >
                   <div>
